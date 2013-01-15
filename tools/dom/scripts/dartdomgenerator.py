@@ -195,24 +195,6 @@ def main():
     database = LoadDatabase(database_dir, options.use_database_cache)
   GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir)
 
-  _logger.info('Add documentation to generated classes.')
-  html_to_json_script = os.path.relpath(
-      '../../html_json_doc/bin/html_json_doc.dart',
-      current_dir)
-  html_output_dir = os.path.join(output_dir, 'dart2js/dart/html/')
-  svg_output_dir = os.path.join(output_dir, 'dart2js/dart/svg/')
-  html_json_path = os.path.relpath('../docs/html_docs.json')
-  svg_json_path = os.path.relpath('../docs/svg_docs.json')
-
-  path_to_dart = utils.DartSdkBinary()
-  html_command = ' '.join([path_to_dart, html_to_json_script,
-                           '--mode=json-to-html', html_output_dir,
-                           html_json_path])
-  svg_command = ' '.join([path_to_dart, html_to_json_script,
-                          '--mode=json-to-html', svg_output_dir, svg_json_path])
-  subprocess.call([html_command], shell=True)
-  subprocess.call([svg_command], shell=True)
-
   if 'htmldart2js' in systems:
     _logger.info('Generating dart2js single files.')
     for library_name in _libraries:

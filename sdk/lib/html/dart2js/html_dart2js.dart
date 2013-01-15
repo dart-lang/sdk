@@ -871,54 +871,12 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
     return e;
   }
 
-  /// The height of this canvas element in CSS pixels.
   /// @domName HTMLCanvasElement.height; @docsEditable true
   int height;
 
-  /// The width of this canvas element in CSS pixels.
   /// @domName HTMLCanvasElement.width; @docsEditable true
   int width;
 
-  /**
-   * Returns a data URI containing a representation of the image in the
-   * format specified by type (defaults to 'image/png').
-   *
-   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
-   *
-   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
-   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
-   * value is used. Note: the default value varies by browser.
-   *
-   * If the height or width of this canvas element is 0, then 'data:' is returned,
-   * representing no data.
-   *
-   * If the type requested is not 'image/png', and the returned value is
-   * 'data:image/png', then the requested type is not supported.
-   *
-   * Example usage:
-   *
-   *     CanvasElement canvas = new CanvasElement();
-   *     var ctx = canvas.context2d
-   *     ..fillStyle = "rgb(200,0,0)"
-   *     ..fillRect(10, 10, 55, 50);
-   *     var dataUrl = canvas.toDataURL("image/jpeg", 0.95);
-   *     // The Data Uri would look similar to
-   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
-   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
-   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
-   *     //Create a new image element from the data URI.
-   *     var img = new ImageElement();
-   *     img.src = dataUrl;
-   *     document.body.children.add(img);
-   *
-   * See also:
-   *
-   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
-   *
-   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
-   *
-   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
-   */
   /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
   @JSName('toDataURL')
   String toDataUrl(String type, [num quality]) native;
@@ -932,47 +890,9 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An opaque canvas object representing a gradient.
- *
- * Created by calling [createLinearGradient] or [createRadialGradient] on a
- * [CanvasRenderingContext2D] object.
- *
- * Example usage:
- *
- *     var canvas = new CanvasElement(width: 600, height: 600);
- *     var ctx = canvas.context2d;
- *     ctx.clearRect(0, 0, 600, 600);
- *     ctx.save();
- *     // Create radial gradient.
- *     CanvasGradient gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);
- *     gradient.addColorStop(0, '#000');
- *     gradient.addColorStop(1, 'rgb(255, 255, 255)');
- *     // Assign gradients to fill.
- *     ctx.fillStyle = gradient;
- *     // Draw a rectangle with a gradient fill.
- *     ctx.fillRect(0, 0, 600, 600);
- *     ctx.save();
- *     document.body.children.add(canvas);
- *
- * See also:
- *
- * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
- * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
- * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
- */
 /// @domName CanvasGradient; @docsEditable true
 class CanvasGradient native "*CanvasGradient" {
 
-  /**
-   * Adds a color stop to this gradient at the offset.
-   *
-   * The [offset] can range between 0.0 and 1.0.
-   *
-   * See also:
-   *
-   * * [Multiple Color Stops](https://developer.mozilla.org/en-US/docs/CSS/linear-gradient#Gradient_with_multiple_color_stops) from MDN.
-   */
   /// @domName CanvasGradient.addColorStop; @docsEditable true
   void addColorStop(num offset, String color) native;
 }
@@ -981,33 +901,6 @@ class CanvasGradient native "*CanvasGradient" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An opaque object representing a pattern of image, canvas, or video.
- *
- * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.
- *
- * Example usage:
- *
- *     var canvas = new CanvasElement(width: 600, height: 600);
- *     var ctx = canvas.context2d;
- *     var img = new ImageElement();
- *     // Image src needs to be loaded before pattern is applied.
- *     img.on.load.add((event) {
- *       // When the image is loaded, create a pattern
- *       // from the ImageElement.
- *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');
- *       ctx.rect(0, 0, canvas.width, canvas.height);
- *       ctx.fillStyle = pattern;
- *       ctx.fill();
- *     });
- *     img.src = "images/foo.jpg";
- *     document.body.children.add(canvas);
- *
- * See also:
- * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
- * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
- * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
- */
 /// @domName CanvasPattern; @docsEditable true
 class CanvasPattern native "*CanvasPattern" {
 }
@@ -1016,16 +909,9 @@ class CanvasPattern native "*CanvasPattern" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * A rendering context for a canvas element.
- *
- * This context is extended by [CanvasRenderingContext2D] and
- * [WebGLRenderingContext].
- */
 /// @domName CanvasRenderingContext; @docsEditable true
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  /// Reference to the canvas element to which this context belongs.
   /// @domName CanvasRenderingContext.canvas; @docsEditable true
   final CanvasElement canvas;
 }
@@ -5795,27 +5681,6 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Represents an HTML <div> element.
- *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
- *
- * The [DivElement] is a block-level element, as opposed to [SpanElement],
- * which is an inline-level element.
- *
- * Example usage:
- *
- *     DivElement div = new DivElement();
- *     div.text = 'Here's my new DivElem
- *     document.body.elements.add(elem);
- *
- * See also:
- *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
- * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
- * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
- */
 /// @domName HTMLDivElement; @docsEditable true
 class DivElement extends Element native "*HTMLDivElement" {
 
@@ -5943,7 +5808,6 @@ class Document extends Node  native "*Document"
   DocumentEvents get on =>
     new DocumentEvents(this);
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.body; @docsEditable true
   @JSName('body')
   Element $dom_body;
@@ -5966,7 +5830,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.domain; @docsEditable true
   final String domain;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.head; @docsEditable true
   @JSName('head')
   final HeadElement $dom_head;
@@ -5974,7 +5837,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.implementation; @docsEditable true
   final DomImplementation implementation;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.lastModified; @docsEditable true
   @JSName('lastModified')
   final String $dom_lastModified;
@@ -5986,7 +5848,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.readyState; @docsEditable true
   final String readyState;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.referrer; @docsEditable true
   @JSName('referrer')
   final String $dom_referrer;
@@ -5995,48 +5856,39 @@ class Document extends Node  native "*Document"
   @JSName('selectedStylesheetSet')
   String $dom_selectedStylesheetSet;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.styleSheets; @docsEditable true
   @JSName('styleSheets')
   @Returns('_StyleSheetList') @Creates('_StyleSheetList')
   final List<StyleSheet> $dom_styleSheets;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.title; @docsEditable true
   @JSName('title')
   String $dom_title;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitFullscreenElement; @docsEditable true
   @JSName('webkitFullscreenElement')
   final Element $dom_webkitFullscreenElement;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitFullscreenEnabled; @docsEditable true
   @JSName('webkitFullscreenEnabled')
   final bool $dom_webkitFullscreenEnabled;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitHidden; @docsEditable true
   @JSName('webkitHidden')
   final bool $dom_webkitHidden;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitIsFullScreen; @docsEditable true
   @JSName('webkitIsFullScreen')
   final bool $dom_webkitIsFullScreen;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitPointerLockElement; @docsEditable true
   @JSName('webkitPointerLockElement')
   final Element $dom_webkitPointerLockElement;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitVisibilityState; @docsEditable true
   @JSName('webkitVisibilityState')
   final String $dom_webkitVisibilityState;
 
-  /// Use the [Range] constructor instead.
   /// @domName Document.caretRangeFromPoint; @docsEditable true
   @JSName('caretRangeFromPoint')
   Range $dom_caretRangeFromPoint(int x, int y) native;
@@ -6048,7 +5900,6 @@ class Document extends Node  native "*Document"
   /// @domName Document.createDocumentFragment; @docsEditable true
   DocumentFragment createDocumentFragment() native;
 
-  /// Deprecated: use new Element.tag(tagName) instead.
   /// @domName Document.createElement; @docsEditable true
   @JSName('createElement')
   Element $dom_createElement(String tagName) native;
@@ -6077,12 +5928,10 @@ class Document extends Node  native "*Document"
   @JSName('createTouch')
   Touch _$dom_createTouch_1(Window window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
-  /// Use the [TouchList] constructor isntead.
   /// @domName Document.createTouchList; @docsEditable true
   @JSName('createTouchList')
   TouchList $dom_createTouchList() native;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.elementFromPoint; @docsEditable true
   @JSName('elementFromPoint')
   Element $dom_elementFromPoint(int x, int y) native;
@@ -6094,7 +5943,6 @@ class Document extends Node  native "*Document"
   @JSName('getCSSCanvasContext')
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native;
 
-  /// Deprecated: use query("#$elementId") instead.
   /// @domName Document.getElementById; @docsEditable true
   @JSName('getElementById')
   Element $dom_getElementById(String elementId) native;
@@ -6129,28 +5977,23 @@ class Document extends Node  native "*Document"
   /// @domName Document.queryCommandValue; @docsEditable true
   String queryCommandValue(String command) native;
 
-  /// Deprecated: renamed to the shorter name [query].
   /// @domName Document.querySelector; @docsEditable true
   @JSName('querySelector')
   Element $dom_querySelector(String selectors) native;
 
-  /// Deprecated: use query("#$elementId") instead.
   /// @domName Document.querySelectorAll; @docsEditable true
   @JSName('querySelectorAll')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitCancelFullScreen; @docsEditable true
   @JSName('webkitCancelFullScreen')
   void $dom_webkitCancelFullScreen() native;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitExitFullscreen; @docsEditable true
   @JSName('webkitExitFullscreen')
   void $dom_webkitExitFullscreen() native;
 
-  /// Moved to [HtmlDocument].
   /// @domName Document.webkitExitPointerLock; @docsEditable true
   @JSName('webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native;
@@ -9308,7 +9151,7 @@ class EventSourceEvents extends Events {
  * Events can either be accessed by string name (using the indexed getter) or by
  * getters exposed by subclasses. Use the getters exposed by subclasses when
  * possible for better compile-time type checks.
- *
+ * 
  * Using an indexed getter:
  *     events['mouseover'].add((e) => print("Mouse over!"));
  *
@@ -9371,7 +9214,7 @@ class EventListenerList {
  * [$dom_addEventListener], [$dom_dispatchEvent], and
  * [$dom_removeEventListener]) for compile-time type checks and a more concise
  * API.
- */
+ */ 
 class EventTarget native "*EventTarget" {
 
   /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
@@ -10056,7 +9899,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   factory Float32Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromList(list);
 
-  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -10230,7 +10073,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   factory Float64Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromList(list);
 
-  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 8;
@@ -11332,23 +11175,23 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
 
 /**
  * A utility for retrieving data from a URL.
- *
+ * 
  * HttpRequest can be used to obtain data from http, ftp, and file
- * protocols.
- *
+ * protocols. 
+ * 
  * For example, suppose we're developing these API docs, and we
  * wish to retrieve the HTML of the top-level page and print it out.
  * The easiest way to do that would be:
- *
+ * 
  *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
  *         (request) => print(request.responseText));
- *
+ * 
  * **Important**: With the default behavior of this class, your
  * code making the request should be served from the same origin (domain name,
  * port, and application layer protocol) as the URL you are trying to access
- * with HttpRequest. However, there are ways to
+ * with HttpRequest. However, there are ways to 
  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
- *
+ * 
  * See also:
  *
  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
@@ -11359,7 +11202,7 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Creates a URL get request for the specified `url`.
-   *
+   * 
    * After completing the request, the object will call the user-provided
    * [onComplete] callback.
    */
@@ -11371,8 +11214,8 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * Creates a URL GET request for the specified `url` with
    * credentials such a cookie (already) set in the header or
    * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
-   *
-   * After completing the request, the object will call the user-provided
+   * 
+   * After completing the request, the object will call the user-provided 
    * [onComplete] callback.
    *
    * A few other details to keep in mind when using credentials:
@@ -11381,7 +11224,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
-   *
+   * 
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   factory HttpRequest.getWithCredentials(String url,
@@ -11407,11 +11250,6 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   factory HttpRequest() => HttpRequest._create();
   static HttpRequest _create() => JS('HttpRequest', 'new XMLHttpRequest()');
 
-  /**
-   * Get the set of [HttpRequestEvents] that this request can respond to.
-   * Usually used when adding an EventListener, such as in
-   * `document.window.on.keyDown.add((e) => print('keydown happened'))`.
-   */
   /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
@@ -11426,119 +11264,35 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
-  /**
-   * Indicator of the current state of the request:
-   *
-   * <table>
-   *   <tr>
-   *     <td>Value</td>
-   *     <td>State</td>
-   *     <td>Meaning</td>
-   *   </tr>
-   *   <tr>
-   *     <td>0</td>
-   *     <td>unsent</td>
-   *     <td><code>open()</code> has not yet been called</td>
-   *   </tr>
-   *   <tr>
-   *     <td>1</td>
-   *     <td>opened</td>
-   *     <td><code>send()</code> has not yet been called</td>
-   *   </tr>
-   *   <tr>
-   *     <td>2</td>
-   *     <td>headers received</td>
-   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>
-   *   </tr>
-   *   <tr>
-   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>
-   *   </tr>
-   *   <tr>
-   *     <td>4</td> <td>done</td> <td>request is complete</td>
-   *   </tr>
-   * </table>
-   */
   /// @domName XMLHttpRequest.readyState; @docsEditable true
   final int readyState;
 
-  /**
-   * The data received as a reponse from the request.
-   *
-   * The data could be in the
-   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a
-   * [String]). `null` indicates request failure.
-   */
   /// @domName XMLHttpRequest.response; @docsEditable true
   @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
-  /**
-   * The response in string form or null on failure.
-   */
   /// @domName XMLHttpRequest.responseText; @docsEditable true
   final String responseText;
 
-  /**
-   * [String] telling the server the desired response format.
-   *
-   * Default is `String`.
-   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
-   * 'text'. Some newer browsers will throw `NS_ERROR_DOM_INVALID_ACCESS_ERR` if
-   * `responseType` is set while performing a synchronous request.
-   *
-   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
-   */
   /// @domName XMLHttpRequest.responseType; @docsEditable true
   String responseType;
 
-  /**
-   * The request response, or null on failure.
-   *
-   * The response is processed as
-   * `text/xml` stream, unless responseType = 'document' and the request is
-   * synchronous.
-   */
   /// @domName XMLHttpRequest.responseXML; @docsEditable true
   @JSName('responseXML')
   final Document responseXml;
 
-  /**
-   * The http result code from the request (200, 404, etc).
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-   */
   /// @domName XMLHttpRequest.status; @docsEditable true
   final int status;
 
-  /**
-   * The request response string (such as "200 OK").
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-   */
   /// @domName XMLHttpRequest.statusText; @docsEditable true
   final String statusText;
 
-  /**
-   * [EventTarget] that can hold listeners to track the progress of the request.
-   * The events fired will be members of [HttpRequestUploadEvents].
-   */
   /// @domName XMLHttpRequest.upload; @docsEditable true
   final HttpRequestUpload upload;
 
-  /**
-   * True if cross-site requests should use credentials such as cookies
-   * or authorization headers; false otherwise.
-   *
-   * This value is ignored for same-site requests.
-   */
   /// @domName XMLHttpRequest.withCredentials; @docsEditable true
   bool withCredentials;
 
-  /**
-   * Stop the current request.
-   *
-   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
-   * `LOADING`. If this method is not in the process of being sent, the method
-   * has no effect.
-   */
   /// @domName XMLHttpRequest.abort; @docsEditable true
   void abort() native;
 
@@ -11550,48 +11304,15 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /**
-   * Retrieve all the response headers from a request.
-   *
-   * `null` if no headers have been received. For multipart requests,
-   * `getAllResponseHeaders` will return the response headers for the current
-   * part of the request.
-   *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
-   * for a list of common response headers.
-   */
   /// @domName XMLHttpRequest.getAllResponseHeaders; @docsEditable true
   String getAllResponseHeaders() native;
 
-  /**
-   * Return the response header named `header`, or `null` if not found.
-   *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
-   * for a list of common response headers.
-   */
   /// @domName XMLHttpRequest.getResponseHeader; @docsEditable true
   String getResponseHeader(String header) native;
 
-  /**
-   * Specify the desired `url`, and `method` to use in making the request.
-   *
-   * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
-   * synchronously.
-   *
-   * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
-   */
   /// @domName XMLHttpRequest.open; @docsEditable true
   void open(String method, String url, [bool async, String user, String password]) native;
 
-  /**
-   * Specify a particular MIME type (such as `text/xml`) desired for the
-   * response.
-   *
-   * This value must be set before the request has been sent. See also the list
-   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
-   */
   /// @domName XMLHttpRequest.overrideMimeType; @docsEditable true
   void overrideMimeType(String override) native;
 
@@ -11599,17 +11320,9 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @JSName('removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /**
-   * Send the request with any given `data`.
-   *
-   * See also:
-   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
-   * from MDN.
-   */
   /// @domName XMLHttpRequest.send; @docsEditable true
   void send([data]) native;
 
-  /** Sets HTTP `header` to `value`. */
   /// @domName XMLHttpRequest.setRequestHeader; @docsEditable true
   void setRequestHeader(String header, String value) native;
 
@@ -11629,73 +11342,29 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
 }
 
-/**
- * A class that supports listening for and dispatching events that can fire when
- * making an HTTP request.
- *
- * Here's an example of adding an event handler that executes once an HTTP
- * request has fully loaded:
- *
- *     httpRequest.on.loadEnd.add((e) => myCustomLoadEndHandler(e));
- *
- * Each property of this class is a read-only pointer to an [EventListenerList].
- * That list holds all of the [EventListener]s that have registered for that
- * particular type of event that fires from an HttpRequest.
- */
 /// @docsEditable true
 class HttpRequestEvents extends Events {
   /// @docsEditable true
   HttpRequestEvents(EventTarget _ptr) : super(_ptr);
 
-  /**
-   * Event listeners to be notified when request has been aborted,
-   * generally due to calling `httpRequest.abort()`.
-   */
   /// @docsEditable true
   EventListenerList get abort => this['abort'];
 
-  /**
-   * Event listeners to be notified when a request has failed, such as when a
-   * cross-domain error occurred or the file wasn't found on the server.
-   */
   /// @docsEditable true
   EventListenerList get error => this['error'];
 
-  /**
-   * Event listeners to be notified once the request has completed
-   * *successfully*.
-   */
   /// @docsEditable true
   EventListenerList get load => this['load'];
 
-  /**
-   * Event listeners to be notified once the request has completed (on
-   * either success or failure).
-   */
   /// @docsEditable true
   EventListenerList get loadEnd => this['loadend'];
 
-  /**
-   * Event listeners to be notified when the request starts, once
-   * `httpRequest.send()` has been called.
-   */
   /// @docsEditable true
   EventListenerList get loadStart => this['loadstart'];
 
-  /**
-   * Event listeners to be notified when data for the request
-   * is being sent or loaded.
-   *
-   * Progress events are fired every 50ms or for every byte transmitted,
-   * whichever is less frequent.
-   */
   /// @docsEditable true
   EventListenerList get progress => this['progress'];
 
-  /**
-   * Event listeners to be notified every time the [HttpRequest]
-   * object's `readyState` changes values.
-   */
   /// @docsEditable true
   EventListenerList get readyStateChange => this['readystatechange'];
 }
@@ -12748,7 +12417,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Int16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt16Array_fromList(list);
 
-  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -12922,7 +12591,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Int32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt32Array_fromList(list);
 
-  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -13096,7 +12765,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   factory Int8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt8Array_fromList(list);
 
-  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -14446,16 +14115,6 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An HTML <menu> element.
- *
- * A <menu> element represents an unordered list of menu commands.
- *
- * See also:
- *
- *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
- *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
- */
 /// @domName HTMLMenuElement; @docsEditable true
 class MenuElement extends Element native "*HTMLMenuElement" {
 
@@ -15156,7 +14815,7 @@ class Navigator native "*Navigator" {
   /// @domName Navigator.language; @docsEditable true
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);
-
+  
   /// @domName Navigator.appCodeName; @docsEditable true
   final String appCodeName;
 
@@ -20035,7 +19694,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   factory Uint16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint16Array_fromList(list);
 
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -20209,7 +19868,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   factory Uint32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint32Array_fromList(list);
 
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -20383,7 +20042,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Uint8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8Array_fromList(list);
 
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -20557,7 +20216,7 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
   factory Uint8ClampedArray.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromList(list);
 
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
   // Use implementation from Uint8Array.
