@@ -58,7 +58,6 @@ class _SocketInputStream implements InputStream {
 
   bool _onSocketError(e) {
     close();
-    if (_error) return true;
     if (_onError != null) {
       _onError(e);
       return true;
@@ -214,6 +213,7 @@ class _SocketOutputStream
 
   bool _onSocketError(e) {
     destroy();
+    if (_error) return true;
     if (_onError != null) {
       _onError(e);
       return true;
