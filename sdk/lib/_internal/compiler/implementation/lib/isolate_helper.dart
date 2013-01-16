@@ -385,10 +385,10 @@ class _WorkerStub implements _ManagerStub {
 const String _SPAWNED_SIGNAL = "spawned";
 
 var globalThis = IsolateNatives.computeGlobalThis();
-var globalWindow = JS('', "#['window']", globalThis);
-var globalWorker = JS('', "#['Worker']", globalThis);
+var globalWindow = JS('', "#.window", globalThis);
+var globalWorker = JS('', "#.Worker", globalThis);
 bool globalPostMessageDefined =
-    JS('', "#['postMessage'] !== (void 0)", globalThis);
+    JS('', "#.postMessage !== (void 0)", globalThis);
 
 class IsolateNatives {
 
@@ -406,9 +406,11 @@ class IsolateNatives {
     // executed. The last one is the currently running script.
     for (var script in scripts) {
       var src = JS('String|Null', '# && #.src', script, script);
+      // Filter out the test controller script, and the Dart
+      // bootstrap script.
       if (src != null
           && !src.endsWith('test_controller.js')
-          && !new RegExp('client.dart\.js').hasMatch(src)) {
+          && !src.endsWith('dart.js')) {
         return src;
       }
     }

@@ -1119,8 +1119,10 @@ convertDartClosureToJS(closure, int arity) {
   // executes.
   var currentIsolate = JS_CURRENT_ISOLATE();
 
+  // We use $0 and $1 to not clash with variable names used by the
+  // compiler and/or minifier.
   function = JS("var",
-                r"""function(a, b) { return #(#, #, #, a, b); }""",
+                r"""function($0, $1) { return #(#, #, #, $0, $1); }""",
                 DART_CLOSURE_TO_JS(invokeClosure),
                 closure,
                 JS_CURRENT_ISOLATE(),
