@@ -236,6 +236,26 @@ void testRelativeTo() {
       new Path('..').relativeTo(new Path('a/b')).toString());
   Expect.equals('../b/c/d/',
       new Path('b/c/d/').relativeTo(new Path('a/')).toString());
+  Expect.equals('../a/b/c',
+      new Path('x/y/a//b/./f/../c').relativeTo(new Path('x//y/z')).toString());
+
+  // Case where base is a substring of relative:
+  Expect.equals('a/b',
+      new Path('/x/y//a/b').relativeTo(new Path('/x/y/')).toString());
+  Expect.equals('a/b',
+      new Path('x/y//a/b').relativeTo(new Path('x/y/')).toString());
+  Expect.equals('../ya/b',
+      new Path('/x/ya/b').relativeTo(new Path('/x/y')).toString());
+  Expect.equals('../ya/b',
+      new Path('x/ya/b').relativeTo(new Path('x/y')).toString());
+  Expect.equals('../b',
+      new Path('x/y/../b').relativeTo(new Path('x/y/.')).toString());
+  Expect.equals('a/b/c',
+      new Path('x/y/a//b/./f/../c').relativeTo(new Path('x/y')).toString());
+  Expect.equals('.',
+      new Path('/x/y//').relativeTo(new Path('/x/y/')).toString());
+  Expect.equals('.',
+      new Path('/x/y/').relativeTo(new Path('/x/y')).toString());
 
   // Should always throw - no relative path can be constructed.
   Expect.throws(() =>

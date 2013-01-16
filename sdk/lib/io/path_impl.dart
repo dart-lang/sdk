@@ -45,63 +45,67 @@ class _Path implements Path {
   String toString() => _path;
 
   Path relativeTo(Path base) {
-    // Throws exception if an unimplemented or impossible case is reached.
     // Returns a path "relative" such that
     //    base.join(relative) == this.canonicalize.
-    // Throws an exception if no such path exists, or the case is not
-    // implemented yet.
-    var basePath = base.toString();
-    if (base.isAbsolute && _path.startsWith(basePath) &&
-        base.isWindowsShare == isWindowsShare) {
-      if (_path == basePath) return new Path('.');
-      if (base.hasTrailingSeparator) {
-        return new Path(_path.substring(basePath.length));
-      }
-      if (_path[basePath.length] == '/') {
-        return new Path(_path.substring(basePath.length + 1));
-      }
-    } else if (base.isAbsolute == isAbsolute &&
-               base.isWindowsShare == isWindowsShare) {
-      List<String> baseSegments = base.canonicalize().segments();
-      List<String> pathSegments = canonicalize().segments();
-      if (baseSegments.length == 1 && baseSegments[0] == '.') {
-        baseSegments = [];
-      }
-      if (pathSegments.length == 1 && pathSegments[0] == '.') {
-        pathSegments = [];
-      }
-      int common = 0;
-      int length = min(pathSegments.length, baseSegments.length);
-      while (common < length && pathSegments[common] == baseSegments[common]) {
-        common++;
-      }
-      final segments = new List<String>();
-
-      if (common < baseSegments.length && baseSegments[common] == '..') {
-        throw new ArgumentError(
-            "Invalid case of Path.relativeTo(base):\n"
-            "  Base path has more '..'s than path does."
-            "  Arguments: $_path.relativeTo($base)");
-      }
-      for (int i = common; i < baseSegments.length; i++) {
-        segments.add('..');
-      }
-      for (int i = common; i < pathSegments.length; i++) {
-        segments.add('${pathSegments[i]}');
-      }
-      if (segments.isEmpty) {
-        segments.add('.');
-      }
-      if (hasTrailingSeparator) {
-        segments.add('');
-      }
-      return new Path(Strings.join(segments, '/'));
+    // Throws exception if an impossible case is reached.
+    if (base.isAbsolute != isAbsolute ||
+        base.isWindowsShare != isWindowsShare) {
+      throw new ArgumentError(
+          "Invalid case of Path.relativeTo(base):\n"
+          "  Path and base must both be relative, or both absolute.\n"
+          "  Arguments: $_path.relativeTo($base)");
     }
-    throw new ArgumentError(
-      "Invalid case of Path.relativeTo(base):\n"
-      "  Path and base must both be relative, or both absolute.\n"
-      "  Arguments: $_path.relativeTo($base)");
+
+    var basePath = base.toString();
+    if (_path.startsWith(basePath)) {
+      if (_path == basePath) return new Path('.');
+      // There must be a '/' at the end of the match, or immediately after.
+      int matchEnd = basePath.length;
+      if (_path[matchEnd - 1] == '/' || _path[matchEnd] == '/') {
+        // Drop any extra '/' characters at matchEnd
+        while (matchEnd < _path.length && _path[matchEnd] == '/') {
+          matchEnd++;
+        }
+        return new Path(_path.substring(matchEnd)).canonicalize();
+      }
+    }
+
+    List<String> baseSegments = base.canonicalize().segments();
+    List<String> pathSegments = canonicalize().segments();
+    if (baseSegments.length == 1 && baseSegments[0] == '.') {
+      baseSegments = [];
+    }
+    if (pathSegments.length == 1 && pathSegments[0] == '.') {
+      pathSegments = [];
+    }
+    int common = 0;
+    int length = min(pathSegments.length, baseSegments.length);
+    while (common < length && pathSegments[common] == baseSegments[common]) {
+      common++;
+    }
+    final segments = new List<String>();
+
+    if (common < baseSegments.length && baseSegments[common] == '..') {
+      throw new ArgumentError(
+          "Invalid case of Path.relativeTo(base):\n"
+          "  Base path has more '..'s than path does."
+          "  Arguments: $_path.relativeTo($base)");
+    }
+    for (int i = common; i < baseSegments.length; i++) {
+      segments.add('..');
+    }
+    for (int i = common; i < pathSegments.length; i++) {
+      segments.add('${pathSegments[i]}');
+    }
+    if (segments.isEmpty) {
+      segments.add('.');
+    }
+    if (hasTrailingSeparator) {
+        segments.add('');
+    }
+    return new Path(Strings.join(segments, '/'));
   }
+
 
   Path join(Path further) {
     if (further.isAbsolute) {
