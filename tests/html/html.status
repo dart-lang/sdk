@@ -258,5 +258,5 @@ isolates_test: Skip   # Timeout because leg does not support web workers.
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout
 
-[ $compiler == none && $system == linux && $runtime == dartium ]
+[ $compiler == none && $system == linux && $runtime == drt ]
 audiocontext_test: Fail
