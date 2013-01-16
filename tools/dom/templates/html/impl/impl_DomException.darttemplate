@@ -29,6 +29,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
   static const String DATA_CLONE = 'DataCloneError';
 
+$if DART2JS
   String get name {
     var errorName = JS('String', '#.name', this);
     // Although Safari nightly has updated the name to SecurityError, Safari 5
@@ -39,5 +40,6 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     if (_Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
     return errorName;
   }
+$endif
 $!MEMBERS
 }
