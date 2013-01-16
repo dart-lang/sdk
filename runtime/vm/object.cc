@@ -515,9 +515,8 @@ void Object::CreateInternalMetaData() {
 
 // Make unused space in an object whose type has been transformed safe
 // for traversing during GC.
-// The unused part of the transformed object is marked as an Array
-// object or a regular Object so that it can be traversed during garbage
-// collection.
+// The unused part of the transformed object is marked as an Int8Array
+// object.
 void Object::MakeUnusedSpaceTraversable(const Object& obj,
                                         intptr_t original_size,
                                         intptr_t used_size) {
@@ -528,29 +527,17 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
     intptr_t leftover_size = original_size - used_size;
 
     uword addr = RawObject::ToAddr(obj.raw()) + used_size;
-    if (leftover_size >= Array::InstanceSize(0)) {
-      // As we have enough space to use an array object, update the leftover
-      // space as an Array object.
-      RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kArrayCid, tags);
-      raw->ptr()->tags_ = tags;
-      intptr_t leftover_len =
-          ((leftover_size - Array::InstanceSize(0)) / kWordSize);
-      ASSERT(Array::InstanceSize(leftover_len) == leftover_size);
-      raw->ptr()->tags_ = tags;
-      raw->ptr()->length_ = Smi::New(leftover_len);
-    } else {
-      // Update the leftover space as a basic object.
-      ASSERT(leftover_size == Object::InstanceSize());
-      RawObject* raw =
-          reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
-      raw->ptr()->tags_ = tags;
-    }
+    ASSERT(Int8Array::InstanceSize(0) == Object::InstanceSize());
+    // Update the leftover space as an Int8Array object.
+    RawInt8Array* raw =
+        reinterpret_cast<RawInt8Array*>(RawObject::FromAddr(addr));
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(leftover_size, tags);
+    tags = RawObject::ClassIdTag::update(kInt8ArrayCid, tags);
+    raw->ptr()->tags_ = tags;
+    intptr_t leftover_len = (leftover_size - Int8Array::InstanceSize(0));
+    ASSERT(Int8Array::InstanceSize(leftover_len) == leftover_size);
+    raw->ptr()->length_ = Smi::New(leftover_len);
   }
 }
 

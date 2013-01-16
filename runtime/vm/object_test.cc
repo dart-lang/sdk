@@ -1759,8 +1759,9 @@ TEST_CASE(GrowableObjectArray) {
 
   // Test the MakeArray functionality to make sure the resulting array
   // object is properly setup.
-  // 1. Should produce an array of length 2 and a remainder array of length 1.
+  // 1. Should produce an array of length 2 and a left over int8 array.
   Array& new_array = Array::Handle();
+  Int8Array& left_over_array = Int8Array::Handle();
   Object& obj = Object::Handle();
   uword addr = 0;
   intptr_t used_size = 0;
@@ -1781,11 +1782,11 @@ TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(2, new_array.Length());
   addr += used_size;
   obj = RawObject::FromAddr(addr);
-  EXPECT(obj.IsArray());
-  new_array ^= obj.raw();
-  EXPECT_EQ(0, new_array.Length());
+  EXPECT(obj.IsInt8Array());
+  left_over_array ^= obj.raw();
+  EXPECT_EQ((2 * kWordSize), left_over_array.Length());
 
-  // 2. Should produce an array of length 3 and a remainder object.
+  // 2. Should produce an array of length 3 and a left over int8 array.
   array = GrowableObjectArray::New(kArrayLen);
   EXPECT_EQ(kArrayLen, array.Capacity());
   EXPECT_EQ(0, array.Length());
@@ -1802,9 +1803,11 @@ TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(3, new_array.Length());
   addr += used_size;
   obj = RawObject::FromAddr(addr);
-  EXPECT(!obj.IsArray());
+  EXPECT(obj.IsInt8Array());
+  left_over_array ^= obj.raw();
+  EXPECT_EQ(0, left_over_array.Length());
 
-  // 3. Should produce an array of length 1 and a remainder array of length 2.
+  // 3. Should produce an array of length 1 and a left over int8 array.
   array = GrowableObjectArray::New(kArrayLen + 3);
   EXPECT_EQ((kArrayLen + 3), array.Capacity());
   EXPECT_EQ(0, array.Length());
@@ -1821,9 +1824,9 @@ TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(1, new_array.Length());
   addr += used_size;
   obj = RawObject::FromAddr(addr);
-  EXPECT(obj.IsArray());
-  new_array ^= obj.raw();
-  EXPECT_EQ(4, new_array.Length());
+  EXPECT(obj.IsInt8Array());
+  left_over_array ^= obj.raw();
+  EXPECT_EQ((6 * kWordSize), left_over_array.Length());
 }
 
 

@@ -1309,6 +1309,8 @@ class RawInt8Array : public RawByteArray {
 
   // Variable length data follows here.
   int8_t data_[0];
+
+  friend class Object;
 };
 
 
