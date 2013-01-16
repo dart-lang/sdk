@@ -1,0 +1,466 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library error_group_test;
+
+import 'dart:async';
+
+import '../../../pkg/unittest/lib/unittest.dart';
+import '../../pub/error_group.dart';
+import '../../pub/utils.dart';
+
+ErrorGroup errorGroup;
+
+// TODO(nweiz): once there's a global error handler, we should test that it does
+// and does not get called at appropriate times. See issue 5958.
+//
+// One particular thing we should test that has no tests now is that a stream
+// that has a subscription added and subsequently canceled counts as having no
+// listeners.
+
+main() {
+  group('with no futures or streams', () {
+    setUp(() {
+      errorGroup = new ErrorGroup();
+    });
+
+    test('should pass signaled errors to .done', () {
+      expect(errorGroup.done, throwsFormatException);
+      errorGroup.signalError(new AsyncError(new FormatException()));
+    });
+
+    test("shouldn't allow additional futures or streams once an error has been "
+        "signaled", () {
+      expect(errorGroup.done, throwsFormatException);
+      errorGroup.signalError(new AsyncError(new FormatException()));
+
+      expect(() => errorGroup.registerFuture(new Future.immediate(null)),
+          throwsStateError);
+      expect(() => errorGroup.registerStream(new StreamController()),
+          throwsStateError);
+    });
+  });
+
+  group('with a single future', () {
+    Completer completer;
+    Future future;
+
+    setUp(() {
+      errorGroup = new ErrorGroup();
+      completer = new Completer();
+      future = errorGroup.registerFuture(completer.future);
+    });
+
+    test('should pass through a value from the future', () {
+      expect(future, completion(equals('value')));
+      expect(errorGroup.done, completes);
+      completer.complete('value');
+    });
+
+    test("shouldn't allow additional futures or streams once .done has "
+        "been called", () {
+      completer.complete('value');
+
+      expect(() => errorGroup.registerFuture(new Future.immediate(null)),
+          throwsStateError);
+      expect(() => errorGroup.registerStream(new StreamController()),
+          throwsStateError);
+    });
+
+    test('should pass through an exception from the future if it has a '
+        'listener', () {
+      expect(future, throwsFormatException);
+      // errorGroup shouldn't top-level the exception
+      completer.completeError(new FormatException());
+    });
+
+    test('should notify the error group of an exception from the future even '
+        'if it has a listener', () {
+      expect(future, throwsFormatException);
+      expect(errorGroup.done, throwsFormatException);
+      completer.completeError(new FormatException());
+    });
+
+    test('should pass a signaled exception to the future if it has a listener '
+        'and should ignore a subsequent value from that future', () {
+      expect(future, throwsFormatException);
+      // errorGroup shouldn't top-level the exception
+      errorGroup.signalError(new AsyncError(new FormatException()));
+      completer.complete('value');
+    });
+
+    test('should pass a signaled exception to the future if it has a listener '
+        'and should ignore a subsequent exception from that future', () {
+      expect(future, throwsFormatException);
+      // errorGroup shouldn't top-level the exception
+      errorGroup.signalError(new AsyncError(new FormatException()));
+      completer.completeError(new ArgumentError());
+    });
+
+    test('should notify the error group of a signaled exception even if the '
+        'future has a listener', () {
+      expect(future, throwsFormatException);
+      expect(errorGroup.done, throwsFormatException);
+      errorGroup.signalError(new AsyncError(new FormatException()));
+    });
+
+    test("should complete .done if the future receives a value even if the "
+        "future doesn't have a listener", () {
+      expect(errorGroup.done, completes);
+      completer.complete('value');
+
+      // A listener added afterwards should receive the value
+      expect(errorGroup.done.then((_) => future),
+          completion(equals('value')));
+    });
+
+    test("should pipe an exception from the future to .done if the future "
+        "doesn't have a listener", () {
+      expect(errorGroup.done, throwsFormatException);
+      completer.completeError(new FormatException());
+
+      // A listener added afterwards should receive the exception
+      expect(errorGroup.done.catchError((_) {
+        expect(future, throwsFormatException);
+      }), completes);
+    });
+
+    test("should pass a signaled exception to .done if the future doesn't have "
+        "a listener",
+        () {
+      expect(errorGroup.done, throwsFormatException);
+      errorGroup.signalError(new AsyncError(new FormatException()));
+
+      // A listener added afterwards should receive the exception
+      expect(errorGroup.done.catchError((_) {
+        completer.complete('value'); // should be ignored
+        expect(future, throwsFormatException);
+      }), completes);
+    });
+  });
+
+  group('with multiple futures', () {
+    Completer completer1;
+    Completer completer2;
+    Future future1;
+    Future future2;
+
+    setUp(() {
+      errorGroup = new ErrorGroup();
+      completer1 = new Completer();
+      completer2 = new Completer();
+      future1 = errorGroup.registerFuture(completer1.future);
+      future2 = errorGroup.registerFuture(completer2.future);
+    });
+
+    test("should pipe exceptions from one future to the other and to "
+        ".complete", () {
+      expect(future1, throwsFormatException);
+      expect(future2, throwsFormatException);
+      expect(errorGroup.done, throwsFormatException);
+
+      completer1.completeError(new FormatException());
+    });
+
+    test("each future should be able to complete with a value "
+        "independently", () {
+      expect(future1, completion(equals('value1')));
+      expect(future2, completion(equals('value2')));
+      expect(errorGroup.done, completes);
+
+      completer1.complete('value1');
+      completer2.complete('value2');
+    });
+
+    test("shouldn't throw a top-level exception if a future receives an error "
+        "after the other listened future completes", () {
+      expect(future1, completion(equals('value')));
+      completer1.complete('value');
+
+      expect(future1.then((_) {
+        // shouldn't cause a top-level exception
+        completer2.completeError(new FormatException());
+      }), completes);
+    });
+
+    test("shouldn't throw a top-level exception if an error is signaled after "
+        "one listened future completes", () {
+      expect(future1, completion(equals('value')));
+      completer1.complete('value');
+
+      expect(future1.then((_) {
+        // shouldn't cause a top-level exception
+        errorGroup.signalError(new AsyncError(new FormatException()));
+      }), completes);
+    });
+  });
+
+  group('with a single stream', () {
+    StreamController controller;
+    Stream stream;
+
+    setUp(() {
+      errorGroup = new ErrorGroup();
+      controller = new StreamController.multiSubscription();
+      stream = errorGroup.registerStream(controller);
+    });
+
+    test('should pass through values from the stream', () {
+      expect(stream.elementAt(0), completion(equals(1)));
+      expect(stream.elementAt(1), completion(equals(2)));
+      expect(errorGroup.done, completes);
+
+      controller..add(1)..add(2)..close();
+    });
+
+    test('should pass through an error from the stream if it has a '
+        'listener', () {
+      expect(stream.first, throwsFormatException);
+      // errorGroup shouldn't top-level the exception
+      controller.signalError(new AsyncError(new FormatException()));
+    });
+
+    test('should notify the error group of an exception from the stream even '
+        'if it has a listener', () {
+      expect(stream.first, throwsFormatException);
+      expect(errorGroup.done, throwsFormatException);
+      controller.signalError(new AsyncError(new FormatException()));
+    });
+
+    test('should pass a signaled exception to the stream if it has a listener '
+        'and should unsubscribe that stream', () {
+      expect(stream.first, throwsFormatException);
+      // errorGroup shouldn't top-level the exception
+      errorGroup.signalError(new AsyncError(new FormatException()));
+
+      expect(stream.first.catchError((_) {
+        controller.add('value');
+        return stream.isEmpty;
+      }), completion(isTrue));
+    });
+
+    test('should notify the error group of a signaled exception even if the '
+        'stream has a listener', () {
+      expect(stream.first, throwsFormatException);
+      expect(errorGroup.done, throwsFormatException);
+      errorGroup.signalError(new AsyncError(new FormatException()));
+    });
+
+    test("should complete .done when the stream is done even if the stream "
+        "doesn't have a listener", () {
+      expect(errorGroup.done, completes);
+      controller.add('value');
+      controller.close();
+
+      // A listener added afterwards should see an empty stream, since it's not
+      // single-subscription
+      expect(errorGroup.done.then((_) => stream.toList()),
+          completion(isEmpty));
+    });
+
+    test("should pipe an exception from the stream to .done if the stream "
+        "doesn't have a listener", () {
+      expect(errorGroup.done, throwsFormatException);
+      controller.signalError(new AsyncError(new FormatException()));
+
+      // A listener added afterwards should see an empty stream, since it's not
+      // single-subscription
+      expect(errorGroup.done.catchError((_) {
+        controller.add('value'); // should be ignored
+        return stream.toList();
+      }), completion(isEmpty));
+    });
+
+    test("should pass a signaled exception to .done if the stream doesn't "
+        "have a listener",
+        () {
+      expect(errorGroup.done, throwsFormatException);
+      errorGroup.signalError(new AsyncError(new FormatException()));
+
+      // A listener added afterwards should receive the exception
+      expect(errorGroup.done.catchError((_) {
+        controller.add('value'); // should be ignored
+        return stream.toList();
+      }), completion(isEmpty));
+    });
+  });
+
+  group('with a single single-subscription stream', () {
+    StreamController controller;
+    Stream stream;
+
+    setUp(() {
+      errorGroup = new ErrorGroup();
+      controller = new StreamController();
+      stream = errorGroup.registerStream(controller);
+    });
+
+    test("should complete .done when the stream is done even if the stream "
+        "doesn't have a listener", () {
+      expect(errorGroup.done, completes);
+      controller.add('value');
+      controller.close();
+
+      // A listener added afterwards should receive the value
+      expect(errorGroup.done.then((_) => stream.toList()),
+          completion(equals(['value'])));
+    });
+
+    test("should pipe an exception from the stream to .done if the stream "
+        "doesn't have a listener", () {
+      expect(errorGroup.done, throwsFormatException);
+      controller.signalError(new AsyncError(new FormatException()));
+
+      // A listener added afterwards should receive the exception
+      expect(errorGroup.done.catchError((_) {
+        controller.add('value'); // should be ignored
+        expect(stream.first, throwsFormatException);
+      }), completes);
+    });
+
+    test("should pass a signaled exception to .done if the stream doesn't "
+        "have a listener",
+        () {
+      expect(errorGroup.done, throwsFormatException);
+      errorGroup.signalError(new AsyncError(new FormatException()));
+
+      // A listener added afterwards should receive the exception
+      expect(errorGroup.done.catchError((_) {
+        controller.add('value'); // should be ignored
+        expect(stream.first, throwsFormatException);
+      }), completes);
+    });
+  });
+
+  group('with multiple streams', () {
+    StreamController controller1;
+    StreamController controller2;
+    Stream stream1;
+    Stream stream2;
+
+    setUp(() {
+      errorGroup = new ErrorGroup();
+      controller1 = new StreamController.multiSubscription();
+      controller2 = new StreamController.multiSubscription();
+      stream1 = errorGroup.registerStream(controller1);
+      stream2 = errorGroup.registerStream(controller2);
+    });
+
+    test("should pipe exceptions from one stream to the other and to .done",
+        () {
+      expect(stream1.first, throwsFormatException);
+      expect(stream2.first, throwsFormatException);
+      expect(errorGroup.done, throwsFormatException);
+
+      controller1.signalError(new AsyncError(new FormatException()));
+    });
+
+    test("each future should be able to emit values independently", () {
+      expect(stream1.toList(), completion(equals(['value1.1', 'value1.2'])));
+      expect(stream2.toList(), completion(equals(['value2.1', 'value2.2'])));
+      expect(errorGroup.done, completes);
+
+      controller1..add('value1.1')..add('value1.2')..close();
+      controller2..add('value2.1')..add('value2.2')..close();
+    });
+
+    test("shouldn't throw a top-level exception if a stream receives an error "
+        "after the other listened stream completes", () {
+      expect(stream1.toList(), completion(equals(['value1', 'value2'])));
+      controller1..add('value1')..add('value2')..close();
+
+      expect(stream1.toList().then((_) {
+        // shouldn't cause a top-level exception
+        controller2.signalError(new AsyncError(new FormatException()));
+      }), completes);
+    });
+
+    test("shouldn't throw a top-level exception if an error is signaled after "
+        "one listened stream completes", () {
+      expect(stream1.toList(), completion(equals(['value1', 'value2'])));
+      controller1..add('value1')..add('value2')..close();
+
+      expect(stream1.toList().then((_) {
+        // shouldn't cause a top-level exception
+        errorGroup.signalError(new AsyncError(new FormatException()));
+      }), completes);
+    });
+  });
+
+  group('with a stream and a future', () {
+    StreamController controller;
+    Stream stream;
+    Completer completer;
+    Future future;
+
+    setUp(() {
+      errorGroup = new ErrorGroup();
+      controller = new StreamController.multiSubscription();
+      stream = errorGroup.registerStream(controller);
+      completer = new Completer();
+      future = errorGroup.registerFuture(completer.future);
+    });
+
+    test("should pipe exceptions from the stream to the future", () {
+      expect(stream.first, throwsFormatException);
+      expect(future, throwsFormatException);
+      expect(errorGroup.done, throwsFormatException);
+
+      controller.signalError(new AsyncError(new FormatException()));
+    });
+
+    test("should pipe exceptions from the future to the stream", () {
+      expect(stream.first, throwsFormatException);
+      expect(future, throwsFormatException);
+      expect(errorGroup.done, throwsFormatException);
+
+      completer.completeError(new FormatException());
+    });
+
+    test("the stream and the future should be able to complete/emit values "
+        "independently", () {
+      expect(stream.toList(), completion(equals(['value1.1', 'value1.2'])));
+      expect(future, completion(equals('value2.0')));
+      expect(errorGroup.done, completes);
+
+      controller..add('value1.1')..add('value1.2')..close();
+      completer.complete('value2.0');
+    });
+
+    test("shouldn't throw a top-level exception if the stream receives an error "
+        "after the listened future completes", () {
+      expect(future, completion(equals('value')));
+      completer.complete('value');
+
+      expect(future.then((_) {
+        // shouldn't cause a top-level exception
+        controller.signalError(new AsyncError(new FormatException()));
+      }), completes);
+    });
+
+    test("shouldn't throw a top-level exception if the future receives an "
+        "error after the listened stream completes", () {
+      expect(stream.toList(), completion(equals(['value1', 'value2'])));
+      controller..add('value1')..add('value2')..close();
+
+      expect(stream.toList().then((_) {
+        // shouldn't cause a top-level exception
+        completer.completeError(new FormatException());
+      }), completes);
+    });
+  });
+}
+
+// TODO(nweiz): remove this once it's built in to unittest (issue 7922).
+/// A matcher for StateErrors.
+const isStateError = const _StateError();
+
+/// A matcher for functions that throw StateError.
+const Matcher throwsStateError =
+    const Throws(isStateError);
+
+class _StateError extends TypeMatcher {
+  const _StateError() : super("StateError");
+  bool matches(item, MatchState matchState) => item is StateError;
+}
