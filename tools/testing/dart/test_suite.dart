@@ -23,7 +23,9 @@ import "multitest.dart";
 import "status_file_parser.dart";
 import "test_runner.dart";
 import "utils.dart";
-import '../../../pkg/path/lib/path.dart' as pathLib;
+
+// TODO(efortuna,whess): Remove this import.
+import 'temp_package_root/path/path.dart' as pathLib;
 
 part "browser_test.dart";
 

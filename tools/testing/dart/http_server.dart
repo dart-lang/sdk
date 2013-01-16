@@ -7,50 +7,7 @@ library http_server;
 import 'dart:io';
 import 'dart:isolate';
 import 'test_suite.dart';  // For TestUtils.
-import '../../../pkg/args/lib/args.dart';
 
-main() {
-  /** Convenience method for local testing. */
-  var parser = new ArgParser();
-  parser.addOption('port', abbr: 'p',
-      help: 'The main server port we wish to respond to requests.',
-      defaultsTo: '0');
-  parser.addOption('crossOriginPort', abbr: 'c',
-      help: 'A different port that accepts request from the main server port.',
-      defaultsTo: '0');
-  parser.addOption('mode', abbr: 'm', help: 'Testing mode.',
-      defaultsTo: 'release');
-  parser.addOption('arch', abbr: 'a', help: 'Testing architecture.',
-      defaultsTo: 'ia32');
-  parser.addFlag('help', abbr: 'h', negatable: false,
-      help: 'Print this usage information.');
-  var args = parser.parse(new Options().arguments);
-  if (args['help']) {
-    print(parser.getUsage());
-  } else {
-    // Pretend we're running test.dart so that TestUtils doesn't get confused
-    // about the "current directory." This is only used if we're trying to run
-    // this file independently for local testing.
-    TestUtils.testScriptPath = new Path(new Options().script)
-        .directoryPath
-        .join(new Path('../../test.dart'))
-        .canonicalize()
-        .toNativePath();
-    TestingServerRunner.setPackageRootDir({'mode': args['mode'],
-        'arch': args['arch'], 'system': Platform.operatingSystem,
-        'build_directory': ''});
-
-    TestingServerRunner.startHttpServer('127.0.0.1',
-        port: int.parse(args['port']));
-    print('Server listening on port '
-          '${TestingServerRunner.serverList[0].port}.');
-    TestingServerRunner.startHttpServer('127.0.0.1',
-        allowedPort: TestingServerRunner.serverList[0].port, port:
-        int.parse(args['crossOriginPort']));
-    print(
-        'Server listening on port ${TestingServerRunner.serverList[1].port}.');
-  }
-}
 /**
  * Runs a set of servers that are initialized specifically for the needs of our
  * test framework, such as dealing with package-root.
