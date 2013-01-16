@@ -301,6 +301,12 @@ intptr_t ActivationFrame::PcDescIndex() {
 }
 
 
+intptr_t ActivationFrame::TryIndex() {
+  intptr_t desc_index = PcDescIndex();
+  return pc_desc_.TryIndex(desc_index);
+}
+
+
 intptr_t ActivationFrame::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
   if (line_number_ < 0) {
@@ -369,6 +375,59 @@ RawContext* ActivationFrame::CallerContext() {
   }
   // Caller uses same context chain.
   return ctx_.raw();
+}
+
+
+// TODO(hausner): Eliminate this helper function by sorting the
+// ExceptionHandlers entries by try_index and eliminating
+// the try_index field altogether.
+static intptr_t FindTryIndex(const ExceptionHandlers& handlers,
+                             intptr_t try_index) {
+  intptr_t len = handlers.Length();
+  for (int i = 0; i < len; i++) {
+    if (handlers.TryIndex(i) == try_index) return i;
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+
+ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
+    const Instance& exc_obj) const {
+  ExceptionHandlers& handlers = ExceptionHandlers::Handle();
+  Array& handled_types = Array::Handle();
+  AbstractType& type = Type::Handle();
+  const TypeArguments& no_instantiator = TypeArguments::Handle();
+  for (int frame_index = 0; frame_index < Length(); frame_index++) {
+    ActivationFrame* frame = trace_[frame_index];
+    intptr_t try_index = frame->TryIndex();
+    if (try_index < 0) continue;
+    const Code& code = frame->DartCode();
+    handlers = code.exception_handlers();
+    ASSERT(!handlers.IsNull());
+    intptr_t num_handlers_checked = 0;
+    while (try_index >= 0) {
+      intptr_t i = FindTryIndex(handlers, try_index);
+      // Detect circles in the exception handler data.
+      num_handlers_checked++;
+      ASSERT(num_handlers_checked <= handlers.Length());
+      handled_types = handlers.GetHandledTypes(i);
+      const intptr_t num_types = handled_types.Length();
+      for (int k = 0; k < num_types; k++) {
+        type ^= handled_types.At(k);
+        ASSERT(!type.IsNull());
+        // Uninstantiated types are not added to ExceptionHandlers data.
+        ASSERT(type.IsInstantiated());
+        if (type.IsDynamicType()) return frame;
+        if (type.IsMalformed()) continue;
+        if (exc_obj.IsInstanceOf(type, no_instantiator, NULL)) {
+          return frame;
+        }
+      }
+      try_index = handlers.OuterTryIndex(i);
+    }
+  }
+  return NULL;
 }
 
 
@@ -866,31 +925,29 @@ Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() {
 }
 
 
-// TODO(hausner): Determine whether the exception is handled or not.
 bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
-                                      const Object& exc) {
+                                      const Instance& exc) {
   if (exc_pause_info_ == kNoPauseOnExceptions) {
     return false;
   }
-  if ((exc_pause_info_ & kPauseOnAllExceptions) != 0) {
+  if (exc_pause_info_ == kPauseOnAllExceptions) {
     return true;
   }
-  // Assume TypeError and AssertionError exceptions are unhandled.
-  const Class& exc_class = Class::Handle(exc.clazz());
-  const String& class_name = String::Handle(exc_class.Name());
-  // TODO(hausner): Note the poor man's type test. This code will go
-  // away when we have a way to determine whether an exception is unhandled.
-  if (class_name.Equals("TypeErrorImplementation")) {
-    return true;
-  }
-  if (class_name.Equals("AssertionErrorImplementation")) {
+  ASSERT(exc_pause_info_ == kPauseOnUnhandledExceptions);
+  ActivationFrame* handler_frame = stack_trace->GetHandlerFrame(exc);
+  if (handler_frame == NULL) {
+    // Did not find an exception handler that catches this exception.
+    // Note that this check is not precise, since we can't check
+    // uninstantiated types, i.e. types containing type parameters.
+    // Thus, we may report an exception as unhandled when in fact
+    // it will be caught once we unwind the stack.
     return true;
   }
   return false;
 }
 
 
-void Debugger::SignalExceptionThrown(const Object& exc) {
+void Debugger::SignalExceptionThrown(const Instance& exc) {
   // We ignore this exception event when the VM is executing code invoked
   // by the debugger to evaluate variables values, when we see a nested
   // breakpoint or exception event, or if the debugger is not

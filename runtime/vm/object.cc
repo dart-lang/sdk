@@ -6910,6 +6910,12 @@ intptr_t ExceptionHandlers::HandlerPC(intptr_t index) const {
 }
 
 
+intptr_t ExceptionHandlers::OuterTryIndex(intptr_t index) const {
+  ASSERT((index >= 0) && (index < Length()));
+  return raw_ptr()->data_[index].outer_try_index;
+}
+
+
 void ExceptionHandlers::SetHandledTypes(intptr_t index,
                                         const Array& handled_types) const {
   ASSERT((index >= 0) && (index < Length()));

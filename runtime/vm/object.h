@@ -2399,6 +2399,7 @@ class ExceptionHandlers : public Object {
 
   intptr_t TryIndex(intptr_t index) const;
   intptr_t HandlerPC(intptr_t index) const;
+  intptr_t OuterTryIndex(intptr_t index) const;
 
   void SetHandlerInfo(intptr_t index,
                       intptr_t try_index,

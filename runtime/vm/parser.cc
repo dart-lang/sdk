@@ -6063,8 +6063,17 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
           catch_pos, Token::kIS, exception_var, exception_type);
       current_block_->statements->Add(
           new IfNode(catch_pos, type_cond_expr, catch_handler, NULL));
-      ASSERT(exception_type->type().IsInstantiated());
-      handler_types.Add(*exception_param.type);
+
+      // Do not add uninstantiated types (e.g. type parameter T or
+      // generic type List<T>), since the debugger won't be able to
+      // instantiate it when walking the stack.
+      // This means that the debugger is not able to determine whether
+      // an exception is caught if the catch clause uses generic types.
+      // It will report the exception as uncaught when in fact it might
+      // be caught and handled when we unwind the stack.
+      if (exception_param.type->IsInstantiated()) {
+        handler_types.Add(*exception_param.type);
+      }
     } else {
       // No exception type exists in the catch specifier so execute the
       // catch handler code unconditionally.
