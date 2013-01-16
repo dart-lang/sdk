@@ -73,11 +73,8 @@ class TestingServerRunner {
     var httpServer = new HttpServer();
     var packagesDirName = 'packages';
     httpServer.onError = (e) {
-      // Consider errors in the builtin http server fatal.
-      // Intead of just throwing the exception we print
-      // a message that makes it clearer what happened.
+      // TODO(ricow): Once we have a debug log we should write this out there.
       print('Test http server error: $e');
-      exit(1);
     };
     httpServer.defaultRequestHandler = (request, resp) {
       var requestPath = new Path(request.path.substring(1)).canonicalize();
