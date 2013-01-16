@@ -2900,16 +2900,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     List<HInstruction> inputs = <HInstruction>[];
-    Set<ClassElement> interceptedClasses =
-        getInterceptedClassesOn(node, selector);
-    if (interceptedClasses != null) {
-      inputs.add(invokeInterceptor(interceptedClasses, receiver, node));
-    }
-    inputs.add(receiver);
-
     addDynamicSendArgumentsToList(node, inputs);
 
-    pushWithPosition(new HInvokeDynamicMethod(selector, inputs), node);
+    HInvokeDynamicMethod invoke = buildInvokeDynamic(
+        node, selector, receiver, inputs);
+    pushWithPosition(invoke, node);
 
     if (isNotEquals) {
       HNot not = new HNot(popBoolified());
@@ -3645,12 +3640,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Set<ClassElement> interceptedClasses =
         getInterceptedClassesOn(node, selector);
     List<HInstruction> inputs = <HInstruction>[];
-    if (interceptedClasses != null) {
+    bool isIntercepted = interceptedClasses != null;
+    if (isIntercepted) {
+      assert(!interceptedClasses.isEmpty);
       inputs.add(invokeInterceptor(interceptedClasses, receiver, node));
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
-    return new HInvokeDynamicMethod(selector, inputs);
+    return new HInvokeDynamicMethod(selector, inputs, isIntercepted);
   }
 
   visitSendSet(SendSet node) {

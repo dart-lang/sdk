@@ -230,30 +230,11 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return new HInvokeDynamicMethod(
           node.selector, node.inputs.getRange(1, node.inputs.length - 1));
     }
+    HInstruction instruction =
+        node.specializer.tryConvertToBuiltin(node, types);
+    if (instruction != null) return instruction;
 
     Selector selector = node.selector;
-
-    // TODO(ngeoffray): Move this logic into a separate class.
-    if (selector.kind == SelectorKind.INDEX
-        && input.isIndexablePrimitive(types)) {
-      if (selector.name == const SourceString('[]')) {
-        return new HIndex(node.inputs[1], node.inputs[2]);
-      } else if (input.isMutableArray(types)) {
-        assert(selector.name == const SourceString('[]='));
-        return new HIndexAssign(node.inputs[1], node.inputs[2], node.inputs[3]);
-      }
-    } else if (selector.kind == SelectorKind.OPERATOR) {
-      if (selector.name == const SourceString('unary-')) {
-        if (input.isNumber(types)) {
-          return new HNegate(input);
-        }
-      } else if (selector.name == const SourceString('~')) {
-        if (input.isNumber(types)) {
-          return new HBitNot(input);
-        }
-      }
-    }
-
     SourceString selectorName = selector.name;
     Element target;
     if (input.isExtendableArray(types)) {

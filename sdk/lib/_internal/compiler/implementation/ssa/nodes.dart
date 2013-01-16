@@ -1320,8 +1320,14 @@ class HInvokeClosure extends HInvokeDynamic {
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
-  HInvokeDynamicMethod(Selector selector, List<HInstruction> inputs)
-    : super(selector, null, inputs);
+  final InvokeDynamicSpecializer specializer;
+  HInvokeDynamicMethod(Selector selector,
+                       List<HInstruction> inputs,
+                       [bool isIntercepted = false])
+    : super(selector, null, inputs),
+      specializer = isIntercepted
+          ? InvokeDynamicSpecializer.lookupSpecializer(selector)
+          : const InvokeDynamicSpecializer();
   String toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 
@@ -1335,58 +1341,11 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   HType computeDesiredTypeForInput(HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
-    // TODO(ngeoffray): Move this logic into a different class that
-    // will know what type it wants for a given selector.
-    if (!isInterceptorCall) return HType.UNKNOWN;
-
-    if (selector.kind == SelectorKind.INDEX) {
-      HInstruction index = inputs[2];
-      if (input == inputs[1] &&
-          (index.isTypeUnknown(types) || index.isNumber(types))) {
-        return selector.name == const SourceString('[]')
-            ? HType.INDEXABLE_PRIMITIVE
-            : HType.MUTABLE_ARRAY;
-      }
-      // The index should be an int when the receiver is a string or array.
-      // However it turns out that inserting an integer check in the optimized
-      // version is cheaper than having another bailout case. This is true,
-      // because the integer check will simply throw if it fails.
-      return HType.UNKNOWN;
-    } else if (selector.kind == SelectorKind.OPERATOR) {
-      HType propagatedType = types[this];
-      if (selector.name == const SourceString('unary-') && input == inputs[1]) {
-        // If the outgoing type should be a number (integer, double or both) we
-        // want the outgoing type to be the input too.
-        // If we don't know the outgoing type we try to make it a number.
-        if (propagatedType.isNumber()) return propagatedType;
-        if (propagatedType.isUnknown()) return HType.NUMBER;
-      } else if (selector.name == const SourceString('~')
-                 && input == inputs[1]) {
-        if (propagatedType.isUnknown() || propagatedType.isNumber()) {
-          return HType.INTEGER;
-        }
-      }
-      return HType.UNKNOWN;
-    }
-    return HType.UNKNOWN;
+    return specializer.computeDesiredTypeForInput(this, input, types, compiler);
   }
 
   HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    // TODO(ngeoffray): Move this logic into a different class that
-    // will know what type it has for a given selector.
-    if (!isInterceptorCall) return HType.UNKNOWN;
-
-    if (selector.kind == SelectorKind.OPERATOR) {
-      if (selector.name == const SourceString('unary-')) {
-        HType operandType = types[inputs[1]];
-        if (operandType.isNumber()) return operandType;
-      } else if (selector.name == const SourceString('~')) {
-        // All bitwise operations on primitive types either produce an
-        // integer or throw an error.
-        if (inputs[1].isPrimitive(types)) return HType.INTEGER;
-      }
-    }
-    return HType.UNKNOWN;
+    return specializer.computeTypeFromInputTypes(this, types, compiler);
   }
 }
 
