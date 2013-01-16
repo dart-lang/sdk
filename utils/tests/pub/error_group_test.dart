@@ -37,7 +37,7 @@ main() {
 
       expect(() => errorGroup.registerFuture(new Future.immediate(null)),
           throwsStateError);
-      expect(() => errorGroup.registerStream(new StreamController()),
+      expect(() => errorGroup.registerStream(new StreamController().stream),
           throwsStateError);
     });
   });
@@ -64,7 +64,7 @@ main() {
 
       expect(() => errorGroup.registerFuture(new Future.immediate(null)),
           throwsStateError);
-      expect(() => errorGroup.registerStream(new StreamController()),
+      expect(() => errorGroup.registerStream(new StreamController().stream),
           throwsStateError);
     });
 
@@ -203,7 +203,7 @@ main() {
     setUp(() {
       errorGroup = new ErrorGroup();
       controller = new StreamController.multiSubscription();
-      stream = errorGroup.registerStream(controller);
+      stream = errorGroup.registerStream(controller.stream);
     });
 
     test('should pass through values from the stream', () {
@@ -293,7 +293,7 @@ main() {
     setUp(() {
       errorGroup = new ErrorGroup();
       controller = new StreamController();
-      stream = errorGroup.registerStream(controller);
+      stream = errorGroup.registerStream(controller.stream);
     });
 
     test("should complete .done when the stream is done even if the stream "
@@ -343,8 +343,8 @@ main() {
       errorGroup = new ErrorGroup();
       controller1 = new StreamController.multiSubscription();
       controller2 = new StreamController.multiSubscription();
-      stream1 = errorGroup.registerStream(controller1);
-      stream2 = errorGroup.registerStream(controller2);
+      stream1 = errorGroup.registerStream(controller1.stream);
+      stream2 = errorGroup.registerStream(controller2.stream);
     });
 
     test("should pipe exceptions from one stream to the other and to .done",
@@ -397,7 +397,7 @@ main() {
     setUp(() {
       errorGroup = new ErrorGroup();
       controller = new StreamController.multiSubscription();
-      stream = errorGroup.registerStream(controller);
+      stream = errorGroup.registerStream(controller.stream);
       completer = new Completer();
       future = errorGroup.registerFuture(completer.future);
     });

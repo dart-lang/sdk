@@ -40,6 +40,6 @@ class StreamedRequest extends BaseRequest {
   /// [sink].
   ByteStream finalize() {
     super.finalize();
-    return new ByteStream(_controller);
+    return new ByteStream(_controller.stream);
   }
 }

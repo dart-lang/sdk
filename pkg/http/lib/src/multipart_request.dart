@@ -123,7 +123,7 @@ class MultipartRequest extends BaseRequest {
       controller.close();
     });
 
-    return new ByteStream(controller);
+    return new ByteStream(controller.stream);
   }
 
   /// All character codes that are valid in multipart boundaries. From

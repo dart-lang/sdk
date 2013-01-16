@@ -248,7 +248,7 @@ class _ErrorGroupStream extends Stream {
   StreamSubscription listen(void onData(value),
       {void onError(AsyncError error), void onDone(),
        bool unsubscribeOnError}) {
-    return _controller.listen(onData,
+    return _controller.stream.listen(onData,
         onError: onError,
         onDone: onDone,
         unsubscribeOnError: true);

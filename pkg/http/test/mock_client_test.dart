@@ -35,13 +35,13 @@ void main() {
   test('handles a streamed request', () {
     var client = new MockClient.streaming((request, bodyStream) {
       return bodyStream.bytesToString().then((bodyString) {
-        var stream = new StreamController<List<int>>();
+        var controller = new StreamController<List<int>>();
         async.then((_) {
-          stream.add('Request body was "$bodyString"'.charCodes);
-          stream.close();
+          controller.add('Request body was "$bodyString"'.charCodes);
+          controller.close();
         });
 
-        return new http.StreamedResponse(stream, 200, -1);
+        return new http.StreamedResponse(controller.stream, 200, -1);
       });
     });
 

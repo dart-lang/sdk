@@ -156,8 +156,8 @@ void main() {
 
   test('with a stream file', () {
     var request = new http.MultipartRequest('POST', dummyUrl);
-    var stream = new StreamController();
-    request.files.add(new http.MultipartFile('file', stream, 5));
+    var controller = new StreamController();
+    request.files.add(new http.MultipartFile('file', controller.stream, 5));
 
     expect(request, bodyMatches('''
         --{{boundary}}
@@ -168,14 +168,14 @@ void main() {
         --{{boundary}}--
         '''));
 
-    stream.add([104, 101, 108, 108, 111]);
-    stream.close();
+    controller.add([104, 101, 108, 108, 111]);
+    controller.close();
   });
 
   test('with an empty stream file', () {
     var request = new http.MultipartRequest('POST', dummyUrl);
-    var stream = new StreamController();
-    request.files.add(new http.MultipartFile('file', stream, 0));
+    var controller = new StreamController();
+    request.files.add(new http.MultipartFile('file', controller.stream, 0));
 
     expect(request, bodyMatches('''
         --{{boundary}}
@@ -186,7 +186,7 @@ void main() {
         --{{boundary}}--
         '''));
 
-    stream.close();
+    controller.close();
   });
 
   test('with a byte file', () {

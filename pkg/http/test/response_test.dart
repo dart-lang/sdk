@@ -44,26 +44,27 @@ void main() {
 
   group('.fromStream()', () {
     test('sets body', () {
-      var stream = new StreamController();
-      var streamResponse = new http.StreamedResponse(stream, 200, 13);
+      var controller = new StreamController();
+      var streamResponse = new http.StreamedResponse(
+          controller.stream, 200, 13);
       var future = http.Response.fromStream(streamResponse)
         .then((response) => response.body);
       expect(future, completion(equals("Hello, world!")));
 
-      stream.add([72, 101, 108, 108, 111, 44, 32]);
-      stream.add([119, 111, 114, 108, 100, 33]);
-      stream.close();
+      controller.add([72, 101, 108, 108, 111, 44, 32]);
+      controller.add([119, 111, 114, 108, 100, 33]);
+      controller.close();
     });
 
     test('sets bodyBytes', () {
-      var stream = new StreamController();
-      var streamResponse = new http.StreamedResponse(stream, 200, 5);
+      var controller = new StreamController();
+      var streamResponse = new http.StreamedResponse(controller.stream, 200, 5);
       var future = http.Response.fromStream(streamResponse)
         .then((response) => response.bodyBytes);
       expect(future, completion(equals([104, 101, 108, 108, 111])));
 
-      stream.add([104, 101, 108, 108, 111]);
-      stream.close();
+      controller.add([104, 101, 108, 108, 111]);
+      controller.close();
     });
   });
 }

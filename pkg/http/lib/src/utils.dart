@@ -159,7 +159,7 @@ ByteStream wrapInputStream(InputStream stream) {
   stream.onClosed = controller.close;
   stream.onData = () => controller.add(stream.read());
   stream.onError = (e) => controller.signalError(new AsyncError(e));
-  return new ByteStream(controller);
+  return new ByteStream(controller.stream);
 }
 
 // TODO(nweiz): remove this once issue 7785 is fixed.
@@ -242,10 +242,10 @@ Stream get emptyStream => streamFromIterable([]);
 /// Creates a single-subscription stream that emits the items in [iter] and then
 /// ends.
 Stream streamFromIterable(Iterable iter) {
-  var stream = new StreamController();
-  iter.forEach(stream.add);
-  stream.close();
-  return stream.stream;
+  var controller = new StreamController();
+  iter.forEach(controller.add);
+  controller.close();
+  return controller.stream;
 }
 
 // TODO(nweiz): remove this when issue 7787 is fixed.
