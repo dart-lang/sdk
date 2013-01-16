@@ -60,35 +60,46 @@ class _Path implements Path {
       if (_path[basePath.length] == '/') {
         return new Path(_path.substring(basePath.length + 1));
       }
-    } else if (base.isAbsolute && isAbsolute &&
+    } else if (base.isAbsolute == isAbsolute &&
                base.isWindowsShare == isWindowsShare) {
       List<String> baseSegments = base.canonicalize().segments();
       List<String> pathSegments = canonicalize().segments();
+      if (baseSegments.length == 1 && baseSegments[0] == '.') {
+        baseSegments = [];
+      }
+      if (pathSegments.length == 1 && pathSegments[0] == '.') {
+        pathSegments = [];
+      }
       int common = 0;
       int length = min(pathSegments.length, baseSegments.length);
       while (common < length && pathSegments[common] == baseSegments[common]) {
         common++;
       }
-      final sb = new StringBuffer();
+      final segments = new List<String>();
 
-      for (int i = common + 1; i < baseSegments.length; i++) {
-        sb.add('../');
+      if (common < baseSegments.length && baseSegments[common] == '..') {
+        throw new ArgumentError(
+            "Invalid case of Path.relativeTo(base):\n"
+            "  Base path has more '..'s than path does."
+            "  Arguments: $_path.relativeTo($base)");
       }
-      if (base.hasTrailingSeparator) {
-        sb.add('../');
+      for (int i = common; i < baseSegments.length; i++) {
+        segments.add('..');
       }
-      for (int i = common; i < pathSegments.length - 1; i++) {
-        sb.add('${pathSegments[i]}/');
+      for (int i = common; i < pathSegments.length; i++) {
+        segments.add('${pathSegments[i]}');
       }
-      sb.add('${pathSegments.last}');
+      if (segments.isEmpty) {
+        segments.add('.');
+      }
       if (hasTrailingSeparator) {
-        sb.add('/');
+        segments.add('');
       }
-      return new Path(sb.toString());
+      return new Path(Strings.join(segments, '/'));
     }
-    throw new UnimplementedError(
-      "Unimplemented case of Path.relativeTo(base):\n"
-      "  Only absolute paths are handled at present.\n"
+    throw new ArgumentError(
+      "Invalid case of Path.relativeTo(base):\n"
+      "  Path and base must both be relative, or both absolute.\n"
       "  Arguments: $_path.relativeTo($base)");
   }
 

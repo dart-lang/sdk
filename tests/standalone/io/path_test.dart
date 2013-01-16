@@ -183,6 +183,7 @@ void testJoinAppend() {
 }
 
 void testRelativeTo() {
+  // Cases where the arguments are absolute paths.
   Expect.equals('c/d',
                 new Path('/a/b/c/d').relativeTo(new Path('/a/b')).toString());
   Expect.equals('c/d',
@@ -190,28 +191,65 @@ void testRelativeTo() {
   Expect.equals('.',
                 new Path('/a').relativeTo(new Path('/a')).toString());
 
-  // Trailing / in base path represents directory
+  // Trailing slash in the base path has no effect.  This matches Path.join
+  // semantics, but not URL join semantics.
   Expect.equals('../../z/x/y',
       new Path('/a/b/z/x/y').relativeTo(new Path('/a/b/c/d/')).toString());
-  Expect.equals('../z/x/y',
+  Expect.equals('../../z/x/y',
       new Path('/a/b/z/x/y').relativeTo(new Path('/a/b/c/d')).toString());
-  Expect.equals('../z/x/y/',
+  Expect.equals('../../z/x/y/',
       new Path('/a/b/z/x/y/').relativeTo(new Path('/a/b/c/d')).toString());
 
-  Expect.equals('../../z/x/y',
+  Expect.equals('../../../z/x/y',
       new Path('/z/x/y').relativeTo(new Path('/a/b/c')).toString());
   Expect.equals('../../../z/x/y',
       new Path('/z/x/y').relativeTo(new Path('/a/b/c/')).toString());
 
-  // Not implemented yet.  Should return new Path('../b/c/d/').
-  Expect.throws(() =>
-                new Path('b/c/d/').relativeTo(new Path('a/')));
+  // Cases where the arguments are relative paths.
+  Expect.equals('c/d',
+      new Path('a/b/c/d').relativeTo(new Path('a/b')).toString());
+  Expect.equals('c/d',
+      new Path('/a/b/c/d').relativeTo(new Path('/a/b/')).toString());
+  Expect.equals('.',
+      new Path('a/b/c').relativeTo(new Path('a/b/c')).toString());
+  Expect.equals('.',
+      new Path('').relativeTo(new Path('')).toString());
+  Expect.equals('.',
+      new Path('.').relativeTo(new Path('.')).toString());
+  Expect.equals('a',
+      new Path('a').relativeTo(new Path('.')).toString());
+  Expect.equals('..',
+      new Path('..').relativeTo(new Path('.')).toString());
+  Expect.equals('..',
+      new Path('.').relativeTo(new Path('a')).toString());
+  Expect.equals('.',
+      new Path('..').relativeTo(new Path('..')).toString());
+  Expect.equals('./',
+      new Path('a/b/f/../c/').relativeTo(new Path('a/e/../b/c')).toString());
+  Expect.equals('d',
+      new Path('a/b/f/../c/d').relativeTo(new Path('a/e/../b/c')).toString());
+  Expect.equals('..',
+      new Path('a/b/f/../c').relativeTo(new Path('a/e/../b/c/e/')).toString());
+  Expect.equals('../..',
+      new Path('').relativeTo(new Path('a/b/')).toString());
+  Expect.equals('../../..',
+      new Path('..').relativeTo(new Path('a/b')).toString());
+  Expect.equals('../b/c/d/',
+      new Path('b/c/d/').relativeTo(new Path('a/')).toString());
+
   // Should always throw - no relative path can be constructed.
   Expect.throws(() =>
                 new Path('a/b').relativeTo(new Path('../../d')));
+  // Should always throw - relative and absolute paths are compared.
+  Expect.throws(() =>
+                new Path('/a/b').relativeTo(new Path('c/d')));
+
+  Expect.throws(() =>
+                new Path('a/b').relativeTo(new Path('/a/b')));
+
 }
 
-// Test that Windows share information is maintain through
+// Test that Windows share information is maintained through
 // Path operations.
 void testWindowsShare() {
   // Windows share information only makes sense on Windows.
