@@ -408,6 +408,7 @@ class StandardTestSuite extends TestSuite {
   final List<String> statusFilePaths;
   TestCaseEvent doTest;
   TestExpectations testExpectations;
+  List<TestInformation> cachedTests;
   final Path dartDir;
   Predicate<String> isTestFilePredicate;
   final bool listRecursively;
@@ -503,7 +504,7 @@ class StandardTestSuite extends TestSuite {
       // Checked if we have already found and generated the tests for
       // this suite.
       if (!testCache.containsKey(suiteName)) {
-        testCache[suiteName] = [];
+        cachedTests = testCache[suiteName] = [];
         return enqueueTests();
       } else {
         // We rely on enqueueing completing asynchronously.
@@ -804,6 +805,7 @@ class StandardTestSuite extends TestSuite {
                                      isNegativeIfChecked,
                                      hasFatalTypeErrors,
                                      multitestOutcome);
+      cachedTests.add(info);
       enqueueTestCaseFromTestInformation(info);
     };
   }
