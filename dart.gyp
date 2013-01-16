@@ -132,7 +132,6 @@
         ['OS=="mac" or OS=="linux"', {
            'dependencies': [
              'samples/sample_extension/sample_extension.gyp:sample_extension',
-             'samples/mobile_emulator_sample/mobile_emulator_sample.gyp:mobile_emulator_sample',
            ],
           },
         ],
