@@ -113,7 +113,7 @@ main() {
       startTime,
       printTiming,
       enqueueConfiguration,
-      () => terminateHttpServer(),
+      () => TestingServerRunner.terminateHttpServers(),
       verbose,
       listTests);
 }
