@@ -233,6 +233,7 @@ svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
 websql_test: Fail # FF does not support web SQL
+wheelevent_test: Skip # Times out on FF 16. Issue 7943
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
