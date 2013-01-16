@@ -738,9 +738,15 @@ def FindCommonAnnotations(interface_name, member_name=None):
   """ Finds annotations common between dart2js and dartium.
   """
   if member_name:
-    return dart_annotations.get('%s.%s' % (interface_name, member_name))
+    key = '%s.%s' % (interface_name, member_name)
   else:
-    return dart_annotations.get(interface_name)
+    key = interface_name
+
+  annotations = ["@DomName('" + key + "')"]
+  if (dart_annotations.get(key) != None):
+    annotations.extend(dart_annotations.get(key))
+
+  return annotations
 
 def FindDart2JSAnnotations(idl_type, interface_name, member_name):
   """ Finds all annotations for Dart2JS members- including annotations for
@@ -757,6 +763,13 @@ def FindDart2JSAnnotations(idl_type, interface_name, member_name):
     else:
       annotations = ann2
   return annotations
+
+def AnyConversionAnnotations(idl_type, interface_name, member_name):
+  if (dart_annotations.get('%s.%s' % (interface_name, member_name)) or
+      _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name)):
+    return True
+  else:
+    return False
 
 def _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name):
   """ Finds dart2js-specific annotations. This does not include ones shared with

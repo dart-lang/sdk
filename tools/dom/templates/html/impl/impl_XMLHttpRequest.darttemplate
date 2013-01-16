@@ -29,7 +29,7 @@ part of html;
  * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
-/// @domName XMLHttpRequest
+@DomName('XMLHttpRequest')
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   /**
    * Creates a URL get request for the specified `url`.

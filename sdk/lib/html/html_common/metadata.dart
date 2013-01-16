@@ -41,3 +41,16 @@ class SupportedBrowser {
 class Experimental {
   const Experimental();
 }
+
+
+/**
+ * Metadata that specifies the DOM name associated with the element.
+ *
+ * This is used for API generation.
+ *
+ * [name] should be formatted as `interface.member`.
+ */
+class DomName {
+  final String name;
+  const DomName(this.name);
+}

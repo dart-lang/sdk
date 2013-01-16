@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName KeyboardEvent; @docsEditable true
+@DomName('KeyboardEvent')
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   factory $CLASSNAME(String type, Window view,
@@ -17,7 +17,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return e;
   }
 
-  /** @domName KeyboardEvent.initKeyboardEvent */
+  @DomName('KeyboardEvent.initKeyboardEvent')
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
       Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
@@ -37,10 +37,10 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
-  /** @domName KeyboardEvent.keyCode */
+  @DomName('KeyboardEvent.keyCode')
   int get keyCode => $dom_keyCode;
 
-  /** @domName KeyboardEvent.charCode */
+  @DomName('KeyboardEvent.charCode')
   int get charCode => $dom_charCode;
 $!MEMBERS
 }

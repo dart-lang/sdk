@@ -59,95 +59,74 @@ class _SvgSvgElementFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAElement
+@DomName('SVGAElement')
 class AElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
   AElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
 
-
-  /** @domName SVGAElement.target */
+  @DomName('SVGAElement.target')
   AnimatedString get target native "SVGAElement_target_Getter";
 
-
-  /** @domName SVGAElement.externalResourcesRequired */
+  @DomName('SVGAElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGAElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGAElement.xmllang */
+  @DomName('SVGAElement.xmllang')
   String get xmllang native "SVGAElement_xmllang_Getter";
 
-
-  /** @domName SVGAElement.xmllang */
+  @DomName('SVGAElement.xmllang')
   void set xmllang(String value) native "SVGAElement_xmllang_Setter";
 
-
-  /** @domName SVGAElement.xmlspace */
+  @DomName('SVGAElement.xmlspace')
   String get xmlspace native "SVGAElement_xmlspace_Getter";
 
-
-  /** @domName SVGAElement.xmlspace */
+  @DomName('SVGAElement.xmlspace')
   void set xmlspace(String value) native "SVGAElement_xmlspace_Setter";
 
-
-  /** @domName SVGAElement.farthestViewportElement */
+  @DomName('SVGAElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGAElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGAElement.nearestViewportElement */
+  @DomName('SVGAElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGAElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGAElement.getBBox */
+  @DomName('SVGAElement.getBBox')
   Rect getBBox() native "SVGAElement_getBBox_Callback";
 
-
-  /** @domName SVGAElement.getCTM */
+  @DomName('SVGAElement.getCTM')
   Matrix getCtm() native "SVGAElement_getCTM_Callback";
 
-
-  /** @domName SVGAElement.getScreenCTM */
+  @DomName('SVGAElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGAElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGAElement.getTransformToElement */
+  @DomName('SVGAElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGAElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGAElement.className */
+  @DomName('SVGAElement.className')
   AnimatedString get $dom_svgClassName native "SVGAElement_className_Getter";
 
-
-  /** @domName SVGAElement.style */
+  @DomName('SVGAElement.style')
   CssStyleDeclaration get style native "SVGAElement_style_Getter";
 
-
-  /** @domName SVGAElement.getPresentationAttribute */
+  @DomName('SVGAElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGAElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGAElement.requiredExtensions */
+  @DomName('SVGAElement.requiredExtensions')
   StringList get requiredExtensions native "SVGAElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGAElement.requiredFeatures */
+  @DomName('SVGAElement.requiredFeatures')
   StringList get requiredFeatures native "SVGAElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGAElement.systemLanguage */
+  @DomName('SVGAElement.systemLanguage')
   StringList get systemLanguage native "SVGAElement_systemLanguage_Getter";
 
-
-  /** @domName SVGAElement.hasExtension */
+  @DomName('SVGAElement.hasExtension')
   bool hasExtension(String extension) native "SVGAElement_hasExtension_Callback";
 
-
-  /** @domName SVGAElement.transform */
+  @DomName('SVGAElement.transform')
   AnimatedTransformList get transform native "SVGAElement_transform_Getter";
 
-
-  /** @domName SVGAElement.href */
+  @DomName('SVGAElement.href')
   AnimatedString get href native "SVGAElement_href_Getter";
 
 }
@@ -158,7 +137,7 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAltGlyphDefElement
+@DomName('SVGAltGlyphDefElement')
 class AltGlyphDefElement extends SvgElement {
   AltGlyphDefElement.internal() : super.internal();
 
@@ -170,28 +149,23 @@ class AltGlyphDefElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAltGlyphElement
+@DomName('SVGAltGlyphElement')
 class AltGlyphElement extends TextPositioningElement implements UriReference {
   AltGlyphElement.internal() : super.internal();
 
-
-  /** @domName SVGAltGlyphElement.format */
+  @DomName('SVGAltGlyphElement.format')
   String get format native "SVGAltGlyphElement_format_Getter";
 
-
-  /** @domName SVGAltGlyphElement.format */
+  @DomName('SVGAltGlyphElement.format')
   void set format(String value) native "SVGAltGlyphElement_format_Setter";
 
-
-  /** @domName SVGAltGlyphElement.glyphRef */
+  @DomName('SVGAltGlyphElement.glyphRef')
   String get glyphRef native "SVGAltGlyphElement_glyphRef_Getter";
 
-
-  /** @domName SVGAltGlyphElement.glyphRef */
+  @DomName('SVGAltGlyphElement.glyphRef')
   void set glyphRef(String value) native "SVGAltGlyphElement_glyphRef_Setter";
 
-
-  /** @domName SVGAltGlyphElement.href */
+  @DomName('SVGAltGlyphElement.href')
   AnimatedString get href native "SVGAltGlyphElement_href_Getter";
 
 }
@@ -202,7 +176,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAltGlyphItemElement
+@DomName('SVGAltGlyphItemElement')
 class AltGlyphItemElement extends SvgElement {
   AltGlyphItemElement.internal() : super.internal();
 
@@ -214,7 +188,7 @@ class AltGlyphItemElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAngle
+@DomName('SVGAngle')
 class Angle extends NativeFieldWrapperClass1 {
   Angle.internal();
 
@@ -228,40 +202,31 @@ class Angle extends NativeFieldWrapperClass1 {
 
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
-
-  /** @domName SVGAngle.unitType */
+  @DomName('SVGAngle.unitType')
   int get unitType native "SVGAngle_unitType_Getter";
 
-
-  /** @domName SVGAngle.value */
+  @DomName('SVGAngle.value')
   num get value native "SVGAngle_value_Getter";
 
-
-  /** @domName SVGAngle.value */
+  @DomName('SVGAngle.value')
   void set value(num value) native "SVGAngle_value_Setter";
 
-
-  /** @domName SVGAngle.valueAsString */
+  @DomName('SVGAngle.valueAsString')
   String get valueAsString native "SVGAngle_valueAsString_Getter";
 
-
-  /** @domName SVGAngle.valueAsString */
+  @DomName('SVGAngle.valueAsString')
   void set valueAsString(String value) native "SVGAngle_valueAsString_Setter";
 
-
-  /** @domName SVGAngle.valueInSpecifiedUnits */
+  @DomName('SVGAngle.valueInSpecifiedUnits')
   num get valueInSpecifiedUnits native "SVGAngle_valueInSpecifiedUnits_Getter";
 
-
-  /** @domName SVGAngle.valueInSpecifiedUnits */
+  @DomName('SVGAngle.valueInSpecifiedUnits')
   void set valueInSpecifiedUnits(num value) native "SVGAngle_valueInSpecifiedUnits_Setter";
 
-
-  /** @domName SVGAngle.convertToSpecifiedUnits */
+  @DomName('SVGAngle.convertToSpecifiedUnits')
   void convertToSpecifiedUnits(int unitType) native "SVGAngle_convertToSpecifiedUnits_Callback";
 
-
-  /** @domName SVGAngle.newValueSpecifiedUnits */
+  @DomName('SVGAngle.newValueSpecifiedUnits')
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native "SVGAngle_newValueSpecifiedUnits_Callback";
 
 }
@@ -272,11 +237,11 @@ class Angle extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimateColorElement
+@DomName('SVGAnimateColorElement')
 class AnimateColorElement extends AnimationElement {
   AnimateColorElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimateColorElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateColor");
 
 }
@@ -287,11 +252,11 @@ class AnimateColorElement extends AnimationElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimateElement
+@DomName('SVGAnimateElement')
 class AnimateElement extends AnimationElement {
   AnimateElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
 
 }
@@ -302,11 +267,11 @@ class AnimateElement extends AnimationElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimateMotionElement
+@DomName('SVGAnimateMotionElement')
 class AnimateMotionElement extends AnimationElement {
   AnimateMotionElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
 
 }
@@ -317,11 +282,11 @@ class AnimateMotionElement extends AnimationElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimateTransformElement
+@DomName('SVGAnimateTransformElement')
 class AnimateTransformElement extends AnimationElement {
   AnimateTransformElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
 
 }
@@ -332,16 +297,14 @@ class AnimateTransformElement extends AnimationElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedAngle
+@DomName('SVGAnimatedAngle')
 class AnimatedAngle extends NativeFieldWrapperClass1 {
   AnimatedAngle.internal();
 
-
-  /** @domName SVGAnimatedAngle.animVal */
+  @DomName('SVGAnimatedAngle.animVal')
   Angle get animVal native "SVGAnimatedAngle_animVal_Getter";
 
-
-  /** @domName SVGAnimatedAngle.baseVal */
+  @DomName('SVGAnimatedAngle.baseVal')
   Angle get baseVal native "SVGAnimatedAngle_baseVal_Getter";
 
 }
@@ -352,20 +315,17 @@ class AnimatedAngle extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedBoolean
+@DomName('SVGAnimatedBoolean')
 class AnimatedBoolean extends NativeFieldWrapperClass1 {
   AnimatedBoolean.internal();
 
-
-  /** @domName SVGAnimatedBoolean.animVal */
+  @DomName('SVGAnimatedBoolean.animVal')
   bool get animVal native "SVGAnimatedBoolean_animVal_Getter";
 
-
-  /** @domName SVGAnimatedBoolean.baseVal */
+  @DomName('SVGAnimatedBoolean.baseVal')
   bool get baseVal native "SVGAnimatedBoolean_baseVal_Getter";
 
-
-  /** @domName SVGAnimatedBoolean.baseVal */
+  @DomName('SVGAnimatedBoolean.baseVal')
   void set baseVal(bool value) native "SVGAnimatedBoolean_baseVal_Setter";
 
 }
@@ -376,20 +336,17 @@ class AnimatedBoolean extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedEnumeration
+@DomName('SVGAnimatedEnumeration')
 class AnimatedEnumeration extends NativeFieldWrapperClass1 {
   AnimatedEnumeration.internal();
 
-
-  /** @domName SVGAnimatedEnumeration.animVal */
+  @DomName('SVGAnimatedEnumeration.animVal')
   int get animVal native "SVGAnimatedEnumeration_animVal_Getter";
 
-
-  /** @domName SVGAnimatedEnumeration.baseVal */
+  @DomName('SVGAnimatedEnumeration.baseVal')
   int get baseVal native "SVGAnimatedEnumeration_baseVal_Getter";
 
-
-  /** @domName SVGAnimatedEnumeration.baseVal */
+  @DomName('SVGAnimatedEnumeration.baseVal')
   void set baseVal(int value) native "SVGAnimatedEnumeration_baseVal_Setter";
 
 }
@@ -400,20 +357,17 @@ class AnimatedEnumeration extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedInteger
+@DomName('SVGAnimatedInteger')
 class AnimatedInteger extends NativeFieldWrapperClass1 {
   AnimatedInteger.internal();
 
-
-  /** @domName SVGAnimatedInteger.animVal */
+  @DomName('SVGAnimatedInteger.animVal')
   int get animVal native "SVGAnimatedInteger_animVal_Getter";
 
-
-  /** @domName SVGAnimatedInteger.baseVal */
+  @DomName('SVGAnimatedInteger.baseVal')
   int get baseVal native "SVGAnimatedInteger_baseVal_Getter";
 
-
-  /** @domName SVGAnimatedInteger.baseVal */
+  @DomName('SVGAnimatedInteger.baseVal')
   void set baseVal(int value) native "SVGAnimatedInteger_baseVal_Setter";
 
 }
@@ -424,16 +378,14 @@ class AnimatedInteger extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedLength
+@DomName('SVGAnimatedLength')
 class AnimatedLength extends NativeFieldWrapperClass1 {
   AnimatedLength.internal();
 
-
-  /** @domName SVGAnimatedLength.animVal */
+  @DomName('SVGAnimatedLength.animVal')
   Length get animVal native "SVGAnimatedLength_animVal_Getter";
 
-
-  /** @domName SVGAnimatedLength.baseVal */
+  @DomName('SVGAnimatedLength.baseVal')
   Length get baseVal native "SVGAnimatedLength_baseVal_Getter";
 
 }
@@ -444,16 +396,14 @@ class AnimatedLength extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedLengthList
+@DomName('SVGAnimatedLengthList')
 class AnimatedLengthList extends NativeFieldWrapperClass1 {
   AnimatedLengthList.internal();
 
-
-  /** @domName SVGAnimatedLengthList.animVal */
+  @DomName('SVGAnimatedLengthList.animVal')
   LengthList get animVal native "SVGAnimatedLengthList_animVal_Getter";
 
-
-  /** @domName SVGAnimatedLengthList.baseVal */
+  @DomName('SVGAnimatedLengthList.baseVal')
   LengthList get baseVal native "SVGAnimatedLengthList_baseVal_Getter";
 
 }
@@ -464,20 +414,17 @@ class AnimatedLengthList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedNumber
+@DomName('SVGAnimatedNumber')
 class AnimatedNumber extends NativeFieldWrapperClass1 {
   AnimatedNumber.internal();
 
-
-  /** @domName SVGAnimatedNumber.animVal */
+  @DomName('SVGAnimatedNumber.animVal')
   num get animVal native "SVGAnimatedNumber_animVal_Getter";
 
-
-  /** @domName SVGAnimatedNumber.baseVal */
+  @DomName('SVGAnimatedNumber.baseVal')
   num get baseVal native "SVGAnimatedNumber_baseVal_Getter";
 
-
-  /** @domName SVGAnimatedNumber.baseVal */
+  @DomName('SVGAnimatedNumber.baseVal')
   void set baseVal(num value) native "SVGAnimatedNumber_baseVal_Setter";
 
 }
@@ -488,16 +435,14 @@ class AnimatedNumber extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedNumberList
+@DomName('SVGAnimatedNumberList')
 class AnimatedNumberList extends NativeFieldWrapperClass1 {
   AnimatedNumberList.internal();
 
-
-  /** @domName SVGAnimatedNumberList.animVal */
+  @DomName('SVGAnimatedNumberList.animVal')
   NumberList get animVal native "SVGAnimatedNumberList_animVal_Getter";
 
-
-  /** @domName SVGAnimatedNumberList.baseVal */
+  @DomName('SVGAnimatedNumberList.baseVal')
   NumberList get baseVal native "SVGAnimatedNumberList_baseVal_Getter";
 
 }
@@ -508,16 +453,14 @@ class AnimatedNumberList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedPreserveAspectRatio
+@DomName('SVGAnimatedPreserveAspectRatio')
 class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
   AnimatedPreserveAspectRatio.internal();
 
-
-  /** @domName SVGAnimatedPreserveAspectRatio.animVal */
+  @DomName('SVGAnimatedPreserveAspectRatio.animVal')
   PreserveAspectRatio get animVal native "SVGAnimatedPreserveAspectRatio_animVal_Getter";
 
-
-  /** @domName SVGAnimatedPreserveAspectRatio.baseVal */
+  @DomName('SVGAnimatedPreserveAspectRatio.baseVal')
   PreserveAspectRatio get baseVal native "SVGAnimatedPreserveAspectRatio_baseVal_Getter";
 
 }
@@ -528,16 +471,14 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedRect
+@DomName('SVGAnimatedRect')
 class AnimatedRect extends NativeFieldWrapperClass1 {
   AnimatedRect.internal();
 
-
-  /** @domName SVGAnimatedRect.animVal */
+  @DomName('SVGAnimatedRect.animVal')
   Rect get animVal native "SVGAnimatedRect_animVal_Getter";
 
-
-  /** @domName SVGAnimatedRect.baseVal */
+  @DomName('SVGAnimatedRect.baseVal')
   Rect get baseVal native "SVGAnimatedRect_baseVal_Getter";
 
 }
@@ -548,20 +489,17 @@ class AnimatedRect extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedString
+@DomName('SVGAnimatedString')
 class AnimatedString extends NativeFieldWrapperClass1 {
   AnimatedString.internal();
 
-
-  /** @domName SVGAnimatedString.animVal */
+  @DomName('SVGAnimatedString.animVal')
   String get animVal native "SVGAnimatedString_animVal_Getter";
 
-
-  /** @domName SVGAnimatedString.baseVal */
+  @DomName('SVGAnimatedString.baseVal')
   String get baseVal native "SVGAnimatedString_baseVal_Getter";
 
-
-  /** @domName SVGAnimatedString.baseVal */
+  @DomName('SVGAnimatedString.baseVal')
   void set baseVal(String value) native "SVGAnimatedString_baseVal_Setter";
 
 }
@@ -572,16 +510,14 @@ class AnimatedString extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimatedTransformList
+@DomName('SVGAnimatedTransformList')
 class AnimatedTransformList extends NativeFieldWrapperClass1 {
   AnimatedTransformList.internal();
 
-
-  /** @domName SVGAnimatedTransformList.animVal */
+  @DomName('SVGAnimatedTransformList.animVal')
   TransformList get animVal native "SVGAnimatedTransformList_animVal_Getter";
 
-
-  /** @domName SVGAnimatedTransformList.baseVal */
+  @DomName('SVGAnimatedTransformList.baseVal')
   TransformList get baseVal native "SVGAnimatedTransformList_baseVal_Getter";
 
 }
@@ -592,63 +528,50 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGAnimationElement
+@DomName('SVGAnimationElement')
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired {
   AnimationElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
 
-
-  /** @domName SVGAnimationElement.targetElement */
+  @DomName('SVGAnimationElement.targetElement')
   SvgElement get targetElement native "SVGAnimationElement_targetElement_Getter";
 
-
-  /** @domName SVGAnimationElement.getCurrentTime */
+  @DomName('SVGAnimationElement.getCurrentTime')
   num getCurrentTime() native "SVGAnimationElement_getCurrentTime_Callback";
 
-
-  /** @domName SVGAnimationElement.getSimpleDuration */
+  @DomName('SVGAnimationElement.getSimpleDuration')
   num getSimpleDuration() native "SVGAnimationElement_getSimpleDuration_Callback";
 
-
-  /** @domName SVGAnimationElement.getStartTime */
+  @DomName('SVGAnimationElement.getStartTime')
   num getStartTime() native "SVGAnimationElement_getStartTime_Callback";
 
-
-  /** @domName SVGAnimationElement.beginElement */
+  @DomName('SVGAnimationElement.beginElement')
   void beginElement() native "SVGAnimationElement_beginElement_Callback";
 
-
-  /** @domName SVGAnimationElement.beginElementAt */
+  @DomName('SVGAnimationElement.beginElementAt')
   void beginElementAt(num offset) native "SVGAnimationElement_beginElementAt_Callback";
 
-
-  /** @domName SVGAnimationElement.endElement */
+  @DomName('SVGAnimationElement.endElement')
   void endElement() native "SVGAnimationElement_endElement_Callback";
 
-
-  /** @domName SVGAnimationElement.endElementAt */
+  @DomName('SVGAnimationElement.endElementAt')
   void endElementAt(num offset) native "SVGAnimationElement_endElementAt_Callback";
 
-
-  /** @domName SVGAnimationElement.externalResourcesRequired */
+  @DomName('SVGAnimationElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGAnimationElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGAnimationElement.requiredExtensions */
+  @DomName('SVGAnimationElement.requiredExtensions')
   StringList get requiredExtensions native "SVGAnimationElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGAnimationElement.requiredFeatures */
+  @DomName('SVGAnimationElement.requiredFeatures')
   StringList get requiredFeatures native "SVGAnimationElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGAnimationElement.systemLanguage */
+  @DomName('SVGAnimationElement.systemLanguage')
   StringList get systemLanguage native "SVGAnimationElement_systemLanguage_Getter";
 
-
-  /** @domName SVGAnimationElement.hasExtension */
+  @DomName('SVGAnimationElement.hasExtension')
   bool hasExtension(String extension) native "SVGAnimationElement_hasExtension_Callback";
 
 }
@@ -659,99 +582,77 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGCircleElement
+@DomName('SVGCircleElement')
 class CircleElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   CircleElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
 
-
-  /** @domName SVGCircleElement.cx */
+  @DomName('SVGCircleElement.cx')
   AnimatedLength get cx native "SVGCircleElement_cx_Getter";
 
-
-  /** @domName SVGCircleElement.cy */
+  @DomName('SVGCircleElement.cy')
   AnimatedLength get cy native "SVGCircleElement_cy_Getter";
 
-
-  /** @domName SVGCircleElement.r */
+  @DomName('SVGCircleElement.r')
   AnimatedLength get r native "SVGCircleElement_r_Getter";
 
-
-  /** @domName SVGCircleElement.externalResourcesRequired */
+  @DomName('SVGCircleElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGCircleElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGCircleElement.xmllang */
+  @DomName('SVGCircleElement.xmllang')
   String get xmllang native "SVGCircleElement_xmllang_Getter";
 
-
-  /** @domName SVGCircleElement.xmllang */
+  @DomName('SVGCircleElement.xmllang')
   void set xmllang(String value) native "SVGCircleElement_xmllang_Setter";
 
-
-  /** @domName SVGCircleElement.xmlspace */
+  @DomName('SVGCircleElement.xmlspace')
   String get xmlspace native "SVGCircleElement_xmlspace_Getter";
 
-
-  /** @domName SVGCircleElement.xmlspace */
+  @DomName('SVGCircleElement.xmlspace')
   void set xmlspace(String value) native "SVGCircleElement_xmlspace_Setter";
 
-
-  /** @domName SVGCircleElement.farthestViewportElement */
+  @DomName('SVGCircleElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGCircleElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGCircleElement.nearestViewportElement */
+  @DomName('SVGCircleElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGCircleElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGCircleElement.getBBox */
+  @DomName('SVGCircleElement.getBBox')
   Rect getBBox() native "SVGCircleElement_getBBox_Callback";
 
-
-  /** @domName SVGCircleElement.getCTM */
+  @DomName('SVGCircleElement.getCTM')
   Matrix getCtm() native "SVGCircleElement_getCTM_Callback";
 
-
-  /** @domName SVGCircleElement.getScreenCTM */
+  @DomName('SVGCircleElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGCircleElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGCircleElement.getTransformToElement */
+  @DomName('SVGCircleElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGCircleElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGCircleElement.className */
+  @DomName('SVGCircleElement.className')
   AnimatedString get $dom_svgClassName native "SVGCircleElement_className_Getter";
 
-
-  /** @domName SVGCircleElement.style */
+  @DomName('SVGCircleElement.style')
   CssStyleDeclaration get style native "SVGCircleElement_style_Getter";
 
-
-  /** @domName SVGCircleElement.getPresentationAttribute */
+  @DomName('SVGCircleElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGCircleElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGCircleElement.requiredExtensions */
+  @DomName('SVGCircleElement.requiredExtensions')
   StringList get requiredExtensions native "SVGCircleElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGCircleElement.requiredFeatures */
+  @DomName('SVGCircleElement.requiredFeatures')
   StringList get requiredFeatures native "SVGCircleElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGCircleElement.systemLanguage */
+  @DomName('SVGCircleElement.systemLanguage')
   StringList get systemLanguage native "SVGCircleElement_systemLanguage_Getter";
 
-
-  /** @domName SVGCircleElement.hasExtension */
+  @DomName('SVGCircleElement.hasExtension')
   bool hasExtension(String extension) native "SVGCircleElement_hasExtension_Callback";
 
-
-  /** @domName SVGCircleElement.transform */
+  @DomName('SVGCircleElement.transform')
   AnimatedTransformList get transform native "SVGCircleElement_transform_Getter";
 
 }
@@ -762,91 +663,71 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGClipPathElement
+@DomName('SVGClipPathElement')
 class ClipPathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   ClipPathElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
 
-
-  /** @domName SVGClipPathElement.clipPathUnits */
+  @DomName('SVGClipPathElement.clipPathUnits')
   AnimatedEnumeration get clipPathUnits native "SVGClipPathElement_clipPathUnits_Getter";
 
-
-  /** @domName SVGClipPathElement.externalResourcesRequired */
+  @DomName('SVGClipPathElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGClipPathElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGClipPathElement.xmllang */
+  @DomName('SVGClipPathElement.xmllang')
   String get xmllang native "SVGClipPathElement_xmllang_Getter";
 
-
-  /** @domName SVGClipPathElement.xmllang */
+  @DomName('SVGClipPathElement.xmllang')
   void set xmllang(String value) native "SVGClipPathElement_xmllang_Setter";
 
-
-  /** @domName SVGClipPathElement.xmlspace */
+  @DomName('SVGClipPathElement.xmlspace')
   String get xmlspace native "SVGClipPathElement_xmlspace_Getter";
 
-
-  /** @domName SVGClipPathElement.xmlspace */
+  @DomName('SVGClipPathElement.xmlspace')
   void set xmlspace(String value) native "SVGClipPathElement_xmlspace_Setter";
 
-
-  /** @domName SVGClipPathElement.farthestViewportElement */
+  @DomName('SVGClipPathElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGClipPathElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGClipPathElement.nearestViewportElement */
+  @DomName('SVGClipPathElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGClipPathElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGClipPathElement.getBBox */
+  @DomName('SVGClipPathElement.getBBox')
   Rect getBBox() native "SVGClipPathElement_getBBox_Callback";
 
-
-  /** @domName SVGClipPathElement.getCTM */
+  @DomName('SVGClipPathElement.getCTM')
   Matrix getCtm() native "SVGClipPathElement_getCTM_Callback";
 
-
-  /** @domName SVGClipPathElement.getScreenCTM */
+  @DomName('SVGClipPathElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGClipPathElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGClipPathElement.getTransformToElement */
+  @DomName('SVGClipPathElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGClipPathElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGClipPathElement.className */
+  @DomName('SVGClipPathElement.className')
   AnimatedString get $dom_svgClassName native "SVGClipPathElement_className_Getter";
 
-
-  /** @domName SVGClipPathElement.style */
+  @DomName('SVGClipPathElement.style')
   CssStyleDeclaration get style native "SVGClipPathElement_style_Getter";
 
-
-  /** @domName SVGClipPathElement.getPresentationAttribute */
+  @DomName('SVGClipPathElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGClipPathElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGClipPathElement.requiredExtensions */
+  @DomName('SVGClipPathElement.requiredExtensions')
   StringList get requiredExtensions native "SVGClipPathElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGClipPathElement.requiredFeatures */
+  @DomName('SVGClipPathElement.requiredFeatures')
   StringList get requiredFeatures native "SVGClipPathElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGClipPathElement.systemLanguage */
+  @DomName('SVGClipPathElement.systemLanguage')
   StringList get systemLanguage native "SVGClipPathElement_systemLanguage_Getter";
 
-
-  /** @domName SVGClipPathElement.hasExtension */
+  @DomName('SVGClipPathElement.hasExtension')
   bool hasExtension(String extension) native "SVGClipPathElement_hasExtension_Callback";
 
-
-  /** @domName SVGClipPathElement.transform */
+  @DomName('SVGClipPathElement.transform')
   AnimatedTransformList get transform native "SVGClipPathElement_transform_Getter";
 
 }
@@ -857,7 +738,7 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGColor
+@DomName('SVGColor')
 class Color extends CssValue {
   Color.internal() : super.internal();
 
@@ -869,24 +750,19 @@ class Color extends CssValue {
 
   static const int SVG_COLORTYPE_UNKNOWN = 0;
 
-
-  /** @domName SVGColor.colorType */
+  @DomName('SVGColor.colorType')
   int get colorType native "SVGColor_colorType_Getter";
 
-
-  /** @domName SVGColor.rgbColor */
+  @DomName('SVGColor.rgbColor')
   RgbColor get rgbColor native "SVGColor_rgbColor_Getter";
 
-
-  /** @domName SVGColor.setColor */
+  @DomName('SVGColor.setColor')
   void setColor(int colorType, String rgbColor, String iccColor) native "SVGColor_setColor_Callback";
 
-
-  /** @domName SVGColor.setRGBColor */
+  @DomName('SVGColor.setRGBColor')
   void setRgbColor(String rgbColor) native "SVGColor_setRGBColor_Callback";
 
-
-  /** @domName SVGColor.setRGBColorICCColor */
+  @DomName('SVGColor.setRGBColorICCColor')
   void setRgbColorIccColor(String rgbColor, String iccColor) native "SVGColor_setRGBColorICCColor_Callback";
 
 }
@@ -897,7 +773,7 @@ class Color extends CssValue {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGComponentTransferFunctionElement
+@DomName('SVGComponentTransferFunctionElement')
 class ComponentTransferFunctionElement extends SvgElement {
   ComponentTransferFunctionElement.internal() : super.internal();
 
@@ -913,32 +789,25 @@ class ComponentTransferFunctionElement extends SvgElement {
 
   static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-
-  /** @domName SVGComponentTransferFunctionElement.amplitude */
+  @DomName('SVGComponentTransferFunctionElement.amplitude')
   AnimatedNumber get amplitude native "SVGComponentTransferFunctionElement_amplitude_Getter";
 
-
-  /** @domName SVGComponentTransferFunctionElement.exponent */
+  @DomName('SVGComponentTransferFunctionElement.exponent')
   AnimatedNumber get exponent native "SVGComponentTransferFunctionElement_exponent_Getter";
 
-
-  /** @domName SVGComponentTransferFunctionElement.intercept */
+  @DomName('SVGComponentTransferFunctionElement.intercept')
   AnimatedNumber get intercept native "SVGComponentTransferFunctionElement_intercept_Getter";
 
-
-  /** @domName SVGComponentTransferFunctionElement.offset */
+  @DomName('SVGComponentTransferFunctionElement.offset')
   AnimatedNumber get offset native "SVGComponentTransferFunctionElement_offset_Getter";
 
-
-  /** @domName SVGComponentTransferFunctionElement.slope */
+  @DomName('SVGComponentTransferFunctionElement.slope')
   AnimatedNumber get slope native "SVGComponentTransferFunctionElement_slope_Getter";
 
-
-  /** @domName SVGComponentTransferFunctionElement.tableValues */
+  @DomName('SVGComponentTransferFunctionElement.tableValues')
   AnimatedNumberList get tableValues native "SVGComponentTransferFunctionElement_tableValues_Getter";
 
-
-  /** @domName SVGComponentTransferFunctionElement.type */
+  @DomName('SVGComponentTransferFunctionElement.type')
   AnimatedEnumeration get type native "SVGComponentTransferFunctionElement_type_Getter";
 
 }
@@ -949,43 +818,35 @@ class ComponentTransferFunctionElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGCursorElement
+@DomName('SVGCursorElement')
 class CursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired {
   CursorElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory CursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
 
-
-  /** @domName SVGCursorElement.x */
+  @DomName('SVGCursorElement.x')
   AnimatedLength get x native "SVGCursorElement_x_Getter";
 
-
-  /** @domName SVGCursorElement.y */
+  @DomName('SVGCursorElement.y')
   AnimatedLength get y native "SVGCursorElement_y_Getter";
 
-
-  /** @domName SVGCursorElement.externalResourcesRequired */
+  @DomName('SVGCursorElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGCursorElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGCursorElement.requiredExtensions */
+  @DomName('SVGCursorElement.requiredExtensions')
   StringList get requiredExtensions native "SVGCursorElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGCursorElement.requiredFeatures */
+  @DomName('SVGCursorElement.requiredFeatures')
   StringList get requiredFeatures native "SVGCursorElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGCursorElement.systemLanguage */
+  @DomName('SVGCursorElement.systemLanguage')
   StringList get systemLanguage native "SVGCursorElement_systemLanguage_Getter";
 
-
-  /** @domName SVGCursorElement.hasExtension */
+  @DomName('SVGCursorElement.hasExtension')
   bool hasExtension(String extension) native "SVGCursorElement_hasExtension_Callback";
 
-
-  /** @domName SVGCursorElement.href */
+  @DomName('SVGCursorElement.href')
   AnimatedString get href native "SVGCursorElement_href_Getter";
 
 }
@@ -996,87 +857,68 @@ class CursorElement extends SvgElement implements UriReference, Tests, ExternalR
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGDefsElement
+@DomName('SVGDefsElement')
 class DefsElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   DefsElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
 
-
-  /** @domName SVGDefsElement.externalResourcesRequired */
+  @DomName('SVGDefsElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGDefsElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGDefsElement.xmllang */
+  @DomName('SVGDefsElement.xmllang')
   String get xmllang native "SVGDefsElement_xmllang_Getter";
 
-
-  /** @domName SVGDefsElement.xmllang */
+  @DomName('SVGDefsElement.xmllang')
   void set xmllang(String value) native "SVGDefsElement_xmllang_Setter";
 
-
-  /** @domName SVGDefsElement.xmlspace */
+  @DomName('SVGDefsElement.xmlspace')
   String get xmlspace native "SVGDefsElement_xmlspace_Getter";
 
-
-  /** @domName SVGDefsElement.xmlspace */
+  @DomName('SVGDefsElement.xmlspace')
   void set xmlspace(String value) native "SVGDefsElement_xmlspace_Setter";
 
-
-  /** @domName SVGDefsElement.farthestViewportElement */
+  @DomName('SVGDefsElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGDefsElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGDefsElement.nearestViewportElement */
+  @DomName('SVGDefsElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGDefsElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGDefsElement.getBBox */
+  @DomName('SVGDefsElement.getBBox')
   Rect getBBox() native "SVGDefsElement_getBBox_Callback";
 
-
-  /** @domName SVGDefsElement.getCTM */
+  @DomName('SVGDefsElement.getCTM')
   Matrix getCtm() native "SVGDefsElement_getCTM_Callback";
 
-
-  /** @domName SVGDefsElement.getScreenCTM */
+  @DomName('SVGDefsElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGDefsElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGDefsElement.getTransformToElement */
+  @DomName('SVGDefsElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGDefsElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGDefsElement.className */
+  @DomName('SVGDefsElement.className')
   AnimatedString get $dom_svgClassName native "SVGDefsElement_className_Getter";
 
-
-  /** @domName SVGDefsElement.style */
+  @DomName('SVGDefsElement.style')
   CssStyleDeclaration get style native "SVGDefsElement_style_Getter";
 
-
-  /** @domName SVGDefsElement.getPresentationAttribute */
+  @DomName('SVGDefsElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGDefsElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGDefsElement.requiredExtensions */
+  @DomName('SVGDefsElement.requiredExtensions')
   StringList get requiredExtensions native "SVGDefsElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGDefsElement.requiredFeatures */
+  @DomName('SVGDefsElement.requiredFeatures')
   StringList get requiredFeatures native "SVGDefsElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGDefsElement.systemLanguage */
+  @DomName('SVGDefsElement.systemLanguage')
   StringList get systemLanguage native "SVGDefsElement_systemLanguage_Getter";
 
-
-  /** @domName SVGDefsElement.hasExtension */
+  @DomName('SVGDefsElement.hasExtension')
   bool hasExtension(String extension) native "SVGDefsElement_hasExtension_Callback";
 
-
-  /** @domName SVGDefsElement.transform */
+  @DomName('SVGDefsElement.transform')
   AnimatedTransformList get transform native "SVGDefsElement_transform_Getter";
 
 }
@@ -1087,39 +929,32 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGDescElement
+@DomName('SVGDescElement')
 class DescElement extends SvgElement implements Stylable, LangSpace {
   DescElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
 
-
-  /** @domName SVGDescElement.xmllang */
+  @DomName('SVGDescElement.xmllang')
   String get xmllang native "SVGDescElement_xmllang_Getter";
 
-
-  /** @domName SVGDescElement.xmllang */
+  @DomName('SVGDescElement.xmllang')
   void set xmllang(String value) native "SVGDescElement_xmllang_Setter";
 
-
-  /** @domName SVGDescElement.xmlspace */
+  @DomName('SVGDescElement.xmlspace')
   String get xmlspace native "SVGDescElement_xmlspace_Getter";
 
-
-  /** @domName SVGDescElement.xmlspace */
+  @DomName('SVGDescElement.xmlspace')
   void set xmlspace(String value) native "SVGDescElement_xmlspace_Setter";
 
-
-  /** @domName SVGDescElement.className */
+  @DomName('SVGDescElement.className')
   AnimatedString get $dom_svgClassName native "SVGDescElement_className_Getter";
 
-
-  /** @domName SVGDescElement.style */
+  @DomName('SVGDescElement.style')
   CssStyleDeclaration get style native "SVGDescElement_style_Getter";
 
-
-  /** @domName SVGDescElement.getPresentationAttribute */
+  @DomName('SVGDescElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGDescElement_getPresentationAttribute_Callback";
 
 }
@@ -1130,7 +965,7 @@ class DescElement extends SvgElement implements Stylable, LangSpace {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGElementInstance
+@DomName('SVGElementInstance')
 class ElementInstance extends EventTarget {
   ElementInstance.internal() : super.internal();
 
@@ -1214,40 +1049,33 @@ class ElementInstance extends EventTarget {
 
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// @docsEditable true
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ElementInstanceEvents get on =>
     new ElementInstanceEvents(this);
 
-
-  /** @domName SVGElementInstance.childNodes */
+  @DomName('SVGElementInstance.childNodes')
   List<ElementInstance> get childNodes native "SVGElementInstance_childNodes_Getter";
 
-
-  /** @domName SVGElementInstance.correspondingElement */
+  @DomName('SVGElementInstance.correspondingElement')
   SvgElement get correspondingElement native "SVGElementInstance_correspondingElement_Getter";
 
-
-  /** @domName SVGElementInstance.correspondingUseElement */
+  @DomName('SVGElementInstance.correspondingUseElement')
   UseElement get correspondingUseElement native "SVGElementInstance_correspondingUseElement_Getter";
 
-
-  /** @domName SVGElementInstance.firstChild */
+  @DomName('SVGElementInstance.firstChild')
   ElementInstance get firstChild native "SVGElementInstance_firstChild_Getter";
 
-
-  /** @domName SVGElementInstance.lastChild */
+  @DomName('SVGElementInstance.lastChild')
   ElementInstance get lastChild native "SVGElementInstance_lastChild_Getter";
 
-
-  /** @domName SVGElementInstance.nextSibling */
+  @DomName('SVGElementInstance.nextSibling')
   ElementInstance get nextSibling native "SVGElementInstance_nextSibling_Getter";
 
-
-  /** @domName SVGElementInstance.parentNode */
+  @DomName('SVGElementInstance.parentNode')
   ElementInstance get parentNode native "SVGElementInstance_parentNode_Getter";
 
-
-  /** @domName SVGElementInstance.previousSibling */
+  @DomName('SVGElementInstance.previousSibling')
   ElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
 
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -1464,24 +1292,20 @@ class ElementInstanceEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ElementTimeControl
+@DomName('ElementTimeControl')
 class ElementTimeControl extends NativeFieldWrapperClass1 {
   ElementTimeControl.internal();
 
-
-  /** @domName ElementTimeControl.beginElement */
+  @DomName('ElementTimeControl.beginElement')
   void beginElement() native "ElementTimeControl_beginElement_Callback";
 
-
-  /** @domName ElementTimeControl.beginElementAt */
+  @DomName('ElementTimeControl.beginElementAt')
   void beginElementAt(num offset) native "ElementTimeControl_beginElementAt_Callback";
 
-
-  /** @domName ElementTimeControl.endElement */
+  @DomName('ElementTimeControl.endElement')
   void endElement() native "ElementTimeControl_endElement_Callback";
 
-
-  /** @domName ElementTimeControl.endElementAt */
+  @DomName('ElementTimeControl.endElementAt')
   void endElementAt(num offset) native "ElementTimeControl_endElementAt_Callback";
 
 }
@@ -1492,103 +1316,80 @@ class ElementTimeControl extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGEllipseElement
+@DomName('SVGEllipseElement')
 class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   EllipseElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
 
-
-  /** @domName SVGEllipseElement.cx */
+  @DomName('SVGEllipseElement.cx')
   AnimatedLength get cx native "SVGEllipseElement_cx_Getter";
 
-
-  /** @domName SVGEllipseElement.cy */
+  @DomName('SVGEllipseElement.cy')
   AnimatedLength get cy native "SVGEllipseElement_cy_Getter";
 
-
-  /** @domName SVGEllipseElement.rx */
+  @DomName('SVGEllipseElement.rx')
   AnimatedLength get rx native "SVGEllipseElement_rx_Getter";
 
-
-  /** @domName SVGEllipseElement.ry */
+  @DomName('SVGEllipseElement.ry')
   AnimatedLength get ry native "SVGEllipseElement_ry_Getter";
 
-
-  /** @domName SVGEllipseElement.externalResourcesRequired */
+  @DomName('SVGEllipseElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGEllipseElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGEllipseElement.xmllang */
+  @DomName('SVGEllipseElement.xmllang')
   String get xmllang native "SVGEllipseElement_xmllang_Getter";
 
-
-  /** @domName SVGEllipseElement.xmllang */
+  @DomName('SVGEllipseElement.xmllang')
   void set xmllang(String value) native "SVGEllipseElement_xmllang_Setter";
 
-
-  /** @domName SVGEllipseElement.xmlspace */
+  @DomName('SVGEllipseElement.xmlspace')
   String get xmlspace native "SVGEllipseElement_xmlspace_Getter";
 
-
-  /** @domName SVGEllipseElement.xmlspace */
+  @DomName('SVGEllipseElement.xmlspace')
   void set xmlspace(String value) native "SVGEllipseElement_xmlspace_Setter";
 
-
-  /** @domName SVGEllipseElement.farthestViewportElement */
+  @DomName('SVGEllipseElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGEllipseElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGEllipseElement.nearestViewportElement */
+  @DomName('SVGEllipseElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGEllipseElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGEllipseElement.getBBox */
+  @DomName('SVGEllipseElement.getBBox')
   Rect getBBox() native "SVGEllipseElement_getBBox_Callback";
 
-
-  /** @domName SVGEllipseElement.getCTM */
+  @DomName('SVGEllipseElement.getCTM')
   Matrix getCtm() native "SVGEllipseElement_getCTM_Callback";
 
-
-  /** @domName SVGEllipseElement.getScreenCTM */
+  @DomName('SVGEllipseElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGEllipseElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGEllipseElement.getTransformToElement */
+  @DomName('SVGEllipseElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGEllipseElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGEllipseElement.className */
+  @DomName('SVGEllipseElement.className')
   AnimatedString get $dom_svgClassName native "SVGEllipseElement_className_Getter";
 
-
-  /** @domName SVGEllipseElement.style */
+  @DomName('SVGEllipseElement.style')
   CssStyleDeclaration get style native "SVGEllipseElement_style_Getter";
 
-
-  /** @domName SVGEllipseElement.getPresentationAttribute */
+  @DomName('SVGEllipseElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGEllipseElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGEllipseElement.requiredExtensions */
+  @DomName('SVGEllipseElement.requiredExtensions')
   StringList get requiredExtensions native "SVGEllipseElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGEllipseElement.requiredFeatures */
+  @DomName('SVGEllipseElement.requiredFeatures')
   StringList get requiredFeatures native "SVGEllipseElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGEllipseElement.systemLanguage */
+  @DomName('SVGEllipseElement.systemLanguage')
   StringList get systemLanguage native "SVGEllipseElement_systemLanguage_Getter";
 
-
-  /** @domName SVGEllipseElement.hasExtension */
+  @DomName('SVGEllipseElement.hasExtension')
   bool hasExtension(String extension) native "SVGEllipseElement_hasExtension_Callback";
 
-
-  /** @domName SVGEllipseElement.transform */
+  @DomName('SVGEllipseElement.transform')
   AnimatedTransformList get transform native "SVGEllipseElement_transform_Getter";
 
 }
@@ -1599,12 +1400,11 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGExternalResourcesRequired
+@DomName('SVGExternalResourcesRequired')
 class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
   ExternalResourcesRequired.internal();
 
-
-  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
+  @DomName('SVGExternalResourcesRequired.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGExternalResourcesRequired_externalResourcesRequired_Getter";
 
 }
@@ -1615,7 +1415,7 @@ class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEBlendElement
+@DomName('SVGFEBlendElement')
 class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEBlendElement.internal() : super.internal();
 
@@ -1631,48 +1431,37 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-
-  /** @domName SVGFEBlendElement.in1 */
+  @DomName('SVGFEBlendElement.in1')
   AnimatedString get in1 native "SVGFEBlendElement_in1_Getter";
 
-
-  /** @domName SVGFEBlendElement.in2 */
+  @DomName('SVGFEBlendElement.in2')
   AnimatedString get in2 native "SVGFEBlendElement_in2_Getter";
 
-
-  /** @domName SVGFEBlendElement.mode */
+  @DomName('SVGFEBlendElement.mode')
   AnimatedEnumeration get mode native "SVGFEBlendElement_mode_Getter";
 
-
-  /** @domName SVGFEBlendElement.height */
+  @DomName('SVGFEBlendElement.height')
   AnimatedLength get height native "SVGFEBlendElement_height_Getter";
 
-
-  /** @domName SVGFEBlendElement.result */
+  @DomName('SVGFEBlendElement.result')
   AnimatedString get result native "SVGFEBlendElement_result_Getter";
 
-
-  /** @domName SVGFEBlendElement.width */
+  @DomName('SVGFEBlendElement.width')
   AnimatedLength get width native "SVGFEBlendElement_width_Getter";
 
-
-  /** @domName SVGFEBlendElement.x */
+  @DomName('SVGFEBlendElement.x')
   AnimatedLength get x native "SVGFEBlendElement_x_Getter";
 
-
-  /** @domName SVGFEBlendElement.y */
+  @DomName('SVGFEBlendElement.y')
   AnimatedLength get y native "SVGFEBlendElement_y_Getter";
 
-
-  /** @domName SVGFEBlendElement.className */
+  @DomName('SVGFEBlendElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEBlendElement_className_Getter";
 
-
-  /** @domName SVGFEBlendElement.style */
+  @DomName('SVGFEBlendElement.style')
   CssStyleDeclaration get style native "SVGFEBlendElement_style_Getter";
 
-
-  /** @domName SVGFEBlendElement.getPresentationAttribute */
+  @DomName('SVGFEBlendElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEBlendElement_getPresentationAttribute_Callback";
 
 }
@@ -1683,7 +1472,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEColorMatrixElement
+@DomName('SVGFEColorMatrixElement')
 class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEColorMatrixElement.internal() : super.internal();
 
@@ -1697,48 +1486,37 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
-
-  /** @domName SVGFEColorMatrixElement.in1 */
+  @DomName('SVGFEColorMatrixElement.in1')
   AnimatedString get in1 native "SVGFEColorMatrixElement_in1_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.type */
+  @DomName('SVGFEColorMatrixElement.type')
   AnimatedEnumeration get type native "SVGFEColorMatrixElement_type_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.values */
+  @DomName('SVGFEColorMatrixElement.values')
   AnimatedNumberList get values native "SVGFEColorMatrixElement_values_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.height */
+  @DomName('SVGFEColorMatrixElement.height')
   AnimatedLength get height native "SVGFEColorMatrixElement_height_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.result */
+  @DomName('SVGFEColorMatrixElement.result')
   AnimatedString get result native "SVGFEColorMatrixElement_result_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.width */
+  @DomName('SVGFEColorMatrixElement.width')
   AnimatedLength get width native "SVGFEColorMatrixElement_width_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.x */
+  @DomName('SVGFEColorMatrixElement.x')
   AnimatedLength get x native "SVGFEColorMatrixElement_x_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.y */
+  @DomName('SVGFEColorMatrixElement.y')
   AnimatedLength get y native "SVGFEColorMatrixElement_y_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.className */
+  @DomName('SVGFEColorMatrixElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEColorMatrixElement_className_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.style */
+  @DomName('SVGFEColorMatrixElement.style')
   CssStyleDeclaration get style native "SVGFEColorMatrixElement_style_Getter";
 
-
-  /** @domName SVGFEColorMatrixElement.getPresentationAttribute */
+  @DomName('SVGFEColorMatrixElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEColorMatrixElement_getPresentationAttribute_Callback";
 
 }
@@ -1749,44 +1527,35 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEComponentTransferElement
+@DomName('SVGFEComponentTransferElement')
 class FEComponentTransferElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEComponentTransferElement.internal() : super.internal();
 
-
-  /** @domName SVGFEComponentTransferElement.in1 */
+  @DomName('SVGFEComponentTransferElement.in1')
   AnimatedString get in1 native "SVGFEComponentTransferElement_in1_Getter";
 
-
-  /** @domName SVGFEComponentTransferElement.height */
+  @DomName('SVGFEComponentTransferElement.height')
   AnimatedLength get height native "SVGFEComponentTransferElement_height_Getter";
 
-
-  /** @domName SVGFEComponentTransferElement.result */
+  @DomName('SVGFEComponentTransferElement.result')
   AnimatedString get result native "SVGFEComponentTransferElement_result_Getter";
 
-
-  /** @domName SVGFEComponentTransferElement.width */
+  @DomName('SVGFEComponentTransferElement.width')
   AnimatedLength get width native "SVGFEComponentTransferElement_width_Getter";
 
-
-  /** @domName SVGFEComponentTransferElement.x */
+  @DomName('SVGFEComponentTransferElement.x')
   AnimatedLength get x native "SVGFEComponentTransferElement_x_Getter";
 
-
-  /** @domName SVGFEComponentTransferElement.y */
+  @DomName('SVGFEComponentTransferElement.y')
   AnimatedLength get y native "SVGFEComponentTransferElement_y_Getter";
 
-
-  /** @domName SVGFEComponentTransferElement.className */
+  @DomName('SVGFEComponentTransferElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEComponentTransferElement_className_Getter";
 
-
-  /** @domName SVGFEComponentTransferElement.style */
+  @DomName('SVGFEComponentTransferElement.style')
   CssStyleDeclaration get style native "SVGFEComponentTransferElement_style_Getter";
 
-
-  /** @domName SVGFEComponentTransferElement.getPresentationAttribute */
+  @DomName('SVGFEComponentTransferElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEComponentTransferElement_getPresentationAttribute_Callback";
 
 }
@@ -1797,7 +1566,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFECompositeElement
+@DomName('SVGFECompositeElement')
 class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FECompositeElement.internal() : super.internal();
 
@@ -1815,64 +1584,49 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-
-  /** @domName SVGFECompositeElement.in1 */
+  @DomName('SVGFECompositeElement.in1')
   AnimatedString get in1 native "SVGFECompositeElement_in1_Getter";
 
-
-  /** @domName SVGFECompositeElement.in2 */
+  @DomName('SVGFECompositeElement.in2')
   AnimatedString get in2 native "SVGFECompositeElement_in2_Getter";
 
-
-  /** @domName SVGFECompositeElement.k1 */
+  @DomName('SVGFECompositeElement.k1')
   AnimatedNumber get k1 native "SVGFECompositeElement_k1_Getter";
 
-
-  /** @domName SVGFECompositeElement.k2 */
+  @DomName('SVGFECompositeElement.k2')
   AnimatedNumber get k2 native "SVGFECompositeElement_k2_Getter";
 
-
-  /** @domName SVGFECompositeElement.k3 */
+  @DomName('SVGFECompositeElement.k3')
   AnimatedNumber get k3 native "SVGFECompositeElement_k3_Getter";
 
-
-  /** @domName SVGFECompositeElement.k4 */
+  @DomName('SVGFECompositeElement.k4')
   AnimatedNumber get k4 native "SVGFECompositeElement_k4_Getter";
 
-
-  /** @domName SVGFECompositeElement.operator */
+  @DomName('SVGFECompositeElement.operator')
   AnimatedEnumeration get operator native "SVGFECompositeElement_operator_Getter";
 
-
-  /** @domName SVGFECompositeElement.height */
+  @DomName('SVGFECompositeElement.height')
   AnimatedLength get height native "SVGFECompositeElement_height_Getter";
 
-
-  /** @domName SVGFECompositeElement.result */
+  @DomName('SVGFECompositeElement.result')
   AnimatedString get result native "SVGFECompositeElement_result_Getter";
 
-
-  /** @domName SVGFECompositeElement.width */
+  @DomName('SVGFECompositeElement.width')
   AnimatedLength get width native "SVGFECompositeElement_width_Getter";
 
-
-  /** @domName SVGFECompositeElement.x */
+  @DomName('SVGFECompositeElement.x')
   AnimatedLength get x native "SVGFECompositeElement_x_Getter";
 
-
-  /** @domName SVGFECompositeElement.y */
+  @DomName('SVGFECompositeElement.y')
   AnimatedLength get y native "SVGFECompositeElement_y_Getter";
 
-
-  /** @domName SVGFECompositeElement.className */
+  @DomName('SVGFECompositeElement.className')
   AnimatedString get $dom_svgClassName native "SVGFECompositeElement_className_Getter";
 
-
-  /** @domName SVGFECompositeElement.style */
+  @DomName('SVGFECompositeElement.style')
   CssStyleDeclaration get style native "SVGFECompositeElement_style_Getter";
 
-
-  /** @domName SVGFECompositeElement.getPresentationAttribute */
+  @DomName('SVGFECompositeElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFECompositeElement_getPresentationAttribute_Callback";
 
 }
@@ -1883,7 +1637,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEConvolveMatrixElement
+@DomName('SVGFEConvolveMatrixElement')
 class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEConvolveMatrixElement.internal() : super.internal();
 
@@ -1895,84 +1649,64 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
   static const int SVG_EDGEMODE_WRAP = 2;
 
-
-  /** @domName SVGFEConvolveMatrixElement.bias */
+  @DomName('SVGFEConvolveMatrixElement.bias')
   AnimatedNumber get bias native "SVGFEConvolveMatrixElement_bias_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.divisor */
+  @DomName('SVGFEConvolveMatrixElement.divisor')
   AnimatedNumber get divisor native "SVGFEConvolveMatrixElement_divisor_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.edgeMode */
+  @DomName('SVGFEConvolveMatrixElement.edgeMode')
   AnimatedEnumeration get edgeMode native "SVGFEConvolveMatrixElement_edgeMode_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.in1 */
+  @DomName('SVGFEConvolveMatrixElement.in1')
   AnimatedString get in1 native "SVGFEConvolveMatrixElement_in1_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.kernelMatrix */
+  @DomName('SVGFEConvolveMatrixElement.kernelMatrix')
   AnimatedNumberList get kernelMatrix native "SVGFEConvolveMatrixElement_kernelMatrix_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthX */
+  @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthX')
   AnimatedNumber get kernelUnitLengthX native "SVGFEConvolveMatrixElement_kernelUnitLengthX_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthY */
+  @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthY')
   AnimatedNumber get kernelUnitLengthY native "SVGFEConvolveMatrixElement_kernelUnitLengthY_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.orderX */
+  @DomName('SVGFEConvolveMatrixElement.orderX')
   AnimatedInteger get orderX native "SVGFEConvolveMatrixElement_orderX_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.orderY */
+  @DomName('SVGFEConvolveMatrixElement.orderY')
   AnimatedInteger get orderY native "SVGFEConvolveMatrixElement_orderY_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.preserveAlpha */
+  @DomName('SVGFEConvolveMatrixElement.preserveAlpha')
   AnimatedBoolean get preserveAlpha native "SVGFEConvolveMatrixElement_preserveAlpha_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.targetX */
+  @DomName('SVGFEConvolveMatrixElement.targetX')
   AnimatedInteger get targetX native "SVGFEConvolveMatrixElement_targetX_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.targetY */
+  @DomName('SVGFEConvolveMatrixElement.targetY')
   AnimatedInteger get targetY native "SVGFEConvolveMatrixElement_targetY_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.height */
+  @DomName('SVGFEConvolveMatrixElement.height')
   AnimatedLength get height native "SVGFEConvolveMatrixElement_height_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.result */
+  @DomName('SVGFEConvolveMatrixElement.result')
   AnimatedString get result native "SVGFEConvolveMatrixElement_result_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.width */
+  @DomName('SVGFEConvolveMatrixElement.width')
   AnimatedLength get width native "SVGFEConvolveMatrixElement_width_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.x */
+  @DomName('SVGFEConvolveMatrixElement.x')
   AnimatedLength get x native "SVGFEConvolveMatrixElement_x_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.y */
+  @DomName('SVGFEConvolveMatrixElement.y')
   AnimatedLength get y native "SVGFEConvolveMatrixElement_y_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.className */
+  @DomName('SVGFEConvolveMatrixElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEConvolveMatrixElement_className_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.style */
+  @DomName('SVGFEConvolveMatrixElement.style')
   CssStyleDeclaration get style native "SVGFEConvolveMatrixElement_style_Getter";
 
-
-  /** @domName SVGFEConvolveMatrixElement.getPresentationAttribute */
+  @DomName('SVGFEConvolveMatrixElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEConvolveMatrixElement_getPresentationAttribute_Callback";
 
 }
@@ -1983,60 +1717,47 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEDiffuseLightingElement
+@DomName('SVGFEDiffuseLightingElement')
 class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEDiffuseLightingElement.internal() : super.internal();
 
-
-  /** @domName SVGFEDiffuseLightingElement.diffuseConstant */
+  @DomName('SVGFEDiffuseLightingElement.diffuseConstant')
   AnimatedNumber get diffuseConstant native "SVGFEDiffuseLightingElement_diffuseConstant_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.in1 */
+  @DomName('SVGFEDiffuseLightingElement.in1')
   AnimatedString get in1 native "SVGFEDiffuseLightingElement_in1_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthX */
+  @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthX')
   AnimatedNumber get kernelUnitLengthX native "SVGFEDiffuseLightingElement_kernelUnitLengthX_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthY */
+  @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthY')
   AnimatedNumber get kernelUnitLengthY native "SVGFEDiffuseLightingElement_kernelUnitLengthY_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.surfaceScale */
+  @DomName('SVGFEDiffuseLightingElement.surfaceScale')
   AnimatedNumber get surfaceScale native "SVGFEDiffuseLightingElement_surfaceScale_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.height */
+  @DomName('SVGFEDiffuseLightingElement.height')
   AnimatedLength get height native "SVGFEDiffuseLightingElement_height_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.result */
+  @DomName('SVGFEDiffuseLightingElement.result')
   AnimatedString get result native "SVGFEDiffuseLightingElement_result_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.width */
+  @DomName('SVGFEDiffuseLightingElement.width')
   AnimatedLength get width native "SVGFEDiffuseLightingElement_width_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.x */
+  @DomName('SVGFEDiffuseLightingElement.x')
   AnimatedLength get x native "SVGFEDiffuseLightingElement_x_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.y */
+  @DomName('SVGFEDiffuseLightingElement.y')
   AnimatedLength get y native "SVGFEDiffuseLightingElement_y_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.className */
+  @DomName('SVGFEDiffuseLightingElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEDiffuseLightingElement_className_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.style */
+  @DomName('SVGFEDiffuseLightingElement.style')
   CssStyleDeclaration get style native "SVGFEDiffuseLightingElement_style_Getter";
 
-
-  /** @domName SVGFEDiffuseLightingElement.getPresentationAttribute */
+  @DomName('SVGFEDiffuseLightingElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEDiffuseLightingElement_getPresentationAttribute_Callback";
 
 }
@@ -2047,7 +1768,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEDisplacementMapElement
+@DomName('SVGFEDisplacementMapElement')
 class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEDisplacementMapElement.internal() : super.internal();
 
@@ -2061,56 +1782,43 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
-
-  /** @domName SVGFEDisplacementMapElement.in1 */
+  @DomName('SVGFEDisplacementMapElement.in1')
   AnimatedString get in1 native "SVGFEDisplacementMapElement_in1_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.in2 */
+  @DomName('SVGFEDisplacementMapElement.in2')
   AnimatedString get in2 native "SVGFEDisplacementMapElement_in2_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.scale */
+  @DomName('SVGFEDisplacementMapElement.scale')
   AnimatedNumber get scale native "SVGFEDisplacementMapElement_scale_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.xChannelSelector */
+  @DomName('SVGFEDisplacementMapElement.xChannelSelector')
   AnimatedEnumeration get xChannelSelector native "SVGFEDisplacementMapElement_xChannelSelector_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.yChannelSelector */
+  @DomName('SVGFEDisplacementMapElement.yChannelSelector')
   AnimatedEnumeration get yChannelSelector native "SVGFEDisplacementMapElement_yChannelSelector_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.height */
+  @DomName('SVGFEDisplacementMapElement.height')
   AnimatedLength get height native "SVGFEDisplacementMapElement_height_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.result */
+  @DomName('SVGFEDisplacementMapElement.result')
   AnimatedString get result native "SVGFEDisplacementMapElement_result_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.width */
+  @DomName('SVGFEDisplacementMapElement.width')
   AnimatedLength get width native "SVGFEDisplacementMapElement_width_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.x */
+  @DomName('SVGFEDisplacementMapElement.x')
   AnimatedLength get x native "SVGFEDisplacementMapElement_x_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.y */
+  @DomName('SVGFEDisplacementMapElement.y')
   AnimatedLength get y native "SVGFEDisplacementMapElement_y_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.className */
+  @DomName('SVGFEDisplacementMapElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEDisplacementMapElement_className_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.style */
+  @DomName('SVGFEDisplacementMapElement.style')
   CssStyleDeclaration get style native "SVGFEDisplacementMapElement_style_Getter";
 
-
-  /** @domName SVGFEDisplacementMapElement.getPresentationAttribute */
+  @DomName('SVGFEDisplacementMapElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEDisplacementMapElement_getPresentationAttribute_Callback";
 
 }
@@ -2121,16 +1829,14 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEDistantLightElement
+@DomName('SVGFEDistantLightElement')
 class FEDistantLightElement extends SvgElement {
   FEDistantLightElement.internal() : super.internal();
 
-
-  /** @domName SVGFEDistantLightElement.azimuth */
+  @DomName('SVGFEDistantLightElement.azimuth')
   AnimatedNumber get azimuth native "SVGFEDistantLightElement_azimuth_Getter";
 
-
-  /** @domName SVGFEDistantLightElement.elevation */
+  @DomName('SVGFEDistantLightElement.elevation')
   AnimatedNumber get elevation native "SVGFEDistantLightElement_elevation_Getter";
 
 }
@@ -2141,64 +1847,50 @@ class FEDistantLightElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEDropShadowElement
+@DomName('SVGFEDropShadowElement')
 class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEDropShadowElement.internal() : super.internal();
 
-
-  /** @domName SVGFEDropShadowElement.dx */
+  @DomName('SVGFEDropShadowElement.dx')
   AnimatedNumber get dx native "SVGFEDropShadowElement_dx_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.dy */
+  @DomName('SVGFEDropShadowElement.dy')
   AnimatedNumber get dy native "SVGFEDropShadowElement_dy_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.in1 */
+  @DomName('SVGFEDropShadowElement.in1')
   AnimatedString get in1 native "SVGFEDropShadowElement_in1_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.stdDeviationX */
+  @DomName('SVGFEDropShadowElement.stdDeviationX')
   AnimatedNumber get stdDeviationX native "SVGFEDropShadowElement_stdDeviationX_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.stdDeviationY */
+  @DomName('SVGFEDropShadowElement.stdDeviationY')
   AnimatedNumber get stdDeviationY native "SVGFEDropShadowElement_stdDeviationY_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.setStdDeviation */
+  @DomName('SVGFEDropShadowElement.setStdDeviation')
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native "SVGFEDropShadowElement_setStdDeviation_Callback";
 
-
-  /** @domName SVGFEDropShadowElement.height */
+  @DomName('SVGFEDropShadowElement.height')
   AnimatedLength get height native "SVGFEDropShadowElement_height_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.result */
+  @DomName('SVGFEDropShadowElement.result')
   AnimatedString get result native "SVGFEDropShadowElement_result_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.width */
+  @DomName('SVGFEDropShadowElement.width')
   AnimatedLength get width native "SVGFEDropShadowElement_width_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.x */
+  @DomName('SVGFEDropShadowElement.x')
   AnimatedLength get x native "SVGFEDropShadowElement_x_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.y */
+  @DomName('SVGFEDropShadowElement.y')
   AnimatedLength get y native "SVGFEDropShadowElement_y_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.className */
+  @DomName('SVGFEDropShadowElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEDropShadowElement_className_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.style */
+  @DomName('SVGFEDropShadowElement.style')
   CssStyleDeclaration get style native "SVGFEDropShadowElement_style_Getter";
 
-
-  /** @domName SVGFEDropShadowElement.getPresentationAttribute */
+  @DomName('SVGFEDropShadowElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEDropShadowElement_getPresentationAttribute_Callback";
 
 }
@@ -2209,40 +1901,32 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEFloodElement
+@DomName('SVGFEFloodElement')
 class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEFloodElement.internal() : super.internal();
 
-
-  /** @domName SVGFEFloodElement.height */
+  @DomName('SVGFEFloodElement.height')
   AnimatedLength get height native "SVGFEFloodElement_height_Getter";
 
-
-  /** @domName SVGFEFloodElement.result */
+  @DomName('SVGFEFloodElement.result')
   AnimatedString get result native "SVGFEFloodElement_result_Getter";
 
-
-  /** @domName SVGFEFloodElement.width */
+  @DomName('SVGFEFloodElement.width')
   AnimatedLength get width native "SVGFEFloodElement_width_Getter";
 
-
-  /** @domName SVGFEFloodElement.x */
+  @DomName('SVGFEFloodElement.x')
   AnimatedLength get x native "SVGFEFloodElement_x_Getter";
 
-
-  /** @domName SVGFEFloodElement.y */
+  @DomName('SVGFEFloodElement.y')
   AnimatedLength get y native "SVGFEFloodElement_y_Getter";
 
-
-  /** @domName SVGFEFloodElement.className */
+  @DomName('SVGFEFloodElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEFloodElement_className_Getter";
 
-
-  /** @domName SVGFEFloodElement.style */
+  @DomName('SVGFEFloodElement.style')
   CssStyleDeclaration get style native "SVGFEFloodElement_style_Getter";
 
-
-  /** @domName SVGFEFloodElement.getPresentationAttribute */
+  @DomName('SVGFEFloodElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEFloodElement_getPresentationAttribute_Callback";
 
 }
@@ -2253,7 +1937,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEFuncAElement
+@DomName('SVGFEFuncAElement')
 class FEFuncAElement extends ComponentTransferFunctionElement {
   FEFuncAElement.internal() : super.internal();
 
@@ -2265,7 +1949,7 @@ class FEFuncAElement extends ComponentTransferFunctionElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEFuncBElement
+@DomName('SVGFEFuncBElement')
 class FEFuncBElement extends ComponentTransferFunctionElement {
   FEFuncBElement.internal() : super.internal();
 
@@ -2277,7 +1961,7 @@ class FEFuncBElement extends ComponentTransferFunctionElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEFuncGElement
+@DomName('SVGFEFuncGElement')
 class FEFuncGElement extends ComponentTransferFunctionElement {
   FEFuncGElement.internal() : super.internal();
 
@@ -2289,7 +1973,7 @@ class FEFuncGElement extends ComponentTransferFunctionElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEFuncRElement
+@DomName('SVGFEFuncRElement')
 class FEFuncRElement extends ComponentTransferFunctionElement {
   FEFuncRElement.internal() : super.internal();
 
@@ -2301,56 +1985,44 @@ class FEFuncRElement extends ComponentTransferFunctionElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEGaussianBlurElement
+@DomName('SVGFEGaussianBlurElement')
 class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEGaussianBlurElement.internal() : super.internal();
 
-
-  /** @domName SVGFEGaussianBlurElement.in1 */
+  @DomName('SVGFEGaussianBlurElement.in1')
   AnimatedString get in1 native "SVGFEGaussianBlurElement_in1_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.stdDeviationX */
+  @DomName('SVGFEGaussianBlurElement.stdDeviationX')
   AnimatedNumber get stdDeviationX native "SVGFEGaussianBlurElement_stdDeviationX_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.stdDeviationY */
+  @DomName('SVGFEGaussianBlurElement.stdDeviationY')
   AnimatedNumber get stdDeviationY native "SVGFEGaussianBlurElement_stdDeviationY_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.setStdDeviation */
+  @DomName('SVGFEGaussianBlurElement.setStdDeviation')
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native "SVGFEGaussianBlurElement_setStdDeviation_Callback";
 
-
-  /** @domName SVGFEGaussianBlurElement.height */
+  @DomName('SVGFEGaussianBlurElement.height')
   AnimatedLength get height native "SVGFEGaussianBlurElement_height_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.result */
+  @DomName('SVGFEGaussianBlurElement.result')
   AnimatedString get result native "SVGFEGaussianBlurElement_result_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.width */
+  @DomName('SVGFEGaussianBlurElement.width')
   AnimatedLength get width native "SVGFEGaussianBlurElement_width_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.x */
+  @DomName('SVGFEGaussianBlurElement.x')
   AnimatedLength get x native "SVGFEGaussianBlurElement_x_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.y */
+  @DomName('SVGFEGaussianBlurElement.y')
   AnimatedLength get y native "SVGFEGaussianBlurElement_y_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.className */
+  @DomName('SVGFEGaussianBlurElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEGaussianBlurElement_className_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.style */
+  @DomName('SVGFEGaussianBlurElement.style')
   CssStyleDeclaration get style native "SVGFEGaussianBlurElement_style_Getter";
 
-
-  /** @domName SVGFEGaussianBlurElement.getPresentationAttribute */
+  @DomName('SVGFEGaussianBlurElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEGaussianBlurElement_getPresentationAttribute_Callback";
 
 }
@@ -2361,68 +2033,53 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEImageElement
+@DomName('SVGFEImageElement')
 class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace {
   FEImageElement.internal() : super.internal();
 
-
-  /** @domName SVGFEImageElement.preserveAspectRatio */
+  @DomName('SVGFEImageElement.preserveAspectRatio')
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGFEImageElement_preserveAspectRatio_Getter";
 
-
-  /** @domName SVGFEImageElement.externalResourcesRequired */
+  @DomName('SVGFEImageElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGFEImageElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGFEImageElement.height */
+  @DomName('SVGFEImageElement.height')
   AnimatedLength get height native "SVGFEImageElement_height_Getter";
 
-
-  /** @domName SVGFEImageElement.result */
+  @DomName('SVGFEImageElement.result')
   AnimatedString get result native "SVGFEImageElement_result_Getter";
 
-
-  /** @domName SVGFEImageElement.width */
+  @DomName('SVGFEImageElement.width')
   AnimatedLength get width native "SVGFEImageElement_width_Getter";
 
-
-  /** @domName SVGFEImageElement.x */
+  @DomName('SVGFEImageElement.x')
   AnimatedLength get x native "SVGFEImageElement_x_Getter";
 
-
-  /** @domName SVGFEImageElement.y */
+  @DomName('SVGFEImageElement.y')
   AnimatedLength get y native "SVGFEImageElement_y_Getter";
 
-
-  /** @domName SVGFEImageElement.xmllang */
+  @DomName('SVGFEImageElement.xmllang')
   String get xmllang native "SVGFEImageElement_xmllang_Getter";
 
-
-  /** @domName SVGFEImageElement.xmllang */
+  @DomName('SVGFEImageElement.xmllang')
   void set xmllang(String value) native "SVGFEImageElement_xmllang_Setter";
 
-
-  /** @domName SVGFEImageElement.xmlspace */
+  @DomName('SVGFEImageElement.xmlspace')
   String get xmlspace native "SVGFEImageElement_xmlspace_Getter";
 
-
-  /** @domName SVGFEImageElement.xmlspace */
+  @DomName('SVGFEImageElement.xmlspace')
   void set xmlspace(String value) native "SVGFEImageElement_xmlspace_Setter";
 
-
-  /** @domName SVGFEImageElement.className */
+  @DomName('SVGFEImageElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEImageElement_className_Getter";
 
-
-  /** @domName SVGFEImageElement.style */
+  @DomName('SVGFEImageElement.style')
   CssStyleDeclaration get style native "SVGFEImageElement_style_Getter";
 
-
-  /** @domName SVGFEImageElement.getPresentationAttribute */
+  @DomName('SVGFEImageElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEImageElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGFEImageElement.href */
+  @DomName('SVGFEImageElement.href')
   AnimatedString get href native "SVGFEImageElement_href_Getter";
 
 }
@@ -2433,40 +2090,32 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEMergeElement
+@DomName('SVGFEMergeElement')
 class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEMergeElement.internal() : super.internal();
 
-
-  /** @domName SVGFEMergeElement.height */
+  @DomName('SVGFEMergeElement.height')
   AnimatedLength get height native "SVGFEMergeElement_height_Getter";
 
-
-  /** @domName SVGFEMergeElement.result */
+  @DomName('SVGFEMergeElement.result')
   AnimatedString get result native "SVGFEMergeElement_result_Getter";
 
-
-  /** @domName SVGFEMergeElement.width */
+  @DomName('SVGFEMergeElement.width')
   AnimatedLength get width native "SVGFEMergeElement_width_Getter";
 
-
-  /** @domName SVGFEMergeElement.x */
+  @DomName('SVGFEMergeElement.x')
   AnimatedLength get x native "SVGFEMergeElement_x_Getter";
 
-
-  /** @domName SVGFEMergeElement.y */
+  @DomName('SVGFEMergeElement.y')
   AnimatedLength get y native "SVGFEMergeElement_y_Getter";
 
-
-  /** @domName SVGFEMergeElement.className */
+  @DomName('SVGFEMergeElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEMergeElement_className_Getter";
 
-
-  /** @domName SVGFEMergeElement.style */
+  @DomName('SVGFEMergeElement.style')
   CssStyleDeclaration get style native "SVGFEMergeElement_style_Getter";
 
-
-  /** @domName SVGFEMergeElement.getPresentationAttribute */
+  @DomName('SVGFEMergeElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEMergeElement_getPresentationAttribute_Callback";
 
 }
@@ -2477,12 +2126,11 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEMergeNodeElement
+@DomName('SVGFEMergeNodeElement')
 class FEMergeNodeElement extends SvgElement {
   FEMergeNodeElement.internal() : super.internal();
 
-
-  /** @domName SVGFEMergeNodeElement.in1 */
+  @DomName('SVGFEMergeNodeElement.in1')
   AnimatedString get in1 native "SVGFEMergeNodeElement_in1_Getter";
 
 }
@@ -2493,7 +2141,7 @@ class FEMergeNodeElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEMorphologyElement
+@DomName('SVGFEMorphologyElement')
 class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEMorphologyElement.internal() : super.internal();
 
@@ -2503,56 +2151,43 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
-
-  /** @domName SVGFEMorphologyElement.in1 */
+  @DomName('SVGFEMorphologyElement.in1')
   AnimatedString get in1 native "SVGFEMorphologyElement_in1_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.operator */
+  @DomName('SVGFEMorphologyElement.operator')
   AnimatedEnumeration get operator native "SVGFEMorphologyElement_operator_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.radiusX */
+  @DomName('SVGFEMorphologyElement.radiusX')
   AnimatedNumber get radiusX native "SVGFEMorphologyElement_radiusX_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.radiusY */
+  @DomName('SVGFEMorphologyElement.radiusY')
   AnimatedNumber get radiusY native "SVGFEMorphologyElement_radiusY_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.setRadius */
+  @DomName('SVGFEMorphologyElement.setRadius')
   void setRadius(num radiusX, num radiusY) native "SVGFEMorphologyElement_setRadius_Callback";
 
-
-  /** @domName SVGFEMorphologyElement.height */
+  @DomName('SVGFEMorphologyElement.height')
   AnimatedLength get height native "SVGFEMorphologyElement_height_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.result */
+  @DomName('SVGFEMorphologyElement.result')
   AnimatedString get result native "SVGFEMorphologyElement_result_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.width */
+  @DomName('SVGFEMorphologyElement.width')
   AnimatedLength get width native "SVGFEMorphologyElement_width_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.x */
+  @DomName('SVGFEMorphologyElement.x')
   AnimatedLength get x native "SVGFEMorphologyElement_x_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.y */
+  @DomName('SVGFEMorphologyElement.y')
   AnimatedLength get y native "SVGFEMorphologyElement_y_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.className */
+  @DomName('SVGFEMorphologyElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEMorphologyElement_className_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.style */
+  @DomName('SVGFEMorphologyElement.style')
   CssStyleDeclaration get style native "SVGFEMorphologyElement_style_Getter";
 
-
-  /** @domName SVGFEMorphologyElement.getPresentationAttribute */
+  @DomName('SVGFEMorphologyElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEMorphologyElement_getPresentationAttribute_Callback";
 
 }
@@ -2563,52 +2198,41 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEOffsetElement
+@DomName('SVGFEOffsetElement')
 class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FEOffsetElement.internal() : super.internal();
 
-
-  /** @domName SVGFEOffsetElement.dx */
+  @DomName('SVGFEOffsetElement.dx')
   AnimatedNumber get dx native "SVGFEOffsetElement_dx_Getter";
 
-
-  /** @domName SVGFEOffsetElement.dy */
+  @DomName('SVGFEOffsetElement.dy')
   AnimatedNumber get dy native "SVGFEOffsetElement_dy_Getter";
 
-
-  /** @domName SVGFEOffsetElement.in1 */
+  @DomName('SVGFEOffsetElement.in1')
   AnimatedString get in1 native "SVGFEOffsetElement_in1_Getter";
 
-
-  /** @domName SVGFEOffsetElement.height */
+  @DomName('SVGFEOffsetElement.height')
   AnimatedLength get height native "SVGFEOffsetElement_height_Getter";
 
-
-  /** @domName SVGFEOffsetElement.result */
+  @DomName('SVGFEOffsetElement.result')
   AnimatedString get result native "SVGFEOffsetElement_result_Getter";
 
-
-  /** @domName SVGFEOffsetElement.width */
+  @DomName('SVGFEOffsetElement.width')
   AnimatedLength get width native "SVGFEOffsetElement_width_Getter";
 
-
-  /** @domName SVGFEOffsetElement.x */
+  @DomName('SVGFEOffsetElement.x')
   AnimatedLength get x native "SVGFEOffsetElement_x_Getter";
 
-
-  /** @domName SVGFEOffsetElement.y */
+  @DomName('SVGFEOffsetElement.y')
   AnimatedLength get y native "SVGFEOffsetElement_y_Getter";
 
-
-  /** @domName SVGFEOffsetElement.className */
+  @DomName('SVGFEOffsetElement.className')
   AnimatedString get $dom_svgClassName native "SVGFEOffsetElement_className_Getter";
 
-
-  /** @domName SVGFEOffsetElement.style */
+  @DomName('SVGFEOffsetElement.style')
   CssStyleDeclaration get style native "SVGFEOffsetElement_style_Getter";
 
-
-  /** @domName SVGFEOffsetElement.getPresentationAttribute */
+  @DomName('SVGFEOffsetElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFEOffsetElement_getPresentationAttribute_Callback";
 
 }
@@ -2619,20 +2243,17 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFEPointLightElement
+@DomName('SVGFEPointLightElement')
 class FEPointLightElement extends SvgElement {
   FEPointLightElement.internal() : super.internal();
 
-
-  /** @domName SVGFEPointLightElement.x */
+  @DomName('SVGFEPointLightElement.x')
   AnimatedNumber get x native "SVGFEPointLightElement_x_Getter";
 
-
-  /** @domName SVGFEPointLightElement.y */
+  @DomName('SVGFEPointLightElement.y')
   AnimatedNumber get y native "SVGFEPointLightElement_y_Getter";
 
-
-  /** @domName SVGFEPointLightElement.z */
+  @DomName('SVGFEPointLightElement.z')
   AnimatedNumber get z native "SVGFEPointLightElement_z_Getter";
 
 }
@@ -2643,56 +2264,44 @@ class FEPointLightElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFESpecularLightingElement
+@DomName('SVGFESpecularLightingElement')
 class FESpecularLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FESpecularLightingElement.internal() : super.internal();
 
-
-  /** @domName SVGFESpecularLightingElement.in1 */
+  @DomName('SVGFESpecularLightingElement.in1')
   AnimatedString get in1 native "SVGFESpecularLightingElement_in1_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.specularConstant */
+  @DomName('SVGFESpecularLightingElement.specularConstant')
   AnimatedNumber get specularConstant native "SVGFESpecularLightingElement_specularConstant_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.specularExponent */
+  @DomName('SVGFESpecularLightingElement.specularExponent')
   AnimatedNumber get specularExponent native "SVGFESpecularLightingElement_specularExponent_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.surfaceScale */
+  @DomName('SVGFESpecularLightingElement.surfaceScale')
   AnimatedNumber get surfaceScale native "SVGFESpecularLightingElement_surfaceScale_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.height */
+  @DomName('SVGFESpecularLightingElement.height')
   AnimatedLength get height native "SVGFESpecularLightingElement_height_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.result */
+  @DomName('SVGFESpecularLightingElement.result')
   AnimatedString get result native "SVGFESpecularLightingElement_result_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.width */
+  @DomName('SVGFESpecularLightingElement.width')
   AnimatedLength get width native "SVGFESpecularLightingElement_width_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.x */
+  @DomName('SVGFESpecularLightingElement.x')
   AnimatedLength get x native "SVGFESpecularLightingElement_x_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.y */
+  @DomName('SVGFESpecularLightingElement.y')
   AnimatedLength get y native "SVGFESpecularLightingElement_y_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.className */
+  @DomName('SVGFESpecularLightingElement.className')
   AnimatedString get $dom_svgClassName native "SVGFESpecularLightingElement_className_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.style */
+  @DomName('SVGFESpecularLightingElement.style')
   CssStyleDeclaration get style native "SVGFESpecularLightingElement_style_Getter";
 
-
-  /** @domName SVGFESpecularLightingElement.getPresentationAttribute */
+  @DomName('SVGFESpecularLightingElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFESpecularLightingElement_getPresentationAttribute_Callback";
 
 }
@@ -2703,40 +2312,32 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFESpotLightElement
+@DomName('SVGFESpotLightElement')
 class FESpotLightElement extends SvgElement {
   FESpotLightElement.internal() : super.internal();
 
-
-  /** @domName SVGFESpotLightElement.limitingConeAngle */
+  @DomName('SVGFESpotLightElement.limitingConeAngle')
   AnimatedNumber get limitingConeAngle native "SVGFESpotLightElement_limitingConeAngle_Getter";
 
-
-  /** @domName SVGFESpotLightElement.pointsAtX */
+  @DomName('SVGFESpotLightElement.pointsAtX')
   AnimatedNumber get pointsAtX native "SVGFESpotLightElement_pointsAtX_Getter";
 
-
-  /** @domName SVGFESpotLightElement.pointsAtY */
+  @DomName('SVGFESpotLightElement.pointsAtY')
   AnimatedNumber get pointsAtY native "SVGFESpotLightElement_pointsAtY_Getter";
 
-
-  /** @domName SVGFESpotLightElement.pointsAtZ */
+  @DomName('SVGFESpotLightElement.pointsAtZ')
   AnimatedNumber get pointsAtZ native "SVGFESpotLightElement_pointsAtZ_Getter";
 
-
-  /** @domName SVGFESpotLightElement.specularExponent */
+  @DomName('SVGFESpotLightElement.specularExponent')
   AnimatedNumber get specularExponent native "SVGFESpotLightElement_specularExponent_Getter";
 
-
-  /** @domName SVGFESpotLightElement.x */
+  @DomName('SVGFESpotLightElement.x')
   AnimatedNumber get x native "SVGFESpotLightElement_x_Getter";
 
-
-  /** @domName SVGFESpotLightElement.y */
+  @DomName('SVGFESpotLightElement.y')
   AnimatedNumber get y native "SVGFESpotLightElement_y_Getter";
 
-
-  /** @domName SVGFESpotLightElement.z */
+  @DomName('SVGFESpotLightElement.z')
   AnimatedNumber get z native "SVGFESpotLightElement_z_Getter";
 
 }
@@ -2747,44 +2348,35 @@ class FESpotLightElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFETileElement
+@DomName('SVGFETileElement')
 class FETileElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FETileElement.internal() : super.internal();
 
-
-  /** @domName SVGFETileElement.in1 */
+  @DomName('SVGFETileElement.in1')
   AnimatedString get in1 native "SVGFETileElement_in1_Getter";
 
-
-  /** @domName SVGFETileElement.height */
+  @DomName('SVGFETileElement.height')
   AnimatedLength get height native "SVGFETileElement_height_Getter";
 
-
-  /** @domName SVGFETileElement.result */
+  @DomName('SVGFETileElement.result')
   AnimatedString get result native "SVGFETileElement_result_Getter";
 
-
-  /** @domName SVGFETileElement.width */
+  @DomName('SVGFETileElement.width')
   AnimatedLength get width native "SVGFETileElement_width_Getter";
 
-
-  /** @domName SVGFETileElement.x */
+  @DomName('SVGFETileElement.x')
   AnimatedLength get x native "SVGFETileElement_x_Getter";
 
-
-  /** @domName SVGFETileElement.y */
+  @DomName('SVGFETileElement.y')
   AnimatedLength get y native "SVGFETileElement_y_Getter";
 
-
-  /** @domName SVGFETileElement.className */
+  @DomName('SVGFETileElement.className')
   AnimatedString get $dom_svgClassName native "SVGFETileElement_className_Getter";
 
-
-  /** @domName SVGFETileElement.style */
+  @DomName('SVGFETileElement.style')
   CssStyleDeclaration get style native "SVGFETileElement_style_Getter";
 
-
-  /** @domName SVGFETileElement.getPresentationAttribute */
+  @DomName('SVGFETileElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFETileElement_getPresentationAttribute_Callback";
 
 }
@@ -2795,7 +2387,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFETurbulenceElement
+@DomName('SVGFETurbulenceElement')
 class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   FETurbulenceElement.internal() : super.internal();
 
@@ -2811,60 +2403,46 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-
-  /** @domName SVGFETurbulenceElement.baseFrequencyX */
+  @DomName('SVGFETurbulenceElement.baseFrequencyX')
   AnimatedNumber get baseFrequencyX native "SVGFETurbulenceElement_baseFrequencyX_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.baseFrequencyY */
+  @DomName('SVGFETurbulenceElement.baseFrequencyY')
   AnimatedNumber get baseFrequencyY native "SVGFETurbulenceElement_baseFrequencyY_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.numOctaves */
+  @DomName('SVGFETurbulenceElement.numOctaves')
   AnimatedInteger get numOctaves native "SVGFETurbulenceElement_numOctaves_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.seed */
+  @DomName('SVGFETurbulenceElement.seed')
   AnimatedNumber get seed native "SVGFETurbulenceElement_seed_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.stitchTiles */
+  @DomName('SVGFETurbulenceElement.stitchTiles')
   AnimatedEnumeration get stitchTiles native "SVGFETurbulenceElement_stitchTiles_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.type */
+  @DomName('SVGFETurbulenceElement.type')
   AnimatedEnumeration get type native "SVGFETurbulenceElement_type_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.height */
+  @DomName('SVGFETurbulenceElement.height')
   AnimatedLength get height native "SVGFETurbulenceElement_height_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.result */
+  @DomName('SVGFETurbulenceElement.result')
   AnimatedString get result native "SVGFETurbulenceElement_result_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.width */
+  @DomName('SVGFETurbulenceElement.width')
   AnimatedLength get width native "SVGFETurbulenceElement_width_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.x */
+  @DomName('SVGFETurbulenceElement.x')
   AnimatedLength get x native "SVGFETurbulenceElement_x_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.y */
+  @DomName('SVGFETurbulenceElement.y')
   AnimatedLength get y native "SVGFETurbulenceElement_y_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.className */
+  @DomName('SVGFETurbulenceElement.className')
   AnimatedString get $dom_svgClassName native "SVGFETurbulenceElement_className_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.style */
+  @DomName('SVGFETurbulenceElement.style')
   CssStyleDeclaration get style native "SVGFETurbulenceElement_style_Getter";
 
-
-  /** @domName SVGFETurbulenceElement.getPresentationAttribute */
+  @DomName('SVGFETurbulenceElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFETurbulenceElement_getPresentationAttribute_Callback";
 
 }
@@ -2875,83 +2453,65 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFilterElement
+@DomName('SVGFilterElement')
 class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable, LangSpace {
   FilterElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
 
-
-  /** @domName SVGFilterElement.filterResX */
+  @DomName('SVGFilterElement.filterResX')
   AnimatedInteger get filterResX native "SVGFilterElement_filterResX_Getter";
 
-
-  /** @domName SVGFilterElement.filterResY */
+  @DomName('SVGFilterElement.filterResY')
   AnimatedInteger get filterResY native "SVGFilterElement_filterResY_Getter";
 
-
-  /** @domName SVGFilterElement.filterUnits */
+  @DomName('SVGFilterElement.filterUnits')
   AnimatedEnumeration get filterUnits native "SVGFilterElement_filterUnits_Getter";
 
-
-  /** @domName SVGFilterElement.height */
+  @DomName('SVGFilterElement.height')
   AnimatedLength get height native "SVGFilterElement_height_Getter";
 
-
-  /** @domName SVGFilterElement.primitiveUnits */
+  @DomName('SVGFilterElement.primitiveUnits')
   AnimatedEnumeration get primitiveUnits native "SVGFilterElement_primitiveUnits_Getter";
 
-
-  /** @domName SVGFilterElement.width */
+  @DomName('SVGFilterElement.width')
   AnimatedLength get width native "SVGFilterElement_width_Getter";
 
-
-  /** @domName SVGFilterElement.x */
+  @DomName('SVGFilterElement.x')
   AnimatedLength get x native "SVGFilterElement_x_Getter";
 
-
-  /** @domName SVGFilterElement.y */
+  @DomName('SVGFilterElement.y')
   AnimatedLength get y native "SVGFilterElement_y_Getter";
 
-
-  /** @domName SVGFilterElement.setFilterRes */
+  @DomName('SVGFilterElement.setFilterRes')
   void setFilterRes(int filterResX, int filterResY) native "SVGFilterElement_setFilterRes_Callback";
 
-
-  /** @domName SVGFilterElement.externalResourcesRequired */
+  @DomName('SVGFilterElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGFilterElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGFilterElement.xmllang */
+  @DomName('SVGFilterElement.xmllang')
   String get xmllang native "SVGFilterElement_xmllang_Getter";
 
-
-  /** @domName SVGFilterElement.xmllang */
+  @DomName('SVGFilterElement.xmllang')
   void set xmllang(String value) native "SVGFilterElement_xmllang_Setter";
 
-
-  /** @domName SVGFilterElement.xmlspace */
+  @DomName('SVGFilterElement.xmlspace')
   String get xmlspace native "SVGFilterElement_xmlspace_Getter";
 
-
-  /** @domName SVGFilterElement.xmlspace */
+  @DomName('SVGFilterElement.xmlspace')
   void set xmlspace(String value) native "SVGFilterElement_xmlspace_Setter";
 
-
-  /** @domName SVGFilterElement.className */
+  @DomName('SVGFilterElement.className')
   AnimatedString get $dom_svgClassName native "SVGFilterElement_className_Getter";
 
-
-  /** @domName SVGFilterElement.style */
+  @DomName('SVGFilterElement.style')
   CssStyleDeclaration get style native "SVGFilterElement_style_Getter";
 
-
-  /** @domName SVGFilterElement.getPresentationAttribute */
+  @DomName('SVGFilterElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFilterElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGFilterElement.href */
+  @DomName('SVGFilterElement.href')
   AnimatedString get href native "SVGFilterElement_href_Getter";
 
 }
@@ -2962,40 +2522,32 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFilterPrimitiveStandardAttributes
+@DomName('SVGFilterPrimitiveStandardAttributes')
 class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 implements Stylable {
   FilterPrimitiveStandardAttributes.internal();
 
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.height */
+  @DomName('SVGFilterPrimitiveStandardAttributes.height')
   AnimatedLength get height native "SVGFilterPrimitiveStandardAttributes_height_Getter";
 
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.result */
+  @DomName('SVGFilterPrimitiveStandardAttributes.result')
   AnimatedString get result native "SVGFilterPrimitiveStandardAttributes_result_Getter";
 
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.width */
+  @DomName('SVGFilterPrimitiveStandardAttributes.width')
   AnimatedLength get width native "SVGFilterPrimitiveStandardAttributes_width_Getter";
 
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.x */
+  @DomName('SVGFilterPrimitiveStandardAttributes.x')
   AnimatedLength get x native "SVGFilterPrimitiveStandardAttributes_x_Getter";
 
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.y */
+  @DomName('SVGFilterPrimitiveStandardAttributes.y')
   AnimatedLength get y native "SVGFilterPrimitiveStandardAttributes_y_Getter";
 
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.className */
+  @DomName('SVGFilterPrimitiveStandardAttributes.className')
   AnimatedString get $dom_svgClassName native "SVGFilterPrimitiveStandardAttributes_className_Getter";
 
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.style */
+  @DomName('SVGFilterPrimitiveStandardAttributes.style')
   CssStyleDeclaration get style native "SVGFilterPrimitiveStandardAttributes_style_Getter";
 
-
-  /** @domName SVGFilterPrimitiveStandardAttributes.getPresentationAttribute */
+  @DomName('SVGFilterPrimitiveStandardAttributes.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGFilterPrimitiveStandardAttributes_getPresentationAttribute_Callback";
 
 }
@@ -3006,16 +2558,14 @@ class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 impleme
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFitToViewBox
+@DomName('SVGFitToViewBox')
 class FitToViewBox extends NativeFieldWrapperClass1 {
   FitToViewBox.internal();
 
-
-  /** @domName SVGFitToViewBox.preserveAspectRatio */
+  @DomName('SVGFitToViewBox.preserveAspectRatio')
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGFitToViewBox_preserveAspectRatio_Getter";
 
-
-  /** @domName SVGFitToViewBox.viewBox */
+  @DomName('SVGFitToViewBox.viewBox')
   AnimatedRect get viewBox native "SVGFitToViewBox_viewBox_Getter";
 
 }
@@ -3026,11 +2576,11 @@ class FitToViewBox extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFontElement
+@DomName('SVGFontElement')
 class FontElement extends SvgElement {
   FontElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontElement() => _SvgElementFactoryProvider.createSvgElement_tag("font");
 
 }
@@ -3041,11 +2591,11 @@ class FontElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFontFaceElement
+@DomName('SVGFontFaceElement')
 class FontFaceElement extends SvgElement {
   FontFaceElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face");
 
 }
@@ -3056,11 +2606,11 @@ class FontFaceElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFontFaceFormatElement
+@DomName('SVGFontFaceFormatElement')
 class FontFaceFormatElement extends SvgElement {
   FontFaceFormatElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceFormatElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-format");
 
 }
@@ -3071,11 +2621,11 @@ class FontFaceFormatElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFontFaceNameElement
+@DomName('SVGFontFaceNameElement')
 class FontFaceNameElement extends SvgElement {
   FontFaceNameElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceNameElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-name");
 
 }
@@ -3086,11 +2636,11 @@ class FontFaceNameElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFontFaceSrcElement
+@DomName('SVGFontFaceSrcElement')
 class FontFaceSrcElement extends SvgElement {
   FontFaceSrcElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceSrcElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-src");
 
 }
@@ -3101,11 +2651,11 @@ class FontFaceSrcElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGFontFaceUriElement
+@DomName('SVGFontFaceUriElement')
 class FontFaceUriElement extends SvgElement {
   FontFaceUriElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceUriElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-uri");
 
 }
@@ -3116,103 +2666,80 @@ class FontFaceUriElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGForeignObjectElement
+@DomName('SVGForeignObjectElement')
 class ForeignObjectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   ForeignObjectElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
 
-
-  /** @domName SVGForeignObjectElement.height */
+  @DomName('SVGForeignObjectElement.height')
   AnimatedLength get height native "SVGForeignObjectElement_height_Getter";
 
-
-  /** @domName SVGForeignObjectElement.width */
+  @DomName('SVGForeignObjectElement.width')
   AnimatedLength get width native "SVGForeignObjectElement_width_Getter";
 
-
-  /** @domName SVGForeignObjectElement.x */
+  @DomName('SVGForeignObjectElement.x')
   AnimatedLength get x native "SVGForeignObjectElement_x_Getter";
 
-
-  /** @domName SVGForeignObjectElement.y */
+  @DomName('SVGForeignObjectElement.y')
   AnimatedLength get y native "SVGForeignObjectElement_y_Getter";
 
-
-  /** @domName SVGForeignObjectElement.externalResourcesRequired */
+  @DomName('SVGForeignObjectElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGForeignObjectElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGForeignObjectElement.xmllang */
+  @DomName('SVGForeignObjectElement.xmllang')
   String get xmllang native "SVGForeignObjectElement_xmllang_Getter";
 
-
-  /** @domName SVGForeignObjectElement.xmllang */
+  @DomName('SVGForeignObjectElement.xmllang')
   void set xmllang(String value) native "SVGForeignObjectElement_xmllang_Setter";
 
-
-  /** @domName SVGForeignObjectElement.xmlspace */
+  @DomName('SVGForeignObjectElement.xmlspace')
   String get xmlspace native "SVGForeignObjectElement_xmlspace_Getter";
 
-
-  /** @domName SVGForeignObjectElement.xmlspace */
+  @DomName('SVGForeignObjectElement.xmlspace')
   void set xmlspace(String value) native "SVGForeignObjectElement_xmlspace_Setter";
 
-
-  /** @domName SVGForeignObjectElement.farthestViewportElement */
+  @DomName('SVGForeignObjectElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGForeignObjectElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGForeignObjectElement.nearestViewportElement */
+  @DomName('SVGForeignObjectElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGForeignObjectElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGForeignObjectElement.getBBox */
+  @DomName('SVGForeignObjectElement.getBBox')
   Rect getBBox() native "SVGForeignObjectElement_getBBox_Callback";
 
-
-  /** @domName SVGForeignObjectElement.getCTM */
+  @DomName('SVGForeignObjectElement.getCTM')
   Matrix getCtm() native "SVGForeignObjectElement_getCTM_Callback";
 
-
-  /** @domName SVGForeignObjectElement.getScreenCTM */
+  @DomName('SVGForeignObjectElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGForeignObjectElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGForeignObjectElement.getTransformToElement */
+  @DomName('SVGForeignObjectElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGForeignObjectElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGForeignObjectElement.className */
+  @DomName('SVGForeignObjectElement.className')
   AnimatedString get $dom_svgClassName native "SVGForeignObjectElement_className_Getter";
 
-
-  /** @domName SVGForeignObjectElement.style */
+  @DomName('SVGForeignObjectElement.style')
   CssStyleDeclaration get style native "SVGForeignObjectElement_style_Getter";
 
-
-  /** @domName SVGForeignObjectElement.getPresentationAttribute */
+  @DomName('SVGForeignObjectElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGForeignObjectElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGForeignObjectElement.requiredExtensions */
+  @DomName('SVGForeignObjectElement.requiredExtensions')
   StringList get requiredExtensions native "SVGForeignObjectElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGForeignObjectElement.requiredFeatures */
+  @DomName('SVGForeignObjectElement.requiredFeatures')
   StringList get requiredFeatures native "SVGForeignObjectElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGForeignObjectElement.systemLanguage */
+  @DomName('SVGForeignObjectElement.systemLanguage')
   StringList get systemLanguage native "SVGForeignObjectElement_systemLanguage_Getter";
 
-
-  /** @domName SVGForeignObjectElement.hasExtension */
+  @DomName('SVGForeignObjectElement.hasExtension')
   bool hasExtension(String extension) native "SVGForeignObjectElement_hasExtension_Callback";
 
-
-  /** @domName SVGForeignObjectElement.transform */
+  @DomName('SVGForeignObjectElement.transform')
   AnimatedTransformList get transform native "SVGForeignObjectElement_transform_Getter";
 
 }
@@ -3223,87 +2750,68 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGGElement
+@DomName('SVGGElement')
 class GElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   GElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
 
-
-  /** @domName SVGGElement.externalResourcesRequired */
+  @DomName('SVGGElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGGElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGGElement.xmllang */
+  @DomName('SVGGElement.xmllang')
   String get xmllang native "SVGGElement_xmllang_Getter";
 
-
-  /** @domName SVGGElement.xmllang */
+  @DomName('SVGGElement.xmllang')
   void set xmllang(String value) native "SVGGElement_xmllang_Setter";
 
-
-  /** @domName SVGGElement.xmlspace */
+  @DomName('SVGGElement.xmlspace')
   String get xmlspace native "SVGGElement_xmlspace_Getter";
 
-
-  /** @domName SVGGElement.xmlspace */
+  @DomName('SVGGElement.xmlspace')
   void set xmlspace(String value) native "SVGGElement_xmlspace_Setter";
 
-
-  /** @domName SVGGElement.farthestViewportElement */
+  @DomName('SVGGElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGGElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGGElement.nearestViewportElement */
+  @DomName('SVGGElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGGElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGGElement.getBBox */
+  @DomName('SVGGElement.getBBox')
   Rect getBBox() native "SVGGElement_getBBox_Callback";
 
-
-  /** @domName SVGGElement.getCTM */
+  @DomName('SVGGElement.getCTM')
   Matrix getCtm() native "SVGGElement_getCTM_Callback";
 
-
-  /** @domName SVGGElement.getScreenCTM */
+  @DomName('SVGGElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGGElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGGElement.getTransformToElement */
+  @DomName('SVGGElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGGElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGGElement.className */
+  @DomName('SVGGElement.className')
   AnimatedString get $dom_svgClassName native "SVGGElement_className_Getter";
 
-
-  /** @domName SVGGElement.style */
+  @DomName('SVGGElement.style')
   CssStyleDeclaration get style native "SVGGElement_style_Getter";
 
-
-  /** @domName SVGGElement.getPresentationAttribute */
+  @DomName('SVGGElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGGElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGGElement.requiredExtensions */
+  @DomName('SVGGElement.requiredExtensions')
   StringList get requiredExtensions native "SVGGElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGGElement.requiredFeatures */
+  @DomName('SVGGElement.requiredFeatures')
   StringList get requiredFeatures native "SVGGElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGGElement.systemLanguage */
+  @DomName('SVGGElement.systemLanguage')
   StringList get systemLanguage native "SVGGElement_systemLanguage_Getter";
 
-
-  /** @domName SVGGElement.hasExtension */
+  @DomName('SVGGElement.hasExtension')
   bool hasExtension(String extension) native "SVGGElement_hasExtension_Callback";
 
-
-  /** @domName SVGGElement.transform */
+  @DomName('SVGGElement.transform')
   AnimatedTransformList get transform native "SVGGElement_transform_Getter";
 
 }
@@ -3314,11 +2822,11 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGGlyphElement
+@DomName('SVGGlyphElement')
 class GlyphElement extends SvgElement {
   GlyphElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory GlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
 
 }
@@ -3329,72 +2837,56 @@ class GlyphElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGGlyphRefElement
+@DomName('SVGGlyphRefElement')
 class GlyphRefElement extends SvgElement implements UriReference, Stylable {
   GlyphRefElement.internal() : super.internal();
 
-
-  /** @domName SVGGlyphRefElement.dx */
+  @DomName('SVGGlyphRefElement.dx')
   num get dx native "SVGGlyphRefElement_dx_Getter";
 
-
-  /** @domName SVGGlyphRefElement.dx */
+  @DomName('SVGGlyphRefElement.dx')
   void set dx(num value) native "SVGGlyphRefElement_dx_Setter";
 
-
-  /** @domName SVGGlyphRefElement.dy */
+  @DomName('SVGGlyphRefElement.dy')
   num get dy native "SVGGlyphRefElement_dy_Getter";
 
-
-  /** @domName SVGGlyphRefElement.dy */
+  @DomName('SVGGlyphRefElement.dy')
   void set dy(num value) native "SVGGlyphRefElement_dy_Setter";
 
-
-  /** @domName SVGGlyphRefElement.format */
+  @DomName('SVGGlyphRefElement.format')
   String get format native "SVGGlyphRefElement_format_Getter";
 
-
-  /** @domName SVGGlyphRefElement.format */
+  @DomName('SVGGlyphRefElement.format')
   void set format(String value) native "SVGGlyphRefElement_format_Setter";
 
-
-  /** @domName SVGGlyphRefElement.glyphRef */
+  @DomName('SVGGlyphRefElement.glyphRef')
   String get glyphRef native "SVGGlyphRefElement_glyphRef_Getter";
 
-
-  /** @domName SVGGlyphRefElement.glyphRef */
+  @DomName('SVGGlyphRefElement.glyphRef')
   void set glyphRef(String value) native "SVGGlyphRefElement_glyphRef_Setter";
 
-
-  /** @domName SVGGlyphRefElement.x */
+  @DomName('SVGGlyphRefElement.x')
   num get x native "SVGGlyphRefElement_x_Getter";
 
-
-  /** @domName SVGGlyphRefElement.x */
+  @DomName('SVGGlyphRefElement.x')
   void set x(num value) native "SVGGlyphRefElement_x_Setter";
 
-
-  /** @domName SVGGlyphRefElement.y */
+  @DomName('SVGGlyphRefElement.y')
   num get y native "SVGGlyphRefElement_y_Getter";
 
-
-  /** @domName SVGGlyphRefElement.y */
+  @DomName('SVGGlyphRefElement.y')
   void set y(num value) native "SVGGlyphRefElement_y_Setter";
 
-
-  /** @domName SVGGlyphRefElement.className */
+  @DomName('SVGGlyphRefElement.className')
   AnimatedString get $dom_svgClassName native "SVGGlyphRefElement_className_Getter";
 
-
-  /** @domName SVGGlyphRefElement.style */
+  @DomName('SVGGlyphRefElement.style')
   CssStyleDeclaration get style native "SVGGlyphRefElement_style_Getter";
 
-
-  /** @domName SVGGlyphRefElement.getPresentationAttribute */
+  @DomName('SVGGlyphRefElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGGlyphRefElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGGlyphRefElement.href */
+  @DomName('SVGGlyphRefElement.href')
   AnimatedString get href native "SVGGlyphRefElement_href_Getter";
 
 }
@@ -3405,7 +2897,7 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGGradientElement
+@DomName('SVGGradientElement')
 class GradientElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable {
   GradientElement.internal() : super.internal();
 
@@ -3417,36 +2909,28 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
 
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-
-  /** @domName SVGGradientElement.gradientTransform */
+  @DomName('SVGGradientElement.gradientTransform')
   AnimatedTransformList get gradientTransform native "SVGGradientElement_gradientTransform_Getter";
 
-
-  /** @domName SVGGradientElement.gradientUnits */
+  @DomName('SVGGradientElement.gradientUnits')
   AnimatedEnumeration get gradientUnits native "SVGGradientElement_gradientUnits_Getter";
 
-
-  /** @domName SVGGradientElement.spreadMethod */
+  @DomName('SVGGradientElement.spreadMethod')
   AnimatedEnumeration get spreadMethod native "SVGGradientElement_spreadMethod_Getter";
 
-
-  /** @domName SVGGradientElement.externalResourcesRequired */
+  @DomName('SVGGradientElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGGradientElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGGradientElement.className */
+  @DomName('SVGGradientElement.className')
   AnimatedString get $dom_svgClassName native "SVGGradientElement_className_Getter";
 
-
-  /** @domName SVGGradientElement.style */
+  @DomName('SVGGradientElement.style')
   CssStyleDeclaration get style native "SVGGradientElement_style_Getter";
 
-
-  /** @domName SVGGradientElement.getPresentationAttribute */
+  @DomName('SVGGradientElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGGradientElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGGradientElement.href */
+  @DomName('SVGGradientElement.href')
   AnimatedString get href native "SVGGradientElement_href_Getter";
 
 }
@@ -3457,11 +2941,11 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGHKernElement
+@DomName('SVGHKernElement')
 class HKernElement extends SvgElement {
   HKernElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory HKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
 
 }
@@ -3472,111 +2956,86 @@ class HKernElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGImageElement
+@DomName('SVGImageElement')
 class ImageElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
   ImageElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
 
-
-  /** @domName SVGImageElement.height */
+  @DomName('SVGImageElement.height')
   AnimatedLength get height native "SVGImageElement_height_Getter";
 
-
-  /** @domName SVGImageElement.preserveAspectRatio */
+  @DomName('SVGImageElement.preserveAspectRatio')
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGImageElement_preserveAspectRatio_Getter";
 
-
-  /** @domName SVGImageElement.width */
+  @DomName('SVGImageElement.width')
   AnimatedLength get width native "SVGImageElement_width_Getter";
 
-
-  /** @domName SVGImageElement.x */
+  @DomName('SVGImageElement.x')
   AnimatedLength get x native "SVGImageElement_x_Getter";
 
-
-  /** @domName SVGImageElement.y */
+  @DomName('SVGImageElement.y')
   AnimatedLength get y native "SVGImageElement_y_Getter";
 
-
-  /** @domName SVGImageElement.externalResourcesRequired */
+  @DomName('SVGImageElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGImageElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGImageElement.xmllang */
+  @DomName('SVGImageElement.xmllang')
   String get xmllang native "SVGImageElement_xmllang_Getter";
 
-
-  /** @domName SVGImageElement.xmllang */
+  @DomName('SVGImageElement.xmllang')
   void set xmllang(String value) native "SVGImageElement_xmllang_Setter";
 
-
-  /** @domName SVGImageElement.xmlspace */
+  @DomName('SVGImageElement.xmlspace')
   String get xmlspace native "SVGImageElement_xmlspace_Getter";
 
-
-  /** @domName SVGImageElement.xmlspace */
+  @DomName('SVGImageElement.xmlspace')
   void set xmlspace(String value) native "SVGImageElement_xmlspace_Setter";
 
-
-  /** @domName SVGImageElement.farthestViewportElement */
+  @DomName('SVGImageElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGImageElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGImageElement.nearestViewportElement */
+  @DomName('SVGImageElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGImageElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGImageElement.getBBox */
+  @DomName('SVGImageElement.getBBox')
   Rect getBBox() native "SVGImageElement_getBBox_Callback";
 
-
-  /** @domName SVGImageElement.getCTM */
+  @DomName('SVGImageElement.getCTM')
   Matrix getCtm() native "SVGImageElement_getCTM_Callback";
 
-
-  /** @domName SVGImageElement.getScreenCTM */
+  @DomName('SVGImageElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGImageElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGImageElement.getTransformToElement */
+  @DomName('SVGImageElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGImageElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGImageElement.className */
+  @DomName('SVGImageElement.className')
   AnimatedString get $dom_svgClassName native "SVGImageElement_className_Getter";
 
-
-  /** @domName SVGImageElement.style */
+  @DomName('SVGImageElement.style')
   CssStyleDeclaration get style native "SVGImageElement_style_Getter";
 
-
-  /** @domName SVGImageElement.getPresentationAttribute */
+  @DomName('SVGImageElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGImageElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGImageElement.requiredExtensions */
+  @DomName('SVGImageElement.requiredExtensions')
   StringList get requiredExtensions native "SVGImageElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGImageElement.requiredFeatures */
+  @DomName('SVGImageElement.requiredFeatures')
   StringList get requiredFeatures native "SVGImageElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGImageElement.systemLanguage */
+  @DomName('SVGImageElement.systemLanguage')
   StringList get systemLanguage native "SVGImageElement_systemLanguage_Getter";
 
-
-  /** @domName SVGImageElement.hasExtension */
+  @DomName('SVGImageElement.hasExtension')
   bool hasExtension(String extension) native "SVGImageElement_hasExtension_Callback";
 
-
-  /** @domName SVGImageElement.transform */
+  @DomName('SVGImageElement.transform')
   AnimatedTransformList get transform native "SVGImageElement_transform_Getter";
 
-
-  /** @domName SVGImageElement.href */
+  @DomName('SVGImageElement.href')
   AnimatedString get href native "SVGImageElement_href_Getter";
 
 }
@@ -3587,24 +3046,20 @@ class ImageElement extends SvgElement implements Transformable, Tests, UriRefere
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGLangSpace
+@DomName('SVGLangSpace')
 class LangSpace extends NativeFieldWrapperClass1 {
   LangSpace.internal();
 
-
-  /** @domName SVGLangSpace.xmllang */
+  @DomName('SVGLangSpace.xmllang')
   String get xmllang native "SVGLangSpace_xmllang_Getter";
 
-
-  /** @domName SVGLangSpace.xmllang */
+  @DomName('SVGLangSpace.xmllang')
   void set xmllang(String value) native "SVGLangSpace_xmllang_Setter";
 
-
-  /** @domName SVGLangSpace.xmlspace */
+  @DomName('SVGLangSpace.xmlspace')
   String get xmlspace native "SVGLangSpace_xmlspace_Getter";
 
-
-  /** @domName SVGLangSpace.xmlspace */
+  @DomName('SVGLangSpace.xmlspace')
   void set xmlspace(String value) native "SVGLangSpace_xmlspace_Setter";
 
 }
@@ -3615,7 +3070,7 @@ class LangSpace extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGLength
+@DomName('SVGLength')
 class Length extends NativeFieldWrapperClass1 {
   Length.internal();
 
@@ -3641,40 +3096,31 @@ class Length extends NativeFieldWrapperClass1 {
 
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
-
-  /** @domName SVGLength.unitType */
+  @DomName('SVGLength.unitType')
   int get unitType native "SVGLength_unitType_Getter";
 
-
-  /** @domName SVGLength.value */
+  @DomName('SVGLength.value')
   num get value native "SVGLength_value_Getter";
 
-
-  /** @domName SVGLength.value */
+  @DomName('SVGLength.value')
   void set value(num value) native "SVGLength_value_Setter";
 
-
-  /** @domName SVGLength.valueAsString */
+  @DomName('SVGLength.valueAsString')
   String get valueAsString native "SVGLength_valueAsString_Getter";
 
-
-  /** @domName SVGLength.valueAsString */
+  @DomName('SVGLength.valueAsString')
   void set valueAsString(String value) native "SVGLength_valueAsString_Setter";
 
-
-  /** @domName SVGLength.valueInSpecifiedUnits */
+  @DomName('SVGLength.valueInSpecifiedUnits')
   num get valueInSpecifiedUnits native "SVGLength_valueInSpecifiedUnits_Getter";
 
-
-  /** @domName SVGLength.valueInSpecifiedUnits */
+  @DomName('SVGLength.valueInSpecifiedUnits')
   void set valueInSpecifiedUnits(num value) native "SVGLength_valueInSpecifiedUnits_Setter";
 
-
-  /** @domName SVGLength.convertToSpecifiedUnits */
+  @DomName('SVGLength.convertToSpecifiedUnits')
   void convertToSpecifiedUnits(int unitType) native "SVGLength_convertToSpecifiedUnits_Callback";
 
-
-  /** @domName SVGLength.newValueSpecifiedUnits */
+  @DomName('SVGLength.newValueSpecifiedUnits')
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native "SVGLength_newValueSpecifiedUnits_Callback";
 
 }
@@ -3685,12 +3131,11 @@ class Length extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGLengthList
+@DomName('SVGLengthList')
 class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   LengthList.internal();
 
-
-  /** @domName SVGLengthList.numberOfItems */
+  @DomName('SVGLengthList.numberOfItems')
   int get numberOfItems native "SVGLengthList_numberOfItems_Getter";
 
   Length operator[](int index) native "SVGLengthList_item_Callback";
@@ -3841,32 +3286,25 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   // -- end List<Length> mixins.
 
-
-  /** @domName SVGLengthList.appendItem */
+  @DomName('SVGLengthList.appendItem')
   Length appendItem(Length item) native "SVGLengthList_appendItem_Callback";
 
-
-  /** @domName SVGLengthList.clear */
+  @DomName('SVGLengthList.clear')
   void clear() native "SVGLengthList_clear_Callback";
 
-
-  /** @domName SVGLengthList.getItem */
+  @DomName('SVGLengthList.getItem')
   Length getItem(int index) native "SVGLengthList_getItem_Callback";
 
-
-  /** @domName SVGLengthList.initialize */
+  @DomName('SVGLengthList.initialize')
   Length initialize(Length item) native "SVGLengthList_initialize_Callback";
 
-
-  /** @domName SVGLengthList.insertItemBefore */
+  @DomName('SVGLengthList.insertItemBefore')
   Length insertItemBefore(Length item, int index) native "SVGLengthList_insertItemBefore_Callback";
 
-
-  /** @domName SVGLengthList.removeItem */
+  @DomName('SVGLengthList.removeItem')
   Length removeItem(int index) native "SVGLengthList_removeItem_Callback";
 
-
-  /** @domName SVGLengthList.replaceItem */
+  @DomName('SVGLengthList.replaceItem')
   Length replaceItem(Length item, int index) native "SVGLengthList_replaceItem_Callback";
 
 }
@@ -3877,103 +3315,80 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGLineElement
+@DomName('SVGLineElement')
 class LineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   LineElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
 
-
-  /** @domName SVGLineElement.x1 */
+  @DomName('SVGLineElement.x1')
   AnimatedLength get x1 native "SVGLineElement_x1_Getter";
 
-
-  /** @domName SVGLineElement.x2 */
+  @DomName('SVGLineElement.x2')
   AnimatedLength get x2 native "SVGLineElement_x2_Getter";
 
-
-  /** @domName SVGLineElement.y1 */
+  @DomName('SVGLineElement.y1')
   AnimatedLength get y1 native "SVGLineElement_y1_Getter";
 
-
-  /** @domName SVGLineElement.y2 */
+  @DomName('SVGLineElement.y2')
   AnimatedLength get y2 native "SVGLineElement_y2_Getter";
 
-
-  /** @domName SVGLineElement.externalResourcesRequired */
+  @DomName('SVGLineElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGLineElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGLineElement.xmllang */
+  @DomName('SVGLineElement.xmllang')
   String get xmllang native "SVGLineElement_xmllang_Getter";
 
-
-  /** @domName SVGLineElement.xmllang */
+  @DomName('SVGLineElement.xmllang')
   void set xmllang(String value) native "SVGLineElement_xmllang_Setter";
 
-
-  /** @domName SVGLineElement.xmlspace */
+  @DomName('SVGLineElement.xmlspace')
   String get xmlspace native "SVGLineElement_xmlspace_Getter";
 
-
-  /** @domName SVGLineElement.xmlspace */
+  @DomName('SVGLineElement.xmlspace')
   void set xmlspace(String value) native "SVGLineElement_xmlspace_Setter";
 
-
-  /** @domName SVGLineElement.farthestViewportElement */
+  @DomName('SVGLineElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGLineElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGLineElement.nearestViewportElement */
+  @DomName('SVGLineElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGLineElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGLineElement.getBBox */
+  @DomName('SVGLineElement.getBBox')
   Rect getBBox() native "SVGLineElement_getBBox_Callback";
 
-
-  /** @domName SVGLineElement.getCTM */
+  @DomName('SVGLineElement.getCTM')
   Matrix getCtm() native "SVGLineElement_getCTM_Callback";
 
-
-  /** @domName SVGLineElement.getScreenCTM */
+  @DomName('SVGLineElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGLineElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGLineElement.getTransformToElement */
+  @DomName('SVGLineElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGLineElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGLineElement.className */
+  @DomName('SVGLineElement.className')
   AnimatedString get $dom_svgClassName native "SVGLineElement_className_Getter";
 
-
-  /** @domName SVGLineElement.style */
+  @DomName('SVGLineElement.style')
   CssStyleDeclaration get style native "SVGLineElement_style_Getter";
 
-
-  /** @domName SVGLineElement.getPresentationAttribute */
+  @DomName('SVGLineElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGLineElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGLineElement.requiredExtensions */
+  @DomName('SVGLineElement.requiredExtensions')
   StringList get requiredExtensions native "SVGLineElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGLineElement.requiredFeatures */
+  @DomName('SVGLineElement.requiredFeatures')
   StringList get requiredFeatures native "SVGLineElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGLineElement.systemLanguage */
+  @DomName('SVGLineElement.systemLanguage')
   StringList get systemLanguage native "SVGLineElement_systemLanguage_Getter";
 
-
-  /** @domName SVGLineElement.hasExtension */
+  @DomName('SVGLineElement.hasExtension')
   bool hasExtension(String extension) native "SVGLineElement_hasExtension_Callback";
 
-
-  /** @domName SVGLineElement.transform */
+  @DomName('SVGLineElement.transform')
   AnimatedTransformList get transform native "SVGLineElement_transform_Getter";
 
 }
@@ -3984,27 +3399,23 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGLinearGradientElement
+@DomName('SVGLinearGradientElement')
 class LinearGradientElement extends GradientElement {
   LinearGradientElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
 
-
-  /** @domName SVGLinearGradientElement.x1 */
+  @DomName('SVGLinearGradientElement.x1')
   AnimatedLength get x1 native "SVGLinearGradientElement_x1_Getter";
 
-
-  /** @domName SVGLinearGradientElement.x2 */
+  @DomName('SVGLinearGradientElement.x2')
   AnimatedLength get x2 native "SVGLinearGradientElement_x2_Getter";
 
-
-  /** @domName SVGLinearGradientElement.y1 */
+  @DomName('SVGLinearGradientElement.y1')
   AnimatedLength get y1 native "SVGLinearGradientElement_y1_Getter";
 
-
-  /** @domName SVGLinearGradientElement.y2 */
+  @DomName('SVGLinearGradientElement.y2')
   AnimatedLength get y2 native "SVGLinearGradientElement_y2_Getter";
 
 }
@@ -4015,32 +3426,26 @@ class LinearGradientElement extends GradientElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGLocatable
+@DomName('SVGLocatable')
 class Locatable extends NativeFieldWrapperClass1 {
   Locatable.internal();
 
-
-  /** @domName SVGLocatable.farthestViewportElement */
+  @DomName('SVGLocatable.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGLocatable_farthestViewportElement_Getter";
 
-
-  /** @domName SVGLocatable.nearestViewportElement */
+  @DomName('SVGLocatable.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGLocatable_nearestViewportElement_Getter";
 
-
-  /** @domName SVGLocatable.getBBox */
+  @DomName('SVGLocatable.getBBox')
   Rect getBBox() native "SVGLocatable_getBBox_Callback";
 
-
-  /** @domName SVGLocatable.getCTM */
+  @DomName('SVGLocatable.getCTM')
   Matrix getCtm() native "SVGLocatable_getCTM_Callback";
 
-
-  /** @domName SVGLocatable.getScreenCTM */
+  @DomName('SVGLocatable.getScreenCTM')
   Matrix getScreenCtm() native "SVGLocatable_getScreenCTM_Callback";
 
-
-  /** @domName SVGLocatable.getTransformToElement */
+  @DomName('SVGLocatable.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGLocatable_getTransformToElement_Callback";
 
 }
@@ -4051,19 +3456,17 @@ class Locatable extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGMPathElement
+@DomName('SVGMPathElement')
 class MPathElement extends SvgElement implements UriReference, ExternalResourcesRequired {
   MPathElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory MPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
 
-
-  /** @domName SVGMPathElement.externalResourcesRequired */
+  @DomName('SVGMPathElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGMPathElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGMPathElement.href */
+  @DomName('SVGMPathElement.href')
   AnimatedString get href native "SVGMPathElement_href_Getter";
 
 }
@@ -4074,11 +3477,11 @@ class MPathElement extends SvgElement implements UriReference, ExternalResources
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGMarkerElement
+@DomName('SVGMarkerElement')
 class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace {
   MarkerElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
@@ -4093,80 +3496,61 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-
-  /** @domName SVGMarkerElement.markerHeight */
+  @DomName('SVGMarkerElement.markerHeight')
   AnimatedLength get markerHeight native "SVGMarkerElement_markerHeight_Getter";
 
-
-  /** @domName SVGMarkerElement.markerUnits */
+  @DomName('SVGMarkerElement.markerUnits')
   AnimatedEnumeration get markerUnits native "SVGMarkerElement_markerUnits_Getter";
 
-
-  /** @domName SVGMarkerElement.markerWidth */
+  @DomName('SVGMarkerElement.markerWidth')
   AnimatedLength get markerWidth native "SVGMarkerElement_markerWidth_Getter";
 
-
-  /** @domName SVGMarkerElement.orientAngle */
+  @DomName('SVGMarkerElement.orientAngle')
   AnimatedAngle get orientAngle native "SVGMarkerElement_orientAngle_Getter";
 
-
-  /** @domName SVGMarkerElement.orientType */
+  @DomName('SVGMarkerElement.orientType')
   AnimatedEnumeration get orientType native "SVGMarkerElement_orientType_Getter";
 
-
-  /** @domName SVGMarkerElement.refX */
+  @DomName('SVGMarkerElement.refX')
   AnimatedLength get refX native "SVGMarkerElement_refX_Getter";
 
-
-  /** @domName SVGMarkerElement.refY */
+  @DomName('SVGMarkerElement.refY')
   AnimatedLength get refY native "SVGMarkerElement_refY_Getter";
 
-
-  /** @domName SVGMarkerElement.setOrientToAngle */
+  @DomName('SVGMarkerElement.setOrientToAngle')
   void setOrientToAngle(Angle angle) native "SVGMarkerElement_setOrientToAngle_Callback";
 
-
-  /** @domName SVGMarkerElement.setOrientToAuto */
+  @DomName('SVGMarkerElement.setOrientToAuto')
   void setOrientToAuto() native "SVGMarkerElement_setOrientToAuto_Callback";
 
-
-  /** @domName SVGMarkerElement.externalResourcesRequired */
+  @DomName('SVGMarkerElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGMarkerElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGMarkerElement.preserveAspectRatio */
+  @DomName('SVGMarkerElement.preserveAspectRatio')
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGMarkerElement_preserveAspectRatio_Getter";
 
-
-  /** @domName SVGMarkerElement.viewBox */
+  @DomName('SVGMarkerElement.viewBox')
   AnimatedRect get viewBox native "SVGMarkerElement_viewBox_Getter";
 
-
-  /** @domName SVGMarkerElement.xmllang */
+  @DomName('SVGMarkerElement.xmllang')
   String get xmllang native "SVGMarkerElement_xmllang_Getter";
 
-
-  /** @domName SVGMarkerElement.xmllang */
+  @DomName('SVGMarkerElement.xmllang')
   void set xmllang(String value) native "SVGMarkerElement_xmllang_Setter";
 
-
-  /** @domName SVGMarkerElement.xmlspace */
+  @DomName('SVGMarkerElement.xmlspace')
   String get xmlspace native "SVGMarkerElement_xmlspace_Getter";
 
-
-  /** @domName SVGMarkerElement.xmlspace */
+  @DomName('SVGMarkerElement.xmlspace')
   void set xmlspace(String value) native "SVGMarkerElement_xmlspace_Setter";
 
-
-  /** @domName SVGMarkerElement.className */
+  @DomName('SVGMarkerElement.className')
   AnimatedString get $dom_svgClassName native "SVGMarkerElement_className_Getter";
 
-
-  /** @domName SVGMarkerElement.style */
+  @DomName('SVGMarkerElement.style')
   CssStyleDeclaration get style native "SVGMarkerElement_style_Getter";
 
-
-  /** @domName SVGMarkerElement.getPresentationAttribute */
+  @DomName('SVGMarkerElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGMarkerElement_getPresentationAttribute_Callback";
 
 }
@@ -4177,83 +3561,65 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGMaskElement
+@DomName('SVGMaskElement')
 class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace {
   MaskElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
 
-
-  /** @domName SVGMaskElement.height */
+  @DomName('SVGMaskElement.height')
   AnimatedLength get height native "SVGMaskElement_height_Getter";
 
-
-  /** @domName SVGMaskElement.maskContentUnits */
+  @DomName('SVGMaskElement.maskContentUnits')
   AnimatedEnumeration get maskContentUnits native "SVGMaskElement_maskContentUnits_Getter";
 
-
-  /** @domName SVGMaskElement.maskUnits */
+  @DomName('SVGMaskElement.maskUnits')
   AnimatedEnumeration get maskUnits native "SVGMaskElement_maskUnits_Getter";
 
-
-  /** @domName SVGMaskElement.width */
+  @DomName('SVGMaskElement.width')
   AnimatedLength get width native "SVGMaskElement_width_Getter";
 
-
-  /** @domName SVGMaskElement.x */
+  @DomName('SVGMaskElement.x')
   AnimatedLength get x native "SVGMaskElement_x_Getter";
 
-
-  /** @domName SVGMaskElement.y */
+  @DomName('SVGMaskElement.y')
   AnimatedLength get y native "SVGMaskElement_y_Getter";
 
-
-  /** @domName SVGMaskElement.externalResourcesRequired */
+  @DomName('SVGMaskElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGMaskElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGMaskElement.xmllang */
+  @DomName('SVGMaskElement.xmllang')
   String get xmllang native "SVGMaskElement_xmllang_Getter";
 
-
-  /** @domName SVGMaskElement.xmllang */
+  @DomName('SVGMaskElement.xmllang')
   void set xmllang(String value) native "SVGMaskElement_xmllang_Setter";
 
-
-  /** @domName SVGMaskElement.xmlspace */
+  @DomName('SVGMaskElement.xmlspace')
   String get xmlspace native "SVGMaskElement_xmlspace_Getter";
 
-
-  /** @domName SVGMaskElement.xmlspace */
+  @DomName('SVGMaskElement.xmlspace')
   void set xmlspace(String value) native "SVGMaskElement_xmlspace_Setter";
 
-
-  /** @domName SVGMaskElement.className */
+  @DomName('SVGMaskElement.className')
   AnimatedString get $dom_svgClassName native "SVGMaskElement_className_Getter";
 
-
-  /** @domName SVGMaskElement.style */
+  @DomName('SVGMaskElement.style')
   CssStyleDeclaration get style native "SVGMaskElement_style_Getter";
 
-
-  /** @domName SVGMaskElement.getPresentationAttribute */
+  @DomName('SVGMaskElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGMaskElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGMaskElement.requiredExtensions */
+  @DomName('SVGMaskElement.requiredExtensions')
   StringList get requiredExtensions native "SVGMaskElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGMaskElement.requiredFeatures */
+  @DomName('SVGMaskElement.requiredFeatures')
   StringList get requiredFeatures native "SVGMaskElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGMaskElement.systemLanguage */
+  @DomName('SVGMaskElement.systemLanguage')
   StringList get systemLanguage native "SVGMaskElement_systemLanguage_Getter";
 
-
-  /** @domName SVGMaskElement.hasExtension */
+  @DomName('SVGMaskElement.hasExtension')
   bool hasExtension(String extension) native "SVGMaskElement_hasExtension_Callback";
 
 }
@@ -4264,100 +3630,77 @@ class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourc
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGMatrix
+@DomName('SVGMatrix')
 class Matrix extends NativeFieldWrapperClass1 {
   Matrix.internal();
 
-
-  /** @domName SVGMatrix.a */
+  @DomName('SVGMatrix.a')
   num get a native "SVGMatrix_a_Getter";
 
-
-  /** @domName SVGMatrix.a */
+  @DomName('SVGMatrix.a')
   void set a(num value) native "SVGMatrix_a_Setter";
 
-
-  /** @domName SVGMatrix.b */
+  @DomName('SVGMatrix.b')
   num get b native "SVGMatrix_b_Getter";
 
-
-  /** @domName SVGMatrix.b */
+  @DomName('SVGMatrix.b')
   void set b(num value) native "SVGMatrix_b_Setter";
 
-
-  /** @domName SVGMatrix.c */
+  @DomName('SVGMatrix.c')
   num get c native "SVGMatrix_c_Getter";
 
-
-  /** @domName SVGMatrix.c */
+  @DomName('SVGMatrix.c')
   void set c(num value) native "SVGMatrix_c_Setter";
 
-
-  /** @domName SVGMatrix.d */
+  @DomName('SVGMatrix.d')
   num get d native "SVGMatrix_d_Getter";
 
-
-  /** @domName SVGMatrix.d */
+  @DomName('SVGMatrix.d')
   void set d(num value) native "SVGMatrix_d_Setter";
 
-
-  /** @domName SVGMatrix.e */
+  @DomName('SVGMatrix.e')
   num get e native "SVGMatrix_e_Getter";
 
-
-  /** @domName SVGMatrix.e */
+  @DomName('SVGMatrix.e')
   void set e(num value) native "SVGMatrix_e_Setter";
 
-
-  /** @domName SVGMatrix.f */
+  @DomName('SVGMatrix.f')
   num get f native "SVGMatrix_f_Getter";
 
-
-  /** @domName SVGMatrix.f */
+  @DomName('SVGMatrix.f')
   void set f(num value) native "SVGMatrix_f_Setter";
 
-
-  /** @domName SVGMatrix.flipX */
+  @DomName('SVGMatrix.flipX')
   Matrix flipX() native "SVGMatrix_flipX_Callback";
 
-
-  /** @domName SVGMatrix.flipY */
+  @DomName('SVGMatrix.flipY')
   Matrix flipY() native "SVGMatrix_flipY_Callback";
 
-
-  /** @domName SVGMatrix.inverse */
+  @DomName('SVGMatrix.inverse')
   Matrix inverse() native "SVGMatrix_inverse_Callback";
 
-
-  /** @domName SVGMatrix.multiply */
+  @DomName('SVGMatrix.multiply')
   Matrix multiply(Matrix secondMatrix) native "SVGMatrix_multiply_Callback";
 
-
-  /** @domName SVGMatrix.rotate */
+  @DomName('SVGMatrix.rotate')
   Matrix rotate(num angle) native "SVGMatrix_rotate_Callback";
 
-
-  /** @domName SVGMatrix.rotateFromVector */
+  @DomName('SVGMatrix.rotateFromVector')
   Matrix rotateFromVector(num x, num y) native "SVGMatrix_rotateFromVector_Callback";
 
-
-  /** @domName SVGMatrix.scale */
+  @DomName('SVGMatrix.scale')
   Matrix scale(num scaleFactor) native "SVGMatrix_scale_Callback";
 
-
-  /** @domName SVGMatrix.scaleNonUniform */
+  @DomName('SVGMatrix.scaleNonUniform')
   Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native "SVGMatrix_scaleNonUniform_Callback";
 
-
-  /** @domName SVGMatrix.skewX */
+  @DomName('SVGMatrix.skewX')
   Matrix skewX(num angle) native "SVGMatrix_skewX_Callback";
 
-
-  /** @domName SVGMatrix.skewY */
+  @DomName('SVGMatrix.skewY')
   Matrix skewY(num angle) native "SVGMatrix_skewY_Callback";
 
-
-  /** @domName SVGMatrix.translate */
+  @DomName('SVGMatrix.translate')
   Matrix translate(num x, num y) native "SVGMatrix_translate_Callback";
 
 }
@@ -4368,7 +3711,7 @@ class Matrix extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGMetadataElement
+@DomName('SVGMetadataElement')
 class MetadataElement extends SvgElement {
   MetadataElement.internal() : super.internal();
 
@@ -4380,7 +3723,7 @@ class MetadataElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGMissingGlyphElement
+@DomName('SVGMissingGlyphElement')
 class MissingGlyphElement extends SvgElement {
   MissingGlyphElement.internal() : super.internal();
 
@@ -4392,16 +3735,14 @@ class MissingGlyphElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGNumber
+@DomName('SVGNumber')
 class Number extends NativeFieldWrapperClass1 {
   Number.internal();
 
-
-  /** @domName SVGNumber.value */
+  @DomName('SVGNumber.value')
   num get value native "SVGNumber_value_Getter";
 
-
-  /** @domName SVGNumber.value */
+  @DomName('SVGNumber.value')
   void set value(num value) native "SVGNumber_value_Setter";
 
 }
@@ -4412,12 +3753,11 @@ class Number extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGNumberList
+@DomName('SVGNumberList')
 class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   NumberList.internal();
 
-
-  /** @domName SVGNumberList.numberOfItems */
+  @DomName('SVGNumberList.numberOfItems')
   int get numberOfItems native "SVGNumberList_numberOfItems_Getter";
 
   Number operator[](int index) native "SVGNumberList_item_Callback";
@@ -4568,32 +3908,25 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   // -- end List<Number> mixins.
 
-
-  /** @domName SVGNumberList.appendItem */
+  @DomName('SVGNumberList.appendItem')
   Number appendItem(Number item) native "SVGNumberList_appendItem_Callback";
 
-
-  /** @domName SVGNumberList.clear */
+  @DomName('SVGNumberList.clear')
   void clear() native "SVGNumberList_clear_Callback";
 
-
-  /** @domName SVGNumberList.getItem */
+  @DomName('SVGNumberList.getItem')
   Number getItem(int index) native "SVGNumberList_getItem_Callback";
 
-
-  /** @domName SVGNumberList.initialize */
+  @DomName('SVGNumberList.initialize')
   Number initialize(Number item) native "SVGNumberList_initialize_Callback";
 
-
-  /** @domName SVGNumberList.insertItemBefore */
+  @DomName('SVGNumberList.insertItemBefore')
   Number insertItemBefore(Number item, int index) native "SVGNumberList_insertItemBefore_Callback";
 
-
-  /** @domName SVGNumberList.removeItem */
+  @DomName('SVGNumberList.removeItem')
   Number removeItem(int index) native "SVGNumberList_removeItem_Callback";
 
-
-  /** @domName SVGNumberList.replaceItem */
+  @DomName('SVGNumberList.replaceItem')
   Number replaceItem(Number item, int index) native "SVGNumberList_replaceItem_Callback";
 
 }
@@ -4604,7 +3937,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPaint
+@DomName('SVGPaint')
 class Paint extends Color {
   Paint.internal() : super.internal();
 
@@ -4628,20 +3961,16 @@ class Paint extends Color {
 
   static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
-
-  /** @domName SVGPaint.paintType */
+  @DomName('SVGPaint.paintType')
   int get paintType native "SVGPaint_paintType_Getter";
 
-
-  /** @domName SVGPaint.uri */
+  @DomName('SVGPaint.uri')
   String get uri native "SVGPaint_uri_Getter";
 
-
-  /** @domName SVGPaint.setPaint */
+  @DomName('SVGPaint.setPaint')
   void setPaint(int paintType, String uri, String rgbColor, String iccColor) native "SVGPaint_setPaint_Callback";
 
-
-  /** @domName SVGPaint.setUri */
+  @DomName('SVGPaint.setUri')
   void setUri(String uri) native "SVGPaint_setUri_Callback";
 
 }
@@ -4652,195 +3981,149 @@ class Paint extends Color {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathElement
+@DomName('SVGPathElement')
 class PathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   PathElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
 
-
-  /** @domName SVGPathElement.animatedNormalizedPathSegList */
+  @DomName('SVGPathElement.animatedNormalizedPathSegList')
   PathSegList get animatedNormalizedPathSegList native "SVGPathElement_animatedNormalizedPathSegList_Getter";
 
-
-  /** @domName SVGPathElement.animatedPathSegList */
+  @DomName('SVGPathElement.animatedPathSegList')
   PathSegList get animatedPathSegList native "SVGPathElement_animatedPathSegList_Getter";
 
-
-  /** @domName SVGPathElement.normalizedPathSegList */
+  @DomName('SVGPathElement.normalizedPathSegList')
   PathSegList get normalizedPathSegList native "SVGPathElement_normalizedPathSegList_Getter";
 
-
-  /** @domName SVGPathElement.pathLength */
+  @DomName('SVGPathElement.pathLength')
   AnimatedNumber get pathLength native "SVGPathElement_pathLength_Getter";
 
-
-  /** @domName SVGPathElement.pathSegList */
+  @DomName('SVGPathElement.pathSegList')
   PathSegList get pathSegList native "SVGPathElement_pathSegList_Getter";
 
-
-  /** @domName SVGPathElement.createSVGPathSegArcAbs */
+  @DomName('SVGPathElement.createSVGPathSegArcAbs')
   PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcAbs_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegArcRel */
+  @DomName('SVGPathElement.createSVGPathSegArcRel')
   PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native "SVGPathElement_createSVGPathSegArcRel_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegClosePath */
+  @DomName('SVGPathElement.createSVGPathSegClosePath')
   PathSegClosePath createSvgPathSegClosePath() native "SVGPathElement_createSVGPathSegClosePath_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicAbs */
+  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
   PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicAbs_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicRel */
+  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicRel')
   PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicRel_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs */
+  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs')
   PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothAbs_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel */
+  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel')
   PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native "SVGPathElement_createSVGPathSegCurvetoCubicSmoothRel_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticAbs */
+  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticAbs')
   PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticAbs_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticRel */
+  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticRel')
   PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native "SVGPathElement_createSVGPathSegCurvetoQuadraticRel_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs */
+  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs')
   PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothAbs_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel */
+  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel')
   PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) native "SVGPathElement_createSVGPathSegCurvetoQuadraticSmoothRel_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoAbs */
+  @DomName('SVGPathElement.createSVGPathSegLinetoAbs')
   PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegLinetoAbs_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalAbs */
+  @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalAbs')
   PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalAbs_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalRel */
+  @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalRel')
   PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native "SVGPathElement_createSVGPathSegLinetoHorizontalRel_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoRel */
+  @DomName('SVGPathElement.createSVGPathSegLinetoRel')
   PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native "SVGPathElement_createSVGPathSegLinetoRel_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoVerticalAbs */
+  @DomName('SVGPathElement.createSVGPathSegLinetoVerticalAbs')
   PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalAbs_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegLinetoVerticalRel */
+  @DomName('SVGPathElement.createSVGPathSegLinetoVerticalRel')
   PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native "SVGPathElement_createSVGPathSegLinetoVerticalRel_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegMovetoAbs */
+  @DomName('SVGPathElement.createSVGPathSegMovetoAbs')
   PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native "SVGPathElement_createSVGPathSegMovetoAbs_Callback";
 
-
-  /** @domName SVGPathElement.createSVGPathSegMovetoRel */
+  @DomName('SVGPathElement.createSVGPathSegMovetoRel')
   PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native "SVGPathElement_createSVGPathSegMovetoRel_Callback";
 
-
-  /** @domName SVGPathElement.getPathSegAtLength */
+  @DomName('SVGPathElement.getPathSegAtLength')
   int getPathSegAtLength(num distance) native "SVGPathElement_getPathSegAtLength_Callback";
 
-
-  /** @domName SVGPathElement.getPointAtLength */
+  @DomName('SVGPathElement.getPointAtLength')
   Point getPointAtLength(num distance) native "SVGPathElement_getPointAtLength_Callback";
 
-
-  /** @domName SVGPathElement.getTotalLength */
+  @DomName('SVGPathElement.getTotalLength')
   num getTotalLength() native "SVGPathElement_getTotalLength_Callback";
 
-
-  /** @domName SVGPathElement.externalResourcesRequired */
+  @DomName('SVGPathElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGPathElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGPathElement.xmllang */
+  @DomName('SVGPathElement.xmllang')
   String get xmllang native "SVGPathElement_xmllang_Getter";
 
-
-  /** @domName SVGPathElement.xmllang */
+  @DomName('SVGPathElement.xmllang')
   void set xmllang(String value) native "SVGPathElement_xmllang_Setter";
 
-
-  /** @domName SVGPathElement.xmlspace */
+  @DomName('SVGPathElement.xmlspace')
   String get xmlspace native "SVGPathElement_xmlspace_Getter";
 
-
-  /** @domName SVGPathElement.xmlspace */
+  @DomName('SVGPathElement.xmlspace')
   void set xmlspace(String value) native "SVGPathElement_xmlspace_Setter";
 
-
-  /** @domName SVGPathElement.farthestViewportElement */
+  @DomName('SVGPathElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGPathElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGPathElement.nearestViewportElement */
+  @DomName('SVGPathElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGPathElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGPathElement.getBBox */
+  @DomName('SVGPathElement.getBBox')
   Rect getBBox() native "SVGPathElement_getBBox_Callback";
 
-
-  /** @domName SVGPathElement.getCTM */
+  @DomName('SVGPathElement.getCTM')
   Matrix getCtm() native "SVGPathElement_getCTM_Callback";
 
-
-  /** @domName SVGPathElement.getScreenCTM */
+  @DomName('SVGPathElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGPathElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGPathElement.getTransformToElement */
+  @DomName('SVGPathElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGPathElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGPathElement.className */
+  @DomName('SVGPathElement.className')
   AnimatedString get $dom_svgClassName native "SVGPathElement_className_Getter";
 
-
-  /** @domName SVGPathElement.style */
+  @DomName('SVGPathElement.style')
   CssStyleDeclaration get style native "SVGPathElement_style_Getter";
 
-
-  /** @domName SVGPathElement.getPresentationAttribute */
+  @DomName('SVGPathElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGPathElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGPathElement.requiredExtensions */
+  @DomName('SVGPathElement.requiredExtensions')
   StringList get requiredExtensions native "SVGPathElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGPathElement.requiredFeatures */
+  @DomName('SVGPathElement.requiredFeatures')
   StringList get requiredFeatures native "SVGPathElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGPathElement.systemLanguage */
+  @DomName('SVGPathElement.systemLanguage')
   StringList get systemLanguage native "SVGPathElement_systemLanguage_Getter";
 
-
-  /** @domName SVGPathElement.hasExtension */
+  @DomName('SVGPathElement.hasExtension')
   bool hasExtension(String extension) native "SVGPathElement_hasExtension_Callback";
 
-
-  /** @domName SVGPathElement.transform */
+  @DomName('SVGPathElement.transform')
   AnimatedTransformList get transform native "SVGPathElement_transform_Getter";
 
 }
@@ -4851,7 +4134,7 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSeg
+@DomName('SVGPathSeg')
 class PathSeg extends NativeFieldWrapperClass1 {
   PathSeg.internal();
 
@@ -4895,12 +4178,10 @@ class PathSeg extends NativeFieldWrapperClass1 {
 
   static const int PATHSEG_UNKNOWN = 0;
 
-
-  /** @domName SVGPathSeg.pathSegType */
+  @DomName('SVGPathSeg.pathSegType')
   int get pathSegType native "SVGPathSeg_pathSegType_Getter";
 
-
-  /** @domName SVGPathSeg.pathSegTypeAsLetter */
+  @DomName('SVGPathSeg.pathSegTypeAsLetter')
   String get pathSegTypeAsLetter native "SVGPathSeg_pathSegTypeAsLetter_Getter";
 
 }
@@ -4911,64 +4192,50 @@ class PathSeg extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegArcAbs
+@DomName('SVGPathSegArcAbs')
 class PathSegArcAbs extends PathSeg {
   PathSegArcAbs.internal() : super.internal();
 
-
-  /** @domName SVGPathSegArcAbs.angle */
+  @DomName('SVGPathSegArcAbs.angle')
   num get angle native "SVGPathSegArcAbs_angle_Getter";
 
-
-  /** @domName SVGPathSegArcAbs.angle */
+  @DomName('SVGPathSegArcAbs.angle')
   void set angle(num value) native "SVGPathSegArcAbs_angle_Setter";
 
-
-  /** @domName SVGPathSegArcAbs.largeArcFlag */
+  @DomName('SVGPathSegArcAbs.largeArcFlag')
   bool get largeArcFlag native "SVGPathSegArcAbs_largeArcFlag_Getter";
 
-
-  /** @domName SVGPathSegArcAbs.largeArcFlag */
+  @DomName('SVGPathSegArcAbs.largeArcFlag')
   void set largeArcFlag(bool value) native "SVGPathSegArcAbs_largeArcFlag_Setter";
 
-
-  /** @domName SVGPathSegArcAbs.r1 */
+  @DomName('SVGPathSegArcAbs.r1')
   num get r1 native "SVGPathSegArcAbs_r1_Getter";
 
-
-  /** @domName SVGPathSegArcAbs.r1 */
+  @DomName('SVGPathSegArcAbs.r1')
   void set r1(num value) native "SVGPathSegArcAbs_r1_Setter";
 
-
-  /** @domName SVGPathSegArcAbs.r2 */
+  @DomName('SVGPathSegArcAbs.r2')
   num get r2 native "SVGPathSegArcAbs_r2_Getter";
 
-
-  /** @domName SVGPathSegArcAbs.r2 */
+  @DomName('SVGPathSegArcAbs.r2')
   void set r2(num value) native "SVGPathSegArcAbs_r2_Setter";
 
-
-  /** @domName SVGPathSegArcAbs.sweepFlag */
+  @DomName('SVGPathSegArcAbs.sweepFlag')
   bool get sweepFlag native "SVGPathSegArcAbs_sweepFlag_Getter";
 
-
-  /** @domName SVGPathSegArcAbs.sweepFlag */
+  @DomName('SVGPathSegArcAbs.sweepFlag')
   void set sweepFlag(bool value) native "SVGPathSegArcAbs_sweepFlag_Setter";
 
-
-  /** @domName SVGPathSegArcAbs.x */
+  @DomName('SVGPathSegArcAbs.x')
   num get x native "SVGPathSegArcAbs_x_Getter";
 
-
-  /** @domName SVGPathSegArcAbs.x */
+  @DomName('SVGPathSegArcAbs.x')
   void set x(num value) native "SVGPathSegArcAbs_x_Setter";
 
-
-  /** @domName SVGPathSegArcAbs.y */
+  @DomName('SVGPathSegArcAbs.y')
   num get y native "SVGPathSegArcAbs_y_Getter";
 
-
-  /** @domName SVGPathSegArcAbs.y */
+  @DomName('SVGPathSegArcAbs.y')
   void set y(num value) native "SVGPathSegArcAbs_y_Setter";
 
 }
@@ -4979,64 +4246,50 @@ class PathSegArcAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegArcRel
+@DomName('SVGPathSegArcRel')
 class PathSegArcRel extends PathSeg {
   PathSegArcRel.internal() : super.internal();
 
-
-  /** @domName SVGPathSegArcRel.angle */
+  @DomName('SVGPathSegArcRel.angle')
   num get angle native "SVGPathSegArcRel_angle_Getter";
 
-
-  /** @domName SVGPathSegArcRel.angle */
+  @DomName('SVGPathSegArcRel.angle')
   void set angle(num value) native "SVGPathSegArcRel_angle_Setter";
 
-
-  /** @domName SVGPathSegArcRel.largeArcFlag */
+  @DomName('SVGPathSegArcRel.largeArcFlag')
   bool get largeArcFlag native "SVGPathSegArcRel_largeArcFlag_Getter";
 
-
-  /** @domName SVGPathSegArcRel.largeArcFlag */
+  @DomName('SVGPathSegArcRel.largeArcFlag')
   void set largeArcFlag(bool value) native "SVGPathSegArcRel_largeArcFlag_Setter";
 
-
-  /** @domName SVGPathSegArcRel.r1 */
+  @DomName('SVGPathSegArcRel.r1')
   num get r1 native "SVGPathSegArcRel_r1_Getter";
 
-
-  /** @domName SVGPathSegArcRel.r1 */
+  @DomName('SVGPathSegArcRel.r1')
   void set r1(num value) native "SVGPathSegArcRel_r1_Setter";
 
-
-  /** @domName SVGPathSegArcRel.r2 */
+  @DomName('SVGPathSegArcRel.r2')
   num get r2 native "SVGPathSegArcRel_r2_Getter";
 
-
-  /** @domName SVGPathSegArcRel.r2 */
+  @DomName('SVGPathSegArcRel.r2')
   void set r2(num value) native "SVGPathSegArcRel_r2_Setter";
 
-
-  /** @domName SVGPathSegArcRel.sweepFlag */
+  @DomName('SVGPathSegArcRel.sweepFlag')
   bool get sweepFlag native "SVGPathSegArcRel_sweepFlag_Getter";
 
-
-  /** @domName SVGPathSegArcRel.sweepFlag */
+  @DomName('SVGPathSegArcRel.sweepFlag')
   void set sweepFlag(bool value) native "SVGPathSegArcRel_sweepFlag_Setter";
 
-
-  /** @domName SVGPathSegArcRel.x */
+  @DomName('SVGPathSegArcRel.x')
   num get x native "SVGPathSegArcRel_x_Getter";
 
-
-  /** @domName SVGPathSegArcRel.x */
+  @DomName('SVGPathSegArcRel.x')
   void set x(num value) native "SVGPathSegArcRel_x_Setter";
 
-
-  /** @domName SVGPathSegArcRel.y */
+  @DomName('SVGPathSegArcRel.y')
   num get y native "SVGPathSegArcRel_y_Getter";
 
-
-  /** @domName SVGPathSegArcRel.y */
+  @DomName('SVGPathSegArcRel.y')
   void set y(num value) native "SVGPathSegArcRel_y_Setter";
 
 }
@@ -5047,7 +4300,7 @@ class PathSegArcRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegClosePath
+@DomName('SVGPathSegClosePath')
 class PathSegClosePath extends PathSeg {
   PathSegClosePath.internal() : super.internal();
 
@@ -5059,56 +4312,44 @@ class PathSegClosePath extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegCurvetoCubicAbs
+@DomName('SVGPathSegCurvetoCubicAbs')
 class PathSegCurvetoCubicAbs extends PathSeg {
   PathSegCurvetoCubicAbs.internal() : super.internal();
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.x */
+  @DomName('SVGPathSegCurvetoCubicAbs.x')
   num get x native "SVGPathSegCurvetoCubicAbs_x_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.x */
+  @DomName('SVGPathSegCurvetoCubicAbs.x')
   void set x(num value) native "SVGPathSegCurvetoCubicAbs_x_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.x1 */
+  @DomName('SVGPathSegCurvetoCubicAbs.x1')
   num get x1 native "SVGPathSegCurvetoCubicAbs_x1_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.x1 */
+  @DomName('SVGPathSegCurvetoCubicAbs.x1')
   void set x1(num value) native "SVGPathSegCurvetoCubicAbs_x1_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.x2 */
+  @DomName('SVGPathSegCurvetoCubicAbs.x2')
   num get x2 native "SVGPathSegCurvetoCubicAbs_x2_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.x2 */
+  @DomName('SVGPathSegCurvetoCubicAbs.x2')
   void set x2(num value) native "SVGPathSegCurvetoCubicAbs_x2_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.y */
+  @DomName('SVGPathSegCurvetoCubicAbs.y')
   num get y native "SVGPathSegCurvetoCubicAbs_y_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.y */
+  @DomName('SVGPathSegCurvetoCubicAbs.y')
   void set y(num value) native "SVGPathSegCurvetoCubicAbs_y_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.y1 */
+  @DomName('SVGPathSegCurvetoCubicAbs.y1')
   num get y1 native "SVGPathSegCurvetoCubicAbs_y1_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.y1 */
+  @DomName('SVGPathSegCurvetoCubicAbs.y1')
   void set y1(num value) native "SVGPathSegCurvetoCubicAbs_y1_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.y2 */
+  @DomName('SVGPathSegCurvetoCubicAbs.y2')
   num get y2 native "SVGPathSegCurvetoCubicAbs_y2_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicAbs.y2 */
+  @DomName('SVGPathSegCurvetoCubicAbs.y2')
   void set y2(num value) native "SVGPathSegCurvetoCubicAbs_y2_Setter";
 
 }
@@ -5119,56 +4360,44 @@ class PathSegCurvetoCubicAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegCurvetoCubicRel
+@DomName('SVGPathSegCurvetoCubicRel')
 class PathSegCurvetoCubicRel extends PathSeg {
   PathSegCurvetoCubicRel.internal() : super.internal();
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.x */
+  @DomName('SVGPathSegCurvetoCubicRel.x')
   num get x native "SVGPathSegCurvetoCubicRel_x_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.x */
+  @DomName('SVGPathSegCurvetoCubicRel.x')
   void set x(num value) native "SVGPathSegCurvetoCubicRel_x_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.x1 */
+  @DomName('SVGPathSegCurvetoCubicRel.x1')
   num get x1 native "SVGPathSegCurvetoCubicRel_x1_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.x1 */
+  @DomName('SVGPathSegCurvetoCubicRel.x1')
   void set x1(num value) native "SVGPathSegCurvetoCubicRel_x1_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.x2 */
+  @DomName('SVGPathSegCurvetoCubicRel.x2')
   num get x2 native "SVGPathSegCurvetoCubicRel_x2_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.x2 */
+  @DomName('SVGPathSegCurvetoCubicRel.x2')
   void set x2(num value) native "SVGPathSegCurvetoCubicRel_x2_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.y */
+  @DomName('SVGPathSegCurvetoCubicRel.y')
   num get y native "SVGPathSegCurvetoCubicRel_y_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.y */
+  @DomName('SVGPathSegCurvetoCubicRel.y')
   void set y(num value) native "SVGPathSegCurvetoCubicRel_y_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.y1 */
+  @DomName('SVGPathSegCurvetoCubicRel.y1')
   num get y1 native "SVGPathSegCurvetoCubicRel_y1_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.y1 */
+  @DomName('SVGPathSegCurvetoCubicRel.y1')
   void set y1(num value) native "SVGPathSegCurvetoCubicRel_y1_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.y2 */
+  @DomName('SVGPathSegCurvetoCubicRel.y2')
   num get y2 native "SVGPathSegCurvetoCubicRel_y2_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicRel.y2 */
+  @DomName('SVGPathSegCurvetoCubicRel.y2')
   void set y2(num value) native "SVGPathSegCurvetoCubicRel_y2_Setter";
 
 }
@@ -5179,40 +4408,32 @@ class PathSegCurvetoCubicRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegCurvetoCubicSmoothAbs
+@DomName('SVGPathSegCurvetoCubicSmoothAbs')
 class PathSegCurvetoCubicSmoothAbs extends PathSeg {
   PathSegCurvetoCubicSmoothAbs.internal() : super.internal();
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.x */
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
   num get x native "SVGPathSegCurvetoCubicSmoothAbs_x_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.x */
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
   void set x(num value) native "SVGPathSegCurvetoCubicSmoothAbs_x_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.x2 */
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
   num get x2 native "SVGPathSegCurvetoCubicSmoothAbs_x2_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.x2 */
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
   void set x2(num value) native "SVGPathSegCurvetoCubicSmoothAbs_x2_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.y */
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
   num get y native "SVGPathSegCurvetoCubicSmoothAbs_y_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.y */
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
   void set y(num value) native "SVGPathSegCurvetoCubicSmoothAbs_y_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.y2 */
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
   num get y2 native "SVGPathSegCurvetoCubicSmoothAbs_y2_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothAbs.y2 */
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
   void set y2(num value) native "SVGPathSegCurvetoCubicSmoothAbs_y2_Setter";
 
 }
@@ -5223,40 +4444,32 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegCurvetoCubicSmoothRel
+@DomName('SVGPathSegCurvetoCubicSmoothRel')
 class PathSegCurvetoCubicSmoothRel extends PathSeg {
   PathSegCurvetoCubicSmoothRel.internal() : super.internal();
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.x */
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
   num get x native "SVGPathSegCurvetoCubicSmoothRel_x_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.x */
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
   void set x(num value) native "SVGPathSegCurvetoCubicSmoothRel_x_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.x2 */
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
   num get x2 native "SVGPathSegCurvetoCubicSmoothRel_x2_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.x2 */
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
   void set x2(num value) native "SVGPathSegCurvetoCubicSmoothRel_x2_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.y */
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
   num get y native "SVGPathSegCurvetoCubicSmoothRel_y_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.y */
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
   void set y(num value) native "SVGPathSegCurvetoCubicSmoothRel_y_Setter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.y2 */
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
   num get y2 native "SVGPathSegCurvetoCubicSmoothRel_y2_Getter";
 
-
-  /** @domName SVGPathSegCurvetoCubicSmoothRel.y2 */
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
   void set y2(num value) native "SVGPathSegCurvetoCubicSmoothRel_y2_Setter";
 
 }
@@ -5267,40 +4480,32 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegCurvetoQuadraticAbs
+@DomName('SVGPathSegCurvetoQuadraticAbs')
 class PathSegCurvetoQuadraticAbs extends PathSeg {
   PathSegCurvetoQuadraticAbs.internal() : super.internal();
 
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.x */
+  @DomName('SVGPathSegCurvetoQuadraticAbs.x')
   num get x native "SVGPathSegCurvetoQuadraticAbs_x_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.x */
+  @DomName('SVGPathSegCurvetoQuadraticAbs.x')
   void set x(num value) native "SVGPathSegCurvetoQuadraticAbs_x_Setter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.x1 */
+  @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
   num get x1 native "SVGPathSegCurvetoQuadraticAbs_x1_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.x1 */
+  @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
   void set x1(num value) native "SVGPathSegCurvetoQuadraticAbs_x1_Setter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.y */
+  @DomName('SVGPathSegCurvetoQuadraticAbs.y')
   num get y native "SVGPathSegCurvetoQuadraticAbs_y_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.y */
+  @DomName('SVGPathSegCurvetoQuadraticAbs.y')
   void set y(num value) native "SVGPathSegCurvetoQuadraticAbs_y_Setter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.y1 */
+  @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
   num get y1 native "SVGPathSegCurvetoQuadraticAbs_y1_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticAbs.y1 */
+  @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
   void set y1(num value) native "SVGPathSegCurvetoQuadraticAbs_y1_Setter";
 
 }
@@ -5311,40 +4516,32 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegCurvetoQuadraticRel
+@DomName('SVGPathSegCurvetoQuadraticRel')
 class PathSegCurvetoQuadraticRel extends PathSeg {
   PathSegCurvetoQuadraticRel.internal() : super.internal();
 
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.x */
+  @DomName('SVGPathSegCurvetoQuadraticRel.x')
   num get x native "SVGPathSegCurvetoQuadraticRel_x_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.x */
+  @DomName('SVGPathSegCurvetoQuadraticRel.x')
   void set x(num value) native "SVGPathSegCurvetoQuadraticRel_x_Setter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.x1 */
+  @DomName('SVGPathSegCurvetoQuadraticRel.x1')
   num get x1 native "SVGPathSegCurvetoQuadraticRel_x1_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.x1 */
+  @DomName('SVGPathSegCurvetoQuadraticRel.x1')
   void set x1(num value) native "SVGPathSegCurvetoQuadraticRel_x1_Setter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.y */
+  @DomName('SVGPathSegCurvetoQuadraticRel.y')
   num get y native "SVGPathSegCurvetoQuadraticRel_y_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.y */
+  @DomName('SVGPathSegCurvetoQuadraticRel.y')
   void set y(num value) native "SVGPathSegCurvetoQuadraticRel_y_Setter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.y1 */
+  @DomName('SVGPathSegCurvetoQuadraticRel.y1')
   num get y1 native "SVGPathSegCurvetoQuadraticRel_y1_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticRel.y1 */
+  @DomName('SVGPathSegCurvetoQuadraticRel.y1')
   void set y1(num value) native "SVGPathSegCurvetoQuadraticRel_y1_Setter";
 
 }
@@ -5355,24 +4552,20 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegCurvetoQuadraticSmoothAbs
+@DomName('SVGPathSegCurvetoQuadraticSmoothAbs')
 class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
   PathSegCurvetoQuadraticSmoothAbs.internal() : super.internal();
 
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.x */
+  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
   num get x native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.x */
+  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
   void set x(num value) native "SVGPathSegCurvetoQuadraticSmoothAbs_x_Setter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.y */
+  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
   num get y native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.y */
+  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
   void set y(num value) native "SVGPathSegCurvetoQuadraticSmoothAbs_y_Setter";
 
 }
@@ -5383,24 +4576,20 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegCurvetoQuadraticSmoothRel
+@DomName('SVGPathSegCurvetoQuadraticSmoothRel')
 class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
   PathSegCurvetoQuadraticSmoothRel.internal() : super.internal();
 
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothRel.x */
+  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
   num get x native "SVGPathSegCurvetoQuadraticSmoothRel_x_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothRel.x */
+  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
   void set x(num value) native "SVGPathSegCurvetoQuadraticSmoothRel_x_Setter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothRel.y */
+  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
   num get y native "SVGPathSegCurvetoQuadraticSmoothRel_y_Getter";
 
-
-  /** @domName SVGPathSegCurvetoQuadraticSmoothRel.y */
+  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
   void set y(num value) native "SVGPathSegCurvetoQuadraticSmoothRel_y_Setter";
 
 }
@@ -5411,24 +4600,20 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegLinetoAbs
+@DomName('SVGPathSegLinetoAbs')
 class PathSegLinetoAbs extends PathSeg {
   PathSegLinetoAbs.internal() : super.internal();
 
-
-  /** @domName SVGPathSegLinetoAbs.x */
+  @DomName('SVGPathSegLinetoAbs.x')
   num get x native "SVGPathSegLinetoAbs_x_Getter";
 
-
-  /** @domName SVGPathSegLinetoAbs.x */
+  @DomName('SVGPathSegLinetoAbs.x')
   void set x(num value) native "SVGPathSegLinetoAbs_x_Setter";
 
-
-  /** @domName SVGPathSegLinetoAbs.y */
+  @DomName('SVGPathSegLinetoAbs.y')
   num get y native "SVGPathSegLinetoAbs_y_Getter";
 
-
-  /** @domName SVGPathSegLinetoAbs.y */
+  @DomName('SVGPathSegLinetoAbs.y')
   void set y(num value) native "SVGPathSegLinetoAbs_y_Setter";
 
 }
@@ -5439,16 +4624,14 @@ class PathSegLinetoAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegLinetoHorizontalAbs
+@DomName('SVGPathSegLinetoHorizontalAbs')
 class PathSegLinetoHorizontalAbs extends PathSeg {
   PathSegLinetoHorizontalAbs.internal() : super.internal();
 
-
-  /** @domName SVGPathSegLinetoHorizontalAbs.x */
+  @DomName('SVGPathSegLinetoHorizontalAbs.x')
   num get x native "SVGPathSegLinetoHorizontalAbs_x_Getter";
 
-
-  /** @domName SVGPathSegLinetoHorizontalAbs.x */
+  @DomName('SVGPathSegLinetoHorizontalAbs.x')
   void set x(num value) native "SVGPathSegLinetoHorizontalAbs_x_Setter";
 
 }
@@ -5459,16 +4642,14 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegLinetoHorizontalRel
+@DomName('SVGPathSegLinetoHorizontalRel')
 class PathSegLinetoHorizontalRel extends PathSeg {
   PathSegLinetoHorizontalRel.internal() : super.internal();
 
-
-  /** @domName SVGPathSegLinetoHorizontalRel.x */
+  @DomName('SVGPathSegLinetoHorizontalRel.x')
   num get x native "SVGPathSegLinetoHorizontalRel_x_Getter";
 
-
-  /** @domName SVGPathSegLinetoHorizontalRel.x */
+  @DomName('SVGPathSegLinetoHorizontalRel.x')
   void set x(num value) native "SVGPathSegLinetoHorizontalRel_x_Setter";
 
 }
@@ -5479,24 +4660,20 @@ class PathSegLinetoHorizontalRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegLinetoRel
+@DomName('SVGPathSegLinetoRel')
 class PathSegLinetoRel extends PathSeg {
   PathSegLinetoRel.internal() : super.internal();
 
-
-  /** @domName SVGPathSegLinetoRel.x */
+  @DomName('SVGPathSegLinetoRel.x')
   num get x native "SVGPathSegLinetoRel_x_Getter";
 
-
-  /** @domName SVGPathSegLinetoRel.x */
+  @DomName('SVGPathSegLinetoRel.x')
   void set x(num value) native "SVGPathSegLinetoRel_x_Setter";
 
-
-  /** @domName SVGPathSegLinetoRel.y */
+  @DomName('SVGPathSegLinetoRel.y')
   num get y native "SVGPathSegLinetoRel_y_Getter";
 
-
-  /** @domName SVGPathSegLinetoRel.y */
+  @DomName('SVGPathSegLinetoRel.y')
   void set y(num value) native "SVGPathSegLinetoRel_y_Setter";
 
 }
@@ -5507,16 +4684,14 @@ class PathSegLinetoRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegLinetoVerticalAbs
+@DomName('SVGPathSegLinetoVerticalAbs')
 class PathSegLinetoVerticalAbs extends PathSeg {
   PathSegLinetoVerticalAbs.internal() : super.internal();
 
-
-  /** @domName SVGPathSegLinetoVerticalAbs.y */
+  @DomName('SVGPathSegLinetoVerticalAbs.y')
   num get y native "SVGPathSegLinetoVerticalAbs_y_Getter";
 
-
-  /** @domName SVGPathSegLinetoVerticalAbs.y */
+  @DomName('SVGPathSegLinetoVerticalAbs.y')
   void set y(num value) native "SVGPathSegLinetoVerticalAbs_y_Setter";
 
 }
@@ -5527,16 +4702,14 @@ class PathSegLinetoVerticalAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegLinetoVerticalRel
+@DomName('SVGPathSegLinetoVerticalRel')
 class PathSegLinetoVerticalRel extends PathSeg {
   PathSegLinetoVerticalRel.internal() : super.internal();
 
-
-  /** @domName SVGPathSegLinetoVerticalRel.y */
+  @DomName('SVGPathSegLinetoVerticalRel.y')
   num get y native "SVGPathSegLinetoVerticalRel_y_Getter";
 
-
-  /** @domName SVGPathSegLinetoVerticalRel.y */
+  @DomName('SVGPathSegLinetoVerticalRel.y')
   void set y(num value) native "SVGPathSegLinetoVerticalRel_y_Setter";
 
 }
@@ -5547,12 +4720,11 @@ class PathSegLinetoVerticalRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegList
+@DomName('SVGPathSegList')
 class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   PathSegList.internal();
 
-
-  /** @domName SVGPathSegList.numberOfItems */
+  @DomName('SVGPathSegList.numberOfItems')
   int get numberOfItems native "SVGPathSegList_numberOfItems_Getter";
 
   PathSeg operator[](int index) native "SVGPathSegList_item_Callback";
@@ -5703,32 +4875,25 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   // -- end List<PathSeg> mixins.
 
-
-  /** @domName SVGPathSegList.appendItem */
+  @DomName('SVGPathSegList.appendItem')
   PathSeg appendItem(PathSeg newItem) native "SVGPathSegList_appendItem_Callback";
 
-
-  /** @domName SVGPathSegList.clear */
+  @DomName('SVGPathSegList.clear')
   void clear() native "SVGPathSegList_clear_Callback";
 
-
-  /** @domName SVGPathSegList.getItem */
+  @DomName('SVGPathSegList.getItem')
   PathSeg getItem(int index) native "SVGPathSegList_getItem_Callback";
 
-
-  /** @domName SVGPathSegList.initialize */
+  @DomName('SVGPathSegList.initialize')
   PathSeg initialize(PathSeg newItem) native "SVGPathSegList_initialize_Callback";
 
-
-  /** @domName SVGPathSegList.insertItemBefore */
+  @DomName('SVGPathSegList.insertItemBefore')
   PathSeg insertItemBefore(PathSeg newItem, int index) native "SVGPathSegList_insertItemBefore_Callback";
 
-
-  /** @domName SVGPathSegList.removeItem */
+  @DomName('SVGPathSegList.removeItem')
   PathSeg removeItem(int index) native "SVGPathSegList_removeItem_Callback";
 
-
-  /** @domName SVGPathSegList.replaceItem */
+  @DomName('SVGPathSegList.replaceItem')
   PathSeg replaceItem(PathSeg newItem, int index) native "SVGPathSegList_replaceItem_Callback";
 
 }
@@ -5739,24 +4904,20 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegMovetoAbs
+@DomName('SVGPathSegMovetoAbs')
 class PathSegMovetoAbs extends PathSeg {
   PathSegMovetoAbs.internal() : super.internal();
 
-
-  /** @domName SVGPathSegMovetoAbs.x */
+  @DomName('SVGPathSegMovetoAbs.x')
   num get x native "SVGPathSegMovetoAbs_x_Getter";
 
-
-  /** @domName SVGPathSegMovetoAbs.x */
+  @DomName('SVGPathSegMovetoAbs.x')
   void set x(num value) native "SVGPathSegMovetoAbs_x_Setter";
 
-
-  /** @domName SVGPathSegMovetoAbs.y */
+  @DomName('SVGPathSegMovetoAbs.y')
   num get y native "SVGPathSegMovetoAbs_y_Getter";
 
-
-  /** @domName SVGPathSegMovetoAbs.y */
+  @DomName('SVGPathSegMovetoAbs.y')
   void set y(num value) native "SVGPathSegMovetoAbs_y_Setter";
 
 }
@@ -5767,24 +4928,20 @@ class PathSegMovetoAbs extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPathSegMovetoRel
+@DomName('SVGPathSegMovetoRel')
 class PathSegMovetoRel extends PathSeg {
   PathSegMovetoRel.internal() : super.internal();
 
-
-  /** @domName SVGPathSegMovetoRel.x */
+  @DomName('SVGPathSegMovetoRel.x')
   num get x native "SVGPathSegMovetoRel_x_Getter";
 
-
-  /** @domName SVGPathSegMovetoRel.x */
+  @DomName('SVGPathSegMovetoRel.x')
   void set x(num value) native "SVGPathSegMovetoRel_x_Setter";
 
-
-  /** @domName SVGPathSegMovetoRel.y */
+  @DomName('SVGPathSegMovetoRel.y')
   num get y native "SVGPathSegMovetoRel_y_Getter";
 
-
-  /** @domName SVGPathSegMovetoRel.y */
+  @DomName('SVGPathSegMovetoRel.y')
   void set y(num value) native "SVGPathSegMovetoRel_y_Setter";
 
 }
@@ -5795,99 +4952,77 @@ class PathSegMovetoRel extends PathSeg {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPatternElement
+@DomName('SVGPatternElement')
 class PatternElement extends SvgElement implements FitToViewBox, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
   PatternElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
 
-
-  /** @domName SVGPatternElement.height */
+  @DomName('SVGPatternElement.height')
   AnimatedLength get height native "SVGPatternElement_height_Getter";
 
-
-  /** @domName SVGPatternElement.patternContentUnits */
+  @DomName('SVGPatternElement.patternContentUnits')
   AnimatedEnumeration get patternContentUnits native "SVGPatternElement_patternContentUnits_Getter";
 
-
-  /** @domName SVGPatternElement.patternTransform */
+  @DomName('SVGPatternElement.patternTransform')
   AnimatedTransformList get patternTransform native "SVGPatternElement_patternTransform_Getter";
 
-
-  /** @domName SVGPatternElement.patternUnits */
+  @DomName('SVGPatternElement.patternUnits')
   AnimatedEnumeration get patternUnits native "SVGPatternElement_patternUnits_Getter";
 
-
-  /** @domName SVGPatternElement.width */
+  @DomName('SVGPatternElement.width')
   AnimatedLength get width native "SVGPatternElement_width_Getter";
 
-
-  /** @domName SVGPatternElement.x */
+  @DomName('SVGPatternElement.x')
   AnimatedLength get x native "SVGPatternElement_x_Getter";
 
-
-  /** @domName SVGPatternElement.y */
+  @DomName('SVGPatternElement.y')
   AnimatedLength get y native "SVGPatternElement_y_Getter";
 
-
-  /** @domName SVGPatternElement.externalResourcesRequired */
+  @DomName('SVGPatternElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGPatternElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGPatternElement.preserveAspectRatio */
+  @DomName('SVGPatternElement.preserveAspectRatio')
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGPatternElement_preserveAspectRatio_Getter";
 
-
-  /** @domName SVGPatternElement.viewBox */
+  @DomName('SVGPatternElement.viewBox')
   AnimatedRect get viewBox native "SVGPatternElement_viewBox_Getter";
 
-
-  /** @domName SVGPatternElement.xmllang */
+  @DomName('SVGPatternElement.xmllang')
   String get xmllang native "SVGPatternElement_xmllang_Getter";
 
-
-  /** @domName SVGPatternElement.xmllang */
+  @DomName('SVGPatternElement.xmllang')
   void set xmllang(String value) native "SVGPatternElement_xmllang_Setter";
 
-
-  /** @domName SVGPatternElement.xmlspace */
+  @DomName('SVGPatternElement.xmlspace')
   String get xmlspace native "SVGPatternElement_xmlspace_Getter";
 
-
-  /** @domName SVGPatternElement.xmlspace */
+  @DomName('SVGPatternElement.xmlspace')
   void set xmlspace(String value) native "SVGPatternElement_xmlspace_Setter";
 
-
-  /** @domName SVGPatternElement.className */
+  @DomName('SVGPatternElement.className')
   AnimatedString get $dom_svgClassName native "SVGPatternElement_className_Getter";
 
-
-  /** @domName SVGPatternElement.style */
+  @DomName('SVGPatternElement.style')
   CssStyleDeclaration get style native "SVGPatternElement_style_Getter";
 
-
-  /** @domName SVGPatternElement.getPresentationAttribute */
+  @DomName('SVGPatternElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGPatternElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGPatternElement.requiredExtensions */
+  @DomName('SVGPatternElement.requiredExtensions')
   StringList get requiredExtensions native "SVGPatternElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGPatternElement.requiredFeatures */
+  @DomName('SVGPatternElement.requiredFeatures')
   StringList get requiredFeatures native "SVGPatternElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGPatternElement.systemLanguage */
+  @DomName('SVGPatternElement.systemLanguage')
   StringList get systemLanguage native "SVGPatternElement_systemLanguage_Getter";
 
-
-  /** @domName SVGPatternElement.hasExtension */
+  @DomName('SVGPatternElement.hasExtension')
   bool hasExtension(String extension) native "SVGPatternElement_hasExtension_Callback";
 
-
-  /** @domName SVGPatternElement.href */
+  @DomName('SVGPatternElement.href')
   AnimatedString get href native "SVGPatternElement_href_Getter";
 
 }
@@ -5898,28 +5033,23 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPoint
+@DomName('SVGPoint')
 class Point extends NativeFieldWrapperClass1 {
   Point.internal();
 
-
-  /** @domName SVGPoint.x */
+  @DomName('SVGPoint.x')
   num get x native "SVGPoint_x_Getter";
 
-
-  /** @domName SVGPoint.x */
+  @DomName('SVGPoint.x')
   void set x(num value) native "SVGPoint_x_Setter";
 
-
-  /** @domName SVGPoint.y */
+  @DomName('SVGPoint.y')
   num get y native "SVGPoint_y_Getter";
 
-
-  /** @domName SVGPoint.y */
+  @DomName('SVGPoint.y')
   void set y(num value) native "SVGPoint_y_Setter";
 
-
-  /** @domName SVGPoint.matrixTransform */
+  @DomName('SVGPoint.matrixTransform')
   Point matrixTransform(Matrix matrix) native "SVGPoint_matrixTransform_Callback";
 
 }
@@ -5930,40 +5060,32 @@ class Point extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPointList
+@DomName('SVGPointList')
 class PointList extends NativeFieldWrapperClass1 {
   PointList.internal();
 
-
-  /** @domName SVGPointList.numberOfItems */
+  @DomName('SVGPointList.numberOfItems')
   int get numberOfItems native "SVGPointList_numberOfItems_Getter";
 
-
-  /** @domName SVGPointList.appendItem */
+  @DomName('SVGPointList.appendItem')
   Point appendItem(Point item) native "SVGPointList_appendItem_Callback";
 
-
-  /** @domName SVGPointList.clear */
+  @DomName('SVGPointList.clear')
   void clear() native "SVGPointList_clear_Callback";
 
-
-  /** @domName SVGPointList.getItem */
+  @DomName('SVGPointList.getItem')
   Point getItem(int index) native "SVGPointList_getItem_Callback";
 
-
-  /** @domName SVGPointList.initialize */
+  @DomName('SVGPointList.initialize')
   Point initialize(Point item) native "SVGPointList_initialize_Callback";
 
-
-  /** @domName SVGPointList.insertItemBefore */
+  @DomName('SVGPointList.insertItemBefore')
   Point insertItemBefore(Point item, int index) native "SVGPointList_insertItemBefore_Callback";
 
-
-  /** @domName SVGPointList.removeItem */
+  @DomName('SVGPointList.removeItem')
   Point removeItem(int index) native "SVGPointList_removeItem_Callback";
 
-
-  /** @domName SVGPointList.replaceItem */
+  @DomName('SVGPointList.replaceItem')
   Point replaceItem(Point item, int index) native "SVGPointList_replaceItem_Callback";
 
 }
@@ -5974,95 +5096,74 @@ class PointList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPolygonElement
+@DomName('SVGPolygonElement')
 class PolygonElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   PolygonElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
 
-
-  /** @domName SVGPolygonElement.animatedPoints */
+  @DomName('SVGPolygonElement.animatedPoints')
   PointList get animatedPoints native "SVGPolygonElement_animatedPoints_Getter";
 
-
-  /** @domName SVGPolygonElement.points */
+  @DomName('SVGPolygonElement.points')
   PointList get points native "SVGPolygonElement_points_Getter";
 
-
-  /** @domName SVGPolygonElement.externalResourcesRequired */
+  @DomName('SVGPolygonElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGPolygonElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGPolygonElement.xmllang */
+  @DomName('SVGPolygonElement.xmllang')
   String get xmllang native "SVGPolygonElement_xmllang_Getter";
 
-
-  /** @domName SVGPolygonElement.xmllang */
+  @DomName('SVGPolygonElement.xmllang')
   void set xmllang(String value) native "SVGPolygonElement_xmllang_Setter";
 
-
-  /** @domName SVGPolygonElement.xmlspace */
+  @DomName('SVGPolygonElement.xmlspace')
   String get xmlspace native "SVGPolygonElement_xmlspace_Getter";
 
-
-  /** @domName SVGPolygonElement.xmlspace */
+  @DomName('SVGPolygonElement.xmlspace')
   void set xmlspace(String value) native "SVGPolygonElement_xmlspace_Setter";
 
-
-  /** @domName SVGPolygonElement.farthestViewportElement */
+  @DomName('SVGPolygonElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGPolygonElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGPolygonElement.nearestViewportElement */
+  @DomName('SVGPolygonElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGPolygonElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGPolygonElement.getBBox */
+  @DomName('SVGPolygonElement.getBBox')
   Rect getBBox() native "SVGPolygonElement_getBBox_Callback";
 
-
-  /** @domName SVGPolygonElement.getCTM */
+  @DomName('SVGPolygonElement.getCTM')
   Matrix getCtm() native "SVGPolygonElement_getCTM_Callback";
 
-
-  /** @domName SVGPolygonElement.getScreenCTM */
+  @DomName('SVGPolygonElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGPolygonElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGPolygonElement.getTransformToElement */
+  @DomName('SVGPolygonElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGPolygonElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGPolygonElement.className */
+  @DomName('SVGPolygonElement.className')
   AnimatedString get $dom_svgClassName native "SVGPolygonElement_className_Getter";
 
-
-  /** @domName SVGPolygonElement.style */
+  @DomName('SVGPolygonElement.style')
   CssStyleDeclaration get style native "SVGPolygonElement_style_Getter";
 
-
-  /** @domName SVGPolygonElement.getPresentationAttribute */
+  @DomName('SVGPolygonElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGPolygonElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGPolygonElement.requiredExtensions */
+  @DomName('SVGPolygonElement.requiredExtensions')
   StringList get requiredExtensions native "SVGPolygonElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGPolygonElement.requiredFeatures */
+  @DomName('SVGPolygonElement.requiredFeatures')
   StringList get requiredFeatures native "SVGPolygonElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGPolygonElement.systemLanguage */
+  @DomName('SVGPolygonElement.systemLanguage')
   StringList get systemLanguage native "SVGPolygonElement_systemLanguage_Getter";
 
-
-  /** @domName SVGPolygonElement.hasExtension */
+  @DomName('SVGPolygonElement.hasExtension')
   bool hasExtension(String extension) native "SVGPolygonElement_hasExtension_Callback";
 
-
-  /** @domName SVGPolygonElement.transform */
+  @DomName('SVGPolygonElement.transform')
   AnimatedTransformList get transform native "SVGPolygonElement_transform_Getter";
 
 }
@@ -6073,95 +5174,74 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPolylineElement
+@DomName('SVGPolylineElement')
 class PolylineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   PolylineElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
 
-
-  /** @domName SVGPolylineElement.animatedPoints */
+  @DomName('SVGPolylineElement.animatedPoints')
   PointList get animatedPoints native "SVGPolylineElement_animatedPoints_Getter";
 
-
-  /** @domName SVGPolylineElement.points */
+  @DomName('SVGPolylineElement.points')
   PointList get points native "SVGPolylineElement_points_Getter";
 
-
-  /** @domName SVGPolylineElement.externalResourcesRequired */
+  @DomName('SVGPolylineElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGPolylineElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGPolylineElement.xmllang */
+  @DomName('SVGPolylineElement.xmllang')
   String get xmllang native "SVGPolylineElement_xmllang_Getter";
 
-
-  /** @domName SVGPolylineElement.xmllang */
+  @DomName('SVGPolylineElement.xmllang')
   void set xmllang(String value) native "SVGPolylineElement_xmllang_Setter";
 
-
-  /** @domName SVGPolylineElement.xmlspace */
+  @DomName('SVGPolylineElement.xmlspace')
   String get xmlspace native "SVGPolylineElement_xmlspace_Getter";
 
-
-  /** @domName SVGPolylineElement.xmlspace */
+  @DomName('SVGPolylineElement.xmlspace')
   void set xmlspace(String value) native "SVGPolylineElement_xmlspace_Setter";
 
-
-  /** @domName SVGPolylineElement.farthestViewportElement */
+  @DomName('SVGPolylineElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGPolylineElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGPolylineElement.nearestViewportElement */
+  @DomName('SVGPolylineElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGPolylineElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGPolylineElement.getBBox */
+  @DomName('SVGPolylineElement.getBBox')
   Rect getBBox() native "SVGPolylineElement_getBBox_Callback";
 
-
-  /** @domName SVGPolylineElement.getCTM */
+  @DomName('SVGPolylineElement.getCTM')
   Matrix getCtm() native "SVGPolylineElement_getCTM_Callback";
 
-
-  /** @domName SVGPolylineElement.getScreenCTM */
+  @DomName('SVGPolylineElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGPolylineElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGPolylineElement.getTransformToElement */
+  @DomName('SVGPolylineElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGPolylineElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGPolylineElement.className */
+  @DomName('SVGPolylineElement.className')
   AnimatedString get $dom_svgClassName native "SVGPolylineElement_className_Getter";
 
-
-  /** @domName SVGPolylineElement.style */
+  @DomName('SVGPolylineElement.style')
   CssStyleDeclaration get style native "SVGPolylineElement_style_Getter";
 
-
-  /** @domName SVGPolylineElement.getPresentationAttribute */
+  @DomName('SVGPolylineElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGPolylineElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGPolylineElement.requiredExtensions */
+  @DomName('SVGPolylineElement.requiredExtensions')
   StringList get requiredExtensions native "SVGPolylineElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGPolylineElement.requiredFeatures */
+  @DomName('SVGPolylineElement.requiredFeatures')
   StringList get requiredFeatures native "SVGPolylineElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGPolylineElement.systemLanguage */
+  @DomName('SVGPolylineElement.systemLanguage')
   StringList get systemLanguage native "SVGPolylineElement_systemLanguage_Getter";
 
-
-  /** @domName SVGPolylineElement.hasExtension */
+  @DomName('SVGPolylineElement.hasExtension')
   bool hasExtension(String extension) native "SVGPolylineElement_hasExtension_Callback";
 
-
-  /** @domName SVGPolylineElement.transform */
+  @DomName('SVGPolylineElement.transform')
   AnimatedTransformList get transform native "SVGPolylineElement_transform_Getter";
 
 }
@@ -6172,7 +5252,7 @@ class PolylineElement extends SvgElement implements Transformable, Tests, Stylab
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGPreserveAspectRatio
+@DomName('SVGPreserveAspectRatio')
 class PreserveAspectRatio extends NativeFieldWrapperClass1 {
   PreserveAspectRatio.internal();
 
@@ -6204,20 +5284,16 @@ class PreserveAspectRatio extends NativeFieldWrapperClass1 {
 
   static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
-
-  /** @domName SVGPreserveAspectRatio.align */
+  @DomName('SVGPreserveAspectRatio.align')
   int get align native "SVGPreserveAspectRatio_align_Getter";
 
-
-  /** @domName SVGPreserveAspectRatio.align */
+  @DomName('SVGPreserveAspectRatio.align')
   void set align(int value) native "SVGPreserveAspectRatio_align_Setter";
 
-
-  /** @domName SVGPreserveAspectRatio.meetOrSlice */
+  @DomName('SVGPreserveAspectRatio.meetOrSlice')
   int get meetOrSlice native "SVGPreserveAspectRatio_meetOrSlice_Getter";
 
-
-  /** @domName SVGPreserveAspectRatio.meetOrSlice */
+  @DomName('SVGPreserveAspectRatio.meetOrSlice')
   void set meetOrSlice(int value) native "SVGPreserveAspectRatio_meetOrSlice_Setter";
 
 }
@@ -6228,35 +5304,29 @@ class PreserveAspectRatio extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGRadialGradientElement
+@DomName('SVGRadialGradientElement')
 class RadialGradientElement extends GradientElement {
   RadialGradientElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
 
-
-  /** @domName SVGRadialGradientElement.cx */
+  @DomName('SVGRadialGradientElement.cx')
   AnimatedLength get cx native "SVGRadialGradientElement_cx_Getter";
 
-
-  /** @domName SVGRadialGradientElement.cy */
+  @DomName('SVGRadialGradientElement.cy')
   AnimatedLength get cy native "SVGRadialGradientElement_cy_Getter";
 
-
-  /** @domName SVGRadialGradientElement.fr */
+  @DomName('SVGRadialGradientElement.fr')
   AnimatedLength get fr native "SVGRadialGradientElement_fr_Getter";
 
-
-  /** @domName SVGRadialGradientElement.fx */
+  @DomName('SVGRadialGradientElement.fx')
   AnimatedLength get fx native "SVGRadialGradientElement_fx_Getter";
 
-
-  /** @domName SVGRadialGradientElement.fy */
+  @DomName('SVGRadialGradientElement.fy')
   AnimatedLength get fy native "SVGRadialGradientElement_fy_Getter";
 
-
-  /** @domName SVGRadialGradientElement.r */
+  @DomName('SVGRadialGradientElement.r')
   AnimatedLength get r native "SVGRadialGradientElement_r_Getter";
 
 }
@@ -6267,40 +5337,32 @@ class RadialGradientElement extends GradientElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGRect
+@DomName('SVGRect')
 class Rect extends NativeFieldWrapperClass1 {
   Rect.internal();
 
-
-  /** @domName SVGRect.height */
+  @DomName('SVGRect.height')
   num get height native "SVGRect_height_Getter";
 
-
-  /** @domName SVGRect.height */
+  @DomName('SVGRect.height')
   void set height(num value) native "SVGRect_height_Setter";
 
-
-  /** @domName SVGRect.width */
+  @DomName('SVGRect.width')
   num get width native "SVGRect_width_Getter";
 
-
-  /** @domName SVGRect.width */
+  @DomName('SVGRect.width')
   void set width(num value) native "SVGRect_width_Setter";
 
-
-  /** @domName SVGRect.x */
+  @DomName('SVGRect.x')
   num get x native "SVGRect_x_Getter";
 
-
-  /** @domName SVGRect.x */
+  @DomName('SVGRect.x')
   void set x(num value) native "SVGRect_x_Setter";
 
-
-  /** @domName SVGRect.y */
+  @DomName('SVGRect.y')
   num get y native "SVGRect_y_Getter";
 
-
-  /** @domName SVGRect.y */
+  @DomName('SVGRect.y')
   void set y(num value) native "SVGRect_y_Setter";
 
 }
@@ -6311,111 +5373,86 @@ class Rect extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGRectElement
+@DomName('SVGRectElement')
 class RectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   RectElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
 
-
-  /** @domName SVGRectElement.height */
+  @DomName('SVGRectElement.height')
   AnimatedLength get height native "SVGRectElement_height_Getter";
 
-
-  /** @domName SVGRectElement.rx */
+  @DomName('SVGRectElement.rx')
   AnimatedLength get rx native "SVGRectElement_rx_Getter";
 
-
-  /** @domName SVGRectElement.ry */
+  @DomName('SVGRectElement.ry')
   AnimatedLength get ry native "SVGRectElement_ry_Getter";
 
-
-  /** @domName SVGRectElement.width */
+  @DomName('SVGRectElement.width')
   AnimatedLength get width native "SVGRectElement_width_Getter";
 
-
-  /** @domName SVGRectElement.x */
+  @DomName('SVGRectElement.x')
   AnimatedLength get x native "SVGRectElement_x_Getter";
 
-
-  /** @domName SVGRectElement.y */
+  @DomName('SVGRectElement.y')
   AnimatedLength get y native "SVGRectElement_y_Getter";
 
-
-  /** @domName SVGRectElement.externalResourcesRequired */
+  @DomName('SVGRectElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGRectElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGRectElement.xmllang */
+  @DomName('SVGRectElement.xmllang')
   String get xmllang native "SVGRectElement_xmllang_Getter";
 
-
-  /** @domName SVGRectElement.xmllang */
+  @DomName('SVGRectElement.xmllang')
   void set xmllang(String value) native "SVGRectElement_xmllang_Setter";
 
-
-  /** @domName SVGRectElement.xmlspace */
+  @DomName('SVGRectElement.xmlspace')
   String get xmlspace native "SVGRectElement_xmlspace_Getter";
 
-
-  /** @domName SVGRectElement.xmlspace */
+  @DomName('SVGRectElement.xmlspace')
   void set xmlspace(String value) native "SVGRectElement_xmlspace_Setter";
 
-
-  /** @domName SVGRectElement.farthestViewportElement */
+  @DomName('SVGRectElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGRectElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGRectElement.nearestViewportElement */
+  @DomName('SVGRectElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGRectElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGRectElement.getBBox */
+  @DomName('SVGRectElement.getBBox')
   Rect getBBox() native "SVGRectElement_getBBox_Callback";
 
-
-  /** @domName SVGRectElement.getCTM */
+  @DomName('SVGRectElement.getCTM')
   Matrix getCtm() native "SVGRectElement_getCTM_Callback";
 
-
-  /** @domName SVGRectElement.getScreenCTM */
+  @DomName('SVGRectElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGRectElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGRectElement.getTransformToElement */
+  @DomName('SVGRectElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGRectElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGRectElement.className */
+  @DomName('SVGRectElement.className')
   AnimatedString get $dom_svgClassName native "SVGRectElement_className_Getter";
 
-
-  /** @domName SVGRectElement.style */
+  @DomName('SVGRectElement.style')
   CssStyleDeclaration get style native "SVGRectElement_style_Getter";
 
-
-  /** @domName SVGRectElement.getPresentationAttribute */
+  @DomName('SVGRectElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGRectElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGRectElement.requiredExtensions */
+  @DomName('SVGRectElement.requiredExtensions')
   StringList get requiredExtensions native "SVGRectElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGRectElement.requiredFeatures */
+  @DomName('SVGRectElement.requiredFeatures')
   StringList get requiredFeatures native "SVGRectElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGRectElement.systemLanguage */
+  @DomName('SVGRectElement.systemLanguage')
   StringList get systemLanguage native "SVGRectElement_systemLanguage_Getter";
 
-
-  /** @domName SVGRectElement.hasExtension */
+  @DomName('SVGRectElement.hasExtension')
   bool hasExtension(String extension) native "SVGRectElement_hasExtension_Callback";
 
-
-  /** @domName SVGRectElement.transform */
+  @DomName('SVGRectElement.transform')
   AnimatedTransformList get transform native "SVGRectElement_transform_Getter";
 
 }
@@ -6426,7 +5463,7 @@ class RectElement extends SvgElement implements Transformable, Tests, Stylable, 
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGRenderingIntent
+@DomName('SVGRenderingIntent')
 class RenderingIntent extends NativeFieldWrapperClass1 {
   RenderingIntent.internal();
 
@@ -6450,27 +5487,23 @@ class RenderingIntent extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGScriptElement
+@DomName('SVGScriptElement')
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired {
   ScriptElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
 
-
-  /** @domName SVGScriptElement.type */
+  @DomName('SVGScriptElement.type')
   String get type native "SVGScriptElement_type_Getter";
 
-
-  /** @domName SVGScriptElement.type */
+  @DomName('SVGScriptElement.type')
   void set type(String value) native "SVGScriptElement_type_Setter";
 
-
-  /** @domName SVGScriptElement.externalResourcesRequired */
+  @DomName('SVGScriptElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGScriptElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGScriptElement.href */
+  @DomName('SVGScriptElement.href')
   AnimatedString get href native "SVGScriptElement_href_Getter";
 
 }
@@ -6481,11 +5514,11 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGSetElement
+@DomName('SVGSetElement')
 class SetElement extends AnimationElement {
   SetElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
 
 }
@@ -6496,27 +5529,23 @@ class SetElement extends AnimationElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGStopElement
+@DomName('SVGStopElement')
 class StopElement extends SvgElement implements Stylable {
   StopElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
-
-  /** @domName SVGStopElement.offset */
+  @DomName('SVGStopElement.offset')
   AnimatedNumber get offset native "SVGStopElement_offset_Getter";
 
-
-  /** @domName SVGStopElement.className */
+  @DomName('SVGStopElement.className')
   AnimatedString get $dom_svgClassName native "SVGStopElement_className_Getter";
 
-
-  /** @domName SVGStopElement.style */
+  @DomName('SVGStopElement.style')
   CssStyleDeclaration get style native "SVGStopElement_style_Getter";
 
-
-  /** @domName SVGStopElement.getPresentationAttribute */
+  @DomName('SVGStopElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGStopElement_getPresentationAttribute_Callback";
 
 }
@@ -6527,12 +5556,11 @@ class StopElement extends SvgElement implements Stylable {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGStringList
+@DomName('SVGStringList')
 class StringList extends NativeFieldWrapperClass1 implements List<String> {
   StringList.internal();
 
-
-  /** @domName SVGStringList.numberOfItems */
+  @DomName('SVGStringList.numberOfItems')
   int get numberOfItems native "SVGStringList_numberOfItems_Getter";
 
   String operator[](int index) native "SVGStringList_item_Callback";
@@ -6683,32 +5711,25 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // -- end List<String> mixins.
 
-
-  /** @domName SVGStringList.appendItem */
+  @DomName('SVGStringList.appendItem')
   String appendItem(String item) native "SVGStringList_appendItem_Callback";
 
-
-  /** @domName SVGStringList.clear */
+  @DomName('SVGStringList.clear')
   void clear() native "SVGStringList_clear_Callback";
 
-
-  /** @domName SVGStringList.getItem */
+  @DomName('SVGStringList.getItem')
   String getItem(int index) native "SVGStringList_getItem_Callback";
 
-
-  /** @domName SVGStringList.initialize */
+  @DomName('SVGStringList.initialize')
   String initialize(String item) native "SVGStringList_initialize_Callback";
 
-
-  /** @domName SVGStringList.insertItemBefore */
+  @DomName('SVGStringList.insertItemBefore')
   String insertItemBefore(String item, int index) native "SVGStringList_insertItemBefore_Callback";
 
-
-  /** @domName SVGStringList.removeItem */
+  @DomName('SVGStringList.removeItem')
   String removeItem(int index) native "SVGStringList_removeItem_Callback";
 
-
-  /** @domName SVGStringList.replaceItem */
+  @DomName('SVGStringList.replaceItem')
   String replaceItem(String item, int index) native "SVGStringList_replaceItem_Callback";
 
 }
@@ -6719,20 +5740,17 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGStylable
+@DomName('SVGStylable')
 class Stylable extends NativeFieldWrapperClass1 {
   Stylable.internal();
 
-
-  /** @domName SVGStylable.className */
+  @DomName('SVGStylable.className')
   AnimatedString get $dom_svgClassName native "SVGStylable_className_Getter";
 
-
-  /** @domName SVGStylable.style */
+  @DomName('SVGStylable.style')
   CssStyleDeclaration get style native "SVGStylable_style_Getter";
 
-
-  /** @domName SVGStylable.getPresentationAttribute */
+  @DomName('SVGStylable.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGStylable_getPresentationAttribute_Callback";
 
 }
@@ -6743,59 +5761,47 @@ class Stylable extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGStyleElement
+@DomName('SVGStyleElement')
 class StyleElement extends SvgElement implements LangSpace {
   StyleElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
 
-
-  /** @domName SVGStyleElement.disabled */
+  @DomName('SVGStyleElement.disabled')
   bool get disabled native "SVGStyleElement_disabled_Getter";
 
-
-  /** @domName SVGStyleElement.disabled */
+  @DomName('SVGStyleElement.disabled')
   void set disabled(bool value) native "SVGStyleElement_disabled_Setter";
 
-
-  /** @domName SVGStyleElement.media */
+  @DomName('SVGStyleElement.media')
   String get media native "SVGStyleElement_media_Getter";
 
-
-  /** @domName SVGStyleElement.media */
+  @DomName('SVGStyleElement.media')
   void set media(String value) native "SVGStyleElement_media_Setter";
 
-
-  /** @domName SVGStyleElement.title */
+  @DomName('SVGStyleElement.title')
   String get title native "SVGStyleElement_title_Getter";
 
-
-  /** @domName SVGStyleElement.title */
+  @DomName('SVGStyleElement.title')
   void set title(String value) native "SVGStyleElement_title_Setter";
 
-
-  /** @domName SVGStyleElement.type */
+  @DomName('SVGStyleElement.type')
   String get type native "SVGStyleElement_type_Getter";
 
-
-  /** @domName SVGStyleElement.type */
+  @DomName('SVGStyleElement.type')
   void set type(String value) native "SVGStyleElement_type_Setter";
 
-
-  /** @domName SVGStyleElement.xmllang */
+  @DomName('SVGStyleElement.xmllang')
   String get xmllang native "SVGStyleElement_xmllang_Getter";
 
-
-  /** @domName SVGStyleElement.xmllang */
+  @DomName('SVGStyleElement.xmllang')
   void set xmllang(String value) native "SVGStyleElement_xmllang_Setter";
 
-
-  /** @domName SVGStyleElement.xmlspace */
+  @DomName('SVGStyleElement.xmlspace')
   String get xmlspace native "SVGStyleElement_xmlspace_Getter";
 
-
-  /** @domName SVGStyleElement.xmlspace */
+  @DomName('SVGStyleElement.xmlspace')
   void set xmlspace(String value) native "SVGStyleElement_xmlspace_Setter";
 
 }
@@ -6806,16 +5812,14 @@ class StyleElement extends SvgElement implements LangSpace {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGDocument
+@DomName('SVGDocument')
 class SvgDocument extends Document {
   SvgDocument.internal() : super.internal();
 
-
-  /** @domName SVGDocument.rootElement */
+  @DomName('SVGDocument.rootElement')
   SvgSvgElement get rootElement native "SVGDocument_rootElement_Getter";
 
-
-  /** @domName SVGDocument.createEvent */
+  @DomName('SVGDocument.createEvent')
   Event $dom_createEvent(String eventType) native "SVGDocument_createEvent_Callback";
 
 }
@@ -6851,7 +5855,7 @@ class _AttributeClassSet extends CssClassSet {
   }
 }
 
-/// @domName SVGElement
+@DomName('SVGElement')
 class SvgElement extends Element {
   factory SvgElement.tag(String tag) =>
       _SvgElementFactoryProvider.createSvgElement_tag(tag);
@@ -6908,17 +5912,17 @@ class SvgElement extends Element {
 
   // Unsupported methods inherited from Element.
 
-  /** @domName Element.insertAdjacentText */
+  @DomName('Element.insertAdjacentText')
   void insertAdjacentText(String where, String text) {
     throw new UnsupportedError("Cannot invoke insertAdjacentText on SVG.");
   }
 
-  /** @domName Element.insertAdjacentHTML */
+  @DomName('Element.insertAdjacentHTML')
   void insertAdjacentHtml(String where, String text) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
-  /** @domName Element.insertAdjacentHTML */
+  @DomName('Element.insertAdjacentHTML')
   Element insertAdjacentElement(String where, Element element) {
     throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
   }
@@ -6934,28 +5938,22 @@ class SvgElement extends Element {
 
   SvgElement.internal() : super.internal();
 
-
-  /** @domName SVGElement.id */
+  @DomName('SVGElement.id')
   String get id native "SVGElement_id_Getter";
 
-
-  /** @domName SVGElement.id */
+  @DomName('SVGElement.id')
   void set id(String value) native "SVGElement_id_Setter";
 
-
-  /** @domName SVGElement.ownerSVGElement */
+  @DomName('SVGElement.ownerSVGElement')
   SvgSvgElement get ownerSvgElement native "SVGElement_ownerSVGElement_Getter";
 
-
-  /** @domName SVGElement.viewportElement */
+  @DomName('SVGElement.viewportElement')
   SvgElement get viewportElement native "SVGElement_viewportElement_Getter";
 
-
-  /** @domName SVGElement.xmlbase */
+  @DomName('SVGElement.xmlbase')
   String get xmlbase native "SVGElement_xmlbase_Getter";
 
-
-  /** @domName SVGElement.xmlbase */
+  @DomName('SVGElement.xmlbase')
   void set xmlbase(String value) native "SVGElement_xmlbase_Setter";
 
 }
@@ -6966,7 +5964,7 @@ class SvgElement extends Element {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGException
+@DomName('SVGException')
 class SvgException extends NativeFieldWrapperClass1 {
   SvgException.internal();
 
@@ -6976,20 +5974,16 @@ class SvgException extends NativeFieldWrapperClass1 {
 
   static const int SVG_WRONG_TYPE_ERR = 0;
 
-
-  /** @domName SVGException.code */
+  @DomName('SVGException.code')
   int get code native "SVGException_code_Getter";
 
-
-  /** @domName SVGException.message */
+  @DomName('SVGException.message')
   String get message native "SVGException_message_Getter";
 
-
-  /** @domName SVGException.name */
+  @DomName('SVGException.name')
   String get name native "SVGException_name_Getter";
 
-
-  /** @domName SVGException.toString */
+  @DomName('SVGException.toString')
   String toString() native "SVGException_toString_Callback";
 
 }
@@ -6998,262 +5992,199 @@ class SvgException extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGSVGElement
+@DomName('SVGSVGElement')
 class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable, Locatable, ExternalResourcesRequired, ZoomAndPan, LangSpace {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
   SvgSvgElement.internal() : super.internal();
 
-
-  /** @domName SVGSVGElement.contentScriptType */
+  @DomName('SVGSVGElement.contentScriptType')
   String get contentScriptType native "SVGSVGElement_contentScriptType_Getter";
 
-
-  /** @domName SVGSVGElement.contentScriptType */
+  @DomName('SVGSVGElement.contentScriptType')
   void set contentScriptType(String value) native "SVGSVGElement_contentScriptType_Setter";
 
-
-  /** @domName SVGSVGElement.contentStyleType */
+  @DomName('SVGSVGElement.contentStyleType')
   String get contentStyleType native "SVGSVGElement_contentStyleType_Getter";
 
-
-  /** @domName SVGSVGElement.contentStyleType */
+  @DomName('SVGSVGElement.contentStyleType')
   void set contentStyleType(String value) native "SVGSVGElement_contentStyleType_Setter";
 
-
-  /** @domName SVGSVGElement.currentScale */
+  @DomName('SVGSVGElement.currentScale')
   num get currentScale native "SVGSVGElement_currentScale_Getter";
 
-
-  /** @domName SVGSVGElement.currentScale */
+  @DomName('SVGSVGElement.currentScale')
   void set currentScale(num value) native "SVGSVGElement_currentScale_Setter";
 
-
-  /** @domName SVGSVGElement.currentTranslate */
+  @DomName('SVGSVGElement.currentTranslate')
   Point get currentTranslate native "SVGSVGElement_currentTranslate_Getter";
 
-
-  /** @domName SVGSVGElement.currentView */
+  @DomName('SVGSVGElement.currentView')
   ViewSpec get currentView native "SVGSVGElement_currentView_Getter";
 
-
-  /** @domName SVGSVGElement.height */
+  @DomName('SVGSVGElement.height')
   AnimatedLength get height native "SVGSVGElement_height_Getter";
 
-
-  /** @domName SVGSVGElement.pixelUnitToMillimeterX */
+  @DomName('SVGSVGElement.pixelUnitToMillimeterX')
   num get pixelUnitToMillimeterX native "SVGSVGElement_pixelUnitToMillimeterX_Getter";
 
-
-  /** @domName SVGSVGElement.pixelUnitToMillimeterY */
+  @DomName('SVGSVGElement.pixelUnitToMillimeterY')
   num get pixelUnitToMillimeterY native "SVGSVGElement_pixelUnitToMillimeterY_Getter";
 
-
-  /** @domName SVGSVGElement.screenPixelToMillimeterX */
+  @DomName('SVGSVGElement.screenPixelToMillimeterX')
   num get screenPixelToMillimeterX native "SVGSVGElement_screenPixelToMillimeterX_Getter";
 
-
-  /** @domName SVGSVGElement.screenPixelToMillimeterY */
+  @DomName('SVGSVGElement.screenPixelToMillimeterY')
   num get screenPixelToMillimeterY native "SVGSVGElement_screenPixelToMillimeterY_Getter";
 
-
-  /** @domName SVGSVGElement.useCurrentView */
+  @DomName('SVGSVGElement.useCurrentView')
   bool get useCurrentView native "SVGSVGElement_useCurrentView_Getter";
 
-
-  /** @domName SVGSVGElement.viewport */
+  @DomName('SVGSVGElement.viewport')
   Rect get viewport native "SVGSVGElement_viewport_Getter";
 
-
-  /** @domName SVGSVGElement.width */
+  @DomName('SVGSVGElement.width')
   AnimatedLength get width native "SVGSVGElement_width_Getter";
 
-
-  /** @domName SVGSVGElement.x */
+  @DomName('SVGSVGElement.x')
   AnimatedLength get x native "SVGSVGElement_x_Getter";
 
-
-  /** @domName SVGSVGElement.y */
+  @DomName('SVGSVGElement.y')
   AnimatedLength get y native "SVGSVGElement_y_Getter";
 
-
-  /** @domName SVGSVGElement.animationsPaused */
+  @DomName('SVGSVGElement.animationsPaused')
   bool animationsPaused() native "SVGSVGElement_animationsPaused_Callback";
 
-
-  /** @domName SVGSVGElement.checkEnclosure */
+  @DomName('SVGSVGElement.checkEnclosure')
   bool checkEnclosure(SvgElement element, Rect rect) native "SVGSVGElement_checkEnclosure_Callback";
 
-
-  /** @domName SVGSVGElement.checkIntersection */
+  @DomName('SVGSVGElement.checkIntersection')
   bool checkIntersection(SvgElement element, Rect rect) native "SVGSVGElement_checkIntersection_Callback";
 
-
-  /** @domName SVGSVGElement.createSVGAngle */
+  @DomName('SVGSVGElement.createSVGAngle')
   Angle createSvgAngle() native "SVGSVGElement_createSVGAngle_Callback";
 
-
-  /** @domName SVGSVGElement.createSVGLength */
+  @DomName('SVGSVGElement.createSVGLength')
   Length createSvgLength() native "SVGSVGElement_createSVGLength_Callback";
 
-
-  /** @domName SVGSVGElement.createSVGMatrix */
+  @DomName('SVGSVGElement.createSVGMatrix')
   Matrix createSvgMatrix() native "SVGSVGElement_createSVGMatrix_Callback";
 
-
-  /** @domName SVGSVGElement.createSVGNumber */
+  @DomName('SVGSVGElement.createSVGNumber')
   Number createSvgNumber() native "SVGSVGElement_createSVGNumber_Callback";
 
-
-  /** @domName SVGSVGElement.createSVGPoint */
+  @DomName('SVGSVGElement.createSVGPoint')
   Point createSvgPoint() native "SVGSVGElement_createSVGPoint_Callback";
 
-
-  /** @domName SVGSVGElement.createSVGRect */
+  @DomName('SVGSVGElement.createSVGRect')
   Rect createSvgRect() native "SVGSVGElement_createSVGRect_Callback";
 
-
-  /** @domName SVGSVGElement.createSVGTransform */
+  @DomName('SVGSVGElement.createSVGTransform')
   Transform createSvgTransform() native "SVGSVGElement_createSVGTransform_Callback";
 
-
-  /** @domName SVGSVGElement.createSVGTransformFromMatrix */
+  @DomName('SVGSVGElement.createSVGTransformFromMatrix')
   Transform createSvgTransformFromMatrix(Matrix matrix) native "SVGSVGElement_createSVGTransformFromMatrix_Callback";
 
-
-  /** @domName SVGSVGElement.deselectAll */
+  @DomName('SVGSVGElement.deselectAll')
   void deselectAll() native "SVGSVGElement_deselectAll_Callback";
 
-
-  /** @domName SVGSVGElement.forceRedraw */
+  @DomName('SVGSVGElement.forceRedraw')
   void forceRedraw() native "SVGSVGElement_forceRedraw_Callback";
 
-
-  /** @domName SVGSVGElement.getCurrentTime */
+  @DomName('SVGSVGElement.getCurrentTime')
   num getCurrentTime() native "SVGSVGElement_getCurrentTime_Callback";
 
-
-  /** @domName SVGSVGElement.getElementById */
+  @DomName('SVGSVGElement.getElementById')
   Element getElementById(String elementId) native "SVGSVGElement_getElementById_Callback";
 
-
-  /** @domName SVGSVGElement.getEnclosureList */
+  @DomName('SVGSVGElement.getEnclosureList')
   List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native "SVGSVGElement_getEnclosureList_Callback";
 
-
-  /** @domName SVGSVGElement.getIntersectionList */
+  @DomName('SVGSVGElement.getIntersectionList')
   List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native "SVGSVGElement_getIntersectionList_Callback";
 
-
-  /** @domName SVGSVGElement.pauseAnimations */
+  @DomName('SVGSVGElement.pauseAnimations')
   void pauseAnimations() native "SVGSVGElement_pauseAnimations_Callback";
 
-
-  /** @domName SVGSVGElement.setCurrentTime */
+  @DomName('SVGSVGElement.setCurrentTime')
   void setCurrentTime(num seconds) native "SVGSVGElement_setCurrentTime_Callback";
 
-
-  /** @domName SVGSVGElement.suspendRedraw */
+  @DomName('SVGSVGElement.suspendRedraw')
   int suspendRedraw(int maxWaitMilliseconds) native "SVGSVGElement_suspendRedraw_Callback";
 
-
-  /** @domName SVGSVGElement.unpauseAnimations */
+  @DomName('SVGSVGElement.unpauseAnimations')
   void unpauseAnimations() native "SVGSVGElement_unpauseAnimations_Callback";
 
-
-  /** @domName SVGSVGElement.unsuspendRedraw */
+  @DomName('SVGSVGElement.unsuspendRedraw')
   void unsuspendRedraw(int suspendHandleId) native "SVGSVGElement_unsuspendRedraw_Callback";
 
-
-  /** @domName SVGSVGElement.unsuspendRedrawAll */
+  @DomName('SVGSVGElement.unsuspendRedrawAll')
   void unsuspendRedrawAll() native "SVGSVGElement_unsuspendRedrawAll_Callback";
 
-
-  /** @domName SVGSVGElement.externalResourcesRequired */
+  @DomName('SVGSVGElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGSVGElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGSVGElement.preserveAspectRatio */
+  @DomName('SVGSVGElement.preserveAspectRatio')
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSVGElement_preserveAspectRatio_Getter";
 
-
-  /** @domName SVGSVGElement.viewBox */
+  @DomName('SVGSVGElement.viewBox')
   AnimatedRect get viewBox native "SVGSVGElement_viewBox_Getter";
 
-
-  /** @domName SVGSVGElement.xmllang */
+  @DomName('SVGSVGElement.xmllang')
   String get xmllang native "SVGSVGElement_xmllang_Getter";
 
-
-  /** @domName SVGSVGElement.xmllang */
+  @DomName('SVGSVGElement.xmllang')
   void set xmllang(String value) native "SVGSVGElement_xmllang_Setter";
 
-
-  /** @domName SVGSVGElement.xmlspace */
+  @DomName('SVGSVGElement.xmlspace')
   String get xmlspace native "SVGSVGElement_xmlspace_Getter";
 
-
-  /** @domName SVGSVGElement.xmlspace */
+  @DomName('SVGSVGElement.xmlspace')
   void set xmlspace(String value) native "SVGSVGElement_xmlspace_Setter";
 
-
-  /** @domName SVGSVGElement.farthestViewportElement */
+  @DomName('SVGSVGElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGSVGElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGSVGElement.nearestViewportElement */
+  @DomName('SVGSVGElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGSVGElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGSVGElement.getBBox */
+  @DomName('SVGSVGElement.getBBox')
   Rect getBBox() native "SVGSVGElement_getBBox_Callback";
 
-
-  /** @domName SVGSVGElement.getCTM */
+  @DomName('SVGSVGElement.getCTM')
   Matrix getCtm() native "SVGSVGElement_getCTM_Callback";
 
-
-  /** @domName SVGSVGElement.getScreenCTM */
+  @DomName('SVGSVGElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGSVGElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGSVGElement.getTransformToElement */
+  @DomName('SVGSVGElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGSVGElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGSVGElement.className */
+  @DomName('SVGSVGElement.className')
   AnimatedString get $dom_svgClassName native "SVGSVGElement_className_Getter";
 
-
-  /** @domName SVGSVGElement.style */
+  @DomName('SVGSVGElement.style')
   CssStyleDeclaration get style native "SVGSVGElement_style_Getter";
 
-
-  /** @domName SVGSVGElement.getPresentationAttribute */
+  @DomName('SVGSVGElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGSVGElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGSVGElement.requiredExtensions */
+  @DomName('SVGSVGElement.requiredExtensions')
   StringList get requiredExtensions native "SVGSVGElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGSVGElement.requiredFeatures */
+  @DomName('SVGSVGElement.requiredFeatures')
   StringList get requiredFeatures native "SVGSVGElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGSVGElement.systemLanguage */
+  @DomName('SVGSVGElement.systemLanguage')
   StringList get systemLanguage native "SVGSVGElement_systemLanguage_Getter";
 
-
-  /** @domName SVGSVGElement.hasExtension */
+  @DomName('SVGSVGElement.hasExtension')
   bool hasExtension(String extension) native "SVGSVGElement_hasExtension_Callback";
 
-
-  /** @domName SVGSVGElement.zoomAndPan */
+  @DomName('SVGSVGElement.zoomAndPan')
   int get zoomAndPan native "SVGSVGElement_zoomAndPan_Getter";
 
-
-  /** @domName SVGSVGElement.zoomAndPan */
+  @DomName('SVGSVGElement.zoomAndPan')
   void set zoomAndPan(int value) native "SVGSVGElement_zoomAndPan_Setter";
 
 }
@@ -7264,87 +6195,68 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGSwitchElement
+@DomName('SVGSwitchElement')
 class SwitchElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
   SwitchElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
 
-
-  /** @domName SVGSwitchElement.externalResourcesRequired */
+  @DomName('SVGSwitchElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGSwitchElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGSwitchElement.xmllang */
+  @DomName('SVGSwitchElement.xmllang')
   String get xmllang native "SVGSwitchElement_xmllang_Getter";
 
-
-  /** @domName SVGSwitchElement.xmllang */
+  @DomName('SVGSwitchElement.xmllang')
   void set xmllang(String value) native "SVGSwitchElement_xmllang_Setter";
 
-
-  /** @domName SVGSwitchElement.xmlspace */
+  @DomName('SVGSwitchElement.xmlspace')
   String get xmlspace native "SVGSwitchElement_xmlspace_Getter";
 
-
-  /** @domName SVGSwitchElement.xmlspace */
+  @DomName('SVGSwitchElement.xmlspace')
   void set xmlspace(String value) native "SVGSwitchElement_xmlspace_Setter";
 
-
-  /** @domName SVGSwitchElement.farthestViewportElement */
+  @DomName('SVGSwitchElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGSwitchElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGSwitchElement.nearestViewportElement */
+  @DomName('SVGSwitchElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGSwitchElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGSwitchElement.getBBox */
+  @DomName('SVGSwitchElement.getBBox')
   Rect getBBox() native "SVGSwitchElement_getBBox_Callback";
 
-
-  /** @domName SVGSwitchElement.getCTM */
+  @DomName('SVGSwitchElement.getCTM')
   Matrix getCtm() native "SVGSwitchElement_getCTM_Callback";
 
-
-  /** @domName SVGSwitchElement.getScreenCTM */
+  @DomName('SVGSwitchElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGSwitchElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGSwitchElement.getTransformToElement */
+  @DomName('SVGSwitchElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGSwitchElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGSwitchElement.className */
+  @DomName('SVGSwitchElement.className')
   AnimatedString get $dom_svgClassName native "SVGSwitchElement_className_Getter";
 
-
-  /** @domName SVGSwitchElement.style */
+  @DomName('SVGSwitchElement.style')
   CssStyleDeclaration get style native "SVGSwitchElement_style_Getter";
 
-
-  /** @domName SVGSwitchElement.getPresentationAttribute */
+  @DomName('SVGSwitchElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGSwitchElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGSwitchElement.requiredExtensions */
+  @DomName('SVGSwitchElement.requiredExtensions')
   StringList get requiredExtensions native "SVGSwitchElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGSwitchElement.requiredFeatures */
+  @DomName('SVGSwitchElement.requiredFeatures')
   StringList get requiredFeatures native "SVGSwitchElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGSwitchElement.systemLanguage */
+  @DomName('SVGSwitchElement.systemLanguage')
   StringList get systemLanguage native "SVGSwitchElement_systemLanguage_Getter";
 
-
-  /** @domName SVGSwitchElement.hasExtension */
+  @DomName('SVGSwitchElement.hasExtension')
   bool hasExtension(String extension) native "SVGSwitchElement_hasExtension_Callback";
 
-
-  /** @domName SVGSwitchElement.transform */
+  @DomName('SVGSwitchElement.transform')
   AnimatedTransformList get transform native "SVGSwitchElement_transform_Getter";
 
 }
@@ -7355,51 +6267,41 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGSymbolElement
+@DomName('SVGSymbolElement')
 class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace {
   SymbolElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
 
-
-  /** @domName SVGSymbolElement.externalResourcesRequired */
+  @DomName('SVGSymbolElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGSymbolElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGSymbolElement.preserveAspectRatio */
+  @DomName('SVGSymbolElement.preserveAspectRatio')
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGSymbolElement_preserveAspectRatio_Getter";
 
-
-  /** @domName SVGSymbolElement.viewBox */
+  @DomName('SVGSymbolElement.viewBox')
   AnimatedRect get viewBox native "SVGSymbolElement_viewBox_Getter";
 
-
-  /** @domName SVGSymbolElement.xmllang */
+  @DomName('SVGSymbolElement.xmllang')
   String get xmllang native "SVGSymbolElement_xmllang_Getter";
 
-
-  /** @domName SVGSymbolElement.xmllang */
+  @DomName('SVGSymbolElement.xmllang')
   void set xmllang(String value) native "SVGSymbolElement_xmllang_Setter";
 
-
-  /** @domName SVGSymbolElement.xmlspace */
+  @DomName('SVGSymbolElement.xmlspace')
   String get xmlspace native "SVGSymbolElement_xmlspace_Getter";
 
-
-  /** @domName SVGSymbolElement.xmlspace */
+  @DomName('SVGSymbolElement.xmlspace')
   void set xmlspace(String value) native "SVGSymbolElement_xmlspace_Setter";
 
-
-  /** @domName SVGSymbolElement.className */
+  @DomName('SVGSymbolElement.className')
   AnimatedString get $dom_svgClassName native "SVGSymbolElement_className_Getter";
 
-
-  /** @domName SVGSymbolElement.style */
+  @DomName('SVGSymbolElement.style')
   CssStyleDeclaration get style native "SVGSymbolElement_style_Getter";
 
-
-  /** @domName SVGSymbolElement.getPresentationAttribute */
+  @DomName('SVGSymbolElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGSymbolElement_getPresentationAttribute_Callback";
 
 }
@@ -7410,15 +6312,14 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTRefElement
+@DomName('SVGTRefElement')
 class TRefElement extends TextPositioningElement implements UriReference {
   TRefElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory TRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
 
-
-  /** @domName SVGTRefElement.href */
+  @DomName('SVGTRefElement.href')
   AnimatedString get href native "SVGTRefElement_href_Getter";
 
 }
@@ -7429,11 +6330,11 @@ class TRefElement extends TextPositioningElement implements UriReference {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTSpanElement
+@DomName('SVGTSpanElement')
 class TSpanElement extends TextPositioningElement {
   TSpanElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
 
 }
@@ -7444,24 +6345,20 @@ class TSpanElement extends TextPositioningElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTests
+@DomName('SVGTests')
 class Tests extends NativeFieldWrapperClass1 {
   Tests.internal();
 
-
-  /** @domName SVGTests.requiredExtensions */
+  @DomName('SVGTests.requiredExtensions')
   StringList get requiredExtensions native "SVGTests_requiredExtensions_Getter";
 
-
-  /** @domName SVGTests.requiredFeatures */
+  @DomName('SVGTests.requiredFeatures')
   StringList get requiredFeatures native "SVGTests_requiredFeatures_Getter";
 
-
-  /** @domName SVGTests.systemLanguage */
+  @DomName('SVGTests.systemLanguage')
   StringList get systemLanguage native "SVGTests_systemLanguage_Getter";
 
-
-  /** @domName SVGTests.hasExtension */
+  @DomName('SVGTests.hasExtension')
   bool hasExtension(String extension) native "SVGTests_hasExtension_Callback";
 
 }
@@ -7472,7 +6369,7 @@ class Tests extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTextContentElement
+@DomName('SVGTextContentElement')
 class TextContentElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace {
   TextContentElement.internal() : super.internal();
 
@@ -7482,96 +6379,73 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
 
   static const int LENGTHADJUST_UNKNOWN = 0;
 
-
-  /** @domName SVGTextContentElement.lengthAdjust */
+  @DomName('SVGTextContentElement.lengthAdjust')
   AnimatedEnumeration get lengthAdjust native "SVGTextContentElement_lengthAdjust_Getter";
 
-
-  /** @domName SVGTextContentElement.textLength */
+  @DomName('SVGTextContentElement.textLength')
   AnimatedLength get textLength native "SVGTextContentElement_textLength_Getter";
 
-
-  /** @domName SVGTextContentElement.getCharNumAtPosition */
+  @DomName('SVGTextContentElement.getCharNumAtPosition')
   int getCharNumAtPosition(Point point) native "SVGTextContentElement_getCharNumAtPosition_Callback";
 
-
-  /** @domName SVGTextContentElement.getComputedTextLength */
+  @DomName('SVGTextContentElement.getComputedTextLength')
   num getComputedTextLength() native "SVGTextContentElement_getComputedTextLength_Callback";
 
-
-  /** @domName SVGTextContentElement.getEndPositionOfChar */
+  @DomName('SVGTextContentElement.getEndPositionOfChar')
   Point getEndPositionOfChar(int offset) native "SVGTextContentElement_getEndPositionOfChar_Callback";
 
-
-  /** @domName SVGTextContentElement.getExtentOfChar */
+  @DomName('SVGTextContentElement.getExtentOfChar')
   Rect getExtentOfChar(int offset) native "SVGTextContentElement_getExtentOfChar_Callback";
 
-
-  /** @domName SVGTextContentElement.getNumberOfChars */
+  @DomName('SVGTextContentElement.getNumberOfChars')
   int getNumberOfChars() native "SVGTextContentElement_getNumberOfChars_Callback";
 
-
-  /** @domName SVGTextContentElement.getRotationOfChar */
+  @DomName('SVGTextContentElement.getRotationOfChar')
   num getRotationOfChar(int offset) native "SVGTextContentElement_getRotationOfChar_Callback";
 
-
-  /** @domName SVGTextContentElement.getStartPositionOfChar */
+  @DomName('SVGTextContentElement.getStartPositionOfChar')
   Point getStartPositionOfChar(int offset) native "SVGTextContentElement_getStartPositionOfChar_Callback";
 
-
-  /** @domName SVGTextContentElement.getSubStringLength */
+  @DomName('SVGTextContentElement.getSubStringLength')
   num getSubStringLength(int offset, int length) native "SVGTextContentElement_getSubStringLength_Callback";
 
-
-  /** @domName SVGTextContentElement.selectSubString */
+  @DomName('SVGTextContentElement.selectSubString')
   void selectSubString(int offset, int length) native "SVGTextContentElement_selectSubString_Callback";
 
-
-  /** @domName SVGTextContentElement.externalResourcesRequired */
+  @DomName('SVGTextContentElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGTextContentElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGTextContentElement.xmllang */
+  @DomName('SVGTextContentElement.xmllang')
   String get xmllang native "SVGTextContentElement_xmllang_Getter";
 
-
-  /** @domName SVGTextContentElement.xmllang */
+  @DomName('SVGTextContentElement.xmllang')
   void set xmllang(String value) native "SVGTextContentElement_xmllang_Setter";
 
-
-  /** @domName SVGTextContentElement.xmlspace */
+  @DomName('SVGTextContentElement.xmlspace')
   String get xmlspace native "SVGTextContentElement_xmlspace_Getter";
 
-
-  /** @domName SVGTextContentElement.xmlspace */
+  @DomName('SVGTextContentElement.xmlspace')
   void set xmlspace(String value) native "SVGTextContentElement_xmlspace_Setter";
 
-
-  /** @domName SVGTextContentElement.className */
+  @DomName('SVGTextContentElement.className')
   AnimatedString get $dom_svgClassName native "SVGTextContentElement_className_Getter";
 
-
-  /** @domName SVGTextContentElement.style */
+  @DomName('SVGTextContentElement.style')
   CssStyleDeclaration get style native "SVGTextContentElement_style_Getter";
 
-
-  /** @domName SVGTextContentElement.getPresentationAttribute */
+  @DomName('SVGTextContentElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGTextContentElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGTextContentElement.requiredExtensions */
+  @DomName('SVGTextContentElement.requiredExtensions')
   StringList get requiredExtensions native "SVGTextContentElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGTextContentElement.requiredFeatures */
+  @DomName('SVGTextContentElement.requiredFeatures')
   StringList get requiredFeatures native "SVGTextContentElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGTextContentElement.systemLanguage */
+  @DomName('SVGTextContentElement.systemLanguage')
   StringList get systemLanguage native "SVGTextContentElement_systemLanguage_Getter";
 
-
-  /** @domName SVGTextContentElement.hasExtension */
+  @DomName('SVGTextContentElement.hasExtension')
   bool hasExtension(String extension) native "SVGTextContentElement_hasExtension_Callback";
 
 }
@@ -7582,39 +6456,32 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTextElement
+@DomName('SVGTextElement')
 class TextElement extends TextPositioningElement implements Transformable {
   TextElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
 
-
-  /** @domName SVGTextElement.farthestViewportElement */
+  @DomName('SVGTextElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGTextElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGTextElement.nearestViewportElement */
+  @DomName('SVGTextElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGTextElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGTextElement.getBBox */
+  @DomName('SVGTextElement.getBBox')
   Rect getBBox() native "SVGTextElement_getBBox_Callback";
 
-
-  /** @domName SVGTextElement.getCTM */
+  @DomName('SVGTextElement.getCTM')
   Matrix getCtm() native "SVGTextElement_getCTM_Callback";
 
-
-  /** @domName SVGTextElement.getScreenCTM */
+  @DomName('SVGTextElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGTextElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGTextElement.getTransformToElement */
+  @DomName('SVGTextElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGTextElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGTextElement.transform */
+  @DomName('SVGTextElement.transform')
   AnimatedTransformList get transform native "SVGTextElement_transform_Getter";
 
 }
@@ -7625,7 +6492,7 @@ class TextElement extends TextPositioningElement implements Transformable {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTextPathElement
+@DomName('SVGTextPathElement')
 class TextPathElement extends TextContentElement implements UriReference {
   TextPathElement.internal() : super.internal();
 
@@ -7641,20 +6508,16 @@ class TextPathElement extends TextContentElement implements UriReference {
 
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-
-  /** @domName SVGTextPathElement.method */
+  @DomName('SVGTextPathElement.method')
   AnimatedEnumeration get method native "SVGTextPathElement_method_Getter";
 
-
-  /** @domName SVGTextPathElement.spacing */
+  @DomName('SVGTextPathElement.spacing')
   AnimatedEnumeration get spacing native "SVGTextPathElement_spacing_Getter";
 
-
-  /** @domName SVGTextPathElement.startOffset */
+  @DomName('SVGTextPathElement.startOffset')
   AnimatedLength get startOffset native "SVGTextPathElement_startOffset_Getter";
 
-
-  /** @domName SVGTextPathElement.href */
+  @DomName('SVGTextPathElement.href')
   AnimatedString get href native "SVGTextPathElement_href_Getter";
 
 }
@@ -7665,28 +6528,23 @@ class TextPathElement extends TextContentElement implements UriReference {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTextPositioningElement
+@DomName('SVGTextPositioningElement')
 class TextPositioningElement extends TextContentElement {
   TextPositioningElement.internal() : super.internal();
 
-
-  /** @domName SVGTextPositioningElement.dx */
+  @DomName('SVGTextPositioningElement.dx')
   AnimatedLengthList get dx native "SVGTextPositioningElement_dx_Getter";
 
-
-  /** @domName SVGTextPositioningElement.dy */
+  @DomName('SVGTextPositioningElement.dy')
   AnimatedLengthList get dy native "SVGTextPositioningElement_dy_Getter";
 
-
-  /** @domName SVGTextPositioningElement.rotate */
+  @DomName('SVGTextPositioningElement.rotate')
   AnimatedNumberList get rotate native "SVGTextPositioningElement_rotate_Getter";
 
-
-  /** @domName SVGTextPositioningElement.x */
+  @DomName('SVGTextPositioningElement.x')
   AnimatedLengthList get x native "SVGTextPositioningElement_x_Getter";
 
-
-  /** @domName SVGTextPositioningElement.y */
+  @DomName('SVGTextPositioningElement.y')
   AnimatedLengthList get y native "SVGTextPositioningElement_y_Getter";
 
 }
@@ -7697,39 +6555,32 @@ class TextPositioningElement extends TextContentElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTitleElement
+@DomName('SVGTitleElement')
 class TitleElement extends SvgElement implements Stylable, LangSpace {
   TitleElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
 
-
-  /** @domName SVGTitleElement.xmllang */
+  @DomName('SVGTitleElement.xmllang')
   String get xmllang native "SVGTitleElement_xmllang_Getter";
 
-
-  /** @domName SVGTitleElement.xmllang */
+  @DomName('SVGTitleElement.xmllang')
   void set xmllang(String value) native "SVGTitleElement_xmllang_Setter";
 
-
-  /** @domName SVGTitleElement.xmlspace */
+  @DomName('SVGTitleElement.xmlspace')
   String get xmlspace native "SVGTitleElement_xmlspace_Getter";
 
-
-  /** @domName SVGTitleElement.xmlspace */
+  @DomName('SVGTitleElement.xmlspace')
   void set xmlspace(String value) native "SVGTitleElement_xmlspace_Setter";
 
-
-  /** @domName SVGTitleElement.className */
+  @DomName('SVGTitleElement.className')
   AnimatedString get $dom_svgClassName native "SVGTitleElement_className_Getter";
 
-
-  /** @domName SVGTitleElement.style */
+  @DomName('SVGTitleElement.style')
   CssStyleDeclaration get style native "SVGTitleElement_style_Getter";
 
-
-  /** @domName SVGTitleElement.getPresentationAttribute */
+  @DomName('SVGTitleElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGTitleElement_getPresentationAttribute_Callback";
 
 }
@@ -7740,7 +6591,7 @@ class TitleElement extends SvgElement implements Stylable, LangSpace {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTransform
+@DomName('SVGTransform')
 class Transform extends NativeFieldWrapperClass1 {
   Transform.internal();
 
@@ -7758,40 +6609,31 @@ class Transform extends NativeFieldWrapperClass1 {
 
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
-
-  /** @domName SVGTransform.angle */
+  @DomName('SVGTransform.angle')
   num get angle native "SVGTransform_angle_Getter";
 
-
-  /** @domName SVGTransform.matrix */
+  @DomName('SVGTransform.matrix')
   Matrix get matrix native "SVGTransform_matrix_Getter";
 
-
-  /** @domName SVGTransform.type */
+  @DomName('SVGTransform.type')
   int get type native "SVGTransform_type_Getter";
 
-
-  /** @domName SVGTransform.setMatrix */
+  @DomName('SVGTransform.setMatrix')
   void setMatrix(Matrix matrix) native "SVGTransform_setMatrix_Callback";
 
-
-  /** @domName SVGTransform.setRotate */
+  @DomName('SVGTransform.setRotate')
   void setRotate(num angle, num cx, num cy) native "SVGTransform_setRotate_Callback";
 
-
-  /** @domName SVGTransform.setScale */
+  @DomName('SVGTransform.setScale')
   void setScale(num sx, num sy) native "SVGTransform_setScale_Callback";
 
-
-  /** @domName SVGTransform.setSkewX */
+  @DomName('SVGTransform.setSkewX')
   void setSkewX(num angle) native "SVGTransform_setSkewX_Callback";
 
-
-  /** @domName SVGTransform.setSkewY */
+  @DomName('SVGTransform.setSkewY')
   void setSkewY(num angle) native "SVGTransform_setSkewY_Callback";
 
-
-  /** @domName SVGTransform.setTranslate */
+  @DomName('SVGTransform.setTranslate')
   void setTranslate(num tx, num ty) native "SVGTransform_setTranslate_Callback";
 
 }
@@ -7802,12 +6644,11 @@ class Transform extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTransformList
+@DomName('SVGTransformList')
 class TransformList extends NativeFieldWrapperClass1 implements List<Transform> {
   TransformList.internal();
 
-
-  /** @domName SVGTransformList.numberOfItems */
+  @DomName('SVGTransformList.numberOfItems')
   int get numberOfItems native "SVGTransformList_numberOfItems_Getter";
 
   Transform operator[](int index) native "SVGTransformList_item_Callback";
@@ -7958,40 +6799,31 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   // -- end List<Transform> mixins.
 
-
-  /** @domName SVGTransformList.appendItem */
+  @DomName('SVGTransformList.appendItem')
   Transform appendItem(Transform item) native "SVGTransformList_appendItem_Callback";
 
-
-  /** @domName SVGTransformList.clear */
+  @DomName('SVGTransformList.clear')
   void clear() native "SVGTransformList_clear_Callback";
 
-
-  /** @domName SVGTransformList.consolidate */
+  @DomName('SVGTransformList.consolidate')
   Transform consolidate() native "SVGTransformList_consolidate_Callback";
 
-
-  /** @domName SVGTransformList.createSVGTransformFromMatrix */
+  @DomName('SVGTransformList.createSVGTransformFromMatrix')
   Transform createSvgTransformFromMatrix(Matrix matrix) native "SVGTransformList_createSVGTransformFromMatrix_Callback";
 
-
-  /** @domName SVGTransformList.getItem */
+  @DomName('SVGTransformList.getItem')
   Transform getItem(int index) native "SVGTransformList_getItem_Callback";
 
-
-  /** @domName SVGTransformList.initialize */
+  @DomName('SVGTransformList.initialize')
   Transform initialize(Transform item) native "SVGTransformList_initialize_Callback";
 
-
-  /** @domName SVGTransformList.insertItemBefore */
+  @DomName('SVGTransformList.insertItemBefore')
   Transform insertItemBefore(Transform item, int index) native "SVGTransformList_insertItemBefore_Callback";
 
-
-  /** @domName SVGTransformList.removeItem */
+  @DomName('SVGTransformList.removeItem')
   Transform removeItem(int index) native "SVGTransformList_removeItem_Callback";
 
-
-  /** @domName SVGTransformList.replaceItem */
+  @DomName('SVGTransformList.replaceItem')
   Transform replaceItem(Transform item, int index) native "SVGTransformList_replaceItem_Callback";
 
 }
@@ -8002,36 +6834,29 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGTransformable
+@DomName('SVGTransformable')
 class Transformable extends NativeFieldWrapperClass1 implements Locatable {
   Transformable.internal();
 
-
-  /** @domName SVGTransformable.transform */
+  @DomName('SVGTransformable.transform')
   AnimatedTransformList get transform native "SVGTransformable_transform_Getter";
 
-
-  /** @domName SVGTransformable.farthestViewportElement */
+  @DomName('SVGTransformable.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGTransformable_farthestViewportElement_Getter";
 
-
-  /** @domName SVGTransformable.nearestViewportElement */
+  @DomName('SVGTransformable.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGTransformable_nearestViewportElement_Getter";
 
-
-  /** @domName SVGTransformable.getBBox */
+  @DomName('SVGTransformable.getBBox')
   Rect getBBox() native "SVGTransformable_getBBox_Callback";
 
-
-  /** @domName SVGTransformable.getCTM */
+  @DomName('SVGTransformable.getCTM')
   Matrix getCtm() native "SVGTransformable_getCTM_Callback";
 
-
-  /** @domName SVGTransformable.getScreenCTM */
+  @DomName('SVGTransformable.getScreenCTM')
   Matrix getScreenCtm() native "SVGTransformable_getScreenCTM_Callback";
 
-
-  /** @domName SVGTransformable.getTransformToElement */
+  @DomName('SVGTransformable.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGTransformable_getTransformToElement_Callback";
 
 }
@@ -8042,7 +6867,7 @@ class Transformable extends NativeFieldWrapperClass1 implements Locatable {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGUnitTypes
+@DomName('SVGUnitTypes')
 class UnitTypes extends NativeFieldWrapperClass1 {
   UnitTypes.internal();
 
@@ -8060,12 +6885,11 @@ class UnitTypes extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGURIReference
+@DomName('SVGURIReference')
 class UriReference extends NativeFieldWrapperClass1 {
   UriReference.internal();
 
-
-  /** @domName SVGURIReference.href */
+  @DomName('SVGURIReference.href')
   AnimatedString get href native "SVGURIReference_href_Getter";
 
 }
@@ -8076,115 +6900,89 @@ class UriReference extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGUseElement
+@DomName('SVGUseElement')
 class UseElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
   UseElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
 
-
-  /** @domName SVGUseElement.animatedInstanceRoot */
+  @DomName('SVGUseElement.animatedInstanceRoot')
   ElementInstance get animatedInstanceRoot native "SVGUseElement_animatedInstanceRoot_Getter";
 
-
-  /** @domName SVGUseElement.height */
+  @DomName('SVGUseElement.height')
   AnimatedLength get height native "SVGUseElement_height_Getter";
 
-
-  /** @domName SVGUseElement.instanceRoot */
+  @DomName('SVGUseElement.instanceRoot')
   ElementInstance get instanceRoot native "SVGUseElement_instanceRoot_Getter";
 
-
-  /** @domName SVGUseElement.width */
+  @DomName('SVGUseElement.width')
   AnimatedLength get width native "SVGUseElement_width_Getter";
 
-
-  /** @domName SVGUseElement.x */
+  @DomName('SVGUseElement.x')
   AnimatedLength get x native "SVGUseElement_x_Getter";
 
-
-  /** @domName SVGUseElement.y */
+  @DomName('SVGUseElement.y')
   AnimatedLength get y native "SVGUseElement_y_Getter";
 
-
-  /** @domName SVGUseElement.externalResourcesRequired */
+  @DomName('SVGUseElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGUseElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGUseElement.xmllang */
+  @DomName('SVGUseElement.xmllang')
   String get xmllang native "SVGUseElement_xmllang_Getter";
 
-
-  /** @domName SVGUseElement.xmllang */
+  @DomName('SVGUseElement.xmllang')
   void set xmllang(String value) native "SVGUseElement_xmllang_Setter";
 
-
-  /** @domName SVGUseElement.xmlspace */
+  @DomName('SVGUseElement.xmlspace')
   String get xmlspace native "SVGUseElement_xmlspace_Getter";
 
-
-  /** @domName SVGUseElement.xmlspace */
+  @DomName('SVGUseElement.xmlspace')
   void set xmlspace(String value) native "SVGUseElement_xmlspace_Setter";
 
-
-  /** @domName SVGUseElement.farthestViewportElement */
+  @DomName('SVGUseElement.farthestViewportElement')
   SvgElement get farthestViewportElement native "SVGUseElement_farthestViewportElement_Getter";
 
-
-  /** @domName SVGUseElement.nearestViewportElement */
+  @DomName('SVGUseElement.nearestViewportElement')
   SvgElement get nearestViewportElement native "SVGUseElement_nearestViewportElement_Getter";
 
-
-  /** @domName SVGUseElement.getBBox */
+  @DomName('SVGUseElement.getBBox')
   Rect getBBox() native "SVGUseElement_getBBox_Callback";
 
-
-  /** @domName SVGUseElement.getCTM */
+  @DomName('SVGUseElement.getCTM')
   Matrix getCtm() native "SVGUseElement_getCTM_Callback";
 
-
-  /** @domName SVGUseElement.getScreenCTM */
+  @DomName('SVGUseElement.getScreenCTM')
   Matrix getScreenCtm() native "SVGUseElement_getScreenCTM_Callback";
 
-
-  /** @domName SVGUseElement.getTransformToElement */
+  @DomName('SVGUseElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native "SVGUseElement_getTransformToElement_Callback";
 
-
-  /** @domName SVGUseElement.className */
+  @DomName('SVGUseElement.className')
   AnimatedString get $dom_svgClassName native "SVGUseElement_className_Getter";
 
-
-  /** @domName SVGUseElement.style */
+  @DomName('SVGUseElement.style')
   CssStyleDeclaration get style native "SVGUseElement_style_Getter";
 
-
-  /** @domName SVGUseElement.getPresentationAttribute */
+  @DomName('SVGUseElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native "SVGUseElement_getPresentationAttribute_Callback";
 
-
-  /** @domName SVGUseElement.requiredExtensions */
+  @DomName('SVGUseElement.requiredExtensions')
   StringList get requiredExtensions native "SVGUseElement_requiredExtensions_Getter";
 
-
-  /** @domName SVGUseElement.requiredFeatures */
+  @DomName('SVGUseElement.requiredFeatures')
   StringList get requiredFeatures native "SVGUseElement_requiredFeatures_Getter";
 
-
-  /** @domName SVGUseElement.systemLanguage */
+  @DomName('SVGUseElement.systemLanguage')
   StringList get systemLanguage native "SVGUseElement_systemLanguage_Getter";
 
-
-  /** @domName SVGUseElement.hasExtension */
+  @DomName('SVGUseElement.hasExtension')
   bool hasExtension(String extension) native "SVGUseElement_hasExtension_Callback";
 
-
-  /** @domName SVGUseElement.transform */
+  @DomName('SVGUseElement.transform')
   AnimatedTransformList get transform native "SVGUseElement_transform_Getter";
 
-
-  /** @domName SVGUseElement.href */
+  @DomName('SVGUseElement.href')
   AnimatedString get href native "SVGUseElement_href_Getter";
 
 }
@@ -8195,11 +6993,11 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGVKernElement
+@DomName('SVGVKernElement')
 class VKernElement extends SvgElement {
   VKernElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory VKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 
 }
@@ -8210,35 +7008,29 @@ class VKernElement extends SvgElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGViewElement
+@DomName('SVGViewElement')
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan {
   ViewElement.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
 
-
-  /** @domName SVGViewElement.viewTarget */
+  @DomName('SVGViewElement.viewTarget')
   StringList get viewTarget native "SVGViewElement_viewTarget_Getter";
 
-
-  /** @domName SVGViewElement.externalResourcesRequired */
+  @DomName('SVGViewElement.externalResourcesRequired')
   AnimatedBoolean get externalResourcesRequired native "SVGViewElement_externalResourcesRequired_Getter";
 
-
-  /** @domName SVGViewElement.preserveAspectRatio */
+  @DomName('SVGViewElement.preserveAspectRatio')
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGViewElement_preserveAspectRatio_Getter";
 
-
-  /** @domName SVGViewElement.viewBox */
+  @DomName('SVGViewElement.viewBox')
   AnimatedRect get viewBox native "SVGViewElement_viewBox_Getter";
 
-
-  /** @domName SVGViewElement.zoomAndPan */
+  @DomName('SVGViewElement.zoomAndPan')
   int get zoomAndPan native "SVGViewElement_zoomAndPan_Getter";
 
-
-  /** @domName SVGViewElement.zoomAndPan */
+  @DomName('SVGViewElement.zoomAndPan')
   void set zoomAndPan(int value) native "SVGViewElement_zoomAndPan_Setter";
 
 }
@@ -8249,48 +7041,38 @@ class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesR
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGViewSpec
+@DomName('SVGViewSpec')
 class ViewSpec extends NativeFieldWrapperClass1 {
   ViewSpec.internal();
 
-
-  /** @domName SVGViewSpec.preserveAspectRatio */
+  @DomName('SVGViewSpec.preserveAspectRatio')
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGViewSpec_preserveAspectRatio_Getter";
 
-
-  /** @domName SVGViewSpec.preserveAspectRatioString */
+  @DomName('SVGViewSpec.preserveAspectRatioString')
   String get preserveAspectRatioString native "SVGViewSpec_preserveAspectRatioString_Getter";
 
-
-  /** @domName SVGViewSpec.transform */
+  @DomName('SVGViewSpec.transform')
   TransformList get transform native "SVGViewSpec_transform_Getter";
 
-
-  /** @domName SVGViewSpec.transformString */
+  @DomName('SVGViewSpec.transformString')
   String get transformString native "SVGViewSpec_transformString_Getter";
 
-
-  /** @domName SVGViewSpec.viewBox */
+  @DomName('SVGViewSpec.viewBox')
   AnimatedRect get viewBox native "SVGViewSpec_viewBox_Getter";
 
-
-  /** @domName SVGViewSpec.viewBoxString */
+  @DomName('SVGViewSpec.viewBoxString')
   String get viewBoxString native "SVGViewSpec_viewBoxString_Getter";
 
-
-  /** @domName SVGViewSpec.viewTarget */
+  @DomName('SVGViewSpec.viewTarget')
   SvgElement get viewTarget native "SVGViewSpec_viewTarget_Getter";
 
-
-  /** @domName SVGViewSpec.viewTargetString */
+  @DomName('SVGViewSpec.viewTargetString')
   String get viewTargetString native "SVGViewSpec_viewTargetString_Getter";
 
-
-  /** @domName SVGViewSpec.zoomAndPan */
+  @DomName('SVGViewSpec.zoomAndPan')
   int get zoomAndPan native "SVGViewSpec_zoomAndPan_Getter";
 
-
-  /** @domName SVGViewSpec.zoomAndPan */
+  @DomName('SVGViewSpec.zoomAndPan')
   void set zoomAndPan(int value) native "SVGViewSpec_zoomAndPan_Setter";
 
 }
@@ -8301,7 +7083,7 @@ class ViewSpec extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGZoomAndPan
+@DomName('SVGZoomAndPan')
 class ZoomAndPan extends NativeFieldWrapperClass1 {
   ZoomAndPan.internal();
 
@@ -8311,12 +7093,10 @@ class ZoomAndPan extends NativeFieldWrapperClass1 {
 
   static const int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
-
-  /** @domName SVGZoomAndPan.zoomAndPan */
+  @DomName('SVGZoomAndPan.zoomAndPan')
   int get zoomAndPan native "SVGZoomAndPan_zoomAndPan_Getter";
 
-
-  /** @domName SVGZoomAndPan.zoomAndPan */
+  @DomName('SVGZoomAndPan.zoomAndPan')
   void set zoomAndPan(int value) native "SVGZoomAndPan_zoomAndPan_Setter";
 
 }
@@ -8327,28 +7107,23 @@ class ZoomAndPan extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGZoomEvent
+@DomName('SVGZoomEvent')
 class ZoomEvent extends UIEvent {
   ZoomEvent.internal() : super.internal();
 
-
-  /** @domName SVGZoomEvent.newScale */
+  @DomName('SVGZoomEvent.newScale')
   num get newScale native "SVGZoomEvent_newScale_Getter";
 
-
-  /** @domName SVGZoomEvent.newTranslate */
+  @DomName('SVGZoomEvent.newTranslate')
   Point get newTranslate native "SVGZoomEvent_newTranslate_Getter";
 
-
-  /** @domName SVGZoomEvent.previousScale */
+  @DomName('SVGZoomEvent.previousScale')
   num get previousScale native "SVGZoomEvent_previousScale_Getter";
 
-
-  /** @domName SVGZoomEvent.previousTranslate */
+  @DomName('SVGZoomEvent.previousTranslate')
   Point get previousTranslate native "SVGZoomEvent_previousTranslate_Getter";
 
-
-  /** @domName SVGZoomEvent.zoomRectScreen */
+  @DomName('SVGZoomEvent.zoomRectScreen')
   Rect get zoomRectScreen native "SVGZoomEvent_zoomRectScreen_Getter";
 
 }
@@ -8359,12 +7134,11 @@ class ZoomEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SVGElementInstanceList
+@DomName('SVGElementInstanceList')
 class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<ElementInstance> {
   _ElementInstanceList.internal();
 
-
-  /** @domName SVGElementInstanceList.length */
+  @DomName('SVGElementInstanceList.length')
   int get length native "SVGElementInstanceList_length_Getter";
 
   ElementInstance operator[](int index) native "SVGElementInstanceList_item_Callback";
@@ -8515,8 +7289,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   // -- end List<ElementInstance> mixins.
 
-
-  /** @domName SVGElementInstanceList.item */
+  @DomName('SVGElementInstanceList.item')
   ElementInstance item(int index) native "SVGElementInstanceList_item_Callback";
 
 }

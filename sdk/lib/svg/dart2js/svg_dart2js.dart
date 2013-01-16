@@ -56,84 +56,102 @@ class _SvgSvgElementFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAElement')
 class AElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGAElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
 
-  /// @domName SVGAElement.target; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.target')
   final AnimatedString target;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGAElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGAElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.transform')
   final AnimatedTransformList transform;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -141,7 +159,8 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAltGlyphDefElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAltGlyphDefElement')
 class AltGlyphDefElement extends SvgElement native "*SVGAltGlyphDefElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -149,18 +168,22 @@ class AltGlyphDefElement extends SvgElement native "*SVGAltGlyphDefElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAltGlyphElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAltGlyphElement')
 class AltGlyphElement extends TextPositioningElement implements UriReference native "*SVGAltGlyphElement" {
 
-  /// @domName SVGAltGlyphElement.format; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAltGlyphElement.format')
   String format;
 
-  /// @domName SVGAltGlyphElement.glyphRef; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAltGlyphElement.glyphRef')
   String glyphRef;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAltGlyphElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -168,7 +191,8 @@ class AltGlyphElement extends TextPositioningElement implements UriReference nat
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAltGlyphItemElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAltGlyphItemElement')
 class AltGlyphItemElement extends SvgElement native "*SVGAltGlyphItemElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -176,7 +200,8 @@ class AltGlyphItemElement extends SvgElement native "*SVGAltGlyphItemElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAngle; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAngle')
 class Angle native "*SVGAngle" {
 
   static const int SVG_ANGLETYPE_DEG = 2;
@@ -189,22 +214,28 @@ class Angle native "*SVGAngle" {
 
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
-  /// @domName SVGAngle.unitType; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAngle.unitType')
   final int unitType;
 
-  /// @domName SVGAngle.value; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAngle.value')
   num value;
 
-  /// @domName SVGAngle.valueAsString; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAngle.valueAsString')
   String valueAsString;
 
-  /// @domName SVGAngle.valueInSpecifiedUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAngle.valueInSpecifiedUnits')
   num valueInSpecifiedUnits;
 
-  /// @domName SVGAngle.convertToSpecifiedUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAngle.convertToSpecifiedUnits')
   void convertToSpecifiedUnits(int unitType) native;
 
-  /// @domName SVGAngle.newValueSpecifiedUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAngle.newValueSpecifiedUnits')
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -212,10 +243,11 @@ class Angle native "*SVGAngle" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimateColorElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimateColorElement')
 class AnimateColorElement extends AnimationElement native "*SVGAnimateColorElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimateColorElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateColor");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -223,10 +255,11 @@ class AnimateColorElement extends AnimationElement native "*SVGAnimateColorEleme
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimateElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimateElement')
 class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -234,10 +267,11 @@ class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimateMotionElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimateMotionElement')
 class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -245,10 +279,11 @@ class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionEle
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimateTransformElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimateTransformElement')
 class AnimateTransformElement extends AnimationElement native "*SVGAnimateTransformElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -256,13 +291,16 @@ class AnimateTransformElement extends AnimationElement native "*SVGAnimateTransf
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedAngle; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedAngle')
 class AnimatedAngle native "*SVGAnimatedAngle" {
 
-  /// @domName SVGAnimatedAngle.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedAngle.animVal')
   final Angle animVal;
 
-  /// @domName SVGAnimatedAngle.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedAngle.baseVal')
   final Angle baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -270,13 +308,16 @@ class AnimatedAngle native "*SVGAnimatedAngle" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedBoolean; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedBoolean')
 class AnimatedBoolean native "*SVGAnimatedBoolean" {
 
-  /// @domName SVGAnimatedBoolean.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedBoolean.animVal')
   final bool animVal;
 
-  /// @domName SVGAnimatedBoolean.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedBoolean.baseVal')
   bool baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -284,13 +325,16 @@ class AnimatedBoolean native "*SVGAnimatedBoolean" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedEnumeration; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedEnumeration')
 class AnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
-  /// @domName SVGAnimatedEnumeration.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedEnumeration.animVal')
   final int animVal;
 
-  /// @domName SVGAnimatedEnumeration.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedEnumeration.baseVal')
   int baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -298,13 +342,16 @@ class AnimatedEnumeration native "*SVGAnimatedEnumeration" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedInteger; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedInteger')
 class AnimatedInteger native "*SVGAnimatedInteger" {
 
-  /// @domName SVGAnimatedInteger.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedInteger.animVal')
   final int animVal;
 
-  /// @domName SVGAnimatedInteger.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedInteger.baseVal')
   int baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -312,13 +359,16 @@ class AnimatedInteger native "*SVGAnimatedInteger" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedLength; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedLength')
 class AnimatedLength native "*SVGAnimatedLength" {
 
-  /// @domName SVGAnimatedLength.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedLength.animVal')
   final Length animVal;
 
-  /// @domName SVGAnimatedLength.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedLength.baseVal')
   final Length baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -326,13 +376,16 @@ class AnimatedLength native "*SVGAnimatedLength" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedLengthList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedLengthList')
 class AnimatedLengthList native "*SVGAnimatedLengthList" {
 
-  /// @domName SVGAnimatedLengthList.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedLengthList.animVal')
   final LengthList animVal;
 
-  /// @domName SVGAnimatedLengthList.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedLengthList.baseVal')
   final LengthList baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -340,13 +393,16 @@ class AnimatedLengthList native "*SVGAnimatedLengthList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedNumber; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedNumber')
 class AnimatedNumber native "*SVGAnimatedNumber" {
 
-  /// @domName SVGAnimatedNumber.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedNumber.animVal')
   final num animVal;
 
-  /// @domName SVGAnimatedNumber.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedNumber.baseVal')
   num baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -354,13 +410,16 @@ class AnimatedNumber native "*SVGAnimatedNumber" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedNumberList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedNumberList')
 class AnimatedNumberList native "*SVGAnimatedNumberList" {
 
-  /// @domName SVGAnimatedNumberList.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedNumberList.animVal')
   final NumberList animVal;
 
-  /// @domName SVGAnimatedNumberList.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedNumberList.baseVal')
   final NumberList baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -368,13 +427,16 @@ class AnimatedNumberList native "*SVGAnimatedNumberList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedPreserveAspectRatio; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedPreserveAspectRatio')
 class AnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 
-  /// @domName SVGAnimatedPreserveAspectRatio.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedPreserveAspectRatio.animVal')
   final PreserveAspectRatio animVal;
 
-  /// @domName SVGAnimatedPreserveAspectRatio.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedPreserveAspectRatio.baseVal')
   final PreserveAspectRatio baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -382,13 +444,16 @@ class AnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedRect; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedRect')
 class AnimatedRect native "*SVGAnimatedRect" {
 
-  /// @domName SVGAnimatedRect.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedRect.animVal')
   final Rect animVal;
 
-  /// @domName SVGAnimatedRect.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedRect.baseVal')
   final Rect baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -396,13 +461,16 @@ class AnimatedRect native "*SVGAnimatedRect" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedString; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedString')
 class AnimatedString native "*SVGAnimatedString" {
 
-  /// @domName SVGAnimatedString.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedString.animVal')
   final String animVal;
 
-  /// @domName SVGAnimatedString.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedString.baseVal')
   String baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -410,13 +478,16 @@ class AnimatedString native "*SVGAnimatedString" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimatedTransformList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimatedTransformList')
 class AnimatedTransformList native "*SVGAnimatedTransformList" {
 
-  /// @domName SVGAnimatedTransformList.animVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedTransformList.animVal')
   final TransformList animVal;
 
-  /// @domName SVGAnimatedTransformList.baseVal; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimatedTransformList.baseVal')
   final TransformList baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -424,55 +495,69 @@ class AnimatedTransformList native "*SVGAnimatedTransformList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGAnimationElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGAnimationElement')
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired native "*SVGAnimationElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
 
-  /// @domName SVGAnimationElement.targetElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.targetElement')
   final SvgElement targetElement;
 
-  /// @domName SVGAnimationElement.getCurrentTime; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.getCurrentTime')
   num getCurrentTime() native;
 
-  /// @domName SVGAnimationElement.getSimpleDuration; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.getSimpleDuration')
   num getSimpleDuration() native;
 
-  /// @domName SVGAnimationElement.getStartTime; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.getStartTime')
   num getStartTime() native;
 
   // From ElementTimeControl
 
-  /// @domName ElementTimeControl.beginElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.beginElement')
   void beginElement() native;
 
-  /// @domName ElementTimeControl.beginElementAt; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.beginElementAt')
   void beginElementAt(num offset) native;
 
-  /// @domName ElementTimeControl.endElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.endElement')
   void endElement() native;
 
-  /// @domName ElementTimeControl.endElementAt; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.endElementAt')
   void endElementAt(num offset) native;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGAnimationElement.hasExtension')
   bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -480,85 +565,104 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGCircleElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGCircleElement')
 class CircleElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGCircleElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
 
-  /// @domName SVGCircleElement.cx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.cx')
   final AnimatedLength cx;
 
-  /// @domName SVGCircleElement.cy; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.cy')
   final AnimatedLength cy;
 
-  /// @domName SVGCircleElement.r; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.r')
   final AnimatedLength r;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGCircleElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGCircleElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCircleElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -566,79 +670,96 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGClipPathElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGClipPathElement')
 class ClipPathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGClipPathElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
 
-  /// @domName SVGClipPathElement.clipPathUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.clipPathUnits')
   final AnimatedEnumeration clipPathUnits;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGClipPathElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGClipPathElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGClipPathElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -646,7 +767,8 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGColor; @docsEditable true
+/// @docsEditable true
+@DomName('SVGColor')
 class Color extends CssValue native "*SVGColor" {
 
   static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
@@ -657,21 +779,26 @@ class Color extends CssValue native "*SVGColor" {
 
   static const int SVG_COLORTYPE_UNKNOWN = 0;
 
-  /// @domName SVGColor.colorType; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGColor.colorType')
   final int colorType;
 
-  /// @domName SVGColor.rgbColor; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGColor.rgbColor')
   final RgbColor rgbColor;
 
-  /// @domName SVGColor.setColor; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGColor.setColor')
   void setColor(int colorType, String rgbColor, String iccColor) native;
 
-  /// @domName SVGColor.setRGBColor; @docsEditable true
+  /// @docsEditable true
   @JSName('setRGBColor')
+  @DomName('SVGColor.setRGBColor')
   void setRgbColor(String rgbColor) native;
 
-  /// @domName SVGColor.setRGBColorICCColor; @docsEditable true
+  /// @docsEditable true
   @JSName('setRGBColorICCColor')
+  @DomName('SVGColor.setRGBColorICCColor')
   void setRgbColorIccColor(String rgbColor, String iccColor) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -679,7 +806,8 @@ class Color extends CssValue native "*SVGColor" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGComponentTransferFunctionElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGComponentTransferFunctionElement')
 class ComponentTransferFunctionElement extends SvgElement native "*SVGComponentTransferFunctionElement" {
 
   static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
@@ -694,25 +822,32 @@ class ComponentTransferFunctionElement extends SvgElement native "*SVGComponentT
 
   static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-  /// @domName SVGComponentTransferFunctionElement.amplitude; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGComponentTransferFunctionElement.amplitude')
   final AnimatedNumber amplitude;
 
-  /// @domName SVGComponentTransferFunctionElement.exponent; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGComponentTransferFunctionElement.exponent')
   final AnimatedNumber exponent;
 
-  /// @domName SVGComponentTransferFunctionElement.intercept; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGComponentTransferFunctionElement.intercept')
   final AnimatedNumber intercept;
 
-  /// @domName SVGComponentTransferFunctionElement.offset; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGComponentTransferFunctionElement.offset')
   final AnimatedNumber offset;
 
-  /// @domName SVGComponentTransferFunctionElement.slope; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGComponentTransferFunctionElement.slope')
   final AnimatedNumber slope;
 
-  /// @domName SVGComponentTransferFunctionElement.tableValues; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGComponentTransferFunctionElement.tableValues')
   final AnimatedNumberList tableValues;
 
-  /// @domName SVGComponentTransferFunctionElement.type; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGComponentTransferFunctionElement.type')
   final AnimatedEnumeration type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -720,40 +855,49 @@ class ComponentTransferFunctionElement extends SvgElement native "*SVGComponentT
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGCursorElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGCursorElement')
 class CursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "*SVGCursorElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory CursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
 
-  /// @domName SVGCursorElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCursorElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGCursorElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCursorElement.y')
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCursorElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCursorElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCursorElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCursorElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCursorElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGCursorElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -761,76 +905,92 @@ class CursorElement extends SvgElement implements UriReference, Tests, ExternalR
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGDefsElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGDefsElement')
 class DefsElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGDefsElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGDefsElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGDefsElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDefsElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -838,30 +998,34 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGDescElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGDescElement')
 class DescElement extends SvgElement implements Stylable, LangSpace native "*SVGDescElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDescElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDescElement.xmlspace')
   String xmlspace;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDescElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -869,7 +1033,8 @@ class DescElement extends SvgElement implements Stylable, LangSpace native "*SVG
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGElementInstance; @docsEditable true
+/// @docsEditable true
+@DomName('SVGElementInstance')
 class ElementInstance extends EventTarget native "*SVGElementInstance" {
 
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
@@ -952,33 +1117,42 @@ class ElementInstance extends EventTarget native "*SVGElementInstance" {
 
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// @docsEditable true
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ElementInstanceEvents get on =>
     new ElementInstanceEvents(this);
 
-  /// @domName SVGElementInstance.childNodes; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstance.childNodes')
   @Returns('_ElementInstanceList') @Creates('_ElementInstanceList')
   final List<ElementInstance> childNodes;
 
-  /// @domName SVGElementInstance.correspondingElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstance.correspondingElement')
   final SvgElement correspondingElement;
 
-  /// @domName SVGElementInstance.correspondingUseElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstance.correspondingUseElement')
   final UseElement correspondingUseElement;
 
-  /// @domName SVGElementInstance.firstChild; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstance.firstChild')
   final ElementInstance firstChild;
 
-  /// @domName SVGElementInstance.lastChild; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstance.lastChild')
   final ElementInstance lastChild;
 
-  /// @domName SVGElementInstance.nextSibling; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstance.nextSibling')
   final ElementInstance nextSibling;
 
-  /// @domName SVGElementInstance.parentNode; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstance.parentNode')
   final ElementInstance parentNode;
 
-  /// @domName SVGElementInstance.previousSibling; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstance.previousSibling')
   final ElementInstance previousSibling;
 
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -1192,19 +1366,20 @@ class ElementInstanceEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ElementTimeControl
+/// @docsEditable true
+@DomName('ElementTimeControl')
 abstract class ElementTimeControl {
 
-  /// @domName ElementTimeControl.beginElement; @docsEditable true
+  /// @docsEditable true
   void beginElement();
 
-  /// @domName ElementTimeControl.beginElementAt; @docsEditable true
+  /// @docsEditable true
   void beginElementAt(num offset);
 
-  /// @domName ElementTimeControl.endElement; @docsEditable true
+  /// @docsEditable true
   void endElement();
 
-  /// @domName ElementTimeControl.endElementAt; @docsEditable true
+  /// @docsEditable true
   void endElementAt(num offset);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1212,88 +1387,108 @@ abstract class ElementTimeControl {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGEllipseElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGEllipseElement')
 class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGEllipseElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
 
-  /// @domName SVGEllipseElement.cx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.cx')
   final AnimatedLength cx;
 
-  /// @domName SVGEllipseElement.cy; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.cy')
   final AnimatedLength cy;
 
-  /// @domName SVGEllipseElement.rx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.rx')
   final AnimatedLength rx;
 
-  /// @domName SVGEllipseElement.ry; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.ry')
   final AnimatedLength ry;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGEllipseElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGEllipseElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGEllipseElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1301,7 +1496,8 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGExternalResourcesRequired
+/// @docsEditable true
+@DomName('SVGExternalResourcesRequired')
 abstract class ExternalResourcesRequired {
 
   AnimatedBoolean externalResourcesRequired;
@@ -1311,7 +1507,8 @@ abstract class ExternalResourcesRequired {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEBlendElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEBlendElement')
 class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEBlendElement" {
 
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
@@ -1326,42 +1523,51 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-  /// @domName SVGFEBlendElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEBlendElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFEBlendElement.in2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEBlendElement.in2')
   final AnimatedString in2;
 
-  /// @domName SVGFEBlendElement.mode; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEBlendElement.mode')
   final AnimatedEnumeration mode;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEBlendElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEBlendElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEBlendElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEBlendElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEBlendElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEBlendElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1369,7 +1575,8 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEColorMatrixElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEColorMatrixElement')
 class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEColorMatrixElement" {
 
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
@@ -1382,42 +1589,51 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
-  /// @domName SVGFEColorMatrixElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEColorMatrixElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFEColorMatrixElement.type; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEColorMatrixElement.type')
   final AnimatedEnumeration type;
 
-  /// @domName SVGFEColorMatrixElement.values; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEColorMatrixElement.values')
   final AnimatedNumberList values;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEColorMatrixElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEColorMatrixElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEColorMatrixElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEColorMatrixElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEColorMatrixElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEColorMatrixElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1425,39 +1641,47 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEComponentTransferElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEComponentTransferElement')
 class FEComponentTransferElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEComponentTransferElement" {
 
-  /// @domName SVGFEComponentTransferElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEComponentTransferElement.in1')
   final AnimatedString in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEComponentTransferElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEComponentTransferElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEComponentTransferElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEComponentTransferElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEComponentTransferElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEComponentTransferElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1465,7 +1689,8 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFECompositeElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFECompositeElement')
 class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFECompositeElement" {
 
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
@@ -1482,54 +1707,67 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-  /// @domName SVGFECompositeElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFECompositeElement.in2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.in2')
   final AnimatedString in2;
 
-  /// @domName SVGFECompositeElement.k1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.k1')
   final AnimatedNumber k1;
 
-  /// @domName SVGFECompositeElement.k2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.k2')
   final AnimatedNumber k2;
 
-  /// @domName SVGFECompositeElement.k3; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.k3')
   final AnimatedNumber k3;
 
-  /// @domName SVGFECompositeElement.k4; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.k4')
   final AnimatedNumber k4;
 
-  /// @domName SVGFECompositeElement.operator; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.operator')
   final AnimatedEnumeration operator;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFECompositeElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1537,7 +1775,8 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEConvolveMatrixElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEConvolveMatrixElement')
 class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEConvolveMatrixElement" {
 
   static const int SVG_EDGEMODE_DUPLICATE = 1;
@@ -1548,69 +1787,87 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
   static const int SVG_EDGEMODE_WRAP = 2;
 
-  /// @domName SVGFEConvolveMatrixElement.bias; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.bias')
   final AnimatedNumber bias;
 
-  /// @domName SVGFEConvolveMatrixElement.divisor; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.divisor')
   final AnimatedNumber divisor;
 
-  /// @domName SVGFEConvolveMatrixElement.edgeMode; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.edgeMode')
   final AnimatedEnumeration edgeMode;
 
-  /// @domName SVGFEConvolveMatrixElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFEConvolveMatrixElement.kernelMatrix; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.kernelMatrix')
   final AnimatedNumberList kernelMatrix;
 
-  /// @domName SVGFEConvolveMatrixElement.kernelUnitLengthX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthX')
   final AnimatedNumber kernelUnitLengthX;
 
-  /// @domName SVGFEConvolveMatrixElement.kernelUnitLengthY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthY')
   final AnimatedNumber kernelUnitLengthY;
 
-  /// @domName SVGFEConvolveMatrixElement.orderX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.orderX')
   final AnimatedInteger orderX;
 
-  /// @domName SVGFEConvolveMatrixElement.orderY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.orderY')
   final AnimatedInteger orderY;
 
-  /// @domName SVGFEConvolveMatrixElement.preserveAlpha; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.preserveAlpha')
   final AnimatedBoolean preserveAlpha;
 
-  /// @domName SVGFEConvolveMatrixElement.targetX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.targetX')
   final AnimatedInteger targetX;
 
-  /// @domName SVGFEConvolveMatrixElement.targetY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.targetY')
   final AnimatedInteger targetY;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEConvolveMatrixElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1618,51 +1875,63 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEDiffuseLightingElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEDiffuseLightingElement')
 class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEDiffuseLightingElement" {
 
-  /// @domName SVGFEDiffuseLightingElement.diffuseConstant; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.diffuseConstant')
   final AnimatedNumber diffuseConstant;
 
-  /// @domName SVGFEDiffuseLightingElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFEDiffuseLightingElement.kernelUnitLengthX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthX')
   final AnimatedNumber kernelUnitLengthX;
 
-  /// @domName SVGFEDiffuseLightingElement.kernelUnitLengthY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthY')
   final AnimatedNumber kernelUnitLengthY;
 
-  /// @domName SVGFEDiffuseLightingElement.surfaceScale; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.surfaceScale')
   final AnimatedNumber surfaceScale;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDiffuseLightingElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1670,7 +1939,8 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEDisplacementMapElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEDisplacementMapElement')
 class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEDisplacementMapElement" {
 
   static const int SVG_CHANNEL_A = 4;
@@ -1683,48 +1953,59 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
-  /// @domName SVGFEDisplacementMapElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFEDisplacementMapElement.in2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.in2')
   final AnimatedString in2;
 
-  /// @domName SVGFEDisplacementMapElement.scale; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.scale')
   final AnimatedNumber scale;
 
-  /// @domName SVGFEDisplacementMapElement.xChannelSelector; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.xChannelSelector')
   final AnimatedEnumeration xChannelSelector;
 
-  /// @domName SVGFEDisplacementMapElement.yChannelSelector; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.yChannelSelector')
   final AnimatedEnumeration yChannelSelector;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDisplacementMapElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1732,13 +2013,16 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEDistantLightElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEDistantLightElement')
 class FEDistantLightElement extends SvgElement native "*SVGFEDistantLightElement" {
 
-  /// @domName SVGFEDistantLightElement.azimuth; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDistantLightElement.azimuth')
   final AnimatedNumber azimuth;
 
-  /// @domName SVGFEDistantLightElement.elevation; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDistantLightElement.elevation')
   final AnimatedNumber elevation;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1746,54 +2030,67 @@ class FEDistantLightElement extends SvgElement native "*SVGFEDistantLightElement
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEDropShadowElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEDropShadowElement')
 class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
 
-  /// @domName SVGFEDropShadowElement.dx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.dx')
   final AnimatedNumber dx;
 
-  /// @domName SVGFEDropShadowElement.dy; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.dy')
   final AnimatedNumber dy;
 
-  /// @domName SVGFEDropShadowElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFEDropShadowElement.stdDeviationX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.stdDeviationX')
   final AnimatedNumber stdDeviationX;
 
-  /// @domName SVGFEDropShadowElement.stdDeviationY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.stdDeviationY')
   final AnimatedNumber stdDeviationY;
 
-  /// @domName SVGFEDropShadowElement.setStdDeviation; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.setStdDeviation')
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEDropShadowElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1801,36 +2098,43 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEFloodElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEFloodElement')
 class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEFloodElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEFloodElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEFloodElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEFloodElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEFloodElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEFloodElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEFloodElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1838,7 +2142,8 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEFuncAElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEFuncAElement')
 class FEFuncAElement extends ComponentTransferFunctionElement native "*SVGFEFuncAElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1846,7 +2151,8 @@ class FEFuncAElement extends ComponentTransferFunctionElement native "*SVGFEFunc
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEFuncBElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEFuncBElement')
 class FEFuncBElement extends ComponentTransferFunctionElement native "*SVGFEFuncBElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1854,7 +2160,8 @@ class FEFuncBElement extends ComponentTransferFunctionElement native "*SVGFEFunc
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEFuncGElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEFuncGElement')
 class FEFuncGElement extends ComponentTransferFunctionElement native "*SVGFEFuncGElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1862,7 +2169,8 @@ class FEFuncGElement extends ComponentTransferFunctionElement native "*SVGFEFunc
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEFuncRElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEFuncRElement')
 class FEFuncRElement extends ComponentTransferFunctionElement native "*SVGFEFuncRElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1870,48 +2178,59 @@ class FEFuncRElement extends ComponentTransferFunctionElement native "*SVGFEFunc
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEGaussianBlurElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEGaussianBlurElement')
 class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEGaussianBlurElement" {
 
-  /// @domName SVGFEGaussianBlurElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFEGaussianBlurElement.stdDeviationX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.stdDeviationX')
   final AnimatedNumber stdDeviationX;
 
-  /// @domName SVGFEGaussianBlurElement.stdDeviationY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.stdDeviationY')
   final AnimatedNumber stdDeviationY;
 
-  /// @domName SVGFEGaussianBlurElement.setStdDeviation; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.setStdDeviation')
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEGaussianBlurElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1919,57 +2238,69 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEImageElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEImageElement')
 class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace native "*SVGFEImageElement" {
 
-  /// @domName SVGFEImageElement.preserveAspectRatio; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.preserveAspectRatio')
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.y')
   final AnimatedLength y;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.xmlspace')
   String xmlspace;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEImageElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1977,36 +2308,43 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEMergeElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEMergeElement')
 class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEMergeElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMergeElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMergeElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMergeElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMergeElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMergeElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMergeElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2014,10 +2352,12 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEMergeNodeElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEMergeNodeElement')
 class FEMergeNodeElement extends SvgElement native "*SVGFEMergeNodeElement" {
 
-  /// @domName SVGFEMergeNodeElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMergeNodeElement.in1')
   final AnimatedString in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2025,7 +2365,8 @@ class FEMergeNodeElement extends SvgElement native "*SVGFEMergeNodeElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEMorphologyElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEMorphologyElement')
 class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEMorphologyElement" {
 
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
@@ -2034,48 +2375,59 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
-  /// @domName SVGFEMorphologyElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFEMorphologyElement.operator; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.operator')
   final AnimatedEnumeration operator;
 
-  /// @domName SVGFEMorphologyElement.radiusX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.radiusX')
   final AnimatedNumber radiusX;
 
-  /// @domName SVGFEMorphologyElement.radiusY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.radiusY')
   final AnimatedNumber radiusY;
 
-  /// @domName SVGFEMorphologyElement.setRadius; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.setRadius')
   void setRadius(num radiusX, num radiusY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEMorphologyElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2083,45 +2435,55 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEOffsetElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEOffsetElement')
 class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEOffsetElement" {
 
-  /// @domName SVGFEOffsetElement.dx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEOffsetElement.dx')
   final AnimatedNumber dx;
 
-  /// @domName SVGFEOffsetElement.dy; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEOffsetElement.dy')
   final AnimatedNumber dy;
 
-  /// @domName SVGFEOffsetElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEOffsetElement.in1')
   final AnimatedString in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEOffsetElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEOffsetElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEOffsetElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEOffsetElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEOffsetElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEOffsetElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2129,16 +2491,20 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFEPointLightElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFEPointLightElement')
 class FEPointLightElement extends SvgElement native "*SVGFEPointLightElement" {
 
-  /// @domName SVGFEPointLightElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEPointLightElement.x')
   final AnimatedNumber x;
 
-  /// @domName SVGFEPointLightElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEPointLightElement.y')
   final AnimatedNumber y;
 
-  /// @domName SVGFEPointLightElement.z; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFEPointLightElement.z')
   final AnimatedNumber z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2146,48 +2512,59 @@ class FEPointLightElement extends SvgElement native "*SVGFEPointLightElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFESpecularLightingElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFESpecularLightingElement')
 class FESpecularLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFESpecularLightingElement" {
 
-  /// @domName SVGFESpecularLightingElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.in1')
   final AnimatedString in1;
 
-  /// @domName SVGFESpecularLightingElement.specularConstant; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.specularConstant')
   final AnimatedNumber specularConstant;
 
-  /// @domName SVGFESpecularLightingElement.specularExponent; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.specularExponent')
   final AnimatedNumber specularExponent;
 
-  /// @domName SVGFESpecularLightingElement.surfaceScale; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.surfaceScale')
   final AnimatedNumber surfaceScale;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpecularLightingElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2195,31 +2572,40 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFESpotLightElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFESpotLightElement')
 class FESpotLightElement extends SvgElement native "*SVGFESpotLightElement" {
 
-  /// @domName SVGFESpotLightElement.limitingConeAngle; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpotLightElement.limitingConeAngle')
   final AnimatedNumber limitingConeAngle;
 
-  /// @domName SVGFESpotLightElement.pointsAtX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpotLightElement.pointsAtX')
   final AnimatedNumber pointsAtX;
 
-  /// @domName SVGFESpotLightElement.pointsAtY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpotLightElement.pointsAtY')
   final AnimatedNumber pointsAtY;
 
-  /// @domName SVGFESpotLightElement.pointsAtZ; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpotLightElement.pointsAtZ')
   final AnimatedNumber pointsAtZ;
 
-  /// @domName SVGFESpotLightElement.specularExponent; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpotLightElement.specularExponent')
   final AnimatedNumber specularExponent;
 
-  /// @domName SVGFESpotLightElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpotLightElement.x')
   final AnimatedNumber x;
 
-  /// @domName SVGFESpotLightElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpotLightElement.y')
   final AnimatedNumber y;
 
-  /// @domName SVGFESpotLightElement.z; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFESpotLightElement.z')
   final AnimatedNumber z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2227,39 +2613,47 @@ class FESpotLightElement extends SvgElement native "*SVGFESpotLightElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFETileElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFETileElement')
 class FETileElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFETileElement" {
 
-  /// @domName SVGFETileElement.in1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETileElement.in1')
   final AnimatedString in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETileElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETileElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETileElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETileElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETileElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETileElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2267,7 +2661,8 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFETurbulenceElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFETurbulenceElement')
 class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFETurbulenceElement" {
 
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
@@ -2282,51 +2677,63 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  /// @domName SVGFETurbulenceElement.baseFrequencyX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.baseFrequencyX')
   final AnimatedNumber baseFrequencyX;
 
-  /// @domName SVGFETurbulenceElement.baseFrequencyY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.baseFrequencyY')
   final AnimatedNumber baseFrequencyY;
 
-  /// @domName SVGFETurbulenceElement.numOctaves; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.numOctaves')
   final AnimatedInteger numOctaves;
 
-  /// @domName SVGFETurbulenceElement.seed; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.seed')
   final AnimatedNumber seed;
 
-  /// @domName SVGFETurbulenceElement.stitchTiles; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.stitchTiles')
   final AnimatedEnumeration stitchTiles;
 
-  /// @domName SVGFETurbulenceElement.type; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.type')
   final AnimatedEnumeration type;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.result; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.result')
   final AnimatedString result;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterPrimitiveStandardAttributes.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.y')
   final AnimatedLength y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFETurbulenceElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2334,67 +2741,82 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFilterElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFilterElement')
 class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable, LangSpace native "*SVGFilterElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
 
-  /// @domName SVGFilterElement.filterResX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.filterResX')
   final AnimatedInteger filterResX;
 
-  /// @domName SVGFilterElement.filterResY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.filterResY')
   final AnimatedInteger filterResY;
 
-  /// @domName SVGFilterElement.filterUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.filterUnits')
   final AnimatedEnumeration filterUnits;
 
-  /// @domName SVGFilterElement.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGFilterElement.primitiveUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.primitiveUnits')
   final AnimatedEnumeration primitiveUnits;
 
-  /// @domName SVGFilterElement.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGFilterElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGFilterElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.y')
   final AnimatedLength y;
 
-  /// @domName SVGFilterElement.setFilterRes; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.setFilterRes')
   void setFilterRes(int filterResX, int filterResY) native;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.xmlspace')
   String xmlspace;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGFilterElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2402,7 +2824,8 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFilterPrimitiveStandardAttributes
+/// @docsEditable true
+@DomName('SVGFilterPrimitiveStandardAttributes')
 abstract class FilterPrimitiveStandardAttributes implements Stylable {
 
   AnimatedLength height;
@@ -2421,7 +2844,7 @@ abstract class FilterPrimitiveStandardAttributes implements Stylable {
 
   CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
   CssValue getPresentationAttribute(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2429,7 +2852,8 @@ abstract class FilterPrimitiveStandardAttributes implements Stylable {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFitToViewBox
+/// @docsEditable true
+@DomName('SVGFitToViewBox')
 abstract class FitToViewBox {
 
   AnimatedPreserveAspectRatio preserveAspectRatio;
@@ -2441,10 +2865,11 @@ abstract class FitToViewBox {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFontElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFontElement')
 class FontElement extends SvgElement native "*SVGFontElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontElement() => _SvgElementFactoryProvider.createSvgElement_tag("font");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2452,10 +2877,11 @@ class FontElement extends SvgElement native "*SVGFontElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFontFaceElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFontFaceElement')
 class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2463,10 +2889,11 @@ class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFontFaceFormatElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFontFaceFormatElement')
 class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceFormatElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-format");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2474,10 +2901,11 @@ class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFontFaceNameElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFontFaceNameElement')
 class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceNameElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-name");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2485,10 +2913,11 @@ class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFontFaceSrcElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFontFaceSrcElement')
 class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceSrcElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-src");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2496,10 +2925,11 @@ class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGFontFaceUriElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGFontFaceUriElement')
 class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory FontFaceUriElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-uri");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2507,88 +2937,108 @@ class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGForeignObjectElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGForeignObjectElement')
 class ForeignObjectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGForeignObjectElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
 
-  /// @domName SVGForeignObjectElement.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGForeignObjectElement.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGForeignObjectElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGForeignObjectElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.y')
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGForeignObjectElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGForeignObjectElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGForeignObjectElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2596,76 +3046,92 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGGElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGGElement')
 class GElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGGElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGGElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGGElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2673,10 +3139,11 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGGlyphElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGGlyphElement')
 class GlyphElement extends SvgElement native "*SVGGlyphElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory GlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2684,42 +3151,51 @@ class GlyphElement extends SvgElement native "*SVGGlyphElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGGlyphRefElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGGlyphRefElement')
 class GlyphRefElement extends SvgElement implements UriReference, Stylable native "*SVGGlyphRefElement" {
 
-  /// @domName SVGGlyphRefElement.dx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGlyphRefElement.dx')
   num dx;
 
-  /// @domName SVGGlyphRefElement.dy; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGlyphRefElement.dy')
   num dy;
 
-  /// @domName SVGGlyphRefElement.format; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGlyphRefElement.format')
   String format;
 
-  /// @domName SVGGlyphRefElement.glyphRef; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGlyphRefElement.glyphRef')
   String glyphRef;
 
-  /// @domName SVGGlyphRefElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGlyphRefElement.x')
   num x;
 
-  /// @domName SVGGlyphRefElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGlyphRefElement.y')
   num y;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGlyphRefElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGlyphRefElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2727,7 +3203,8 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable nativ
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGGradientElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGGradientElement')
 class GradientElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable native "*SVGGradientElement" {
 
   static const int SVG_SPREADMETHOD_PAD = 1;
@@ -2738,35 +3215,41 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
 
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-  /// @domName SVGGradientElement.gradientTransform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGradientElement.gradientTransform')
   final AnimatedTransformList gradientTransform;
 
-  /// @domName SVGGradientElement.gradientUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGradientElement.gradientUnits')
   final AnimatedEnumeration gradientUnits;
 
-  /// @domName SVGGradientElement.spreadMethod; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGradientElement.spreadMethod')
   final AnimatedEnumeration spreadMethod;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGradientElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGradientElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGGradientElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2774,10 +3257,11 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGHKernElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGHKernElement')
 class HKernElement extends SvgElement native "*SVGHKernElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory HKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2785,96 +3269,118 @@ class HKernElement extends SvgElement native "*SVGHKernElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGImageElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGImageElement')
 class ImageElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGImageElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
 
-  /// @domName SVGImageElement.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGImageElement.preserveAspectRatio; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.preserveAspectRatio')
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
-  /// @domName SVGImageElement.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGImageElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGImageElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.y')
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGImageElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGImageElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.transform')
   final AnimatedTransformList transform;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGImageElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2882,7 +3388,8 @@ class ImageElement extends SvgElement implements Transformable, Tests, UriRefere
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGLangSpace
+/// @docsEditable true
+@DomName('SVGLangSpace')
 abstract class LangSpace {
 
   String xmllang;
@@ -2894,7 +3401,8 @@ abstract class LangSpace {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGLength; @docsEditable true
+/// @docsEditable true
+@DomName('SVGLength')
 class Length native "*SVGLength" {
 
   static const int SVG_LENGTHTYPE_CM = 6;
@@ -2919,22 +3427,28 @@ class Length native "*SVGLength" {
 
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
-  /// @domName SVGLength.unitType; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLength.unitType')
   final int unitType;
 
-  /// @domName SVGLength.value; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLength.value')
   num value;
 
-  /// @domName SVGLength.valueAsString; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLength.valueAsString')
   String valueAsString;
 
-  /// @domName SVGLength.valueInSpecifiedUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLength.valueInSpecifiedUnits')
   num valueInSpecifiedUnits;
 
-  /// @domName SVGLength.convertToSpecifiedUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLength.convertToSpecifiedUnits')
   void convertToSpecifiedUnits(int unitType) native;
 
-  /// @domName SVGLength.newValueSpecifiedUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLength.newValueSpecifiedUnits')
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2942,10 +3456,12 @@ class Length native "*SVGLength" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGLengthList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGLengthList')
 class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SVGLengthList" {
 
-  /// @domName SVGLengthList.numberOfItems; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLengthList.numberOfItems')
   final int numberOfItems;
 
   Length operator[](int index) => JS("Length", "#[#]", this, index);
@@ -3096,25 +3612,32 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 
   // -- end List<Length> mixins.
 
-  /// @domName SVGLengthList.appendItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLengthList.appendItem')
   Length appendItem(Length item) native;
 
-  /// @domName SVGLengthList.clear; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLengthList.clear')
   void clear() native;
 
-  /// @domName SVGLengthList.getItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLengthList.getItem')
   Length getItem(int index) native;
 
-  /// @domName SVGLengthList.initialize; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLengthList.initialize')
   Length initialize(Length item) native;
 
-  /// @domName SVGLengthList.insertItemBefore; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLengthList.insertItemBefore')
   Length insertItemBefore(Length item, int index) native;
 
-  /// @domName SVGLengthList.removeItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLengthList.removeItem')
   Length removeItem(int index) native;
 
-  /// @domName SVGLengthList.replaceItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLengthList.replaceItem')
   Length replaceItem(Length item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3122,88 +3645,108 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGLineElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGLineElement')
 class LineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGLineElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
 
-  /// @domName SVGLineElement.x1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.x1')
   final AnimatedLength x1;
 
-  /// @domName SVGLineElement.x2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.x2')
   final AnimatedLength x2;
 
-  /// @domName SVGLineElement.y1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.y1')
   final AnimatedLength y1;
 
-  /// @domName SVGLineElement.y2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.y2')
   final AnimatedLength y2;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGLineElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGLineElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLineElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3211,22 +3754,27 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGLinearGradientElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGLinearGradientElement')
 class LinearGradientElement extends GradientElement native "*SVGLinearGradientElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
 
-  /// @domName SVGLinearGradientElement.x1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLinearGradientElement.x1')
   final AnimatedLength x1;
 
-  /// @domName SVGLinearGradientElement.x2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLinearGradientElement.x2')
   final AnimatedLength x2;
 
-  /// @domName SVGLinearGradientElement.y1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLinearGradientElement.y1')
   final AnimatedLength y1;
 
-  /// @domName SVGLinearGradientElement.y2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGLinearGradientElement.y2')
   final AnimatedLength y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3234,23 +3782,24 @@ class LinearGradientElement extends GradientElement native "*SVGLinearGradientEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGLocatable
+/// @docsEditable true
+@DomName('SVGLocatable')
 abstract class Locatable {
 
   SvgElement farthestViewportElement;
 
   SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
   Rect getBBox();
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   Matrix getCTM();
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   Matrix getScreenCTM();
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
   Matrix getTransformToElement(SvgElement element);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3258,20 +3807,23 @@ abstract class Locatable {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGMPathElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGMPathElement')
 class MPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGMPathElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory MPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMPathElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMPathElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3279,10 +3831,11 @@ class MPathElement extends SvgElement implements UriReference, ExternalResources
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGMarkerElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGMarkerElement')
 class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGMarkerElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
@@ -3297,64 +3850,79 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  /// @domName SVGMarkerElement.markerHeight; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.markerHeight')
   final AnimatedLength markerHeight;
 
-  /// @domName SVGMarkerElement.markerUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.markerUnits')
   final AnimatedEnumeration markerUnits;
 
-  /// @domName SVGMarkerElement.markerWidth; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.markerWidth')
   final AnimatedLength markerWidth;
 
-  /// @domName SVGMarkerElement.orientAngle; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.orientAngle')
   final AnimatedAngle orientAngle;
 
-  /// @domName SVGMarkerElement.orientType; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.orientType')
   final AnimatedEnumeration orientType;
 
-  /// @domName SVGMarkerElement.refX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.refX')
   final AnimatedLength refX;
 
-  /// @domName SVGMarkerElement.refY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.refY')
   final AnimatedLength refY;
 
-  /// @domName SVGMarkerElement.setOrientToAngle; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.setOrientToAngle')
   void setOrientToAngle(Angle angle) native;
 
-  /// @domName SVGMarkerElement.setOrientToAuto; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.setOrientToAuto')
   void setOrientToAuto() native;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
-  /// @domName SVGFitToViewBox.preserveAspectRatio; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.preserveAspectRatio')
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
-  /// @domName SVGFitToViewBox.viewBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.viewBox')
   final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.xmlspace')
   String xmlspace;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMarkerElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3362,67 +3930,82 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGMaskElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGMaskElement')
 class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGMaskElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
 
-  /// @domName SVGMaskElement.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGMaskElement.maskContentUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.maskContentUnits')
   final AnimatedEnumeration maskContentUnits;
 
-  /// @domName SVGMaskElement.maskUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.maskUnits')
   final AnimatedEnumeration maskUnits;
 
-  /// @domName SVGMaskElement.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGMaskElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGMaskElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.y')
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.xmlspace')
   String xmlspace;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMaskElement.hasExtension')
   bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3430,58 +4013,76 @@ class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourc
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGMatrix; @docsEditable true
+/// @docsEditable true
+@DomName('SVGMatrix')
 class Matrix native "*SVGMatrix" {
 
-  /// @domName SVGMatrix.a; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.a')
   num a;
 
-  /// @domName SVGMatrix.b; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.b')
   num b;
 
-  /// @domName SVGMatrix.c; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.c')
   num c;
 
-  /// @domName SVGMatrix.d; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.d')
   num d;
 
-  /// @domName SVGMatrix.e; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.e')
   num e;
 
-  /// @domName SVGMatrix.f; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.f')
   num f;
 
-  /// @domName SVGMatrix.flipX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.flipX')
   Matrix flipX() native;
 
-  /// @domName SVGMatrix.flipY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.flipY')
   Matrix flipY() native;
 
-  /// @domName SVGMatrix.inverse; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.inverse')
   Matrix inverse() native;
 
-  /// @domName SVGMatrix.multiply; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.multiply')
   Matrix multiply(Matrix secondMatrix) native;
 
-  /// @domName SVGMatrix.rotate; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.rotate')
   Matrix rotate(num angle) native;
 
-  /// @domName SVGMatrix.rotateFromVector; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.rotateFromVector')
   Matrix rotateFromVector(num x, num y) native;
 
-  /// @domName SVGMatrix.scale; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.scale')
   Matrix scale(num scaleFactor) native;
 
-  /// @domName SVGMatrix.scaleNonUniform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.scaleNonUniform')
   Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
 
-  /// @domName SVGMatrix.skewX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.skewX')
   Matrix skewX(num angle) native;
 
-  /// @domName SVGMatrix.skewY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.skewY')
   Matrix skewY(num angle) native;
 
-  /// @domName SVGMatrix.translate; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGMatrix.translate')
   Matrix translate(num x, num y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3489,7 +4090,8 @@ class Matrix native "*SVGMatrix" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGMetadataElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGMetadataElement')
 class MetadataElement extends SvgElement native "*SVGMetadataElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3497,7 +4099,8 @@ class MetadataElement extends SvgElement native "*SVGMetadataElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGMissingGlyphElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGMissingGlyphElement')
 class MissingGlyphElement extends SvgElement native "*SVGMissingGlyphElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3505,10 +4108,12 @@ class MissingGlyphElement extends SvgElement native "*SVGMissingGlyphElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGNumber; @docsEditable true
+/// @docsEditable true
+@DomName('SVGNumber')
 class Number native "*SVGNumber" {
 
-  /// @domName SVGNumber.value; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGNumber.value')
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3516,10 +4121,12 @@ class Number native "*SVGNumber" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGNumberList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGNumberList')
 class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SVGNumberList" {
 
-  /// @domName SVGNumberList.numberOfItems; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGNumberList.numberOfItems')
   final int numberOfItems;
 
   Number operator[](int index) => JS("Number", "#[#]", this, index);
@@ -3670,25 +4277,32 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   // -- end List<Number> mixins.
 
-  /// @domName SVGNumberList.appendItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGNumberList.appendItem')
   Number appendItem(Number item) native;
 
-  /// @domName SVGNumberList.clear; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGNumberList.clear')
   void clear() native;
 
-  /// @domName SVGNumberList.getItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGNumberList.getItem')
   Number getItem(int index) native;
 
-  /// @domName SVGNumberList.initialize; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGNumberList.initialize')
   Number initialize(Number item) native;
 
-  /// @domName SVGNumberList.insertItemBefore; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGNumberList.insertItemBefore')
   Number insertItemBefore(Number item, int index) native;
 
-  /// @domName SVGNumberList.removeItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGNumberList.removeItem')
   Number removeItem(int index) native;
 
-  /// @domName SVGNumberList.replaceItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGNumberList.replaceItem')
   Number replaceItem(Number item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3696,7 +4310,8 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPaint; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPaint')
 class Paint extends Color native "*SVGPaint" {
 
   static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
@@ -3719,16 +4334,20 @@ class Paint extends Color native "*SVGPaint" {
 
   static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
-  /// @domName SVGPaint.paintType; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPaint.paintType')
   final int paintType;
 
-  /// @domName SVGPaint.uri; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPaint.uri')
   final String uri;
 
-  /// @domName SVGPaint.setPaint; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPaint.setPaint')
   void setPaint(int paintType, String uri, String rgbColor, String iccColor) native;
 
-  /// @domName SVGPaint.setUri; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPaint.setUri')
   void setUri(String uri) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3736,176 +4355,219 @@ class Paint extends Color native "*SVGPaint" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathElement')
 class PathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPathElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
 
-  /// @domName SVGPathElement.animatedNormalizedPathSegList; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.animatedNormalizedPathSegList')
   final PathSegList animatedNormalizedPathSegList;
 
-  /// @domName SVGPathElement.animatedPathSegList; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.animatedPathSegList')
   final PathSegList animatedPathSegList;
 
-  /// @domName SVGPathElement.normalizedPathSegList; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.normalizedPathSegList')
   final PathSegList normalizedPathSegList;
 
-  /// @domName SVGPathElement.pathLength; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.pathLength')
   final AnimatedNumber pathLength;
 
-  /// @domName SVGPathElement.pathSegList; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.pathSegList')
   final PathSegList pathSegList;
 
-  /// @domName SVGPathElement.createSVGPathSegArcAbs; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegArcAbs')
+  @DomName('SVGPathElement.createSVGPathSegArcAbs')
   PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
-  /// @domName SVGPathElement.createSVGPathSegArcRel; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegArcRel')
+  @DomName('SVGPathElement.createSVGPathSegArcRel')
   PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
-  /// @domName SVGPathElement.createSVGPathSegClosePath; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegClosePath')
+  @DomName('SVGPathElement.createSVGPathSegClosePath')
   PathSegClosePath createSvgPathSegClosePath() native;
 
-  /// @domName SVGPathElement.createSVGPathSegCurvetoCubicAbs; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegCurvetoCubicAbs')
+  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
   PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
 
-  /// @domName SVGPathElement.createSVGPathSegCurvetoCubicRel; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegCurvetoCubicRel')
+  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicRel')
   PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
 
-  /// @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegCurvetoCubicSmoothAbs')
+  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs')
   PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
 
-  /// @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegCurvetoCubicSmoothRel')
+  @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel')
   PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
 
-  /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticAbs; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegCurvetoQuadraticAbs')
+  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticAbs')
   PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
 
-  /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticRel; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegCurvetoQuadraticRel')
+  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticRel')
   PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
 
-  /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegCurvetoQuadraticSmoothAbs')
+  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs')
   PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
 
-  /// @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegCurvetoQuadraticSmoothRel')
+  @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel')
   PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
 
-  /// @domName SVGPathElement.createSVGPathSegLinetoAbs; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegLinetoAbs')
+  @DomName('SVGPathElement.createSVGPathSegLinetoAbs')
   PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) native;
 
-  /// @domName SVGPathElement.createSVGPathSegLinetoHorizontalAbs; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegLinetoHorizontalAbs')
+  @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalAbs')
   PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) native;
 
-  /// @domName SVGPathElement.createSVGPathSegLinetoHorizontalRel; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegLinetoHorizontalRel')
+  @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalRel')
   PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) native;
 
-  /// @domName SVGPathElement.createSVGPathSegLinetoRel; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegLinetoRel')
+  @DomName('SVGPathElement.createSVGPathSegLinetoRel')
   PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) native;
 
-  /// @domName SVGPathElement.createSVGPathSegLinetoVerticalAbs; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegLinetoVerticalAbs')
+  @DomName('SVGPathElement.createSVGPathSegLinetoVerticalAbs')
   PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) native;
 
-  /// @domName SVGPathElement.createSVGPathSegLinetoVerticalRel; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegLinetoVerticalRel')
+  @DomName('SVGPathElement.createSVGPathSegLinetoVerticalRel')
   PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) native;
 
-  /// @domName SVGPathElement.createSVGPathSegMovetoAbs; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegMovetoAbs')
+  @DomName('SVGPathElement.createSVGPathSegMovetoAbs')
   PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) native;
 
-  /// @domName SVGPathElement.createSVGPathSegMovetoRel; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPathSegMovetoRel')
+  @DomName('SVGPathElement.createSVGPathSegMovetoRel')
   PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) native;
 
-  /// @domName SVGPathElement.getPathSegAtLength; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.getPathSegAtLength')
   int getPathSegAtLength(num distance) native;
 
-  /// @domName SVGPathElement.getPointAtLength; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.getPointAtLength')
   Point getPointAtLength(num distance) native;
 
-  /// @domName SVGPathElement.getTotalLength; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.getTotalLength')
   num getTotalLength() native;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGPathElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGPathElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3913,7 +4575,8 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSeg; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSeg')
 class PathSeg native "*SVGPathSeg" {
 
   static const int PATHSEG_ARC_ABS = 10;
@@ -3956,10 +4619,12 @@ class PathSeg native "*SVGPathSeg" {
 
   static const int PATHSEG_UNKNOWN = 0;
 
-  /// @domName SVGPathSeg.pathSegType; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSeg.pathSegType')
   final int pathSegType;
 
-  /// @domName SVGPathSeg.pathSegTypeAsLetter; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSeg.pathSegTypeAsLetter')
   final String pathSegTypeAsLetter;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3967,28 +4632,36 @@ class PathSeg native "*SVGPathSeg" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegArcAbs; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegArcAbs')
 class PathSegArcAbs extends PathSeg native "*SVGPathSegArcAbs" {
 
-  /// @domName SVGPathSegArcAbs.angle; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcAbs.angle')
   num angle;
 
-  /// @domName SVGPathSegArcAbs.largeArcFlag; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcAbs.largeArcFlag')
   bool largeArcFlag;
 
-  /// @domName SVGPathSegArcAbs.r1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcAbs.r1')
   num r1;
 
-  /// @domName SVGPathSegArcAbs.r2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcAbs.r2')
   num r2;
 
-  /// @domName SVGPathSegArcAbs.sweepFlag; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcAbs.sweepFlag')
   bool sweepFlag;
 
-  /// @domName SVGPathSegArcAbs.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcAbs.x')
   num x;
 
-  /// @domName SVGPathSegArcAbs.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcAbs.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3996,28 +4669,36 @@ class PathSegArcAbs extends PathSeg native "*SVGPathSegArcAbs" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegArcRel; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegArcRel')
 class PathSegArcRel extends PathSeg native "*SVGPathSegArcRel" {
 
-  /// @domName SVGPathSegArcRel.angle; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcRel.angle')
   num angle;
 
-  /// @domName SVGPathSegArcRel.largeArcFlag; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcRel.largeArcFlag')
   bool largeArcFlag;
 
-  /// @domName SVGPathSegArcRel.r1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcRel.r1')
   num r1;
 
-  /// @domName SVGPathSegArcRel.r2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcRel.r2')
   num r2;
 
-  /// @domName SVGPathSegArcRel.sweepFlag; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcRel.sweepFlag')
   bool sweepFlag;
 
-  /// @domName SVGPathSegArcRel.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcRel.x')
   num x;
 
-  /// @domName SVGPathSegArcRel.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegArcRel.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4025,7 +4706,8 @@ class PathSegArcRel extends PathSeg native "*SVGPathSegArcRel" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegClosePath; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegClosePath')
 class PathSegClosePath extends PathSeg native "*SVGPathSegClosePath" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4033,25 +4715,32 @@ class PathSegClosePath extends PathSeg native "*SVGPathSegClosePath" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegCurvetoCubicAbs; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegCurvetoCubicAbs')
 class PathSegCurvetoCubicAbs extends PathSeg native "*SVGPathSegCurvetoCubicAbs" {
 
-  /// @domName SVGPathSegCurvetoCubicAbs.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicAbs.x')
   num x;
 
-  /// @domName SVGPathSegCurvetoCubicAbs.x1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicAbs.x1')
   num x1;
 
-  /// @domName SVGPathSegCurvetoCubicAbs.x2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicAbs.x2')
   num x2;
 
-  /// @domName SVGPathSegCurvetoCubicAbs.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicAbs.y')
   num y;
 
-  /// @domName SVGPathSegCurvetoCubicAbs.y1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicAbs.y1')
   num y1;
 
-  /// @domName SVGPathSegCurvetoCubicAbs.y2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicAbs.y2')
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4059,25 +4748,32 @@ class PathSegCurvetoCubicAbs extends PathSeg native "*SVGPathSegCurvetoCubicAbs"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegCurvetoCubicRel; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegCurvetoCubicRel')
 class PathSegCurvetoCubicRel extends PathSeg native "*SVGPathSegCurvetoCubicRel" {
 
-  /// @domName SVGPathSegCurvetoCubicRel.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicRel.x')
   num x;
 
-  /// @domName SVGPathSegCurvetoCubicRel.x1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicRel.x1')
   num x1;
 
-  /// @domName SVGPathSegCurvetoCubicRel.x2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicRel.x2')
   num x2;
 
-  /// @domName SVGPathSegCurvetoCubicRel.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicRel.y')
   num y;
 
-  /// @domName SVGPathSegCurvetoCubicRel.y1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicRel.y1')
   num y1;
 
-  /// @domName SVGPathSegCurvetoCubicRel.y2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicRel.y2')
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4085,19 +4781,24 @@ class PathSegCurvetoCubicRel extends PathSeg native "*SVGPathSegCurvetoCubicRel"
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegCurvetoCubicSmoothAbs; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegCurvetoCubicSmoothAbs')
 class PathSegCurvetoCubicSmoothAbs extends PathSeg native "*SVGPathSegCurvetoCubicSmoothAbs" {
 
-  /// @domName SVGPathSegCurvetoCubicSmoothAbs.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
   num x;
 
-  /// @domName SVGPathSegCurvetoCubicSmoothAbs.x2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
   num x2;
 
-  /// @domName SVGPathSegCurvetoCubicSmoothAbs.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
   num y;
 
-  /// @domName SVGPathSegCurvetoCubicSmoothAbs.y2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4105,19 +4806,24 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg native "*SVGPathSegCurvetoCub
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegCurvetoCubicSmoothRel; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegCurvetoCubicSmoothRel')
 class PathSegCurvetoCubicSmoothRel extends PathSeg native "*SVGPathSegCurvetoCubicSmoothRel" {
 
-  /// @domName SVGPathSegCurvetoCubicSmoothRel.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
   num x;
 
-  /// @domName SVGPathSegCurvetoCubicSmoothRel.x2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
   num x2;
 
-  /// @domName SVGPathSegCurvetoCubicSmoothRel.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
   num y;
 
-  /// @domName SVGPathSegCurvetoCubicSmoothRel.y2; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4125,19 +4831,24 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg native "*SVGPathSegCurvetoCub
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegCurvetoQuadraticAbs; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegCurvetoQuadraticAbs')
 class PathSegCurvetoQuadraticAbs extends PathSeg native "*SVGPathSegCurvetoQuadraticAbs" {
 
-  /// @domName SVGPathSegCurvetoQuadraticAbs.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticAbs.x')
   num x;
 
-  /// @domName SVGPathSegCurvetoQuadraticAbs.x1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
   num x1;
 
-  /// @domName SVGPathSegCurvetoQuadraticAbs.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticAbs.y')
   num y;
 
-  /// @domName SVGPathSegCurvetoQuadraticAbs.y1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
   num y1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4145,19 +4856,24 @@ class PathSegCurvetoQuadraticAbs extends PathSeg native "*SVGPathSegCurvetoQuadr
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegCurvetoQuadraticRel; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegCurvetoQuadraticRel')
 class PathSegCurvetoQuadraticRel extends PathSeg native "*SVGPathSegCurvetoQuadraticRel" {
 
-  /// @domName SVGPathSegCurvetoQuadraticRel.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticRel.x')
   num x;
 
-  /// @domName SVGPathSegCurvetoQuadraticRel.x1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticRel.x1')
   num x1;
 
-  /// @domName SVGPathSegCurvetoQuadraticRel.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticRel.y')
   num y;
 
-  /// @domName SVGPathSegCurvetoQuadraticRel.y1; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticRel.y1')
   num y1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4165,13 +4881,16 @@ class PathSegCurvetoQuadraticRel extends PathSeg native "*SVGPathSegCurvetoQuadr
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegCurvetoQuadraticSmoothAbs; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegCurvetoQuadraticSmoothAbs')
 class PathSegCurvetoQuadraticSmoothAbs extends PathSeg native "*SVGPathSegCurvetoQuadraticSmoothAbs" {
 
-  /// @domName SVGPathSegCurvetoQuadraticSmoothAbs.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
   num x;
 
-  /// @domName SVGPathSegCurvetoQuadraticSmoothAbs.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4179,13 +4898,16 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg native "*SVGPathSegCurvet
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegCurvetoQuadraticSmoothRel; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegCurvetoQuadraticSmoothRel')
 class PathSegCurvetoQuadraticSmoothRel extends PathSeg native "*SVGPathSegCurvetoQuadraticSmoothRel" {
 
-  /// @domName SVGPathSegCurvetoQuadraticSmoothRel.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
   num x;
 
-  /// @domName SVGPathSegCurvetoQuadraticSmoothRel.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4193,13 +4915,16 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg native "*SVGPathSegCurvet
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegLinetoAbs; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegLinetoAbs')
 class PathSegLinetoAbs extends PathSeg native "*SVGPathSegLinetoAbs" {
 
-  /// @domName SVGPathSegLinetoAbs.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegLinetoAbs.x')
   num x;
 
-  /// @domName SVGPathSegLinetoAbs.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegLinetoAbs.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4207,10 +4932,12 @@ class PathSegLinetoAbs extends PathSeg native "*SVGPathSegLinetoAbs" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegLinetoHorizontalAbs; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegLinetoHorizontalAbs')
 class PathSegLinetoHorizontalAbs extends PathSeg native "*SVGPathSegLinetoHorizontalAbs" {
 
-  /// @domName SVGPathSegLinetoHorizontalAbs.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegLinetoHorizontalAbs.x')
   num x;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4218,10 +4945,12 @@ class PathSegLinetoHorizontalAbs extends PathSeg native "*SVGPathSegLinetoHorizo
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegLinetoHorizontalRel; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegLinetoHorizontalRel')
 class PathSegLinetoHorizontalRel extends PathSeg native "*SVGPathSegLinetoHorizontalRel" {
 
-  /// @domName SVGPathSegLinetoHorizontalRel.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegLinetoHorizontalRel.x')
   num x;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4229,13 +4958,16 @@ class PathSegLinetoHorizontalRel extends PathSeg native "*SVGPathSegLinetoHorizo
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegLinetoRel; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegLinetoRel')
 class PathSegLinetoRel extends PathSeg native "*SVGPathSegLinetoRel" {
 
-  /// @domName SVGPathSegLinetoRel.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegLinetoRel.x')
   num x;
 
-  /// @domName SVGPathSegLinetoRel.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegLinetoRel.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4243,10 +4975,12 @@ class PathSegLinetoRel extends PathSeg native "*SVGPathSegLinetoRel" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegLinetoVerticalAbs; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegLinetoVerticalAbs')
 class PathSegLinetoVerticalAbs extends PathSeg native "*SVGPathSegLinetoVerticalAbs" {
 
-  /// @domName SVGPathSegLinetoVerticalAbs.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegLinetoVerticalAbs.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4254,10 +4988,12 @@ class PathSegLinetoVerticalAbs extends PathSeg native "*SVGPathSegLinetoVertical
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegLinetoVerticalRel; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegLinetoVerticalRel')
 class PathSegLinetoVerticalRel extends PathSeg native "*SVGPathSegLinetoVerticalRel" {
 
-  /// @domName SVGPathSegLinetoVerticalRel.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegLinetoVerticalRel.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4265,10 +5001,12 @@ class PathSegLinetoVerticalRel extends PathSeg native "*SVGPathSegLinetoVertical
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegList')
 class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*SVGPathSegList" {
 
-  /// @domName SVGPathSegList.numberOfItems; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegList.numberOfItems')
   final int numberOfItems;
 
   PathSeg operator[](int index) => JS("PathSeg", "#[#]", this, index);
@@ -4419,25 +5157,32 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 
   // -- end List<PathSeg> mixins.
 
-  /// @domName SVGPathSegList.appendItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegList.appendItem')
   PathSeg appendItem(PathSeg newItem) native;
 
-  /// @domName SVGPathSegList.clear; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegList.clear')
   void clear() native;
 
-  /// @domName SVGPathSegList.getItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegList.getItem')
   PathSeg getItem(int index) native;
 
-  /// @domName SVGPathSegList.initialize; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegList.initialize')
   PathSeg initialize(PathSeg newItem) native;
 
-  /// @domName SVGPathSegList.insertItemBefore; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegList.insertItemBefore')
   PathSeg insertItemBefore(PathSeg newItem, int index) native;
 
-  /// @domName SVGPathSegList.removeItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegList.removeItem')
   PathSeg removeItem(int index) native;
 
-  /// @domName SVGPathSegList.replaceItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegList.replaceItem')
   PathSeg replaceItem(PathSeg newItem, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4445,13 +5190,16 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegMovetoAbs; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegMovetoAbs')
 class PathSegMovetoAbs extends PathSeg native "*SVGPathSegMovetoAbs" {
 
-  /// @domName SVGPathSegMovetoAbs.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegMovetoAbs.x')
   num x;
 
-  /// @domName SVGPathSegMovetoAbs.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegMovetoAbs.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4459,13 +5207,16 @@ class PathSegMovetoAbs extends PathSeg native "*SVGPathSegMovetoAbs" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPathSegMovetoRel; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPathSegMovetoRel')
 class PathSegMovetoRel extends PathSeg native "*SVGPathSegMovetoRel" {
 
-  /// @domName SVGPathSegMovetoRel.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegMovetoRel.x')
   num x;
 
-  /// @domName SVGPathSegMovetoRel.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPathSegMovetoRel.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4473,83 +5224,102 @@ class PathSegMovetoRel extends PathSeg native "*SVGPathSegMovetoRel" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPatternElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPatternElement')
 class PatternElement extends SvgElement implements FitToViewBox, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPatternElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
 
-  /// @domName SVGPatternElement.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGPatternElement.patternContentUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.patternContentUnits')
   final AnimatedEnumeration patternContentUnits;
 
-  /// @domName SVGPatternElement.patternTransform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.patternTransform')
   final AnimatedTransformList patternTransform;
 
-  /// @domName SVGPatternElement.patternUnits; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.patternUnits')
   final AnimatedEnumeration patternUnits;
 
-  /// @domName SVGPatternElement.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGPatternElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGPatternElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.y')
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
-  /// @domName SVGFitToViewBox.preserveAspectRatio; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.preserveAspectRatio')
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
-  /// @domName SVGFitToViewBox.viewBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.viewBox')
   final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.xmlspace')
   String xmlspace;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPatternElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4557,16 +5327,20 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPoint; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPoint')
 class Point native "*SVGPoint" {
 
-  /// @domName SVGPoint.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPoint.x')
   num x;
 
-  /// @domName SVGPoint.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPoint.y')
   num y;
 
-  /// @domName SVGPoint.matrixTransform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPoint.matrixTransform')
   Point matrixTransform(Matrix matrix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4574,31 +5348,40 @@ class Point native "*SVGPoint" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPointList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPointList')
 class PointList native "*SVGPointList" {
 
-  /// @domName SVGPointList.numberOfItems; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPointList.numberOfItems')
   final int numberOfItems;
 
-  /// @domName SVGPointList.appendItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPointList.appendItem')
   Point appendItem(Point item) native;
 
-  /// @domName SVGPointList.clear; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPointList.clear')
   void clear() native;
 
-  /// @domName SVGPointList.getItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPointList.getItem')
   Point getItem(int index) native;
 
-  /// @domName SVGPointList.initialize; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPointList.initialize')
   Point initialize(Point item) native;
 
-  /// @domName SVGPointList.insertItemBefore; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPointList.insertItemBefore')
   Point insertItemBefore(Point item, int index) native;
 
-  /// @domName SVGPointList.removeItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPointList.removeItem')
   Point removeItem(int index) native;
 
-  /// @domName SVGPointList.replaceItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPointList.replaceItem')
   Point replaceItem(Point item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4606,82 +5389,100 @@ class PointList native "*SVGPointList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPolygonElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPolygonElement')
 class PolygonElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolygonElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
 
-  /// @domName SVGPolygonElement.animatedPoints; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.animatedPoints')
   final PointList animatedPoints;
 
-  /// @domName SVGPolygonElement.points; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.points')
   final PointList points;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGPolygonElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGPolygonElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolygonElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4689,82 +5490,100 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPolylineElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPolylineElement')
 class PolylineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolylineElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
 
-  /// @domName SVGPolylineElement.animatedPoints; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.animatedPoints')
   final PointList animatedPoints;
 
-  /// @domName SVGPolylineElement.points; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.points')
   final PointList points;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGPolylineElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGPolylineElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPolylineElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4772,7 +5591,8 @@ class PolylineElement extends SvgElement implements Transformable, Tests, Stylab
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGPreserveAspectRatio; @docsEditable true
+/// @docsEditable true
+@DomName('SVGPreserveAspectRatio')
 class PreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   static const int SVG_MEETORSLICE_MEET = 1;
@@ -4803,10 +5623,12 @@ class PreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
-  /// @domName SVGPreserveAspectRatio.align; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPreserveAspectRatio.align')
   int align;
 
-  /// @domName SVGPreserveAspectRatio.meetOrSlice; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGPreserveAspectRatio.meetOrSlice')
   int meetOrSlice;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4814,28 +5636,35 @@ class PreserveAspectRatio native "*SVGPreserveAspectRatio" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGRadialGradientElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGRadialGradientElement')
 class RadialGradientElement extends GradientElement native "*SVGRadialGradientElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
 
-  /// @domName SVGRadialGradientElement.cx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRadialGradientElement.cx')
   final AnimatedLength cx;
 
-  /// @domName SVGRadialGradientElement.cy; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRadialGradientElement.cy')
   final AnimatedLength cy;
 
-  /// @domName SVGRadialGradientElement.fr; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRadialGradientElement.fr')
   final AnimatedLength fr;
 
-  /// @domName SVGRadialGradientElement.fx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRadialGradientElement.fx')
   final AnimatedLength fx;
 
-  /// @domName SVGRadialGradientElement.fy; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRadialGradientElement.fy')
   final AnimatedLength fy;
 
-  /// @domName SVGRadialGradientElement.r; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRadialGradientElement.r')
   final AnimatedLength r;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4843,19 +5672,24 @@ class RadialGradientElement extends GradientElement native "*SVGRadialGradientEl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGRect; @docsEditable true
+/// @docsEditable true
+@DomName('SVGRect')
 class Rect native "*SVGRect" {
 
-  /// @domName SVGRect.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRect.height')
   num height;
 
-  /// @domName SVGRect.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRect.width')
   num width;
 
-  /// @domName SVGRect.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRect.x')
   num x;
 
-  /// @domName SVGRect.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRect.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4863,94 +5697,116 @@ class Rect native "*SVGRect" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGRectElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGRectElement')
 class RectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGRectElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
 
-  /// @domName SVGRectElement.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGRectElement.rx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.rx')
   final AnimatedLength rx;
 
-  /// @domName SVGRectElement.ry; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.ry')
   final AnimatedLength ry;
 
-  /// @domName SVGRectElement.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGRectElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGRectElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.y')
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGRectElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGRectElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGRectElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4958,7 +5814,8 @@ class RectElement extends SvgElement implements Transformable, Tests, Stylable, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGRenderingIntent; @docsEditable true
+/// @docsEditable true
+@DomName('SVGRenderingIntent')
 class RenderingIntent native "*SVGRenderingIntent" {
 
   static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
@@ -4978,23 +5835,27 @@ class RenderingIntent native "*SVGRenderingIntent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGScriptElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGScriptElement')
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGScriptElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
 
-  /// @domName SVGScriptElement.type; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGScriptElement.type')
   String type;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGScriptElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGScriptElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5002,10 +5863,11 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGSetElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGSetElement')
 class SetElement extends AnimationElement native "*SVGSetElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5013,25 +5875,28 @@ class SetElement extends AnimationElement native "*SVGSetElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGStopElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGStopElement')
 class StopElement extends SvgElement implements Stylable native "*SVGStopElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
-  /// @domName SVGStopElement.offset; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStopElement.offset')
   final AnimatedNumber offset;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStopElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5039,10 +5904,12 @@ class StopElement extends SvgElement implements Stylable native "*SVGStopElement
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGStringList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGStringList')
 class StringList implements JavaScriptIndexingBehavior, List<String> native "*SVGStringList" {
 
-  /// @domName SVGStringList.numberOfItems; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStringList.numberOfItems')
   final int numberOfItems;
 
   String operator[](int index) => JS("String", "#[#]", this, index);
@@ -5193,25 +6060,32 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   // -- end List<String> mixins.
 
-  /// @domName SVGStringList.appendItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStringList.appendItem')
   String appendItem(String item) native;
 
-  /// @domName SVGStringList.clear; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStringList.clear')
   void clear() native;
 
-  /// @domName SVGStringList.getItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStringList.getItem')
   String getItem(int index) native;
 
-  /// @domName SVGStringList.initialize; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStringList.initialize')
   String initialize(String item) native;
 
-  /// @domName SVGStringList.insertItemBefore; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStringList.insertItemBefore')
   String insertItemBefore(String item, int index) native;
 
-  /// @domName SVGStringList.removeItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStringList.removeItem')
   String removeItem(int index) native;
 
-  /// @domName SVGStringList.replaceItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStringList.replaceItem')
   String replaceItem(String item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5219,14 +6093,15 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGStylable
+/// @docsEditable true
+@DomName('SVGStylable')
 abstract class Stylable {
 
   AnimatedString $dom_svgClassName;
 
   CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
   CssValue getPresentationAttribute(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5234,36 +6109,42 @@ abstract class Stylable {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGStyleElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGStyleElement')
 class StyleElement extends SvgElement implements LangSpace native "*SVGStyleElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
 
-  /// @domName SVGStyleElement.disabled; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStyleElement.disabled')
   bool disabled;
 
-  /// @domName SVGStyleElement.media; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStyleElement.media')
   String media;
 
   // Shadowing definition.
-  /// @domName SVGStyleElement.title; @docsEditable true
+  /// @docsEditable true
   String get title => JS("String", "#.title", this);
 
-  /// @domName SVGStyleElement.title; @docsEditable true
+  /// @docsEditable true
   void set title(String value) {
     JS("void", "#.title = #", this, value);
   }
 
-  /// @domName SVGStyleElement.type; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStyleElement.type')
   String type;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStyleElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGStyleElement.xmlspace')
   String xmlspace;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5271,14 +6152,17 @@ class StyleElement extends SvgElement implements LangSpace native "*SVGStyleElem
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGDocument; @docsEditable true
+/// @docsEditable true
+@DomName('SVGDocument')
 class SvgDocument extends Document native "*SVGDocument" {
 
-  /// @domName SVGDocument.rootElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGDocument.rootElement')
   final SvgSvgElement rootElement;
 
-  /// @domName SVGDocument.createEvent; @docsEditable true
+  /// @docsEditable true
   @JSName('createEvent')
+  @DomName('SVGDocument.createEvent')
   Event $dom_createEvent(String eventType) native;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -5313,7 +6197,7 @@ class _AttributeClassSet extends CssClassSet {
   }
 }
 
-/// @domName SVGElement
+@DomName('SVGElement')
 class SvgElement extends Element native "*SVGElement" {
   factory SvgElement.tag(String tag) =>
       _SvgElementFactoryProvider.createSvgElement_tag(tag);
@@ -5370,17 +6254,17 @@ class SvgElement extends Element native "*SVGElement" {
 
   // Unsupported methods inherited from Element.
 
-  /** @domName Element.insertAdjacentText */
+  @DomName('Element.insertAdjacentText')
   void insertAdjacentText(String where, String text) {
     throw new UnsupportedError("Cannot invoke insertAdjacentText on SVG.");
   }
 
-  /** @domName Element.insertAdjacentHTML */
+  @DomName('Element.insertAdjacentHTML')
   void insertAdjacentHtml(String where, String text) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
-  /** @domName Element.insertAdjacentHTML */
+  @DomName('Element.insertAdjacentHTML')
   Element insertAdjacentElement(String where, Element element) {
     throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
   }
@@ -5396,22 +6280,25 @@ class SvgElement extends Element native "*SVGElement" {
 
 
   // Shadowing definition.
-  /// @domName SVGElement.id; @docsEditable true
+  /// @docsEditable true
   String get id => JS("String", "#.id", this);
 
-  /// @domName SVGElement.id; @docsEditable true
+  /// @docsEditable true
   void set id(String value) {
     JS("void", "#.id = #", this, value);
   }
 
-  /// @domName SVGElement.ownerSVGElement; @docsEditable true
+  /// @docsEditable true
   @JSName('ownerSVGElement')
+  @DomName('SVGElement.ownerSVGElement')
   final SvgSvgElement ownerSvgElement;
 
-  /// @domName SVGElement.viewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElement.viewportElement')
   final SvgElement viewportElement;
 
-  /// @domName SVGElement.xmlbase; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElement.xmlbase')
   String xmlbase;
 
 }
@@ -5420,7 +6307,8 @@ class SvgElement extends Element native "*SVGElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGException; @docsEditable true
+/// @docsEditable true
+@DomName('SVGException')
 class SvgException native "*SVGException" {
 
   static const int SVG_INVALID_VALUE_ERR = 1;
@@ -5429,16 +6317,20 @@ class SvgException native "*SVGException" {
 
   static const int SVG_WRONG_TYPE_ERR = 0;
 
-  /// @domName SVGException.code; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGException.code')
   final int code;
 
-  /// @domName SVGException.message; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGException.message')
   final String message;
 
-  /// @domName SVGException.name; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGException.name')
   final String name;
 
-  /// @domName SVGException.toString; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGException.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5446,207 +6338,262 @@ class SvgException native "*SVGException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGSVGElement
+@DomName('SVGSVGElement')
 class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable, Locatable, ExternalResourcesRequired, ZoomAndPan, LangSpace native "*SVGSVGElement" {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
 
-  /// @domName SVGSVGElement.contentScriptType; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.contentScriptType')
   String contentScriptType;
 
-  /// @domName SVGSVGElement.contentStyleType; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.contentStyleType')
   String contentStyleType;
 
-  /// @domName SVGSVGElement.currentScale; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.currentScale')
   num currentScale;
 
-  /// @domName SVGSVGElement.currentTranslate; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.currentTranslate')
   final Point currentTranslate;
 
-  /// @domName SVGSVGElement.currentView; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.currentView')
   final ViewSpec currentView;
 
-  /// @domName SVGSVGElement.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGSVGElement.pixelUnitToMillimeterX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.pixelUnitToMillimeterX')
   final num pixelUnitToMillimeterX;
 
-  /// @domName SVGSVGElement.pixelUnitToMillimeterY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.pixelUnitToMillimeterY')
   final num pixelUnitToMillimeterY;
 
-  /// @domName SVGSVGElement.screenPixelToMillimeterX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.screenPixelToMillimeterX')
   final num screenPixelToMillimeterX;
 
-  /// @domName SVGSVGElement.screenPixelToMillimeterY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.screenPixelToMillimeterY')
   final num screenPixelToMillimeterY;
 
-  /// @domName SVGSVGElement.useCurrentView; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.useCurrentView')
   final bool useCurrentView;
 
-  /// @domName SVGSVGElement.viewport; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.viewport')
   final Rect viewport;
 
-  /// @domName SVGSVGElement.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGSVGElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGSVGElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.y')
   final AnimatedLength y;
 
-  /// @domName SVGSVGElement.animationsPaused; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.animationsPaused')
   bool animationsPaused() native;
 
-  /// @domName SVGSVGElement.checkEnclosure; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.checkEnclosure')
   bool checkEnclosure(SvgElement element, Rect rect) native;
 
-  /// @domName SVGSVGElement.checkIntersection; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.checkIntersection')
   bool checkIntersection(SvgElement element, Rect rect) native;
 
-  /// @domName SVGSVGElement.createSVGAngle; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGAngle')
+  @DomName('SVGSVGElement.createSVGAngle')
   Angle createSvgAngle() native;
 
-  /// @domName SVGSVGElement.createSVGLength; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGLength')
+  @DomName('SVGSVGElement.createSVGLength')
   Length createSvgLength() native;
 
-  /// @domName SVGSVGElement.createSVGMatrix; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGMatrix')
+  @DomName('SVGSVGElement.createSVGMatrix')
   Matrix createSvgMatrix() native;
 
-  /// @domName SVGSVGElement.createSVGNumber; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGNumber')
+  @DomName('SVGSVGElement.createSVGNumber')
   Number createSvgNumber() native;
 
-  /// @domName SVGSVGElement.createSVGPoint; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGPoint')
+  @DomName('SVGSVGElement.createSVGPoint')
   Point createSvgPoint() native;
 
-  /// @domName SVGSVGElement.createSVGRect; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGRect')
+  @DomName('SVGSVGElement.createSVGRect')
   Rect createSvgRect() native;
 
-  /// @domName SVGSVGElement.createSVGTransform; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGTransform')
+  @DomName('SVGSVGElement.createSVGTransform')
   Transform createSvgTransform() native;
 
-  /// @domName SVGSVGElement.createSVGTransformFromMatrix; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGTransformFromMatrix')
+  @DomName('SVGSVGElement.createSVGTransformFromMatrix')
   Transform createSvgTransformFromMatrix(Matrix matrix) native;
 
-  /// @domName SVGSVGElement.deselectAll; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.deselectAll')
   void deselectAll() native;
 
-  /// @domName SVGSVGElement.forceRedraw; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.forceRedraw')
   void forceRedraw() native;
 
-  /// @domName SVGSVGElement.getCurrentTime; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.getCurrentTime')
   num getCurrentTime() native;
 
-  /// @domName SVGSVGElement.getElementById; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.getElementById')
   Element getElementById(String elementId) native;
 
-  /// @domName SVGSVGElement.getEnclosureList; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.getEnclosureList')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native;
 
-  /// @domName SVGSVGElement.getIntersectionList; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.getIntersectionList')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native;
 
-  /// @domName SVGSVGElement.pauseAnimations; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.pauseAnimations')
   void pauseAnimations() native;
 
-  /// @domName SVGSVGElement.setCurrentTime; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.setCurrentTime')
   void setCurrentTime(num seconds) native;
 
-  /// @domName SVGSVGElement.suspendRedraw; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.suspendRedraw')
   int suspendRedraw(int maxWaitMilliseconds) native;
 
-  /// @domName SVGSVGElement.unpauseAnimations; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.unpauseAnimations')
   void unpauseAnimations() native;
 
-  /// @domName SVGSVGElement.unsuspendRedraw; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.unsuspendRedraw')
   void unsuspendRedraw(int suspendHandleId) native;
 
-  /// @domName SVGSVGElement.unsuspendRedrawAll; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.unsuspendRedrawAll')
   void unsuspendRedrawAll() native;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
-  /// @domName SVGFitToViewBox.preserveAspectRatio; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.preserveAspectRatio')
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
-  /// @domName SVGFitToViewBox.viewBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.viewBox')
   final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGSVGElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGSVGElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGZoomAndPan
 
-  /// @domName SVGZoomAndPan.zoomAndPan; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSVGElement.zoomAndPan')
   int zoomAndPan;
 
 }
@@ -5655,76 +6602,92 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGSwitchElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGSwitchElement')
 class SwitchElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGSwitchElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGSwitchElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGSwitchElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSwitchElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5732,43 +6695,50 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGSymbolElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGSymbolElement')
 class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGSymbolElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSymbolElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
-  /// @domName SVGFitToViewBox.preserveAspectRatio; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSymbolElement.preserveAspectRatio')
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
-  /// @domName SVGFitToViewBox.viewBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSymbolElement.viewBox')
   final AnimatedRect viewBox;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSymbolElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSymbolElement.xmlspace')
   String xmlspace;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGSymbolElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5776,15 +6746,17 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTRefElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGTRefElement')
 class TRefElement extends TextPositioningElement implements UriReference native "*SVGTRefElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory TRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTRefElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5792,10 +6764,11 @@ class TRefElement extends TextPositioningElement implements UriReference native 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTSpanElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGTSpanElement')
 class TSpanElement extends TextPositioningElement native "*SVGTSpanElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5803,7 +6776,8 @@ class TSpanElement extends TextPositioningElement native "*SVGTSpanElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTests
+/// @docsEditable true
+@DomName('SVGTests')
 abstract class Tests {
 
   StringList requiredExtensions;
@@ -5812,7 +6786,7 @@ abstract class Tests {
 
   StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
   bool hasExtension(String extension);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5820,7 +6794,8 @@ abstract class Tests {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTextContentElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGTextContentElement')
 class TextContentElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGTextContentElement" {
 
   static const int LENGTHADJUST_SPACING = 1;
@@ -5829,76 +6804,95 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
 
   static const int LENGTHADJUST_UNKNOWN = 0;
 
-  /// @domName SVGTextContentElement.lengthAdjust; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.lengthAdjust')
   final AnimatedEnumeration lengthAdjust;
 
-  /// @domName SVGTextContentElement.textLength; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.textLength')
   final AnimatedLength textLength;
 
-  /// @domName SVGTextContentElement.getCharNumAtPosition; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.getCharNumAtPosition')
   int getCharNumAtPosition(Point point) native;
 
-  /// @domName SVGTextContentElement.getComputedTextLength; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.getComputedTextLength')
   num getComputedTextLength() native;
 
-  /// @domName SVGTextContentElement.getEndPositionOfChar; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.getEndPositionOfChar')
   Point getEndPositionOfChar(int offset) native;
 
-  /// @domName SVGTextContentElement.getExtentOfChar; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.getExtentOfChar')
   Rect getExtentOfChar(int offset) native;
 
-  /// @domName SVGTextContentElement.getNumberOfChars; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.getNumberOfChars')
   int getNumberOfChars() native;
 
-  /// @domName SVGTextContentElement.getRotationOfChar; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.getRotationOfChar')
   num getRotationOfChar(int offset) native;
 
-  /// @domName SVGTextContentElement.getStartPositionOfChar; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.getStartPositionOfChar')
   Point getStartPositionOfChar(int offset) native;
 
-  /// @domName SVGTextContentElement.getSubStringLength; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.getSubStringLength')
   num getSubStringLength(int offset, int length) native;
 
-  /// @domName SVGTextContentElement.selectSubString; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.selectSubString')
   void selectSubString(int offset, int length) native;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.xmlspace')
   String xmlspace;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextContentElement.hasExtension')
   bool hasExtension(String extension) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5906,37 +6900,45 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTextElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGTextElement')
 class TextElement extends TextPositioningElement implements Transformable native "*SVGTextElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGTextElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGTextElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextElement.transform')
   final AnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5944,7 +6946,8 @@ class TextElement extends TextPositioningElement implements Transformable native
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTextPathElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGTextPathElement')
 class TextPathElement extends TextContentElement implements UriReference native "*SVGTextPathElement" {
 
   static const int TEXTPATH_METHODTYPE_ALIGN = 1;
@@ -5959,18 +6962,22 @@ class TextPathElement extends TextContentElement implements UriReference native 
 
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  /// @domName SVGTextPathElement.method; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextPathElement.method')
   final AnimatedEnumeration method;
 
-  /// @domName SVGTextPathElement.spacing; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextPathElement.spacing')
   final AnimatedEnumeration spacing;
 
-  /// @domName SVGTextPathElement.startOffset; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextPathElement.startOffset')
   final AnimatedLength startOffset;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextPathElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5978,22 +6985,28 @@ class TextPathElement extends TextContentElement implements UriReference native 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTextPositioningElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGTextPositioningElement')
 class TextPositioningElement extends TextContentElement native "*SVGTextPositioningElement" {
 
-  /// @domName SVGTextPositioningElement.dx; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextPositioningElement.dx')
   final AnimatedLengthList dx;
 
-  /// @domName SVGTextPositioningElement.dy; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextPositioningElement.dy')
   final AnimatedLengthList dy;
 
-  /// @domName SVGTextPositioningElement.rotate; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextPositioningElement.rotate')
   final AnimatedNumberList rotate;
 
-  /// @domName SVGTextPositioningElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextPositioningElement.x')
   final AnimatedLengthList x;
 
-  /// @domName SVGTextPositioningElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTextPositioningElement.y')
   final AnimatedLengthList y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6001,30 +7014,34 @@ class TextPositioningElement extends TextContentElement native "*SVGTextPosition
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTitleElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGTitleElement')
 class TitleElement extends SvgElement implements Stylable, LangSpace native "*SVGTitleElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTitleElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTitleElement.xmlspace')
   String xmlspace;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTitleElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6032,7 +7049,8 @@ class TitleElement extends SvgElement implements Stylable, LangSpace native "*SV
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTransform; @docsEditable true
+/// @docsEditable true
+@DomName('SVGTransform')
 class Transform native "*SVGTransform" {
 
   static const int SVG_TRANSFORM_MATRIX = 1;
@@ -6049,31 +7067,40 @@ class Transform native "*SVGTransform" {
 
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
-  /// @domName SVGTransform.angle; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransform.angle')
   final num angle;
 
-  /// @domName SVGTransform.matrix; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransform.matrix')
   final Matrix matrix;
 
-  /// @domName SVGTransform.type; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransform.type')
   final int type;
 
-  /// @domName SVGTransform.setMatrix; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransform.setMatrix')
   void setMatrix(Matrix matrix) native;
 
-  /// @domName SVGTransform.setRotate; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransform.setRotate')
   void setRotate(num angle, num cx, num cy) native;
 
-  /// @domName SVGTransform.setScale; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransform.setScale')
   void setScale(num sx, num sy) native;
 
-  /// @domName SVGTransform.setSkewX; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransform.setSkewX')
   void setSkewX(num angle) native;
 
-  /// @domName SVGTransform.setSkewY; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransform.setSkewY')
   void setSkewY(num angle) native;
 
-  /// @domName SVGTransform.setTranslate; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransform.setTranslate')
   void setTranslate(num tx, num ty) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6081,10 +7108,12 @@ class Transform native "*SVGTransform" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTransformList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGTransformList')
 class TransformList implements List<Transform>, JavaScriptIndexingBehavior native "*SVGTransformList" {
 
-  /// @domName SVGTransformList.numberOfItems; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransformList.numberOfItems')
   final int numberOfItems;
 
   Transform operator[](int index) => JS("Transform", "#[#]", this, index);
@@ -6235,32 +7264,41 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
 
   // -- end List<Transform> mixins.
 
-  /// @domName SVGTransformList.appendItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransformList.appendItem')
   Transform appendItem(Transform item) native;
 
-  /// @domName SVGTransformList.clear; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransformList.clear')
   void clear() native;
 
-  /// @domName SVGTransformList.consolidate; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransformList.consolidate')
   Transform consolidate() native;
 
-  /// @domName SVGTransformList.createSVGTransformFromMatrix; @docsEditable true
+  /// @docsEditable true
   @JSName('createSVGTransformFromMatrix')
+  @DomName('SVGTransformList.createSVGTransformFromMatrix')
   Transform createSvgTransformFromMatrix(Matrix matrix) native;
 
-  /// @domName SVGTransformList.getItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransformList.getItem')
   Transform getItem(int index) native;
 
-  /// @domName SVGTransformList.initialize; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransformList.initialize')
   Transform initialize(Transform item) native;
 
-  /// @domName SVGTransformList.insertItemBefore; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransformList.insertItemBefore')
   Transform insertItemBefore(Transform item, int index) native;
 
-  /// @domName SVGTransformList.removeItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransformList.removeItem')
   Transform removeItem(int index) native;
 
-  /// @domName SVGTransformList.replaceItem; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGTransformList.replaceItem')
   Transform replaceItem(Transform item, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6268,7 +7306,8 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGTransformable
+/// @docsEditable true
+@DomName('SVGTransformable')
 abstract class Transformable implements Locatable {
 
   AnimatedTransformList transform;
@@ -6279,16 +7318,16 @@ abstract class Transformable implements Locatable {
 
   SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
   Rect getBBox();
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   Matrix getCTM();
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   Matrix getScreenCTM();
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
   Matrix getTransformToElement(SvgElement element);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6296,7 +7335,8 @@ abstract class Transformable implements Locatable {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGUnitTypes; @docsEditable true
+/// @docsEditable true
+@DomName('SVGUnitTypes')
 class UnitTypes native "*SVGUnitTypes" {
 
   static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
@@ -6310,7 +7350,8 @@ class UnitTypes native "*SVGUnitTypes" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGURIReference
+/// @docsEditable true
+@DomName('SVGURIReference')
 abstract class UriReference {
 
   AnimatedString href;
@@ -6320,99 +7361,122 @@ abstract class UriReference {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGUseElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGUseElement')
 class UseElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGUseElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
 
-  /// @domName SVGUseElement.animatedInstanceRoot; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.animatedInstanceRoot')
   final ElementInstance animatedInstanceRoot;
 
-  /// @domName SVGUseElement.height; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.height')
   final AnimatedLength height;
 
-  /// @domName SVGUseElement.instanceRoot; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.instanceRoot')
   final ElementInstance instanceRoot;
 
-  /// @domName SVGUseElement.width; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.width')
   final AnimatedLength width;
 
-  /// @domName SVGUseElement.x; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.x')
   final AnimatedLength x;
 
-  /// @domName SVGUseElement.y; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.y')
   final AnimatedLength y;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGLangSpace
 
-  /// @domName SVGLangSpace.xmllang; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.xmllang')
   String xmllang;
 
-  /// @domName SVGLangSpace.xmlspace; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.xmlspace')
   String xmlspace;
 
   // From SVGLocatable
 
-  /// @domName SVGLocatable.farthestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.farthestViewportElement')
   final SvgElement farthestViewportElement;
 
-  /// @domName SVGLocatable.nearestViewportElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.nearestViewportElement')
   final SvgElement nearestViewportElement;
 
-  /// @domName SVGLocatable.getBBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.getBBox')
   Rect getBBox() native;
 
-  /// @domName SVGLocatable.getCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getCTM')
+  @DomName('SVGUseElement.getCTM')
   Matrix getCtm() native;
 
-  /// @domName SVGLocatable.getScreenCTM; @docsEditable true
+  /// @docsEditable true
   @JSName('getScreenCTM')
+  @DomName('SVGUseElement.getScreenCTM')
   Matrix getScreenCtm() native;
 
-  /// @domName SVGLocatable.getTransformToElement; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.getTransformToElement')
   Matrix getTransformToElement(SvgElement element) native;
 
   // From SVGStylable
 
   // Shadowing definition.
-  /// @domName SVGStylable.className; @docsEditable true
+  /// @docsEditable true
   AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
 
-  /// @domName SVGStylable.getPresentationAttribute; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.getPresentationAttribute')
   CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
-  /// @domName SVGTests.requiredExtensions; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.requiredExtensions')
   final StringList requiredExtensions;
 
-  /// @domName SVGTests.requiredFeatures; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.requiredFeatures')
   final StringList requiredFeatures;
 
-  /// @domName SVGTests.systemLanguage; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.systemLanguage')
   final StringList systemLanguage;
 
-  /// @domName SVGTests.hasExtension; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.hasExtension')
   bool hasExtension(String extension) native;
 
   // From SVGTransformable
 
-  /// @domName SVGTransformable.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.transform')
   final AnimatedTransformList transform;
 
   // From SVGURIReference
 
-  /// @domName SVGURIReference.href; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGUseElement.href')
   final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6420,10 +7484,11 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGVKernElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGVKernElement')
 class VKernElement extends SvgElement native "*SVGVKernElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory VKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6431,31 +7496,37 @@ class VKernElement extends SvgElement native "*SVGVKernElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGViewElement; @docsEditable true
+/// @docsEditable true
+@DomName('SVGViewElement')
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan native "*SVGViewElement" {
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
 
-  /// @domName SVGViewElement.viewTarget; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewElement.viewTarget')
   final StringList viewTarget;
 
   // From SVGExternalResourcesRequired
 
-  /// @domName SVGExternalResourcesRequired.externalResourcesRequired; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewElement.externalResourcesRequired')
   final AnimatedBoolean externalResourcesRequired;
 
   // From SVGFitToViewBox
 
-  /// @domName SVGFitToViewBox.preserveAspectRatio; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewElement.preserveAspectRatio')
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
-  /// @domName SVGFitToViewBox.viewBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewElement.viewBox')
   final AnimatedRect viewBox;
 
   // From SVGZoomAndPan
 
-  /// @domName SVGZoomAndPan.zoomAndPan; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewElement.zoomAndPan')
   int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6463,34 +7534,44 @@ class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesR
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGViewSpec; @docsEditable true
+/// @docsEditable true
+@DomName('SVGViewSpec')
 class ViewSpec native "*SVGViewSpec" {
 
-  /// @domName SVGViewSpec.preserveAspectRatio; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewSpec.preserveAspectRatio')
   final AnimatedPreserveAspectRatio preserveAspectRatio;
 
-  /// @domName SVGViewSpec.preserveAspectRatioString; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewSpec.preserveAspectRatioString')
   final String preserveAspectRatioString;
 
-  /// @domName SVGViewSpec.transform; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewSpec.transform')
   final TransformList transform;
 
-  /// @domName SVGViewSpec.transformString; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewSpec.transformString')
   final String transformString;
 
-  /// @domName SVGViewSpec.viewBox; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewSpec.viewBox')
   final AnimatedRect viewBox;
 
-  /// @domName SVGViewSpec.viewBoxString; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewSpec.viewBoxString')
   final String viewBoxString;
 
-  /// @domName SVGViewSpec.viewTarget; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewSpec.viewTarget')
   final SvgElement viewTarget;
 
-  /// @domName SVGViewSpec.viewTargetString; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewSpec.viewTargetString')
   final String viewTargetString;
 
-  /// @domName SVGViewSpec.zoomAndPan; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGViewSpec.zoomAndPan')
   int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6498,7 +7579,8 @@ class ViewSpec native "*SVGViewSpec" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGZoomAndPan
+/// @docsEditable true
+@DomName('SVGZoomAndPan')
 abstract class ZoomAndPan {
 
   static const int SVG_ZOOMANDPAN_DISABLE = 1;
@@ -6514,22 +7596,28 @@ abstract class ZoomAndPan {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGZoomEvent; @docsEditable true
+/// @docsEditable true
+@DomName('SVGZoomEvent')
 class ZoomEvent extends UIEvent native "*SVGZoomEvent" {
 
-  /// @domName SVGZoomEvent.newScale; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGZoomEvent.newScale')
   final num newScale;
 
-  /// @domName SVGZoomEvent.newTranslate; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGZoomEvent.newTranslate')
   final Point newTranslate;
 
-  /// @domName SVGZoomEvent.previousScale; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGZoomEvent.previousScale')
   final num previousScale;
 
-  /// @domName SVGZoomEvent.previousTranslate; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGZoomEvent.previousTranslate')
   final Point previousTranslate;
 
-  /// @domName SVGZoomEvent.zoomRectScreen; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGZoomEvent.zoomRectScreen')
   final Rect zoomRectScreen;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6537,10 +7625,12 @@ class ZoomEvent extends UIEvent native "*SVGZoomEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SVGElementInstanceList; @docsEditable true
+/// @docsEditable true
+@DomName('SVGElementInstanceList')
 class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementInstance> native "*SVGElementInstanceList" {
 
-  /// @domName SVGElementInstanceList.length; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstanceList.length')
   int get length => JS("int", "#.length", this);
 
   ElementInstance operator[](int index) => JS("ElementInstance", "#[#]", this, index);
@@ -6691,6 +7781,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
 
   // -- end List<ElementInstance> mixins.
 
-  /// @domName SVGElementInstanceList.item; @docsEditable true
+  /// @docsEditable true
+  @DomName('SVGElementInstanceList.item')
   ElementInstance item(int index) native;
 }

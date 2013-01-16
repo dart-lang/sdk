@@ -5,5 +5,6 @@ library web_audio;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:html_common';
 
 $!GENERATED_DART_FILES

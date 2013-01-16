@@ -874,7 +874,7 @@ class _ElementFactoryProvider {
     'tr': null,
   };
 
-  /** @domName Document.createElement */
+  @DomName('Document.createElement')
   static Element createElement_html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
     // 1) Cache the dummy parent elements required to use innerHTML rather than
@@ -970,7 +970,7 @@ class _ElementFactoryProvider {
         'top level elements but 1 expected');
   }
 
-  /** @domName Document.createElement */
+  @DomName('Document.createElement')
 $if DART2JS
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.

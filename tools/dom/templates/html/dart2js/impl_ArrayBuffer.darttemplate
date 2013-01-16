@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of $LIBRARYNAME;
-
-/// @domName $DOMNAME$ANNOTATIONS
+$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
-  /// @domName ArrayBuffer.slice;
+  @DomName('ArrayBuffer.slice')
   ArrayBuffer slice(int begin, [int end]) {
     // IE10 supports ArrayBuffers but does not have the slice method.
     if (JS('bool', '!!#.slice', this)) {

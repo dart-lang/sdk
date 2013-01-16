@@ -4,6 +4,6 @@
 
 part of $LIBRARYNAME;
 
-/// @domName $DOMNAME; @docsEditable true$ANNOTATIONS
+/// @docsEditable true$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS}

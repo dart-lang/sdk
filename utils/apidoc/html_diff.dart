@@ -9,6 +9,8 @@
 library html_diff;
 
 import 'dart:io';
+import 'dart:async';
+import '../../sdk/lib/html/html_common/metadata.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
@@ -33,34 +35,34 @@ const List<String> HTML_DECLARED_NAMES = const [
  * based on two indicators:
  *
  *   1. Auto-detected wrappers. Most `dart:html` types correspond
- *      straightforwardly to a single `@domName` type, and
+ *      straightforwardly to a single `@DomName` type, and
  *      have the same name.  In addition, most `dart:html` methods
- *      just call a single `@domName` method. This class
+ *      just call a single `@DomName` method. This class
  *      detects these simple correspondences automatically.
  *
  *   2. Manual annotations. When it's not clear which
- *      `@domName` items a given `dart:html` item
+ *      `@DomName` items a given `dart:html` item
  *      corresponds to, the `dart:html` item can be annotated in the
- *      documentation comments using the `@domName` annotation.
+ *      documentation comments using the `@DomName` annotation.
  *
- * The `@domName` annotations for types and members are of the form
- * `@domName NAME(, NAME)*`, where the `NAME`s refer to the
- * `@domName` types/members that correspond to the
+ * The `@DomName` annotations for types and members are of the form
+ * `@DomName NAME(, NAME)*`, where the `NAME`s refer to the
+ * `@DomName` types/members that correspond to the
  * annotated `dart:html` type/member. `NAME`s on member annotations
  * can refer to either fully-qualified member names (e.g.
  * `Document.createElement`) or unqualified member names
  * (e.g. `createElement`).  Unqualified member names are assumed to
- * refer to members of one of the corresponding `@domName`
+ * refer to members of one of the corresponding `@DomName`
  * types.
  */
 class HtmlDiff {
   /**
    * A map from `dart:html` members to the corresponding fully qualified
-   * `@domName` member(s).
+   * `@DomName` member(s).
    */
   final Map<String, Set<String>> htmlToDom;
 
-  /** A map from `dart:html` types to corresponding `@domName` types. */
+  /** A map from `dart:html` types to corresponding `@DomName` types. */
   final Map<String, Set<String>> htmlTypesToDom;
 
   final CommentMap comments;
@@ -98,7 +100,7 @@ class HtmlDiff {
   }
 
   /**
-   * Computes the `@domName` to `dart:html` mapping, and
+   * Computes the `@DomName` to `dart:html` mapping, and
    * places it in [htmlToDom] and [htmlTypesToDom]. Before this is run, dart2js
    * should be initialized (via [parseOptions] and [initializeWorld]) and
    * [HtmlDiff.initialize] should be called.
@@ -124,9 +126,9 @@ class HtmlDiff {
   }
 
   /**
-   * Records the `@domName` to `dart:html` mapping for
+   * Records the `@DomName` to `dart:html` mapping for
    * [htmlMember] (from `dart:html`). [domTypes] are the
-   * `@domName` type values that correspond to [htmlMember]'s
+   * `@DomName` type values that correspond to [htmlMember]'s
    * defining type.
    */
   void _addMemberDiff(MemberMirror htmlMember, List<String> domTypes,
@@ -146,18 +148,21 @@ class HtmlDiff {
   }
 
   /**
-   * Returns the `@domName` type values that correspond to
+   * Returns the `@DomName` type values that correspond to
    * [htmlType] from `dart:html`. This can be the empty list if no
    * correspondence is found.
    */
   List<String> htmlToDomTypes(ClassMirror htmlType) {
-    if (htmlType.simpleName == null) return [];
-    final tags = _getTags(comments.find(htmlType.location));
-    if (tags.containsKey('domName')) {
+    if (htmlType.simpleName == null) return <String>[];
+
+    final domNameMetadata = _findMetadata(htmlType.metadata, 'DomName');
+    if (domNameMetadata != null) {
       var domNames = <String>[];
-      for (var s in tags['domName'].split(',')) {
+      var tags = deprecatedFutureValue(domNameMetadata.getField('name'));
+      for (var s in tags.reflectee.split(',')) {
         domNames.add(s.trim());
       }
+
       if (domNames.length == 1 && domNames[0] == 'none') return <String>[];
       return domNames;
     }
@@ -165,20 +170,23 @@ class HtmlDiff {
   }
 
   /**
-   * Returns the `@domName` member values that correspond to
+   * Returns the `@DomName` member values that correspond to
    * [htmlMember] from `dart:html`. This can be the empty set if no
    * correspondence is found.  [domTypes] are the
-   * `@domName` type values that correspond to [htmlMember]'s
+   * `@DomName` type values that correspond to [htmlMember]'s
    * defining type.
    */
   Set<String> htmlToDomMembers(MemberMirror htmlMember, List<String> domTypes) {
     if (htmlMember.isPrivate) return new Set();
-    final tags = _getTags(comments.find(htmlMember.location));
-    if (tags.containsKey('domName')) {
+
+    final domNameMetadata = _findMetadata(htmlMember.metadata, 'DomName');
+    if (domNameMetadata != null) {
       var domNames = <String>[];
-      for (var s in tags['domName'].split(',')) {
+      var tags = deprecatedFutureValue(domNameMetadata.getField('name'));
+      for (var s in tags.reflectee.split(',')) {
         domNames.add(s.trim());
       }
+
       if (domNames.length == 1 && domNames[0] == 'none') return new Set();
       final members = new Set();
       domNames.forEach((name) {
@@ -204,12 +212,12 @@ class HtmlDiff {
   }
 
   /**
-   * Returns the `@domName` strings that are indicated by
+   * Returns the `@DomName` strings that are indicated by
    * [name]. [name] can be either an unqualified member name
    * (e.g. `createElement`), in which case it's treated as the name of
    * a member of one of [defaultTypes], or a fully-qualified member
    * name (e.g. `Document.createElement`), in which case it's treated as a
-   * member of the @domName element (`Document` in this case).
+   * member of the @DomName element (`Document` in this case).
    */
   Set<String> _membersFromName(String name, List<String> defaultTypes) {
     if (!name.contains('.', 0)) {
@@ -229,21 +237,11 @@ class HtmlDiff {
     return new Set.from([name]);
   }
 
-  /**
-   * Extracts a [Map] from tag names to values from [comment], which is parsed
-   * from a Dart source file via dartdoc. Tags are of the form `@NAME VALUE`,
-   * where `NAME` is alphabetic and `VALUE` can contain any character other than
-   * `;`. Multiple tags can be separated by semicolons.
-   *
-   * At time of writing, the only tag that's used is `@domName`.
-   */
-  Map<String, String> _getTags(String comment) {
-    if (comment == null) return const <String, String>{};
-    final re = new RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)");
-    final tags = <String, String>{};
-    for (var m in re.allMatches(comment.trim())) {
-      tags[m[1]] = m[2];
-    }
-    return tags;
-  }
+}
+
+/// Returns the metadata for the given string or null if not found.
+InstanceMirror _findMetadata(List<InstanceMirror> metadataList, String find) {
+  return metadataList.firstMatching(
+      (metadata) => metadata.type.simpleName == find,
+      orElse: () => null);
 }

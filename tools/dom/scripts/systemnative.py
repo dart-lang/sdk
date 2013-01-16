@@ -757,12 +757,9 @@ class DartiumBackend(HtmlDartGenerator):
 
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
     self._members_emitter.Emit(
-        '\n'
-        '\n  /** @domName $DOMINTERFACE.$DOMNAME */'
         '$ANNOTATIONS'
         '\n  $DART_DECLARATION native "$NATIVE_BINDING";\n',
         DOMINTERFACE=self._interface.id,
-        DOMNAME=idl_name,
         ANNOTATIONS=annotation_str,
         DART_DECLARATION=dart_declaration,
         NATIVE_BINDING=native_binding)

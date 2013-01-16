@@ -49,7 +49,7 @@ class _CssStyleDeclarationFactoryProvider {
 }
 
 class _DocumentFragmentFactoryProvider {
-  /** @domName Document.createDocumentFragment */
+  @DomName('Document.createDocumentFragment')
   static DocumentFragment createDocumentFragment() =>
       document.createDocumentFragment();
 

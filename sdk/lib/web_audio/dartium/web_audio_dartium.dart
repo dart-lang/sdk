@@ -16,56 +16,44 @@ import 'dart:nativewrappers';
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AnalyserNode
+@DomName('AnalyserNode')
 class AnalyserNode extends AudioNode {
   AnalyserNode.internal() : super.internal();
 
-
-  /** @domName AnalyserNode.fftSize */
+  @DomName('AnalyserNode.fftSize')
   int get fftSize native "AnalyserNode_fftSize_Getter";
 
-
-  /** @domName AnalyserNode.fftSize */
+  @DomName('AnalyserNode.fftSize')
   void set fftSize(int value) native "AnalyserNode_fftSize_Setter";
 
-
-  /** @domName AnalyserNode.frequencyBinCount */
+  @DomName('AnalyserNode.frequencyBinCount')
   int get frequencyBinCount native "AnalyserNode_frequencyBinCount_Getter";
 
-
-  /** @domName AnalyserNode.maxDecibels */
+  @DomName('AnalyserNode.maxDecibels')
   num get maxDecibels native "AnalyserNode_maxDecibels_Getter";
 
-
-  /** @domName AnalyserNode.maxDecibels */
+  @DomName('AnalyserNode.maxDecibels')
   void set maxDecibels(num value) native "AnalyserNode_maxDecibels_Setter";
 
-
-  /** @domName AnalyserNode.minDecibels */
+  @DomName('AnalyserNode.minDecibels')
   num get minDecibels native "AnalyserNode_minDecibels_Getter";
 
-
-  /** @domName AnalyserNode.minDecibels */
+  @DomName('AnalyserNode.minDecibels')
   void set minDecibels(num value) native "AnalyserNode_minDecibels_Setter";
 
-
-  /** @domName AnalyserNode.smoothingTimeConstant */
+  @DomName('AnalyserNode.smoothingTimeConstant')
   num get smoothingTimeConstant native "AnalyserNode_smoothingTimeConstant_Getter";
 
-
-  /** @domName AnalyserNode.smoothingTimeConstant */
+  @DomName('AnalyserNode.smoothingTimeConstant')
   void set smoothingTimeConstant(num value) native "AnalyserNode_smoothingTimeConstant_Setter";
 
-
-  /** @domName AnalyserNode.getByteFrequencyData */
+  @DomName('AnalyserNode.getByteFrequencyData')
   void getByteFrequencyData(Uint8Array array) native "AnalyserNode_getByteFrequencyData_Callback";
 
-
-  /** @domName AnalyserNode.getByteTimeDomainData */
+  @DomName('AnalyserNode.getByteTimeDomainData')
   void getByteTimeDomainData(Uint8Array array) native "AnalyserNode_getByteTimeDomainData_Callback";
 
-
-  /** @domName AnalyserNode.getFloatFrequencyData */
+  @DomName('AnalyserNode.getFloatFrequencyData')
   void getFloatFrequencyData(Float32Array array) native "AnalyserNode_getFloatFrequencyData_Callback";
 
 }
@@ -76,36 +64,29 @@ class AnalyserNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioBuffer
+@DomName('AudioBuffer')
 class AudioBuffer extends NativeFieldWrapperClass1 {
   AudioBuffer.internal();
 
-
-  /** @domName AudioBuffer.duration */
+  @DomName('AudioBuffer.duration')
   num get duration native "AudioBuffer_duration_Getter";
 
-
-  /** @domName AudioBuffer.gain */
+  @DomName('AudioBuffer.gain')
   num get gain native "AudioBuffer_gain_Getter";
 
-
-  /** @domName AudioBuffer.gain */
+  @DomName('AudioBuffer.gain')
   void set gain(num value) native "AudioBuffer_gain_Setter";
 
-
-  /** @domName AudioBuffer.length */
+  @DomName('AudioBuffer.length')
   int get length native "AudioBuffer_length_Getter";
 
-
-  /** @domName AudioBuffer.numberOfChannels */
+  @DomName('AudioBuffer.numberOfChannels')
   int get numberOfChannels native "AudioBuffer_numberOfChannels_Getter";
 
-
-  /** @domName AudioBuffer.sampleRate */
+  @DomName('AudioBuffer.sampleRate')
   num get sampleRate native "AudioBuffer_sampleRate_Getter";
 
-
-  /** @domName AudioBuffer.getChannelData */
+  @DomName('AudioBuffer.getChannelData')
   Float32Array getChannelData(int channelIndex) native "AudioBuffer_getChannelData_Callback";
 
 }
@@ -124,7 +105,7 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioBufferSourceNode
+@DomName('AudioBufferSourceNode')
 class AudioBufferSourceNode extends AudioSourceNode {
   AudioBufferSourceNode.internal() : super.internal();
 
@@ -136,48 +117,37 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
   static const int UNSCHEDULED_STATE = 0;
 
-
-  /** @domName AudioBufferSourceNode.buffer */
+  @DomName('AudioBufferSourceNode.buffer')
   AudioBuffer get buffer native "AudioBufferSourceNode_buffer_Getter";
 
-
-  /** @domName AudioBufferSourceNode.buffer */
+  @DomName('AudioBufferSourceNode.buffer')
   void set buffer(AudioBuffer value) native "AudioBufferSourceNode_buffer_Setter";
 
-
-  /** @domName AudioBufferSourceNode.gain */
+  @DomName('AudioBufferSourceNode.gain')
   AudioGain get gain native "AudioBufferSourceNode_gain_Getter";
 
-
-  /** @domName AudioBufferSourceNode.loop */
+  @DomName('AudioBufferSourceNode.loop')
   bool get loop native "AudioBufferSourceNode_loop_Getter";
 
-
-  /** @domName AudioBufferSourceNode.loop */
+  @DomName('AudioBufferSourceNode.loop')
   void set loop(bool value) native "AudioBufferSourceNode_loop_Setter";
 
-
-  /** @domName AudioBufferSourceNode.loopEnd */
+  @DomName('AudioBufferSourceNode.loopEnd')
   num get loopEnd native "AudioBufferSourceNode_loopEnd_Getter";
 
-
-  /** @domName AudioBufferSourceNode.loopEnd */
+  @DomName('AudioBufferSourceNode.loopEnd')
   void set loopEnd(num value) native "AudioBufferSourceNode_loopEnd_Setter";
 
-
-  /** @domName AudioBufferSourceNode.loopStart */
+  @DomName('AudioBufferSourceNode.loopStart')
   num get loopStart native "AudioBufferSourceNode_loopStart_Getter";
 
-
-  /** @domName AudioBufferSourceNode.loopStart */
+  @DomName('AudioBufferSourceNode.loopStart')
   void set loopStart(num value) native "AudioBufferSourceNode_loopStart_Setter";
 
-
-  /** @domName AudioBufferSourceNode.playbackRate */
+  @DomName('AudioBufferSourceNode.playbackRate')
   AudioParam get playbackRate native "AudioBufferSourceNode_playbackRate_Getter";
 
-
-  /** @domName AudioBufferSourceNode.playbackState */
+  @DomName('AudioBufferSourceNode.playbackState')
   int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
   void start(num when, [num grainOffset, num grainDuration]) {
@@ -196,20 +166,16 @@ class AudioBufferSourceNode extends AudioSourceNode {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName AudioBufferSourceNode.start_1 */
+  @DomName('AudioBufferSourceNode.start_1')
   void _start_1(when) native "AudioBufferSourceNode_start_1_Callback";
 
-
-  /** @domName AudioBufferSourceNode.start_2 */
+  @DomName('AudioBufferSourceNode.start_2')
   void _start_2(when, grainOffset) native "AudioBufferSourceNode_start_2_Callback";
 
-
-  /** @domName AudioBufferSourceNode.start_3 */
+  @DomName('AudioBufferSourceNode.start_3')
   void _start_3(when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_3_Callback";
 
-
-  /** @domName AudioBufferSourceNode.stop */
+  @DomName('AudioBufferSourceNode.stop')
   void stop(num when) native "AudioBufferSourceNode_stop_Callback";
 
 }
@@ -218,46 +184,40 @@ class AudioBufferSourceNode extends AudioSourceNode {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AudioContext
+@DomName('AudioContext')
 class AudioContext extends EventTarget {
   AudioContext.internal() : super.internal();
 
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory AudioContext() => AudioContext._create();
   static AudioContext _create() native "AudioContext_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// @docsEditable true
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   AudioContextEvents get on =>
     new AudioContextEvents(this);
 
-
-  /** @domName AudioContext.activeSourceCount */
+  @DomName('AudioContext.activeSourceCount')
   int get activeSourceCount native "AudioContext_activeSourceCount_Getter";
 
-
-  /** @domName AudioContext.currentTime */
+  @DomName('AudioContext.currentTime')
   num get currentTime native "AudioContext_currentTime_Getter";
 
-
-  /** @domName AudioContext.destination */
+  @DomName('AudioContext.destination')
   AudioDestinationNode get destination native "AudioContext_destination_Getter";
 
-
-  /** @domName AudioContext.listener */
+  @DomName('AudioContext.listener')
   AudioListener get listener native "AudioContext_listener_Getter";
 
-
-  /** @domName AudioContext.sampleRate */
+  @DomName('AudioContext.sampleRate')
   num get sampleRate native "AudioContext_sampleRate_Getter";
 
-
-  /** @domName AudioContext.createAnalyser */
+  @DomName('AudioContext.createAnalyser')
   AnalyserNode createAnalyser() native "AudioContext_createAnalyser_Callback";
 
-
-  /** @domName AudioContext.createBiquadFilter */
+  @DomName('AudioContext.createBiquadFilter')
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
   AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) {
@@ -270,16 +230,13 @@ class AudioContext extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName AudioContext.createBuffer_1 */
+  @DomName('AudioContext.createBuffer_1')
   AudioBuffer _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) native "AudioContext_createBuffer_1_Callback";
 
-
-  /** @domName AudioContext.createBuffer_2 */
+  @DomName('AudioContext.createBuffer_2')
   AudioBuffer _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native "AudioContext_createBuffer_2_Callback";
 
-
-  /** @domName AudioContext.createBufferSource */
+  @DomName('AudioContext.createBufferSource')
   AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
 
   ChannelMergerNode createChannelMerger([int numberOfInputs]) {
@@ -289,12 +246,10 @@ class AudioContext extends EventTarget {
     return _createChannelMerger_2();
   }
 
-
-  /** @domName AudioContext.createChannelMerger_1 */
+  @DomName('AudioContext.createChannelMerger_1')
   ChannelMergerNode _createChannelMerger_1(numberOfInputs) native "AudioContext_createChannelMerger_1_Callback";
 
-
-  /** @domName AudioContext.createChannelMerger_2 */
+  @DomName('AudioContext.createChannelMerger_2')
   ChannelMergerNode _createChannelMerger_2() native "AudioContext_createChannelMerger_2_Callback";
 
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
@@ -304,16 +259,13 @@ class AudioContext extends EventTarget {
     return _createChannelSplitter_2();
   }
 
-
-  /** @domName AudioContext.createChannelSplitter_1 */
+  @DomName('AudioContext.createChannelSplitter_1')
   ChannelSplitterNode _createChannelSplitter_1(numberOfOutputs) native "AudioContext_createChannelSplitter_1_Callback";
 
-
-  /** @domName AudioContext.createChannelSplitter_2 */
+  @DomName('AudioContext.createChannelSplitter_2')
   ChannelSplitterNode _createChannelSplitter_2() native "AudioContext_createChannelSplitter_2_Callback";
 
-
-  /** @domName AudioContext.createConvolver */
+  @DomName('AudioContext.createConvolver')
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
   DelayNode createDelay([num maxDelayTime]) {
@@ -323,40 +275,31 @@ class AudioContext extends EventTarget {
     return _createDelay_2();
   }
 
-
-  /** @domName AudioContext.createDelay_1 */
+  @DomName('AudioContext.createDelay_1')
   DelayNode _createDelay_1(maxDelayTime) native "AudioContext_createDelay_1_Callback";
 
-
-  /** @domName AudioContext.createDelay_2 */
+  @DomName('AudioContext.createDelay_2')
   DelayNode _createDelay_2() native "AudioContext_createDelay_2_Callback";
 
-
-  /** @domName AudioContext.createDynamicsCompressor */
+  @DomName('AudioContext.createDynamicsCompressor')
   DynamicsCompressorNode createDynamicsCompressor() native "AudioContext_createDynamicsCompressor_Callback";
 
-
-  /** @domName AudioContext.createGain */
+  @DomName('AudioContext.createGain')
   GainNode createGain() native "AudioContext_createGain_Callback";
 
-
-  /** @domName AudioContext.createMediaElementSource */
+  @DomName('AudioContext.createMediaElementSource')
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
 
-
-  /** @domName AudioContext.createMediaStreamDestination */
+  @DomName('AudioContext.createMediaStreamDestination')
   MediaStreamAudioDestinationNode createMediaStreamDestination() native "AudioContext_createMediaStreamDestination_Callback";
 
-
-  /** @domName AudioContext.createMediaStreamSource */
+  @DomName('AudioContext.createMediaStreamSource')
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native "AudioContext_createMediaStreamSource_Callback";
 
-
-  /** @domName AudioContext.createOscillator */
+  @DomName('AudioContext.createOscillator')
   OscillatorNode createOscillator() native "AudioContext_createOscillator_Callback";
 
-
-  /** @domName AudioContext.createPanner */
+  @DomName('AudioContext.createPanner')
   PannerNode createPanner() native "AudioContext_createPanner_Callback";
 
   ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
@@ -369,32 +312,25 @@ class AudioContext extends EventTarget {
     return _createScriptProcessor_3(bufferSize);
   }
 
-
-  /** @domName AudioContext.createScriptProcessor_1 */
+  @DomName('AudioContext.createScriptProcessor_1')
   ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createScriptProcessor_1_Callback";
 
-
-  /** @domName AudioContext.createScriptProcessor_2 */
+  @DomName('AudioContext.createScriptProcessor_2')
   ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) native "AudioContext_createScriptProcessor_2_Callback";
 
-
-  /** @domName AudioContext.createScriptProcessor_3 */
+  @DomName('AudioContext.createScriptProcessor_3')
   ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext_createScriptProcessor_3_Callback";
 
-
-  /** @domName AudioContext.createWaveShaper */
+  @DomName('AudioContext.createWaveShaper')
   WaveShaperNode createWaveShaper() native "AudioContext_createWaveShaper_Callback";
 
-
-  /** @domName AudioContext.createWaveTable */
+  @DomName('AudioContext.createWaveTable')
   WaveTable createWaveTable(Float32Array real, Float32Array imag) native "AudioContext_createWaveTable_Callback";
 
-
-  /** @domName AudioContext.decodeAudioData */
+  @DomName('AudioContext.decodeAudioData')
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
 
-
-  /** @domName AudioContext.startRendering */
+  @DomName('AudioContext.startRendering')
   void startRendering() native "AudioContext_startRendering_Callback";
 
   Stream<Event> get onComplete => completeEvent.forTarget(this);
@@ -416,12 +352,11 @@ class AudioContextEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioDestinationNode
+@DomName('AudioDestinationNode')
 class AudioDestinationNode extends AudioNode {
   AudioDestinationNode.internal() : super.internal();
 
-
-  /** @domName AudioDestinationNode.numberOfChannels */
+  @DomName('AudioDestinationNode.numberOfChannels')
   int get numberOfChannels native "AudioDestinationNode_numberOfChannels_Getter";
 
 }
@@ -432,7 +367,7 @@ class AudioDestinationNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioGain
+@DomName('AudioGain')
 class AudioGain extends AudioParam {
   AudioGain.internal() : super.internal();
 
@@ -444,36 +379,29 @@ class AudioGain extends AudioParam {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioListener
+@DomName('AudioListener')
 class AudioListener extends NativeFieldWrapperClass1 {
   AudioListener.internal();
 
-
-  /** @domName AudioListener.dopplerFactor */
+  @DomName('AudioListener.dopplerFactor')
   num get dopplerFactor native "AudioListener_dopplerFactor_Getter";
 
-
-  /** @domName AudioListener.dopplerFactor */
+  @DomName('AudioListener.dopplerFactor')
   void set dopplerFactor(num value) native "AudioListener_dopplerFactor_Setter";
 
-
-  /** @domName AudioListener.speedOfSound */
+  @DomName('AudioListener.speedOfSound')
   num get speedOfSound native "AudioListener_speedOfSound_Getter";
 
-
-  /** @domName AudioListener.speedOfSound */
+  @DomName('AudioListener.speedOfSound')
   void set speedOfSound(num value) native "AudioListener_speedOfSound_Setter";
 
-
-  /** @domName AudioListener.setOrientation */
+  @DomName('AudioListener.setOrientation')
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native "AudioListener_setOrientation_Callback";
 
-
-  /** @domName AudioListener.setPosition */
+  @DomName('AudioListener.setPosition')
   void setPosition(num x, num y, num z) native "AudioListener_setPosition_Callback";
 
-
-  /** @domName AudioListener.setVelocity */
+  @DomName('AudioListener.setVelocity')
   void setVelocity(num x, num y, num z) native "AudioListener_setVelocity_Callback";
 
 }
@@ -484,20 +412,17 @@ class AudioListener extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioNode
+@DomName('AudioNode')
 class AudioNode extends NativeFieldWrapperClass1 {
   AudioNode.internal();
 
-
-  /** @domName AudioNode.context */
+  @DomName('AudioNode.context')
   AudioContext get context native "AudioNode_context_Getter";
 
-
-  /** @domName AudioNode.numberOfInputs */
+  @DomName('AudioNode.numberOfInputs')
   int get numberOfInputs native "AudioNode_numberOfInputs_Getter";
 
-
-  /** @domName AudioNode.numberOfOutputs */
+  @DomName('AudioNode.numberOfOutputs')
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
   void connect(destination, int output, [int input]) {
@@ -512,16 +437,13 @@ class AudioNode extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName AudioNode.connect_1 */
+  @DomName('AudioNode.connect_1')
   void _connect_1(destination, output, input) native "AudioNode_connect_1_Callback";
 
-
-  /** @domName AudioNode.connect_2 */
+  @DomName('AudioNode.connect_2')
   void _connect_2(destination, output) native "AudioNode_connect_2_Callback";
 
-
-  /** @domName AudioNode.disconnect */
+  @DomName('AudioNode.disconnect')
   void disconnect(int output) native "AudioNode_disconnect_Callback";
 
 }
@@ -532,60 +454,47 @@ class AudioNode extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioParam
+@DomName('AudioParam')
 class AudioParam extends NativeFieldWrapperClass1 {
   AudioParam.internal();
 
-
-  /** @domName AudioParam.defaultValue */
+  @DomName('AudioParam.defaultValue')
   num get defaultValue native "AudioParam_defaultValue_Getter";
 
-
-  /** @domName AudioParam.maxValue */
+  @DomName('AudioParam.maxValue')
   num get maxValue native "AudioParam_maxValue_Getter";
 
-
-  /** @domName AudioParam.minValue */
+  @DomName('AudioParam.minValue')
   num get minValue native "AudioParam_minValue_Getter";
 
-
-  /** @domName AudioParam.name */
+  @DomName('AudioParam.name')
   String get name native "AudioParam_name_Getter";
 
-
-  /** @domName AudioParam.units */
+  @DomName('AudioParam.units')
   int get units native "AudioParam_units_Getter";
 
-
-  /** @domName AudioParam.value */
+  @DomName('AudioParam.value')
   num get value native "AudioParam_value_Getter";
 
-
-  /** @domName AudioParam.value */
+  @DomName('AudioParam.value')
   void set value(num value) native "AudioParam_value_Setter";
 
-
-  /** @domName AudioParam.cancelScheduledValues */
+  @DomName('AudioParam.cancelScheduledValues')
   void cancelScheduledValues(num startTime) native "AudioParam_cancelScheduledValues_Callback";
 
-
-  /** @domName AudioParam.exponentialRampToValueAtTime */
+  @DomName('AudioParam.exponentialRampToValueAtTime')
   void exponentialRampToValueAtTime(num value, num time) native "AudioParam_exponentialRampToValueAtTime_Callback";
 
-
-  /** @domName AudioParam.linearRampToValueAtTime */
+  @DomName('AudioParam.linearRampToValueAtTime')
   void linearRampToValueAtTime(num value, num time) native "AudioParam_linearRampToValueAtTime_Callback";
 
-
-  /** @domName AudioParam.setTargetAtTime */
+  @DomName('AudioParam.setTargetAtTime')
   void setTargetAtTime(num target, num time, num timeConstant) native "AudioParam_setTargetAtTime_Callback";
 
-
-  /** @domName AudioParam.setValueAtTime */
+  @DomName('AudioParam.setValueAtTime')
   void setValueAtTime(num value, num time) native "AudioParam_setValueAtTime_Callback";
 
-
-  /** @domName AudioParam.setValueCurveAtTime */
+  @DomName('AudioParam.setValueCurveAtTime')
   void setValueCurveAtTime(Float32Array values, num time, num duration) native "AudioParam_setValueCurveAtTime_Callback";
 
 }
@@ -596,16 +505,14 @@ class AudioParam extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioProcessingEvent
+@DomName('AudioProcessingEvent')
 class AudioProcessingEvent extends Event {
   AudioProcessingEvent.internal() : super.internal();
 
-
-  /** @domName AudioProcessingEvent.inputBuffer */
+  @DomName('AudioProcessingEvent.inputBuffer')
   AudioBuffer get inputBuffer native "AudioProcessingEvent_inputBuffer_Getter";
 
-
-  /** @domName AudioProcessingEvent.outputBuffer */
+  @DomName('AudioProcessingEvent.outputBuffer')
   AudioBuffer get outputBuffer native "AudioProcessingEvent_outputBuffer_Getter";
 
 }
@@ -616,7 +523,7 @@ class AudioProcessingEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AudioSourceNode
+@DomName('AudioSourceNode')
 class AudioSourceNode extends AudioNode {
   AudioSourceNode.internal() : super.internal();
 
@@ -628,7 +535,7 @@ class AudioSourceNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName BiquadFilterNode
+@DomName('BiquadFilterNode')
 class BiquadFilterNode extends AudioNode {
   BiquadFilterNode.internal() : super.internal();
 
@@ -648,32 +555,25 @@ class BiquadFilterNode extends AudioNode {
 
   static const int PEAKING = 5;
 
-
-  /** @domName BiquadFilterNode.Q */
+  @DomName('BiquadFilterNode.Q')
   AudioParam get Q native "BiquadFilterNode_Q_Getter";
 
-
-  /** @domName BiquadFilterNode.detune */
+  @DomName('BiquadFilterNode.detune')
   AudioParam get detune native "BiquadFilterNode_detune_Getter";
 
-
-  /** @domName BiquadFilterNode.frequency */
+  @DomName('BiquadFilterNode.frequency')
   AudioParam get frequency native "BiquadFilterNode_frequency_Getter";
 
-
-  /** @domName BiquadFilterNode.gain */
+  @DomName('BiquadFilterNode.gain')
   AudioParam get gain native "BiquadFilterNode_gain_Getter";
 
-
-  /** @domName BiquadFilterNode.type */
+  @DomName('BiquadFilterNode.type')
   int get type native "BiquadFilterNode_type_Getter";
 
-
-  /** @domName BiquadFilterNode.type */
+  @DomName('BiquadFilterNode.type')
   void set type(int value) native "BiquadFilterNode_type_Setter";
 
-
-  /** @domName BiquadFilterNode.getFrequencyResponse */
+  @DomName('BiquadFilterNode.getFrequencyResponse')
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback";
 
 }
@@ -684,7 +584,7 @@ class BiquadFilterNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ChannelMergerNode
+@DomName('ChannelMergerNode')
 class ChannelMergerNode extends AudioNode {
   ChannelMergerNode.internal() : super.internal();
 
@@ -696,7 +596,7 @@ class ChannelMergerNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ChannelSplitterNode
+@DomName('ChannelSplitterNode')
 class ChannelSplitterNode extends AudioNode {
   ChannelSplitterNode.internal() : super.internal();
 
@@ -708,24 +608,20 @@ class ChannelSplitterNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ConvolverNode
+@DomName('ConvolverNode')
 class ConvolverNode extends AudioNode {
   ConvolverNode.internal() : super.internal();
 
-
-  /** @domName ConvolverNode.buffer */
+  @DomName('ConvolverNode.buffer')
   AudioBuffer get buffer native "ConvolverNode_buffer_Getter";
 
-
-  /** @domName ConvolverNode.buffer */
+  @DomName('ConvolverNode.buffer')
   void set buffer(AudioBuffer value) native "ConvolverNode_buffer_Setter";
 
-
-  /** @domName ConvolverNode.normalize */
+  @DomName('ConvolverNode.normalize')
   bool get normalize native "ConvolverNode_normalize_Getter";
 
-
-  /** @domName ConvolverNode.normalize */
+  @DomName('ConvolverNode.normalize')
   void set normalize(bool value) native "ConvolverNode_normalize_Setter";
 
 }
@@ -736,12 +632,11 @@ class ConvolverNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DelayNode
+@DomName('DelayNode')
 class DelayNode extends AudioNode {
   DelayNode.internal() : super.internal();
 
-
-  /** @domName DelayNode.delayTime */
+  @DomName('DelayNode.delayTime')
   AudioParam get delayTime native "DelayNode_delayTime_Getter";
 
 }
@@ -752,32 +647,26 @@ class DelayNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DynamicsCompressorNode
+@DomName('DynamicsCompressorNode')
 class DynamicsCompressorNode extends AudioNode {
   DynamicsCompressorNode.internal() : super.internal();
 
-
-  /** @domName DynamicsCompressorNode.attack */
+  @DomName('DynamicsCompressorNode.attack')
   AudioParam get attack native "DynamicsCompressorNode_attack_Getter";
 
-
-  /** @domName DynamicsCompressorNode.knee */
+  @DomName('DynamicsCompressorNode.knee')
   AudioParam get knee native "DynamicsCompressorNode_knee_Getter";
 
-
-  /** @domName DynamicsCompressorNode.ratio */
+  @DomName('DynamicsCompressorNode.ratio')
   AudioParam get ratio native "DynamicsCompressorNode_ratio_Getter";
 
-
-  /** @domName DynamicsCompressorNode.reduction */
+  @DomName('DynamicsCompressorNode.reduction')
   AudioParam get reduction native "DynamicsCompressorNode_reduction_Getter";
 
-
-  /** @domName DynamicsCompressorNode.release */
+  @DomName('DynamicsCompressorNode.release')
   AudioParam get release native "DynamicsCompressorNode_release_Getter";
 
-
-  /** @domName DynamicsCompressorNode.threshold */
+  @DomName('DynamicsCompressorNode.threshold')
   AudioParam get threshold native "DynamicsCompressorNode_threshold_Getter";
 
 }
@@ -788,12 +677,11 @@ class DynamicsCompressorNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName GainNode
+@DomName('GainNode')
 class GainNode extends AudioNode {
   GainNode.internal() : super.internal();
 
-
-  /** @domName GainNode.gain */
+  @DomName('GainNode.gain')
   AudioGain get gain native "GainNode_gain_Getter";
 
 }
@@ -804,12 +692,11 @@ class GainNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaElementAudioSourceNode
+@DomName('MediaElementAudioSourceNode')
 class MediaElementAudioSourceNode extends AudioSourceNode {
   MediaElementAudioSourceNode.internal() : super.internal();
 
-
-  /** @domName MediaElementAudioSourceNode.mediaElement */
+  @DomName('MediaElementAudioSourceNode.mediaElement')
   MediaElement get mediaElement native "MediaElementAudioSourceNode_mediaElement_Getter";
 
 }
@@ -820,12 +707,11 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaStreamAudioDestinationNode
+@DomName('MediaStreamAudioDestinationNode')
 class MediaStreamAudioDestinationNode extends AudioSourceNode {
   MediaStreamAudioDestinationNode.internal() : super.internal();
 
-
-  /** @domName MediaStreamAudioDestinationNode.stream */
+  @DomName('MediaStreamAudioDestinationNode.stream')
   MediaStream get stream native "MediaStreamAudioDestinationNode_stream_Getter";
 
 }
@@ -836,12 +722,11 @@ class MediaStreamAudioDestinationNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaStreamAudioSourceNode
+@DomName('MediaStreamAudioSourceNode')
 class MediaStreamAudioSourceNode extends AudioSourceNode {
   MediaStreamAudioSourceNode.internal() : super.internal();
 
-
-  /** @domName MediaStreamAudioSourceNode.mediaStream */
+  @DomName('MediaStreamAudioSourceNode.mediaStream')
   MediaStream get mediaStream native "MediaStreamAudioSourceNode_mediaStream_Getter";
 
 }
@@ -852,12 +737,11 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OfflineAudioCompletionEvent
+@DomName('OfflineAudioCompletionEvent')
 class OfflineAudioCompletionEvent extends Event {
   OfflineAudioCompletionEvent.internal() : super.internal();
 
-
-  /** @domName OfflineAudioCompletionEvent.renderedBuffer */
+  @DomName('OfflineAudioCompletionEvent.renderedBuffer')
   AudioBuffer get renderedBuffer native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
 
 }
@@ -868,11 +752,11 @@ class OfflineAudioCompletionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OfflineAudioContext
+@DomName('OfflineAudioContext')
 class OfflineAudioContext extends AudioContext implements EventTarget {
   OfflineAudioContext.internal() : super.internal();
 
-  ///@docsEditable true
+  /// @docsEditable true
   factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) => OfflineAudioContext._create(numberOfChannels, numberOfFrames, sampleRate);
   static OfflineAudioContext _create(int numberOfChannels, int numberOfFrames, num sampleRate) native "OfflineAudioContext_constructor_Callback";
 
@@ -884,7 +768,7 @@ class OfflineAudioContext extends AudioContext implements EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OscillatorNode
+@DomName('OscillatorNode')
 class OscillatorNode extends AudioSourceNode {
   OscillatorNode.internal() : super.internal();
 
@@ -906,36 +790,28 @@ class OscillatorNode extends AudioSourceNode {
 
   static const int UNSCHEDULED_STATE = 0;
 
-
-  /** @domName OscillatorNode.detune */
+  @DomName('OscillatorNode.detune')
   AudioParam get detune native "OscillatorNode_detune_Getter";
 
-
-  /** @domName OscillatorNode.frequency */
+  @DomName('OscillatorNode.frequency')
   AudioParam get frequency native "OscillatorNode_frequency_Getter";
 
-
-  /** @domName OscillatorNode.playbackState */
+  @DomName('OscillatorNode.playbackState')
   int get playbackState native "OscillatorNode_playbackState_Getter";
 
-
-  /** @domName OscillatorNode.type */
+  @DomName('OscillatorNode.type')
   int get type native "OscillatorNode_type_Getter";
 
-
-  /** @domName OscillatorNode.type */
+  @DomName('OscillatorNode.type')
   void set type(int value) native "OscillatorNode_type_Setter";
 
-
-  /** @domName OscillatorNode.setWaveTable */
+  @DomName('OscillatorNode.setWaveTable')
   void setWaveTable(WaveTable waveTable) native "OscillatorNode_setWaveTable_Callback";
 
-
-  /** @domName OscillatorNode.start */
+  @DomName('OscillatorNode.start')
   void start(num when) native "OscillatorNode_start_Callback";
 
-
-  /** @domName OscillatorNode.stop */
+  @DomName('OscillatorNode.stop')
   void stop(num when) native "OscillatorNode_stop_Callback";
 
 }
@@ -946,7 +822,7 @@ class OscillatorNode extends AudioSourceNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName PannerNode
+@DomName('PannerNode')
 class PannerNode extends AudioNode {
   PannerNode.internal() : super.internal();
 
@@ -962,80 +838,61 @@ class PannerNode extends AudioNode {
 
   static const int SOUNDFIELD = 2;
 
-
-  /** @domName PannerNode.coneInnerAngle */
+  @DomName('PannerNode.coneInnerAngle')
   num get coneInnerAngle native "PannerNode_coneInnerAngle_Getter";
 
-
-  /** @domName PannerNode.coneInnerAngle */
+  @DomName('PannerNode.coneInnerAngle')
   void set coneInnerAngle(num value) native "PannerNode_coneInnerAngle_Setter";
 
-
-  /** @domName PannerNode.coneOuterAngle */
+  @DomName('PannerNode.coneOuterAngle')
   num get coneOuterAngle native "PannerNode_coneOuterAngle_Getter";
 
-
-  /** @domName PannerNode.coneOuterAngle */
+  @DomName('PannerNode.coneOuterAngle')
   void set coneOuterAngle(num value) native "PannerNode_coneOuterAngle_Setter";
 
-
-  /** @domName PannerNode.coneOuterGain */
+  @DomName('PannerNode.coneOuterGain')
   num get coneOuterGain native "PannerNode_coneOuterGain_Getter";
 
-
-  /** @domName PannerNode.coneOuterGain */
+  @DomName('PannerNode.coneOuterGain')
   void set coneOuterGain(num value) native "PannerNode_coneOuterGain_Setter";
 
-
-  /** @domName PannerNode.distanceModel */
+  @DomName('PannerNode.distanceModel')
   int get distanceModel native "PannerNode_distanceModel_Getter";
 
-
-  /** @domName PannerNode.distanceModel */
+  @DomName('PannerNode.distanceModel')
   void set distanceModel(int value) native "PannerNode_distanceModel_Setter";
 
-
-  /** @domName PannerNode.maxDistance */
+  @DomName('PannerNode.maxDistance')
   num get maxDistance native "PannerNode_maxDistance_Getter";
 
-
-  /** @domName PannerNode.maxDistance */
+  @DomName('PannerNode.maxDistance')
   void set maxDistance(num value) native "PannerNode_maxDistance_Setter";
 
-
-  /** @domName PannerNode.panningModel */
+  @DomName('PannerNode.panningModel')
   int get panningModel native "PannerNode_panningModel_Getter";
 
-
-  /** @domName PannerNode.panningModel */
+  @DomName('PannerNode.panningModel')
   void set panningModel(int value) native "PannerNode_panningModel_Setter";
 
-
-  /** @domName PannerNode.refDistance */
+  @DomName('PannerNode.refDistance')
   num get refDistance native "PannerNode_refDistance_Getter";
 
-
-  /** @domName PannerNode.refDistance */
+  @DomName('PannerNode.refDistance')
   void set refDistance(num value) native "PannerNode_refDistance_Setter";
 
-
-  /** @domName PannerNode.rolloffFactor */
+  @DomName('PannerNode.rolloffFactor')
   num get rolloffFactor native "PannerNode_rolloffFactor_Getter";
 
-
-  /** @domName PannerNode.rolloffFactor */
+  @DomName('PannerNode.rolloffFactor')
   void set rolloffFactor(num value) native "PannerNode_rolloffFactor_Setter";
 
-
-  /** @domName PannerNode.setOrientation */
+  @DomName('PannerNode.setOrientation')
   void setOrientation(num x, num y, num z) native "PannerNode_setOrientation_Callback";
 
-
-  /** @domName PannerNode.setPosition */
+  @DomName('PannerNode.setPosition')
   void setPosition(num x, num y, num z) native "PannerNode_setPosition_Callback";
 
-
-  /** @domName PannerNode.setVelocity */
+  @DomName('PannerNode.setVelocity')
   void setVelocity(num x, num y, num z) native "PannerNode_setVelocity_Callback";
 
 }
@@ -1046,12 +903,11 @@ class PannerNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ScriptProcessorNode
+@DomName('ScriptProcessorNode')
 class ScriptProcessorNode extends AudioNode implements EventTarget {
   ScriptProcessorNode.internal() : super.internal();
 
-
-  /** @domName ScriptProcessorNode.bufferSize */
+  @DomName('ScriptProcessorNode.bufferSize')
   int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
 
 }
@@ -1062,16 +918,14 @@ class ScriptProcessorNode extends AudioNode implements EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WaveShaperNode
+@DomName('WaveShaperNode')
 class WaveShaperNode extends AudioNode {
   WaveShaperNode.internal() : super.internal();
 
-
-  /** @domName WaveShaperNode.curve */
+  @DomName('WaveShaperNode.curve')
   Float32Array get curve native "WaveShaperNode_curve_Getter";
 
-
-  /** @domName WaveShaperNode.curve */
+  @DomName('WaveShaperNode.curve')
   void set curve(Float32Array value) native "WaveShaperNode_curve_Setter";
 
 }
@@ -1082,7 +936,7 @@ class WaveShaperNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WaveTable
+@DomName('WaveTable')
 class WaveTable extends NativeFieldWrapperClass1 {
   WaveTable.internal();
 

@@ -932,16 +932,18 @@ class Dart2JSBackend(HtmlDartGenerator):
     return ''
 
   def _Annotations(self, idl_type, idl_member_name):
+    out = ''
     annotations = FindDart2JSAnnotations(idl_type, self._interface.id,
         idl_member_name)
     if annotations:
-      return '%s\n  ' % annotations
-    return_type = self.SecureOutputType(idl_type)
-    native_type = self._NarrowToImplementationType(idl_type)
-    if native_type != return_type:
-      return "@Returns('%s') @Creates('%s')\n  " % (native_type, native_type)
-    else:
-      return ''
+      out = '%s\n  ' % annotations
+    if not AnyConversionAnnotations(idl_type, self._interface.id,
+                                  idl_member_name):
+      return_type = self.SecureOutputType(idl_type)
+      native_type = self._NarrowToImplementationType(idl_type)
+      if native_type != return_type:
+        out += "@Returns('%s') @Creates('%s')\n  " % (native_type, native_type)
+    return out
 
   def CustomJSMembers(self):
     return _js_custom_members

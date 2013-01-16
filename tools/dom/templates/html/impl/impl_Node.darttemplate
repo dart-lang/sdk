@@ -205,8 +205,7 @@ $endif
 
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
-
-/// @domName $DOMNAME
+$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   List<Node> get nodes {
     return new _ChildNodeListLazy(this);
@@ -224,8 +223,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /**
    * Removes this node from the DOM.
-   * @domName Node.removeChild
    */
+  @DomName('Node.removeChild')
   void remove() {
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
@@ -237,8 +236,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /**
    * Replaces this node with another node.
-   * @domName Node.replaceChild
    */
+  @DomName('Node.replaceChild')
   Node replaceWith(Node otherNode) {
     try {
       final Node parent = this.parentNode;

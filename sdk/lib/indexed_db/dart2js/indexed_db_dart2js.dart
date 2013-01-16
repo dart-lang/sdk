@@ -133,26 +133,31 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBCursor; @docsEditable true
+/// @docsEditable true
+@DomName('IDBCursor')
 class Cursor native "*IDBCursor" {
 
-  /// @domName IDBCursor.direction; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBCursor.direction')
   final String direction;
 
-  /// @domName IDBCursor.key; @docsEditable true
-  @_annotation_Creates_IDBKey @_annotation_Returns_IDBKey
+  /// @docsEditable true
+  @DomName('IDBCursor.key') @_annotation_Creates_IDBKey @_annotation_Returns_IDBKey
   final Object key;
 
-  /// @domName IDBCursor.primaryKey; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBCursor.primaryKey')
   final Object primaryKey;
 
-  /// @domName IDBCursor.source; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBCursor.source')
   final dynamic source;
 
-  /// @domName IDBCursor.advance; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBCursor.advance')
   void advance(int count) native;
 
-  /// @domName IDBCursor.continueFunction; @docsEditable true
+  /// @docsEditable true
   void continueFunction([/*IDBKey*/ key]) {
     if (?key) {
       var key_1 = _convertDartToNative_IDBKey(key);
@@ -163,19 +168,23 @@ class Cursor native "*IDBCursor" {
     return;
   }
   @JSName('continue')
+  @DomName('IDBCursor.continue')
   void _continueFunction_1(key) native;
   @JSName('continue')
+  @DomName('IDBCursor.continue')
   void _continueFunction_2() native;
 
-  /// @domName IDBCursor.delete; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBCursor.delete')
   Request delete() native;
 
-  /// @domName IDBCursor.update; @docsEditable true
+  /// @docsEditable true
   Request update(/*any*/ value) {
     var value_1 = convertDartToNative_SerializedScriptValue(value);
     return _update_1(value_1);
   }
   @JSName('update')
+  @DomName('IDBCursor.update')
   Request _update_1(value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -183,11 +192,12 @@ class Cursor native "*IDBCursor" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBCursorWithValue; @docsEditable true
+/// @docsEditable true
+@DomName('IDBCursorWithValue')
 class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
 
-  /// @domName IDBCursorWithValue.value; @docsEditable true
-  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
+  /// @docsEditable true
+  @DomName('IDBCursorWithValue.value') @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final Object value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -195,7 +205,11 @@ class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBDatabase
+@DomName('IDBDatabase')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX, '15')
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@Experimental()
 class Database extends EventTarget native "*IDBDatabase" {
 
   Transaction transaction(storeName_OR_storeNames, String mode) {
@@ -222,28 +236,34 @@ class Database extends EventTarget native "*IDBDatabase" {
 
   static const EventStreamProvider<UpgradeNeededEvent> versionChangeEvent = const EventStreamProvider<UpgradeNeededEvent>('versionchange');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// @docsEditable true
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   DatabaseEvents get on =>
     new DatabaseEvents(this);
 
-  /// @domName IDBDatabase.name; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBDatabase.name')
   final String name;
 
-  /// @domName IDBDatabase.objectStoreNames; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBDatabase.objectStoreNames')
   @Returns('DomStringList') @Creates('DomStringList')
   final List<String> objectStoreNames;
 
-  /// @domName IDBDatabase.version; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBDatabase.version')
   final dynamic version;
 
-  /// @domName IDBDatabase.addEventListener; @docsEditable true
+  /// @docsEditable true
   @JSName('addEventListener')
+  @DomName('IDBDatabase.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName IDBDatabase.close; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBDatabase.close')
   void close() native;
 
-  /// @domName IDBDatabase.createObjectStore; @docsEditable true
+  /// @docsEditable true
   ObjectStore createObjectStore(String name, [Map options]) {
     if (?options) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -252,19 +272,24 @@ class Database extends EventTarget native "*IDBDatabase" {
     return _createObjectStore_2(name);
   }
   @JSName('createObjectStore')
+  @DomName('IDBDatabase.createObjectStore')
   ObjectStore _createObjectStore_1(name, options) native;
   @JSName('createObjectStore')
+  @DomName('IDBDatabase.createObjectStore')
   ObjectStore _createObjectStore_2(name) native;
 
-  /// @domName IDBDatabase.deleteObjectStore; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBDatabase.deleteObjectStore')
   void deleteObjectStore(String name) native;
 
-  /// @domName IDBDatabase.dispatchEvent; @docsEditable true
+  /// @docsEditable true
   @JSName('dispatchEvent')
+  @DomName('IDBDatabase.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName IDBDatabase.removeEventListener; @docsEditable true
+  /// @docsEditable true
   @JSName('removeEventListener')
+  @DomName('IDBDatabase.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -293,7 +318,7 @@ class DatabaseEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBFactory
+@DomName('IDBFactory')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -310,23 +335,26 @@ class IdbFactory native "*IDBFactory" {
   }
 
 
-  /// @domName IDBFactory.cmp; @docsEditable true
+  /// @docsEditable true
   int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
     var first_1 = _convertDartToNative_IDBKey(first);
     var second_2 = _convertDartToNative_IDBKey(second);
     return _cmp_1(first_1, second_2);
   }
   @JSName('cmp')
+  @DomName('IDBFactory.cmp')
   int _cmp_1(first, second) native;
 
-  /// @domName IDBFactory.deleteDatabase; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBFactory.deleteDatabase')
   VersionChangeRequest deleteDatabase(String name) native;
 
-  /// @domName IDBFactory.open; @docsEditable true
-  @Returns('Request') @Creates('Request') @Creates('Database')
+  /// @docsEditable true
+  @DomName('IDBFactory.open') @Returns('Request') @Creates('Request') @Creates('Database')
   OpenDBRequest open(String name, [int version]) native;
 
-  /// @domName IDBFactory.webkitGetDatabaseNames; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBFactory.webkitGetDatabaseNames')
   Request webkitGetDatabaseNames() native;
 
 }
@@ -335,25 +363,31 @@ class IdbFactory native "*IDBFactory" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBIndex; @docsEditable true
+/// @docsEditable true
+@DomName('IDBIndex')
 class Index native "*IDBIndex" {
 
-  /// @domName IDBIndex.keyPath; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBIndex.keyPath')
   final dynamic keyPath;
 
-  /// @domName IDBIndex.multiEntry; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBIndex.multiEntry')
   final bool multiEntry;
 
-  /// @domName IDBIndex.name; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBIndex.name')
   final String name;
 
-  /// @domName IDBIndex.objectStore; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBIndex.objectStore')
   final ObjectStore objectStore;
 
-  /// @domName IDBIndex.unique; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBIndex.unique')
   final bool unique;
 
-  /// @domName IDBIndex.count; @docsEditable true
+  /// @docsEditable true
   Request count([key_OR_range]) {
     if (!?key_OR_range) {
       return _count_1();
@@ -368,13 +402,16 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('count')
+  @DomName('IDBIndex.count')
   Request _count_1() native;
   @JSName('count')
+  @DomName('IDBIndex.count')
   Request _count_2(KeyRange range) native;
   @JSName('count')
+  @DomName('IDBIndex.count')
   Request _count_3(key) native;
 
-  /// @domName IDBIndex.get; @docsEditable true
+  /// @docsEditable true
   Request get(key) {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
@@ -386,13 +423,13 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('get')
-  @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
+  @DomName('IDBIndex.get') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
   Request _get_1(KeyRange key) native;
   @JSName('get')
-  @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
+  @DomName('IDBIndex.get') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
   Request _get_2(key) native;
 
-  /// @domName IDBIndex.getKey; @docsEditable true
+  /// @docsEditable true
   Request getKey(key) {
     if ((key is KeyRange || key == null)) {
       return _getKey_1(key);
@@ -404,13 +441,13 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('getKey')
-  @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue @Creates('ObjectStore')
+  @DomName('IDBIndex.getKey') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue @Creates('ObjectStore')
   Request _getKey_1(KeyRange key) native;
   @JSName('getKey')
-  @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue @Creates('ObjectStore')
+  @DomName('IDBIndex.getKey') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue @Creates('ObjectStore')
   Request _getKey_2(key) native;
 
-  /// @domName IDBIndex.openCursor; @docsEditable true
+  /// @docsEditable true
   Request openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
@@ -435,22 +472,22 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_1() native;
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_2(KeyRange range) native;
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_3(KeyRange range, direction) native;
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_4(key) native;
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_5(key, direction) native;
 
-  /// @domName IDBIndex.openKeyCursor; @docsEditable true
+  /// @docsEditable true
   Request openKeyCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
@@ -475,19 +512,19 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('openKeyCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openKeyCursor_1() native;
   @JSName('openKeyCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openKeyCursor_2(KeyRange range) native;
   @JSName('openKeyCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openKeyCursor_3(KeyRange range, direction) native;
   @JSName('openKeyCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openKeyCursor_4(key) native;
   @JSName('openKeyCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openKeyCursor_5(key, direction) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -495,7 +532,8 @@ class Index native "*IDBIndex" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBKey; @docsEditable true
+/// @docsEditable true
+@DomName('IDBKey')
 class Key native "*IDBKey" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -503,52 +541,48 @@ class Key native "*IDBKey" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBKeyRange
+@DomName('IDBKeyRange')
 class KeyRange native "*IDBKeyRange" {
-  /**
-   * @domName IDBKeyRange.only
-   */
+  @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.createKeyRange_only(value);
 
-  /**
-   * @domName IDBKeyRange.lowerBound
-   */
+  @DomName('IDBKeyRange.lowerBound')
   factory KeyRange.lowerBound(/*Key*/ bound, [bool open = false]) =>
       _KeyRangeFactoryProvider.createKeyRange_lowerBound(bound, open);
 
-  /**
-   * @domName IDBKeyRange.upperBound
-   */
+  @DomName('IDBKeyRange.upperBound')
   factory KeyRange.upperBound(/*Key*/ bound, [bool open = false]) =>
       _KeyRangeFactoryProvider.createKeyRange_upperBound(bound, open);
 
-  /**
-   * @domName KeyRange.bound
-   */
+  @DomName('KeyRange.bound')
   factory KeyRange.bound(/*Key*/ lower, /*Key*/ upper,
                             [bool lowerOpen = false, bool upperOpen = false]) =>
       _KeyRangeFactoryProvider.createKeyRange_bound(
           lower, upper, lowerOpen, upperOpen);
 
 
-  /// @domName IDBKeyRange.lower; @docsEditable true
+  /// @docsEditable true
   dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
   @JSName('lower')
+  @DomName('IDBKeyRange.lower')
   final dynamic _lower;
 
-  /// @domName IDBKeyRange.lowerOpen; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBKeyRange.lowerOpen')
   final bool lowerOpen;
 
-  /// @domName IDBKeyRange.upper; @docsEditable true
+  /// @docsEditable true
   dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
   @JSName('upper')
+  @DomName('IDBKeyRange.upper')
   final dynamic _upper;
 
-  /// @domName IDBKeyRange.upperOpen; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBKeyRange.upperOpen')
   final bool upperOpen;
 
-  /// @domName IDBKeyRange.bound_; @docsEditable true
+  /// @docsEditable true
   static KeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
     if (?upperOpen) {
       var lower_1 = _convertDartToNative_IDBKey(lower);
@@ -565,13 +599,16 @@ class KeyRange native "*IDBKeyRange" {
     return _bound__3(lower_5, upper_6);
   }
   @JSName('bound')
+  @DomName('IDBKeyRange.bound')
   static KeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native;
   @JSName('bound')
+  @DomName('IDBKeyRange.bound')
   static KeyRange _bound__2(lower, upper, lowerOpen) native;
   @JSName('bound')
+  @DomName('IDBKeyRange.bound')
   static KeyRange _bound__3(lower, upper) native;
 
-  /// @domName IDBKeyRange.lowerBound_; @docsEditable true
+  /// @docsEditable true
   static KeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
@@ -581,19 +618,22 @@ class KeyRange native "*IDBKeyRange" {
     return _lowerBound__2(bound_2);
   }
   @JSName('lowerBound')
+  @DomName('IDBKeyRange.lowerBound')
   static KeyRange _lowerBound__1(bound, open) native;
   @JSName('lowerBound')
+  @DomName('IDBKeyRange.lowerBound')
   static KeyRange _lowerBound__2(bound) native;
 
-  /// @domName IDBKeyRange.only_; @docsEditable true
+  /// @docsEditable true
   static KeyRange only_(/*IDBKey*/ value) {
     var value_1 = _convertDartToNative_IDBKey(value);
     return _only__1(value_1);
   }
   @JSName('only')
+  @DomName('IDBKeyRange.only')
   static KeyRange _only__1(value) native;
 
-  /// @domName IDBKeyRange.upperBound_; @docsEditable true
+  /// @docsEditable true
   static KeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
       var bound_1 = _convertDartToNative_IDBKey(bound);
@@ -603,8 +643,10 @@ class KeyRange native "*IDBKeyRange" {
     return _upperBound__2(bound_2);
   }
   @JSName('upperBound')
+  @DomName('IDBKeyRange.upperBound')
   static KeyRange _upperBound__1(bound, open) native;
   @JSName('upperBound')
+  @DomName('IDBKeyRange.upperBound')
   static KeyRange _upperBound__2(bound) native;
 
 }
@@ -613,26 +655,32 @@ class KeyRange native "*IDBKeyRange" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBObjectStore; @docsEditable true
+/// @docsEditable true
+@DomName('IDBObjectStore')
 class ObjectStore native "*IDBObjectStore" {
 
-  /// @domName IDBObjectStore.autoIncrement; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBObjectStore.autoIncrement')
   final bool autoIncrement;
 
-  /// @domName IDBObjectStore.indexNames; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBObjectStore.indexNames')
   @Returns('DomStringList') @Creates('DomStringList')
   final List<String> indexNames;
 
-  /// @domName IDBObjectStore.keyPath; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBObjectStore.keyPath')
   final dynamic keyPath;
 
-  /// @domName IDBObjectStore.name; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBObjectStore.name')
   final String name;
 
-  /// @domName IDBObjectStore.transaction; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBObjectStore.transaction')
   final Transaction transaction;
 
-  /// @domName IDBObjectStore.add; @docsEditable true
+  /// @docsEditable true
   Request add(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
@@ -643,16 +691,17 @@ class ObjectStore native "*IDBObjectStore" {
     return _add_2(value_3);
   }
   @JSName('add')
-  @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
+  @DomName('IDBObjectStore.add') @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
   Request _add_1(value, key) native;
   @JSName('add')
-  @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
+  @DomName('IDBObjectStore.add') @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
   Request _add_2(value) native;
 
-  /// @domName IDBObjectStore.clear; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBObjectStore.clear')
   Request clear() native;
 
-  /// @domName IDBObjectStore.count; @docsEditable true
+  /// @docsEditable true
   Request count([key_OR_range]) {
     if (!?key_OR_range) {
       return _count_1();
@@ -667,13 +716,16 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('count')
+  @DomName('IDBObjectStore.count')
   Request _count_1() native;
   @JSName('count')
+  @DomName('IDBObjectStore.count')
   Request _count_2(KeyRange range) native;
   @JSName('count')
+  @DomName('IDBObjectStore.count')
   Request _count_3(key) native;
 
-  /// @domName IDBObjectStore.createIndex; @docsEditable true
+  /// @docsEditable true
   Index createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is List<String> || keyPath == null) &&
         !?options) {
@@ -694,15 +746,19 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createIndex')
+  @DomName('IDBObjectStore.createIndex')
   Index _createIndex_1(name, List<String> keyPath) native;
   @JSName('createIndex')
+  @DomName('IDBObjectStore.createIndex')
   Index _createIndex_2(name, List<String> keyPath, options) native;
   @JSName('createIndex')
+  @DomName('IDBObjectStore.createIndex')
   Index _createIndex_3(name, String keyPath) native;
   @JSName('createIndex')
+  @DomName('IDBObjectStore.createIndex')
   Index _createIndex_4(name, String keyPath, options) native;
 
-  /// @domName IDBObjectStore.delete; @docsEditable true
+  /// @docsEditable true
   Request delete(key_OR_keyRange) {
     if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
@@ -714,14 +770,17 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('delete')
+  @DomName('IDBObjectStore.delete')
   Request _delete_1(KeyRange keyRange) native;
   @JSName('delete')
+  @DomName('IDBObjectStore.delete')
   Request _delete_2(key) native;
 
-  /// @domName IDBObjectStore.deleteIndex; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBObjectStore.deleteIndex')
   void deleteIndex(String name) native;
 
-  /// @domName IDBObjectStore.getObject; @docsEditable true
+  /// @docsEditable true
   Request getObject(key) {
     if ((key is KeyRange || key == null)) {
       return _getObject_1(key);
@@ -733,16 +792,17 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('get')
-  @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
+  @DomName('IDBObjectStore.get') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
   Request _getObject_1(KeyRange key) native;
   @JSName('get')
-  @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
+  @DomName('IDBObjectStore.get') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
   Request _getObject_2(key) native;
 
-  /// @domName IDBObjectStore.index; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBObjectStore.index')
   Index index(String name) native;
 
-  /// @domName IDBObjectStore.openCursor; @docsEditable true
+  /// @docsEditable true
   Request openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range &&
         !?direction) {
@@ -767,22 +827,22 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_1() native;
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_2(KeyRange range) native;
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_3(KeyRange range, direction) native;
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_4(key) native;
   @JSName('openCursor')
-  @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
   Request _openCursor_5(key, direction) native;
 
-  /// @domName IDBObjectStore.put; @docsEditable true
+  /// @docsEditable true
   Request put(/*any*/ value, [/*IDBKey*/ key]) {
     if (?key) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
@@ -793,10 +853,10 @@ class ObjectStore native "*IDBObjectStore" {
     return _put_2(value_3);
   }
   @JSName('put')
-  @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
+  @DomName('IDBObjectStore.put') @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
   Request _put_1(value, key) native;
   @JSName('put')
-  @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
+  @DomName('IDBObjectStore.put') @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
   Request _put_2(value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -804,14 +864,16 @@ class ObjectStore native "*IDBObjectStore" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBOpenDBRequest; @docsEditable true
+/// @docsEditable true
+@DomName('IDBOpenDBRequest')
 class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBRequest" {
 
   static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
 
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// @docsEditable true
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   OpenDBRequestEvents get on =>
     new OpenDBRequestEvents(this);
 
@@ -836,49 +898,58 @@ class OpenDBRequestEvents extends RequestEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBRequest; @docsEditable true
+/// @docsEditable true
+@DomName('IDBRequest')
 class Request extends EventTarget native "*IDBRequest" {
 
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// @docsEditable true
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   RequestEvents get on =>
     new RequestEvents(this);
 
-  /// @domName IDBRequest.error; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBRequest.error')
   final DomError error;
 
-  /// @domName IDBRequest.readyState; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBRequest.readyState')
   final String readyState;
 
-  /// @domName IDBRequest.result; @docsEditable true
+  /// @docsEditable true
   dynamic get result => _convertNativeToDart_IDBAny(this._result);
   @JSName('result')
-  @Creates('Null')
+  @DomName('IDBRequest.result') @Creates('Null')
   final dynamic _result;
 
-  /// @domName IDBRequest.source; @docsEditable true
-  @Creates('Null')
+  /// @docsEditable true
+  @DomName('IDBRequest.source') @Creates('Null')
   final dynamic source;
 
-  /// @domName IDBRequest.transaction; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBRequest.transaction')
   final Transaction transaction;
 
-  /// @domName IDBRequest.webkitErrorMessage; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBRequest.webkitErrorMessage')
   final String webkitErrorMessage;
 
-  /// @domName IDBRequest.addEventListener; @docsEditable true
+  /// @docsEditable true
   @JSName('addEventListener')
+  @DomName('IDBRequest.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName IDBRequest.dispatchEvent; @docsEditable true
+  /// @docsEditable true
   @JSName('dispatchEvent')
+  @DomName('IDBRequest.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName IDBRequest.removeEventListener; @docsEditable true
+  /// @docsEditable true
   @JSName('removeEventListener')
+  @DomName('IDBRequest.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -902,7 +973,8 @@ class RequestEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBTransaction; @docsEditable true
+/// @docsEditable true
+@DomName('IDBTransaction')
 class Transaction extends EventTarget native "*IDBTransaction" {
 
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
@@ -911,38 +983,48 @@ class Transaction extends EventTarget native "*IDBTransaction" {
 
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// @docsEditable true
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TransactionEvents get on =>
     new TransactionEvents(this);
 
-  /// @domName IDBTransaction.db; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBTransaction.db')
   final Database db;
 
-  /// @domName IDBTransaction.error; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBTransaction.error')
   final DomError error;
 
-  /// @domName IDBTransaction.mode; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBTransaction.mode')
   final String mode;
 
-  /// @domName IDBTransaction.webkitErrorMessage; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBTransaction.webkitErrorMessage')
   final String webkitErrorMessage;
 
-  /// @domName IDBTransaction.abort; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBTransaction.abort')
   void abort() native;
 
-  /// @domName IDBTransaction.addEventListener; @docsEditable true
+  /// @docsEditable true
   @JSName('addEventListener')
+  @DomName('IDBTransaction.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName IDBTransaction.dispatchEvent; @docsEditable true
+  /// @docsEditable true
   @JSName('dispatchEvent')
+  @DomName('IDBTransaction.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName IDBTransaction.objectStore; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBTransaction.objectStore')
   ObjectStore objectStore(String name) native;
 
-  /// @domName IDBTransaction.removeEventListener; @docsEditable true
+  /// @docsEditable true
   @JSName('removeEventListener')
+  @DomName('IDBTransaction.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -971,13 +1053,16 @@ class TransactionEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBVersionChangeEvent; @docsEditable true
+/// @docsEditable true
+@DomName('IDBVersionChangeEvent')
 class UpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
 
-  /// @domName IDBVersionChangeEvent.newVersion; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBUpgradeNeededEvent.newVersion')
   final int newVersion;
 
-  /// @domName IDBVersionChangeEvent.oldVersion; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBUpgradeNeededEvent.oldVersion')
   final int oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -985,10 +1070,12 @@ class UpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBVersionChangeEvent; @docsEditable true
+/// @docsEditable true
+@DomName('IDBVersionChangeEvent')
 class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
-  /// @domName IDBVersionChangeEvent.version; @docsEditable true
+  /// @docsEditable true
+  @DomName('IDBVersionChangeEvent.version')
   final String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -996,12 +1083,14 @@ class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBVersionChangeRequest; @docsEditable true
+/// @docsEditable true
+@DomName('IDBVersionChangeRequest')
 class VersionChangeRequest extends Request implements EventTarget native "*IDBVersionChangeRequest" {
 
   static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// @docsEditable true
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   VersionChangeRequestEvents get on =>
     new VersionChangeRequestEvents(this);
 
@@ -1021,6 +1110,7 @@ class VersionChangeRequestEvents extends RequestEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName IDBAny; @docsEditable true
+/// @docsEditable true
+@DomName('IDBAny')
 class _Any native "*IDBAny" {
 }

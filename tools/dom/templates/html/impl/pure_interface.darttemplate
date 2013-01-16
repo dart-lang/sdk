@@ -4,6 +4,6 @@
 
 part of $LIBRARYNAME;
 
-/// @domName $DOMNAME
+/// @docsEditable true$ANNOTATIONS
 abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS}

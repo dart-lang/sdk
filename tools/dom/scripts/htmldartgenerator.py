@@ -8,7 +8,7 @@ dart:html APIs from the IDL database."""
 
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
-    IsPureInterface, TypeOrNothing
+    IsPureInterface, TypeOrNothing, FindCommonAnnotations
 
 # Types that are accessible cross-frame in a limited fashion.
 # In these cases, the base type (e.g., WindowBase) provides restricted access
@@ -40,26 +40,35 @@ class HtmlDartGenerator(object):
   def EmitAttributeDocumentation(self, attribute):
     """ Emits the MDN dartdoc comment for an attribute.
     """
+
     dom_name = DartDomNameOfAttribute(attribute)
-    self._members_emitter.Emit('\n  /// @domName $DOMINTERFACE.$DOMNAME;'
-                               ' @docsEditable true',
+
+    annotations = FindCommonAnnotations(dom_name)
+    annotations_str = ''
+    if annotations:
+      annotations_str = '\n' + '\n'.join(annotations)
+    self._members_emitter.Emit('\n  /// @docsEditable true',
         DOMINTERFACE=attribute.doc_js_interface_name,
-        DOMNAME=dom_name)
+        ANNOTATIONS=annotations)
 
   def EmitOperationDocumentation(self, operation):
     """ Emits the MDN dartdoc comment for an operation.
     """
-    self._members_emitter.Emit('\n  /// @domName $DOMINTERFACE.$DOMNAME;'
-                               ' @docsEditable true',
+
+    annotations = FindCommonAnnotations(operation.name)
+    annotations_str = ''
+    if annotations:
+      annotations_str = '\n' + '\n'.join(annotations)
+    self._members_emitter.Emit('\n  /// @docsEditable true',
         DOMINTERFACE=operation.overloads[0].doc_js_interface_name,
-        DOMNAME=operation.name)
+        ANNOTATIONS=annotations)
 
   def EmitEventGetter(self, events_class_name):
     self._members_emitter.Emit(
-        '\n  /// @domName EventTarget.addEventListener, '
-        'EventTarget.removeEventListener, EventTarget.dispatchEvent;'
-        ' @docsEditable true'
-        '\n  $TYPE get on =>\n    new $TYPE(this);\n',
+        "\n  /// @docsEditable true"
+        "\n  @DomName('EventTarget.addEventListener, "
+        "EventTarget.removeEventListener, EventTarget.dispatchEvent')"
+        "\n  $TYPE get on =>\n    new $TYPE(this);\n",
         TYPE=events_class_name)
 
   def AddMembers(self, interface, declare_only=False):
@@ -293,7 +302,7 @@ class HtmlDartGenerator(object):
 
   def _AddConstructor(self,
       constructor_info, factory_name, factory_constructor_name):
-    self._members_emitter.Emit('\n  ///@docsEditable true');
+    self._members_emitter.Emit('\n  /// @docsEditable true');
 
     if not factory_constructor_name:
       factory_constructor_name = '_create'

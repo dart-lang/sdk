@@ -3,30 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of indexed_db;
-
-/// @domName $DOMNAME
+$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  /**
-   * @domName IDBKeyRange.only
-   */
+  @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.create$(CLASSNAME)_only(value);
 
-  /**
-   * @domName IDBKeyRange.lowerBound
-   */
+  @DomName('IDBKeyRange.lowerBound')
   factory KeyRange.lowerBound(/*Key*/ bound, [bool open = false]) =>
       _KeyRangeFactoryProvider.create$(CLASSNAME)_lowerBound(bound, open);
 
-  /**
-   * @domName IDBKeyRange.upperBound
-   */
+  @DomName('IDBKeyRange.upperBound')
   factory KeyRange.upperBound(/*Key*/ bound, [bool open = false]) =>
       _KeyRangeFactoryProvider.create$(CLASSNAME)_upperBound(bound, open);
 
-  /**
-   * @domName KeyRange.bound
-   */
+  @DomName('KeyRange.bound')
   factory KeyRange.bound(/*Key*/ lower, /*Key*/ upper,
                             [bool lowerOpen = false, bool upperOpen = false]) =>
       _KeyRangeFactoryProvider.create$(CLASSNAME)_bound(
