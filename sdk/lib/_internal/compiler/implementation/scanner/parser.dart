@@ -52,7 +52,7 @@ class Parser {
     } else if ((identical(value, 'abstract')) || (identical(value, 'class'))) {
       return parseClass(token);
     } else if (identical(value, 'typedef')) {
-      return parseNamedFunctionAlias(token);
+      return parseTypedef(token);
     } else if (identical(value, '#')) {
       return parseScriptTags(token);
     } else if (identical(value, 'library')) {
@@ -161,6 +161,19 @@ class Parser {
     return token;
   }
 
+  /// type (, type)*
+  Token parseTypeList(Token token) {
+    listener.beginTypeList(token);
+    token = parseType(token);
+    int count = 1;
+    while (optional(',', token)) {
+      token = parseType(token.next);
+      count++;
+    }
+    listener.endTypeList(count);
+    return token;
+  }
+
   Token parsePartOrPartOf(Token token) {
     assert(optional('part', token));
     if (optional('of', token.next)) {
@@ -246,15 +259,34 @@ class Parser {
     return parseClassBody(token);
   }
 
-  Token parseNamedFunctionAlias(Token token) {
+  Token parseTypedef(Token token) {
     Token typedefKeyword = token;
-    listener.beginFunctionTypeAlias(token);
-    token = parseReturnTypeOpt(token.next);
-    token = parseIdentifier(token);
-    token = parseTypeVariablesOpt(token);
-    token = parseFormalParameters(token);
-    listener.endFunctionTypeAlias(typedefKeyword, token);
+    if (optional('=', peekAfterType(token.next))) {
+      listener.beginNamedMixinApplication(token);
+      token = parseIdentifier(token.next);
+      token = parseTypeVariablesOpt(token);
+      token = expect('=', token);
+      token = parseMixinApplication(token);
+      listener.endNamedMixinApplication(typedefKeyword, token);
+    } else {
+      listener.beginFunctionTypeAlias(token);
+      token = parseReturnTypeOpt(token.next);
+      token = parseIdentifier(token);
+      token = parseTypeVariablesOpt(token);
+      token = parseFormalParameters(token);
+      listener.endFunctionTypeAlias(typedefKeyword, token);
+    }
     return expect(';', token);
+  }
+
+  Token parseMixinApplication(Token token) {
+    listener.beginMixinApplication(token);
+    token = parseModifiers(token);
+    token = parseType(token);
+    token = expect('with', token);
+    token = parseTypeList(token);
+    listener.endMixinApplication();
+    return token;
   }
 
   Token parseReturnTypeOpt(Token token) {

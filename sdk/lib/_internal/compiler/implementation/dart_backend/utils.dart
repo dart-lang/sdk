@@ -117,6 +117,16 @@ class CloningVisitor implements Visitor<Node> {
   visitLiteralString(LiteralString node) => new LiteralString(
       node.token, node.dartString);
 
+  visitMixinApplication(MixinApplication node) => new MixinApplication(
+      visit(node.modifiers), visit(node.superclass), visit(node.mixins));
+
+  visitNamedMixinApplication(NamedMixinApplication node) =>
+      new NamedMixinApplication(node.name,
+                                node.typeParameters,
+                                node.mixinApplication,
+                                node.typedefKeyword,
+                                node.endToken);
+
   visitModifiers(Modifiers node) => new Modifiers(visit(node.nodes));
 
   visitNamedArgument(NamedArgument node) => new NamedArgument(

@@ -287,6 +287,23 @@ testClassDeclarations() {
   testUnparseTopLevelWithMetadata('class Fisk{operator-(x){}}');
 }
 
+testMixinApplications() {
+  testUnparseTopLevelWithMetadata('typedef C = S with M;');
+  testUnparseTopLevelWithMetadata('typedef C = S with M1,M2;');
+  testUnparseTopLevelWithMetadata('typedef C = S with M1,M2,M3;');
+
+  testUnparseTopLevelWithMetadata('typedef C<A> = S with M;');
+  testUnparseTopLevelWithMetadata('typedef C<A,B> = S with M;');
+
+  testUnparseTopLevelWithMetadata('typedef C = S<A> with M;');
+  testUnparseTopLevelWithMetadata('typedef C = S<A,B> with M;');
+
+  testUnparseTopLevelWithMetadata('typedef C = S with M<A>;');
+  testUnparseTopLevelWithMetadata('typedef C = S with M<A,B>;');
+  testUnparseTopLevelWithMetadata('typedef C = S with M1<A>,M2;');
+  testUnparseTopLevelWithMetadata('typedef C = S with M1,M2<A,B>;');
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -306,4 +323,5 @@ main() {
   testCombinators();
   testRedirectingFactoryConstructors();
   testClassDeclarations();
+  testMixinApplications();
 }

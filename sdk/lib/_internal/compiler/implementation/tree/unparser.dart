@@ -81,6 +81,27 @@ class Unparser implements Visitor {
     unparseClassWithBody(node, node.body.nodes);
   }
 
+  visitMixinApplication(MixinApplication node) {
+    if (!node.modifiers.nodes.isEmpty) {
+      visit(node.modifiers);
+      sb.add(' ');
+    }
+    visit(node.superclass);
+    sb.add(' with ');
+    visit(node.mixins);
+  }
+
+  visitNamedMixinApplication(NamedMixinApplication node) {
+    sb.add('typedef ');
+    visit(node.name);
+    if (node.typeParameters != null) {
+      visit(node.typeParameters);
+    }
+    sb.add(' = ');
+    visit(node.mixinApplication);
+    sb.add(';');
+  }
+
   visitConditional(Conditional node) {
     visit(node.condition);
     add(node.questionToken.value);

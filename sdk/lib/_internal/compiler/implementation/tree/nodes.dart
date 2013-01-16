@@ -48,8 +48,10 @@ abstract class Visitor<R> {
   R visitLiteralString(LiteralString node) => visitStringNode(node);
   R visitStringJuxtaposition(StringJuxtaposition node) => visitStringNode(node);
   R visitLoop(Loop node) => visitStatement(node);
+  R visitMixinApplication(MixinApplication node) => visitNode(node);
   R visitModifiers(Modifiers node) => visitNode(node);
   R visitNamedArgument(NamedArgument node) => visitExpression(node);
+  R visitNamedMixinApplication(NamedMixinApplication node) => visitNode(node);
   R visitNewExpression(NewExpression node) => visitExpression(node);
   R visitNodeList(NodeList node) => visitNode(node);
   R visitOperator(Operator node) => visitIdentifier(node);
@@ -144,7 +146,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   ContinueStatement asContinueStatement() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
-  Export AsExport() => null;
+  Export asExport() => null;
   Expression asExpression() => null;
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
@@ -153,10 +155,10 @@ abstract class Node extends TreeElementMixin implements Spannable {
   FunctionExpression asFunctionExpression() => null;
   Identifier asIdentifier() => null;
   If asIf() => null;
-  Import AsImport() => null;
+  Import asImport() => null;
   Label asLabel() => null;
   LabeledStatement asLabeledStatement() => null;
-  LibraryName AsLibraryName() => null;
+  LibraryName asLibraryName() => null;
   LiteralBool asLiteralBool() => null;
   LiteralDouble asLiteralDouble() => null;
   LiteralInt asLiteralInt() => null;
@@ -165,13 +167,14 @@ abstract class Node extends TreeElementMixin implements Spannable {
   LiteralMapEntry asLiteralMapEntry() => null;
   LiteralNull asLiteralNull() => null;
   LiteralString asLiteralString() => null;
+  MixinApplication asMixinApplication() => null;
   Modifiers asModifiers() => null;
   NamedArgument asNamedArgument() => null;
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
-  Part AsPart() => null;
-  PartOf AsPartOf() => null;
+  Part asPart() => null;
+  PartOf asPartOf() => null;
   Return asReturn() => null;
   ScriptTag asScriptTag() => null;
   Send asSend() => null;
@@ -232,6 +235,54 @@ class ClassNode extends Node {
 
   Token getBeginToken() => beginToken;
 
+  Token getEndToken() => endToken;
+}
+
+class MixinApplication extends Node {
+  final Modifiers modifiers;
+  final TypeAnnotation superclass;
+  final NodeList mixins;
+
+  MixinApplication(this.modifiers, this.superclass, this.mixins);
+
+  MixinApplication asMixinApplication() => this;
+
+  accept(Visitor visitor) => visitor.visitMixinApplication(this);
+
+  visitChildren(Visitor visitor) {
+    if (modifiers != null) modifiers.accept(visitor);
+    if (superclass != null) superclass.accept(visitor);
+    if (mixins != null) mixins.accept(visitor);
+  }
+
+  Token getBeginToken() => superclass.getBeginToken();
+  Token getEndToken() => mixins.getEndToken();
+}
+
+// TODO(kasperl): Let this share some structure with the typedef for function
+// type aliases?
+class NamedMixinApplication extends Node {
+  final Identifier name;
+  final NodeList typeParameters;
+  final MixinApplication mixinApplication;
+
+  final Token typedefKeyword;
+  final Token endToken;
+
+  NamedMixinApplication(this.name, this.typeParameters, this.mixinApplication,
+                        this.typedefKeyword, this.endToken);
+
+  NamedMixinApplication asNamedMixinApplication() => this;
+
+  accept(Visitor visitor) => visitor.visitNamedMixinApplication(this);
+
+  visitChildren(Visitor visitor) {
+    name.accept(visitor);
+    if (typeParameters != null) typeParameters.accept(visitor);
+    mixinApplication.accept(visitor);
+  }
+
+  Token getBeginToken() => typedefKeyword;
   Token getEndToken() => endToken;
 }
 

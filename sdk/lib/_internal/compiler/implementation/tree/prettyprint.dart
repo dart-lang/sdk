@@ -263,12 +263,20 @@ class PrettyPrinter implements Visitor {
         {"value" : node.token.slowToString()});
   }
 
+  visitMixinApplication(MixinApplication node) {
+    visitNodeWithChildren(node, "MixinApplication");
+  }
+
   visitModifiers(Modifiers node) {
     visitNodeWithChildren(node, "Modifiers");
   }
 
   visitNamedArgument(NamedArgument node) {
     visitNodeWithChildren(node, "NamedArgument");
+  }
+
+  visitNamedMixinApplication(NamedMixinApplication node) {
+    visitNodeWithChildren(node, "NamedMixinApplication");
   }
 
   visitNewExpression(NewExpression node) {

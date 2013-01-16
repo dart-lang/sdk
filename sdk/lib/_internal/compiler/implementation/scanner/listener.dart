@@ -163,6 +163,18 @@ class Listener {
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
   }
 
+  void beginMixinApplication(Token token) {
+  }
+
+  void endMixinApplication() {
+  }
+
+  void beginNamedMixinApplication(Token token) {
+  }
+
+  void endNamedMixinApplication(Token typedefKeyword, Token endToken) {
+  }
+
   void beginHide(Token hideKeyword) {
   }
 
@@ -173,6 +185,12 @@ class Listener {
   }
 
   void endIdentifierList(int count) {
+  }
+
+  void beginTypeList(Token token) {
+  }
+
+  void endTypeList(int count) {
   }
 
   void beginIfStatement(Token token) {
@@ -702,6 +720,10 @@ class ElementListener extends Listener {
     pushNode(makeNodeList(count, null, null, ","));
   }
 
+  void endTypeList(int count) {
+    pushNode(makeNodeList(count, null, null, ","));
+  }
+
   void endPart(Token partKeyword, Token semicolon) {
     StringNode uri = popLiteralString();
     addLibraryTag(new Part(partKeyword, uri));
@@ -802,6 +824,24 @@ class ElementListener extends Listener {
     pushElement(new PartialTypedefElement(name.source, compilationUnitElement,
                                           typedefKeyword));
     rejectBuiltInIdentifier(name);
+  }
+
+  void endNamedMixinApplication(Token typedefKeyword, Token endToken) {
+    Node mixinApplication = popNode();
+    NodeList typeVariables = popNode();
+    Identifier name = popNode();
+    rejectBuiltInIdentifier(name);
+    // TODO(kasperl): Push an element corresponding to the named mixin
+    // application instead of rejecting this.
+    recoverableError('unsupported mixin application in typedef',
+                     node: mixinApplication);
+  }
+
+  void endMixinApplication() {
+    NodeList mixins = popNode();
+    TypeAnnotation superclass = popNode();
+    Modifiers modifiers = popNode();
+    pushNode(new MixinApplication(modifiers, superclass, mixins));
   }
 
   void handleVoidKeyword(Token token) {
@@ -1168,6 +1208,14 @@ class NodeListener extends ElementListener {
     TypeAnnotation returnType = popNode();
     pushNode(new Typedef(returnType, name, typeParameters, formals,
                          typedefKeyword, endToken));
+  }
+
+  void endNamedMixinApplication(Token typedefKeyword, Token endToken) {
+    Node mixinApplication = popNode();
+    NodeList typeParameters = popNode();
+    Identifier name = popNode();
+    pushNode(new NamedMixinApplication(name, typeParameters, mixinApplication,
+                                       typedefKeyword, endToken));
   }
 
   void endInterface(int supertypeCount, Token interfaceKeyword,

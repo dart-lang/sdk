@@ -38,6 +38,7 @@ class Keyword extends Iterable<int> implements SourceString {
       const Keyword("var"),
       const Keyword("void"),
       const Keyword("while"),
+      const Keyword("with"),
 
       // TODO(ahe): Don't think this is a reserved word.
       // See: http://dartbug.com/5579
