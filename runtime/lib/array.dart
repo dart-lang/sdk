@@ -70,7 +70,7 @@ class _ObjectArray<E> implements List<E> {
   }
 
   String join([String separator]) {
-    return Collections.join(this, separator);
+    return Collections.joinList(this, separator);
   }
 
   List mappedBy(f(E element)) {
@@ -278,7 +278,7 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   String join([String separator]) {
-    return Collections.join(this, separator);
+    return Collections.joinList(this, separator);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
