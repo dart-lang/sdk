@@ -23,11 +23,7 @@ main() {
     wheelEvent = 'mousewheel';
   } else if (userAgent.contains('Firefox')) {
     // FF appears to have recently added support for wheel.
-    if (userAgent.contains('Firefox/17')) {
-      wheelEvent = 'DOMMouseScroll';
-    } else {
-      wheelEvent = 'wheel';
-    }
+    wheelEvent = 'wheel';
   } else if (userAgent.contains('WebKit', 0)) {
     wheelEvent = 'mousewheel';
   }

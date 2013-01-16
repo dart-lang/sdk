@@ -26710,7 +26710,7 @@ class WheelEvent extends MouseEvent {
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
       event.$dom_initWebKitWheelEvent(wheelDeltaX,
-          (wheelDeltaY / 120).toInt(), // Chrome does an auto-convert to pixels.
+          wheelDeltaY ~/ 120, // Chrome does an auto-convert to pixels.
           view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey);
 
