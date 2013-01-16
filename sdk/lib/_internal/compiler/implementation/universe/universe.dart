@@ -215,6 +215,10 @@ class Selector {
   bool isGetter() => identical(kind, SelectorKind.GETTER);
   bool isSetter() => identical(kind, SelectorKind.SETTER);
   bool isCall() => identical(kind, SelectorKind.CALL);
+  bool isClosureCall() {
+    SourceString callName = Compiler.CALL_OPERATOR_NAME;
+    return isCall() && name == callName;
+  }
 
   bool isIndex() => identical(kind, SelectorKind.INDEX) && argumentCount == 1;
   bool isIndexSet() => identical(kind, SelectorKind.INDEX) && argumentCount == 2;

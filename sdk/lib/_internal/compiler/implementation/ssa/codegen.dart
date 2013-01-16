@@ -1649,11 +1649,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         visitArguments(node.inputs)),
          node);
     world.registerDynamicInvocation(call.name, call);
-    // A closure can also be invoked through [HInvokeDynamicMethod] by
-    // explicitly calling the [:call:] method. Therefore, we must also
-    // register types here to let the backend invalidate wrong
-    // optimizations.
-    backend.registerDynamicInvocation(node, call, types);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
