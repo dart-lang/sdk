@@ -80,8 +80,6 @@ js_support_checks = {
   # IE creates keygen as Block elements
   'HTMLKeygenElement': "Element.isTagSupported('keygen') "
       "&& (new Element.tag('keygen') is KeygenElement)",
-  'HTMLMarqueeElement': "Element.isTagSupported('marquee')"
-      "&& (new Element.tag('marquee') is MarqueeElement)",
   'HTMLMeterElement': "Element.isTagSupported('meter')",
   'HTMLObjectElement': "Element.isTagSupported('object')",
   'HTMLOutputElement': "Element.isTagSupported('output')",

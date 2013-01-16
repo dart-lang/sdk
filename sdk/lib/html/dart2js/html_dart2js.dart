@@ -180,49 +180,6 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 
 
 @DocsEditable
-@DomName('HTMLAppletElement')
-class AppletElement extends Element native "*HTMLAppletElement" {
-
-  @DocsEditable @DomName('HTMLAppletElement.align')
-  String align;
-
-  @DocsEditable @DomName('HTMLAppletElement.alt')
-  String alt;
-
-  @DocsEditable @DomName('HTMLAppletElement.archive')
-  String archive;
-
-  @DocsEditable @DomName('HTMLAppletElement.code')
-  String code;
-
-  @DocsEditable @DomName('HTMLAppletElement.codeBase')
-  String codeBase;
-
-  @DocsEditable @DomName('HTMLAppletElement.height')
-  String height;
-
-  @DocsEditable @DomName('HTMLAppletElement.hspace')
-  String hspace;
-
-  @DocsEditable @DomName('HTMLAppletElement.name')
-  String name;
-
-  @DocsEditable @DomName('HTMLAppletElement.object')
-  String object;
-
-  @DocsEditable @DomName('HTMLAppletElement.vspace')
-  String vspace;
-
-  @DocsEditable @DomName('HTMLAppletElement.width')
-  String width;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-
-@DocsEditable
 @DomName('DOMApplicationCache')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -542,25 +499,6 @@ class BaseElement extends Element native "*HTMLBaseElement" {
 
   @DocsEditable @DomName('HTMLBaseElement.target')
   String target;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-
-@DocsEditable
-@DomName('HTMLBaseFontElement')
-class BaseFontElement extends Element native "*HTMLBaseFontElement" {
-
-  @DocsEditable @DomName('HTMLBaseFontElement.color')
-  String color;
-
-  @DocsEditable @DomName('HTMLBaseFontElement.face')
-  String face;
-
-  @DocsEditable @DomName('HTMLBaseFontElement.size')
-  int size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10454,25 +10392,6 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
 
 @DocsEditable
-@DomName('HTMLFontElement')
-class FontElement extends Element native "*HTMLFontElement" {
-
-  @DocsEditable @DomName('HTMLFontElement.color')
-  String color;
-
-  @DocsEditable @DomName('HTMLFontElement.face')
-  String face;
-
-  @DocsEditable @DomName('HTMLFontElement.size')
-  String size;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-
-@DocsEditable
 @DomName('FormData')
 class FormData native "*FormData" {
 
@@ -10544,128 +10463,6 @@ class FormElement extends Element native "*HTMLFormElement" {
 
   @DocsEditable @DomName('HTMLFormElement.submit')
   void submit() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-
-@DocsEditable
-@DomName('HTMLFrameElement')
-class FrameElement extends Element native "*HTMLFrameElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-
-@DocsEditable
-@DomName('HTMLFrameSetElement')
-class FrameSetElement extends Element native "*HTMLFrameSetElement" {
-
-  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
-  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
-
-  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
-
-  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
-
-  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
-
-  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
-
-  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  FrameSetElementEvents get on =>
-    new FrameSetElementEvents(this);
-
-  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
-
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
-
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
-
-  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
-
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
-
-  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
-
-  Stream<Event> get onOffline => offlineEvent.forTarget(this);
-
-  Stream<Event> get onOnline => onlineEvent.forTarget(this);
-
-  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
-
-  Stream<Event> get onResize => resizeEvent.forTarget(this);
-
-  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
-
-  Stream<Event> get onUnload => unloadEvent.forTarget(this);
-}
-
-@DocsEditable
-class FrameSetElementEvents extends ElementEvents {
-  @DocsEditable
-  FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  @DocsEditable
-  EventListenerList get blur => this['blur'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get focus => this['focus'];
-
-  @DocsEditable
-  EventListenerList get hashChange => this['hashchange'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get offline => this['offline'];
-
-  @DocsEditable
-  EventListenerList get online => this['online'];
-
-  @DocsEditable
-  EventListenerList get popState => this['popstate'];
-
-  @DocsEditable
-  EventListenerList get resize => this['resize'];
-
-  @DocsEditable
-  EventListenerList get storage => this['storage'];
-
-  @DocsEditable
-  EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13489,58 +13286,6 @@ class MapElement extends Element native "*HTMLMapElement" {
 
   @DocsEditable @DomName('HTMLMapElement.name')
   String name;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-
-@DocsEditable
-@DomName('HTMLMarqueeElement')
-class MarqueeElement extends Element native "*HTMLMarqueeElement" {
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => Element.isTagSupported('marquee')&& (new Element.tag('marquee') is MarqueeElement);
-
-  @DocsEditable @DomName('HTMLMarqueeElement.behavior')
-  String behavior;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.bgColor')
-  String bgColor;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.direction')
-  String direction;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.height')
-  String height;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.hspace')
-  int hspace;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.loop')
-  int loop;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.scrollAmount')
-  int scrollAmount;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.scrollDelay')
-  int scrollDelay;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.trueSpeed')
-  bool trueSpeed;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.vspace')
-  int vspace;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.width')
-  String width;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.start')
-  void start() native;
-
-  @DocsEditable @DomName('HTMLMarqueeElement.stop')
-  void stop() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23953,6 +23698,26 @@ class XsltProcessor native "*XSLTProcessor" {
 
 
 @DocsEditable
+@DomName('HTMLAppletElement')
+class _AppletElement extends Element native "*HTMLAppletElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('HTMLBaseFontElement')
+class _BaseFontElement extends Element native "*HTMLBaseFontElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
 @DomName('ClientRectList')
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
 
@@ -24783,6 +24548,138 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
 
 @DocsEditable
+@DomName('HTMLFontElement')
+class _FontElement extends Element native "*HTMLFontElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('HTMLFrameElement')
+class _FrameElement extends Element native "*HTMLFrameElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('HTMLFrameSetElement')
+class _FrameSetElement extends Element native "*HTMLFrameSetElement" {
+
+  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
+
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
+
+  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
+
+  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
+
+  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
+
+  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
+
+  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
+
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  _FrameSetElementEvents get on =>
+    new _FrameSetElementEvents(this);
+
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  Stream<Event> get onBlur => blurEvent.forTarget(this);
+
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  Stream<Event> get onFocus => focusEvent.forTarget(this);
+
+  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+
+  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+
+  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+
+  Stream<Event> get onResize => resizeEvent.forTarget(this);
+
+  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
+}
+
+@DocsEditable
+class _FrameSetElementEvents extends ElementEvents {
+  @DocsEditable
+  _FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
+
+  @DocsEditable
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  @DocsEditable
+  EventListenerList get blur => this['blur'];
+
+  @DocsEditable
+  EventListenerList get error => this['error'];
+
+  @DocsEditable
+  EventListenerList get focus => this['focus'];
+
+  @DocsEditable
+  EventListenerList get hashChange => this['hashchange'];
+
+  @DocsEditable
+  EventListenerList get load => this['load'];
+
+  @DocsEditable
+  EventListenerList get message => this['message'];
+
+  @DocsEditable
+  EventListenerList get offline => this['offline'];
+
+  @DocsEditable
+  EventListenerList get online => this['online'];
+
+  @DocsEditable
+  EventListenerList get popState => this['popstate'];
+
+  @DocsEditable
+  EventListenerList get resize => this['resize'];
+
+  @DocsEditable
+  EventListenerList get storage => this['storage'];
+
+  @DocsEditable
+  EventListenerList get unload => this['unload'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
 @DomName('GamepadList')
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
 
@@ -24939,6 +24836,16 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   @DocsEditable @DomName('GamepadList.item')
   Gamepad item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('HTMLMarqueeElement')
+class _MarqueeElement extends Element native "*HTMLMarqueeElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
