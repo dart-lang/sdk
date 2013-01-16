@@ -727,6 +727,23 @@ $endif
   var xtag;
 
 $if DART2JS
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent =
+      const _CustomEventStreamProvider<WheelEvent>(
+        Element._determineMouseWheelEventType);
+
+  static String _determineMouseWheelEventType(EventTarget e) {
+    if (JS('bool', '#.onwheel !== undefined', e)) {
+      // W3C spec, and should be IE9+, but IE has a bug exposing onwheel.
+      return 'wheel';
+    } else if (JS('bool', '#.onmousewheel !== undefined', e)) {
+      // Chrome & IE
+      return 'mousewheel';
+    } else {
+      // Firefox
+      return 'DOMMouseScroll';
+    }
+  }
+
   /**
    * Creates a text node and inserts it into the DOM at the specified location.
    *

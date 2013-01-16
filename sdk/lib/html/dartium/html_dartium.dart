@@ -13562,7 +13562,6 @@ class InputElement extends _Element_Merged implements
     ButtonInputElement
      {
 
-  @DocsEditable
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) {
@@ -26693,6 +26692,31 @@ class WebSocketEvents extends Events {
 @DocsEditable
 @DomName('WheelEvent')
 class WheelEvent extends MouseEvent {
+
+  factory WheelEvent(String type, Window view, int wheelDeltaX, int wheelDeltaY,
+      int detail, int screenX, int screenY, int clientX, int clientY,
+      int button,
+      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) {
+
+    var eventType = 'WheelEvent';
+    if (_Device.isFirefox) {
+      eventType = 'MouseScrollEvents';
+    }
+    final event = document.$dom_createEvent(eventType);
+      // Fallthrough for Dartium.
+      event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey, button, relatedTarget);
+      event.$dom_initWebKitWheelEvent(wheelDeltaX,
+          (wheelDeltaY / 120).toInt(), // Chrome does an auto-convert to pixels.
+          view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey);
+
+    return event;
+  }
+
   WheelEvent.internal() : super.internal();
 
   @DocsEditable
@@ -26709,7 +26733,7 @@ class WheelEvent extends MouseEvent {
 
   @DocsEditable
   @DomName('WheelEvent.initWebKitWheelEvent')
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
+  void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
 
   @DomName('WheelEvent.deltaX')
@@ -30646,6 +30670,21 @@ class EventStreamProvider<T extends Event> {
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventType, useCapture);
+  }
+}
+
+/**
+ * A factory to expose DOM events as streams, where the DOM event name has to
+ * be determined on the fly (for example, mouse wheel events).
+ */
+class _CustomEventStreamProvider<T extends Event>
+    implements EventStreamProvider<T> {
+
+  final _eventTypeGetter;
+  const _CustomEventStreamProvider(this._eventTypeGetter);
+
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+    return new _EventStream(e, _eventTypeGetter(e), useCapture);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -130,6 +130,7 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'UIEvent.keyCode',
   'WheelEvent.wheelDeltaX',
   'WheelEvent.wheelDeltaY',
+  'WheelEvent.initWebKitWheelEvent',
   'DOMWindow.getComputedStyle',
 ])
 

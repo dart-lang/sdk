@@ -5,6 +5,71 @@
 part of html;
 $ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+  factory WheelEvent(String type, Window view, int wheelDeltaX, int wheelDeltaY,
+      int detail, int screenX, int screenY, int clientX, int clientY,
+      int button,
+      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) {
+
+    var eventType = 'WheelEvent';
+    if (_Device.isFirefox) {
+      eventType = 'MouseScrollEvents';
+    }
+    final event = document.$dom_createEvent(eventType);
+$if DART2JS
+    if (event._hasInitWheelEvent) {
+      var modifiers = [];
+      if (ctrlKey) {
+        modifiers.push('Control');
+      }
+      if (altKey) {
+        modifiers.push('Alt');
+      }
+      if (shiftKey) {
+        modifiers.push('Shift');
+      }
+      if (metaKey) {
+        modifiers.push('Meta');
+      }
+      event._initWheelEvent(type, canBubble, cancelable, view, detail, screenX,
+          screenY, clientX, clientY, button, relatedTarget, modifiers.join(' '),
+          wheelDeltaX, wheelDeltaY, 0, 0);
+    } else if (event._hasInitMouseScrollEvent) {
+      var axis = 0;
+      var detail = 0;
+      if (wheelDeltaX != 0 && wheelDeltaY != 0) {
+        throw UnsupportedError(
+            'Cannot modify wheelDeltaX and wheelDeltaY simultaneously');
+      }
+      if (wheelDeltaY != 0) {
+        detail = wheelDeltaY;
+        axis = JS('int', 'MouseScrollEvent.VERTICAL_AXIS');
+      } else if (wheelDeltaX != 0) {
+        detail = wheelDeltaX;
+        axis = JS('int', 'MouseScrollEvent.HORIZONTAL_AXIS');
+      }
+      event._initMouseScrollEvent(type, canBubble, cancelable, view, detail,
+          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey, button, relatedTarget, axis);
+    } else {
+$endif
+      // Fallthrough for Dartium.
+      event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey, button, relatedTarget);
+      event.$dom_initWebKitWheelEvent(wheelDeltaX,
+          (wheelDeltaY / 120).toInt(), // Chrome does an auto-convert to pixels.
+          view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey);
+$if DART2JS
+    }
+$endif
+
+    return event;
+  }
+
 $!MEMBERS
 
 $if DART2JS
@@ -50,7 +115,8 @@ $if DART2JS
 
       // Handle DOMMouseScroll case where it uses detail and the axis to
       // differentiate.
-      if (JS('bool', '#.axis !== undefined && #.axis == MouseScrollEvent.HORIZONTAL_AXIS', this, this)) {
+      if (JS('bool', '#.axis !== undefined && '
+        '#.axis == MouseScrollEvent.HORIZONTAL_AXIS', this, this)) {
         var detail = this._detail;
         // Firefox is normally the number of lines to scale (normally 3)
         // so multiply it by 40 to get pixels to move, matching IE & WebKit.
@@ -79,6 +145,49 @@ $if DART2JS
   num get _wheelDeltaX => JS('num', '#.wheelDeltaX', this);
   num get _detail => JS('num', '#.detail', this);
   int get _deltaMode => JS('int', '#.deltaMode', this);
+
+  bool get _hasInitMouseScrollEvent =>
+      JS('bool', '!!(#.initMouseScrollEvent)', this);
+
+  @JSName('initMouseScrollEvent')
+  void _initMouseScrollEvent(
+      String type,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      int detail,
+      int screenX,
+      int screenY,
+      int clientX,
+      int clientY,
+      bool ctrlKey,
+      bool altKey,
+      bool shiftKey,
+      bool metaKey,
+      int button,
+      EventTarget relatedTarget,
+      int axis) native;
+
+  bool get _hasInitWheelEvent =>
+      JS('bool', '!!(#.initWheelEvent)', this);
+  @JSName('initWheelEvent')
+  void _initWheelEvent(
+      String eventType,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      int detail,
+      int screenX,
+      int screenY,
+      int clientX,
+      int clientY,
+      int button,
+      EventTarget relatedTarget,
+      String modifiersList,
+      int deltaX,
+      int deltaY,
+      int deltaZ,
+      int deltaMode) native;
 
 $else
   @DomName('WheelEvent.deltaX')

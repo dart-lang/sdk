@@ -1388,107 +1388,86 @@ class Console {
 
   bool get _isConsoleDefined => JS('bool', "typeof console != 'undefined'");
 
-  @DocsEditable
   @DomName('Console.memory')
   MemoryInfo get memory => _isConsoleDefined ?
       JS('MemoryInfo', 'console.memory') : null;
 
-  @DocsEditable
   @DomName('Console.profiles')
   List<ScriptProfile> get profiles => _isConsoleDefined ?
       JS('List<ScriptProfile>', 'console.profiles') : null;
 
-  @DocsEditable
   @DomName('Console.assertCondition')
   void assertCondition(bool condition, Object arg) => _isConsoleDefined ?
       JS('void', 'console.assertCondition(#, #)', condition, arg) : null;
 
-  @DocsEditable
   @DomName('Console.count')
   void count(Object arg) => _isConsoleDefined ?
       JS('void', 'console.count(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.debug')
   void debug(Object arg) => _isConsoleDefined ?
       JS('void', 'console.debug(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.dir')
   void dir(Object arg) => _isConsoleDefined ?
       JS('void', 'console.debug(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.dirxml')
   void dirxml(Object arg) => _isConsoleDefined ?
       JS('void', 'console.dirxml(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.error')
   void error(Object arg) => _isConsoleDefined ?
       JS('void', 'console.error(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.group')
   void group(Object arg) => _isConsoleDefined ?
       JS('void', 'console.group(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.groupCollapsed')
   void groupCollapsed(Object arg) => _isConsoleDefined ?
       JS('void', 'console.groupCollapsed(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.groupEnd')
   void groupEnd() => _isConsoleDefined ?
       JS('void', 'console.groupEnd()') : null;
 
-  @DocsEditable
   @DomName('Console.info')
   void info(Object arg) => _isConsoleDefined ?
       JS('void', 'console.info(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.log')
   void log(Object arg) => _isConsoleDefined ?
       JS('void', 'console.log(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.markTimeline')
   void markTimeline(Object arg) => _isConsoleDefined ?
       JS('void', 'console.markTimeline(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.profile')
   void profile(String title) => _isConsoleDefined ?
       JS('void', 'console.profile(#)', title) : null;
 
-  @DocsEditable
   @DomName('Console.profileEnd')
   void profileEnd(String title) => _isConsoleDefined ?
       JS('void', 'console.profileEnd(#)', title) : null;
 
-  @DocsEditable
   @DomName('Console.time')
   void time(String title) => _isConsoleDefined ?
       JS('void', 'console.time(#)', title) : null;
 
-  @DocsEditable
   @DomName('Console.timeEnd')
   void timeEnd(String title, Object arg) => _isConsoleDefined ?
       JS('void', 'console.timeEnd(#, #)', title, arg) : null;
 
-  @DocsEditable
   @DomName('Console.timeStamp')
   void timeStamp(Object arg) => _isConsoleDefined ?
       JS('void', 'console.timeStamp(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.trace')
   void trace(Object arg) => _isConsoleDefined ?
       JS('void', 'console.trace(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.warn')
   void warn(Object arg) => _isConsoleDefined ?
       JS('void', 'console.warn(#)', arg) : null;
@@ -8098,6 +8077,23 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   var xtag;
 
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent =
+      const _CustomEventStreamProvider<WheelEvent>(
+        Element._determineMouseWheelEventType);
+
+  static String _determineMouseWheelEventType(EventTarget e) {
+    if (JS('bool', '#.onwheel !== undefined', e)) {
+      // W3C spec, and should be IE9+, but IE has a bug exposing onwheel.
+      return 'wheel';
+    } else if (JS('bool', '#.onmousewheel !== undefined', e)) {
+      // Chrome & IE
+      return 'mousewheel';
+    } else {
+      // Firefox
+      return 'DOMMouseScroll';
+    }
+  }
+
   /**
    * Creates a text node and inserts it into the DOM at the specified location.
    *
@@ -8587,6 +8583,8 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
 
   Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+
+  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
 
   Stream<Event> get onPaste => pasteEvent.forTarget(this);
 
@@ -11822,7 +11820,6 @@ class InputElement extends Element implements
     ButtonInputElement
      native "*HTMLInputElement" {
 
-  @DocsEditable
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) {
@@ -15093,7 +15090,6 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 @DomName('Navigator')
 class Navigator native "*Navigator" {
 
-  @DocsEditable
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);
@@ -22383,11 +22379,73 @@ class WebSocketEvents extends Events {
 @DomName('WheelEvent')
 class WheelEvent extends MouseEvent native "*WheelEvent" {
 
+  factory WheelEvent(String type, Window view, int wheelDeltaX, int wheelDeltaY,
+      int detail, int screenX, int screenY, int clientX, int clientY,
+      int button,
+      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) {
+
+    var eventType = 'WheelEvent';
+    if (_Device.isFirefox) {
+      eventType = 'MouseScrollEvents';
+    }
+    final event = document.$dom_createEvent(eventType);
+    if (event._hasInitWheelEvent) {
+      var modifiers = [];
+      if (ctrlKey) {
+        modifiers.push('Control');
+      }
+      if (altKey) {
+        modifiers.push('Alt');
+      }
+      if (shiftKey) {
+        modifiers.push('Shift');
+      }
+      if (metaKey) {
+        modifiers.push('Meta');
+      }
+      event._initWheelEvent(type, canBubble, cancelable, view, detail, screenX,
+          screenY, clientX, clientY, button, relatedTarget, modifiers.join(' '),
+          wheelDeltaX, wheelDeltaY, 0, 0);
+    } else if (event._hasInitMouseScrollEvent) {
+      var axis = 0;
+      var detail = 0;
+      if (wheelDeltaX != 0 && wheelDeltaY != 0) {
+        throw UnsupportedError(
+            'Cannot modify wheelDeltaX and wheelDeltaY simultaneously');
+      }
+      if (wheelDeltaY != 0) {
+        detail = wheelDeltaY;
+        axis = JS('int', 'MouseScrollEvent.VERTICAL_AXIS');
+      } else if (wheelDeltaX != 0) {
+        detail = wheelDeltaX;
+        axis = JS('int', 'MouseScrollEvent.HORIZONTAL_AXIS');
+      }
+      event._initMouseScrollEvent(type, canBubble, cancelable, view, detail,
+          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey, button, relatedTarget, axis);
+    } else {
+      // Fallthrough for Dartium.
+      event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey, button, relatedTarget);
+      event.$dom_initWebKitWheelEvent(wheelDeltaX,
+          (wheelDeltaY / 120).toInt(), // Chrome does an auto-convert to pixels.
+          view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey);
+    }
+
+    return event;
+  }
+
+
   @DocsEditable @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   final bool webkitDirectionInvertedFromDevice;
 
+  @JSName('initWebKitWheelEvent')
   @DocsEditable @DomName('WheelEvent.initWebKitWheelEvent')
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 
 
   @DomName('WheelEvent.deltaY')
@@ -22432,7 +22490,8 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
 
       // Handle DOMMouseScroll case where it uses detail and the axis to
       // differentiate.
-      if (JS('bool', '#.axis !== undefined && #.axis == MouseScrollEvent.HORIZONTAL_AXIS', this, this)) {
+      if (JS('bool', '#.axis !== undefined && '
+        '#.axis == MouseScrollEvent.HORIZONTAL_AXIS', this, this)) {
         var detail = this._detail;
         // Firefox is normally the number of lines to scale (normally 3)
         // so multiply it by 40 to get pixels to move, matching IE & WebKit.
@@ -22461,6 +22520,49 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   num get _wheelDeltaX => JS('num', '#.wheelDeltaX', this);
   num get _detail => JS('num', '#.detail', this);
   int get _deltaMode => JS('int', '#.deltaMode', this);
+
+  bool get _hasInitMouseScrollEvent =>
+      JS('bool', '!!(#.initMouseScrollEvent)', this);
+
+  @JSName('initMouseScrollEvent')
+  void _initMouseScrollEvent(
+      String type,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      int detail,
+      int screenX,
+      int screenY,
+      int clientX,
+      int clientY,
+      bool ctrlKey,
+      bool altKey,
+      bool shiftKey,
+      bool metaKey,
+      int button,
+      EventTarget relatedTarget,
+      int axis) native;
+
+  bool get _hasInitWheelEvent =>
+      JS('bool', '!!(#.initWheelEvent)', this);
+  @JSName('initWheelEvent')
+  void _initWheelEvent(
+      String eventType,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      int detail,
+      int screenX,
+      int screenY,
+      int clientX,
+      int clientY,
+      int button,
+      EventTarget relatedTarget,
+      String modifiersList,
+      int deltaX,
+      int deltaY,
+      int deltaZ,
+      int deltaMode) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22622,7 +22724,6 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
     document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
   }
 
-  @DocsEditable
   @DomName('Window.console')
   Console get console => Console.safeConsole;
 
@@ -26175,6 +26276,21 @@ class EventStreamProvider<T extends Event> {
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventType, useCapture);
+  }
+}
+
+/**
+ * A factory to expose DOM events as streams, where the DOM event name has to
+ * be determined on the fly (for example, mouse wheel events).
+ */
+class _CustomEventStreamProvider<T extends Event>
+    implements EventStreamProvider<T> {
+
+  final _eventTypeGetter;
+  const _CustomEventStreamProvider(this._eventTypeGetter);
+
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+    return new _EventStream(e, _eventTypeGetter(e), useCapture);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
