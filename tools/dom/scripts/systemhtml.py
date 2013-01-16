@@ -651,7 +651,6 @@ class Dart2JSBackend(HtmlDartGenerator):
     input_type = self._NarrowInputType(attribute.type.id)
     annotations = self._Annotations(attribute.type.id, attribute.id)
     rename = self._RenamingAnnotation(attribute.id, html_name)
-    self.EmitAttributeDocumentation(attribute)
     if not read_only:
       self._members_emitter.Emit(
           '\n  $RENAME$ANNOTATIONS$TYPE $NAME;'
@@ -687,7 +686,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         TYPE=self.SecureOutputType(attribute.type.id))
 
   def _AddRenamingGetter(self, attr, html_name):
-    self.EmitAttributeDocumentation(attr)
 
     conversion = self._OutputConversion(attr.type.id, attr.id)
     if conversion:
@@ -704,7 +702,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         NATIVE_TYPE=native_type)
 
   def _AddRenamingSetter(self, attr, html_name):
-    self.EmitAttributeDocumentation(attr)
 
     conversion = self._InputConversion(attr.type.id, attr.id)
     if conversion:
@@ -758,8 +755,6 @@ class Dart2JSBackend(HtmlDartGenerator):
     """
     if self._HasCustomImplementation(info.name):
       return
-
-    self.EmitOperationDocumentation(info)
 
     if IsPureInterface(self._interface.id):
       self._AddInterfaceOperation(info, html_name)

@@ -37,35 +37,9 @@ class HtmlDartGenerator(object):
           '  static bool get supported => $SUPPORT_CHECK;\n',
           SUPPORT_CHECK=support_check)
 
-  def EmitAttributeDocumentation(self, attribute):
-    """ Emits the MDN dartdoc comment for an attribute.
-    """
-
-    dom_name = DartDomNameOfAttribute(attribute)
-
-    annotations = FindCommonAnnotations(dom_name)
-    annotations_str = ''
-    if annotations:
-      annotations_str = '\n' + '\n'.join(annotations)
-    self._members_emitter.Emit('\n  /// @docsEditable true',
-        DOMINTERFACE=attribute.doc_js_interface_name,
-        ANNOTATIONS=annotations)
-
-  def EmitOperationDocumentation(self, operation):
-    """ Emits the MDN dartdoc comment for an operation.
-    """
-
-    annotations = FindCommonAnnotations(operation.name)
-    annotations_str = ''
-    if annotations:
-      annotations_str = '\n' + '\n'.join(annotations)
-    self._members_emitter.Emit('\n  /// @docsEditable true',
-        DOMINTERFACE=operation.overloads[0].doc_js_interface_name,
-        ANNOTATIONS=annotations)
-
   def EmitEventGetter(self, events_class_name):
     self._members_emitter.Emit(
-        "\n  /// @docsEditable true"
+        "\n  @DocsEditable"
         "\n  @DomName('EventTarget.addEventListener, "
         "EventTarget.removeEventListener, EventTarget.dispatchEvent')"
         "\n  $TYPE get on =>\n    new $TYPE(this);\n",
@@ -302,7 +276,7 @@ class HtmlDartGenerator(object):
 
   def _AddConstructor(self,
       constructor_info, factory_name, factory_constructor_name):
-    self._members_emitter.Emit('\n  /// @docsEditable true');
+    self._members_emitter.Emit('\n  @DocsEditable');
 
     if not factory_constructor_name:
       factory_constructor_name = '_create'
@@ -374,7 +348,6 @@ class HtmlDartGenerator(object):
   def DeclareAttribute(self, attribute, type_name, attr_name, read_only):
     """ Declares an attribute but does not include the code to invoke it.
     """
-    self.EmitAttributeDocumentation(attribute)
     if read_only:
       template = '\n  $TYPE get $NAME;\n'
     else:
@@ -391,7 +364,6 @@ class HtmlDartGenerator(object):
       return_type_name - The name of the return type.
       method_name - The name of the method.
     """
-    self.EmitOperationDocumentation(operation)
     self._members_emitter.Emit(
              '\n'
              '  $TYPE $NAME($PARAMS);\n',

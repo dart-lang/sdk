@@ -72,23 +72,27 @@ _callPortSync(num id, var message) {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('AbstractWorker')
 class AbstractWorker extends EventTarget {
   AbstractWorker.internal() : super.internal();
 
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   AbstractWorkerEvents get on =>
     new AbstractWorkerEvents(this);
 
+  @DocsEditable
   @DomName('AbstractWorker.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('AbstractWorker.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "AbstractWorker_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('AbstractWorker.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_removeEventListener_Callback";
 
@@ -96,12 +100,12 @@ class AbstractWorker extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class AbstractWorkerEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   AbstractWorkerEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -111,110 +115,143 @@ class AbstractWorkerEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLAnchorElement')
 class AnchorElement extends _Element_Merged {
   AnchorElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
     if (href != null) e.href = href;
     return e;
   }
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.download')
   String get download native "HTMLAnchorElement_download_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.download')
   void set download(String value) native "HTMLAnchorElement_download_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.hash')
   String get hash native "HTMLAnchorElement_hash_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.hash')
   void set hash(String value) native "HTMLAnchorElement_hash_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.host')
   String get host native "HTMLAnchorElement_host_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.host')
   void set host(String value) native "HTMLAnchorElement_host_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.hostname')
   String get hostname native "HTMLAnchorElement_hostname_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.hostname')
   void set hostname(String value) native "HTMLAnchorElement_hostname_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.href')
   String get href native "HTMLAnchorElement_href_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.href')
   void set href(String value) native "HTMLAnchorElement_href_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.hreflang')
   String get hreflang native "HTMLAnchorElement_hreflang_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.hreflang')
   void set hreflang(String value) native "HTMLAnchorElement_hreflang_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.name')
   String get name native "HTMLAnchorElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.name')
   void set name(String value) native "HTMLAnchorElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.origin')
   String get origin native "HTMLAnchorElement_origin_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.pathname')
   String get pathname native "HTMLAnchorElement_pathname_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.pathname')
   void set pathname(String value) native "HTMLAnchorElement_pathname_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.ping')
   String get ping native "HTMLAnchorElement_ping_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.ping')
   void set ping(String value) native "HTMLAnchorElement_ping_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.port')
   String get port native "HTMLAnchorElement_port_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.port')
   void set port(String value) native "HTMLAnchorElement_port_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.protocol')
   String get protocol native "HTMLAnchorElement_protocol_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.protocol')
   void set protocol(String value) native "HTMLAnchorElement_protocol_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.rel')
   String get rel native "HTMLAnchorElement_rel_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.rel')
   void set rel(String value) native "HTMLAnchorElement_rel_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.search')
   String get search native "HTMLAnchorElement_search_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.search')
   void set search(String value) native "HTMLAnchorElement_search_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.target')
   String get target native "HTMLAnchorElement_target_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.target')
   void set target(String value) native "HTMLAnchorElement_target_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.type')
   String get type native "HTMLAnchorElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.type')
   void set type(String value) native "HTMLAnchorElement_type_Setter";
 
+  @DocsEditable
   @DomName('HTMLAnchorElement.toString')
   String toString() native "HTMLAnchorElement_toString_Callback";
 
@@ -226,13 +263,16 @@ class AnchorElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitAnimationEvent')
 class AnimationEvent extends Event {
   AnimationEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('WebKitAnimationEvent.animationName')
   String get animationName native "WebKitAnimationEvent_animationName_Getter";
 
+  @DocsEditable
   @DomName('WebKitAnimationEvent.elapsedTime')
   num get elapsedTime native "WebKitAnimationEvent_elapsedTime_Getter";
 
@@ -244,73 +284,96 @@ class AnimationEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLAppletElement')
 class AppletElement extends _Element_Merged {
   AppletElement.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLAppletElement.align')
   String get align native "HTMLAppletElement_align_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.align')
   void set align(String value) native "HTMLAppletElement_align_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.alt')
   String get alt native "HTMLAppletElement_alt_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.alt')
   void set alt(String value) native "HTMLAppletElement_alt_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.archive')
   String get archive native "HTMLAppletElement_archive_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.archive')
   void set archive(String value) native "HTMLAppletElement_archive_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.code')
   String get code native "HTMLAppletElement_code_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.code')
   void set code(String value) native "HTMLAppletElement_code_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.codeBase')
   String get codeBase native "HTMLAppletElement_codeBase_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.codeBase')
   void set codeBase(String value) native "HTMLAppletElement_codeBase_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.height')
   String get height native "HTMLAppletElement_height_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.height')
   void set height(String value) native "HTMLAppletElement_height_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.hspace')
   String get hspace native "HTMLAppletElement_hspace_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.hspace')
   void set hspace(String value) native "HTMLAppletElement_hspace_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.name')
   String get name native "HTMLAppletElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.name')
   void set name(String value) native "HTMLAppletElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.object')
   String get object native "HTMLAppletElement_object_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.object')
   void set object(String value) native "HTMLAppletElement_object_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.vspace')
   String get vspace native "HTMLAppletElement_vspace_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.vspace')
   void set vspace(String value) native "HTMLAppletElement_vspace_Setter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.width')
   String get width native "HTMLAppletElement_width_Getter";
 
+  @DocsEditable
   @DomName('HTMLAppletElement.width')
   void set width(String value) native "HTMLAppletElement_width_Setter";
 
@@ -322,6 +385,7 @@ class AppletElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMApplicationCache')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -350,7 +414,7 @@ class ApplicationCache extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ApplicationCacheEvents get on =>
     new ApplicationCacheEvents(this);
@@ -367,24 +431,31 @@ class ApplicationCache extends EventTarget {
 
   static const int UPDATEREADY = 4;
 
+  @DocsEditable
   @DomName('DOMApplicationCache.status')
   int get status native "DOMApplicationCache_status_Getter";
 
+  @DocsEditable
   @DomName('DOMApplicationCache.abort')
   void abort() native "DOMApplicationCache_abort_Callback";
 
+  @DocsEditable
   @DomName('DOMApplicationCache.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('DOMApplicationCache.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "DOMApplicationCache_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('DOMApplicationCache.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('DOMApplicationCache.swapCache')
   void swapCache() native "DOMApplicationCache_swapCache_Callback";
 
+  @DocsEditable
   @DomName('DOMApplicationCache.update')
   void update() native "DOMApplicationCache_update_Callback";
 
@@ -406,33 +477,33 @@ class ApplicationCache extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class ApplicationCacheEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   ApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get cached => this['cached'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get checking => this['checking'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get downloading => this['downloading'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get noUpdate => this['noupdate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get obsolete => this['obsolete'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get updateReady => this['updateready'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -442,67 +513,87 @@ class ApplicationCacheEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLAreaElement')
 class AreaElement extends _Element_Merged {
   AreaElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory AreaElement() => document.$dom_createElement("area");
 
+  @DocsEditable
   @DomName('HTMLAreaElement.alt')
   String get alt native "HTMLAreaElement_alt_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.alt')
   void set alt(String value) native "HTMLAreaElement_alt_Setter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.coords')
   String get coords native "HTMLAreaElement_coords_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.coords')
   void set coords(String value) native "HTMLAreaElement_coords_Setter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.hash')
   String get hash native "HTMLAreaElement_hash_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.host')
   String get host native "HTMLAreaElement_host_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.hostname')
   String get hostname native "HTMLAreaElement_hostname_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.href')
   String get href native "HTMLAreaElement_href_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.href')
   void set href(String value) native "HTMLAreaElement_href_Setter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.pathname')
   String get pathname native "HTMLAreaElement_pathname_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.ping')
   String get ping native "HTMLAreaElement_ping_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.ping')
   void set ping(String value) native "HTMLAreaElement_ping_Setter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.port')
   String get port native "HTMLAreaElement_port_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.protocol')
   String get protocol native "HTMLAreaElement_protocol_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.search')
   String get search native "HTMLAreaElement_search_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.shape')
   String get shape native "HTMLAreaElement_shape_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.shape')
   void set shape(String value) native "HTMLAreaElement_shape_Setter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.target')
   String get target native "HTMLAreaElement_target_Getter";
 
+  @DocsEditable
   @DomName('HTMLAreaElement.target')
   void set target(String value) native "HTMLAreaElement_target_Setter";
 
@@ -514,6 +605,7 @@ class AreaElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ArrayBuffer')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -522,13 +614,14 @@ class AreaElement extends _Element_Merged {
 class ArrayBuffer extends NativeFieldWrapperClass1 {
   ArrayBuffer.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
   static ArrayBuffer _create(int length) native "ArrayBuffer_constructor_Callback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('ArrayBuffer.byteLength')
   int get byteLength native "ArrayBuffer_byteLength_Getter";
 
@@ -539,9 +632,11 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
     return _slice_2(begin);
   }
 
+  @DocsEditable
   @DomName('ArrayBuffer.slice_1')
   ArrayBuffer _slice_1(begin, end) native "ArrayBuffer_slice_1_Callback";
 
+  @DocsEditable
   @DomName('ArrayBuffer.slice_2')
   ArrayBuffer _slice_2(begin) native "ArrayBuffer_slice_2_Callback";
 
@@ -553,6 +648,7 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ArrayBufferView')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -561,12 +657,15 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
 class ArrayBufferView extends NativeFieldWrapperClass1 {
   ArrayBufferView.internal();
 
+  @DocsEditable
   @DomName('ArrayBufferView.buffer')
   ArrayBuffer get buffer native "ArrayBufferView_buffer_Getter";
 
+  @DocsEditable
   @DomName('ArrayBufferView.byteLength')
   int get byteLength native "ArrayBufferView_byteLength_Getter";
 
+  @DocsEditable
   @DomName('ArrayBufferView.byteOffset')
   int get byteOffset native "ArrayBufferView_byteOffset_Getter";
 
@@ -578,6 +677,7 @@ class ArrayBufferView extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Attr')
 class Attr extends Node {
   Attr.internal() : super.internal();
@@ -590,11 +690,12 @@ class Attr extends Node {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLAudioElement')
 class AudioElement extends MediaElement {
   AudioElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory AudioElement([String src]) {
     if (!?src) {
       return AudioElement._create();
@@ -611,11 +712,12 @@ class AudioElement extends MediaElement {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLBRElement')
 class BRElement extends _Element_Merged {
   BRElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory BRElement() => document.$dom_createElement("br");
 
 }
@@ -626,10 +728,12 @@ class BRElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('BarInfo')
 class BarInfo extends NativeFieldWrapperClass1 {
   BarInfo.internal();
 
+  @DocsEditable
   @DomName('BarInfo.visible')
   bool get visible native "BarInfo_visible_Getter";
 
@@ -641,22 +745,27 @@ class BarInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLBaseElement')
 class BaseElement extends _Element_Merged {
   BaseElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory BaseElement() => document.$dom_createElement("base");
 
+  @DocsEditable
   @DomName('HTMLBaseElement.href')
   String get href native "HTMLBaseElement_href_Getter";
 
+  @DocsEditable
   @DomName('HTMLBaseElement.href')
   void set href(String value) native "HTMLBaseElement_href_Setter";
 
+  @DocsEditable
   @DomName('HTMLBaseElement.target')
   String get target native "HTMLBaseElement_target_Getter";
 
+  @DocsEditable
   @DomName('HTMLBaseElement.target')
   void set target(String value) native "HTMLBaseElement_target_Setter";
 
@@ -668,25 +777,32 @@ class BaseElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLBaseFontElement')
 class BaseFontElement extends _Element_Merged {
   BaseFontElement.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLBaseFontElement.color')
   String get color native "HTMLBaseFontElement_color_Getter";
 
+  @DocsEditable
   @DomName('HTMLBaseFontElement.color')
   void set color(String value) native "HTMLBaseFontElement_color_Setter";
 
+  @DocsEditable
   @DomName('HTMLBaseFontElement.face')
   String get face native "HTMLBaseFontElement_face_Getter";
 
+  @DocsEditable
   @DomName('HTMLBaseFontElement.face')
   void set face(String value) native "HTMLBaseFontElement_face_Setter";
 
+  @DocsEditable
   @DomName('HTMLBaseFontElement.size')
   int get size native "HTMLBaseFontElement_size_Getter";
 
+  @DocsEditable
   @DomName('HTMLBaseFontElement.size')
   void set size(int value) native "HTMLBaseFontElement_size_Setter";
 
@@ -698,6 +814,7 @@ class BaseFontElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('BatteryManager')
 class BatteryManager extends EventTarget {
   BatteryManager.internal() : super.internal();
@@ -710,29 +827,36 @@ class BatteryManager extends EventTarget {
 
   static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
 
+  @DocsEditable
   @DomName('BatteryManager.charging')
   bool get charging native "BatteryManager_charging_Getter";
 
+  @DocsEditable
   @DomName('BatteryManager.chargingTime')
   num get chargingTime native "BatteryManager_chargingTime_Getter";
 
+  @DocsEditable
   @DomName('BatteryManager.dischargingTime')
   num get dischargingTime native "BatteryManager_dischargingTime_Getter";
 
+  @DocsEditable
   @DomName('BatteryManager.level')
   num get level native "BatteryManager_level_Getter";
 
+  @DocsEditable
   @DomName('BatteryManager.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('BatteryManager.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "BatteryManager_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('BatteryManager.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_removeEventListener_Callback";
 
@@ -746,21 +870,21 @@ class BatteryManager extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class BatteryManagerEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   BatteryManagerEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get chargingChange => this['chargingchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get chargingTimeChange => this['chargingtimechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get levelChange => this['levelchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -770,10 +894,12 @@ class BatteryManagerEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('BeforeLoadEvent')
 class BeforeLoadEvent extends Event {
   BeforeLoadEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('BeforeLoadEvent.url')
   String get url native "BeforeLoadEvent_url_Getter";
 
@@ -783,11 +909,12 @@ class BeforeLoadEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('Blob')
 class Blob extends NativeFieldWrapperClass1 {
   Blob.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
       return Blob._create(blobParts);
@@ -799,9 +926,11 @@ class Blob extends NativeFieldWrapperClass1 {
   }
   static Blob _create(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 
+  @DocsEditable
   @DomName('Blob.size')
   int get size native "Blob_size_Getter";
 
+  @DocsEditable
   @DomName('Blob.type')
   String get type native "Blob_type_Getter";
 
@@ -818,15 +947,19 @@ class Blob extends NativeFieldWrapperClass1 {
     return _slice_4();
   }
 
+  @DocsEditable
   @DomName('Blob.slice_1')
   Blob _slice_1(start, end, contentType) native "Blob_slice_1_Callback";
 
+  @DocsEditable
   @DomName('Blob.slice_2')
   Blob _slice_2(start, end) native "Blob_slice_2_Callback";
 
+  @DocsEditable
   @DomName('Blob.slice_3')
   Blob _slice_3(start) native "Blob_slice_3_Callback";
 
+  @DocsEditable
   @DomName('Blob.slice_4')
   Blob _slice_4() native "Blob_slice_4_Callback";
 
@@ -839,6 +972,7 @@ class Blob extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLBodyElement')
 class BodyElement extends _Element_Merged {
   BodyElement.internal() : super.internal();
@@ -869,10 +1003,10 @@ class BodyElement extends _Element_Merged {
 
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  /// @docsEditable true
+  @DocsEditable
   factory BodyElement() => document.$dom_createElement("body");
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   BodyElementEvents get on =>
     new BodyElementEvents(this);
@@ -905,48 +1039,48 @@ class BodyElement extends _Element_Merged {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class BodyElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   BodyElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeUnload => this['beforeunload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get hashChange => this['hashchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get offline => this['offline'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get online => this['online'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get popState => this['popstate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get resize => this['resize'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get storage => this['storage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -956,91 +1090,119 @@ class BodyElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLButtonElement')
 class ButtonElement extends _Element_Merged {
   ButtonElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory ButtonElement() => document.$dom_createElement("button");
 
+  @DocsEditable
   @DomName('HTMLButtonElement.autofocus')
   bool get autofocus native "HTMLButtonElement_autofocus_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.autofocus')
   void set autofocus(bool value) native "HTMLButtonElement_autofocus_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.disabled')
   bool get disabled native "HTMLButtonElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.disabled')
   void set disabled(bool value) native "HTMLButtonElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.form')
   FormElement get form native "HTMLButtonElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formAction')
   String get formAction native "HTMLButtonElement_formAction_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formAction')
   void set formAction(String value) native "HTMLButtonElement_formAction_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formEnctype')
   String get formEnctype native "HTMLButtonElement_formEnctype_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formEnctype')
   void set formEnctype(String value) native "HTMLButtonElement_formEnctype_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formMethod')
   String get formMethod native "HTMLButtonElement_formMethod_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formMethod')
   void set formMethod(String value) native "HTMLButtonElement_formMethod_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formNoValidate')
   bool get formNoValidate native "HTMLButtonElement_formNoValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formNoValidate')
   void set formNoValidate(bool value) native "HTMLButtonElement_formNoValidate_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formTarget')
   String get formTarget native "HTMLButtonElement_formTarget_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.formTarget')
   void set formTarget(String value) native "HTMLButtonElement_formTarget_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.labels')
   List<Node> get labels native "HTMLButtonElement_labels_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.name')
   String get name native "HTMLButtonElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.name')
   void set name(String value) native "HTMLButtonElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.type')
   String get type native "HTMLButtonElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.type')
   void set type(String value) native "HTMLButtonElement_type_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.validationMessage')
   String get validationMessage native "HTMLButtonElement_validationMessage_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.validity')
   ValidityState get validity native "HTMLButtonElement_validity_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.value')
   String get value native "HTMLButtonElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.value')
   void set value(String value) native "HTMLButtonElement_value_Setter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.willValidate')
   bool get willValidate native "HTMLButtonElement_willValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.checkValidity')
   bool checkValidity() native "HTMLButtonElement_checkValidity_Callback";
 
+  @DocsEditable
   @DomName('HTMLButtonElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLButtonElement_setCustomValidity_Callback";
 
@@ -1052,6 +1214,7 @@ class ButtonElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CDATASection')
 class CDataSection extends Text {
   CDataSection.internal() : super.internal();
@@ -1062,11 +1225,12 @@ class CDataSection extends Text {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('HTMLCanvasElement')
 class CanvasElement extends _Element_Merged {
   CanvasElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory CanvasElement({int width, int height}) {
     var e = document.$dom_createElement("canvas");
     if (width != null) e.width = width;
@@ -1074,21 +1238,27 @@ class CanvasElement extends _Element_Merged {
     return e;
   }
 
+  @DocsEditable
   @DomName('HTMLCanvasElement.height')
   int get height native "HTMLCanvasElement_height_Getter";
 
+  @DocsEditable
   @DomName('HTMLCanvasElement.height')
   void set height(int value) native "HTMLCanvasElement_height_Setter";
 
+  @DocsEditable
   @DomName('HTMLCanvasElement.width')
   int get width native "HTMLCanvasElement_width_Getter";
 
+  @DocsEditable
   @DomName('HTMLCanvasElement.width')
   void set width(int value) native "HTMLCanvasElement_width_Setter";
 
+  @DocsEditable
   @DomName('HTMLCanvasElement.getContext')
   Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
 
+  @DocsEditable
   @DomName('HTMLCanvasElement.toDataURL')
   String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
@@ -1102,10 +1272,12 @@ class CanvasElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CanvasGradient')
 class CanvasGradient extends NativeFieldWrapperClass1 {
   CanvasGradient.internal();
 
+  @DocsEditable
   @DomName('CanvasGradient.addColorStop')
   void addColorStop(num offset, String color) native "CanvasGradient_addColorStop_Callback";
 
@@ -1117,6 +1289,7 @@ class CanvasGradient extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CanvasPattern')
 class CanvasPattern extends NativeFieldWrapperClass1 {
   CanvasPattern.internal();
@@ -1129,10 +1302,12 @@ class CanvasPattern extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CanvasRenderingContext')
 class CanvasRenderingContext extends NativeFieldWrapperClass1 {
   CanvasRenderingContext.internal();
 
+  @DocsEditable
   @DomName('CanvasRenderingContext.canvas')
   CanvasElement get canvas native "CanvasRenderingContext_canvas_Getter";
 
@@ -1142,145 +1317,192 @@ class CanvasRenderingContext extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('CanvasRenderingContext2D')
 class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasRenderingContext2D.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.fillStyle')
   dynamic get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.fillStyle')
   void set fillStyle(dynamic value) native "CanvasRenderingContext2D_fillStyle_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.font')
   String get font native "CanvasRenderingContext2D_font_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.font')
   void set font(String value) native "CanvasRenderingContext2D_font_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.globalAlpha')
   num get globalAlpha native "CanvasRenderingContext2D_globalAlpha_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.globalAlpha')
   void set globalAlpha(num value) native "CanvasRenderingContext2D_globalAlpha_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   String get globalCompositeOperation native "CanvasRenderingContext2D_globalCompositeOperation_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   void set globalCompositeOperation(String value) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineCap')
   String get lineCap native "CanvasRenderingContext2D_lineCap_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineCap')
   void set lineCap(String value) native "CanvasRenderingContext2D_lineCap_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   num get lineDashOffset native "CanvasRenderingContext2D_lineDashOffset_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   void set lineDashOffset(num value) native "CanvasRenderingContext2D_lineDashOffset_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineJoin')
   String get lineJoin native "CanvasRenderingContext2D_lineJoin_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineJoin')
   void set lineJoin(String value) native "CanvasRenderingContext2D_lineJoin_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineWidth')
   num get lineWidth native "CanvasRenderingContext2D_lineWidth_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineWidth')
   void set lineWidth(num value) native "CanvasRenderingContext2D_lineWidth_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.miterLimit')
   num get miterLimit native "CanvasRenderingContext2D_miterLimit_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.miterLimit')
   void set miterLimit(num value) native "CanvasRenderingContext2D_miterLimit_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowBlur')
   num get shadowBlur native "CanvasRenderingContext2D_shadowBlur_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowBlur')
   void set shadowBlur(num value) native "CanvasRenderingContext2D_shadowBlur_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowColor')
   String get shadowColor native "CanvasRenderingContext2D_shadowColor_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowColor')
   void set shadowColor(String value) native "CanvasRenderingContext2D_shadowColor_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowOffsetX')
   num get shadowOffsetX native "CanvasRenderingContext2D_shadowOffsetX_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowOffsetX')
   void set shadowOffsetX(num value) native "CanvasRenderingContext2D_shadowOffsetX_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowOffsetY')
   num get shadowOffsetY native "CanvasRenderingContext2D_shadowOffsetY_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowOffsetY')
   void set shadowOffsetY(num value) native "CanvasRenderingContext2D_shadowOffsetY_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.strokeStyle')
   dynamic get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.strokeStyle')
   void set strokeStyle(dynamic value) native "CanvasRenderingContext2D_strokeStyle_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.textAlign')
   String get textAlign native "CanvasRenderingContext2D_textAlign_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.textAlign')
   void set textAlign(String value) native "CanvasRenderingContext2D_textAlign_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.textBaseline')
   String get textBaseline native "CanvasRenderingContext2D_textBaseline_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.textBaseline')
   void set textBaseline(String value) native "CanvasRenderingContext2D_textBaseline_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
   num get webkitBackingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
   bool get webkitImageSmoothingEnabled native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
   void set webkitImageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitLineDash')
   List get webkitLineDash native "CanvasRenderingContext2D_webkitLineDash_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitLineDash')
   void set webkitLineDash(List value) native "CanvasRenderingContext2D_webkitLineDash_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
   num get webkitLineDashOffset native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
   void set webkitLineDashOffset(num value) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.arc')
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.arcTo')
   void arcTo(num x1, num y1, num x2, num y2, num radius) native "CanvasRenderingContext2D_arcTo_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.beginPath')
   void beginPath() native "CanvasRenderingContext2D_beginPath_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.bezierCurveTo')
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native "CanvasRenderingContext2D_bezierCurveTo_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.clearRect')
   void clearRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_clearRect_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.clip')
   void clip() native "CanvasRenderingContext2D_clip_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.closePath')
   void closePath() native "CanvasRenderingContext2D_closePath_Callback";
 
@@ -1294,12 +1516,15 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.createImageData_1')
   ImageData _createImageData_1(imagedata_OR_sw) native "CanvasRenderingContext2D_createImageData_1_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.createImageData_2')
   ImageData _createImageData_2(imagedata_OR_sw, sh) native "CanvasRenderingContext2D_createImageData_2_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.createLinearGradient')
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
 
@@ -1313,12 +1538,15 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.createPattern_1')
   CanvasPattern _createPattern_1(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_1_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.createPattern_2')
   CanvasPattern _createPattern_2(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_2_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
@@ -1362,36 +1590,47 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage_1')
   void _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_1_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage_2')
   void _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_2_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage_3')
   void _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_3_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage_4')
   void _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_4_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage_5')
   void _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_5_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage_6')
   void _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_6_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage_7')
   void _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_7_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage_8')
   void _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_8_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage_9')
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.fill')
   void fill() native "CanvasRenderingContext2D_fill_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.fillRect')
   void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
 
@@ -1403,27 +1642,35 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     _fillText_2(text, x, y);
   }
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.fillText_1')
   void _fillText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_1_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.fillText_2')
   void _fillText_2(text, x, y) native "CanvasRenderingContext2D_fillText_2_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.getImageData')
   ImageData getImageData(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_getImageData_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.getLineDash')
   List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.isPointInPath')
   bool isPointInPath(num x, num y) native "CanvasRenderingContext2D_isPointInPath_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineTo')
   void lineTo(num x, num y) native "CanvasRenderingContext2D_lineTo_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.measureText')
   TextMetrics measureText(String text) native "CanvasRenderingContext2D_measureText_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.moveTo')
   void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
 
@@ -1439,36 +1686,47 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.putImageData_1')
   void _putImageData_1(imagedata, dx, dy) native "CanvasRenderingContext2D_putImageData_1_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.putImageData_2')
   void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_putImageData_2_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.quadraticCurveTo')
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native "CanvasRenderingContext2D_quadraticCurveTo_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.rect')
   void rect(num x, num y, num width, num height) native "CanvasRenderingContext2D_rect_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.restore')
   void restore() native "CanvasRenderingContext2D_restore_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.rotate')
   void rotate(num angle) native "CanvasRenderingContext2D_rotate_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.save')
   void save() native "CanvasRenderingContext2D_save_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.scale')
   void scale(num sx, num sy) native "CanvasRenderingContext2D_scale_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.setLineDash')
   void setLineDash(List<num> dash) native "CanvasRenderingContext2D_setLineDash_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.setTransform')
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_setTransform_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.stroke')
   void stroke() native "CanvasRenderingContext2D_stroke_Callback";
 
@@ -1480,9 +1738,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     _strokeRect_2(x, y, width, height);
   }
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.strokeRect_1')
   void _strokeRect_1(x, y, width, height, lineWidth) native "CanvasRenderingContext2D_strokeRect_1_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.strokeRect_2')
   void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_2_Callback";
 
@@ -1494,18 +1754,23 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     _strokeText_2(text, x, y);
   }
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.strokeText_1')
   void _strokeText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_1_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.strokeText_2')
   void _strokeText_2(text, x, y) native "CanvasRenderingContext2D_strokeText_2_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.transform')
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_transform_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.translate')
   void translate(num tx, num ty) native "CanvasRenderingContext2D_translate_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
 
@@ -1521,9 +1786,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitPutImageDataHD_1')
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native "CanvasRenderingContext2D_webkitPutImageDataHD_1_Callback";
 
+  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitPutImageDataHD_2')
   void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_2_Callback";
 
@@ -1571,34 +1838,44 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CharacterData')
 class CharacterData extends Node {
   CharacterData.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CharacterData.data')
   String get data native "CharacterData_data_Getter";
 
+  @DocsEditable
   @DomName('CharacterData.data')
   void set data(String value) native "CharacterData_data_Setter";
 
+  @DocsEditable
   @DomName('CharacterData.length')
   int get length native "CharacterData_length_Getter";
 
+  @DocsEditable
   @DomName('CharacterData.appendData')
   void appendData(String data) native "CharacterData_appendData_Callback";
 
+  @DocsEditable
   @DomName('CharacterData.deleteData')
   void deleteData(int offset, int length) native "CharacterData_deleteData_Callback";
 
+  @DocsEditable
   @DomName('CharacterData.insertData')
   void insertData(int offset, String data) native "CharacterData_insertData_Callback";
 
+  @DocsEditable
   @DomName('CharacterData.remove')
   void remove() native "CharacterData_remove_Callback";
 
+  @DocsEditable
   @DomName('CharacterData.replaceData')
   void replaceData(int offset, int length, String data) native "CharacterData_replaceData_Callback";
 
+  @DocsEditable
   @DomName('CharacterData.substringData')
   String substringData(int offset, int length) native "CharacterData_substringData_Callback";
 
@@ -1610,25 +1887,32 @@ class CharacterData extends Node {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ClientRect')
 class ClientRect extends NativeFieldWrapperClass1 {
   ClientRect.internal();
 
+  @DocsEditable
   @DomName('ClientRect.bottom')
   num get bottom native "ClientRect_bottom_Getter";
 
+  @DocsEditable
   @DomName('ClientRect.height')
   num get height native "ClientRect_height_Getter";
 
+  @DocsEditable
   @DomName('ClientRect.left')
   num get left native "ClientRect_left_Getter";
 
+  @DocsEditable
   @DomName('ClientRect.right')
   num get right native "ClientRect_right_Getter";
 
+  @DocsEditable
   @DomName('ClientRect.top')
   num get top native "ClientRect_top_Getter";
 
+  @DocsEditable
   @DomName('ClientRect.width')
   num get width native "ClientRect_width_Getter";
 
@@ -1640,40 +1924,52 @@ class ClientRect extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Clipboard')
 class Clipboard extends NativeFieldWrapperClass1 {
   Clipboard.internal();
 
+  @DocsEditable
   @DomName('Clipboard.dropEffect')
   String get dropEffect native "Clipboard_dropEffect_Getter";
 
+  @DocsEditable
   @DomName('Clipboard.dropEffect')
   void set dropEffect(String value) native "Clipboard_dropEffect_Setter";
 
+  @DocsEditable
   @DomName('Clipboard.effectAllowed')
   String get effectAllowed native "Clipboard_effectAllowed_Getter";
 
+  @DocsEditable
   @DomName('Clipboard.effectAllowed')
   void set effectAllowed(String value) native "Clipboard_effectAllowed_Setter";
 
+  @DocsEditable
   @DomName('Clipboard.files')
   List<File> get files native "Clipboard_files_Getter";
 
+  @DocsEditable
   @DomName('Clipboard.items')
   DataTransferItemList get items native "Clipboard_items_Getter";
 
+  @DocsEditable
   @DomName('Clipboard.types')
   List get types native "Clipboard_types_Getter";
 
+  @DocsEditable
   @DomName('Clipboard.clearData')
   void clearData([String type]) native "Clipboard_clearData_Callback";
 
+  @DocsEditable
   @DomName('Clipboard.getData')
   String getData(String type) native "Clipboard_getData_Callback";
 
+  @DocsEditable
   @DomName('Clipboard.setData')
   bool setData(String type, String data) native "Clipboard_setData_Callback";
 
+  @DocsEditable
   @DomName('Clipboard.setDragImage')
   void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
 
@@ -1685,16 +1981,20 @@ class Clipboard extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CloseEvent')
 class CloseEvent extends Event {
   CloseEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CloseEvent.code')
   int get code native "CloseEvent_code_Getter";
 
+  @DocsEditable
   @DomName('CloseEvent.reason')
   String get reason native "CloseEvent_reason_Getter";
 
+  @DocsEditable
   @DomName('CloseEvent.wasClean')
   bool get wasClean native "CloseEvent_wasClean_Getter";
 
@@ -1706,6 +2006,7 @@ class CloseEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Comment')
 class Comment extends CharacterData {
   Comment.internal() : super.internal();
@@ -1718,13 +2019,16 @@ class Comment extends CharacterData {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CompositionEvent')
 class CompositionEvent extends UIEvent {
   CompositionEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CompositionEvent.data')
   String get data native "CompositionEvent_data_Getter";
 
+  @DocsEditable
   @DomName('CompositionEvent.initCompositionEvent')
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
 
@@ -1736,73 +2040,96 @@ class CompositionEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Console')
 class Console extends NativeFieldWrapperClass1 {
   Console.internal();
 
+  @DocsEditable
   @DomName('Console.memory')
   MemoryInfo get memory native "Console_memory_Getter";
 
+  @DocsEditable
   @DomName('Console.profiles')
   List<ScriptProfile> get profiles native "Console_profiles_Getter";
 
+  @DocsEditable
   @DomName('Console.assertCondition')
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
 
+  @DocsEditable
   @DomName('Console.clear')
   void clear(Object arg) native "Console_clear_Callback";
 
+  @DocsEditable
   @DomName('Console.count')
   void count(Object arg) native "Console_count_Callback";
 
+  @DocsEditable
   @DomName('Console.debug')
   void debug(Object arg) native "Console_debug_Callback";
 
+  @DocsEditable
   @DomName('Console.dir')
   void dir(Object arg) native "Console_dir_Callback";
 
+  @DocsEditable
   @DomName('Console.dirxml')
   void dirxml(Object arg) native "Console_dirxml_Callback";
 
+  @DocsEditable
   @DomName('Console.error')
   void error(Object arg) native "Console_error_Callback";
 
+  @DocsEditable
   @DomName('Console.group')
   void group(Object arg) native "Console_group_Callback";
 
+  @DocsEditable
   @DomName('Console.groupCollapsed')
   void groupCollapsed(Object arg) native "Console_groupCollapsed_Callback";
 
+  @DocsEditable
   @DomName('Console.groupEnd')
   void groupEnd() native "Console_groupEnd_Callback";
 
+  @DocsEditable
   @DomName('Console.info')
   void info(Object arg) native "Console_info_Callback";
 
+  @DocsEditable
   @DomName('Console.log')
   void log(Object arg) native "Console_log_Callback";
 
+  @DocsEditable
   @DomName('Console.markTimeline')
   void markTimeline() native "Console_markTimeline_Callback";
 
+  @DocsEditable
   @DomName('Console.profile')
   void profile(String title) native "Console_profile_Callback";
 
+  @DocsEditable
   @DomName('Console.profileEnd')
   void profileEnd(String title) native "Console_profileEnd_Callback";
 
+  @DocsEditable
   @DomName('Console.time')
   void time(String title) native "Console_time_Callback";
 
+  @DocsEditable
   @DomName('Console.timeEnd')
   void timeEnd(String title) native "Console_timeEnd_Callback";
 
+  @DocsEditable
   @DomName('Console.timeStamp')
   void timeStamp() native "Console_timeStamp_Callback";
 
+  @DocsEditable
   @DomName('Console.trace')
   void trace(Object arg) native "Console_trace_Callback";
 
+  @DocsEditable
   @DomName('Console.warn')
   void warn(Object arg) native "Console_warn_Callback";
 
@@ -1814,30 +2141,36 @@ class Console extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLContentElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class ContentElement extends _Element_Merged {
   ContentElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory ContentElement() => document.$dom_createElement("content");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLContentElement.resetStyleInheritance')
   bool get resetStyleInheritance native "HTMLContentElement_resetStyleInheritance_Getter";
 
+  @DocsEditable
   @DomName('HTMLContentElement.resetStyleInheritance')
   void set resetStyleInheritance(bool value) native "HTMLContentElement_resetStyleInheritance_Setter";
 
+  @DocsEditable
   @DomName('HTMLContentElement.select')
   String get select native "HTMLContentElement_select_Getter";
 
+  @DocsEditable
   @DomName('HTMLContentElement.select')
   void set select(String value) native "HTMLContentElement_select_Setter";
 
+  @DocsEditable
   @DomName('HTMLContentElement.getDistributedNodes')
   List<Node> getDistributedNodes() native "HTMLContentElement_getDistributedNodes_Callback";
 
@@ -1849,28 +2182,36 @@ class ContentElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Coordinates')
 class Coordinates extends NativeFieldWrapperClass1 {
   Coordinates.internal();
 
+  @DocsEditable
   @DomName('Coordinates.accuracy')
   num get accuracy native "Coordinates_accuracy_Getter";
 
+  @DocsEditable
   @DomName('Coordinates.altitude')
   num get altitude native "Coordinates_altitude_Getter";
 
+  @DocsEditable
   @DomName('Coordinates.altitudeAccuracy')
   num get altitudeAccuracy native "Coordinates_altitudeAccuracy_Getter";
 
+  @DocsEditable
   @DomName('Coordinates.heading')
   num get heading native "Coordinates_heading_Getter";
 
+  @DocsEditable
   @DomName('Coordinates.latitude')
   num get latitude native "Coordinates_latitude_Getter";
 
+  @DocsEditable
   @DomName('Coordinates.longitude')
   num get longitude native "Coordinates_longitude_Getter";
 
+  @DocsEditable
   @DomName('Coordinates.speed')
   num get speed native "Coordinates_speed_Getter";
 
@@ -1882,16 +2223,20 @@ class Coordinates extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Counter')
 class Counter extends NativeFieldWrapperClass1 {
   Counter.internal();
 
+  @DocsEditable
   @DomName('Counter.identifier')
   String get identifier native "Counter_identifier_Getter";
 
+  @DocsEditable
   @DomName('Counter.listStyle')
   String get listStyle native "Counter_listStyle_Getter";
 
+  @DocsEditable
   @DomName('Counter.separator')
   String get separator native "Counter_separator_Getter";
 
@@ -1903,10 +2248,12 @@ class Counter extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Crypto')
 class Crypto extends NativeFieldWrapperClass1 {
   Crypto.internal();
 
+  @DocsEditable
   @DomName('Crypto.getRandomValues')
   void getRandomValues(ArrayBufferView array) native "Crypto_getRandomValues_Callback";
 
@@ -1918,13 +2265,16 @@ class Crypto extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSCharsetRule')
 class CssCharsetRule extends CssRule {
   CssCharsetRule.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CSSCharsetRule.encoding')
   String get encoding native "CSSCharsetRule_encoding_Getter";
 
+  @DocsEditable
   @DomName('CSSCharsetRule.encoding')
   void set encoding(String value) native "CSSCharsetRule_encoding_Setter";
 
@@ -1936,10 +2286,12 @@ class CssCharsetRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSFontFaceRule')
 class CssFontFaceRule extends CssRule {
   CssFontFaceRule.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CSSFontFaceRule.style')
   CssStyleDeclaration get style native "CSSFontFaceRule_style_Getter";
 
@@ -1951,16 +2303,20 @@ class CssFontFaceRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSImportRule')
 class CssImportRule extends CssRule {
   CssImportRule.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CSSImportRule.href')
   String get href native "CSSImportRule_href_Getter";
 
+  @DocsEditable
   @DomName('CSSImportRule.media')
   MediaList get media native "CSSImportRule_media_Getter";
 
+  @DocsEditable
   @DomName('CSSImportRule.styleSheet')
   CssStyleSheet get styleSheet native "CSSImportRule_styleSheet_Getter";
 
@@ -1972,16 +2328,20 @@ class CssImportRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitCSSKeyframeRule')
 class CssKeyframeRule extends CssRule {
   CssKeyframeRule.internal() : super.internal();
 
+  @DocsEditable
   @DomName('WebKitCSSKeyframeRule.keyText')
   String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSKeyframeRule.keyText')
   void set keyText(String value) native "WebKitCSSKeyframeRule_keyText_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSKeyframeRule.style')
   CssStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
 
@@ -1993,25 +2353,32 @@ class CssKeyframeRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitCSSKeyframesRule')
 class CssKeyframesRule extends CssRule {
   CssKeyframesRule.internal() : super.internal();
 
+  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.cssRules')
   List<CssRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.name')
   String get name native "WebKitCSSKeyframesRule_name_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.name')
   void set name(String value) native "WebKitCSSKeyframesRule_name_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.deleteRule')
   void deleteRule(String key) native "WebKitCSSKeyframesRule_deleteRule_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.findRule')
   CssKeyframeRule findRule(String key) native "WebKitCSSKeyframesRule_findRule_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.insertRule')
   void insertRule(String rule) native "WebKitCSSKeyframesRule_insertRule_Callback";
 
@@ -2023,11 +2390,12 @@ class CssKeyframesRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitCSSMatrix')
 class CssMatrix extends NativeFieldWrapperClass1 {
   CssMatrix.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
       return CssMatrix._create();
@@ -2036,165 +2404,219 @@ class CssMatrix extends NativeFieldWrapperClass1 {
   }
   static CssMatrix _create([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.a')
   num get a native "WebKitCSSMatrix_a_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.a')
   void set a(num value) native "WebKitCSSMatrix_a_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.b')
   num get b native "WebKitCSSMatrix_b_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.b')
   void set b(num value) native "WebKitCSSMatrix_b_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.c')
   num get c native "WebKitCSSMatrix_c_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.c')
   void set c(num value) native "WebKitCSSMatrix_c_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.d')
   num get d native "WebKitCSSMatrix_d_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.d')
   void set d(num value) native "WebKitCSSMatrix_d_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.e')
   num get e native "WebKitCSSMatrix_e_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.e')
   void set e(num value) native "WebKitCSSMatrix_e_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.f')
   num get f native "WebKitCSSMatrix_f_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.f')
   void set f(num value) native "WebKitCSSMatrix_f_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m11')
   num get m11 native "WebKitCSSMatrix_m11_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m11')
   void set m11(num value) native "WebKitCSSMatrix_m11_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m12')
   num get m12 native "WebKitCSSMatrix_m12_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m12')
   void set m12(num value) native "WebKitCSSMatrix_m12_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m13')
   num get m13 native "WebKitCSSMatrix_m13_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m13')
   void set m13(num value) native "WebKitCSSMatrix_m13_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m14')
   num get m14 native "WebKitCSSMatrix_m14_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m14')
   void set m14(num value) native "WebKitCSSMatrix_m14_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m21')
   num get m21 native "WebKitCSSMatrix_m21_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m21')
   void set m21(num value) native "WebKitCSSMatrix_m21_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m22')
   num get m22 native "WebKitCSSMatrix_m22_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m22')
   void set m22(num value) native "WebKitCSSMatrix_m22_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m23')
   num get m23 native "WebKitCSSMatrix_m23_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m23')
   void set m23(num value) native "WebKitCSSMatrix_m23_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m24')
   num get m24 native "WebKitCSSMatrix_m24_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m24')
   void set m24(num value) native "WebKitCSSMatrix_m24_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m31')
   num get m31 native "WebKitCSSMatrix_m31_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m31')
   void set m31(num value) native "WebKitCSSMatrix_m31_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m32')
   num get m32 native "WebKitCSSMatrix_m32_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m32')
   void set m32(num value) native "WebKitCSSMatrix_m32_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m33')
   num get m33 native "WebKitCSSMatrix_m33_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m33')
   void set m33(num value) native "WebKitCSSMatrix_m33_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m34')
   num get m34 native "WebKitCSSMatrix_m34_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m34')
   void set m34(num value) native "WebKitCSSMatrix_m34_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m41')
   num get m41 native "WebKitCSSMatrix_m41_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m41')
   void set m41(num value) native "WebKitCSSMatrix_m41_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m42')
   num get m42 native "WebKitCSSMatrix_m42_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m42')
   void set m42(num value) native "WebKitCSSMatrix_m42_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m43')
   num get m43 native "WebKitCSSMatrix_m43_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m43')
   void set m43(num value) native "WebKitCSSMatrix_m43_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m44')
   num get m44 native "WebKitCSSMatrix_m44_Getter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.m44')
   void set m44(num value) native "WebKitCSSMatrix_m44_Setter";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.inverse')
   CssMatrix inverse() native "WebKitCSSMatrix_inverse_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.multiply')
   CssMatrix multiply(CssMatrix secondMatrix) native "WebKitCSSMatrix_multiply_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.rotate')
   CssMatrix rotate(num rotX, num rotY, num rotZ) native "WebKitCSSMatrix_rotate_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.rotateAxisAngle')
   CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native "WebKitCSSMatrix_rotateAxisAngle_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.scale')
   CssMatrix scale(num scaleX, num scaleY, num scaleZ) native "WebKitCSSMatrix_scale_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.setMatrixValue')
   void setMatrixValue(String string) native "WebKitCSSMatrix_setMatrixValue_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.skewX')
   CssMatrix skewX(num angle) native "WebKitCSSMatrix_skewX_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.skewY')
   CssMatrix skewY(num angle) native "WebKitCSSMatrix_skewY_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.toString')
   String toString() native "WebKitCSSMatrix_toString_Callback";
 
+  @DocsEditable
   @DomName('WebKitCSSMatrix.translate')
   CssMatrix translate(num x, num y, num z) native "WebKitCSSMatrix_translate_Callback";
 
@@ -2206,19 +2628,24 @@ class CssMatrix extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSMediaRule')
 class CssMediaRule extends CssRule {
   CssMediaRule.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CSSMediaRule.cssRules')
   List<CssRule> get cssRules native "CSSMediaRule_cssRules_Getter";
 
+  @DocsEditable
   @DomName('CSSMediaRule.media')
   MediaList get media native "CSSMediaRule_media_Getter";
 
+  @DocsEditable
   @DomName('CSSMediaRule.deleteRule')
   void deleteRule(int index) native "CSSMediaRule_deleteRule_Callback";
 
+  @DocsEditable
   @DomName('CSSMediaRule.insertRule')
   int insertRule(String rule, int index) native "CSSMediaRule_insertRule_Callback";
 
@@ -2230,16 +2657,20 @@ class CssMediaRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSPageRule')
 class CssPageRule extends CssRule {
   CssPageRule.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CSSPageRule.selectorText')
   String get selectorText native "CSSPageRule_selectorText_Getter";
 
+  @DocsEditable
   @DomName('CSSPageRule.selectorText')
   void set selectorText(String value) native "CSSPageRule_selectorText_Setter";
 
+  @DocsEditable
   @DomName('CSSPageRule.style')
   CssStyleDeclaration get style native "CSSPageRule_style_Getter";
 
@@ -2251,6 +2682,7 @@ class CssPageRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSPrimitiveValue')
 class CssPrimitiveValue extends CssValue {
   CssPrimitiveValue.internal() : super.internal();
@@ -2313,27 +2745,35 @@ class CssPrimitiveValue extends CssValue {
 
   static const int CSS_VW = 26;
 
+  @DocsEditable
   @DomName('CSSPrimitiveValue.primitiveType')
   int get primitiveType native "CSSPrimitiveValue_primitiveType_Getter";
 
+  @DocsEditable
   @DomName('CSSPrimitiveValue.getCounterValue')
   Counter getCounterValue() native "CSSPrimitiveValue_getCounterValue_Callback";
 
+  @DocsEditable
   @DomName('CSSPrimitiveValue.getFloatValue')
   num getFloatValue(int unitType) native "CSSPrimitiveValue_getFloatValue_Callback";
 
+  @DocsEditable
   @DomName('CSSPrimitiveValue.getRGBColorValue')
   RgbColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
 
+  @DocsEditable
   @DomName('CSSPrimitiveValue.getRectValue')
   Rect getRectValue() native "CSSPrimitiveValue_getRectValue_Callback";
 
+  @DocsEditable
   @DomName('CSSPrimitiveValue.getStringValue')
   String getStringValue() native "CSSPrimitiveValue_getStringValue_Callback";
 
+  @DocsEditable
   @DomName('CSSPrimitiveValue.setFloatValue')
   void setFloatValue(int unitType, num floatValue) native "CSSPrimitiveValue_setFloatValue_Callback";
 
+  @DocsEditable
   @DomName('CSSPrimitiveValue.setStringValue')
   void setStringValue(int stringType, String stringValue) native "CSSPrimitiveValue_setStringValue_Callback";
 
@@ -2345,6 +2785,7 @@ class CssPrimitiveValue extends CssValue {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSRule')
 class CssRule extends NativeFieldWrapperClass1 {
   CssRule.internal();
@@ -2367,18 +2808,23 @@ class CssRule extends NativeFieldWrapperClass1 {
 
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
+  @DocsEditable
   @DomName('CSSRule.cssText')
   String get cssText native "CSSRule_cssText_Getter";
 
+  @DocsEditable
   @DomName('CSSRule.cssText')
   void set cssText(String value) native "CSSRule_cssText_Setter";
 
+  @DocsEditable
   @DomName('CSSRule.parentRule')
   CssRule get parentRule native "CSSRule_parentRule_Getter";
 
+  @DocsEditable
   @DomName('CSSRule.parentStyleSheet')
   CssStyleSheet get parentStyleSheet native "CSSRule_parentStyleSheet_Getter";
 
+  @DocsEditable
   @DomName('CSSRule.type')
   int get type native "CSSRule_type_Getter";
 
@@ -2405,6 +2851,7 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
+@DocsEditable
 @DomName('CSSStyleDeclaration')
 class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
@@ -2413,39 +2860,51 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   CssStyleDeclaration.internal();
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.cssText')
   String get cssText native "CSSStyleDeclaration_cssText_Getter";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.cssText')
   void set cssText(String value) native "CSSStyleDeclaration_cssText_Setter";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.length')
   int get length native "CSSStyleDeclaration_length_Getter";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.parentRule')
   CssRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.getPropertyCSSValue')
   CssValue getPropertyCssValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   String getPropertyPriority(String propertyName) native "CSSStyleDeclaration_getPropertyPriority_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.getPropertyShorthand')
   String getPropertyShorthand(String propertyName) native "CSSStyleDeclaration_getPropertyShorthand_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration._getPropertyValue')
   String _getPropertyValue(String propertyName) native "CSSStyleDeclaration__getPropertyValue_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.isPropertyImplicit')
   bool isPropertyImplicit(String propertyName) native "CSSStyleDeclaration_isPropertyImplicit_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.item')
   String item(int index) native "CSSStyleDeclaration_item_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.removeProperty')
   String removeProperty(String propertyName) native "CSSStyleDeclaration_removeProperty_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) native "CSSStyleDeclaration_setProperty_Callback";
 
@@ -5614,16 +6073,20 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSStyleRule')
 class CssStyleRule extends CssRule {
   CssStyleRule.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CSSStyleRule.selectorText')
   String get selectorText native "CSSStyleRule_selectorText_Getter";
 
+  @DocsEditable
   @DomName('CSSStyleRule.selectorText')
   void set selectorText(String value) native "CSSStyleRule_selectorText_Setter";
 
+  @DocsEditable
   @DomName('CSSStyleRule.style')
   CssStyleDeclaration get style native "CSSStyleRule_style_Getter";
 
@@ -5635,16 +6098,20 @@ class CssStyleRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSStyleSheet')
 class CssStyleSheet extends StyleSheet {
   CssStyleSheet.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CSSStyleSheet.cssRules')
   List<CssRule> get cssRules native "CSSStyleSheet_cssRules_Getter";
 
+  @DocsEditable
   @DomName('CSSStyleSheet.ownerRule')
   CssRule get ownerRule native "CSSStyleSheet_ownerRule_Getter";
 
+  @DocsEditable
   @DomName('CSSStyleSheet.rules')
   List<CssRule> get rules native "CSSStyleSheet_rules_Getter";
 
@@ -5655,18 +6122,23 @@ class CssStyleSheet extends StyleSheet {
     return _addRule_2(selector, style);
   }
 
+  @DocsEditable
   @DomName('CSSStyleSheet.addRule_1')
   int _addRule_1(selector, style, index) native "CSSStyleSheet_addRule_1_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleSheet.addRule_2')
   int _addRule_2(selector, style) native "CSSStyleSheet_addRule_2_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleSheet.deleteRule')
   void deleteRule(int index) native "CSSStyleSheet_deleteRule_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleSheet.insertRule')
   int insertRule(String rule, int index) native "CSSStyleSheet_insertRule_Callback";
 
+  @DocsEditable
   @DomName('CSSStyleSheet.removeRule')
   void removeRule(int index) native "CSSStyleSheet_removeRule_Callback";
 
@@ -5678,6 +6150,7 @@ class CssStyleSheet extends StyleSheet {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitCSSTransformValue')
 class CssTransformValue extends _CssValueList {
   CssTransformValue.internal() : super.internal();
@@ -5724,6 +6197,7 @@ class CssTransformValue extends _CssValueList {
 
   static const int CSS_TRANSLATEZ = 12;
 
+  @DocsEditable
   @DomName('WebKitCSSTransformValue.operationType')
   int get operationType native "WebKitCSSTransformValue_operationType_Getter";
 
@@ -5735,6 +6209,7 @@ class CssTransformValue extends _CssValueList {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSUnknownRule')
 class CssUnknownRule extends CssRule {
   CssUnknownRule.internal() : super.internal();
@@ -5747,6 +6222,7 @@ class CssUnknownRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSValue')
 class CssValue extends NativeFieldWrapperClass1 {
   CssValue.internal();
@@ -5759,12 +6235,15 @@ class CssValue extends NativeFieldWrapperClass1 {
 
   static const int CSS_VALUE_LIST = 2;
 
+  @DocsEditable
   @DomName('CSSValue.cssText')
   String get cssText native "CSSValue_cssText_Getter";
 
+  @DocsEditable
   @DomName('CSSValue.cssText')
   void set cssText(String value) native "CSSValue_cssText_Setter";
 
+  @DocsEditable
   @DomName('CSSValue.cssValueType')
   int get cssValueType native "CSSValue_cssValueType_Getter";
 
@@ -5776,6 +6255,7 @@ class CssValue extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CustomEvent')
 class CustomEvent extends Event {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
@@ -5783,9 +6263,11 @@ class CustomEvent extends Event {
       type, canBubble, cancelable, detail);
   CustomEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CustomEvent.detail')
   Object get detail native "CustomEvent_detail_Getter";
 
+  @DocsEditable
   @DomName('CustomEvent.initCustomEvent')
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "CustomEvent_initCustomEvent_Callback";
 
@@ -5797,11 +6279,12 @@ class CustomEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLDListElement')
 class DListElement extends _Element_Merged {
   DListElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory DListElement() => document.$dom_createElement("dl");
 
 }
@@ -5812,6 +6295,7 @@ class DListElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLDataListElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -5820,12 +6304,13 @@ class DListElement extends _Element_Merged {
 class DataListElement extends _Element_Merged {
   DataListElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory DataListElement() => document.$dom_createElement("datalist");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLDataListElement.options')
   HtmlCollection get options native "HTMLDataListElement_options_Getter";
 
@@ -5837,22 +6322,28 @@ class DataListElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DataTransferItem')
 class DataTransferItem extends NativeFieldWrapperClass1 {
   DataTransferItem.internal();
 
+  @DocsEditable
   @DomName('DataTransferItem.kind')
   String get kind native "DataTransferItem_kind_Getter";
 
+  @DocsEditable
   @DomName('DataTransferItem.type')
   String get type native "DataTransferItem_type_Getter";
 
+  @DocsEditable
   @DomName('DataTransferItem.getAsFile')
   Blob getAsFile() native "DataTransferItem_getAsFile_Callback";
 
+  @DocsEditable
   @DomName('DataTransferItem.getAsString')
   void getAsString([StringCallback callback]) native "DataTransferItem_getAsString_Callback";
 
+  @DocsEditable
   @DomName('DataTransferItem.webkitGetAsEntry')
   Entry webkitGetAsEntry() native "DataTransferItem_webkitGetAsEntry_Callback";
 
@@ -5864,10 +6355,12 @@ class DataTransferItem extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DataTransferItemList')
 class DataTransferItemList extends NativeFieldWrapperClass1 {
   DataTransferItemList.internal();
 
+  @DocsEditable
   @DomName('DataTransferItemList.length')
   int get length native "DataTransferItemList_length_Getter";
 
@@ -5883,15 +6376,19 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('DataTransferItemList.add_1')
   void _add_1(data_OR_file) native "DataTransferItemList_add_1_Callback";
 
+  @DocsEditable
   @DomName('DataTransferItemList.add_2')
   void _add_2(data_OR_file, type) native "DataTransferItemList_add_2_Callback";
 
+  @DocsEditable
   @DomName('DataTransferItemList.clear')
   void clear() native "DataTransferItemList_clear_Callback";
 
+  @DocsEditable
   @DomName('DataTransferItemList.item')
   DataTransferItem item(int index) native "DataTransferItemList_item_Callback";
 
@@ -5903,11 +6400,12 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DataView')
 class DataView extends ArrayBufferView {
   DataView.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
       return DataView._create(buffer);
@@ -5926,9 +6424,11 @@ class DataView extends ArrayBufferView {
     return _getFloat32_2(byteOffset);
   }
 
+  @DocsEditable
   @DomName('DataView.getFloat32_1')
   num _getFloat32_1(byteOffset, littleEndian) native "DataView_getFloat32_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.getFloat32_2')
   num _getFloat32_2(byteOffset) native "DataView_getFloat32_2_Callback";
 
@@ -5939,9 +6439,11 @@ class DataView extends ArrayBufferView {
     return _getFloat64_2(byteOffset);
   }
 
+  @DocsEditable
   @DomName('DataView.getFloat64_1')
   num _getFloat64_1(byteOffset, littleEndian) native "DataView_getFloat64_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.getFloat64_2')
   num _getFloat64_2(byteOffset) native "DataView_getFloat64_2_Callback";
 
@@ -5952,9 +6454,11 @@ class DataView extends ArrayBufferView {
     return _getInt16_2(byteOffset);
   }
 
+  @DocsEditable
   @DomName('DataView.getInt16_1')
   int _getInt16_1(byteOffset, littleEndian) native "DataView_getInt16_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.getInt16_2')
   int _getInt16_2(byteOffset) native "DataView_getInt16_2_Callback";
 
@@ -5965,12 +6469,15 @@ class DataView extends ArrayBufferView {
     return _getInt32_2(byteOffset);
   }
 
+  @DocsEditable
   @DomName('DataView.getInt32_1')
   int _getInt32_1(byteOffset, littleEndian) native "DataView_getInt32_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.getInt32_2')
   int _getInt32_2(byteOffset) native "DataView_getInt32_2_Callback";
 
+  @DocsEditable
   @DomName('DataView.getInt8')
   int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
@@ -5981,9 +6488,11 @@ class DataView extends ArrayBufferView {
     return _getUint16_2(byteOffset);
   }
 
+  @DocsEditable
   @DomName('DataView.getUint16_1')
   int _getUint16_1(byteOffset, littleEndian) native "DataView_getUint16_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.getUint16_2')
   int _getUint16_2(byteOffset) native "DataView_getUint16_2_Callback";
 
@@ -5994,12 +6503,15 @@ class DataView extends ArrayBufferView {
     return _getUint32_2(byteOffset);
   }
 
+  @DocsEditable
   @DomName('DataView.getUint32_1')
   int _getUint32_1(byteOffset, littleEndian) native "DataView_getUint32_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.getUint32_2')
   int _getUint32_2(byteOffset) native "DataView_getUint32_2_Callback";
 
+  @DocsEditable
   @DomName('DataView.getUint8')
   int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
@@ -6011,9 +6523,11 @@ class DataView extends ArrayBufferView {
     _setFloat32_2(byteOffset, value);
   }
 
+  @DocsEditable
   @DomName('DataView.setFloat32_1')
   void _setFloat32_1(byteOffset, value, littleEndian) native "DataView_setFloat32_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.setFloat32_2')
   void _setFloat32_2(byteOffset, value) native "DataView_setFloat32_2_Callback";
 
@@ -6025,9 +6539,11 @@ class DataView extends ArrayBufferView {
     _setFloat64_2(byteOffset, value);
   }
 
+  @DocsEditable
   @DomName('DataView.setFloat64_1')
   void _setFloat64_1(byteOffset, value, littleEndian) native "DataView_setFloat64_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.setFloat64_2')
   void _setFloat64_2(byteOffset, value) native "DataView_setFloat64_2_Callback";
 
@@ -6039,9 +6555,11 @@ class DataView extends ArrayBufferView {
     _setInt16_2(byteOffset, value);
   }
 
+  @DocsEditable
   @DomName('DataView.setInt16_1')
   void _setInt16_1(byteOffset, value, littleEndian) native "DataView_setInt16_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.setInt16_2')
   void _setInt16_2(byteOffset, value) native "DataView_setInt16_2_Callback";
 
@@ -6053,12 +6571,15 @@ class DataView extends ArrayBufferView {
     _setInt32_2(byteOffset, value);
   }
 
+  @DocsEditable
   @DomName('DataView.setInt32_1')
   void _setInt32_1(byteOffset, value, littleEndian) native "DataView_setInt32_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.setInt32_2')
   void _setInt32_2(byteOffset, value) native "DataView_setInt32_2_Callback";
 
+  @DocsEditable
   @DomName('DataView.setInt8')
   void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
 
@@ -6070,9 +6591,11 @@ class DataView extends ArrayBufferView {
     _setUint16_2(byteOffset, value);
   }
 
+  @DocsEditable
   @DomName('DataView.setUint16_1')
   void _setUint16_1(byteOffset, value, littleEndian) native "DataView_setUint16_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.setUint16_2')
   void _setUint16_2(byteOffset, value) native "DataView_setUint16_2_Callback";
 
@@ -6084,12 +6607,15 @@ class DataView extends ArrayBufferView {
     _setUint32_2(byteOffset, value);
   }
 
+  @DocsEditable
   @DomName('DataView.setUint32_1')
   void _setUint32_1(byteOffset, value, littleEndian) native "DataView_setUint32_1_Callback";
 
+  @DocsEditable
   @DomName('DataView.setUint32_2')
   void _setUint32_2(byteOffset, value) native "DataView_setUint32_2_Callback";
 
+  @DocsEditable
   @DomName('DataView.setUint8')
   void setUint8(int byteOffset, int value) native "DataView_setUint8_Callback";
 
@@ -6101,19 +6627,24 @@ class DataView extends ArrayBufferView {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Database')
 class Database extends NativeFieldWrapperClass1 {
   Database.internal();
 
+  @DocsEditable
   @DomName('Database.version')
   String get version native "Database_version_Getter";
 
+  @DocsEditable
   @DomName('Database.changeVersion')
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_changeVersion_Callback";
 
+  @DocsEditable
   @DomName('Database.readTransaction')
   void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_readTransaction_Callback";
 
+  @DocsEditable
   @DomName('Database.transaction')
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_transaction_Callback";
 
@@ -6133,22 +6664,28 @@ typedef void DatabaseCallback(database);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DatabaseSync')
 class DatabaseSync extends NativeFieldWrapperClass1 {
   DatabaseSync.internal();
 
+  @DocsEditable
   @DomName('DatabaseSync.lastErrorMessage')
   String get lastErrorMessage native "DatabaseSync_lastErrorMessage_Getter";
 
+  @DocsEditable
   @DomName('DatabaseSync.version')
   String get version native "DatabaseSync_version_Getter";
 
+  @DocsEditable
   @DomName('DatabaseSync.changeVersion')
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native "DatabaseSync_changeVersion_Callback";
 
+  @DocsEditable
   @DomName('DatabaseSync.readTransaction')
   void readTransaction(SqlTransactionSyncCallback callback) native "DatabaseSync_readTransaction_Callback";
 
+  @DocsEditable
   @DomName('DatabaseSync.transaction')
   void transaction(SqlTransactionSyncCallback callback) native "DatabaseSync_transaction_Callback";
 
@@ -6160,17 +6697,19 @@ class DatabaseSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DedicatedWorkerContext')
 class DedicatedWorkerContext extends WorkerContext {
   DedicatedWorkerContext.internal() : super.internal();
 
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
+  @DocsEditable
   @DomName('DedicatedWorkerContext.postMessage')
   void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
 
@@ -6178,12 +6717,12 @@ class DedicatedWorkerContext extends WorkerContext {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class DedicatedWorkerContextEvents extends WorkerContextEvents {
-  /// @docsEditable true
+  @DocsEditable
   DedicatedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6193,6 +6732,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -6200,15 +6740,17 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 class DetailsElement extends _Element_Merged {
   DetailsElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory DetailsElement() => document.$dom_createElement("details");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLDetailsElement.open')
   bool get open native "HTMLDetailsElement_open_Getter";
 
+  @DocsEditable
   @DomName('HTMLDetailsElement.open')
   void set open(bool value) native "HTMLDetailsElement_open_Setter";
 
@@ -6220,10 +6762,12 @@ class DetailsElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DeviceMotionEvent')
 class DeviceMotionEvent extends Event {
   DeviceMotionEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('DeviceMotionEvent.interval')
   num get interval native "DeviceMotionEvent_interval_Getter";
 
@@ -6235,22 +6779,28 @@ class DeviceMotionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DeviceOrientationEvent')
 class DeviceOrientationEvent extends Event {
   DeviceOrientationEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('DeviceOrientationEvent.absolute')
   bool get absolute native "DeviceOrientationEvent_absolute_Getter";
 
+  @DocsEditable
   @DomName('DeviceOrientationEvent.alpha')
   num get alpha native "DeviceOrientationEvent_alpha_Getter";
 
+  @DocsEditable
   @DomName('DeviceOrientationEvent.beta')
   num get beta native "DeviceOrientationEvent_beta_Getter";
 
+  @DocsEditable
   @DomName('DeviceOrientationEvent.gamma')
   num get gamma native "DeviceOrientationEvent_gamma_Getter";
 
+  @DocsEditable
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
 
@@ -6262,19 +6812,24 @@ class DeviceOrientationEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DirectoryEntry')
 class DirectoryEntry extends Entry {
   DirectoryEntry.internal() : super.internal();
 
+  @DocsEditable
   @DomName('DirectoryEntry.createReader')
   DirectoryReader createReader() native "DirectoryEntry_createReader_Callback";
 
+  @DocsEditable
   @DomName('DirectoryEntry.getDirectory')
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getDirectory_Callback";
 
+  @DocsEditable
   @DomName('DirectoryEntry.getFile')
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getFile_Callback";
 
+  @DocsEditable
   @DomName('DirectoryEntry.removeRecursively')
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryEntry_removeRecursively_Callback";
 
@@ -6286,19 +6841,24 @@ class DirectoryEntry extends Entry {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DirectoryEntrySync')
 class DirectoryEntrySync extends EntrySync {
   DirectoryEntrySync.internal() : super.internal();
 
+  @DocsEditable
   @DomName('DirectoryEntrySync.createReader')
   DirectoryReaderSync createReader() native "DirectoryEntrySync_createReader_Callback";
 
+  @DocsEditable
   @DomName('DirectoryEntrySync.getDirectory')
   DirectoryEntrySync getDirectory(String path, Map flags) native "DirectoryEntrySync_getDirectory_Callback";
 
+  @DocsEditable
   @DomName('DirectoryEntrySync.getFile')
   FileEntrySync getFile(String path, Map flags) native "DirectoryEntrySync_getFile_Callback";
 
+  @DocsEditable
   @DomName('DirectoryEntrySync.removeRecursively')
   void removeRecursively() native "DirectoryEntrySync_removeRecursively_Callback";
 
@@ -6310,10 +6870,12 @@ class DirectoryEntrySync extends EntrySync {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DirectoryReader')
 class DirectoryReader extends NativeFieldWrapperClass1 {
   DirectoryReader.internal();
 
+  @DocsEditable
   @DomName('DirectoryReader.readEntries')
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryReader_readEntries_Callback";
 
@@ -6325,10 +6887,12 @@ class DirectoryReader extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DirectoryReaderSync')
 class DirectoryReaderSync extends NativeFieldWrapperClass1 {
   DirectoryReaderSync.internal();
 
+  @DocsEditable
   @DomName('DirectoryReaderSync.readEntries')
   List<EntrySync> readEntries() native "DirectoryReaderSync_readEntries_Callback";
 
@@ -6340,11 +6904,12 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLDivElement')
 class DivElement extends _Element_Merged {
   DivElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory DivElement() => document.$dom_createElement("div");
 
 }
@@ -6353,6 +6918,7 @@ class DivElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('Document')
 /**
  * The base class for all documents.
@@ -6466,167 +7032,220 @@ class Document extends Node
 
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   DocumentEvents get on =>
     new DocumentEvents(this);
 
+  @DocsEditable
   @DomName('Document.body')
   Element get $dom_body native "Document_body_Getter";
 
+  @DocsEditable
   @DomName('Document.body')
   void set $dom_body(Element value) native "Document_body_Setter";
 
+  @DocsEditable
   @DomName('Document.charset')
   String get charset native "Document_charset_Getter";
 
+  @DocsEditable
   @DomName('Document.charset')
   void set charset(String value) native "Document_charset_Setter";
 
+  @DocsEditable
   @DomName('Document.cookie')
   String get cookie native "Document_cookie_Getter";
 
+  @DocsEditable
   @DomName('Document.cookie')
   void set cookie(String value) native "Document_cookie_Setter";
 
+  @DocsEditable
   @DomName('Document.defaultView')
   WindowBase get window native "Document_defaultView_Getter";
 
+  @DocsEditable
   @DomName('Document.documentElement')
   Element get documentElement native "Document_documentElement_Getter";
 
+  @DocsEditable
   @DomName('Document.domain')
   String get domain native "Document_domain_Getter";
 
+  @DocsEditable
   @DomName('Document.head')
   HeadElement get $dom_head native "Document_head_Getter";
 
+  @DocsEditable
   @DomName('Document.implementation')
   DomImplementation get implementation native "Document_implementation_Getter";
 
+  @DocsEditable
   @DomName('Document.lastModified')
   String get $dom_lastModified native "Document_lastModified_Getter";
 
+  @DocsEditable
   @DomName('Document.preferredStylesheetSet')
   String get $dom_preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
 
+  @DocsEditable
   @DomName('Document.readyState')
   String get readyState native "Document_readyState_Getter";
 
+  @DocsEditable
   @DomName('Document.referrer')
   String get $dom_referrer native "Document_referrer_Getter";
 
+  @DocsEditable
   @DomName('Document.selectedStylesheetSet')
   String get $dom_selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
 
+  @DocsEditable
   @DomName('Document.selectedStylesheetSet')
   void set $dom_selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
+  @DocsEditable
   @DomName('Document.styleSheets')
   List<StyleSheet> get $dom_styleSheets native "Document_styleSheets_Getter";
 
+  @DocsEditable
   @DomName('Document.title')
   String get $dom_title native "Document_title_Getter";
 
+  @DocsEditable
   @DomName('Document.title')
   void set $dom_title(String value) native "Document_title_Setter";
 
+  @DocsEditable
   @DomName('Document.webkitFullscreenElement')
   Element get $dom_webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
+  @DocsEditable
   @DomName('Document.webkitFullscreenEnabled')
   bool get $dom_webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
+  @DocsEditable
   @DomName('Document.webkitHidden')
   bool get $dom_webkitHidden native "Document_webkitHidden_Getter";
 
+  @DocsEditable
   @DomName('Document.webkitIsFullScreen')
   bool get $dom_webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
+  @DocsEditable
   @DomName('Document.webkitPointerLockElement')
   Element get $dom_webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
 
+  @DocsEditable
   @DomName('Document.webkitVisibilityState')
   String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
+  @DocsEditable
   @DomName('Document.caretRangeFromPoint')
   Range $dom_caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
 
+  @DocsEditable
   @DomName('Document.createCDATASection')
   CDataSection createCDataSection(String data) native "Document_createCDATASection_Callback";
 
+  @DocsEditable
   @DomName('Document.createDocumentFragment')
   DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
 
+  @DocsEditable
   @DomName('Document.createElement')
   Element $dom_createElement(String tagName) native "Document_createElement_Callback";
 
+  @DocsEditable
   @DomName('Document.createElementNS')
   Element $dom_createElementNS(String namespaceURI, String qualifiedName) native "Document_createElementNS_Callback";
 
+  @DocsEditable
   @DomName('Document.createEvent')
   Event $dom_createEvent(String eventType) native "Document_createEvent_Callback";
 
+  @DocsEditable
   @DomName('Document.createRange')
   Range $dom_createRange() native "Document_createRange_Callback";
 
+  @DocsEditable
   @DomName('Document.createTextNode')
   Text $dom_createTextNode(String data) native "Document_createTextNode_Callback";
 
+  @DocsEditable
   @DomName('Document.createTouch')
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
+  @DocsEditable
   @DomName('Document.createTouchList')
   TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
 
+  @DocsEditable
   @DomName('Document.elementFromPoint')
   Element $dom_elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
 
+  @DocsEditable
   @DomName('Document.execCommand')
   bool execCommand(String command, bool userInterface, String value) native "Document_execCommand_Callback";
 
+  @DocsEditable
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
+  @DocsEditable
   @DomName('Document.getElementById')
   Element $dom_getElementById(String elementId) native "Document_getElementById_Callback";
 
+  @DocsEditable
   @DomName('Document.getElementsByClassName')
   List<Node> $dom_getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
 
+  @DocsEditable
   @DomName('Document.getElementsByName')
   List<Node> $dom_getElementsByName(String elementName) native "Document_getElementsByName_Callback";
 
+  @DocsEditable
   @DomName('Document.getElementsByTagName')
   List<Node> $dom_getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
 
+  @DocsEditable
   @DomName('Document.queryCommandEnabled')
   bool queryCommandEnabled(String command) native "Document_queryCommandEnabled_Callback";
 
+  @DocsEditable
   @DomName('Document.queryCommandIndeterm')
   bool queryCommandIndeterm(String command) native "Document_queryCommandIndeterm_Callback";
 
+  @DocsEditable
   @DomName('Document.queryCommandState')
   bool queryCommandState(String command) native "Document_queryCommandState_Callback";
 
+  @DocsEditable
   @DomName('Document.queryCommandSupported')
   bool queryCommandSupported(String command) native "Document_queryCommandSupported_Callback";
 
+  @DocsEditable
   @DomName('Document.queryCommandValue')
   String queryCommandValue(String command) native "Document_queryCommandValue_Callback";
 
+  @DocsEditable
   @DomName('Document.querySelector')
   Element $dom_querySelector(String selectors) native "Document_querySelector_Callback";
 
+  @DocsEditable
   @DomName('Document.querySelectorAll')
   List<Node> $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
 
+  @DocsEditable
   @DomName('Document.webkitCancelFullScreen')
   void $dom_webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
+  @DocsEditable
   @DomName('Document.webkitExitFullscreen')
   void $dom_webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
+  @DocsEditable
   @DomName('Document.webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
@@ -6791,21 +7410,21 @@ class Document extends Node
   }
 }
 
-/// @docsEditable true
+@DocsEditable
 class DocumentEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   DocumentEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get readyStateChange => this['readystatechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get selectionChange => this['selectionchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -6828,6 +7447,7 @@ class _FrozenCssClassSet extends CssClassSet {
   bool get frozen => true;
 }
 
+@DocsEditable
 @DomName('DocumentFragment')
 class DocumentFragment extends Node {
   factory DocumentFragment() => _DocumentFragmentFactoryProvider.createDocumentFragment();
@@ -7074,14 +7694,16 @@ class DocumentFragment extends Node {
 
   DocumentFragment.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ElementEvents get on =>
     new ElementEvents(this);
 
+  @DocsEditable
   @DomName('DocumentFragment.querySelector')
   Element $dom_querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
 
+  @DocsEditable
   @DomName('DocumentFragment.querySelectorAll')
   List<Node> $dom_querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
 
@@ -7093,6 +7715,7 @@ class DocumentFragment extends Node {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DocumentType')
 class DocumentType extends Node {
   DocumentType.internal() : super.internal();
@@ -7105,10 +7728,12 @@ class DocumentType extends Node {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMError')
 class DomError extends NativeFieldWrapperClass1 {
   DomError.internal();
 
+  @DocsEditable
   @DomName('DOMError.name')
   String get name native "DOMError_name_Getter";
 
@@ -7120,16 +7745,20 @@ class DomError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMException')
 class DomException extends NativeFieldWrapperClass1 {
   DomException.internal();
 
+  @DocsEditable
   @DomName('DOMCoreException.message')
   String get message native "DOMCoreException_message_Getter";
 
+  @DocsEditable
   @DomName('DOMCoreException.name')
   String get name native "DOMCoreException_name_Getter";
 
+  @DocsEditable
   @DomName('DOMCoreException.toString')
   String toString() native "DOMCoreException_toString_Callback";
 
@@ -7141,22 +7770,28 @@ class DomException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMImplementation')
 class DomImplementation extends NativeFieldWrapperClass1 {
   DomImplementation.internal();
 
+  @DocsEditable
   @DomName('DOMImplementation.createCSSStyleSheet')
   CssStyleSheet createCssStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
 
+  @DocsEditable
   @DomName('DOMImplementation.createDocument')
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native "DOMImplementation_createDocument_Callback";
 
+  @DocsEditable
   @DomName('DOMImplementation.createDocumentType')
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native "DOMImplementation_createDocumentType_Callback";
 
+  @DocsEditable
   @DomName('DOMImplementation.createHTMLDocument')
   HtmlDocument createHtmlDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
 
+  @DocsEditable
   @DomName('DOMImplementation.hasFeature')
   bool hasFeature(String feature, String version) native "DOMImplementation_hasFeature_Callback";
 
@@ -7168,19 +7803,24 @@ class DomImplementation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MimeType')
 class DomMimeType extends NativeFieldWrapperClass1 {
   DomMimeType.internal();
 
+  @DocsEditable
   @DomName('DOMMimeType.description')
   String get description native "DOMMimeType_description_Getter";
 
+  @DocsEditable
   @DomName('DOMMimeType.enabledPlugin')
   DomPlugin get enabledPlugin native "DOMMimeType_enabledPlugin_Getter";
 
+  @DocsEditable
   @DomName('DOMMimeType.suffixes')
   String get suffixes native "DOMMimeType_suffixes_Getter";
 
+  @DocsEditable
   @DomName('DOMMimeType.type')
   String get type native "DOMMimeType_type_Getter";
 
@@ -7192,10 +7832,12 @@ class DomMimeType extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MimeTypeArray')
 class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeType> {
   DomMimeTypeArray.internal();
 
+  @DocsEditable
   @DomName('DOMMimeTypeArray.length')
   int get length native "DOMMimeTypeArray_length_Getter";
 
@@ -7347,9 +7989,11 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
   // -- end List<DomMimeType> mixins.
 
+  @DocsEditable
   @DomName('DOMMimeTypeArray.item')
   DomMimeType item(int index) native "DOMMimeTypeArray_item_Callback";
 
+  @DocsEditable
   @DomName('DOMMimeTypeArray.namedItem')
   DomMimeType namedItem(String name) native "DOMMimeTypeArray_namedItem_Callback";
 
@@ -7361,14 +8005,16 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMParser')
 class DomParser extends NativeFieldWrapperClass1 {
   DomParser.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory DomParser() => DomParser._create();
   static DomParser _create() native "DOMParser_constructor_Callback";
 
+  @DocsEditable
   @DomName('DOMParser.parseFromString')
   Document parseFromString(String str, String contentType) native "DOMParser_parseFromString_Callback";
 
@@ -7380,25 +8026,32 @@ class DomParser extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Plugin')
 class DomPlugin extends NativeFieldWrapperClass1 {
   DomPlugin.internal();
 
+  @DocsEditable
   @DomName('DOMPlugin.description')
   String get description native "DOMPlugin_description_Getter";
 
+  @DocsEditable
   @DomName('DOMPlugin.filename')
   String get filename native "DOMPlugin_filename_Getter";
 
+  @DocsEditable
   @DomName('DOMPlugin.length')
   int get length native "DOMPlugin_length_Getter";
 
+  @DocsEditable
   @DomName('DOMPlugin.name')
   String get name native "DOMPlugin_name_Getter";
 
+  @DocsEditable
   @DomName('DOMPlugin.item')
   DomMimeType item(int index) native "DOMPlugin_item_Callback";
 
+  @DocsEditable
   @DomName('DOMPlugin.namedItem')
   DomMimeType namedItem(String name) native "DOMPlugin_namedItem_Callback";
 
@@ -7410,10 +8063,12 @@ class DomPlugin extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('PluginArray')
 class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin> {
   DomPluginArray.internal();
 
+  @DocsEditable
   @DomName('DOMPluginArray.length')
   int get length native "DOMPluginArray_length_Getter";
 
@@ -7565,12 +8220,15 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   // -- end List<DomPlugin> mixins.
 
+  @DocsEditable
   @DomName('DOMPluginArray.item')
   DomPlugin item(int index) native "DOMPluginArray_item_Callback";
 
+  @DocsEditable
   @DomName('DOMPluginArray.namedItem')
   DomPlugin namedItem(String name) native "DOMPluginArray_namedItem_Callback";
 
+  @DocsEditable
   @DomName('DOMPluginArray.refresh')
   void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
 
@@ -7582,85 +8240,112 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Selection')
 class DomSelection extends NativeFieldWrapperClass1 {
   DomSelection.internal();
 
+  @DocsEditable
   @DomName('DOMSelection.anchorNode')
   Node get anchorNode native "DOMSelection_anchorNode_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.anchorOffset')
   int get anchorOffset native "DOMSelection_anchorOffset_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.baseNode')
   Node get baseNode native "DOMSelection_baseNode_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.baseOffset')
   int get baseOffset native "DOMSelection_baseOffset_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.extentNode')
   Node get extentNode native "DOMSelection_extentNode_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.extentOffset')
   int get extentOffset native "DOMSelection_extentOffset_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.focusNode')
   Node get focusNode native "DOMSelection_focusNode_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.focusOffset')
   int get focusOffset native "DOMSelection_focusOffset_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.isCollapsed')
   bool get isCollapsed native "DOMSelection_isCollapsed_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.rangeCount')
   int get rangeCount native "DOMSelection_rangeCount_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.type')
   String get type native "DOMSelection_type_Getter";
 
+  @DocsEditable
   @DomName('DOMSelection.addRange')
   void addRange(Range range) native "DOMSelection_addRange_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.collapse')
   void collapse(Node node, int index) native "DOMSelection_collapse_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.collapseToEnd')
   void collapseToEnd() native "DOMSelection_collapseToEnd_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.collapseToStart')
   void collapseToStart() native "DOMSelection_collapseToStart_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.containsNode')
   bool containsNode(Node node, bool allowPartial) native "DOMSelection_containsNode_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.deleteFromDocument')
   void deleteFromDocument() native "DOMSelection_deleteFromDocument_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.empty')
   void empty() native "DOMSelection_empty_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.extend')
   void extend(Node node, int offset) native "DOMSelection_extend_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.getRangeAt')
   Range getRangeAt(int index) native "DOMSelection_getRangeAt_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.modify')
   void modify(String alter, String direction, String granularity) native "DOMSelection_modify_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.removeAllRanges')
   void removeAllRanges() native "DOMSelection_removeAllRanges_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.selectAllChildren')
   void selectAllChildren(Node node) native "DOMSelection_selectAllChildren_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.setBaseAndExtent')
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native "DOMSelection_setBaseAndExtent_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.setPosition')
   void setPosition(Node node, int offset) native "DOMSelection_setPosition_Callback";
 
+  @DocsEditable
   @DomName('DOMSelection.toString')
   String toString() native "DOMSelection_toString_Callback";
 
@@ -7672,13 +8357,16 @@ class DomSelection extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMSettableTokenList')
 class DomSettableTokenList extends DomTokenList {
   DomSettableTokenList.internal() : super.internal();
 
+  @DocsEditable
   @DomName('DOMSettableTokenList.value')
   String get value native "DOMSettableTokenList_value_Getter";
 
+  @DocsEditable
   @DomName('DOMSettableTokenList.value')
   void set value(String value) native "DOMSettableTokenList_value_Setter";
 
@@ -7690,10 +8378,12 @@ class DomSettableTokenList extends DomTokenList {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMStringList')
 class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   DomStringList.internal();
 
+  @DocsEditable
   @DomName('DOMStringList.length')
   int get length native "DOMStringList_length_Getter";
 
@@ -7845,9 +8535,11 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // -- end List<String> mixins.
 
+  @DocsEditable
   @DomName('DOMStringList.contains')
   bool contains(String string) native "DOMStringList_contains_Callback";
 
+  @DocsEditable
   @DomName('DOMStringList.item')
   String item(int index) native "DOMStringList_item_Callback";
 
@@ -7859,6 +8551,7 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMStringMap')
 class DomStringMap extends NativeFieldWrapperClass1 {
   DomStringMap.internal();
@@ -7871,19 +8564,24 @@ class DomStringMap extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMTokenList')
 class DomTokenList extends NativeFieldWrapperClass1 {
   DomTokenList.internal();
 
+  @DocsEditable
   @DomName('DOMTokenList.length')
   int get length native "DOMTokenList_length_Getter";
 
+  @DocsEditable
   @DomName('DOMTokenList.contains')
   bool contains(String token) native "DOMTokenList_contains_Callback";
 
+  @DocsEditable
   @DomName('DOMTokenList.item')
   String item(int index) native "DOMTokenList_item_Callback";
 
+  @DocsEditable
   @DomName('DOMTokenList.toString')
   String toString() native "DOMTokenList_toString_Callback";
 
@@ -7894,9 +8592,11 @@ class DomTokenList extends NativeFieldWrapperClass1 {
     return _toggle_2(token);
   }
 
+  @DocsEditable
   @DomName('DOMTokenList.toggle_1')
   bool _toggle_1(token, force) native "DOMTokenList_toggle_1_Callback";
 
+  @DocsEditable
   @DomName('DOMTokenList.toggle_2')
   bool _toggle_2(token) native "DOMTokenList_toggle_2_Callback";
 
@@ -8724,202 +9424,228 @@ abstract class Element extends Node implements ElementTraversal {
 
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /// @docsEditable true
   HtmlCollection get $dom_children;
 
-  /// @docsEditable true
   String contentEditable;
 
-  /// @docsEditable true
   String dir;
 
-  /// @docsEditable true
   bool draggable;
 
-  /// @docsEditable true
   bool hidden;
 
-  /// @docsEditable true
   String id;
 
-  /// @docsEditable true
   String innerHtml;
 
-  /// @docsEditable true
   bool get isContentEditable;
 
-  /// @docsEditable true
   String lang;
 
-  /// @docsEditable true
   String get outerHtml;
 
-  /// @docsEditable true
   bool spellcheck;
 
-  /// @docsEditable true
   int tabIndex;
 
-  /// @docsEditable true
   String title;
 
-  /// @docsEditable true
   bool translate;
 
-  /// @docsEditable true
   String webkitdropzone;
 
-  /// @docsEditable true
   void click();
 
-  /// @docsEditable true
   Element insertAdjacentElement(String where, Element element);
 
-  /// @docsEditable true
   void insertAdjacentHtml(String where, String html);
 
-  /// @docsEditable true
   void insertAdjacentText(String where, String text);
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
+  @DocsEditable
   @DomName('Element.childElementCount')
   int get $dom_childElementCount native "Element_childElementCount_Getter";
 
+  @DocsEditable
   @DomName('Element.className')
   String get $dom_className native "Element_className_Getter";
 
+  @DocsEditable
   @DomName('Element.className')
   void set $dom_className(String value) native "Element_className_Setter";
 
+  @DocsEditable
   @DomName('Element.clientHeight')
   int get clientHeight native "Element_clientHeight_Getter";
 
+  @DocsEditable
   @DomName('Element.clientLeft')
   int get clientLeft native "Element_clientLeft_Getter";
 
+  @DocsEditable
   @DomName('Element.clientTop')
   int get clientTop native "Element_clientTop_Getter";
 
+  @DocsEditable
   @DomName('Element.clientWidth')
   int get clientWidth native "Element_clientWidth_Getter";
 
+  @DocsEditable
   @DomName('Element.dataset')
   Map<String, String> get dataset native "Element_dataset_Getter";
 
+  @DocsEditable
   @DomName('Element.firstElementChild')
   Element get $dom_firstElementChild native "Element_firstElementChild_Getter";
 
+  @DocsEditable
   @DomName('Element.lastElementChild')
   Element get $dom_lastElementChild native "Element_lastElementChild_Getter";
 
+  @DocsEditable
   @DomName('Element.nextElementSibling')
   Element get nextElementSibling native "Element_nextElementSibling_Getter";
 
+  @DocsEditable
   @DomName('Element.offsetHeight')
   int get offsetHeight native "Element_offsetHeight_Getter";
 
+  @DocsEditable
   @DomName('Element.offsetLeft')
   int get offsetLeft native "Element_offsetLeft_Getter";
 
+  @DocsEditable
   @DomName('Element.offsetParent')
   Element get offsetParent native "Element_offsetParent_Getter";
 
+  @DocsEditable
   @DomName('Element.offsetTop')
   int get offsetTop native "Element_offsetTop_Getter";
 
+  @DocsEditable
   @DomName('Element.offsetWidth')
   int get offsetWidth native "Element_offsetWidth_Getter";
 
+  @DocsEditable
   @DomName('Element.previousElementSibling')
   Element get previousElementSibling native "Element_previousElementSibling_Getter";
 
+  @DocsEditable
   @DomName('Element.scrollHeight')
   int get scrollHeight native "Element_scrollHeight_Getter";
 
+  @DocsEditable
   @DomName('Element.scrollLeft')
   int get scrollLeft native "Element_scrollLeft_Getter";
 
+  @DocsEditable
   @DomName('Element.scrollLeft')
   void set scrollLeft(int value) native "Element_scrollLeft_Setter";
 
+  @DocsEditable
   @DomName('Element.scrollTop')
   int get scrollTop native "Element_scrollTop_Getter";
 
+  @DocsEditable
   @DomName('Element.scrollTop')
   void set scrollTop(int value) native "Element_scrollTop_Setter";
 
+  @DocsEditable
   @DomName('Element.scrollWidth')
   int get scrollWidth native "Element_scrollWidth_Getter";
 
+  @DocsEditable
   @DomName('Element.style')
   CssStyleDeclaration get style native "Element_style_Getter";
 
+  @DocsEditable
   @DomName('Element.tagName')
   String get tagName native "Element_tagName_Getter";
 
+  @DocsEditable
   @DomName('Element.webkitPseudo')
   String get webkitPseudo native "Element_webkitPseudo_Getter";
 
+  @DocsEditable
   @DomName('Element.webkitPseudo')
   void set webkitPseudo(String value) native "Element_webkitPseudo_Setter";
 
+  @DocsEditable
   @DomName('Element.webkitShadowRoot')
   ShadowRoot get webkitShadowRoot native "Element_webkitShadowRoot_Getter";
 
+  @DocsEditable
   @DomName('Element.blur')
   void blur() native "Element_blur_Callback";
 
+  @DocsEditable
   @DomName('Element.focus')
   void focus() native "Element_focus_Callback";
 
+  @DocsEditable
   @DomName('Element.getAttribute')
   String $dom_getAttribute(String name) native "Element_getAttribute_Callback";
 
+  @DocsEditable
   @DomName('Element.getAttributeNS')
   String $dom_getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
+  @DocsEditable
   @DomName('Element.getBoundingClientRect')
   ClientRect getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
+  @DocsEditable
   @DomName('Element.getClientRects')
   List<ClientRect> getClientRects() native "Element_getClientRects_Callback";
 
+  @DocsEditable
   @DomName('Element.getElementsByClassName')
   List<Node> $dom_getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
 
+  @DocsEditable
   @DomName('Element.getElementsByTagName')
   List<Node> $dom_getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
 
+  @DocsEditable
   @DomName('Element.hasAttribute')
   bool $dom_hasAttribute(String name) native "Element_hasAttribute_Callback";
 
+  @DocsEditable
   @DomName('Element.hasAttributeNS')
   bool $dom_hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
 
+  @DocsEditable
   @DomName('Element.querySelector')
   Element $dom_querySelector(String selectors) native "Element_querySelector_Callback";
 
+  @DocsEditable
   @DomName('Element.querySelectorAll')
   List<Node> $dom_querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
 
+  @DocsEditable
   @DomName('Element.remove')
   void remove() native "Element_remove_Callback";
 
+  @DocsEditable
   @DomName('Element.removeAttribute')
   void $dom_removeAttribute(String name) native "Element_removeAttribute_Callback";
 
+  @DocsEditable
   @DomName('Element.removeAttributeNS')
   void $dom_removeAttributeNS(String namespaceURI, String localName) native "Element_removeAttributeNS_Callback";
 
+  @DocsEditable
   @DomName('Element.scrollByLines')
   void scrollByLines(int lines) native "Element_scrollByLines_Callback";
 
+  @DocsEditable
   @DomName('Element.scrollByPages')
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
@@ -8931,32 +9657,41 @@ abstract class Element extends Node implements ElementTraversal {
     _scrollIntoViewIfNeeded_2();
   }
 
+  @DocsEditable
   @DomName('Element.scrollIntoViewIfNeeded_1')
   void _scrollIntoViewIfNeeded_1(centerIfNeeded) native "Element_scrollIntoViewIfNeeded_1_Callback";
 
+  @DocsEditable
   @DomName('Element.scrollIntoViewIfNeeded_2')
   void _scrollIntoViewIfNeeded_2() native "Element_scrollIntoViewIfNeeded_2_Callback";
 
+  @DocsEditable
   @DomName('Element.setAttribute')
   void $dom_setAttribute(String name, String value) native "Element_setAttribute_Callback";
 
+  @DocsEditable
   @DomName('Element.setAttributeNS')
   void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
+  @DocsEditable
   @DomName('Element.webkitCreateShadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
   ShadowRoot createShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
 
+  @DocsEditable
   @DomName('Element.webkitMatchesSelector')
   bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
 
+  @DocsEditable
   @DomName('Element.webkitRequestFullScreen')
   void webkitRequestFullScreen(int flags) native "Element_webkitRequestFullScreen_Callback";
 
+  @DocsEditable
   @DomName('Element.webkitRequestFullscreen')
   void webkitRequestFullscreen() native "Element_webkitRequestFullscreen_Callback";
 
+  @DocsEditable
   @DomName('Element.webkitRequestPointerLock')
   void webkitRequestPointerLock() native "Element_webkitRequestPointerLock_Callback";
 
@@ -9189,153 +9924,153 @@ class _ElementFactoryProvider {
       document.$dom_createElement(tag);
 }
 
-/// @docsEditable true
+@DocsEditable
 class ElementEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   ElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeCopy => this['beforecopy'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeCut => this['beforecut'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforePaste => this['beforepaste'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get change => this['change'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get click => this['click'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get contextMenu => this['contextmenu'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get copy => this['copy'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get cut => this['cut'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get doubleClick => this['dblclick'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drag => this['drag'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnd => this['dragend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnter => this['dragenter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragLeave => this['dragleave'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragOver => this['dragover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragStart => this['dragstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drop => this['drop'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get input => this['input'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get invalid => this['invalid'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyDown => this['keydown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyPress => this['keypress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyUp => this['keyup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseDown => this['mousedown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseMove => this['mousemove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOut => this['mouseout'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOver => this['mouseover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseUp => this['mouseup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseWheel => this['mousewheel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get paste => this['paste'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get reset => this['reset'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get scroll => this['scroll'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get search => this['search'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get select => this['select'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get selectStart => this['selectstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get submit => this['submit'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchCancel => this['touchcancel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchEnd => this['touchend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchEnter => this['touchenter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchLeave => this['touchleave'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchMove => this['touchmove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchStart => this['touchstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9345,22 +10080,28 @@ class ElementEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ElementTraversal')
 class ElementTraversal extends NativeFieldWrapperClass1 {
   ElementTraversal.internal();
 
+  @DocsEditable
   @DomName('ElementTraversal.childElementCount')
   int get $dom_childElementCount native "ElementTraversal_childElementCount_Getter";
 
+  @DocsEditable
   @DomName('ElementTraversal.firstElementChild')
   Element get $dom_firstElementChild native "ElementTraversal_firstElementChild_Getter";
 
+  @DocsEditable
   @DomName('ElementTraversal.lastElementChild')
   Element get $dom_lastElementChild native "ElementTraversal_lastElementChild_Getter";
 
+  @DocsEditable
   @DomName('ElementTraversal.nextElementSibling')
   Element get nextElementSibling native "ElementTraversal_nextElementSibling_Getter";
 
+  @DocsEditable
   @DomName('ElementTraversal.previousElementSibling')
   Element get previousElementSibling native "ElementTraversal_previousElementSibling_Getter";
 
@@ -9372,6 +10113,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLEmbedElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
@@ -9379,45 +10121,57 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 class EmbedElement extends _Element_Merged {
   EmbedElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory EmbedElement() => document.$dom_createElement("embed");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.align')
   String get align native "HTMLEmbedElement_align_Getter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.align')
   void set align(String value) native "HTMLEmbedElement_align_Setter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.height')
   String get height native "HTMLEmbedElement_height_Getter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.height')
   void set height(String value) native "HTMLEmbedElement_height_Setter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.name')
   String get name native "HTMLEmbedElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.name')
   void set name(String value) native "HTMLEmbedElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.src')
   String get src native "HTMLEmbedElement_src_Getter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.src')
   void set src(String value) native "HTMLEmbedElement_src_Setter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.type')
   String get type native "HTMLEmbedElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.type')
   void set type(String value) native "HTMLEmbedElement_type_Setter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.width')
   String get width native "HTMLEmbedElement_width_Getter";
 
+  @DocsEditable
   @DomName('HTMLEmbedElement.width')
   void set width(String value) native "HTMLEmbedElement_width_Setter";
 
@@ -9429,6 +10183,7 @@ class EmbedElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('EntityReference')
 class EntityReference extends Node {
   EntityReference.internal() : super.internal();
@@ -9449,22 +10204,28 @@ typedef void EntriesCallback(List<Entry> entries);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Entry')
 class Entry extends NativeFieldWrapperClass1 {
   Entry.internal();
 
+  @DocsEditable
   @DomName('Entry.filesystem')
   FileSystem get filesystem native "Entry_filesystem_Getter";
 
+  @DocsEditable
   @DomName('Entry.fullPath')
   String get fullPath native "Entry_fullPath_Getter";
 
+  @DocsEditable
   @DomName('Entry.isDirectory')
   bool get isDirectory native "Entry_isDirectory_Getter";
 
+  @DocsEditable
   @DomName('Entry.isFile')
   bool get isFile native "Entry_isFile_Getter";
 
+  @DocsEditable
   @DomName('Entry.name')
   String get name native "Entry_name_Getter";
 
@@ -9476,15 +10237,19 @@ class Entry extends NativeFieldWrapperClass1 {
     _copyTo_2(parent);
   }
 
+  @DocsEditable
   @DomName('Entry.copyTo_1')
   void _copyTo_1(parent, name, successCallback, errorCallback) native "Entry_copyTo_1_Callback";
 
+  @DocsEditable
   @DomName('Entry.copyTo_2')
   void _copyTo_2(parent) native "Entry_copyTo_2_Callback";
 
+  @DocsEditable
   @DomName('Entry.getMetadata')
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native "Entry_getMetadata_Callback";
 
+  @DocsEditable
   @DomName('Entry.getParent')
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native "Entry_getParent_Callback";
 
@@ -9496,15 +10261,19 @@ class Entry extends NativeFieldWrapperClass1 {
     _moveTo_2(parent);
   }
 
+  @DocsEditable
   @DomName('Entry.moveTo_1')
   void _moveTo_1(parent, name, successCallback, errorCallback) native "Entry_moveTo_1_Callback";
 
+  @DocsEditable
   @DomName('Entry.moveTo_2')
   void _moveTo_2(parent) native "Entry_moveTo_2_Callback";
 
+  @DocsEditable
   @DomName('Entry.remove')
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native "Entry_remove_Callback";
 
+  @DocsEditable
   @DomName('Entry.toURL')
   String toUrl() native "Entry_toURL_Callback";
 
@@ -9524,40 +10293,52 @@ typedef void EntryCallback(Entry entry);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('EntrySync')
 class EntrySync extends NativeFieldWrapperClass1 {
   EntrySync.internal();
 
+  @DocsEditable
   @DomName('EntrySync.filesystem')
   FileSystemSync get filesystem native "EntrySync_filesystem_Getter";
 
+  @DocsEditable
   @DomName('EntrySync.fullPath')
   String get fullPath native "EntrySync_fullPath_Getter";
 
+  @DocsEditable
   @DomName('EntrySync.isDirectory')
   bool get isDirectory native "EntrySync_isDirectory_Getter";
 
+  @DocsEditable
   @DomName('EntrySync.isFile')
   bool get isFile native "EntrySync_isFile_Getter";
 
+  @DocsEditable
   @DomName('EntrySync.name')
   String get name native "EntrySync_name_Getter";
 
+  @DocsEditable
   @DomName('EntrySync.copyTo')
   EntrySync copyTo(DirectoryEntrySync parent, String name) native "EntrySync_copyTo_Callback";
 
+  @DocsEditable
   @DomName('EntrySync.getMetadata')
   Metadata getMetadata() native "EntrySync_getMetadata_Callback";
 
+  @DocsEditable
   @DomName('EntrySync.getParent')
   EntrySync getParent() native "EntrySync_getParent_Callback";
 
+  @DocsEditable
   @DomName('EntrySync.moveTo')
   EntrySync moveTo(DirectoryEntrySync parent, String name) native "EntrySync_moveTo_Callback";
 
+  @DocsEditable
   @DomName('EntrySync.remove')
   void remove() native "EntrySync_remove_Callback";
 
+  @DocsEditable
   @DomName('EntrySync.toURL')
   String toUrl() native "EntrySync_toURL_Callback";
 
@@ -9577,16 +10358,20 @@ typedef void ErrorCallback(FileError error);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ErrorEvent')
 class ErrorEvent extends Event {
   ErrorEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('ErrorEvent.filename')
   String get filename native "ErrorEvent_filename_Getter";
 
+  @DocsEditable
   @DomName('ErrorEvent.lineno')
   int get lineno native "ErrorEvent_lineno_Getter";
 
+  @DocsEditable
   @DomName('ErrorEvent.message')
   String get message native "ErrorEvent_message_Getter";
 
@@ -9598,6 +10383,7 @@ class ErrorEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Event')
 class Event extends NativeFieldWrapperClass1 {
   // In JS, canBubble and cancelable are technically required parameters to
@@ -9650,54 +10436,71 @@ class Event extends NativeFieldWrapperClass1 {
 
   static const int SELECT = 16384;
 
+  @DocsEditable
   @DomName('Event.bubbles')
   bool get bubbles native "Event_bubbles_Getter";
 
+  @DocsEditable
   @DomName('Event.cancelBubble')
   bool get cancelBubble native "Event_cancelBubble_Getter";
 
+  @DocsEditable
   @DomName('Event.cancelBubble')
   void set cancelBubble(bool value) native "Event_cancelBubble_Setter";
 
+  @DocsEditable
   @DomName('Event.cancelable')
   bool get cancelable native "Event_cancelable_Getter";
 
+  @DocsEditable
   @DomName('Event.clipboardData')
   Clipboard get clipboardData native "Event_clipboardData_Getter";
 
+  @DocsEditable
   @DomName('Event.currentTarget')
   EventTarget get currentTarget native "Event_currentTarget_Getter";
 
+  @DocsEditable
   @DomName('Event.defaultPrevented')
   bool get defaultPrevented native "Event_defaultPrevented_Getter";
 
+  @DocsEditable
   @DomName('Event.eventPhase')
   int get eventPhase native "Event_eventPhase_Getter";
 
+  @DocsEditable
   @DomName('Event.returnValue')
   bool get returnValue native "Event_returnValue_Getter";
 
+  @DocsEditable
   @DomName('Event.returnValue')
   void set returnValue(bool value) native "Event_returnValue_Setter";
 
+  @DocsEditable
   @DomName('Event.target')
   EventTarget get target native "Event_target_Getter";
 
+  @DocsEditable
   @DomName('Event.timeStamp')
   int get timeStamp native "Event_timeStamp_Getter";
 
+  @DocsEditable
   @DomName('Event.type')
   String get type native "Event_type_Getter";
 
+  @DocsEditable
   @DomName('Event.initEvent')
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "Event_initEvent_Callback";
 
+  @DocsEditable
   @DomName('Event.preventDefault')
   void preventDefault() native "Event_preventDefault_Callback";
 
+  @DocsEditable
   @DomName('Event.stopImmediatePropagation')
   void stopImmediatePropagation() native "Event_stopImmediatePropagation_Callback";
 
+  @DocsEditable
   @DomName('Event.stopPropagation')
   void stopPropagation() native "Event_stopPropagation_Callback";
 
@@ -9709,6 +10512,7 @@ class Event extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('EventException')
 class EventException extends NativeFieldWrapperClass1 {
   EventException.internal();
@@ -9717,15 +10521,19 @@ class EventException extends NativeFieldWrapperClass1 {
 
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
+  @DocsEditable
   @DomName('EventException.code')
   int get code native "EventException_code_Getter";
 
+  @DocsEditable
   @DomName('EventException.message')
   String get message native "EventException_message_Getter";
 
+  @DocsEditable
   @DomName('EventException.name')
   String get name native "EventException_name_Getter";
 
+  @DocsEditable
   @DomName('EventException.toString')
   String toString() native "EventException_toString_Callback";
 
@@ -9737,6 +10545,7 @@ class EventException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('EventSource')
 class EventSource extends EventTarget {
   EventSource.internal() : super.internal();
@@ -9747,11 +10556,11 @@ class EventSource extends EventTarget {
 
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  /// @docsEditable true
+  @DocsEditable
   factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
   static EventSource _create(String scriptUrl) native "EventSource_constructor_Callback";
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   EventSourceEvents get on =>
     new EventSourceEvents(this);
@@ -9762,21 +10571,27 @@ class EventSource extends EventTarget {
 
   static const int OPEN = 1;
 
+  @DocsEditable
   @DomName('EventSource.readyState')
   int get readyState native "EventSource_readyState_Getter";
 
+  @DocsEditable
   @DomName('EventSource.url')
   String get url native "EventSource_url_Getter";
 
+  @DocsEditable
   @DomName('EventSource.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('EventSource.close')
   void close() native "EventSource_close_Callback";
 
+  @DocsEditable
   @DomName('EventSource.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "EventSource_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('EventSource.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_removeEventListener_Callback";
 
@@ -9788,18 +10603,18 @@ class EventSource extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class EventSourceEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   EventSourceEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9868,6 +10683,7 @@ class EventListenerList {
   }
 }
 
+@DocsEditable
 @DomName('EventTarget')
 /**
  * Base class for all browser objects that support events.
@@ -9883,12 +10699,15 @@ class EventTarget extends NativeFieldWrapperClass1 {
   Events get on => new Events(this);
   EventTarget.internal();
 
+  @DocsEditable
   @DomName('EventTarget.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('EventTarget.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "EventTarget_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('EventTarget.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_removeEventListener_Callback";
 
@@ -9900,6 +10719,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('EXTTextureFilterAnisotropic')
 class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
   ExtTextureFilterAnisotropic.internal();
@@ -9916,46 +10736,59 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLFieldSetElement')
 class FieldSetElement extends _Element_Merged {
   FieldSetElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.disabled')
   bool get disabled native "HTMLFieldSetElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.disabled')
   void set disabled(bool value) native "HTMLFieldSetElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.elements')
   HtmlCollection get elements native "HTMLFieldSetElement_elements_Getter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.form')
   FormElement get form native "HTMLFieldSetElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.name')
   String get name native "HTMLFieldSetElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.name')
   void set name(String value) native "HTMLFieldSetElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.type')
   String get type native "HTMLFieldSetElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.validationMessage')
   String get validationMessage native "HTMLFieldSetElement_validationMessage_Getter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.validity')
   ValidityState get validity native "HTMLFieldSetElement_validity_Getter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.willValidate')
   bool get willValidate native "HTMLFieldSetElement_willValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.checkValidity')
   bool checkValidity() native "HTMLFieldSetElement_checkValidity_Callback";
 
+  @DocsEditable
   @DomName('HTMLFieldSetElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLFieldSetElement_setCustomValidity_Callback";
 
@@ -9967,16 +10800,20 @@ class FieldSetElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('File')
 class File extends Blob {
   File.internal() : super.internal();
 
+  @DocsEditable
   @DomName('File.lastModifiedDate')
   Date get lastModifiedDate native "File_lastModifiedDate_Getter";
 
+  @DocsEditable
   @DomName('File.name')
   String get name native "File_name_Getter";
 
+  @DocsEditable
   @DomName('File.webkitRelativePath')
   String get webkitRelativePath native "File_webkitRelativePath_Getter";
 
@@ -9996,13 +10833,16 @@ typedef void FileCallback(File file);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FileEntry')
 class FileEntry extends Entry {
   FileEntry.internal() : super.internal();
 
+  @DocsEditable
   @DomName('FileEntry.createWriter')
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_createWriter_Callback";
 
+  @DocsEditable
   @DomName('FileEntry.file')
   void file(FileCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_file_Callback";
 
@@ -10014,13 +10854,16 @@ class FileEntry extends Entry {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FileEntrySync')
 class FileEntrySync extends EntrySync {
   FileEntrySync.internal() : super.internal();
 
+  @DocsEditable
   @DomName('FileEntrySync.createWriter')
   FileWriterSync createWriter() native "FileEntrySync_createWriter_Callback";
 
+  @DocsEditable
   @DomName('FileEntrySync.file')
   File file() native "FileEntrySync_file_Callback";
 
@@ -10032,6 +10875,7 @@ class FileEntrySync extends EntrySync {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FileError')
 class FileError extends NativeFieldWrapperClass1 {
   FileError.internal();
@@ -10060,6 +10904,7 @@ class FileError extends NativeFieldWrapperClass1 {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
+  @DocsEditable
   @DomName('FileError.code')
   int get code native "FileError_code_Getter";
 
@@ -10071,6 +10916,7 @@ class FileError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FileException')
 class FileException extends NativeFieldWrapperClass1 {
   FileException.internal();
@@ -10099,15 +10945,19 @@ class FileException extends NativeFieldWrapperClass1 {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
+  @DocsEditable
   @DomName('FileException.code')
   int get code native "FileException_code_Getter";
 
+  @DocsEditable
   @DomName('FileException.message')
   String get message native "FileException_message_Getter";
 
+  @DocsEditable
   @DomName('FileException.name')
   String get name native "FileException_name_Getter";
 
+  @DocsEditable
   @DomName('FileException.toString')
   String toString() native "FileException_toString_Callback";
 
@@ -10119,10 +10969,12 @@ class FileException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FileList')
 class FileList extends NativeFieldWrapperClass1 implements List<File> {
   FileList.internal();
 
+  @DocsEditable
   @DomName('FileList.length')
   int get length native "FileList_length_Getter";
 
@@ -10274,6 +11126,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
   // -- end List<File> mixins.
 
+  @DocsEditable
   @DomName('FileList.item')
   File item(int index) native "FileList_item_Callback";
 
@@ -10285,6 +11138,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FileReader')
 class FileReader extends EventTarget {
   FileReader.internal() : super.internal();
@@ -10301,11 +11155,11 @@ class FileReader extends EventTarget {
 
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  /// @docsEditable true
+  @DocsEditable
   factory FileReader() => FileReader._create();
   static FileReader _create() native "FileReader_constructor_Callback";
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   FileReaderEvents get on =>
     new FileReaderEvents(this);
@@ -10316,30 +11170,39 @@ class FileReader extends EventTarget {
 
   static const int LOADING = 1;
 
+  @DocsEditable
   @DomName('FileReader.error')
   FileError get error native "FileReader_error_Getter";
 
+  @DocsEditable
   @DomName('FileReader.readyState')
   int get readyState native "FileReader_readyState_Getter";
 
+  @DocsEditable
   @DomName('FileReader.result')
   Object get result native "FileReader_result_Getter";
 
+  @DocsEditable
   @DomName('FileReader.abort')
   void abort() native "FileReader_abort_Callback";
 
+  @DocsEditable
   @DomName('FileReader.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('FileReader.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "FileReader_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('FileReader.readAsArrayBuffer')
   void readAsArrayBuffer(Blob blob) native "FileReader_readAsArrayBuffer_Callback";
 
+  @DocsEditable
   @DomName('FileReader.readAsBinaryString')
   void readAsBinaryString(Blob blob) native "FileReader_readAsBinaryString_Callback";
 
+  @DocsEditable
   @DomName('FileReader.readAsDataURL')
   void readAsDataUrl(Blob blob) native "FileReader_readAsDataURL_Callback";
 
@@ -10351,12 +11214,15 @@ class FileReader extends EventTarget {
     _readAsText_2(blob);
   }
 
+  @DocsEditable
   @DomName('FileReader.readAsText_1')
   void _readAsText_1(blob, encoding) native "FileReader_readAsText_1_Callback";
 
+  @DocsEditable
   @DomName('FileReader.readAsText_2')
   void _readAsText_2(blob) native "FileReader_readAsText_2_Callback";
 
+  @DocsEditable
   @DomName('FileReader.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
 
@@ -10374,27 +11240,27 @@ class FileReader extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class FileReaderEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   FileReaderEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadEnd => this['loadend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10404,20 +11270,24 @@ class FileReaderEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FileReaderSync')
 class FileReaderSync extends NativeFieldWrapperClass1 {
   FileReaderSync.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory FileReaderSync() => FileReaderSync._create();
   static FileReaderSync _create() native "FileReaderSync_constructor_Callback";
 
+  @DocsEditable
   @DomName('FileReaderSync.readAsArrayBuffer')
   ArrayBuffer readAsArrayBuffer(Blob blob) native "FileReaderSync_readAsArrayBuffer_Callback";
 
+  @DocsEditable
   @DomName('FileReaderSync.readAsBinaryString')
   String readAsBinaryString(Blob blob) native "FileReaderSync_readAsBinaryString_Callback";
 
+  @DocsEditable
   @DomName('FileReaderSync.readAsDataURL')
   String readAsDataUrl(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
 
@@ -10428,9 +11298,11 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
     return _readAsText_2(blob);
   }
 
+  @DocsEditable
   @DomName('FileReaderSync.readAsText_1')
   String _readAsText_1(blob, encoding) native "FileReaderSync_readAsText_1_Callback";
 
+  @DocsEditable
   @DomName('FileReaderSync.readAsText_2')
   String _readAsText_2(blob) native "FileReaderSync_readAsText_2_Callback";
 
@@ -10442,6 +11314,7 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMFileSystem')
 class FileSystem extends NativeFieldWrapperClass1 {
   FileSystem.internal();
@@ -10449,9 +11322,11 @@ class FileSystem extends NativeFieldWrapperClass1 {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('DOMFileSystem.name')
   String get name native "DOMFileSystem_name_Getter";
 
+  @DocsEditable
   @DomName('DOMFileSystem.root')
   DirectoryEntry get root native "DOMFileSystem_root_Getter";
 
@@ -10471,13 +11346,16 @@ typedef void FileSystemCallback(FileSystem fileSystem);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('DOMFileSystemSync')
 class FileSystemSync extends NativeFieldWrapperClass1 {
   FileSystemSync.internal();
 
+  @DocsEditable
   @DomName('DOMFileSystemSync.name')
   String get name native "DOMFileSystemSync_name_Getter";
 
+  @DocsEditable
   @DomName('DOMFileSystemSync.root')
   DirectoryEntrySync get root native "DOMFileSystemSync_root_Getter";
 
@@ -10489,6 +11367,7 @@ class FileSystemSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FileWriter')
 class FileWriter extends EventTarget {
   FileWriter.internal() : super.internal();
@@ -10505,7 +11384,7 @@ class FileWriter extends EventTarget {
 
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   FileWriterEvents get on =>
     new FileWriterEvents(this);
@@ -10516,36 +11395,47 @@ class FileWriter extends EventTarget {
 
   static const int WRITING = 1;
 
+  @DocsEditable
   @DomName('FileWriter.error')
   FileError get error native "FileWriter_error_Getter";
 
+  @DocsEditable
   @DomName('FileWriter.length')
   int get length native "FileWriter_length_Getter";
 
+  @DocsEditable
   @DomName('FileWriter.position')
   int get position native "FileWriter_position_Getter";
 
+  @DocsEditable
   @DomName('FileWriter.readyState')
   int get readyState native "FileWriter_readyState_Getter";
 
+  @DocsEditable
   @DomName('FileWriter.abort')
   void abort() native "FileWriter_abort_Callback";
 
+  @DocsEditable
   @DomName('FileWriter.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('FileWriter.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "FileWriter_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('FileWriter.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('FileWriter.seek')
   void seek(int position) native "FileWriter_seek_Callback";
 
+  @DocsEditable
   @DomName('FileWriter.truncate')
   void truncate(int size) native "FileWriter_truncate_Callback";
 
+  @DocsEditable
   @DomName('FileWriter.write')
   void write(Blob data) native "FileWriter_write_Callback";
 
@@ -10563,27 +11453,27 @@ class FileWriter extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class FileWriterEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   FileWriterEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get write => this['write'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get writeEnd => this['writeend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get writeStart => this['writestart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10601,22 +11491,28 @@ typedef void FileWriterCallback(FileWriter fileWriter);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FileWriterSync')
 class FileWriterSync extends NativeFieldWrapperClass1 {
   FileWriterSync.internal();
 
+  @DocsEditable
   @DomName('FileWriterSync.length')
   int get length native "FileWriterSync_length_Getter";
 
+  @DocsEditable
   @DomName('FileWriterSync.position')
   int get position native "FileWriterSync_position_Getter";
 
+  @DocsEditable
   @DomName('FileWriterSync.seek')
   void seek(int position) native "FileWriterSync_seek_Callback";
 
+  @DocsEditable
   @DomName('FileWriterSync.truncate')
   void truncate(int size) native "FileWriterSync_truncate_Callback";
 
+  @DocsEditable
   @DomName('FileWriterSync.write')
   void write(Blob data) native "FileWriterSync_write_Callback";
 
@@ -10628,6 +11524,7 @@ class FileWriterSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Float32Array')
 class Float32Array extends ArrayBufferView implements List<num> {
   Float32Array.internal() : super.internal();
@@ -10643,12 +11540,15 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   static const int BYTES_PER_ELEMENT = 4;
 
+  @DocsEditable
   @DomName('Float32Array.length')
   int get length native "Float32Array_length_Getter";
 
+  @DocsEditable
   @DomName('Float32Array.numericIndexGetter')
   num operator[](int index) native "Float32Array_numericIndexGetter_Callback";
 
+  @DocsEditable
   @DomName('Float32Array.numericIndexSetter')
   void operator[]=(int index, num value) native "Float32Array_numericIndexSetter_Callback";
   // -- start List<num> mixins.
@@ -10794,6 +11694,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   // -- end List<num> mixins.
 
+  @DocsEditable
   @DomName('Float32Array.setElements')
   void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
 
@@ -10804,9 +11705,11 @@ class Float32Array extends ArrayBufferView implements List<num> {
     return _subarray_2(start);
   }
 
+  @DocsEditable
   @DomName('Float32Array.subarray_1')
   Float32Array _subarray_1(start, end) native "Float32Array_subarray_1_Callback";
 
+  @DocsEditable
   @DomName('Float32Array.subarray_2')
   Float32Array _subarray_2(start) native "Float32Array_subarray_2_Callback";
 
@@ -10818,6 +11721,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Float64Array')
 class Float64Array extends ArrayBufferView implements List<num> {
   Float64Array.internal() : super.internal();
@@ -10833,12 +11737,15 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   static const int BYTES_PER_ELEMENT = 8;
 
+  @DocsEditable
   @DomName('Float64Array.length')
   int get length native "Float64Array_length_Getter";
 
+  @DocsEditable
   @DomName('Float64Array.numericIndexGetter')
   num operator[](int index) native "Float64Array_numericIndexGetter_Callback";
 
+  @DocsEditable
   @DomName('Float64Array.numericIndexSetter')
   void operator[]=(int index, num value) native "Float64Array_numericIndexSetter_Callback";
   // -- start List<num> mixins.
@@ -10984,6 +11891,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   // -- end List<num> mixins.
 
+  @DocsEditable
   @DomName('Float64Array.setElements')
   void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
 
@@ -10994,9 +11902,11 @@ class Float64Array extends ArrayBufferView implements List<num> {
     return _subarray_2(start);
   }
 
+  @DocsEditable
   @DomName('Float64Array.subarray_1')
   Float64Array _subarray_1(start, end) native "Float64Array_subarray_1_Callback";
 
+  @DocsEditable
   @DomName('Float64Array.subarray_2')
   Float64Array _subarray_2(start) native "Float64Array_subarray_2_Callback";
 
@@ -11008,25 +11918,32 @@ class Float64Array extends ArrayBufferView implements List<num> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLFontElement')
 class FontElement extends _Element_Merged {
   FontElement.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLFontElement.color')
   String get color native "HTMLFontElement_color_Getter";
 
+  @DocsEditable
   @DomName('HTMLFontElement.color')
   void set color(String value) native "HTMLFontElement_color_Setter";
 
+  @DocsEditable
   @DomName('HTMLFontElement.face')
   String get face native "HTMLFontElement_face_Getter";
 
+  @DocsEditable
   @DomName('HTMLFontElement.face')
   void set face(String value) native "HTMLFontElement_face_Setter";
 
+  @DocsEditable
   @DomName('HTMLFontElement.size')
   String get size native "HTMLFontElement_size_Getter";
 
+  @DocsEditable
   @DomName('HTMLFontElement.size')
   void set size(String value) native "HTMLFontElement_size_Setter";
 
@@ -11038,11 +11955,12 @@ class FontElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('FormData')
 class FormData extends NativeFieldWrapperClass1 {
   FormData.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory FormData([FormElement form]) {
     if (!?form) {
       return FormData._create();
@@ -11051,6 +11969,7 @@ class FormData extends NativeFieldWrapperClass1 {
   }
   static FormData _create([FormElement form]) native "DOMFormData_constructor_Callback";
 
+  @DocsEditable
   @DomName('DOMFormData.append')
   void append(String name, value, [String filename]) native "DOMFormData_append_Callback";
 
@@ -11062,76 +11981,99 @@ class FormData extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLFormElement')
 class FormElement extends _Element_Merged {
   FormElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory FormElement() => document.$dom_createElement("form");
 
+  @DocsEditable
   @DomName('HTMLFormElement.acceptCharset')
   String get acceptCharset native "HTMLFormElement_acceptCharset_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.acceptCharset')
   void set acceptCharset(String value) native "HTMLFormElement_acceptCharset_Setter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.action')
   String get action native "HTMLFormElement_action_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.action')
   void set action(String value) native "HTMLFormElement_action_Setter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.autocomplete')
   String get autocomplete native "HTMLFormElement_autocomplete_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.autocomplete')
   void set autocomplete(String value) native "HTMLFormElement_autocomplete_Setter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.encoding')
   String get encoding native "HTMLFormElement_encoding_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.encoding')
   void set encoding(String value) native "HTMLFormElement_encoding_Setter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.enctype')
   String get enctype native "HTMLFormElement_enctype_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.enctype')
   void set enctype(String value) native "HTMLFormElement_enctype_Setter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.length')
   int get length native "HTMLFormElement_length_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.method')
   String get method native "HTMLFormElement_method_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.method')
   void set method(String value) native "HTMLFormElement_method_Setter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.name')
   String get name native "HTMLFormElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.name')
   void set name(String value) native "HTMLFormElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.noValidate')
   bool get noValidate native "HTMLFormElement_noValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.noValidate')
   void set noValidate(bool value) native "HTMLFormElement_noValidate_Setter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.target')
   String get target native "HTMLFormElement_target_Getter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.target')
   void set target(String value) native "HTMLFormElement_target_Setter";
 
+  @DocsEditable
   @DomName('HTMLFormElement.checkValidity')
   bool checkValidity() native "HTMLFormElement_checkValidity_Callback";
 
+  @DocsEditable
   @DomName('HTMLFormElement.reset')
   void reset() native "HTMLFormElement_reset_Callback";
 
+  @DocsEditable
   @DomName('HTMLFormElement.submit')
   void submit() native "HTMLFormElement_submit_Callback";
 
@@ -11143,6 +12085,7 @@ class FormElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLFrameElement')
 class FrameElement extends _Element_Merged {
   FrameElement.internal() : super.internal();
@@ -11155,6 +12098,7 @@ class FrameElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLFrameSetElement')
 class FrameSetElement extends _Element_Merged {
   FrameSetElement.internal() : super.internal();
@@ -11185,7 +12129,7 @@ class FrameSetElement extends _Element_Merged {
 
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   FrameSetElementEvents get on =>
     new FrameSetElementEvents(this);
@@ -11218,48 +12162,48 @@ class FrameSetElement extends _Element_Merged {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class FrameSetElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeUnload => this['beforeunload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get hashChange => this['hashchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get offline => this['offline'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get online => this['online'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get popState => this['popstate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get resize => this['resize'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get storage => this['storage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11269,22 +12213,28 @@ class FrameSetElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Gamepad')
 class Gamepad extends NativeFieldWrapperClass1 {
   Gamepad.internal();
 
+  @DocsEditable
   @DomName('Gamepad.axes')
   List<num> get axes native "Gamepad_axes_Getter";
 
+  @DocsEditable
   @DomName('Gamepad.buttons')
   List<num> get buttons native "Gamepad_buttons_Getter";
 
+  @DocsEditable
   @DomName('Gamepad.id')
   String get id native "Gamepad_id_Getter";
 
+  @DocsEditable
   @DomName('Gamepad.index')
   int get index native "Gamepad_index_Getter";
 
+  @DocsEditable
   @DomName('Gamepad.timestamp')
   int get timestamp native "Gamepad_timestamp_Getter";
 
@@ -11296,16 +12246,20 @@ class Gamepad extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Geolocation')
 class Geolocation extends NativeFieldWrapperClass1 {
   Geolocation.internal();
 
+  @DocsEditable
   @DomName('Geolocation.clearWatch')
   void clearWatch(int watchId) native "Geolocation_clearWatch_Callback";
 
+  @DocsEditable
   @DomName('Geolocation.getCurrentPosition')
   void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native "Geolocation_getCurrentPosition_Callback";
 
+  @DocsEditable
   @DomName('Geolocation.watchPosition')
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native "Geolocation_watchPosition_Callback";
 
@@ -11317,13 +12271,16 @@ class Geolocation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Geoposition')
 class Geoposition extends NativeFieldWrapperClass1 {
   Geoposition.internal();
 
+  @DocsEditable
   @DomName('Geoposition.coords')
   Coordinates get coords native "Geoposition_coords_Getter";
 
+  @DocsEditable
   @DomName('Geoposition.timestamp')
   int get timestamp native "Geoposition_timestamp_Getter";
 
@@ -11335,11 +12292,12 @@ class Geoposition extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLHRElement')
 class HRElement extends _Element_Merged {
   HRElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory HRElement() => document.$dom_createElement("hr");
 
 }
@@ -11350,16 +12308,20 @@ class HRElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HashChangeEvent')
 class HashChangeEvent extends Event {
   HashChangeEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HashChangeEvent.newURL')
   String get newUrl native "HashChangeEvent_newURL_Getter";
 
+  @DocsEditable
   @DomName('HashChangeEvent.oldURL')
   String get oldUrl native "HashChangeEvent_oldURL_Getter";
 
+  @DocsEditable
   @DomName('HashChangeEvent.initHashChangeEvent')
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
 
@@ -11371,11 +12333,12 @@ class HashChangeEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLHeadElement')
 class HeadElement extends _Element_Merged {
   HeadElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory HeadElement() => document.$dom_createElement("head");
 
 }
@@ -11386,26 +12349,27 @@ class HeadElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLHeadingElement')
 class HeadingElement extends _Element_Merged {
   HeadingElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory HeadingElement.h1() => document.$dom_createElement("h1");
 
-  /// @docsEditable true
+  @DocsEditable
   factory HeadingElement.h2() => document.$dom_createElement("h2");
 
-  /// @docsEditable true
+  @DocsEditable
   factory HeadingElement.h3() => document.$dom_createElement("h3");
 
-  /// @docsEditable true
+  @DocsEditable
   factory HeadingElement.h4() => document.$dom_createElement("h4");
 
-  /// @docsEditable true
+  @DocsEditable
   factory HeadingElement.h5() => document.$dom_createElement("h5");
 
-  /// @docsEditable true
+  @DocsEditable
   factory HeadingElement.h6() => document.$dom_createElement("h6");
 
 }
@@ -11414,7 +12378,8 @@ class HeadingElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @docsEditable true
+
+@DocsEditable
 @DomName('History')
 class History extends NativeFieldWrapperClass1 implements HistoryBase {
 
@@ -11430,21 +12395,27 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
   static bool get supportsState => true;
   History.internal();
 
+  @DocsEditable
   @DomName('History.length')
   int get length native "History_length_Getter";
 
+  @DocsEditable
   @DomName('History.state')
   dynamic get state native "History_state_Getter";
 
+  @DocsEditable
   @DomName('History.back')
   void back() native "History_back_Callback";
 
+  @DocsEditable
   @DomName('History.forward')
   void forward() native "History_forward_Callback";
 
+  @DocsEditable
   @DomName('History.go')
   void go(int distance) native "History_go_Callback";
 
+  @DocsEditable
   @DomName('History.pushState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -11452,6 +12423,7 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
 
+  @DocsEditable
   @DomName('History.replaceState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -11466,10 +12438,12 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLAllCollection')
 class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   HtmlAllCollection.internal();
 
+  @DocsEditable
   @DomName('HTMLAllCollection.length')
   int get length native "HTMLAllCollection_length_Getter";
 
@@ -11621,12 +12595,15 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   // -- end List<Node> mixins.
 
+  @DocsEditable
   @DomName('HTMLAllCollection.item')
   Node item(int index) native "HTMLAllCollection_item_Callback";
 
+  @DocsEditable
   @DomName('HTMLAllCollection.namedItem')
   Node namedItem(String name) native "HTMLAllCollection_namedItem_Callback";
 
+  @DocsEditable
   @DomName('HTMLAllCollection.tags')
   List<Node> tags(String name) native "HTMLAllCollection_tags_Callback";
 
@@ -11638,10 +12615,12 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLCollection')
 class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   HtmlCollection.internal();
 
+  @DocsEditable
   @DomName('HTMLCollection.length')
   int get length native "HTMLCollection_length_Getter";
 
@@ -11793,9 +12772,11 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   // -- end List<Node> mixins.
 
+  @DocsEditable
   @DomName('HTMLCollection.item')
   Node item(int index) native "HTMLCollection_item_Callback";
 
+  @DocsEditable
   @DomName('HTMLCollection.namedItem')
   Node namedItem(String name) native "HTMLCollection_namedItem_Callback";
 
@@ -11807,10 +12788,12 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLDocument')
 class HtmlDocument extends Document {
   HtmlDocument.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLDocument.activeElement')
   Element get activeElement native "HTMLDocument_activeElement_Getter";
 
@@ -11941,11 +12924,12 @@ class HtmlDocument extends Document {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLHtmlElement')
 class HtmlElement extends _Element_Merged {
   HtmlElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory HtmlElement() => document.$dom_createElement("html");
 
 }
@@ -11956,10 +12940,12 @@ class HtmlElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLFormControlsCollection')
 class HtmlFormControlsCollection extends HtmlCollection {
   HtmlFormControlsCollection.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLFormControlsCollection.namedItem')
   Node namedItem(String name) native "HTMLFormControlsCollection_namedItem_Callback";
 
@@ -11971,10 +12957,12 @@ class HtmlFormControlsCollection extends HtmlCollection {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLOptionsCollection')
 class HtmlOptionsCollection extends HtmlCollection {
   HtmlOptionsCollection.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLOptionsCollection.numericIndexSetter')
   void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
 
@@ -12058,11 +13046,11 @@ class HttpRequest extends EventTarget {
 
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
-  /// @docsEditable true
+  @DocsEditable
   factory HttpRequest() => HttpRequest._create();
   static HttpRequest _create() native "XMLHttpRequest_constructor_Callback";
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
@@ -12077,66 +13065,87 @@ class HttpRequest extends EventTarget {
 
   static const int UNSENT = 0;
 
+  @DocsEditable
   @DomName('XMLHttpRequest.readyState')
   int get readyState native "XMLHttpRequest_readyState_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.response')
   Object get response native "XMLHttpRequest_response_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.responseText')
   String get responseText native "XMLHttpRequest_responseText_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.responseType')
   String get responseType native "XMLHttpRequest_responseType_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.responseType')
   void set responseType(String value) native "XMLHttpRequest_responseType_Setter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.responseXML')
   Document get responseXml native "XMLHttpRequest_responseXML_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.status')
   int get status native "XMLHttpRequest_status_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.statusText')
   String get statusText native "XMLHttpRequest_statusText_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.upload')
   HttpRequestUpload get upload native "XMLHttpRequest_upload_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.withCredentials')
   bool get withCredentials native "XMLHttpRequest_withCredentials_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.withCredentials')
   void set withCredentials(bool value) native "XMLHttpRequest_withCredentials_Setter";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.abort')
   void abort() native "XMLHttpRequest_abort_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "XMLHttpRequest_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.getAllResponseHeaders')
   String getAllResponseHeaders() native "XMLHttpRequest_getAllResponseHeaders_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.getResponseHeader')
   String getResponseHeader(String header) native "XMLHttpRequest_getResponseHeader_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.open')
   void open(String method, String url, [bool async, String user, String password]) native "XMLHttpRequest_open_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.overrideMimeType')
   void overrideMimeType(String override) native "XMLHttpRequest_overrideMimeType_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.send')
   void send([data]) native "XMLHttpRequest_send_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequest.setRequestHeader')
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
@@ -12156,30 +13165,30 @@ class HttpRequest extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class HttpRequestEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   HttpRequestEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadEnd => this['loadend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get readyStateChange => this['readystatechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12189,6 +13198,7 @@ class HttpRequestEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XMLHttpRequestException')
 class HttpRequestException extends NativeFieldWrapperClass1 {
   HttpRequestException.internal();
@@ -12197,15 +13207,19 @@ class HttpRequestException extends NativeFieldWrapperClass1 {
 
   static const int NETWORK_ERR = 101;
 
+  @DocsEditable
   @DomName('XMLHttpRequestException.code')
   int get code native "XMLHttpRequestException_code_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequestException.message')
   String get message native "XMLHttpRequestException_message_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequestException.name')
   String get name native "XMLHttpRequestException_name_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequestException.toString')
   String toString() native "XMLHttpRequestException_toString_Callback";
 
@@ -12217,13 +13231,16 @@ class HttpRequestException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XMLHttpRequestProgressEvent')
 class HttpRequestProgressEvent extends ProgressEvent {
   HttpRequestProgressEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('XMLHttpRequestProgressEvent.position')
   int get position native "XMLHttpRequestProgressEvent_position_Getter";
 
+  @DocsEditable
   @DomName('XMLHttpRequestProgressEvent.totalSize')
   int get totalSize native "XMLHttpRequestProgressEvent_totalSize_Getter";
 
@@ -12235,6 +13252,7 @@ class HttpRequestProgressEvent extends ProgressEvent {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XMLHttpRequestUpload')
 class HttpRequestUpload extends EventTarget {
   HttpRequestUpload.internal() : super.internal();
@@ -12251,17 +13269,20 @@ class HttpRequestUpload extends EventTarget {
 
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
 
+  @DocsEditable
   @DomName('XMLHttpRequestUpload.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequestUpload.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "XMLHttpRequestUpload_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('XMLHttpRequestUpload.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_removeEventListener_Callback";
 
@@ -12279,27 +13300,27 @@ class HttpRequestUpload extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class HttpRequestUploadEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   HttpRequestUploadEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadEnd => this['loadend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12309,49 +13330,63 @@ class HttpRequestUploadEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLIFrameElement')
 class IFrameElement extends _Element_Merged {
   IFrameElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory IFrameElement() => document.$dom_createElement("iframe");
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.contentWindow')
   WindowBase get contentWindow native "HTMLIFrameElement_contentWindow_Getter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.height')
   String get height native "HTMLIFrameElement_height_Getter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.height')
   void set height(String value) native "HTMLIFrameElement_height_Setter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.name')
   String get name native "HTMLIFrameElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.name')
   void set name(String value) native "HTMLIFrameElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.sandbox')
   String get sandbox native "HTMLIFrameElement_sandbox_Getter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.sandbox')
   void set sandbox(String value) native "HTMLIFrameElement_sandbox_Setter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.src')
   String get src native "HTMLIFrameElement_src_Getter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.src')
   void set src(String value) native "HTMLIFrameElement_src_Setter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.srcdoc')
   String get srcdoc native "HTMLIFrameElement_srcdoc_Getter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.srcdoc')
   void set srcdoc(String value) native "HTMLIFrameElement_srcdoc_Setter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.width')
   String get width native "HTMLIFrameElement_width_Getter";
 
+  @DocsEditable
   @DomName('HTMLIFrameElement.width')
   void set width(String value) native "HTMLIFrameElement_width_Setter";
 
@@ -12363,16 +13398,20 @@ class IFrameElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ImageData')
 class ImageData extends NativeFieldWrapperClass1 {
   ImageData.internal();
 
+  @DocsEditable
   @DomName('ImageData.data')
   Uint8ClampedArray get data native "ImageData_data_Getter";
 
+  @DocsEditable
   @DomName('ImageData.height')
   int get height native "ImageData_height_Getter";
 
+  @DocsEditable
   @DomName('ImageData.width')
   int get width native "ImageData_width_Getter";
 
@@ -12384,11 +13423,12 @@ class ImageData extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLImageElement')
 class ImageElement extends _Element_Merged {
   ImageElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
     if (src != null) e.src = src;
@@ -12397,72 +13437,95 @@ class ImageElement extends _Element_Merged {
     return e;
   }
 
+  @DocsEditable
   @DomName('HTMLImageElement.alt')
   String get alt native "HTMLImageElement_alt_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.alt')
   void set alt(String value) native "HTMLImageElement_alt_Setter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.border')
   String get border native "HTMLImageElement_border_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.border')
   void set border(String value) native "HTMLImageElement_border_Setter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.complete')
   bool get complete native "HTMLImageElement_complete_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.crossOrigin')
   String get crossOrigin native "HTMLImageElement_crossOrigin_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.crossOrigin')
   void set crossOrigin(String value) native "HTMLImageElement_crossOrigin_Setter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.height')
   int get height native "HTMLImageElement_height_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.height')
   void set height(int value) native "HTMLImageElement_height_Setter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.isMap')
   bool get isMap native "HTMLImageElement_isMap_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.isMap')
   void set isMap(bool value) native "HTMLImageElement_isMap_Setter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.lowsrc')
   String get lowsrc native "HTMLImageElement_lowsrc_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.lowsrc')
   void set lowsrc(String value) native "HTMLImageElement_lowsrc_Setter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.naturalHeight')
   int get naturalHeight native "HTMLImageElement_naturalHeight_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.naturalWidth')
   int get naturalWidth native "HTMLImageElement_naturalWidth_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.src')
   String get src native "HTMLImageElement_src_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.src')
   void set src(String value) native "HTMLImageElement_src_Setter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.useMap')
   String get useMap native "HTMLImageElement_useMap_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.useMap')
   void set useMap(String value) native "HTMLImageElement_useMap_Setter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.width')
   int get width native "HTMLImageElement_width_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.width')
   void set width(int value) native "HTMLImageElement_width_Setter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.x')
   int get x native "HTMLImageElement_x_Getter";
 
+  @DocsEditable
   @DomName('HTMLImageElement.y')
   int get y native "HTMLImageElement_y_Getter";
 
@@ -12472,6 +13535,7 @@ class ImageElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('HTMLInputElement')
 class InputElement extends _Element_Merged implements
     HiddenInputElement,
@@ -12498,7 +13562,7 @@ class InputElement extends _Element_Merged implements
     ButtonInputElement
      {
 
-  /// @docsEditable true
+  @DocsEditable
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) {
@@ -12513,290 +13577,384 @@ class InputElement extends _Element_Merged implements
 
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   InputElementEvents get on =>
     new InputElementEvents(this);
 
+  @DocsEditable
   @DomName('HTMLInputElement.accept')
   String get accept native "HTMLInputElement_accept_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.accept')
   void set accept(String value) native "HTMLInputElement_accept_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.alt')
   String get alt native "HTMLInputElement_alt_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.alt')
   void set alt(String value) native "HTMLInputElement_alt_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.autocomplete')
   String get autocomplete native "HTMLInputElement_autocomplete_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.autocomplete')
   void set autocomplete(String value) native "HTMLInputElement_autocomplete_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.autofocus')
   bool get autofocus native "HTMLInputElement_autofocus_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.autofocus')
   void set autofocus(bool value) native "HTMLInputElement_autofocus_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.checked')
   bool get checked native "HTMLInputElement_checked_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.checked')
   void set checked(bool value) native "HTMLInputElement_checked_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.defaultChecked')
   bool get defaultChecked native "HTMLInputElement_defaultChecked_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.defaultChecked')
   void set defaultChecked(bool value) native "HTMLInputElement_defaultChecked_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.defaultValue')
   String get defaultValue native "HTMLInputElement_defaultValue_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.defaultValue')
   void set defaultValue(String value) native "HTMLInputElement_defaultValue_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.dirName')
   String get dirName native "HTMLInputElement_dirName_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.dirName')
   void set dirName(String value) native "HTMLInputElement_dirName_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.disabled')
   bool get disabled native "HTMLInputElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.disabled')
   void set disabled(bool value) native "HTMLInputElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.files')
   List<File> get files native "HTMLInputElement_files_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.files')
   void set files(List<File> value) native "HTMLInputElement_files_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.form')
   FormElement get form native "HTMLInputElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formAction')
   String get formAction native "HTMLInputElement_formAction_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formAction')
   void set formAction(String value) native "HTMLInputElement_formAction_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formEnctype')
   String get formEnctype native "HTMLInputElement_formEnctype_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formEnctype')
   void set formEnctype(String value) native "HTMLInputElement_formEnctype_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formMethod')
   String get formMethod native "HTMLInputElement_formMethod_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formMethod')
   void set formMethod(String value) native "HTMLInputElement_formMethod_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formNoValidate')
   bool get formNoValidate native "HTMLInputElement_formNoValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formNoValidate')
   void set formNoValidate(bool value) native "HTMLInputElement_formNoValidate_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formTarget')
   String get formTarget native "HTMLInputElement_formTarget_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.formTarget')
   void set formTarget(String value) native "HTMLInputElement_formTarget_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.height')
   int get height native "HTMLInputElement_height_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.height')
   void set height(int value) native "HTMLInputElement_height_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.incremental')
   bool get incremental native "HTMLInputElement_incremental_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.incremental')
   void set incremental(bool value) native "HTMLInputElement_incremental_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.indeterminate')
   bool get indeterminate native "HTMLInputElement_indeterminate_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.indeterminate')
   void set indeterminate(bool value) native "HTMLInputElement_indeterminate_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.labels')
   List<Node> get labels native "HTMLInputElement_labels_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.list')
   Element get list native "HTMLInputElement_list_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.max')
   String get max native "HTMLInputElement_max_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.max')
   void set max(String value) native "HTMLInputElement_max_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.maxLength')
   int get maxLength native "HTMLInputElement_maxLength_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.maxLength')
   void set maxLength(int value) native "HTMLInputElement_maxLength_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.min')
   String get min native "HTMLInputElement_min_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.min')
   void set min(String value) native "HTMLInputElement_min_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.multiple')
   bool get multiple native "HTMLInputElement_multiple_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.multiple')
   void set multiple(bool value) native "HTMLInputElement_multiple_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.name')
   String get name native "HTMLInputElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.name')
   void set name(String value) native "HTMLInputElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.pattern')
   String get pattern native "HTMLInputElement_pattern_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.pattern')
   void set pattern(String value) native "HTMLInputElement_pattern_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.placeholder')
   String get placeholder native "HTMLInputElement_placeholder_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.placeholder')
   void set placeholder(String value) native "HTMLInputElement_placeholder_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.readOnly')
   bool get readOnly native "HTMLInputElement_readOnly_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.readOnly')
   void set readOnly(bool value) native "HTMLInputElement_readOnly_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.required')
   bool get required native "HTMLInputElement_required_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.required')
   void set required(bool value) native "HTMLInputElement_required_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.selectionDirection')
   String get selectionDirection native "HTMLInputElement_selectionDirection_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.selectionDirection')
   void set selectionDirection(String value) native "HTMLInputElement_selectionDirection_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.selectionEnd')
   int get selectionEnd native "HTMLInputElement_selectionEnd_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.selectionEnd')
   void set selectionEnd(int value) native "HTMLInputElement_selectionEnd_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.selectionStart')
   int get selectionStart native "HTMLInputElement_selectionStart_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.selectionStart')
   void set selectionStart(int value) native "HTMLInputElement_selectionStart_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.size')
   int get size native "HTMLInputElement_size_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.size')
   void set size(int value) native "HTMLInputElement_size_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.src')
   String get src native "HTMLInputElement_src_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.src')
   void set src(String value) native "HTMLInputElement_src_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.step')
   String get step native "HTMLInputElement_step_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.step')
   void set step(String value) native "HTMLInputElement_step_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.type')
   String get type native "HTMLInputElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.type')
   void set type(String value) native "HTMLInputElement_type_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.useMap')
   String get useMap native "HTMLInputElement_useMap_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.useMap')
   void set useMap(String value) native "HTMLInputElement_useMap_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.validationMessage')
   String get validationMessage native "HTMLInputElement_validationMessage_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.validity')
   ValidityState get validity native "HTMLInputElement_validity_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.value')
   String get value native "HTMLInputElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.value')
   void set value(String value) native "HTMLInputElement_value_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.valueAsDate')
   Date get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.valueAsDate')
   void set valueAsDate(Date value) native "HTMLInputElement_valueAsDate_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.valueAsNumber')
   num get valueAsNumber native "HTMLInputElement_valueAsNumber_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.valueAsNumber')
   void set valueAsNumber(num value) native "HTMLInputElement_valueAsNumber_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.webkitEntries')
   List<Entry> get webkitEntries native "HTMLInputElement_webkitEntries_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.webkitGrammar')
   bool get webkitGrammar native "HTMLInputElement_webkitGrammar_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.webkitGrammar')
   void set webkitGrammar(bool value) native "HTMLInputElement_webkitGrammar_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.webkitSpeech')
   bool get webkitSpeech native "HTMLInputElement_webkitSpeech_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.webkitSpeech')
   void set webkitSpeech(bool value) native "HTMLInputElement_webkitSpeech_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.webkitdirectory')
   bool get webkitdirectory native "HTMLInputElement_webkitdirectory_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.webkitdirectory')
   void set webkitdirectory(bool value) native "HTMLInputElement_webkitdirectory_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.width')
   int get width native "HTMLInputElement_width_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.width')
   void set width(int value) native "HTMLInputElement_width_Setter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.willValidate')
   bool get willValidate native "HTMLInputElement_willValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLInputElement.checkValidity')
   bool checkValidity() native "HTMLInputElement_checkValidity_Callback";
 
+  @DocsEditable
   @DomName('HTMLInputElement.select')
   void select() native "HTMLInputElement_select_Callback";
 
+  @DocsEditable
   @DomName('HTMLInputElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLInputElement_setCustomValidity_Callback";
 
@@ -12812,12 +13970,15 @@ class InputElement extends _Element_Merged implements
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('HTMLInputElement.setRangeText_1')
   void _setRangeText_1(replacement) native "HTMLInputElement_setRangeText_1_Callback";
 
+  @DocsEditable
   @DomName('HTMLInputElement.setRangeText_2')
   void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLInputElement_setRangeText_2_Callback";
 
+  @DocsEditable
   @DomName('HTMLInputElement.setSelectionRange')
   void setSelectionRange(int start, int end, [String direction]) native "HTMLInputElement_setSelectionRange_Callback";
 
@@ -12829,9 +13990,11 @@ class InputElement extends _Element_Merged implements
     _stepDown_2();
   }
 
+  @DocsEditable
   @DomName('HTMLInputElement.stepDown_1')
   void _stepDown_1(n) native "HTMLInputElement_stepDown_1_Callback";
 
+  @DocsEditable
   @DomName('HTMLInputElement.stepDown_2')
   void _stepDown_2() native "HTMLInputElement_stepDown_2_Callback";
 
@@ -12843,9 +14006,11 @@ class InputElement extends _Element_Merged implements
     _stepUp_2();
   }
 
+  @DocsEditable
   @DomName('HTMLInputElement.stepUp_1')
   void _stepUp_1(n) native "HTMLInputElement_stepUp_1_Callback";
 
+  @DocsEditable
   @DomName('HTMLInputElement.stepUp_2')
   void _stepUp_2() native "HTMLInputElement_stepUp_2_Callback";
 
@@ -13435,12 +14600,12 @@ abstract class ButtonInputElement implements InputElementBase {
 }
 
 
-/// @docsEditable true
+@DocsEditable
 class InputElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   InputElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get speechChange => this['webkitSpeechChange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13450,6 +14615,7 @@ class InputElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Int16Array')
 class Int16Array extends ArrayBufferView implements List<int> {
   Int16Array.internal() : super.internal();
@@ -13465,12 +14631,15 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 2;
 
+  @DocsEditable
   @DomName('Int16Array.length')
   int get length native "Int16Array_length_Getter";
 
+  @DocsEditable
   @DomName('Int16Array.numericIndexGetter')
   int operator[](int index) native "Int16Array_numericIndexGetter_Callback";
 
+  @DocsEditable
   @DomName('Int16Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Int16Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
@@ -13616,6 +14785,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
+  @DocsEditable
   @DomName('Int16Array.setElements')
   void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
 
@@ -13626,9 +14796,11 @@ class Int16Array extends ArrayBufferView implements List<int> {
     return _subarray_2(start);
   }
 
+  @DocsEditable
   @DomName('Int16Array.subarray_1')
   Int16Array _subarray_1(start, end) native "Int16Array_subarray_1_Callback";
 
+  @DocsEditable
   @DomName('Int16Array.subarray_2')
   Int16Array _subarray_2(start) native "Int16Array_subarray_2_Callback";
 
@@ -13640,6 +14812,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Int32Array')
 class Int32Array extends ArrayBufferView implements List<int> {
   Int32Array.internal() : super.internal();
@@ -13655,12 +14828,15 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 4;
 
+  @DocsEditable
   @DomName('Int32Array.length')
   int get length native "Int32Array_length_Getter";
 
+  @DocsEditable
   @DomName('Int32Array.numericIndexGetter')
   int operator[](int index) native "Int32Array_numericIndexGetter_Callback";
 
+  @DocsEditable
   @DomName('Int32Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Int32Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
@@ -13806,6 +14982,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
+  @DocsEditable
   @DomName('Int32Array.setElements')
   void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
 
@@ -13816,9 +14993,11 @@ class Int32Array extends ArrayBufferView implements List<int> {
     return _subarray_2(start);
   }
 
+  @DocsEditable
   @DomName('Int32Array.subarray_1')
   Int32Array _subarray_1(start, end) native "Int32Array_subarray_1_Callback";
 
+  @DocsEditable
   @DomName('Int32Array.subarray_2')
   Int32Array _subarray_2(start) native "Int32Array_subarray_2_Callback";
 
@@ -13830,6 +15009,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Int8Array')
 class Int8Array extends ArrayBufferView implements List<int> {
   Int8Array.internal() : super.internal();
@@ -13845,12 +15025,15 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 1;
 
+  @DocsEditable
   @DomName('Int8Array.length')
   int get length native "Int8Array_length_Getter";
 
+  @DocsEditable
   @DomName('Int8Array.numericIndexGetter')
   int operator[](int index) native "Int8Array_numericIndexGetter_Callback";
 
+  @DocsEditable
   @DomName('Int8Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Int8Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
@@ -13996,6 +15179,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
+  @DocsEditable
   @DomName('Int8Array.setElements')
   void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
 
@@ -14006,9 +15190,11 @@ class Int8Array extends ArrayBufferView implements List<int> {
     return _subarray_2(start);
   }
 
+  @DocsEditable
   @DomName('Int8Array.subarray_1')
   Int8Array _subarray_1(start, end) native "Int8Array_subarray_1_Callback";
 
+  @DocsEditable
   @DomName('Int8Array.subarray_2')
   Int8Array _subarray_2(start) native "Int8Array_subarray_2_Callback";
 
@@ -14020,6 +15206,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('JavaScriptCallFrame')
 class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
   JavaScriptCallFrame.internal();
@@ -14034,36 +15221,47 @@ class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
 
   static const int WITH_SCOPE = 2;
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.caller')
   JavaScriptCallFrame get caller native "JavaScriptCallFrame_caller_Getter";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.column')
   int get column native "JavaScriptCallFrame_column_Getter";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.functionName')
   String get functionName native "JavaScriptCallFrame_functionName_Getter";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.line')
   int get line native "JavaScriptCallFrame_line_Getter";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.scopeChain')
   List get scopeChain native "JavaScriptCallFrame_scopeChain_Getter";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.sourceID')
   int get sourceID native "JavaScriptCallFrame_sourceID_Getter";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.thisObject')
   Object get thisObject native "JavaScriptCallFrame_thisObject_Getter";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.type')
   String get type native "JavaScriptCallFrame_type_Getter";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.evaluate')
   void evaluate(String script) native "JavaScriptCallFrame_evaluate_Callback";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.restart')
   Object restart() native "JavaScriptCallFrame_restart_Callback";
 
+  @DocsEditable
   @DomName('JavaScriptCallFrame.scopeType')
   int scopeType(int scopeIndex) native "JavaScriptCallFrame_scopeType_Callback";
 
@@ -14094,27 +15292,35 @@ class KeyboardEvent extends UIEvent {
   int get charCode => $dom_charCode;
   KeyboardEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('KeyboardEvent.altGraphKey')
   bool get altGraphKey native "KeyboardEvent_altGraphKey_Getter";
 
+  @DocsEditable
   @DomName('KeyboardEvent.altKey')
   bool get altKey native "KeyboardEvent_altKey_Getter";
 
+  @DocsEditable
   @DomName('KeyboardEvent.ctrlKey')
   bool get ctrlKey native "KeyboardEvent_ctrlKey_Getter";
 
+  @DocsEditable
   @DomName('KeyboardEvent.keyIdentifier')
   String get $dom_keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
 
+  @DocsEditable
   @DomName('KeyboardEvent.keyLocation')
   int get keyLocation native "KeyboardEvent_keyLocation_Getter";
 
+  @DocsEditable
   @DomName('KeyboardEvent.metaKey')
   bool get metaKey native "KeyboardEvent_metaKey_Getter";
 
+  @DocsEditable
   @DomName('KeyboardEvent.shiftKey')
   bool get shiftKey native "KeyboardEvent_shiftKey_Getter";
 
+  @DocsEditable
   @DomName('KeyboardEvent.initKeyboardEvent')
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
@@ -14126,6 +15332,7 @@ class KeyboardEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLKeygenElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -14133,63 +15340,81 @@ class KeyboardEvent extends UIEvent {
 class KeygenElement extends _Element_Merged {
   KeygenElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory KeygenElement() => document.$dom_createElement("keygen");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.autofocus')
   bool get autofocus native "HTMLKeygenElement_autofocus_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.autofocus')
   void set autofocus(bool value) native "HTMLKeygenElement_autofocus_Setter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.challenge')
   String get challenge native "HTMLKeygenElement_challenge_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.challenge')
   void set challenge(String value) native "HTMLKeygenElement_challenge_Setter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.disabled')
   bool get disabled native "HTMLKeygenElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.disabled')
   void set disabled(bool value) native "HTMLKeygenElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.form')
   FormElement get form native "HTMLKeygenElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.keytype')
   String get keytype native "HTMLKeygenElement_keytype_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.keytype')
   void set keytype(String value) native "HTMLKeygenElement_keytype_Setter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.labels')
   List<Node> get labels native "HTMLKeygenElement_labels_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.name')
   String get name native "HTMLKeygenElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.name')
   void set name(String value) native "HTMLKeygenElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.type')
   String get type native "HTMLKeygenElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.validationMessage')
   String get validationMessage native "HTMLKeygenElement_validationMessage_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.validity')
   ValidityState get validity native "HTMLKeygenElement_validity_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.willValidate')
   bool get willValidate native "HTMLKeygenElement_willValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.checkValidity')
   bool checkValidity() native "HTMLKeygenElement_checkValidity_Callback";
 
+  @DocsEditable
   @DomName('HTMLKeygenElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLKeygenElement_setCustomValidity_Callback";
 
@@ -14201,22 +15426,27 @@ class KeygenElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLLIElement')
 class LIElement extends _Element_Merged {
   LIElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory LIElement() => document.$dom_createElement("li");
 
+  @DocsEditable
   @DomName('HTMLLIElement.type')
   String get type native "HTMLLIElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLLIElement.type')
   void set type(String value) native "HTMLLIElement_type_Setter";
 
+  @DocsEditable
   @DomName('HTMLLIElement.value')
   int get value native "HTMLLIElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLLIElement.value')
   void set value(int value) native "HTMLLIElement_value_Setter";
 
@@ -14228,22 +15458,27 @@ class LIElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLLabelElement')
 class LabelElement extends _Element_Merged {
   LabelElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory LabelElement() => document.$dom_createElement("label");
 
+  @DocsEditable
   @DomName('HTMLLabelElement.control')
   Element get control native "HTMLLabelElement_control_Getter";
 
+  @DocsEditable
   @DomName('HTMLLabelElement.form')
   FormElement get form native "HTMLLabelElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLLabelElement.htmlFor')
   String get htmlFor native "HTMLLabelElement_htmlFor_Getter";
 
+  @DocsEditable
   @DomName('HTMLLabelElement.htmlFor')
   void set htmlFor(String value) native "HTMLLabelElement_htmlFor_Setter";
 
@@ -14255,13 +15490,15 @@ class LabelElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLLegendElement')
 class LegendElement extends _Element_Merged {
   LegendElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory LegendElement() => document.$dom_createElement("legend");
 
+  @DocsEditable
   @DomName('HTMLLegendElement.form')
   FormElement get form native "HTMLLegendElement_form_Getter";
 
@@ -14273,55 +15510,71 @@ class LegendElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLLinkElement')
 class LinkElement extends _Element_Merged {
   LinkElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory LinkElement() => document.$dom_createElement("link");
 
+  @DocsEditable
   @DomName('HTMLLinkElement.disabled')
   bool get disabled native "HTMLLinkElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.disabled')
   void set disabled(bool value) native "HTMLLinkElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.href')
   String get href native "HTMLLinkElement_href_Getter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.href')
   void set href(String value) native "HTMLLinkElement_href_Setter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.hreflang')
   String get hreflang native "HTMLLinkElement_hreflang_Getter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.hreflang')
   void set hreflang(String value) native "HTMLLinkElement_hreflang_Setter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.media')
   String get media native "HTMLLinkElement_media_Getter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.media')
   void set media(String value) native "HTMLLinkElement_media_Setter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.rel')
   String get rel native "HTMLLinkElement_rel_Getter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.rel')
   void set rel(String value) native "HTMLLinkElement_rel_Setter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.sheet')
   StyleSheet get sheet native "HTMLLinkElement_sheet_Getter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.sizes')
   DomSettableTokenList get sizes native "HTMLLinkElement_sizes_Getter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.sizes')
   void set sizes(DomSettableTokenList value) native "HTMLLinkElement_sizes_Setter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.type')
   String get type native "HTMLLinkElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLLinkElement.type')
   void set type(String value) native "HTMLLinkElement_type_Setter";
 
@@ -14333,10 +15586,12 @@ class LinkElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('LocalMediaStream')
 class LocalMediaStream extends MediaStream implements EventTarget {
   LocalMediaStream.internal() : super.internal();
 
+  @DocsEditable
   @DomName('LocalMediaStream.stop')
   void stop() native "LocalMediaStream_stop_Callback";
 
@@ -14348,73 +15603,96 @@ class LocalMediaStream extends MediaStream implements EventTarget {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Location')
 class Location extends NativeFieldWrapperClass1 implements LocationBase {
   Location.internal();
 
+  @DocsEditable
   @DomName('Location.ancestorOrigins')
   List<String> get ancestorOrigins native "Location_ancestorOrigins_Getter";
 
+  @DocsEditable
   @DomName('Location.hash')
   String get hash native "Location_hash_Getter";
 
+  @DocsEditable
   @DomName('Location.hash')
   void set hash(String value) native "Location_hash_Setter";
 
+  @DocsEditable
   @DomName('Location.host')
   String get host native "Location_host_Getter";
 
+  @DocsEditable
   @DomName('Location.host')
   void set host(String value) native "Location_host_Setter";
 
+  @DocsEditable
   @DomName('Location.hostname')
   String get hostname native "Location_hostname_Getter";
 
+  @DocsEditable
   @DomName('Location.hostname')
   void set hostname(String value) native "Location_hostname_Setter";
 
+  @DocsEditable
   @DomName('Location.href')
   String get href native "Location_href_Getter";
 
+  @DocsEditable
   @DomName('Location.href')
   void set href(String value) native "Location_href_Setter";
 
+  @DocsEditable
   @DomName('Location.origin')
   String get origin native "Location_origin_Getter";
 
+  @DocsEditable
   @DomName('Location.pathname')
   String get pathname native "Location_pathname_Getter";
 
+  @DocsEditable
   @DomName('Location.pathname')
   void set pathname(String value) native "Location_pathname_Setter";
 
+  @DocsEditable
   @DomName('Location.port')
   String get port native "Location_port_Getter";
 
+  @DocsEditable
   @DomName('Location.port')
   void set port(String value) native "Location_port_Setter";
 
+  @DocsEditable
   @DomName('Location.protocol')
   String get protocol native "Location_protocol_Getter";
 
+  @DocsEditable
   @DomName('Location.protocol')
   void set protocol(String value) native "Location_protocol_Setter";
 
+  @DocsEditable
   @DomName('Location.search')
   String get search native "Location_search_Getter";
 
+  @DocsEditable
   @DomName('Location.search')
   void set search(String value) native "Location_search_Setter";
 
+  @DocsEditable
   @DomName('Location.assign')
   void assign(String url) native "Location_assign_Callback";
 
+  @DocsEditable
   @DomName('Location.reload')
   void reload() native "Location_reload_Callback";
 
+  @DocsEditable
   @DomName('Location.replace')
   void replace(String url) native "Location_replace_Callback";
 
+  @DocsEditable
   @DomName('Location.toString')
   String toString() native "Location_toString_Callback";
 
@@ -14426,19 +15704,23 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLMapElement')
 class MapElement extends _Element_Merged {
   MapElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory MapElement() => document.$dom_createElement("map");
 
+  @DocsEditable
   @DomName('HTMLMapElement.areas')
   HtmlCollection get areas native "HTMLMapElement_areas_Getter";
 
+  @DocsEditable
   @DomName('HTMLMapElement.name')
   String get name native "HTMLMapElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLMapElement.name')
   void set name(String value) native "HTMLMapElement_name_Setter";
 
@@ -14450,6 +15732,7 @@ class MapElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLMarqueeElement')
 class MarqueeElement extends _Element_Merged {
   MarqueeElement.internal() : super.internal();
@@ -14457,75 +15740,99 @@ class MarqueeElement extends _Element_Merged {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.behavior')
   String get behavior native "HTMLMarqueeElement_behavior_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.behavior')
   void set behavior(String value) native "HTMLMarqueeElement_behavior_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.bgColor')
   String get bgColor native "HTMLMarqueeElement_bgColor_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.bgColor')
   void set bgColor(String value) native "HTMLMarqueeElement_bgColor_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.direction')
   String get direction native "HTMLMarqueeElement_direction_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.direction')
   void set direction(String value) native "HTMLMarqueeElement_direction_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.height')
   String get height native "HTMLMarqueeElement_height_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.height')
   void set height(String value) native "HTMLMarqueeElement_height_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.hspace')
   int get hspace native "HTMLMarqueeElement_hspace_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.hspace')
   void set hspace(int value) native "HTMLMarqueeElement_hspace_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.loop')
   int get loop native "HTMLMarqueeElement_loop_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.loop')
   void set loop(int value) native "HTMLMarqueeElement_loop_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.scrollAmount')
   int get scrollAmount native "HTMLMarqueeElement_scrollAmount_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.scrollAmount')
   void set scrollAmount(int value) native "HTMLMarqueeElement_scrollAmount_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.scrollDelay')
   int get scrollDelay native "HTMLMarqueeElement_scrollDelay_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.scrollDelay')
   void set scrollDelay(int value) native "HTMLMarqueeElement_scrollDelay_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.trueSpeed')
   bool get trueSpeed native "HTMLMarqueeElement_trueSpeed_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.trueSpeed')
   void set trueSpeed(bool value) native "HTMLMarqueeElement_trueSpeed_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.vspace')
   int get vspace native "HTMLMarqueeElement_vspace_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.vspace')
   void set vspace(int value) native "HTMLMarqueeElement_vspace_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.width')
   String get width native "HTMLMarqueeElement_width_Getter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.width')
   void set width(String value) native "HTMLMarqueeElement_width_Setter";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.start')
   void start() native "HTMLMarqueeElement_start_Callback";
 
+  @DocsEditable
   @DomName('HTMLMarqueeElement.stop')
   void stop() native "HTMLMarqueeElement_stop_Callback";
 
@@ -14537,77 +15844,100 @@ class MarqueeElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaController')
 class MediaController extends EventTarget {
   MediaController.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory MediaController() => MediaController._create();
   static MediaController _create() native "MediaController_constructor_Callback";
 
+  @DocsEditable
   @DomName('MediaController.buffered')
   TimeRanges get buffered native "MediaController_buffered_Getter";
 
+  @DocsEditable
   @DomName('MediaController.currentTime')
   num get currentTime native "MediaController_currentTime_Getter";
 
+  @DocsEditable
   @DomName('MediaController.currentTime')
   void set currentTime(num value) native "MediaController_currentTime_Setter";
 
+  @DocsEditable
   @DomName('MediaController.defaultPlaybackRate')
   num get defaultPlaybackRate native "MediaController_defaultPlaybackRate_Getter";
 
+  @DocsEditable
   @DomName('MediaController.defaultPlaybackRate')
   void set defaultPlaybackRate(num value) native "MediaController_defaultPlaybackRate_Setter";
 
+  @DocsEditable
   @DomName('MediaController.duration')
   num get duration native "MediaController_duration_Getter";
 
+  @DocsEditable
   @DomName('MediaController.muted')
   bool get muted native "MediaController_muted_Getter";
 
+  @DocsEditable
   @DomName('MediaController.muted')
   void set muted(bool value) native "MediaController_muted_Setter";
 
+  @DocsEditable
   @DomName('MediaController.paused')
   bool get paused native "MediaController_paused_Getter";
 
+  @DocsEditable
   @DomName('MediaController.playbackRate')
   num get playbackRate native "MediaController_playbackRate_Getter";
 
+  @DocsEditable
   @DomName('MediaController.playbackRate')
   void set playbackRate(num value) native "MediaController_playbackRate_Setter";
 
+  @DocsEditable
   @DomName('MediaController.playbackState')
   String get playbackState native "MediaController_playbackState_Getter";
 
+  @DocsEditable
   @DomName('MediaController.played')
   TimeRanges get played native "MediaController_played_Getter";
 
+  @DocsEditable
   @DomName('MediaController.seekable')
   TimeRanges get seekable native "MediaController_seekable_Getter";
 
+  @DocsEditable
   @DomName('MediaController.volume')
   num get volume native "MediaController_volume_Getter";
 
+  @DocsEditable
   @DomName('MediaController.volume')
   void set volume(num value) native "MediaController_volume_Setter";
 
+  @DocsEditable
   @DomName('MediaController.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('MediaController.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "MediaController_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('MediaController.pause')
   void pause() native "MediaController_pause_Callback";
 
+  @DocsEditable
   @DomName('MediaController.play')
   void play() native "MediaController_play_Callback";
 
+  @DocsEditable
   @DomName('MediaController.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('MediaController.unpause')
   void unpause() native "MediaController_unpause_Callback";
 
@@ -14619,6 +15949,7 @@ class MediaController extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLMediaElement')
 class MediaElement extends _Element_Merged {
   MediaElement.internal() : super.internal();
@@ -14673,7 +16004,7 @@ class MediaElement extends _Element_Merged {
 
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaElementEvents get on =>
     new MediaElementEvents(this);
@@ -14696,144 +16027,191 @@ class MediaElement extends _Element_Merged {
 
   static const int NETWORK_NO_SOURCE = 3;
 
+  @DocsEditable
   @DomName('HTMLMediaElement.autoplay')
   bool get autoplay native "HTMLMediaElement_autoplay_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.autoplay')
   void set autoplay(bool value) native "HTMLMediaElement_autoplay_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.buffered')
   TimeRanges get buffered native "HTMLMediaElement_buffered_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.controller')
   MediaController get controller native "HTMLMediaElement_controller_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.controller')
   void set controller(MediaController value) native "HTMLMediaElement_controller_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.controls')
   bool get controls native "HTMLMediaElement_controls_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.controls')
   void set controls(bool value) native "HTMLMediaElement_controls_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.currentSrc')
   String get currentSrc native "HTMLMediaElement_currentSrc_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.currentTime')
   num get currentTime native "HTMLMediaElement_currentTime_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.currentTime')
   void set currentTime(num value) native "HTMLMediaElement_currentTime_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.defaultMuted')
   bool get defaultMuted native "HTMLMediaElement_defaultMuted_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.defaultMuted')
   void set defaultMuted(bool value) native "HTMLMediaElement_defaultMuted_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.defaultPlaybackRate')
   num get defaultPlaybackRate native "HTMLMediaElement_defaultPlaybackRate_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.defaultPlaybackRate')
   void set defaultPlaybackRate(num value) native "HTMLMediaElement_defaultPlaybackRate_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.duration')
   num get duration native "HTMLMediaElement_duration_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.ended')
   bool get ended native "HTMLMediaElement_ended_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.error')
   MediaError get error native "HTMLMediaElement_error_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.initialTime')
   num get initialTime native "HTMLMediaElement_initialTime_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.loop')
   bool get loop native "HTMLMediaElement_loop_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.loop')
   void set loop(bool value) native "HTMLMediaElement_loop_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.mediaGroup')
   String get mediaGroup native "HTMLMediaElement_mediaGroup_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.mediaGroup')
   void set mediaGroup(String value) native "HTMLMediaElement_mediaGroup_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.muted')
   bool get muted native "HTMLMediaElement_muted_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.muted')
   void set muted(bool value) native "HTMLMediaElement_muted_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.networkState')
   int get networkState native "HTMLMediaElement_networkState_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.paused')
   bool get paused native "HTMLMediaElement_paused_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.playbackRate')
   num get playbackRate native "HTMLMediaElement_playbackRate_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.playbackRate')
   void set playbackRate(num value) native "HTMLMediaElement_playbackRate_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.played')
   TimeRanges get played native "HTMLMediaElement_played_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.preload')
   String get preload native "HTMLMediaElement_preload_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.preload')
   void set preload(String value) native "HTMLMediaElement_preload_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.readyState')
   int get readyState native "HTMLMediaElement_readyState_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.seekable')
   TimeRanges get seekable native "HTMLMediaElement_seekable_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.seeking')
   bool get seeking native "HTMLMediaElement_seeking_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.src')
   String get src native "HTMLMediaElement_src_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.src')
   void set src(String value) native "HTMLMediaElement_src_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.startTime')
   num get startTime native "HTMLMediaElement_startTime_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.textTracks')
   TextTrackList get textTracks native "HTMLMediaElement_textTracks_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.volume')
   num get volume native "HTMLMediaElement_volume_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.volume')
   void set volume(num value) native "HTMLMediaElement_volume_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
   int get webkitAudioDecodedByteCount native "HTMLMediaElement_webkitAudioDecodedByteCount_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
   bool get webkitClosedCaptionsVisible native "HTMLMediaElement_webkitClosedCaptionsVisible_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
   void set webkitClosedCaptionsVisible(bool value) native "HTMLMediaElement_webkitClosedCaptionsVisible_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitHasClosedCaptions')
   bool get webkitHasClosedCaptions native "HTMLMediaElement_webkitHasClosedCaptions_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitPreservesPitch')
   bool get webkitPreservesPitch native "HTMLMediaElement_webkitPreservesPitch_Getter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitPreservesPitch')
   void set webkitPreservesPitch(bool value) native "HTMLMediaElement_webkitPreservesPitch_Setter";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitVideoDecodedByteCount')
   int get webkitVideoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
@@ -14847,24 +16225,31 @@ class MediaElement extends _Element_Merged {
     return _addTextTrack_3(kind);
   }
 
+  @DocsEditable
   @DomName('HTMLMediaElement.addTextTrack_1')
   TextTrack _addTextTrack_1(kind, label, language) native "HTMLMediaElement_addTextTrack_1_Callback";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.addTextTrack_2')
   TextTrack _addTextTrack_2(kind, label) native "HTMLMediaElement_addTextTrack_2_Callback";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.addTextTrack_3')
   TextTrack _addTextTrack_3(kind) native "HTMLMediaElement_addTextTrack_3_Callback";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.canPlayType')
   String canPlayType(String type, String keySystem) native "HTMLMediaElement_canPlayType_Callback";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.load')
   void load() native "HTMLMediaElement_load_Callback";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.pause')
   void pause() native "HTMLMediaElement_pause_Callback";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.play')
   void play() native "HTMLMediaElement_play_Callback";
 
@@ -14876,12 +16261,15 @@ class MediaElement extends _Element_Merged {
     _webkitAddKey_2(keySystem, key);
   }
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitAddKey_1')
   void _webkitAddKey_1(keySystem, key, initData, sessionId) native "HTMLMediaElement_webkitAddKey_1_Callback";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitAddKey_2')
   void _webkitAddKey_2(keySystem, key) native "HTMLMediaElement_webkitAddKey_2_Callback";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   void webkitCancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
@@ -14893,9 +16281,11 @@ class MediaElement extends _Element_Merged {
     _webkitGenerateKeyRequest_2(keySystem);
   }
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitGenerateKeyRequest_1')
   void _webkitGenerateKeyRequest_1(keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_1_Callback";
 
+  @DocsEditable
   @DomName('HTMLMediaElement.webkitGenerateKeyRequest_2')
   void _webkitGenerateKeyRequest_2(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
 
@@ -14951,84 +16341,84 @@ class MediaElement extends _Element_Merged {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   MediaElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlay => this['canplay'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get durationChange => this['durationchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get emptied => this['emptied'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedData => this['loadeddata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pause => this['pause'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get play => this['play'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get playing => this['playing'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get rateChange => this['ratechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeked => this['seeked'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeking => this['seeking'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get show => this['show'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get stalled => this['stalled'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get suspend => this['suspend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get timeUpdate => this['timeupdate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get volumeChange => this['volumechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get waiting => this['waiting'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyAdded => this['webkitkeyadded'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyError => this['webkitkeyerror'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyMessage => this['webkitkeymessage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get needKey => this['webkitneedkey'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15038,6 +16428,7 @@ class MediaElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaError')
 class MediaError extends NativeFieldWrapperClass1 {
   MediaError.internal();
@@ -15052,6 +16443,7 @@ class MediaError extends NativeFieldWrapperClass1 {
 
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
+  @DocsEditable
   @DomName('MediaError.code')
   int get code native "MediaError_code_Getter";
 
@@ -15063,6 +16455,7 @@ class MediaError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaKeyError')
 class MediaKeyError extends NativeFieldWrapperClass1 {
   MediaKeyError.internal();
@@ -15079,6 +16472,7 @@ class MediaKeyError extends NativeFieldWrapperClass1 {
 
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
+  @DocsEditable
   @DomName('MediaKeyError.code')
   int get code native "MediaKeyError_code_Getter";
 
@@ -15090,28 +16484,36 @@ class MediaKeyError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaKeyEvent')
 class MediaKeyEvent extends Event {
   MediaKeyEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('MediaKeyEvent.defaultURL')
   String get defaultUrl native "MediaKeyEvent_defaultURL_Getter";
 
+  @DocsEditable
   @DomName('MediaKeyEvent.errorCode')
   MediaKeyError get errorCode native "MediaKeyEvent_errorCode_Getter";
 
+  @DocsEditable
   @DomName('MediaKeyEvent.initData')
   Uint8Array get initData native "MediaKeyEvent_initData_Getter";
 
+  @DocsEditable
   @DomName('MediaKeyEvent.keySystem')
   String get keySystem native "MediaKeyEvent_keySystem_Getter";
 
+  @DocsEditable
   @DomName('MediaKeyEvent.message')
   Uint8Array get message native "MediaKeyEvent_message_Getter";
 
+  @DocsEditable
   @DomName('MediaKeyEvent.sessionId')
   String get sessionId native "MediaKeyEvent_sessionId_Getter";
 
+  @DocsEditable
   @DomName('MediaKeyEvent.systemCode')
   int get systemCode native "MediaKeyEvent_systemCode_Getter";
 
@@ -15123,25 +16525,32 @@ class MediaKeyEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaList')
 class MediaList extends NativeFieldWrapperClass1 {
   MediaList.internal();
 
+  @DocsEditable
   @DomName('MediaList.length')
   int get length native "MediaList_length_Getter";
 
+  @DocsEditable
   @DomName('MediaList.mediaText')
   String get mediaText native "MediaList_mediaText_Getter";
 
+  @DocsEditable
   @DomName('MediaList.mediaText')
   void set mediaText(String value) native "MediaList_mediaText_Setter";
 
+  @DocsEditable
   @DomName('MediaList.appendMedium')
   void appendMedium(String newMedium) native "MediaList_appendMedium_Callback";
 
+  @DocsEditable
   @DomName('MediaList.deleteMedium')
   void deleteMedium(String oldMedium) native "MediaList_deleteMedium_Callback";
 
+  @DocsEditable
   @DomName('MediaList.item')
   String item(int index) native "MediaList_item_Callback";
 
@@ -15153,19 +16562,24 @@ class MediaList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaQueryList')
 class MediaQueryList extends NativeFieldWrapperClass1 {
   MediaQueryList.internal();
 
+  @DocsEditable
   @DomName('MediaQueryList.matches')
   bool get matches native "MediaQueryList_matches_Getter";
 
+  @DocsEditable
   @DomName('MediaQueryList.media')
   String get media native "MediaQueryList_media_Getter";
 
+  @DocsEditable
   @DomName('MediaQueryList.addListener')
   void addListener(MediaQueryListListener listener) native "MediaQueryList_addListener_Callback";
 
+  @DocsEditable
   @DomName('MediaQueryList.removeListener')
   void removeListener(MediaQueryListListener listener) native "MediaQueryList_removeListener_Callback";
 
@@ -15177,10 +16591,12 @@ class MediaQueryList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaQueryListListener')
 class MediaQueryListListener extends NativeFieldWrapperClass1 {
   MediaQueryListListener.internal();
 
+  @DocsEditable
   @DomName('MediaQueryListListener.queryChanged')
   void queryChanged(MediaQueryList list) native "MediaQueryListListener_queryChanged_Callback";
 
@@ -15192,44 +16608,56 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaSource')
 class MediaSource extends EventTarget {
   MediaSource.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory MediaSource() => MediaSource._create();
   static MediaSource _create() native "MediaSource_constructor_Callback";
 
+  @DocsEditable
   @DomName('MediaSource.activeSourceBuffers')
   SourceBufferList get activeSourceBuffers native "MediaSource_activeSourceBuffers_Getter";
 
+  @DocsEditable
   @DomName('MediaSource.duration')
   num get duration native "MediaSource_duration_Getter";
 
+  @DocsEditable
   @DomName('MediaSource.duration')
   void set duration(num value) native "MediaSource_duration_Setter";
 
+  @DocsEditable
   @DomName('MediaSource.readyState')
   String get readyState native "MediaSource_readyState_Getter";
 
+  @DocsEditable
   @DomName('MediaSource.sourceBuffers')
   SourceBufferList get sourceBuffers native "MediaSource_sourceBuffers_Getter";
 
+  @DocsEditable
   @DomName('MediaSource.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('MediaSource.addSourceBuffer')
   SourceBuffer addSourceBuffer(String type) native "MediaSource_addSourceBuffer_Callback";
 
+  @DocsEditable
   @DomName('MediaSource.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "MediaSource_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('MediaSource.endOfStream')
   void endOfStream(String error) native "MediaSource_endOfStream_Callback";
 
+  @DocsEditable
   @DomName('MediaSource.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('MediaSource.removeSourceBuffer')
   void removeSourceBuffer(SourceBuffer buffer) native "MediaSource_removeSourceBuffer_Callback";
 
@@ -15241,17 +16669,18 @@ class MediaSource extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaStream')
 class MediaStream extends EventTarget {
   MediaStream.internal() : super.internal();
 
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  /// @docsEditable true
+  @DocsEditable
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
   static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
@@ -15260,24 +16689,31 @@ class MediaStream extends EventTarget {
 
   static const int LIVE = 1;
 
+  @DocsEditable
   @DomName('MediaStream.audioTracks')
   MediaStreamTrackList get audioTracks native "MediaStream_audioTracks_Getter";
 
+  @DocsEditable
   @DomName('MediaStream.label')
   String get label native "MediaStream_label_Getter";
 
+  @DocsEditable
   @DomName('MediaStream.readyState')
   int get readyState native "MediaStream_readyState_Getter";
 
+  @DocsEditable
   @DomName('MediaStream.videoTracks')
   MediaStreamTrackList get videoTracks native "MediaStream_videoTracks_Getter";
 
+  @DocsEditable
   @DomName('MediaStream.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('MediaStream.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('MediaStream.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
 
@@ -15285,12 +16721,12 @@ class MediaStream extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaStreamEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MediaStreamEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15300,10 +16736,12 @@ class MediaStreamEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaStreamEvent')
 class MediaStreamEvent extends Event {
   MediaStreamEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('MediaStreamEvent.stream')
   MediaStream get stream native "MediaStreamEvent_stream_Getter";
 
@@ -15315,6 +16753,7 @@ class MediaStreamEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaStreamTrack')
 class MediaStreamTrack extends EventTarget {
   MediaStreamTrack.internal() : super.internal();
@@ -15325,7 +16764,7 @@ class MediaStreamTrack extends EventTarget {
 
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
@@ -15336,27 +16775,35 @@ class MediaStreamTrack extends EventTarget {
 
   static const int MUTED = 1;
 
+  @DocsEditable
   @DomName('MediaStreamTrack.enabled')
   bool get enabled native "MediaStreamTrack_enabled_Getter";
 
+  @DocsEditable
   @DomName('MediaStreamTrack.enabled')
   void set enabled(bool value) native "MediaStreamTrack_enabled_Setter";
 
+  @DocsEditable
   @DomName('MediaStreamTrack.kind')
   String get kind native "MediaStreamTrack_kind_Getter";
 
+  @DocsEditable
   @DomName('MediaStreamTrack.label')
   String get label native "MediaStreamTrack_label_Getter";
 
+  @DocsEditable
   @DomName('MediaStreamTrack.readyState')
   int get readyState native "MediaStreamTrack_readyState_Getter";
 
+  @DocsEditable
   @DomName('MediaStreamTrack.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('MediaStreamTrack.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "MediaStreamTrack_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('MediaStreamTrack.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_removeEventListener_Callback";
 
@@ -15368,18 +16815,18 @@ class MediaStreamTrack extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaStreamTrackEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MediaStreamTrackEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mute => this['mute'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unmute => this['unmute'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15389,10 +16836,12 @@ class MediaStreamTrackEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaStreamTrackEvent')
 class MediaStreamTrackEvent extends Event {
   MediaStreamTrackEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('MediaStreamTrackEvent.track')
   MediaStreamTrack get track native "MediaStreamTrackEvent_track_Getter";
 
@@ -15404,6 +16853,7 @@ class MediaStreamTrackEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaStreamTrackList')
 class MediaStreamTrackList extends EventTarget {
   MediaStreamTrackList.internal() : super.internal();
@@ -15412,29 +16862,36 @@ class MediaStreamTrackList extends EventTarget {
 
   static const EventStreamProvider<MediaStreamTrackEvent> removeTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('removetrack');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaStreamTrackListEvents get on =>
     new MediaStreamTrackListEvents(this);
 
+  @DocsEditable
   @DomName('MediaStreamTrackList.length')
   int get length native "MediaStreamTrackList_length_Getter";
 
+  @DocsEditable
   @DomName('MediaStreamTrackList.add')
   void add(MediaStreamTrack track) native "MediaStreamTrackList_add_Callback";
 
+  @DocsEditable
   @DomName('MediaStreamTrackList.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('MediaStreamTrackList.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "MediaStreamTrackList_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('MediaStreamTrackList.item')
   MediaStreamTrack item(int index) native "MediaStreamTrackList_item_Callback";
 
+  @DocsEditable
   @DomName('MediaStreamTrackList.remove')
   void remove(MediaStreamTrack track) native "MediaStreamTrackList_remove_Callback";
 
+  @DocsEditable
   @DomName('MediaStreamTrackList.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_removeEventListener_Callback";
 
@@ -15444,15 +16901,15 @@ class MediaStreamTrackList extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaStreamTrackListEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MediaStreamTrackListEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get addTrack => this['addtrack'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15462,16 +16919,20 @@ class MediaStreamTrackListEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MemoryInfo')
 class MemoryInfo extends NativeFieldWrapperClass1 {
   MemoryInfo.internal();
 
+  @DocsEditable
   @DomName('MemoryInfo.jsHeapSizeLimit')
   int get jsHeapSizeLimit native "MemoryInfo_jsHeapSizeLimit_Getter";
 
+  @DocsEditable
   @DomName('MemoryInfo.totalJSHeapSize')
   int get totalJSHeapSize native "MemoryInfo_totalJSHeapSize_Getter";
 
+  @DocsEditable
   @DomName('MemoryInfo.usedJSHeapSize')
   int get usedJSHeapSize native "MemoryInfo_usedJSHeapSize_Getter";
 
@@ -15483,11 +16944,12 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLMenuElement')
 class MenuElement extends _Element_Merged {
   MenuElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory MenuElement() => document.$dom_createElement("menu");
 
 }
@@ -15498,17 +16960,20 @@ class MenuElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MessageChannel')
 class MessageChannel extends NativeFieldWrapperClass1 {
   MessageChannel.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory MessageChannel() => MessageChannel._create();
   static MessageChannel _create() native "MessageChannel_constructor_Callback";
 
+  @DocsEditable
   @DomName('MessageChannel.port1')
   MessagePort get port1 native "MessageChannel_port1_Getter";
 
+  @DocsEditable
   @DomName('MessageChannel.port2')
   MessagePort get port2 native "MessageChannel_port2_Getter";
 
@@ -15520,28 +16985,36 @@ class MessageChannel extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MessageEvent')
 class MessageEvent extends Event {
   MessageEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('MessageEvent.data')
   Object get data native "MessageEvent_data_Getter";
 
+  @DocsEditable
   @DomName('MessageEvent.lastEventId')
   String get lastEventId native "MessageEvent_lastEventId_Getter";
 
+  @DocsEditable
   @DomName('MessageEvent.origin')
   String get origin native "MessageEvent_origin_Getter";
 
+  @DocsEditable
   @DomName('MessageEvent.ports')
   List get ports native "MessageEvent_ports_Getter";
 
+  @DocsEditable
   @DomName('MessageEvent.source')
   WindowBase get source native "MessageEvent_source_Getter";
 
+  @DocsEditable
   @DomName('MessageEvent.initMessageEvent')
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
+  @DocsEditable
   @DomName('MessageEvent.webkitInitMessageEvent')
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
 
@@ -15553,32 +17026,39 @@ class MessageEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MessagePort')
 class MessagePort extends EventTarget {
   MessagePort.internal() : super.internal();
 
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MessagePortEvents get on =>
     new MessagePortEvents(this);
 
+  @DocsEditable
   @DomName('MessagePort.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('MessagePort.close')
   void close() native "MessagePort_close_Callback";
 
+  @DocsEditable
   @DomName('MessagePort.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "MessagePort_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('MessagePort.postMessage')
   void postMessage(Object message, [List messagePorts]) native "MessagePort_postMessage_Callback";
 
+  @DocsEditable
   @DomName('MessagePort.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('MessagePort.start')
   void start() native "MessagePort_start_Callback";
 
@@ -15586,12 +17066,12 @@ class MessagePort extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class MessagePortEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MessagePortEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15601,25 +17081,32 @@ class MessagePortEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLMetaElement')
 class MetaElement extends _Element_Merged {
   MetaElement.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLMetaElement.content')
   String get content native "HTMLMetaElement_content_Getter";
 
+  @DocsEditable
   @DomName('HTMLMetaElement.content')
   void set content(String value) native "HTMLMetaElement_content_Setter";
 
+  @DocsEditable
   @DomName('HTMLMetaElement.httpEquiv')
   String get httpEquiv native "HTMLMetaElement_httpEquiv_Getter";
 
+  @DocsEditable
   @DomName('HTMLMetaElement.httpEquiv')
   void set httpEquiv(String value) native "HTMLMetaElement_httpEquiv_Setter";
 
+  @DocsEditable
   @DomName('HTMLMetaElement.name')
   String get name native "HTMLMetaElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLMetaElement.name')
   void set name(String value) native "HTMLMetaElement_name_Setter";
 
@@ -15631,13 +17118,16 @@ class MetaElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Metadata')
 class Metadata extends NativeFieldWrapperClass1 {
   Metadata.internal();
 
+  @DocsEditable
   @DomName('Metadata.modificationTime')
   Date get modificationTime native "Metadata_modificationTime_Getter";
 
+  @DocsEditable
   @DomName('Metadata.size')
   int get size native "Metadata_size_Getter";
 
@@ -15657,6 +17147,7 @@ typedef void MetadataCallback(Metadata metadata);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLMeterElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -15664,48 +17155,61 @@ typedef void MetadataCallback(Metadata metadata);
 class MeterElement extends _Element_Merged {
   MeterElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory MeterElement() => document.$dom_createElement("meter");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLMeterElement.high')
   num get high native "HTMLMeterElement_high_Getter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.high')
   void set high(num value) native "HTMLMeterElement_high_Setter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.labels')
   List<Node> get labels native "HTMLMeterElement_labels_Getter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.low')
   num get low native "HTMLMeterElement_low_Getter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.low')
   void set low(num value) native "HTMLMeterElement_low_Setter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.max')
   num get max native "HTMLMeterElement_max_Getter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.max')
   void set max(num value) native "HTMLMeterElement_max_Setter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.min')
   num get min native "HTMLMeterElement_min_Getter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.min')
   void set min(num value) native "HTMLMeterElement_min_Setter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.optimum')
   num get optimum native "HTMLMeterElement_optimum_Getter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.optimum')
   void set optimum(num value) native "HTMLMeterElement_optimum_Setter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.value')
   num get value native "HTMLMeterElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLMeterElement.value')
   void set value(num value) native "HTMLMeterElement_value_Setter";
 
@@ -15717,19 +17221,24 @@ class MeterElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLModElement')
 class ModElement extends _Element_Merged {
   ModElement.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLModElement.cite')
   String get cite native "HTMLModElement_cite_Getter";
 
+  @DocsEditable
   @DomName('HTMLModElement.cite')
   void set cite(String value) native "HTMLModElement_cite_Setter";
 
+  @DocsEditable
   @DomName('HTMLModElement.dateTime')
   String get dateTime native "HTMLModElement_dateTime_Getter";
 
+  @DocsEditable
   @DomName('HTMLModElement.dateTime')
   void set dateTime(String value) native "HTMLModElement_dateTime_Setter";
 
@@ -15741,6 +17250,7 @@ class ModElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MouseEvent')
 class MouseEvent extends UIEvent {
   factory MouseEvent(String type, Window view, int detail, int screenX,
@@ -15755,63 +17265,83 @@ class MouseEvent extends UIEvent {
           relatedTarget);
   MouseEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('MouseEvent.altKey')
   bool get altKey native "MouseEvent_altKey_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.button')
   int get button native "MouseEvent_button_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.clientX')
   int get clientX native "MouseEvent_clientX_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.clientY')
   int get clientY native "MouseEvent_clientY_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.ctrlKey')
   bool get ctrlKey native "MouseEvent_ctrlKey_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.dataTransfer')
   Clipboard get dataTransfer native "MouseEvent_dataTransfer_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.fromElement')
   Node get fromElement native "MouseEvent_fromElement_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.metaKey')
   bool get metaKey native "MouseEvent_metaKey_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.offsetX')
   int get offsetX native "MouseEvent_offsetX_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.offsetY')
   int get offsetY native "MouseEvent_offsetY_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.relatedTarget')
   EventTarget get relatedTarget native "MouseEvent_relatedTarget_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.screenX')
   int get screenX native "MouseEvent_screenX_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.screenY')
   int get screenY native "MouseEvent_screenY_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.shiftKey')
   bool get shiftKey native "MouseEvent_shiftKey_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.toElement')
   Node get toElement native "MouseEvent_toElement_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.webkitMovementX')
   int get webkitMovementX native "MouseEvent_webkitMovementX_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.webkitMovementY')
   int get webkitMovementY native "MouseEvent_webkitMovementY_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.x')
   int get x native "MouseEvent_x_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.y')
   int get y native "MouseEvent_y_Getter";
 
+  @DocsEditable
   @DomName('MouseEvent.initMouseEvent')
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
@@ -15831,6 +17361,7 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MutationEvent')
 class MutationEvent extends Event {
   MutationEvent.internal() : super.internal();
@@ -15841,21 +17372,27 @@ class MutationEvent extends Event {
 
   static const int REMOVAL = 3;
 
+  @DocsEditable
   @DomName('MutationEvent.attrChange')
   int get attrChange native "MutationEvent_attrChange_Getter";
 
+  @DocsEditable
   @DomName('MutationEvent.attrName')
   String get attrName native "MutationEvent_attrName_Getter";
 
+  @DocsEditable
   @DomName('MutationEvent.newValue')
   String get newValue native "MutationEvent_newValue_Getter";
 
+  @DocsEditable
   @DomName('MutationEvent.prevValue')
   String get prevValue native "MutationEvent_prevValue_Getter";
 
+  @DocsEditable
   @DomName('MutationEvent.relatedNode')
   Node get relatedNode native "MutationEvent_relatedNode_Getter";
 
+  @DocsEditable
   @DomName('MutationEvent.initMutationEvent')
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
 
@@ -15865,6 +17402,7 @@ class MutationEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('MutationObserver')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -15873,16 +17411,19 @@ class MutationEvent extends Event {
 class MutationObserver extends NativeFieldWrapperClass1 {
   MutationObserver.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
   static MutationObserver _create(MutationCallback callback) native "MutationObserver_constructor_Callback";
 
+  @DocsEditable
   @DomName('MutationObserver.disconnect')
   void disconnect() native "MutationObserver_disconnect_Callback";
 
+  @DocsEditable
   @DomName('MutationObserver._observe')
   void _observe(Node target, Map options) native "MutationObserver__observe_Callback";
 
+  @DocsEditable
   @DomName('MutationObserver.takeRecords')
   List<MutationRecord> takeRecords() native "MutationObserver_takeRecords_Callback";
 
@@ -15963,34 +17504,44 @@ class MutationObserver extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MutationRecord')
 class MutationRecord extends NativeFieldWrapperClass1 {
   MutationRecord.internal();
 
+  @DocsEditable
   @DomName('MutationRecord.addedNodes')
   List<Node> get addedNodes native "MutationRecord_addedNodes_Getter";
 
+  @DocsEditable
   @DomName('MutationRecord.attributeName')
   String get attributeName native "MutationRecord_attributeName_Getter";
 
+  @DocsEditable
   @DomName('MutationRecord.attributeNamespace')
   String get attributeNamespace native "MutationRecord_attributeNamespace_Getter";
 
+  @DocsEditable
   @DomName('MutationRecord.nextSibling')
   Node get nextSibling native "MutationRecord_nextSibling_Getter";
 
+  @DocsEditable
   @DomName('MutationRecord.oldValue')
   String get oldValue native "MutationRecord_oldValue_Getter";
 
+  @DocsEditable
   @DomName('MutationRecord.previousSibling')
   Node get previousSibling native "MutationRecord_previousSibling_Getter";
 
+  @DocsEditable
   @DomName('MutationRecord.removedNodes')
   List<Node> get removedNodes native "MutationRecord_removedNodes_Getter";
 
+  @DocsEditable
   @DomName('MutationRecord.target')
   Node get target native "MutationRecord_target_Getter";
 
+  @DocsEditable
   @DomName('MutationRecord.type')
   String get type native "MutationRecord_type_Getter";
 
@@ -16002,10 +17553,12 @@ class MutationRecord extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('NamedNodeMap')
 class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   NamedNodeMap.internal();
 
+  @DocsEditable
   @DomName('NamedNodeMap.length')
   int get length native "NamedNodeMap_length_Getter";
 
@@ -16157,24 +17710,31 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
   // -- end List<Node> mixins.
 
+  @DocsEditable
   @DomName('NamedNodeMap.getNamedItem')
   Node getNamedItem(String name) native "NamedNodeMap_getNamedItem_Callback";
 
+  @DocsEditable
   @DomName('NamedNodeMap.getNamedItemNS')
   Node getNamedItemNS(String namespaceURI, String localName) native "NamedNodeMap_getNamedItemNS_Callback";
 
+  @DocsEditable
   @DomName('NamedNodeMap.item')
   Node item(int index) native "NamedNodeMap_item_Callback";
 
+  @DocsEditable
   @DomName('NamedNodeMap.removeNamedItem')
   Node removeNamedItem(String name) native "NamedNodeMap_removeNamedItem_Callback";
 
+  @DocsEditable
   @DomName('NamedNodeMap.removeNamedItemNS')
   Node removeNamedItemNS(String namespaceURI, String localName) native "NamedNodeMap_removeNamedItemNS_Callback";
 
+  @DocsEditable
   @DomName('NamedNodeMap.setNamedItem')
   Node setNamedItem(Node node) native "NamedNodeMap_setNamedItem_Callback";
 
+  @DocsEditable
   @DomName('NamedNodeMap.setNamedItemNS')
   Node setNamedItemNS(Node node) native "NamedNodeMap_setNamedItemNS_Callback";
 
@@ -16186,67 +17746,88 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Navigator')
 class Navigator extends NativeFieldWrapperClass1 {
   Navigator.internal();
 
+  @DocsEditable
   @DomName('Navigator.appCodeName')
   String get appCodeName native "Navigator_appCodeName_Getter";
 
+  @DocsEditable
   @DomName('Navigator.appName')
   String get appName native "Navigator_appName_Getter";
 
+  @DocsEditable
   @DomName('Navigator.appVersion')
   String get appVersion native "Navigator_appVersion_Getter";
 
+  @DocsEditable
   @DomName('Navigator.cookieEnabled')
   bool get cookieEnabled native "Navigator_cookieEnabled_Getter";
 
+  @DocsEditable
   @DomName('Navigator.geolocation')
   Geolocation get geolocation native "Navigator_geolocation_Getter";
 
+  @DocsEditable
   @DomName('Navigator.language')
   String get language native "Navigator_language_Getter";
 
+  @DocsEditable
   @DomName('Navigator.mimeTypes')
   DomMimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
 
+  @DocsEditable
   @DomName('Navigator.onLine')
   bool get onLine native "Navigator_onLine_Getter";
 
+  @DocsEditable
   @DomName('Navigator.platform')
   String get platform native "Navigator_platform_Getter";
 
+  @DocsEditable
   @DomName('Navigator.plugins')
   DomPluginArray get plugins native "Navigator_plugins_Getter";
 
+  @DocsEditable
   @DomName('Navigator.product')
   String get product native "Navigator_product_Getter";
 
+  @DocsEditable
   @DomName('Navigator.productSub')
   String get productSub native "Navigator_productSub_Getter";
 
+  @DocsEditable
   @DomName('Navigator.userAgent')
   String get userAgent native "Navigator_userAgent_Getter";
 
+  @DocsEditable
   @DomName('Navigator.vendor')
   String get vendor native "Navigator_vendor_Getter";
 
+  @DocsEditable
   @DomName('Navigator.vendorSub')
   String get vendorSub native "Navigator_vendorSub_Getter";
 
+  @DocsEditable
   @DomName('Navigator.webkitBattery')
   BatteryManager get webkitBattery native "Navigator_webkitBattery_Getter";
 
+  @DocsEditable
   @DomName('Navigator.getStorageUpdates')
   void getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
 
+  @DocsEditable
   @DomName('Navigator.javaEnabled')
   bool javaEnabled() native "Navigator_javaEnabled_Callback";
 
+  @DocsEditable
   @DomName('Navigator.webkitGetGamepads')
   List<Gamepad> webkitGetGamepads() native "Navigator_webkitGetGamepads_Callback";
 
+  @DocsEditable
   @DomName('Navigator.webkitGetUserMedia')
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
 
@@ -16258,12 +17839,14 @@ class Navigator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('NavigatorUserMediaError')
 class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
   NavigatorUserMediaError.internal();
 
   static const int PERMISSION_DENIED = 1;
 
+  @DocsEditable
   @DomName('NavigatorUserMediaError.code')
   int get code native "NavigatorUserMediaError_code_Getter";
 
@@ -16472,6 +18055,7 @@ class _ChildNodeListLazy implements List {
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
+@DocsEditable
 @DomName('Node')
 class Node extends EventTarget {
   List<Node> get nodes {
@@ -16517,78 +18101,103 @@ class Node extends EventTarget {
 
   Node.internal() : super.internal();
 
+  @DocsEditable
   @DomName('Node.attributes')
   NamedNodeMap get $dom_attributes native "Node_attributes_Getter";
 
+  @DocsEditable
   @DomName('Node.childNodes')
   List<Node> get $dom_childNodes native "Node_childNodes_Getter";
 
+  @DocsEditable
   @DomName('Node.firstChild')
   Node get $dom_firstChild native "Node_firstChild_Getter";
 
+  @DocsEditable
   @DomName('Node.lastChild')
   Node get $dom_lastChild native "Node_lastChild_Getter";
 
+  @DocsEditable
   @DomName('Node.localName')
   String get $dom_localName native "Node_localName_Getter";
 
+  @DocsEditable
   @DomName('Node.namespaceURI')
   String get $dom_namespaceUri native "Node_namespaceURI_Getter";
 
+  @DocsEditable
   @DomName('Node.nextSibling')
   Node get nextNode native "Node_nextSibling_Getter";
 
+  @DocsEditable
   @DomName('Node.nodeType')
   int get nodeType native "Node_nodeType_Getter";
 
+  @DocsEditable
   @DomName('Node.nodeValue')
   String get nodeValue native "Node_nodeValue_Getter";
 
+  @DocsEditable
   @DomName('Node.ownerDocument')
   Document get document native "Node_ownerDocument_Getter";
 
+  @DocsEditable
   @DomName('Node.parentElement')
   Element get parent native "Node_parentElement_Getter";
 
+  @DocsEditable
   @DomName('Node.parentNode')
   Node get parentNode native "Node_parentNode_Getter";
 
+  @DocsEditable
   @DomName('Node.previousSibling')
   Node get previousNode native "Node_previousSibling_Getter";
 
+  @DocsEditable
   @DomName('Node.textContent')
   String get text native "Node_textContent_Getter";
 
+  @DocsEditable
   @DomName('Node.textContent')
   void set text(String value) native "Node_textContent_Setter";
 
+  @DocsEditable
   @DomName('Node.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('Node.appendChild')
   Node $dom_appendChild(Node newChild) native "Node_appendChild_Callback";
 
+  @DocsEditable
   @DomName('Node.cloneNode')
   Node clone(bool deep) native "Node_cloneNode_Callback";
 
+  @DocsEditable
   @DomName('Node.contains')
   bool contains(Node other) native "Node_contains_Callback";
 
+  @DocsEditable
   @DomName('Node.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "Node_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('Node.hasChildNodes')
   bool hasChildNodes() native "Node_hasChildNodes_Callback";
 
+  @DocsEditable
   @DomName('Node.insertBefore')
   Node insertBefore(Node newChild, Node refChild) native "Node_insertBefore_Callback";
 
+  @DocsEditable
   @DomName('Node.removeChild')
   Node $dom_removeChild(Node oldChild) native "Node_removeChild_Callback";
 
+  @DocsEditable
   @DomName('Node.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Node_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('Node.replaceChild')
   Node $dom_replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
 
@@ -16600,6 +18209,7 @@ class Node extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('NodeFilter')
 class NodeFilter extends NativeFieldWrapperClass1 {
   NodeFilter.internal();
@@ -16636,6 +18246,7 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 
   static const int SHOW_TEXT = 0x00000004;
 
+  @DocsEditable
   @DomName('NodeFilter.acceptNode')
   int acceptNode(Node n) native "NodeFilter_acceptNode_Callback";
 
@@ -16647,34 +18258,44 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('NodeIterator')
 class NodeIterator extends NativeFieldWrapperClass1 {
   NodeIterator.internal();
 
+  @DocsEditable
   @DomName('NodeIterator.expandEntityReferences')
   bool get expandEntityReferences native "NodeIterator_expandEntityReferences_Getter";
 
+  @DocsEditable
   @DomName('NodeIterator.filter')
   NodeFilter get filter native "NodeIterator_filter_Getter";
 
+  @DocsEditable
   @DomName('NodeIterator.pointerBeforeReferenceNode')
   bool get pointerBeforeReferenceNode native "NodeIterator_pointerBeforeReferenceNode_Getter";
 
+  @DocsEditable
   @DomName('NodeIterator.referenceNode')
   Node get referenceNode native "NodeIterator_referenceNode_Getter";
 
+  @DocsEditable
   @DomName('NodeIterator.root')
   Node get root native "NodeIterator_root_Getter";
 
+  @DocsEditable
   @DomName('NodeIterator.whatToShow')
   int get whatToShow native "NodeIterator_whatToShow_Getter";
 
+  @DocsEditable
   @DomName('NodeIterator.detach')
   void detach() native "NodeIterator_detach_Callback";
 
+  @DocsEditable
   @DomName('NodeIterator.nextNode')
   Node nextNode() native "NodeIterator_nextNode_Callback";
 
+  @DocsEditable
   @DomName('NodeIterator.previousNode')
   Node previousNode() native "NodeIterator_previousNode_Callback";
 
@@ -16686,10 +18307,12 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('NodeList')
 class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   NodeList.internal();
 
+  @DocsEditable
   @DomName('NodeList.length')
   int get length native "NodeList_length_Getter";
 
@@ -16841,6 +18464,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   // -- end List<Node> mixins.
 
+  @DocsEditable
   @DomName('NodeList.item')
   Node _item(int index) native "NodeList_item_Callback";
 
@@ -16852,13 +18476,16 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Notation')
 class Notation extends Node {
   Notation.internal() : super.internal();
 
+  @DocsEditable
   @DomName('Notation.publicId')
   String get publicId native "Notation_publicId_Getter";
 
+  @DocsEditable
   @DomName('Notation.systemId')
   String get systemId native "Notation_systemId_Getter";
 
@@ -16870,6 +18497,7 @@ class Notation extends Node {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Notification')
 class Notification extends EventTarget {
   Notification.internal() : super.internal();
@@ -16884,7 +18512,7 @@ class Notification extends EventTarget {
 
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
-  /// @docsEditable true
+  @DocsEditable
   factory Notification(String title, [Map options]) {
     if (!?options) {
       return Notification._create(title);
@@ -16893,50 +18521,64 @@ class Notification extends EventTarget {
   }
   static Notification _create(String title, [Map options]) native "Notification_constructor_Callback";
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   NotificationEvents get on =>
     new NotificationEvents(this);
 
+  @DocsEditable
   @DomName('Notification.dir')
   String get dir native "Notification_dir_Getter";
 
+  @DocsEditable
   @DomName('Notification.dir')
   void set dir(String value) native "Notification_dir_Setter";
 
+  @DocsEditable
   @DomName('Notification.permission')
   String get permission native "Notification_permission_Getter";
 
+  @DocsEditable
   @DomName('Notification.replaceId')
   String get replaceId native "Notification_replaceId_Getter";
 
+  @DocsEditable
   @DomName('Notification.replaceId')
   void set replaceId(String value) native "Notification_replaceId_Setter";
 
+  @DocsEditable
   @DomName('Notification.tag')
   String get tag native "Notification_tag_Getter";
 
+  @DocsEditable
   @DomName('Notification.tag')
   void set tag(String value) native "Notification_tag_Setter";
 
+  @DocsEditable
   @DomName('Notification.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('Notification.cancel')
   void cancel() native "Notification_cancel_Callback";
 
+  @DocsEditable
   @DomName('Notification.close')
   void close() native "Notification_close_Callback";
 
+  @DocsEditable
   @DomName('Notification.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "Notification_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('Notification.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('Notification.requestPermission')
   static void requestPermission(NotificationPermissionCallback callback) native "Notification_requestPermission_Callback";
 
+  @DocsEditable
   @DomName('Notification.show')
   void show() native "Notification_show_Callback";
 
@@ -16952,24 +18594,24 @@ class Notification extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class NotificationEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   NotificationEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get click => this['click'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get close => this['close'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get display => this['display'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get show => this['show'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16979,6 +18621,7 @@ class NotificationEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('NotificationCenter')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -16989,15 +18632,19 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('NotificationCenter.checkPermission')
   int checkPermission() native "NotificationCenter_checkPermission_Callback";
 
+  @DocsEditable
   @DomName('NotificationCenter.createHTMLNotification')
   Notification createHtmlNotification(String url) native "NotificationCenter_createHTMLNotification_Callback";
 
+  @DocsEditable
   @DomName('NotificationCenter.createNotification')
   Notification createNotification(String iconUrl, String title, String body) native "NotificationCenter_createNotification_Callback";
 
+  @DocsEditable
   @DomName('NotificationCenter.requestPermission')
   void requestPermission(VoidCallback callback) native "NotificationCenter_requestPermission_Callback";
 
@@ -17017,28 +18664,35 @@ typedef void NotificationPermissionCallback(String permission);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLOListElement')
 class OListElement extends _Element_Merged {
   OListElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory OListElement() => document.$dom_createElement("ol");
 
+  @DocsEditable
   @DomName('HTMLOListElement.reversed')
   bool get reversed native "HTMLOListElement_reversed_Getter";
 
+  @DocsEditable
   @DomName('HTMLOListElement.reversed')
   void set reversed(bool value) native "HTMLOListElement_reversed_Setter";
 
+  @DocsEditable
   @DomName('HTMLOListElement.start')
   int get start native "HTMLOListElement_start_Getter";
 
+  @DocsEditable
   @DomName('HTMLOListElement.start')
   void set start(int value) native "HTMLOListElement_start_Setter";
 
+  @DocsEditable
   @DomName('HTMLOListElement.type')
   String get type native "HTMLOListElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLOListElement.type')
   void set type(String value) native "HTMLOListElement_type_Setter";
 
@@ -17050,6 +18704,7 @@ class OListElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -17057,69 +18712,89 @@ class OListElement extends _Element_Merged {
 class ObjectElement extends _Element_Merged {
   ObjectElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory ObjectElement() => document.$dom_createElement("object");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLObjectElement.code')
   String get code native "HTMLObjectElement_code_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.code')
   void set code(String value) native "HTMLObjectElement_code_Setter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.data')
   String get data native "HTMLObjectElement_data_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.data')
   void set data(String value) native "HTMLObjectElement_data_Setter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.form')
   FormElement get form native "HTMLObjectElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.height')
   String get height native "HTMLObjectElement_height_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.height')
   void set height(String value) native "HTMLObjectElement_height_Setter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.name')
   String get name native "HTMLObjectElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.name')
   void set name(String value) native "HTMLObjectElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.type')
   String get type native "HTMLObjectElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.type')
   void set type(String value) native "HTMLObjectElement_type_Setter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.useMap')
   String get useMap native "HTMLObjectElement_useMap_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.useMap')
   void set useMap(String value) native "HTMLObjectElement_useMap_Setter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.validationMessage')
   String get validationMessage native "HTMLObjectElement_validationMessage_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.validity')
   ValidityState get validity native "HTMLObjectElement_validity_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.width')
   String get width native "HTMLObjectElement_width_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.width')
   void set width(String value) native "HTMLObjectElement_width_Setter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.willValidate')
   bool get willValidate native "HTMLObjectElement_willValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.checkValidity')
   bool checkValidity() native "HTMLObjectElement_checkValidity_Callback";
 
+  @DocsEditable
   @DomName('HTMLObjectElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLObjectElement_setCustomValidity_Callback";
 
@@ -17131,6 +18806,7 @@ class ObjectElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('OESElementIndexUint')
 class OesElementIndexUint extends NativeFieldWrapperClass1 {
   OesElementIndexUint.internal();
@@ -17143,6 +18819,7 @@ class OesElementIndexUint extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('OESStandardDerivatives')
 class OesStandardDerivatives extends NativeFieldWrapperClass1 {
   OesStandardDerivatives.internal();
@@ -17157,6 +18834,7 @@ class OesStandardDerivatives extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('OESTextureFloat')
 class OesTextureFloat extends NativeFieldWrapperClass1 {
   OesTextureFloat.internal();
@@ -17169,21 +18847,26 @@ class OesTextureFloat extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('OESVertexArrayObject')
 class OesVertexArrayObject extends NativeFieldWrapperClass1 {
   OesVertexArrayObject.internal();
 
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
+  @DocsEditable
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
   void bindVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
 
+  @DocsEditable
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   WebGLVertexArrayObject createVertexArray() native "OESVertexArrayObject_createVertexArrayOES_Callback";
 
+  @DocsEditable
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   void deleteVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
 
+  @DocsEditable
   @DomName('OESVertexArrayObject.isVertexArrayOES')
   bool isVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
 
@@ -17195,22 +18878,27 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLOptGroupElement')
 class OptGroupElement extends _Element_Merged {
   OptGroupElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
+  @DocsEditable
   @DomName('HTMLOptGroupElement.disabled')
   bool get disabled native "HTMLOptGroupElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLOptGroupElement.disabled')
   void set disabled(bool value) native "HTMLOptGroupElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLOptGroupElement.label')
   String get label native "HTMLOptGroupElement_label_Getter";
 
+  @DocsEditable
   @DomName('HTMLOptGroupElement.label')
   void set label(String value) native "HTMLOptGroupElement_label_Setter";
 
@@ -17222,11 +18910,12 @@ class OptGroupElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLOptionElement')
 class OptionElement extends _Element_Merged {
   OptionElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
       return OptionElement._create();
@@ -17244,39 +18933,51 @@ class OptionElement extends _Element_Merged {
   }
   static OptionElement _create([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.defaultSelected')
   bool get defaultSelected native "HTMLOptionElement_defaultSelected_Getter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.defaultSelected')
   void set defaultSelected(bool value) native "HTMLOptionElement_defaultSelected_Setter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.disabled')
   bool get disabled native "HTMLOptionElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.disabled')
   void set disabled(bool value) native "HTMLOptionElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.form')
   FormElement get form native "HTMLOptionElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.index')
   int get index native "HTMLOptionElement_index_Getter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.label')
   String get label native "HTMLOptionElement_label_Getter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.label')
   void set label(String value) native "HTMLOptionElement_label_Setter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.selected')
   bool get selected native "HTMLOptionElement_selected_Getter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.selected')
   void set selected(bool value) native "HTMLOptionElement_selected_Setter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.value')
   String get value native "HTMLOptionElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLOptionElement.value')
   void set value(String value) native "HTMLOptionElement_value_Setter";
 
@@ -17288,6 +18989,7 @@ class OptionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLOutputElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -17295,57 +18997,73 @@ class OptionElement extends _Element_Merged {
 class OutputElement extends _Element_Merged {
   OutputElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory OutputElement() => document.$dom_createElement("output");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLOutputElement.defaultValue')
   String get defaultValue native "HTMLOutputElement_defaultValue_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.defaultValue')
   void set defaultValue(String value) native "HTMLOutputElement_defaultValue_Setter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.form')
   FormElement get form native "HTMLOutputElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.htmlFor')
   DomSettableTokenList get htmlFor native "HTMLOutputElement_htmlFor_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.htmlFor')
   void set htmlFor(DomSettableTokenList value) native "HTMLOutputElement_htmlFor_Setter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.labels')
   List<Node> get labels native "HTMLOutputElement_labels_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.name')
   String get name native "HTMLOutputElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.name')
   void set name(String value) native "HTMLOutputElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.type')
   String get type native "HTMLOutputElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.validationMessage')
   String get validationMessage native "HTMLOutputElement_validationMessage_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.validity')
   ValidityState get validity native "HTMLOutputElement_validity_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.value')
   String get value native "HTMLOutputElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.value')
   void set value(String value) native "HTMLOutputElement_value_Setter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.willValidate')
   bool get willValidate native "HTMLOutputElement_willValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.checkValidity')
   bool checkValidity() native "HTMLOutputElement_checkValidity_Callback";
 
+  @DocsEditable
   @DomName('HTMLOutputElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLOutputElement_setCustomValidity_Callback";
 
@@ -17357,6 +19075,7 @@ class OutputElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('OverflowEvent')
 class OverflowEvent extends Event {
   OverflowEvent.internal() : super.internal();
@@ -17367,12 +19086,15 @@ class OverflowEvent extends Event {
 
   static const int VERTICAL = 1;
 
+  @DocsEditable
   @DomName('OverflowEvent.horizontalOverflow')
   bool get horizontalOverflow native "OverflowEvent_horizontalOverflow_Getter";
 
+  @DocsEditable
   @DomName('OverflowEvent.orient')
   int get orient native "OverflowEvent_orient_Getter";
 
+  @DocsEditable
   @DomName('OverflowEvent.verticalOverflow')
   bool get verticalOverflow native "OverflowEvent_verticalOverflow_Getter";
 
@@ -17384,19 +19106,24 @@ class OverflowEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('PagePopupController')
 class PagePopupController extends NativeFieldWrapperClass1 {
   PagePopupController.internal();
 
+  @DocsEditable
   @DomName('PagePopupController.formatMonth')
   String formatMonth(int year, int zeroBaseMonth) native "PagePopupController_formatMonth_Callback";
 
+  @DocsEditable
   @DomName('PagePopupController.histogramEnumeration')
   void histogramEnumeration(String name, int sample, int boundaryValue) native "PagePopupController_histogramEnumeration_Callback";
 
+  @DocsEditable
   @DomName('PagePopupController.localizeNumberString')
   String localizeNumberString(String numberString) native "PagePopupController_localizeNumberString_Callback";
 
+  @DocsEditable
   @DomName('PagePopupController.setValueAndClosePopup')
   void setValueAndClosePopup(int numberValue, String stringValue) native "PagePopupController_setValueAndClosePopup_Callback";
 
@@ -17408,10 +19135,12 @@ class PagePopupController extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('PageTransitionEvent')
 class PageTransitionEvent extends Event {
   PageTransitionEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('PageTransitionEvent.persisted')
   bool get persisted native "PageTransitionEvent_persisted_Getter";
 
@@ -17423,11 +19152,12 @@ class PageTransitionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLParagraphElement')
 class ParagraphElement extends _Element_Merged {
   ParagraphElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory ParagraphElement() => document.$dom_createElement("p");
 
 }
@@ -17438,22 +19168,27 @@ class ParagraphElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLParamElement')
 class ParamElement extends _Element_Merged {
   ParamElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory ParamElement() => document.$dom_createElement("param");
 
+  @DocsEditable
   @DomName('HTMLParamElement.name')
   String get name native "HTMLParamElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLParamElement.name')
   void set name(String value) native "HTMLParamElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLParamElement.value')
   String get value native "HTMLParamElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLParamElement.value')
   void set value(String value) native "HTMLParamElement_value_Setter";
 
@@ -17465,6 +19200,7 @@ class ParamElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Performance')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -17475,15 +19211,19 @@ class Performance extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('Performance.memory')
   MemoryInfo get memory native "Performance_memory_Getter";
 
+  @DocsEditable
   @DomName('Performance.navigation')
   PerformanceNavigation get navigation native "Performance_navigation_Getter";
 
+  @DocsEditable
   @DomName('Performance.timing')
   PerformanceTiming get timing native "Performance_timing_Getter";
 
+  @DocsEditable
   @DomName('Performance.now')
   num now() native "Performance_now_Callback";
 
@@ -17495,6 +19235,7 @@ class Performance extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('PerformanceNavigation')
 class PerformanceNavigation extends NativeFieldWrapperClass1 {
   PerformanceNavigation.internal();
@@ -17507,9 +19248,11 @@ class PerformanceNavigation extends NativeFieldWrapperClass1 {
 
   static const int TYPE_RESERVED = 255;
 
+  @DocsEditable
   @DomName('PerformanceNavigation.redirectCount')
   int get redirectCount native "PerformanceNavigation_redirectCount_Getter";
 
+  @DocsEditable
   @DomName('PerformanceNavigation.type')
   int get type native "PerformanceNavigation_type_Getter";
 
@@ -17521,70 +19264,92 @@ class PerformanceNavigation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('PerformanceTiming')
 class PerformanceTiming extends NativeFieldWrapperClass1 {
   PerformanceTiming.internal();
 
+  @DocsEditable
   @DomName('PerformanceTiming.connectEnd')
   int get connectEnd native "PerformanceTiming_connectEnd_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.connectStart')
   int get connectStart native "PerformanceTiming_connectStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.domComplete')
   int get domComplete native "PerformanceTiming_domComplete_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.domContentLoadedEventEnd')
   int get domContentLoadedEventEnd native "PerformanceTiming_domContentLoadedEventEnd_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.domContentLoadedEventStart')
   int get domContentLoadedEventStart native "PerformanceTiming_domContentLoadedEventStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.domInteractive')
   int get domInteractive native "PerformanceTiming_domInteractive_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.domLoading')
   int get domLoading native "PerformanceTiming_domLoading_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.domainLookupEnd')
   int get domainLookupEnd native "PerformanceTiming_domainLookupEnd_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.domainLookupStart')
   int get domainLookupStart native "PerformanceTiming_domainLookupStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.fetchStart')
   int get fetchStart native "PerformanceTiming_fetchStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.loadEventEnd')
   int get loadEventEnd native "PerformanceTiming_loadEventEnd_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.loadEventStart')
   int get loadEventStart native "PerformanceTiming_loadEventStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.navigationStart')
   int get navigationStart native "PerformanceTiming_navigationStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.redirectEnd')
   int get redirectEnd native "PerformanceTiming_redirectEnd_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.redirectStart')
   int get redirectStart native "PerformanceTiming_redirectStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.requestStart')
   int get requestStart native "PerformanceTiming_requestStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.responseEnd')
   int get responseEnd native "PerformanceTiming_responseEnd_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.responseStart')
   int get responseStart native "PerformanceTiming_responseStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.secureConnectionStart')
   int get secureConnectionStart native "PerformanceTiming_secureConnectionStart_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.unloadEventEnd')
   int get unloadEventEnd native "PerformanceTiming_unloadEventEnd_Getter";
 
+  @DocsEditable
   @DomName('PerformanceTiming.unloadEventStart')
   int get unloadEventStart native "PerformanceTiming_unloadEventStart_Getter";
 
@@ -17596,23 +19361,28 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitPoint')
 class Point extends NativeFieldWrapperClass1 {
   Point.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory Point(num x, num y) => Point._create(x, y);
   static Point _create(num x, num y) native "WebKitPoint_constructor_Callback";
 
+  @DocsEditable
   @DomName('WebKitPoint.x')
   num get x native "WebKitPoint_x_Getter";
 
+  @DocsEditable
   @DomName('WebKitPoint.x')
   void set x(num value) native "WebKitPoint_x_Setter";
 
+  @DocsEditable
   @DomName('WebKitPoint.y')
   num get y native "WebKitPoint_y_Getter";
 
+  @DocsEditable
   @DomName('WebKitPoint.y')
   void set y(num value) native "WebKitPoint_y_Setter";
 
@@ -17624,10 +19394,12 @@ class Point extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('PopStateEvent')
 class PopStateEvent extends Event {
   PopStateEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('PopStateEvent.state')
   Object get state native "PopStateEvent_state_Getter";
 
@@ -17647,6 +19419,7 @@ typedef void PositionCallback(Geoposition position);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('PositionError')
 class PositionError extends NativeFieldWrapperClass1 {
   PositionError.internal();
@@ -17657,9 +19430,11 @@ class PositionError extends NativeFieldWrapperClass1 {
 
   static const int TIMEOUT = 3;
 
+  @DocsEditable
   @DomName('PositionError.code')
   int get code native "PositionError_code_Getter";
 
+  @DocsEditable
   @DomName('PositionError.message')
   String get message native "PositionError_message_Getter";
 
@@ -17679,16 +19454,19 @@ typedef void PositionErrorCallback(PositionError error);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLPreElement')
 class PreElement extends _Element_Merged {
   PreElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory PreElement() => document.$dom_createElement("pre");
 
+  @DocsEditable
   @DomName('HTMLPreElement.wrap')
   bool get wrap native "HTMLPreElement_wrap_Getter";
 
+  @DocsEditable
   @DomName('HTMLPreElement.wrap')
   void set wrap(bool value) native "HTMLPreElement_wrap_Setter";
 
@@ -17700,19 +19478,24 @@ class PreElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ProcessingInstruction')
 class ProcessingInstruction extends Node {
   ProcessingInstruction.internal() : super.internal();
 
+  @DocsEditable
   @DomName('ProcessingInstruction.data')
   String get data native "ProcessingInstruction_data_Getter";
 
+  @DocsEditable
   @DomName('ProcessingInstruction.data')
   void set data(String value) native "ProcessingInstruction_data_Setter";
 
+  @DocsEditable
   @DomName('ProcessingInstruction.sheet')
   StyleSheet get sheet native "ProcessingInstruction_sheet_Getter";
 
+  @DocsEditable
   @DomName('ProcessingInstruction.target')
   String get target native "ProcessingInstruction_target_Getter";
 
@@ -17724,6 +19507,7 @@ class ProcessingInstruction extends Node {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLProgressElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -17732,27 +19516,33 @@ class ProcessingInstruction extends Node {
 class ProgressElement extends _Element_Merged {
   ProgressElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory ProgressElement() => document.$dom_createElement("progress");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLProgressElement.labels')
   List<Node> get labels native "HTMLProgressElement_labels_Getter";
 
+  @DocsEditable
   @DomName('HTMLProgressElement.max')
   num get max native "HTMLProgressElement_max_Getter";
 
+  @DocsEditable
   @DomName('HTMLProgressElement.max')
   void set max(num value) native "HTMLProgressElement_max_Setter";
 
+  @DocsEditable
   @DomName('HTMLProgressElement.position')
   num get position native "HTMLProgressElement_position_Getter";
 
+  @DocsEditable
   @DomName('HTMLProgressElement.value')
   num get value native "HTMLProgressElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLProgressElement.value')
   void set value(num value) native "HTMLProgressElement_value_Setter";
 
@@ -17764,16 +19554,20 @@ class ProgressElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ProgressEvent')
 class ProgressEvent extends Event {
   ProgressEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('ProgressEvent.lengthComputable')
   bool get lengthComputable native "ProgressEvent_lengthComputable_Getter";
 
+  @DocsEditable
   @DomName('ProgressEvent.loaded')
   int get loaded native "ProgressEvent_loaded_Getter";
 
+  @DocsEditable
   @DomName('ProgressEvent.total')
   int get total native "ProgressEvent_total_Getter";
 
@@ -17785,13 +19579,16 @@ class ProgressEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLQuoteElement')
 class QuoteElement extends _Element_Merged {
   QuoteElement.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLQuoteElement.cite')
   String get cite native "HTMLQuoteElement_cite_Getter";
 
+  @DocsEditable
   @DomName('HTMLQuoteElement.cite')
   void set cite(String value) native "HTMLQuoteElement_cite_Setter";
 
@@ -17827,13 +19624,16 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RadioNodeList')
 class RadioNodeList extends NodeList {
   RadioNodeList.internal() : super.internal();
 
+  @DocsEditable
   @DomName('RadioNodeList.value')
   String get value native "RadioNodeList_value_Getter";
 
+  @DocsEditable
   @DomName('RadioNodeList.value')
   void set value(String value) native "RadioNodeList_value_Setter";
 
@@ -17845,6 +19645,7 @@ class RadioNodeList extends NodeList {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Range')
 class Range extends NativeFieldWrapperClass1 {
   factory Range() => document.$dom_createRange();
@@ -17867,96 +19668,127 @@ class Range extends NativeFieldWrapperClass1 {
 
   static const int START_TO_START = 0;
 
+  @DocsEditable
   @DomName('Range.collapsed')
   bool get collapsed native "Range_collapsed_Getter";
 
+  @DocsEditable
   @DomName('Range.commonAncestorContainer')
   Node get commonAncestorContainer native "Range_commonAncestorContainer_Getter";
 
+  @DocsEditable
   @DomName('Range.endContainer')
   Node get endContainer native "Range_endContainer_Getter";
 
+  @DocsEditable
   @DomName('Range.endOffset')
   int get endOffset native "Range_endOffset_Getter";
 
+  @DocsEditable
   @DomName('Range.startContainer')
   Node get startContainer native "Range_startContainer_Getter";
 
+  @DocsEditable
   @DomName('Range.startOffset')
   int get startOffset native "Range_startOffset_Getter";
 
+  @DocsEditable
   @DomName('Range.cloneContents')
   DocumentFragment cloneContents() native "Range_cloneContents_Callback";
 
+  @DocsEditable
   @DomName('Range.cloneRange')
   Range cloneRange() native "Range_cloneRange_Callback";
 
+  @DocsEditable
   @DomName('Range.collapse')
   void collapse(bool toStart) native "Range_collapse_Callback";
 
+  @DocsEditable
   @DomName('Range.compareNode')
   int compareNode(Node refNode) native "Range_compareNode_Callback";
 
+  @DocsEditable
   @DomName('Range.comparePoint')
   int comparePoint(Node refNode, int offset) native "Range_comparePoint_Callback";
 
+  @DocsEditable
   @DomName('Range.createContextualFragment')
   DocumentFragment createContextualFragment(String html) native "Range_createContextualFragment_Callback";
 
+  @DocsEditable
   @DomName('Range.deleteContents')
   void deleteContents() native "Range_deleteContents_Callback";
 
+  @DocsEditable
   @DomName('Range.detach')
   void detach() native "Range_detach_Callback";
 
+  @DocsEditable
   @DomName('Range.expand')
   void expand(String unit) native "Range_expand_Callback";
 
+  @DocsEditable
   @DomName('Range.extractContents')
   DocumentFragment extractContents() native "Range_extractContents_Callback";
 
+  @DocsEditable
   @DomName('Range.getBoundingClientRect')
   ClientRect getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
 
+  @DocsEditable
   @DomName('Range.getClientRects')
   List<ClientRect> getClientRects() native "Range_getClientRects_Callback";
 
+  @DocsEditable
   @DomName('Range.insertNode')
   void insertNode(Node newNode) native "Range_insertNode_Callback";
 
+  @DocsEditable
   @DomName('Range.intersectsNode')
   bool intersectsNode(Node refNode) native "Range_intersectsNode_Callback";
 
+  @DocsEditable
   @DomName('Range.isPointInRange')
   bool isPointInRange(Node refNode, int offset) native "Range_isPointInRange_Callback";
 
+  @DocsEditable
   @DomName('Range.selectNode')
   void selectNode(Node refNode) native "Range_selectNode_Callback";
 
+  @DocsEditable
   @DomName('Range.selectNodeContents')
   void selectNodeContents(Node refNode) native "Range_selectNodeContents_Callback";
 
+  @DocsEditable
   @DomName('Range.setEnd')
   void setEnd(Node refNode, int offset) native "Range_setEnd_Callback";
 
+  @DocsEditable
   @DomName('Range.setEndAfter')
   void setEndAfter(Node refNode) native "Range_setEndAfter_Callback";
 
+  @DocsEditable
   @DomName('Range.setEndBefore')
   void setEndBefore(Node refNode) native "Range_setEndBefore_Callback";
 
+  @DocsEditable
   @DomName('Range.setStart')
   void setStart(Node refNode, int offset) native "Range_setStart_Callback";
 
+  @DocsEditable
   @DomName('Range.setStartAfter')
   void setStartAfter(Node refNode) native "Range_setStartAfter_Callback";
 
+  @DocsEditable
   @DomName('Range.setStartBefore')
   void setStartBefore(Node refNode) native "Range_setStartBefore_Callback";
 
+  @DocsEditable
   @DomName('Range.surroundContents')
   void surroundContents(Node newParent) native "Range_surroundContents_Callback";
 
+  @DocsEditable
   @DomName('Range.toString')
   String toString() native "Range_toString_Callback";
 
@@ -17968,6 +19800,7 @@ class Range extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RangeException')
 class RangeException extends NativeFieldWrapperClass1 {
   RangeException.internal();
@@ -17976,15 +19809,19 @@ class RangeException extends NativeFieldWrapperClass1 {
 
   static const int INVALID_NODE_TYPE_ERR = 2;
 
+  @DocsEditable
   @DomName('RangeException.code')
   int get code native "RangeException_code_Getter";
 
+  @DocsEditable
   @DomName('RangeException.message')
   String get message native "RangeException_message_Getter";
 
+  @DocsEditable
   @DomName('RangeException.name')
   String get name native "RangeException_name_Getter";
 
+  @DocsEditable
   @DomName('RangeException.toString')
   String toString() native "RangeException_toString_Callback";
 
@@ -17996,19 +19833,24 @@ class RangeException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Rect')
 class Rect extends NativeFieldWrapperClass1 {
   Rect.internal();
 
+  @DocsEditable
   @DomName('Rect.bottom')
   CssPrimitiveValue get bottom native "Rect_bottom_Getter";
 
+  @DocsEditable
   @DomName('Rect.left')
   CssPrimitiveValue get left native "Rect_left_Getter";
 
+  @DocsEditable
   @DomName('Rect.right')
   CssPrimitiveValue get right native "Rect_right_Getter";
 
+  @DocsEditable
   @DomName('Rect.top')
   CssPrimitiveValue get top native "Rect_top_Getter";
 
@@ -18028,16 +19870,20 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RGBColor')
 class RgbColor extends NativeFieldWrapperClass1 {
   RgbColor.internal();
 
+  @DocsEditable
   @DomName('RGBColor.blue')
   CssPrimitiveValue get blue native "RGBColor_blue_Getter";
 
+  @DocsEditable
   @DomName('RGBColor.green')
   CssPrimitiveValue get green native "RGBColor_green_Getter";
 
+  @DocsEditable
   @DomName('RGBColor.red')
   CssPrimitiveValue get red native "RGBColor_red_Getter";
 
@@ -18049,6 +19895,7 @@ class RgbColor extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RTCDataChannel')
 class RtcDataChannel extends EventTarget {
   RtcDataChannel.internal() : super.internal();
@@ -18061,38 +19908,48 @@ class RtcDataChannel extends EventTarget {
 
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   RtcDataChannelEvents get on =>
     new RtcDataChannelEvents(this);
 
+  @DocsEditable
   @DomName('RTCDataChannel.binaryType')
   String get binaryType native "RTCDataChannel_binaryType_Getter";
 
+  @DocsEditable
   @DomName('RTCDataChannel.binaryType')
   void set binaryType(String value) native "RTCDataChannel_binaryType_Setter";
 
+  @DocsEditable
   @DomName('RTCDataChannel.bufferedAmount')
   int get bufferedAmount native "RTCDataChannel_bufferedAmount_Getter";
 
+  @DocsEditable
   @DomName('RTCDataChannel.label')
   String get label native "RTCDataChannel_label_Getter";
 
+  @DocsEditable
   @DomName('RTCDataChannel.readyState')
   String get readyState native "RTCDataChannel_readyState_Getter";
 
+  @DocsEditable
   @DomName('RTCDataChannel.reliable')
   bool get reliable native "RTCDataChannel_reliable_Getter";
 
+  @DocsEditable
   @DomName('RTCDataChannel.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('RTCDataChannel.close')
   void close() native "RTCDataChannel_close_Callback";
 
+  @DocsEditable
   @DomName('RTCDataChannel.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "RTCDataChannel_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('RTCDataChannel.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
@@ -18116,15 +19973,19 @@ class RtcDataChannel extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('RTCDataChannel.send_1')
   void _send_1(data) native "RTCDataChannel_send_1_Callback";
 
+  @DocsEditable
   @DomName('RTCDataChannel.send_2')
   void _send_2(data) native "RTCDataChannel_send_2_Callback";
 
+  @DocsEditable
   @DomName('RTCDataChannel.send_3')
   void _send_3(data) native "RTCDataChannel_send_3_Callback";
 
+  @DocsEditable
   @DomName('RTCDataChannel.send_4')
   void _send_4(data) native "RTCDataChannel_send_4_Callback";
 
@@ -18138,21 +19999,21 @@ class RtcDataChannel extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class RtcDataChannelEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   RtcDataChannelEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get close => this['close'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18162,10 +20023,12 @@ class RtcDataChannelEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RTCDataChannelEvent')
 class RtcDataChannelEvent extends Event {
   RtcDataChannelEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('RTCDataChannelEvent.channel')
   RtcDataChannel get channel native "RTCDataChannelEvent_channel_Getter";
 
@@ -18177,20 +20040,24 @@ class RtcDataChannelEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RTCIceCandidate')
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
   RtcIceCandidate.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
   static RtcIceCandidate _create(Map dictionary) native "RTCIceCandidate_constructor_Callback";
 
+  @DocsEditable
   @DomName('RTCIceCandidate.candidate')
   String get candidate native "RTCIceCandidate_candidate_Getter";
 
+  @DocsEditable
   @DomName('RTCIceCandidate.sdpMLineIndex')
   int get sdpMLineIndex native "RTCIceCandidate_sdpMLineIndex_Getter";
 
+  @DocsEditable
   @DomName('RTCIceCandidate.sdpMid')
   String get sdpMid native "RTCIceCandidate_sdpMid_Getter";
 
@@ -18202,10 +20069,12 @@ class RtcIceCandidate extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RTCIceCandidateEvent')
 class RtcIceCandidateEvent extends Event {
   RtcIceCandidateEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('RTCIceCandidateEvent.candidate')
   RtcIceCandidate get candidate native "RTCIceCandidateEvent_candidate_Getter";
 
@@ -18217,6 +20086,7 @@ class RtcIceCandidateEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RTCPeerConnection')
 class RtcPeerConnection extends EventTarget {
   RtcPeerConnection.internal() : super.internal();
@@ -18237,7 +20107,7 @@ class RtcPeerConnection extends EventTarget {
 
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
-  /// @docsEditable true
+  @DocsEditable
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     if (!?mediaConstraints) {
       return RtcPeerConnection._create(rtcIceServers);
@@ -18246,71 +20116,92 @@ class RtcPeerConnection extends EventTarget {
   }
   static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   RtcPeerConnectionEvents get on =>
     new RtcPeerConnectionEvents(this);
 
+  @DocsEditable
   @DomName('RTCPeerConnection.iceGatheringState')
   String get iceGatheringState native "RTCPeerConnection_iceGatheringState_Getter";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.iceState')
   String get iceState native "RTCPeerConnection_iceState_Getter";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.localDescription')
   RtcSessionDescription get localDescription native "RTCPeerConnection_localDescription_Getter";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.localStreams')
   List<MediaStream> get localStreams native "RTCPeerConnection_localStreams_Getter";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.readyState')
   String get readyState native "RTCPeerConnection_readyState_Getter";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.remoteDescription')
   RtcSessionDescription get remoteDescription native "RTCPeerConnection_remoteDescription_Getter";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.remoteStreams')
   List<MediaStream> get remoteStreams native "RTCPeerConnection_remoteStreams_Getter";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.addIceCandidate')
   void addIceCandidate(RtcIceCandidate candidate) native "RTCPeerConnection_addIceCandidate_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.addStream')
   void addStream(MediaStream stream, [Map mediaConstraints]) native "RTCPeerConnection_addStream_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.close')
   void close() native "RTCPeerConnection_close_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.createAnswer')
   void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.createDataChannel')
   RtcDataChannel createDataChannel(String label, [Map options]) native "RTCPeerConnection_createDataChannel_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.createOffer')
   void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.getStats')
   void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.removeStream')
   void removeStream(MediaStream stream) native "RTCPeerConnection_removeStream_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.setLocalDescription')
   void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setLocalDescription_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.setRemoteDescription')
   void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
 
+  @DocsEditable
   @DomName('RTCPeerConnection.updateIce')
   void updateIce([Map configuration, Map mediaConstraints]) native "RTCPeerConnection_updateIce_Callback";
 
@@ -18332,30 +20223,30 @@ class RtcPeerConnection extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class RtcPeerConnectionEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   RtcPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get addStream => this['addstream'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get iceCandidate => this['icecandidate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get iceChange => this['icechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get negotiationNeeded => this['negotiationneeded'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get removeStream => this['removestream'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18365,23 +20256,28 @@ class RtcPeerConnectionEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RTCSessionDescription')
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
   RtcSessionDescription.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
   static RtcSessionDescription _create(Map dictionary) native "RTCSessionDescription_constructor_Callback";
 
+  @DocsEditable
   @DomName('RTCSessionDescription.sdp')
   String get sdp native "RTCSessionDescription_sdp_Getter";
 
+  @DocsEditable
   @DomName('RTCSessionDescription.sdp')
   void set sdp(String value) native "RTCSessionDescription_sdp_Setter";
 
+  @DocsEditable
   @DomName('RTCSessionDescription.type')
   String get type native "RTCSessionDescription_type_Getter";
 
+  @DocsEditable
   @DomName('RTCSessionDescription.type')
   void set type(String value) native "RTCSessionDescription_type_Setter";
 
@@ -18393,16 +20289,20 @@ class RtcSessionDescription extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RTCStatsElement')
 class RtcStatsElement extends NativeFieldWrapperClass1 {
   RtcStatsElement.internal();
 
+  @DocsEditable
   @DomName('RTCStatsElement.timestamp')
   Date get timestamp native "RTCStatsElement_timestamp_Getter";
 
+  @DocsEditable
   @DomName('RTCStatsElement.names')
   List<String> names() native "RTCStatsElement_names_Callback";
 
+  @DocsEditable
   @DomName('RTCStatsElement.stat')
   String stat(String name) native "RTCStatsElement_stat_Callback";
 
@@ -18414,13 +20314,16 @@ class RtcStatsElement extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RTCStatsReport')
 class RtcStatsReport extends NativeFieldWrapperClass1 {
   RtcStatsReport.internal();
 
+  @DocsEditable
   @DomName('RTCStatsReport.local')
   RtcStatsElement get local native "RTCStatsReport_local_Getter";
 
+  @DocsEditable
   @DomName('RTCStatsReport.remote')
   RtcStatsElement get remote native "RTCStatsReport_remote_Getter";
 
@@ -18432,10 +20335,12 @@ class RtcStatsReport extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('RTCStatsResponse')
 class RtcStatsResponse extends NativeFieldWrapperClass1 {
   RtcStatsResponse.internal();
 
+  @DocsEditable
   @DomName('RTCStatsResponse.result')
   List<RtcStatsReport> result() native "RTCStatsResponse_result_Callback";
 
@@ -18487,31 +20392,40 @@ typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Screen')
 class Screen extends NativeFieldWrapperClass1 {
   Screen.internal();
 
+  @DocsEditable
   @DomName('Screen.availHeight')
   int get availHeight native "Screen_availHeight_Getter";
 
+  @DocsEditable
   @DomName('Screen.availLeft')
   int get availLeft native "Screen_availLeft_Getter";
 
+  @DocsEditable
   @DomName('Screen.availTop')
   int get availTop native "Screen_availTop_Getter";
 
+  @DocsEditable
   @DomName('Screen.availWidth')
   int get availWidth native "Screen_availWidth_Getter";
 
+  @DocsEditable
   @DomName('Screen.colorDepth')
   int get colorDepth native "Screen_colorDepth_Getter";
 
+  @DocsEditable
   @DomName('Screen.height')
   int get height native "Screen_height_Getter";
 
+  @DocsEditable
   @DomName('Screen.pixelDepth')
   int get pixelDepth native "Screen_pixelDepth_Getter";
 
+  @DocsEditable
   @DomName('Screen.width')
   int get width native "Screen_width_Getter";
 
@@ -18523,58 +20437,75 @@ class Screen extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLScriptElement')
 class ScriptElement extends _Element_Merged {
   ScriptElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory ScriptElement() => document.$dom_createElement("script");
 
+  @DocsEditable
   @DomName('HTMLScriptElement.async')
   bool get async native "HTMLScriptElement_async_Getter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.async')
   void set async(bool value) native "HTMLScriptElement_async_Setter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.charset')
   String get charset native "HTMLScriptElement_charset_Getter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.charset')
   void set charset(String value) native "HTMLScriptElement_charset_Setter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.crossOrigin')
   String get crossOrigin native "HTMLScriptElement_crossOrigin_Getter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.crossOrigin')
   void set crossOrigin(String value) native "HTMLScriptElement_crossOrigin_Setter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.defer')
   bool get defer native "HTMLScriptElement_defer_Getter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.defer')
   void set defer(bool value) native "HTMLScriptElement_defer_Setter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.event')
   String get event native "HTMLScriptElement_event_Getter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.event')
   void set event(String value) native "HTMLScriptElement_event_Setter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.htmlFor')
   String get htmlFor native "HTMLScriptElement_htmlFor_Getter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.htmlFor')
   void set htmlFor(String value) native "HTMLScriptElement_htmlFor_Setter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.src')
   String get src native "HTMLScriptElement_src_Getter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.src')
   void set src(String value) native "HTMLScriptElement_src_Setter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.type')
   String get type native "HTMLScriptElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLScriptElement.type')
   void set type(String value) native "HTMLScriptElement_type_Setter";
 
@@ -18586,16 +20517,20 @@ class ScriptElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ScriptProfile')
 class ScriptProfile extends NativeFieldWrapperClass1 {
   ScriptProfile.internal();
 
+  @DocsEditable
   @DomName('ScriptProfile.head')
   ScriptProfileNode get head native "ScriptProfile_head_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfile.title')
   String get title native "ScriptProfile_title_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfile.uid')
   int get uid native "ScriptProfile_uid_Getter";
 
@@ -18607,34 +20542,44 @@ class ScriptProfile extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ScriptProfileNode')
 class ScriptProfileNode extends NativeFieldWrapperClass1 {
   ScriptProfileNode.internal();
 
+  @DocsEditable
   @DomName('ScriptProfileNode.callUID')
   int get callUid native "ScriptProfileNode_callUID_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfileNode.functionName')
   String get functionName native "ScriptProfileNode_functionName_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfileNode.lineNumber')
   int get lineNumber native "ScriptProfileNode_lineNumber_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfileNode.numberOfCalls')
   int get numberOfCalls native "ScriptProfileNode_numberOfCalls_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfileNode.selfTime')
   num get selfTime native "ScriptProfileNode_selfTime_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfileNode.totalTime')
   num get totalTime native "ScriptProfileNode_totalTime_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfileNode.url')
   String get url native "ScriptProfileNode_url_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfileNode.visible')
   bool get visible native "ScriptProfileNode_visible_Getter";
 
+  @DocsEditable
   @DomName('ScriptProfileNode.children')
   List<ScriptProfileNode> children() native "ScriptProfileNode_children_Callback";
 
@@ -18644,94 +20589,123 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('HTMLSelectElement')
 class SelectElement extends _Element_Merged {
   SelectElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory SelectElement() => document.$dom_createElement("select");
 
+  @DocsEditable
   @DomName('HTMLSelectElement.autofocus')
   bool get autofocus native "HTMLSelectElement_autofocus_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.autofocus')
   void set autofocus(bool value) native "HTMLSelectElement_autofocus_Setter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.disabled')
   bool get disabled native "HTMLSelectElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.disabled')
   void set disabled(bool value) native "HTMLSelectElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.form')
   FormElement get form native "HTMLSelectElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.labels')
   List<Node> get labels native "HTMLSelectElement_labels_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.length')
   int get length native "HTMLSelectElement_length_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.length')
   void set length(int value) native "HTMLSelectElement_length_Setter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.multiple')
   bool get multiple native "HTMLSelectElement_multiple_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.multiple')
   void set multiple(bool value) native "HTMLSelectElement_multiple_Setter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.name')
   String get name native "HTMLSelectElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.name')
   void set name(String value) native "HTMLSelectElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.required')
   bool get required native "HTMLSelectElement_required_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.required')
   void set required(bool value) native "HTMLSelectElement_required_Setter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.selectedIndex')
   int get selectedIndex native "HTMLSelectElement_selectedIndex_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.selectedIndex')
   void set selectedIndex(int value) native "HTMLSelectElement_selectedIndex_Setter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.size')
   int get size native "HTMLSelectElement_size_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.size')
   void set size(int value) native "HTMLSelectElement_size_Setter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.type')
   String get type native "HTMLSelectElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.validationMessage')
   String get validationMessage native "HTMLSelectElement_validationMessage_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.validity')
   ValidityState get validity native "HTMLSelectElement_validity_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.value')
   String get value native "HTMLSelectElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.value')
   void set value(String value) native "HTMLSelectElement_value_Setter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.willValidate')
   bool get willValidate native "HTMLSelectElement_willValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.checkValidity')
   bool checkValidity() native "HTMLSelectElement_checkValidity_Callback";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.item')
   Node item(int index) native "HTMLSelectElement_item_Callback";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.namedItem')
   Node namedItem(String name) native "HTMLSelectElement_namedItem_Callback";
 
+  @DocsEditable
   @DomName('HTMLSelectElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLSelectElement_setCustomValidity_Callback";
 
@@ -18760,6 +20734,7 @@ class SelectElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
@@ -18769,12 +20744,15 @@ class ShadowElement extends _Element_Merged {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DocsEditable
   @DomName('HTMLShadowElement.olderShadowRoot')
   ShadowRoot get olderShadowRoot native "HTMLShadowElement_olderShadowRoot_Getter";
 
+  @DocsEditable
   @DomName('HTMLShadowElement.resetStyleInheritance')
   bool get resetStyleInheritance native "HTMLShadowElement_resetStyleInheritance_Getter";
 
+  @DocsEditable
   @DomName('HTMLShadowElement.resetStyleInheritance')
   void set resetStyleInheritance(bool value) native "HTMLShadowElement_resetStyleInheritance_Setter";
 
@@ -18786,45 +20764,58 @@ class ShadowElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ShadowRoot')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class ShadowRoot extends DocumentFragment {
   ShadowRoot.internal() : super.internal();
 
+  @DocsEditable
   @DomName('ShadowRoot.activeElement')
   Element get activeElement native "ShadowRoot_activeElement_Getter";
 
+  @DocsEditable
   @DomName('ShadowRoot.applyAuthorStyles')
   bool get applyAuthorStyles native "ShadowRoot_applyAuthorStyles_Getter";
 
+  @DocsEditable
   @DomName('ShadowRoot.applyAuthorStyles')
   void set applyAuthorStyles(bool value) native "ShadowRoot_applyAuthorStyles_Setter";
 
+  @DocsEditable
   @DomName('ShadowRoot.innerHTML')
   String get innerHtml native "ShadowRoot_innerHTML_Getter";
 
+  @DocsEditable
   @DomName('ShadowRoot.innerHTML')
   void set innerHtml(String value) native "ShadowRoot_innerHTML_Setter";
 
+  @DocsEditable
   @DomName('ShadowRoot.resetStyleInheritance')
   bool get resetStyleInheritance native "ShadowRoot_resetStyleInheritance_Getter";
 
+  @DocsEditable
   @DomName('ShadowRoot.resetStyleInheritance')
   void set resetStyleInheritance(bool value) native "ShadowRoot_resetStyleInheritance_Setter";
 
+  @DocsEditable
   @DomName('ShadowRoot.cloneNode')
   Node clone(bool deep) native "ShadowRoot_cloneNode_Callback";
 
+  @DocsEditable
   @DomName('ShadowRoot.getElementById')
   Element $dom_getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
+  @DocsEditable
   @DomName('ShadowRoot.getElementsByClassName')
   List<Node> $dom_getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
 
+  @DocsEditable
   @DomName('ShadowRoot.getElementsByTagName')
   List<Node> $dom_getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
 
+  @DocsEditable
   @DomName('ShadowRoot.getSelection')
   DomSelection getSelection() native "ShadowRoot_getSelection_Callback";
 
@@ -18837,11 +20828,12 @@ class ShadowRoot extends DocumentFragment {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SharedWorker')
 class SharedWorker extends AbstractWorker {
   SharedWorker.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
       return SharedWorker._create(scriptURL);
@@ -18850,6 +20842,7 @@ class SharedWorker extends AbstractWorker {
   }
   static SharedWorker _create(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
 
+  @DocsEditable
   @DomName('SharedWorker.port')
   MessagePort get port native "SharedWorker_port_Getter";
 
@@ -18861,17 +20854,19 @@ class SharedWorker extends AbstractWorker {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SharedWorkerContext')
 class SharedWorkerContext extends WorkerContext {
   SharedWorkerContext.internal() : super.internal();
 
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
+  @DocsEditable
   @DomName('SharedWorkerContext.name')
   String get name native "SharedWorkerContext_name_Getter";
 
@@ -18879,12 +20874,12 @@ class SharedWorkerContext extends WorkerContext {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class SharedWorkerContextEvents extends WorkerContextEvents {
-  /// @docsEditable true
+  @DocsEditable
   SharedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get connect => this['connect'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18894,22 +20889,28 @@ class SharedWorkerContextEvents extends WorkerContextEvents {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SourceBuffer')
 class SourceBuffer extends NativeFieldWrapperClass1 {
   SourceBuffer.internal();
 
+  @DocsEditable
   @DomName('SourceBuffer.buffered')
   TimeRanges get buffered native "SourceBuffer_buffered_Getter";
 
+  @DocsEditable
   @DomName('SourceBuffer.timestampOffset')
   num get timestampOffset native "SourceBuffer_timestampOffset_Getter";
 
+  @DocsEditable
   @DomName('SourceBuffer.timestampOffset')
   void set timestampOffset(num value) native "SourceBuffer_timestampOffset_Setter";
 
+  @DocsEditable
   @DomName('SourceBuffer.abort')
   void abort() native "SourceBuffer_abort_Callback";
 
+  @DocsEditable
   @DomName('SourceBuffer.append')
   void append(Uint8Array data) native "SourceBuffer_append_Callback";
 
@@ -18921,10 +20922,12 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SourceBufferList')
 class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   SourceBufferList.internal() : super.internal();
 
+  @DocsEditable
   @DomName('SourceBufferList.length')
   int get length native "SourceBufferList_length_Getter";
 
@@ -19076,15 +21079,19 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
   // -- end List<SourceBuffer> mixins.
 
+  @DocsEditable
   @DomName('SourceBufferList.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('SourceBufferList.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "SourceBufferList_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('SourceBufferList.item')
   SourceBuffer item(int index) native "SourceBufferList_item_Callback";
 
+  @DocsEditable
   @DomName('SourceBufferList.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_removeEventListener_Callback";
 
@@ -19096,28 +21103,35 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLSourceElement')
 class SourceElement extends _Element_Merged {
   SourceElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory SourceElement() => document.$dom_createElement("source");
 
+  @DocsEditable
   @DomName('HTMLSourceElement.media')
   String get media native "HTMLSourceElement_media_Getter";
 
+  @DocsEditable
   @DomName('HTMLSourceElement.media')
   void set media(String value) native "HTMLSourceElement_media_Setter";
 
+  @DocsEditable
   @DomName('HTMLSourceElement.src')
   String get src native "HTMLSourceElement_src_Getter";
 
+  @DocsEditable
   @DomName('HTMLSourceElement.src')
   void set src(String value) native "HTMLSourceElement_src_Setter";
 
+  @DocsEditable
   @DomName('HTMLSourceElement.type')
   String get type native "HTMLSourceElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLSourceElement.type')
   void set type(String value) native "HTMLSourceElement_type_Setter";
 
@@ -19129,11 +21143,12 @@ class SourceElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLSpanElement')
 class SpanElement extends _Element_Merged {
   SpanElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory SpanElement() => document.$dom_createElement("span");
 
 }
@@ -19144,23 +21159,28 @@ class SpanElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechGrammar')
 class SpeechGrammar extends NativeFieldWrapperClass1 {
   SpeechGrammar.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory SpeechGrammar() => SpeechGrammar._create();
   static SpeechGrammar _create() native "SpeechGrammar_constructor_Callback";
 
+  @DocsEditable
   @DomName('SpeechGrammar.src')
   String get src native "SpeechGrammar_src_Getter";
 
+  @DocsEditable
   @DomName('SpeechGrammar.src')
   void set src(String value) native "SpeechGrammar_src_Setter";
 
+  @DocsEditable
   @DomName('SpeechGrammar.weight')
   num get weight native "SpeechGrammar_weight_Getter";
 
+  @DocsEditable
   @DomName('SpeechGrammar.weight')
   void set weight(num value) native "SpeechGrammar_weight_Setter";
 
@@ -19172,14 +21192,16 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechGrammarList')
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
   SpeechGrammarList.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory SpeechGrammarList() => SpeechGrammarList._create();
   static SpeechGrammarList _create() native "SpeechGrammarList_constructor_Callback";
 
+  @DocsEditable
   @DomName('SpeechGrammarList.length')
   int get length native "SpeechGrammarList_length_Getter";
 
@@ -19339,9 +21361,11 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     _addFromString_2(string);
   }
 
+  @DocsEditable
   @DomName('SpeechGrammarList.addFromString_1')
   void _addFromString_1(string, weight) native "SpeechGrammarList_addFromString_1_Callback";
 
+  @DocsEditable
   @DomName('SpeechGrammarList.addFromString_2')
   void _addFromString_2(string) native "SpeechGrammarList_addFromString_2_Callback";
 
@@ -19353,12 +21377,15 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     _addFromUri_2(src);
   }
 
+  @DocsEditable
   @DomName('SpeechGrammarList.addFromUri_1')
   void _addFromUri_1(src, weight) native "SpeechGrammarList_addFromUri_1_Callback";
 
+  @DocsEditable
   @DomName('SpeechGrammarList.addFromUri_2')
   void _addFromUri_2(src) native "SpeechGrammarList_addFromUri_2_Callback";
 
+  @DocsEditable
   @DomName('SpeechGrammarList.item')
   SpeechGrammar item(int index) native "SpeechGrammarList_item_Callback";
 
@@ -19370,10 +21397,12 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechInputEvent')
 class SpeechInputEvent extends Event {
   SpeechInputEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('SpeechInputEvent.results')
   List<SpeechInputResult> get results native "SpeechInputEvent_results_Getter";
 
@@ -19385,13 +21414,16 @@ class SpeechInputEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechInputResult')
 class SpeechInputResult extends NativeFieldWrapperClass1 {
   SpeechInputResult.internal();
 
+  @DocsEditable
   @DomName('SpeechInputResult.confidence')
   num get confidence native "SpeechInputResult_confidence_Getter";
 
+  @DocsEditable
   @DomName('SpeechInputResult.utterance')
   String get utterance native "SpeechInputResult_utterance_Getter";
 
@@ -19403,6 +21435,7 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechRecognition')
 class SpeechRecognition extends EventTarget {
   SpeechRecognition.internal() : super.internal();
@@ -19429,60 +21462,76 @@ class SpeechRecognition extends EventTarget {
 
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
-  /// @docsEditable true
+  @DocsEditable
   factory SpeechRecognition() => SpeechRecognition._create();
   static SpeechRecognition _create() native "SpeechRecognition_constructor_Callback";
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   SpeechRecognitionEvents get on =>
     new SpeechRecognitionEvents(this);
 
+  @DocsEditable
   @DomName('SpeechRecognition.continuous')
   bool get continuous native "SpeechRecognition_continuous_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.continuous')
   void set continuous(bool value) native "SpeechRecognition_continuous_Setter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.grammars')
   SpeechGrammarList get grammars native "SpeechRecognition_grammars_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.grammars')
   void set grammars(SpeechGrammarList value) native "SpeechRecognition_grammars_Setter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.interimResults')
   bool get interimResults native "SpeechRecognition_interimResults_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.interimResults')
   void set interimResults(bool value) native "SpeechRecognition_interimResults_Setter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.lang')
   String get lang native "SpeechRecognition_lang_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.lang')
   void set lang(String value) native "SpeechRecognition_lang_Setter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.maxAlternatives')
   int get maxAlternatives native "SpeechRecognition_maxAlternatives_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.maxAlternatives')
   void set maxAlternatives(int value) native "SpeechRecognition_maxAlternatives_Setter";
 
+  @DocsEditable
   @DomName('SpeechRecognition.abort')
   void abort() native "SpeechRecognition_abort_Callback";
 
+  @DocsEditable
   @DomName('SpeechRecognition.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('SpeechRecognition.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "SpeechRecognition_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('SpeechRecognition.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('SpeechRecognition.start')
   void start() native "SpeechRecognition_start_Callback";
 
+  @DocsEditable
   @DomName('SpeechRecognition.stop')
   void stop() native "SpeechRecognition_stop_Callback";
 
@@ -19510,42 +21559,42 @@ class SpeechRecognition extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class SpeechRecognitionEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   SpeechRecognitionEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get audioEnd => this['audioend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get audioStart => this['audiostart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get end => this['end'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get noMatch => this['nomatch'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get result => this['result'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get soundEnd => this['soundend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get soundStart => this['soundstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get speechEnd => this['speechend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get speechStart => this['speechstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get start => this['start'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19555,13 +21604,16 @@ class SpeechRecognitionEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechRecognitionAlternative')
 class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
   SpeechRecognitionAlternative.internal();
 
+  @DocsEditable
   @DomName('SpeechRecognitionAlternative.confidence')
   num get confidence native "SpeechRecognitionAlternative_confidence_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognitionAlternative.transcript')
   String get transcript native "SpeechRecognitionAlternative_transcript_Getter";
 
@@ -19573,13 +21625,16 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechRecognitionError')
 class SpeechRecognitionError extends Event {
   SpeechRecognitionError.internal() : super.internal();
 
+  @DocsEditable
   @DomName('SpeechRecognitionError.error')
   String get error native "SpeechRecognitionError_error_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognitionError.message')
   String get message native "SpeechRecognitionError_message_Getter";
 
@@ -19591,19 +21646,24 @@ class SpeechRecognitionError extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechRecognitionEvent')
 class SpeechRecognitionEvent extends Event {
   SpeechRecognitionEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('SpeechRecognitionEvent.result')
   SpeechRecognitionResult get result native "SpeechRecognitionEvent_result_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognitionEvent.resultHistory')
   List<SpeechRecognitionResult> get resultHistory native "SpeechRecognitionEvent_resultHistory_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognitionEvent.resultIndex')
   int get resultIndex native "SpeechRecognitionEvent_resultIndex_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognitionEvent.results')
   List<SpeechRecognitionResult> get results native "SpeechRecognitionEvent_results_Getter";
 
@@ -19615,16 +21675,20 @@ class SpeechRecognitionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechRecognitionResult')
 class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
   SpeechRecognitionResult.internal();
 
+  @DocsEditable
   @DomName('SpeechRecognitionResult.isFinal')
   bool get isFinal native "SpeechRecognitionResult_isFinal_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognitionResult.length')
   int get length native "SpeechRecognitionResult_length_Getter";
 
+  @DocsEditable
   @DomName('SpeechRecognitionResult.item')
   SpeechRecognitionAlternative item(int index) native "SpeechRecognitionResult_item_Callback";
 
@@ -19636,6 +21700,7 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SQLError')
 class SqlError extends NativeFieldWrapperClass1 {
   SqlError.internal();
@@ -19656,9 +21721,11 @@ class SqlError extends NativeFieldWrapperClass1 {
 
   static const int VERSION_ERR = 2;
 
+  @DocsEditable
   @DomName('SQLError.code')
   int get code native "SQLError_code_Getter";
 
+  @DocsEditable
   @DomName('SQLError.message')
   String get message native "SQLError_message_Getter";
 
@@ -19670,6 +21737,7 @@ class SqlError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SQLException')
 class SqlException extends NativeFieldWrapperClass1 {
   SqlException.internal();
@@ -19690,9 +21758,11 @@ class SqlException extends NativeFieldWrapperClass1 {
 
   static const int VERSION_ERR = 2;
 
+  @DocsEditable
   @DomName('SQLException.code')
   int get code native "SQLException_code_Getter";
 
+  @DocsEditable
   @DomName('SQLException.message')
   String get message native "SQLException_message_Getter";
 
@@ -19704,16 +21774,20 @@ class SqlException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SQLResultSet')
 class SqlResultSet extends NativeFieldWrapperClass1 {
   SqlResultSet.internal();
 
+  @DocsEditable
   @DomName('SQLResultSet.insertId')
   int get insertId native "SQLResultSet_insertId_Getter";
 
+  @DocsEditable
   @DomName('SQLResultSet.rows')
   SqlResultSetRowList get rows native "SQLResultSet_rows_Getter";
 
+  @DocsEditable
   @DomName('SQLResultSet.rowsAffected')
   int get rowsAffected native "SQLResultSet_rowsAffected_Getter";
 
@@ -19725,10 +21799,12 @@ class SqlResultSet extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SQLResultSetRowList')
 class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> {
   SqlResultSetRowList.internal();
 
+  @DocsEditable
   @DomName('SQLResultSetRowList.length')
   int get length native "SQLResultSetRowList_length_Getter";
 
@@ -19880,6 +21956,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   // -- end List<Map> mixins.
 
+  @DocsEditable
   @DomName('SQLResultSetRowList.item')
   Map item(int index) native "SQLResultSetRowList_item_Callback";
 
@@ -19891,10 +21968,12 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SQLTransaction')
 class SqlTransaction extends NativeFieldWrapperClass1 {
   SqlTransaction.internal();
 
+  @DocsEditable
   @DomName('SQLTransaction.executeSql')
   void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native "SQLTransaction_executeSql_Callback";
 
@@ -19906,10 +21985,12 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SQLTransactionSync')
 class SqlTransactionSync extends NativeFieldWrapperClass1 {
   SqlTransactionSync.internal();
 
+  @DocsEditable
   @DomName('SQLTransactionSync.executeSql')
   SqlResultSet executeSql(String sqlStatement, List arguments) native "SQLTransactionSync_executeSql_Callback";
 
@@ -19919,6 +22000,7 @@ class SqlTransactionSync extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('Storage')
 class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
@@ -19970,21 +22052,27 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
   bool get isEmpty => $dom_key(0) == null;
   Storage.internal();
 
+  @DocsEditable
   @DomName('Storage.length')
   int get $dom_length native "Storage_length_Getter";
 
+  @DocsEditable
   @DomName('Storage.clear')
   void $dom_clear() native "Storage_clear_Callback";
 
+  @DocsEditable
   @DomName('Storage.getItem')
   String $dom_getItem(String key) native "Storage_getItem_Callback";
 
+  @DocsEditable
   @DomName('Storage.key')
   String $dom_key(int index) native "Storage_key_Callback";
 
+  @DocsEditable
   @DomName('Storage.removeItem')
   void $dom_removeItem(String key) native "Storage_removeItem_Callback";
 
+  @DocsEditable
   @DomName('Storage.setItem')
   void $dom_setItem(String key, String data) native "Storage_setItem_Callback";
 
@@ -19996,25 +22084,32 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('StorageEvent')
 class StorageEvent extends Event {
   StorageEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('StorageEvent.key')
   String get key native "StorageEvent_key_Getter";
 
+  @DocsEditable
   @DomName('StorageEvent.newValue')
   String get newValue native "StorageEvent_newValue_Getter";
 
+  @DocsEditable
   @DomName('StorageEvent.oldValue')
   String get oldValue native "StorageEvent_oldValue_Getter";
 
+  @DocsEditable
   @DomName('StorageEvent.storageArea')
   Storage get storageArea native "StorageEvent_storageArea_Getter";
 
+  @DocsEditable
   @DomName('StorageEvent.url')
   String get url native "StorageEvent_url_Getter";
 
+  @DocsEditable
   @DomName('StorageEvent.initStorageEvent')
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
 
@@ -20026,6 +22121,7 @@ class StorageEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('StorageInfo')
 class StorageInfo extends NativeFieldWrapperClass1 {
   StorageInfo.internal();
@@ -20034,9 +22130,11 @@ class StorageInfo extends NativeFieldWrapperClass1 {
 
   static const int TEMPORARY = 0;
 
+  @DocsEditable
   @DomName('StorageInfo.queryUsageAndQuota')
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native "StorageInfo_queryUsageAndQuota_Callback";
 
+  @DocsEditable
   @DomName('StorageInfo.requestQuota')
   void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native "StorageInfo_requestQuota_Callback";
 
@@ -20080,37 +22178,47 @@ typedef void StringCallback(String data);
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLStyleElement')
 class StyleElement extends _Element_Merged {
   StyleElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory StyleElement() => document.$dom_createElement("style");
 
+  @DocsEditable
   @DomName('HTMLStyleElement.disabled')
   bool get disabled native "HTMLStyleElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLStyleElement.disabled')
   void set disabled(bool value) native "HTMLStyleElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLStyleElement.media')
   String get media native "HTMLStyleElement_media_Getter";
 
+  @DocsEditable
   @DomName('HTMLStyleElement.media')
   void set media(String value) native "HTMLStyleElement_media_Setter";
 
+  @DocsEditable
   @DomName('HTMLStyleElement.scoped')
   bool get scoped native "HTMLStyleElement_scoped_Getter";
 
+  @DocsEditable
   @DomName('HTMLStyleElement.scoped')
   void set scoped(bool value) native "HTMLStyleElement_scoped_Setter";
 
+  @DocsEditable
   @DomName('HTMLStyleElement.sheet')
   StyleSheet get sheet native "HTMLStyleElement_sheet_Getter";
 
+  @DocsEditable
   @DomName('HTMLStyleElement.type')
   String get type native "HTMLStyleElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLStyleElement.type')
   void set type(String value) native "HTMLStyleElement_type_Setter";
 
@@ -20122,13 +22230,16 @@ class StyleElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('StyleMedia')
 class StyleMedia extends NativeFieldWrapperClass1 {
   StyleMedia.internal();
 
+  @DocsEditable
   @DomName('StyleMedia.type')
   String get type native "StyleMedia_type_Getter";
 
+  @DocsEditable
   @DomName('StyleMedia.matchMedium')
   bool matchMedium(String mediaquery) native "StyleMedia_matchMedium_Callback";
 
@@ -20140,31 +22251,40 @@ class StyleMedia extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('StyleSheet')
 class StyleSheet extends NativeFieldWrapperClass1 {
   StyleSheet.internal();
 
+  @DocsEditable
   @DomName('StyleSheet.disabled')
   bool get disabled native "StyleSheet_disabled_Getter";
 
+  @DocsEditable
   @DomName('StyleSheet.disabled')
   void set disabled(bool value) native "StyleSheet_disabled_Setter";
 
+  @DocsEditable
   @DomName('StyleSheet.href')
   String get href native "StyleSheet_href_Getter";
 
+  @DocsEditable
   @DomName('StyleSheet.media')
   MediaList get media native "StyleSheet_media_Getter";
 
+  @DocsEditable
   @DomName('StyleSheet.ownerNode')
   Node get ownerNode native "StyleSheet_ownerNode_Getter";
 
+  @DocsEditable
   @DomName('StyleSheet.parentStyleSheet')
   StyleSheet get parentStyleSheet native "StyleSheet_parentStyleSheet_Getter";
 
+  @DocsEditable
   @DomName('StyleSheet.title')
   String get title native "StyleSheet_title_Getter";
 
+  @DocsEditable
   @DomName('StyleSheet.type')
   String get type native "StyleSheet_type_Getter";
 
@@ -20176,11 +22296,12 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLTableCaptionElement')
 class TableCaptionElement extends _Element_Merged {
   TableCaptionElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory TableCaptionElement() => document.$dom_createElement("caption");
 
 }
@@ -20191,31 +22312,39 @@ class TableCaptionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLTableCellElement')
 class TableCellElement extends _Element_Merged {
   TableCellElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory TableCellElement() => document.$dom_createElement("td");
 
+  @DocsEditable
   @DomName('HTMLTableCellElement.cellIndex')
   int get cellIndex native "HTMLTableCellElement_cellIndex_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableCellElement.colSpan')
   int get colSpan native "HTMLTableCellElement_colSpan_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableCellElement.colSpan')
   void set colSpan(int value) native "HTMLTableCellElement_colSpan_Setter";
 
+  @DocsEditable
   @DomName('HTMLTableCellElement.headers')
   String get headers native "HTMLTableCellElement_headers_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableCellElement.headers')
   void set headers(String value) native "HTMLTableCellElement_headers_Setter";
 
+  @DocsEditable
   @DomName('HTMLTableCellElement.rowSpan')
   int get rowSpan native "HTMLTableCellElement_rowSpan_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableCellElement.rowSpan')
   void set rowSpan(int value) native "HTMLTableCellElement_rowSpan_Setter";
 
@@ -20227,16 +22356,19 @@ class TableCellElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLTableColElement')
 class TableColElement extends _Element_Merged {
   TableColElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory TableColElement() => document.$dom_createElement("col");
 
+  @DocsEditable
   @DomName('HTMLTableColElement.span')
   int get span native "HTMLTableColElement_span_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableColElement.span')
   void set span(int value) native "HTMLTableColElement_span_Setter";
 
@@ -20248,67 +22380,87 @@ class TableColElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLTableElement')
 class TableElement extends _Element_Merged {
   TableElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory TableElement() => document.$dom_createElement("table");
 
+  @DocsEditable
   @DomName('HTMLTableElement.border')
   String get border native "HTMLTableElement_border_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.border')
   void set border(String value) native "HTMLTableElement_border_Setter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.caption')
   TableCaptionElement get caption native "HTMLTableElement_caption_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.caption')
   void set caption(TableCaptionElement value) native "HTMLTableElement_caption_Setter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.rows')
   HtmlCollection get rows native "HTMLTableElement_rows_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.tBodies')
   HtmlCollection get tBodies native "HTMLTableElement_tBodies_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.tFoot')
   TableSectionElement get tFoot native "HTMLTableElement_tFoot_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.tFoot')
   void set tFoot(TableSectionElement value) native "HTMLTableElement_tFoot_Setter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.tHead')
   TableSectionElement get tHead native "HTMLTableElement_tHead_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.tHead')
   void set tHead(TableSectionElement value) native "HTMLTableElement_tHead_Setter";
 
+  @DocsEditable
   @DomName('HTMLTableElement.createCaption')
   Element createCaption() native "HTMLTableElement_createCaption_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableElement.createTBody')
   Element createTBody() native "HTMLTableElement_createTBody_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableElement.createTFoot')
   Element createTFoot() native "HTMLTableElement_createTFoot_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableElement.createTHead')
   Element createTHead() native "HTMLTableElement_createTHead_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableElement.deleteCaption')
   void deleteCaption() native "HTMLTableElement_deleteCaption_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableElement.deleteRow')
   void deleteRow(int index) native "HTMLTableElement_deleteRow_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableElement.deleteTFoot')
   void deleteTFoot() native "HTMLTableElement_deleteTFoot_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableElement.deleteTHead')
   void deleteTHead() native "HTMLTableElement_deleteTHead_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableElement.insertRow')
   Element insertRow(int index) native "HTMLTableElement_insertRow_Callback";
 
@@ -20320,25 +22472,31 @@ class TableElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLTableRowElement')
 class TableRowElement extends _Element_Merged {
   TableRowElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory TableRowElement() => document.$dom_createElement("tr");
 
+  @DocsEditable
   @DomName('HTMLTableRowElement.cells')
   HtmlCollection get cells native "HTMLTableRowElement_cells_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableRowElement.rowIndex')
   int get rowIndex native "HTMLTableRowElement_rowIndex_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableRowElement.sectionRowIndex')
   int get sectionRowIndex native "HTMLTableRowElement_sectionRowIndex_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableRowElement.deleteCell')
   void deleteCell(int index) native "HTMLTableRowElement_deleteCell_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableRowElement.insertCell')
   Element insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
 
@@ -20350,16 +22508,20 @@ class TableRowElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLTableSectionElement')
 class TableSectionElement extends _Element_Merged {
   TableSectionElement.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLTableSectionElement.rows')
   HtmlCollection get rows native "HTMLTableSectionElement_rows_Getter";
 
+  @DocsEditable
   @DomName('HTMLTableSectionElement.deleteRow')
   void deleteRow(int index) native "HTMLTableSectionElement_deleteRow_Callback";
 
+  @DocsEditable
   @DomName('HTMLTableSectionElement.insertRow')
   Element insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
 
@@ -20371,17 +22533,21 @@ class TableSectionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Text')
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
   Text.internal() : super.internal();
 
+  @DocsEditable
   @DomName('Text.wholeText')
   String get wholeText native "Text_wholeText_Getter";
 
+  @DocsEditable
   @DomName('Text.replaceWholeText')
   Text replaceWholeText(String content) native "Text_replaceWholeText_Callback";
 
+  @DocsEditable
   @DomName('Text.splitText')
   Text splitText(int offset) native "Text_splitText_Callback";
 
@@ -20393,136 +22559,179 @@ class Text extends CharacterData {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLTextAreaElement')
 class TextAreaElement extends _Element_Merged {
   TextAreaElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.autofocus')
   bool get autofocus native "HTMLTextAreaElement_autofocus_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.autofocus')
   void set autofocus(bool value) native "HTMLTextAreaElement_autofocus_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.cols')
   int get cols native "HTMLTextAreaElement_cols_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.cols')
   void set cols(int value) native "HTMLTextAreaElement_cols_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.defaultValue')
   String get defaultValue native "HTMLTextAreaElement_defaultValue_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.defaultValue')
   void set defaultValue(String value) native "HTMLTextAreaElement_defaultValue_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.dirName')
   String get dirName native "HTMLTextAreaElement_dirName_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.dirName')
   void set dirName(String value) native "HTMLTextAreaElement_dirName_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.disabled')
   bool get disabled native "HTMLTextAreaElement_disabled_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.disabled')
   void set disabled(bool value) native "HTMLTextAreaElement_disabled_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.form')
   FormElement get form native "HTMLTextAreaElement_form_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.labels')
   List<Node> get labels native "HTMLTextAreaElement_labels_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.maxLength')
   int get maxLength native "HTMLTextAreaElement_maxLength_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.maxLength')
   void set maxLength(int value) native "HTMLTextAreaElement_maxLength_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.name')
   String get name native "HTMLTextAreaElement_name_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.name')
   void set name(String value) native "HTMLTextAreaElement_name_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.placeholder')
   String get placeholder native "HTMLTextAreaElement_placeholder_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.placeholder')
   void set placeholder(String value) native "HTMLTextAreaElement_placeholder_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.readOnly')
   bool get readOnly native "HTMLTextAreaElement_readOnly_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.readOnly')
   void set readOnly(bool value) native "HTMLTextAreaElement_readOnly_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.required')
   bool get required native "HTMLTextAreaElement_required_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.required')
   void set required(bool value) native "HTMLTextAreaElement_required_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.rows')
   int get rows native "HTMLTextAreaElement_rows_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.rows')
   void set rows(int value) native "HTMLTextAreaElement_rows_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.selectionDirection')
   String get selectionDirection native "HTMLTextAreaElement_selectionDirection_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.selectionDirection')
   void set selectionDirection(String value) native "HTMLTextAreaElement_selectionDirection_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.selectionEnd')
   int get selectionEnd native "HTMLTextAreaElement_selectionEnd_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.selectionEnd')
   void set selectionEnd(int value) native "HTMLTextAreaElement_selectionEnd_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.selectionStart')
   int get selectionStart native "HTMLTextAreaElement_selectionStart_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.selectionStart')
   void set selectionStart(int value) native "HTMLTextAreaElement_selectionStart_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.textLength')
   int get textLength native "HTMLTextAreaElement_textLength_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.type')
   String get type native "HTMLTextAreaElement_type_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.validationMessage')
   String get validationMessage native "HTMLTextAreaElement_validationMessage_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.validity')
   ValidityState get validity native "HTMLTextAreaElement_validity_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.value')
   String get value native "HTMLTextAreaElement_value_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.value')
   void set value(String value) native "HTMLTextAreaElement_value_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.willValidate')
   bool get willValidate native "HTMLTextAreaElement_willValidate_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.wrap')
   String get wrap native "HTMLTextAreaElement_wrap_Getter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.wrap')
   void set wrap(String value) native "HTMLTextAreaElement_wrap_Setter";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.checkValidity')
   bool checkValidity() native "HTMLTextAreaElement_checkValidity_Callback";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.select')
   void select() native "HTMLTextAreaElement_select_Callback";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
@@ -20538,9 +22747,11 @@ class TextAreaElement extends _Element_Merged {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.setRangeText_1')
   void _setRangeText_1(replacement) native "HTMLTextAreaElement_setRangeText_1_Callback";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.setRangeText_2')
   void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLTextAreaElement_setRangeText_2_Callback";
 
@@ -20552,9 +22763,11 @@ class TextAreaElement extends _Element_Merged {
     _setSelectionRange_2(start, end);
   }
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.setSelectionRange_1')
   void _setSelectionRange_1(start, end, direction) native "HTMLTextAreaElement_setSelectionRange_1_Callback";
 
+  @DocsEditable
   @DomName('HTMLTextAreaElement.setSelectionRange_2')
   void _setSelectionRange_2(start, end) native "HTMLTextAreaElement_setSelectionRange_2_Callback";
 
@@ -20566,13 +22779,16 @@ class TextAreaElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TextEvent')
 class TextEvent extends UIEvent {
   TextEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('TextEvent.data')
   String get data native "TextEvent_data_Getter";
 
+  @DocsEditable
   @DomName('TextEvent.initTextEvent')
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
 
@@ -20584,10 +22800,12 @@ class TextEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TextMetrics')
 class TextMetrics extends NativeFieldWrapperClass1 {
   TextMetrics.internal();
 
+  @DocsEditable
   @DomName('TextMetrics.width')
   num get width native "TextMetrics_width_Getter";
 
@@ -20599,50 +22817,63 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TextTrack')
 class TextTrack extends EventTarget {
   TextTrack.internal() : super.internal();
 
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TextTrackEvents get on =>
     new TextTrackEvents(this);
 
+  @DocsEditable
   @DomName('TextTrack.activeCues')
   TextTrackCueList get activeCues native "TextTrack_activeCues_Getter";
 
+  @DocsEditable
   @DomName('TextTrack.cues')
   TextTrackCueList get cues native "TextTrack_cues_Getter";
 
+  @DocsEditable
   @DomName('TextTrack.kind')
   String get kind native "TextTrack_kind_Getter";
 
+  @DocsEditable
   @DomName('TextTrack.label')
   String get label native "TextTrack_label_Getter";
 
+  @DocsEditable
   @DomName('TextTrack.language')
   String get language native "TextTrack_language_Getter";
 
+  @DocsEditable
   @DomName('TextTrack.mode')
   String get mode native "TextTrack_mode_Getter";
 
+  @DocsEditable
   @DomName('TextTrack.mode')
   void set mode(String value) native "TextTrack_mode_Setter";
 
+  @DocsEditable
   @DomName('TextTrack.addCue')
   void addCue(TextTrackCue cue) native "TextTrack_addCue_Callback";
 
+  @DocsEditable
   @DomName('TextTrack.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('TextTrack.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "TextTrack_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('TextTrack.removeCue')
   void removeCue(TextTrackCue cue) native "TextTrack_removeCue_Callback";
 
+  @DocsEditable
   @DomName('TextTrack.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_removeEventListener_Callback";
 
@@ -20650,12 +22881,12 @@ class TextTrack extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class TextTrackEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   TextTrackEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get cueChange => this['cuechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20665,6 +22896,7 @@ class TextTrackEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TextTrackCue')
 class TextTrackCue extends EventTarget {
   TextTrackCue.internal() : super.internal();
@@ -20673,93 +22905,120 @@ class TextTrackCue extends EventTarget {
 
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
-  /// @docsEditable true
+  @DocsEditable
   factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
   static TextTrackCue _create(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TextTrackCueEvents get on =>
     new TextTrackCueEvents(this);
 
+  @DocsEditable
   @DomName('TextTrackCue.align')
   String get align native "TextTrackCue_align_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.align')
   void set align(String value) native "TextTrackCue_align_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.endTime')
   num get endTime native "TextTrackCue_endTime_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.endTime')
   void set endTime(num value) native "TextTrackCue_endTime_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.id')
   String get id native "TextTrackCue_id_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.id')
   void set id(String value) native "TextTrackCue_id_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.line')
   int get line native "TextTrackCue_line_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.line')
   void set line(int value) native "TextTrackCue_line_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.pauseOnExit')
   bool get pauseOnExit native "TextTrackCue_pauseOnExit_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.pauseOnExit')
   void set pauseOnExit(bool value) native "TextTrackCue_pauseOnExit_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.position')
   int get position native "TextTrackCue_position_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.position')
   void set position(int value) native "TextTrackCue_position_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.size')
   int get size native "TextTrackCue_size_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.size')
   void set size(int value) native "TextTrackCue_size_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.snapToLines')
   bool get snapToLines native "TextTrackCue_snapToLines_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.snapToLines')
   void set snapToLines(bool value) native "TextTrackCue_snapToLines_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.startTime')
   num get startTime native "TextTrackCue_startTime_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.startTime')
   void set startTime(num value) native "TextTrackCue_startTime_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.text')
   String get text native "TextTrackCue_text_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.text')
   void set text(String value) native "TextTrackCue_text_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.track')
   TextTrack get track native "TextTrackCue_track_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.vertical')
   String get vertical native "TextTrackCue_vertical_Getter";
 
+  @DocsEditable
   @DomName('TextTrackCue.vertical')
   void set vertical(String value) native "TextTrackCue_vertical_Setter";
 
+  @DocsEditable
   @DomName('TextTrackCue.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('TextTrackCue.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "TextTrackCue_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('TextTrackCue.getCueAsHTML')
   DocumentFragment getCueAsHtml() native "TextTrackCue_getCueAsHTML_Callback";
 
+  @DocsEditable
   @DomName('TextTrackCue.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_removeEventListener_Callback";
 
@@ -20769,15 +23028,15 @@ class TextTrackCue extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class TextTrackCueEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   TextTrackCueEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get enter => this['enter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get exit => this['exit'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20787,10 +23046,12 @@ class TextTrackCueEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TextTrackCueList')
 class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrackCue> {
   TextTrackCueList.internal();
 
+  @DocsEditable
   @DomName('TextTrackCueList.length')
   int get length native "TextTrackCueList_length_Getter";
 
@@ -20942,9 +23203,11 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
   // -- end List<TextTrackCue> mixins.
 
+  @DocsEditable
   @DomName('TextTrackCueList.getCueById')
   TextTrackCue getCueById(String id) native "TextTrackCueList_getCueById_Callback";
 
+  @DocsEditable
   @DomName('TextTrackCueList.item')
   TextTrackCue item(int index) native "TextTrackCueList_item_Callback";
 
@@ -20956,17 +23219,19 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TextTrackList')
 class TextTrackList extends EventTarget implements List<TextTrack> {
   TextTrackList.internal() : super.internal();
 
   static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
 
+  @DocsEditable
   @DomName('TextTrackList.length')
   int get length native "TextTrackList_length_Getter";
 
@@ -21118,15 +23383,19 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   // -- end List<TextTrack> mixins.
 
+  @DocsEditable
   @DomName('TextTrackList.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('TextTrackList.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "TextTrackList_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('TextTrackList.item')
   TextTrack item(int index) native "TextTrackList_item_Callback";
 
+  @DocsEditable
   @DomName('TextTrackList.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_removeEventListener_Callback";
 
@@ -21134,12 +23403,12 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class TextTrackListEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   TextTrackListEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21149,16 +23418,20 @@ class TextTrackListEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TimeRanges')
 class TimeRanges extends NativeFieldWrapperClass1 {
   TimeRanges.internal();
 
+  @DocsEditable
   @DomName('TimeRanges.length')
   int get length native "TimeRanges_length_Getter";
 
+  @DocsEditable
   @DomName('TimeRanges.end')
   num end(int index) native "TimeRanges_end_Callback";
 
+  @DocsEditable
   @DomName('TimeRanges.start')
   num start(int index) native "TimeRanges_start_Callback";
 
@@ -21178,11 +23451,12 @@ typedef void TimeoutHandler();
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLTitleElement')
 class TitleElement extends _Element_Merged {
   TitleElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory TitleElement() => document.$dom_createElement("title");
 
 }
@@ -21193,43 +23467,56 @@ class TitleElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Touch')
 class Touch extends NativeFieldWrapperClass1 {
   Touch.internal();
 
+  @DocsEditable
   @DomName('Touch.clientX')
   int get clientX native "Touch_clientX_Getter";
 
+  @DocsEditable
   @DomName('Touch.clientY')
   int get clientY native "Touch_clientY_Getter";
 
+  @DocsEditable
   @DomName('Touch.identifier')
   int get identifier native "Touch_identifier_Getter";
 
+  @DocsEditable
   @DomName('Touch.pageX')
   int get pageX native "Touch_pageX_Getter";
 
+  @DocsEditable
   @DomName('Touch.pageY')
   int get pageY native "Touch_pageY_Getter";
 
+  @DocsEditable
   @DomName('Touch.screenX')
   int get screenX native "Touch_screenX_Getter";
 
+  @DocsEditable
   @DomName('Touch.screenY')
   int get screenY native "Touch_screenY_Getter";
 
+  @DocsEditable
   @DomName('Touch.target')
   EventTarget get target native "Touch_target_Getter";
 
+  @DocsEditable
   @DomName('Touch.webkitForce')
   num get webkitForce native "Touch_webkitForce_Getter";
 
+  @DocsEditable
   @DomName('Touch.webkitRadiusX')
   int get webkitRadiusX native "Touch_webkitRadiusX_Getter";
 
+  @DocsEditable
   @DomName('Touch.webkitRadiusY')
   int get webkitRadiusY native "Touch_webkitRadiusY_Getter";
 
+  @DocsEditable
   @DomName('Touch.webkitRotationAngle')
   num get webkitRotationAngle native "Touch_webkitRotationAngle_Getter";
 
@@ -21241,31 +23528,40 @@ class Touch extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TouchEvent')
 class TouchEvent extends UIEvent {
   TouchEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('TouchEvent.altKey')
   bool get altKey native "TouchEvent_altKey_Getter";
 
+  @DocsEditable
   @DomName('TouchEvent.changedTouches')
   TouchList get changedTouches native "TouchEvent_changedTouches_Getter";
 
+  @DocsEditable
   @DomName('TouchEvent.ctrlKey')
   bool get ctrlKey native "TouchEvent_ctrlKey_Getter";
 
+  @DocsEditable
   @DomName('TouchEvent.metaKey')
   bool get metaKey native "TouchEvent_metaKey_Getter";
 
+  @DocsEditable
   @DomName('TouchEvent.shiftKey')
   bool get shiftKey native "TouchEvent_shiftKey_Getter";
 
+  @DocsEditable
   @DomName('TouchEvent.targetTouches')
   TouchList get targetTouches native "TouchEvent_targetTouches_Getter";
 
+  @DocsEditable
   @DomName('TouchEvent.touches')
   TouchList get touches native "TouchEvent_touches_Getter";
 
+  @DocsEditable
   @DomName('TouchEvent.initTouchEvent')
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
@@ -21277,10 +23573,12 @@ class TouchEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TouchList')
 class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   TouchList.internal();
 
+  @DocsEditable
   @DomName('TouchList.length')
   int get length native "TouchList_length_Getter";
 
@@ -21432,6 +23730,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   // -- end List<Touch> mixins.
 
+  @DocsEditable
   @DomName('TouchList.item')
   Touch item(int index) native "TouchList_item_Callback";
 
@@ -21443,6 +23742,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLTrackElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -21450,7 +23750,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 class TrackElement extends _Element_Merged {
   TrackElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory TrackElement() => document.$dom_createElement("track");
 
   /// Checks if this type is supported on the current platform.
@@ -21464,39 +23764,51 @@ class TrackElement extends _Element_Merged {
 
   static const int NONE = 0;
 
+  @DocsEditable
   @DomName('HTMLTrackElement.default')
   bool get defaultValue native "HTMLTrackElement_default_Getter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.default')
   void set defaultValue(bool value) native "HTMLTrackElement_default_Setter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.kind')
   String get kind native "HTMLTrackElement_kind_Getter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.kind')
   void set kind(String value) native "HTMLTrackElement_kind_Setter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.label')
   String get label native "HTMLTrackElement_label_Getter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.label')
   void set label(String value) native "HTMLTrackElement_label_Setter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.readyState')
   int get readyState native "HTMLTrackElement_readyState_Getter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.src')
   String get src native "HTMLTrackElement_src_Getter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.src')
   void set src(String value) native "HTMLTrackElement_src_Setter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.srclang')
   String get srclang native "HTMLTrackElement_srclang_Getter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.srclang')
   void set srclang(String value) native "HTMLTrackElement_srclang_Setter";
 
+  @DocsEditable
   @DomName('HTMLTrackElement.track')
   TextTrack get track native "HTMLTrackElement_track_Getter";
 
@@ -21508,10 +23820,12 @@ class TrackElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TrackEvent')
 class TrackEvent extends Event {
   TrackEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('TrackEvent.track')
   Object get track native "TrackEvent_track_Getter";
 
@@ -21523,13 +23837,16 @@ class TrackEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitTransitionEvent')
 class TransitionEvent extends Event {
   TransitionEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('WebKitTransitionEvent.elapsedTime')
   num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
 
+  @DocsEditable
   @DomName('WebKitTransitionEvent.propertyName')
   String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
 
@@ -21541,46 +23858,60 @@ class TransitionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('TreeWalker')
 class TreeWalker extends NativeFieldWrapperClass1 {
   TreeWalker.internal();
 
+  @DocsEditable
   @DomName('TreeWalker.currentNode')
   Node get currentNode native "TreeWalker_currentNode_Getter";
 
+  @DocsEditable
   @DomName('TreeWalker.currentNode')
   void set currentNode(Node value) native "TreeWalker_currentNode_Setter";
 
+  @DocsEditable
   @DomName('TreeWalker.expandEntityReferences')
   bool get expandEntityReferences native "TreeWalker_expandEntityReferences_Getter";
 
+  @DocsEditable
   @DomName('TreeWalker.filter')
   NodeFilter get filter native "TreeWalker_filter_Getter";
 
+  @DocsEditable
   @DomName('TreeWalker.root')
   Node get root native "TreeWalker_root_Getter";
 
+  @DocsEditable
   @DomName('TreeWalker.whatToShow')
   int get whatToShow native "TreeWalker_whatToShow_Getter";
 
+  @DocsEditable
   @DomName('TreeWalker.firstChild')
   Node firstChild() native "TreeWalker_firstChild_Callback";
 
+  @DocsEditable
   @DomName('TreeWalker.lastChild')
   Node lastChild() native "TreeWalker_lastChild_Callback";
 
+  @DocsEditable
   @DomName('TreeWalker.nextNode')
   Node nextNode() native "TreeWalker_nextNode_Callback";
 
+  @DocsEditable
   @DomName('TreeWalker.nextSibling')
   Node nextSibling() native "TreeWalker_nextSibling_Callback";
 
+  @DocsEditable
   @DomName('TreeWalker.parentNode')
   Node parentNode() native "TreeWalker_parentNode_Callback";
 
+  @DocsEditable
   @DomName('TreeWalker.previousNode')
   Node previousNode() native "TreeWalker_previousNode_Callback";
 
+  @DocsEditable
   @DomName('TreeWalker.previousSibling')
   Node previousSibling() native "TreeWalker_previousSibling_Callback";
 
@@ -21592,6 +23923,7 @@ class TreeWalker extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('UIEvent')
 class UIEvent extends Event {
   // In JS, canBubble and cancelable are technically required parameters to
@@ -21608,33 +23940,43 @@ class UIEvent extends Event {
   }
   UIEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('UIEvent.charCode')
   int get $dom_charCode native "UIEvent_charCode_Getter";
 
+  @DocsEditable
   @DomName('UIEvent.detail')
   int get detail native "UIEvent_detail_Getter";
 
+  @DocsEditable
   @DomName('UIEvent.keyCode')
   int get $dom_keyCode native "UIEvent_keyCode_Getter";
 
+  @DocsEditable
   @DomName('UIEvent.layerX')
   int get layerX native "UIEvent_layerX_Getter";
 
+  @DocsEditable
   @DomName('UIEvent.layerY')
   int get layerY native "UIEvent_layerY_Getter";
 
+  @DocsEditable
   @DomName('UIEvent.pageX')
   int get pageX native "UIEvent_pageX_Getter";
 
+  @DocsEditable
   @DomName('UIEvent.pageY')
   int get pageY native "UIEvent_pageY_Getter";
 
+  @DocsEditable
   @DomName('UIEvent.view')
   WindowBase get view native "UIEvent_view_Getter";
 
+  @DocsEditable
   @DomName('UIEvent.which')
   int get which native "UIEvent_which_Getter";
 
+  @DocsEditable
   @DomName('UIEvent.initUIEvent')
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
@@ -21646,11 +23988,12 @@ class UIEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLUListElement')
 class UListElement extends _Element_Merged {
   UListElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory UListElement() => document.$dom_createElement("ul");
 
 }
@@ -21661,6 +24004,7 @@ class UListElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Uint16Array')
 class Uint16Array extends ArrayBufferView implements List<int> {
   Uint16Array.internal() : super.internal();
@@ -21676,12 +24020,15 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 2;
 
+  @DocsEditable
   @DomName('Uint16Array.length')
   int get length native "Uint16Array_length_Getter";
 
+  @DocsEditable
   @DomName('Uint16Array.numericIndexGetter')
   int operator[](int index) native "Uint16Array_numericIndexGetter_Callback";
 
+  @DocsEditable
   @DomName('Uint16Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Uint16Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
@@ -21827,6 +24174,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
+  @DocsEditable
   @DomName('Uint16Array.setElements')
   void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
 
@@ -21837,9 +24185,11 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     return _subarray_2(start);
   }
 
+  @DocsEditable
   @DomName('Uint16Array.subarray_1')
   Uint16Array _subarray_1(start, end) native "Uint16Array_subarray_1_Callback";
 
+  @DocsEditable
   @DomName('Uint16Array.subarray_2')
   Uint16Array _subarray_2(start) native "Uint16Array_subarray_2_Callback";
 
@@ -21851,6 +24201,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Uint32Array')
 class Uint32Array extends ArrayBufferView implements List<int> {
   Uint32Array.internal() : super.internal();
@@ -21866,12 +24217,15 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 4;
 
+  @DocsEditable
   @DomName('Uint32Array.length')
   int get length native "Uint32Array_length_Getter";
 
+  @DocsEditable
   @DomName('Uint32Array.numericIndexGetter')
   int operator[](int index) native "Uint32Array_numericIndexGetter_Callback";
 
+  @DocsEditable
   @DomName('Uint32Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Uint32Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
@@ -22017,6 +24371,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
+  @DocsEditable
   @DomName('Uint32Array.setElements')
   void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
 
@@ -22027,9 +24382,11 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     return _subarray_2(start);
   }
 
+  @DocsEditable
   @DomName('Uint32Array.subarray_1')
   Uint32Array _subarray_1(start, end) native "Uint32Array_subarray_1_Callback";
 
+  @DocsEditable
   @DomName('Uint32Array.subarray_2')
   Uint32Array _subarray_2(start) native "Uint32Array_subarray_2_Callback";
 
@@ -22041,6 +24398,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Uint8Array')
 class Uint8Array extends ArrayBufferView implements List<int> {
   Uint8Array.internal() : super.internal();
@@ -22056,12 +24414,15 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 1;
 
+  @DocsEditable
   @DomName('Uint8Array.length')
   int get length native "Uint8Array_length_Getter";
 
+  @DocsEditable
   @DomName('Uint8Array.numericIndexGetter')
   int operator[](int index) native "Uint8Array_numericIndexGetter_Callback";
 
+  @DocsEditable
   @DomName('Uint8Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Uint8Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
@@ -22207,6 +24568,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
+  @DocsEditable
   @DomName('Uint8Array.setElements')
   void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
 
@@ -22217,9 +24579,11 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     return _subarray_2(start);
   }
 
+  @DocsEditable
   @DomName('Uint8Array.subarray_1')
   Uint8Array _subarray_1(start, end) native "Uint8Array_subarray_1_Callback";
 
+  @DocsEditable
   @DomName('Uint8Array.subarray_2')
   Uint8Array _subarray_2(start) native "Uint8Array_subarray_2_Callback";
 
@@ -22231,6 +24595,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Uint8ClampedArray')
 class Uint8ClampedArray extends Uint8Array {
   Uint8ClampedArray.internal() : super.internal();
@@ -22244,15 +24609,19 @@ class Uint8ClampedArray extends Uint8Array {
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
+  @DocsEditable
   @DomName('Uint8ClampedArray.length')
   int get length native "Uint8ClampedArray_length_Getter";
 
+  @DocsEditable
   @DomName('Uint8ClampedArray.numericIndexGetter')
   int operator[](int index) native "Uint8ClampedArray_numericIndexGetter_Callback";
 
+  @DocsEditable
   @DomName('Uint8ClampedArray.numericIndexSetter')
   void operator[]=(int index, int value) native "Uint8ClampedArray_numericIndexSetter_Callback";
 
+  @DocsEditable
   @DomName('Uint8ClampedArray.setElements')
   void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
 
@@ -22263,9 +24632,11 @@ class Uint8ClampedArray extends Uint8Array {
     return _subarray_2(start);
   }
 
+  @DocsEditable
   @DomName('Uint8ClampedArray.subarray_1')
   Uint8ClampedArray _subarray_1(start, end) native "Uint8ClampedArray_subarray_1_Callback";
 
+  @DocsEditable
   @DomName('Uint8ClampedArray.subarray_2')
   Uint8ClampedArray _subarray_2(start) native "Uint8ClampedArray_subarray_2_Callback";
 
@@ -22277,6 +24648,7 @@ class Uint8ClampedArray extends Uint8Array {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLUnknownElement')
 class UnknownElement extends _Element_Merged {
   UnknownElement.internal() : super.internal();
@@ -22289,6 +24661,7 @@ class UnknownElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('URL')
 class Url extends NativeFieldWrapperClass1 {
   Url.internal();
@@ -22306,15 +24679,19 @@ class Url extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('DOMURL.createObjectURL_1')
   static String _createObjectURL_1(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_1_Callback";
 
+  @DocsEditable
   @DomName('DOMURL.createObjectURL_2')
   static String _createObjectURL_2(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_2_Callback";
 
+  @DocsEditable
   @DomName('DOMURL.createObjectURL_3')
   static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_3_Callback";
 
+  @DocsEditable
   @DomName('DOMURL.revokeObjectURL')
   static void revokeObjectUrl(String url) native "DOMURL_revokeObjectURL_Callback";
 
@@ -22326,37 +24703,48 @@ class Url extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ValidityState')
 class ValidityState extends NativeFieldWrapperClass1 {
   ValidityState.internal();
 
+  @DocsEditable
   @DomName('ValidityState.badInput')
   bool get badInput native "ValidityState_badInput_Getter";
 
+  @DocsEditable
   @DomName('ValidityState.customError')
   bool get customError native "ValidityState_customError_Getter";
 
+  @DocsEditable
   @DomName('ValidityState.patternMismatch')
   bool get patternMismatch native "ValidityState_patternMismatch_Getter";
 
+  @DocsEditable
   @DomName('ValidityState.rangeOverflow')
   bool get rangeOverflow native "ValidityState_rangeOverflow_Getter";
 
+  @DocsEditable
   @DomName('ValidityState.rangeUnderflow')
   bool get rangeUnderflow native "ValidityState_rangeUnderflow_Getter";
 
+  @DocsEditable
   @DomName('ValidityState.stepMismatch')
   bool get stepMismatch native "ValidityState_stepMismatch_Getter";
 
+  @DocsEditable
   @DomName('ValidityState.tooLong')
   bool get tooLong native "ValidityState_tooLong_Getter";
 
+  @DocsEditable
   @DomName('ValidityState.typeMismatch')
   bool get typeMismatch native "ValidityState_typeMismatch_Getter";
 
+  @DocsEditable
   @DomName('ValidityState.valid')
   bool get valid native "ValidityState_valid_Getter";
 
+  @DocsEditable
   @DomName('ValidityState.valueMissing')
   bool get valueMissing native "ValidityState_valueMissing_Getter";
 
@@ -22368,58 +24756,75 @@ class ValidityState extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLVideoElement')
 class VideoElement extends MediaElement {
   VideoElement.internal() : super.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory VideoElement() => document.$dom_createElement("video");
 
+  @DocsEditable
   @DomName('HTMLVideoElement.height')
   int get height native "HTMLVideoElement_height_Getter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.height')
   void set height(int value) native "HTMLVideoElement_height_Setter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.poster')
   String get poster native "HTMLVideoElement_poster_Getter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.poster')
   void set poster(String value) native "HTMLVideoElement_poster_Setter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.videoHeight')
   int get videoHeight native "HTMLVideoElement_videoHeight_Getter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.videoWidth')
   int get videoWidth native "HTMLVideoElement_videoWidth_Getter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.webkitDecodedFrameCount')
   int get webkitDecodedFrameCount native "HTMLVideoElement_webkitDecodedFrameCount_Getter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.webkitDisplayingFullscreen')
   bool get webkitDisplayingFullscreen native "HTMLVideoElement_webkitDisplayingFullscreen_Getter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.webkitDroppedFrameCount')
   int get webkitDroppedFrameCount native "HTMLVideoElement_webkitDroppedFrameCount_Getter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.webkitSupportsFullscreen')
   bool get webkitSupportsFullscreen native "HTMLVideoElement_webkitSupportsFullscreen_Getter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.width')
   int get width native "HTMLVideoElement_width_Getter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.width')
   void set width(int value) native "HTMLVideoElement_width_Setter";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.webkitEnterFullScreen')
   void webkitEnterFullScreen() native "HTMLVideoElement_webkitEnterFullScreen_Callback";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.webkitEnterFullscreen')
   void webkitEnterFullscreen() native "HTMLVideoElement_webkitEnterFullscreen_Callback";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.webkitExitFullScreen')
   void webkitExitFullScreen() native "HTMLVideoElement_webkitExitFullScreen_Callback";
 
+  @DocsEditable
   @DomName('HTMLVideoElement.webkitExitFullscreen')
   void webkitExitFullscreen() native "HTMLVideoElement_webkitExitFullscreen_Callback";
 
@@ -22439,16 +24844,20 @@ typedef void VoidCallback();
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLActiveInfo')
 class WebGLActiveInfo extends NativeFieldWrapperClass1 {
   WebGLActiveInfo.internal();
 
+  @DocsEditable
   @DomName('WebGLActiveInfo.name')
   String get name native "WebGLActiveInfo_name_Getter";
 
+  @DocsEditable
   @DomName('WebGLActiveInfo.size')
   int get size native "WebGLActiveInfo_size_Getter";
 
+  @DocsEditable
   @DomName('WebGLActiveInfo.type')
   int get type native "WebGLActiveInfo_type_Getter";
 
@@ -22460,6 +24869,7 @@ class WebGLActiveInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLBuffer')
 class WebGLBuffer extends NativeFieldWrapperClass1 {
   WebGLBuffer.internal();
@@ -22472,6 +24882,7 @@ class WebGLBuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLCompressedTextureS3TC')
 class WebGLCompressedTextureS3TC extends NativeFieldWrapperClass1 {
   WebGLCompressedTextureS3TC.internal();
@@ -22492,43 +24903,56 @@ class WebGLCompressedTextureS3TC extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLContextAttributes')
 class WebGLContextAttributes extends NativeFieldWrapperClass1 {
   WebGLContextAttributes.internal();
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.alpha')
   bool get alpha native "WebGLContextAttributes_alpha_Getter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.alpha')
   void set alpha(bool value) native "WebGLContextAttributes_alpha_Setter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.antialias')
   bool get antialias native "WebGLContextAttributes_antialias_Getter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.antialias')
   void set antialias(bool value) native "WebGLContextAttributes_antialias_Setter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.depth')
   bool get depth native "WebGLContextAttributes_depth_Getter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.depth')
   void set depth(bool value) native "WebGLContextAttributes_depth_Setter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   bool get premultipliedAlpha native "WebGLContextAttributes_premultipliedAlpha_Getter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   void set premultipliedAlpha(bool value) native "WebGLContextAttributes_premultipliedAlpha_Setter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   bool get preserveDrawingBuffer native "WebGLContextAttributes_preserveDrawingBuffer_Getter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   void set preserveDrawingBuffer(bool value) native "WebGLContextAttributes_preserveDrawingBuffer_Setter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.stencil')
   bool get stencil native "WebGLContextAttributes_stencil_Getter";
 
+  @DocsEditable
   @DomName('WebGLContextAttributes.stencil')
   void set stencil(bool value) native "WebGLContextAttributes_stencil_Setter";
 
@@ -22540,10 +24964,12 @@ class WebGLContextAttributes extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLContextEvent')
 class WebGLContextEvent extends Event {
   WebGLContextEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('WebGLContextEvent.statusMessage')
   String get statusMessage native "WebGLContextEvent_statusMessage_Getter";
 
@@ -22555,6 +24981,7 @@ class WebGLContextEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLDebugRendererInfo')
 class WebGLDebugRendererInfo extends NativeFieldWrapperClass1 {
   WebGLDebugRendererInfo.internal();
@@ -22571,10 +24998,12 @@ class WebGLDebugRendererInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLDebugShaders')
 class WebGLDebugShaders extends NativeFieldWrapperClass1 {
   WebGLDebugShaders.internal();
 
+  @DocsEditable
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   String getTranslatedShaderSource(WebGLShader shader) native "WebGLDebugShaders_getTranslatedShaderSource_Callback";
 
@@ -22586,6 +25015,7 @@ class WebGLDebugShaders extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLDepthTexture')
 class WebGLDepthTexture extends NativeFieldWrapperClass1 {
   WebGLDepthTexture.internal();
@@ -22600,6 +25030,7 @@ class WebGLDepthTexture extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLFramebuffer')
 class WebGLFramebuffer extends NativeFieldWrapperClass1 {
   WebGLFramebuffer.internal();
@@ -22612,13 +25043,16 @@ class WebGLFramebuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLLoseContext')
 class WebGLLoseContext extends NativeFieldWrapperClass1 {
   WebGLLoseContext.internal();
 
+  @DocsEditable
   @DomName('WebGLLoseContext.loseContext')
   void loseContext() native "WebGLLoseContext_loseContext_Callback";
 
+  @DocsEditable
   @DomName('WebGLLoseContext.restoreContext')
   void restoreContext() native "WebGLLoseContext_restoreContext_Callback";
 
@@ -22630,6 +25064,7 @@ class WebGLLoseContext extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLProgram')
 class WebGLProgram extends NativeFieldWrapperClass1 {
   WebGLProgram.internal();
@@ -22642,6 +25077,7 @@ class WebGLProgram extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLRenderbuffer')
 class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
   WebGLRenderbuffer.internal();
@@ -22654,6 +25090,7 @@ class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLRenderingContext')
 class WebGLRenderingContext extends CanvasRenderingContext {
   WebGLRenderingContext.internal() : super.internal();
@@ -23248,45 +25685,59 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   static const int ZERO = 0;
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.drawingBufferHeight')
   int get drawingBufferHeight native "WebGLRenderingContext_drawingBufferHeight_Getter";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.drawingBufferWidth')
   int get drawingBufferWidth native "WebGLRenderingContext_drawingBufferWidth_Getter";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.activeTexture')
   void activeTexture(int texture) native "WebGLRenderingContext_activeTexture_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.attachShader')
   void attachShader(WebGLProgram program, WebGLShader shader) native "WebGLRenderingContext_attachShader_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bindAttribLocation')
   void bindAttribLocation(WebGLProgram program, int index, String name) native "WebGLRenderingContext_bindAttribLocation_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bindBuffer')
   void bindBuffer(int target, WebGLBuffer buffer) native "WebGLRenderingContext_bindBuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bindFramebuffer')
   void bindFramebuffer(int target, WebGLFramebuffer framebuffer) native "WebGLRenderingContext_bindFramebuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bindRenderbuffer')
   void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer) native "WebGLRenderingContext_bindRenderbuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bindTexture')
   void bindTexture(int target, WebGLTexture texture) native "WebGLRenderingContext_bindTexture_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.blendColor')
   void blendColor(num red, num green, num blue, num alpha) native "WebGLRenderingContext_blendColor_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.blendEquation')
   void blendEquation(int mode) native "WebGLRenderingContext_blendEquation_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.blendEquationSeparate')
   void blendEquationSeparate(int modeRGB, int modeAlpha) native "WebGLRenderingContext_blendEquationSeparate_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.blendFunc')
   void blendFunc(int sfactor, int dfactor) native "WebGLRenderingContext_blendFunc_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.blendFuncSeparate')
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
@@ -23306,12 +25757,15 @@ class WebGLRenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bufferData_1')
   void _bufferData_1(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_1_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bufferData_2')
   void _bufferData_2(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_2_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bufferData_3')
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_3_Callback";
 
@@ -23327,273 +25781,363 @@ class WebGLRenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bufferSubData_1')
   void _bufferSubData_1(target, offset, data) native "WebGLRenderingContext_bufferSubData_1_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.bufferSubData_2')
   void _bufferSubData_2(target, offset, data) native "WebGLRenderingContext_bufferSubData_2_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   int checkFramebufferStatus(int target) native "WebGLRenderingContext_checkFramebufferStatus_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.clear')
   void clear(int mask) native "WebGLRenderingContext_clear_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.clearColor')
   void clearColor(num red, num green, num blue, num alpha) native "WebGLRenderingContext_clearColor_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.clearDepth')
   void clearDepth(num depth) native "WebGLRenderingContext_clearDepth_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.clearStencil')
   void clearStencil(int s) native "WebGLRenderingContext_clearStencil_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.colorMask')
   void colorMask(bool red, bool green, bool blue, bool alpha) native "WebGLRenderingContext_colorMask_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.compileShader')
   void compileShader(WebGLShader shader) native "WebGLRenderingContext_compileShader_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native "WebGLRenderingContext_compressedTexImage2D_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native "WebGLRenderingContext_compressedTexSubImage2D_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.copyTexImage2D')
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native "WebGLRenderingContext_copyTexImage2D_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.copyTexSubImage2D')
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native "WebGLRenderingContext_copyTexSubImage2D_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.createBuffer')
   WebGLBuffer createBuffer() native "WebGLRenderingContext_createBuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.createFramebuffer')
   WebGLFramebuffer createFramebuffer() native "WebGLRenderingContext_createFramebuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.createProgram')
   WebGLProgram createProgram() native "WebGLRenderingContext_createProgram_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.createRenderbuffer')
   WebGLRenderbuffer createRenderbuffer() native "WebGLRenderingContext_createRenderbuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.createShader')
   WebGLShader createShader(int type) native "WebGLRenderingContext_createShader_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.createTexture')
   WebGLTexture createTexture() native "WebGLRenderingContext_createTexture_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.cullFace')
   void cullFace(int mode) native "WebGLRenderingContext_cullFace_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.deleteBuffer')
   void deleteBuffer(WebGLBuffer buffer) native "WebGLRenderingContext_deleteBuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.deleteFramebuffer')
   void deleteFramebuffer(WebGLFramebuffer framebuffer) native "WebGLRenderingContext_deleteFramebuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.deleteProgram')
   void deleteProgram(WebGLProgram program) native "WebGLRenderingContext_deleteProgram_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.deleteRenderbuffer')
   void deleteRenderbuffer(WebGLRenderbuffer renderbuffer) native "WebGLRenderingContext_deleteRenderbuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.deleteShader')
   void deleteShader(WebGLShader shader) native "WebGLRenderingContext_deleteShader_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.deleteTexture')
   void deleteTexture(WebGLTexture texture) native "WebGLRenderingContext_deleteTexture_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.depthFunc')
   void depthFunc(int func) native "WebGLRenderingContext_depthFunc_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.depthMask')
   void depthMask(bool flag) native "WebGLRenderingContext_depthMask_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.depthRange')
   void depthRange(num zNear, num zFar) native "WebGLRenderingContext_depthRange_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.detachShader')
   void detachShader(WebGLProgram program, WebGLShader shader) native "WebGLRenderingContext_detachShader_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.disable')
   void disable(int cap) native "WebGLRenderingContext_disable_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.disableVertexAttribArray')
   void disableVertexAttribArray(int index) native "WebGLRenderingContext_disableVertexAttribArray_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.drawArrays')
   void drawArrays(int mode, int first, int count) native "WebGLRenderingContext_drawArrays_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.drawElements')
   void drawElements(int mode, int count, int type, int offset) native "WebGLRenderingContext_drawElements_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.enable')
   void enable(int cap) native "WebGLRenderingContext_enable_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.enableVertexAttribArray')
   void enableVertexAttribArray(int index) native "WebGLRenderingContext_enableVertexAttribArray_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.finish')
   void finish() native "WebGLRenderingContext_finish_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.flush')
   void flush() native "WebGLRenderingContext_flush_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.framebufferRenderbuffer')
   void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer) native "WebGLRenderingContext_framebufferRenderbuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.framebufferTexture2D')
   void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level) native "WebGLRenderingContext_framebufferTexture2D_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.frontFace')
   void frontFace(int mode) native "WebGLRenderingContext_frontFace_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.generateMipmap')
   void generateMipmap(int target) native "WebGLRenderingContext_generateMipmap_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getActiveAttrib')
   WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index) native "WebGLRenderingContext_getActiveAttrib_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getActiveUniform')
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) native "WebGLRenderingContext_getActiveUniform_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getAttachedShaders')
   void getAttachedShaders(WebGLProgram program) native "WebGLRenderingContext_getAttachedShaders_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getAttribLocation')
   int getAttribLocation(WebGLProgram program, String name) native "WebGLRenderingContext_getAttribLocation_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getBufferParameter')
   Object getBufferParameter(int target, int pname) native "WebGLRenderingContext_getBufferParameter_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getContextAttributes')
   WebGLContextAttributes getContextAttributes() native "WebGLRenderingContext_getContextAttributes_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getError')
   int getError() native "WebGLRenderingContext_getError_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getExtension')
   Object getExtension(String name) native "WebGLRenderingContext_getExtension_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native "WebGLRenderingContext_getFramebufferAttachmentParameter_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getParameter')
   Object getParameter(int pname) native "WebGLRenderingContext_getParameter_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getProgramInfoLog')
   String getProgramInfoLog(WebGLProgram program) native "WebGLRenderingContext_getProgramInfoLog_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getProgramParameter')
   Object getProgramParameter(WebGLProgram program, int pname) native "WebGLRenderingContext_getProgramParameter_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getRenderbufferParameter')
   Object getRenderbufferParameter(int target, int pname) native "WebGLRenderingContext_getRenderbufferParameter_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getShaderInfoLog')
   String getShaderInfoLog(WebGLShader shader) native "WebGLRenderingContext_getShaderInfoLog_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getShaderParameter')
   Object getShaderParameter(WebGLShader shader, int pname) native "WebGLRenderingContext_getShaderParameter_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) native "WebGLRenderingContext_getShaderPrecisionFormat_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getShaderSource')
   String getShaderSource(WebGLShader shader) native "WebGLRenderingContext_getShaderSource_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getSupportedExtensions')
   List<String> getSupportedExtensions() native "WebGLRenderingContext_getSupportedExtensions_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getTexParameter')
   Object getTexParameter(int target, int pname) native "WebGLRenderingContext_getTexParameter_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getUniform')
   Object getUniform(WebGLProgram program, WebGLUniformLocation location) native "WebGLRenderingContext_getUniform_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getUniformLocation')
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) native "WebGLRenderingContext_getUniformLocation_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getVertexAttrib')
   Object getVertexAttrib(int index, int pname) native "WebGLRenderingContext_getVertexAttrib_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.getVertexAttribOffset')
   int getVertexAttribOffset(int index, int pname) native "WebGLRenderingContext_getVertexAttribOffset_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.hint')
   void hint(int target, int mode) native "WebGLRenderingContext_hint_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.isBuffer')
   bool isBuffer(WebGLBuffer buffer) native "WebGLRenderingContext_isBuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.isContextLost')
   bool isContextLost() native "WebGLRenderingContext_isContextLost_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.isEnabled')
   bool isEnabled(int cap) native "WebGLRenderingContext_isEnabled_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.isFramebuffer')
   bool isFramebuffer(WebGLFramebuffer framebuffer) native "WebGLRenderingContext_isFramebuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.isProgram')
   bool isProgram(WebGLProgram program) native "WebGLRenderingContext_isProgram_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.isRenderbuffer')
   bool isRenderbuffer(WebGLRenderbuffer renderbuffer) native "WebGLRenderingContext_isRenderbuffer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.isShader')
   bool isShader(WebGLShader shader) native "WebGLRenderingContext_isShader_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.isTexture')
   bool isTexture(WebGLTexture texture) native "WebGLRenderingContext_isTexture_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.lineWidth')
   void lineWidth(num width) native "WebGLRenderingContext_lineWidth_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.linkProgram')
   void linkProgram(WebGLProgram program) native "WebGLRenderingContext_linkProgram_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.pixelStorei')
   void pixelStorei(int pname, int param) native "WebGLRenderingContext_pixelStorei_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.polygonOffset')
   void polygonOffset(num factor, num units) native "WebGLRenderingContext_polygonOffset_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.readPixels')
   void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) native "WebGLRenderingContext_readPixels_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.releaseShaderCompiler')
   void releaseShaderCompiler() native "WebGLRenderingContext_releaseShaderCompiler_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.renderbufferStorage')
   void renderbufferStorage(int target, int internalformat, int width, int height) native "WebGLRenderingContext_renderbufferStorage_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.sampleCoverage')
   void sampleCoverage(num value, bool invert) native "WebGLRenderingContext_sampleCoverage_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.scissor')
   void scissor(int x, int y, int width, int height) native "WebGLRenderingContext_scissor_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.shaderSource')
   void shaderSource(WebGLShader shader, String string) native "WebGLRenderingContext_shaderSource_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.stencilFunc')
   void stencilFunc(int func, int ref, int mask) native "WebGLRenderingContext_stencilFunc_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.stencilFuncSeparate')
   void stencilFuncSeparate(int face, int func, int ref, int mask) native "WebGLRenderingContext_stencilFuncSeparate_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.stencilMask')
   void stencilMask(int mask) native "WebGLRenderingContext_stencilMask_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.stencilMaskSeparate')
   void stencilMaskSeparate(int face, int mask) native "WebGLRenderingContext_stencilMaskSeparate_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.stencilOp')
   void stencilOp(int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOp_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.stencilOpSeparate')
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
@@ -23621,24 +26165,31 @@ class WebGLRenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D_1')
   void _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext_texImage2D_1_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D_2')
   void _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_2_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D_3')
   void _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_3_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D_4')
   void _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_4_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D_5')
   void _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_5_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texParameterf')
   void texParameterf(int target, int pname, num param) native "WebGLRenderingContext_texParameterf_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texParameteri')
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
@@ -23666,111 +26217,147 @@ class WebGLRenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D_1')
   void _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext_texSubImage2D_1_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D_2')
   void _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_2_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D_3')
   void _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_3_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D_4')
   void _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_4_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D_5')
   void _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_5_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform1f')
   void uniform1f(WebGLUniformLocation location, num x) native "WebGLRenderingContext_uniform1f_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform1fv')
   void uniform1fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform1fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform1i')
   void uniform1i(WebGLUniformLocation location, int x) native "WebGLRenderingContext_uniform1i_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform1iv')
   void uniform1iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform1iv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform2f')
   void uniform2f(WebGLUniformLocation location, num x, num y) native "WebGLRenderingContext_uniform2f_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform2fv')
   void uniform2fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform2fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform2i')
   void uniform2i(WebGLUniformLocation location, int x, int y) native "WebGLRenderingContext_uniform2i_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform2iv')
   void uniform2iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform2iv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform3f')
   void uniform3f(WebGLUniformLocation location, num x, num y, num z) native "WebGLRenderingContext_uniform3f_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform3fv')
   void uniform3fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform3fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform3i')
   void uniform3i(WebGLUniformLocation location, int x, int y, int z) native "WebGLRenderingContext_uniform3i_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform3iv')
   void uniform3iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform3iv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform4f')
   void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w) native "WebGLRenderingContext_uniform4f_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform4fv')
   void uniform4fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform4fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform4i')
   void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w) native "WebGLRenderingContext_uniform4i_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniform4iv')
   void uniform4iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform4iv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.useProgram')
   void useProgram(WebGLProgram program) native "WebGLRenderingContext_useProgram_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.validateProgram')
   void validateProgram(WebGLProgram program) native "WebGLRenderingContext_validateProgram_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib1f')
   void vertexAttrib1f(int indx, num x) native "WebGLRenderingContext_vertexAttrib1f_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   void vertexAttrib1fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   void vertexAttrib2f(int indx, num x, num y) native "WebGLRenderingContext_vertexAttrib2f_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   void vertexAttrib2fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   void vertexAttrib3f(int indx, num x, num y, num z) native "WebGLRenderingContext_vertexAttrib3f_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   void vertexAttrib3fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   void vertexAttrib4f(int indx, num x, num y, num z, num w) native "WebGLRenderingContext_vertexAttrib4f_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   void vertexAttrib4fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) native "WebGLRenderingContext_vertexAttribPointer_Callback";
 
+  @DocsEditable
   @DomName('WebGLRenderingContext.viewport')
   void viewport(int x, int y, int width, int height) native "WebGLRenderingContext_viewport_Callback";
 
@@ -23782,6 +26369,7 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLShader')
 class WebGLShader extends NativeFieldWrapperClass1 {
   WebGLShader.internal();
@@ -23794,16 +26382,20 @@ class WebGLShader extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLShaderPrecisionFormat')
 class WebGLShaderPrecisionFormat extends NativeFieldWrapperClass1 {
   WebGLShaderPrecisionFormat.internal();
 
+  @DocsEditable
   @DomName('WebGLShaderPrecisionFormat.precision')
   int get precision native "WebGLShaderPrecisionFormat_precision_Getter";
 
+  @DocsEditable
   @DomName('WebGLShaderPrecisionFormat.rangeMax')
   int get rangeMax native "WebGLShaderPrecisionFormat_rangeMax_Getter";
 
+  @DocsEditable
   @DomName('WebGLShaderPrecisionFormat.rangeMin')
   int get rangeMin native "WebGLShaderPrecisionFormat_rangeMin_Getter";
 
@@ -23815,6 +26407,7 @@ class WebGLShaderPrecisionFormat extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLTexture')
 class WebGLTexture extends NativeFieldWrapperClass1 {
   WebGLTexture.internal();
@@ -23827,6 +26420,7 @@ class WebGLTexture extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLUniformLocation')
 class WebGLUniformLocation extends NativeFieldWrapperClass1 {
   WebGLUniformLocation.internal();
@@ -23839,6 +26433,7 @@ class WebGLUniformLocation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebGLVertexArrayObjectOES')
 class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
   WebGLVertexArrayObject.internal();
@@ -23851,6 +26446,7 @@ class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitCSSFilterValue')
 class WebKitCssFilterValue extends _CssValueList {
   WebKitCssFilterValue.internal() : super.internal();
@@ -23879,6 +26475,7 @@ class WebKitCssFilterValue extends _CssValueList {
 
   static const int CSS_FILTER_SEPIA = 3;
 
+  @DocsEditable
   @DomName('WebKitCSSFilterValue.operationType')
   int get operationType native "WebKitCSSFilterValue_operationType_Getter";
 
@@ -23890,6 +26487,7 @@ class WebKitCssFilterValue extends _CssValueList {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitCSSMixFunctionValue')
 class WebKitCssMixFunctionValue extends _CssValueList {
   WebKitCssMixFunctionValue.internal() : super.internal();
@@ -23902,34 +26500,44 @@ class WebKitCssMixFunctionValue extends _CssValueList {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebKitNamedFlow')
 class WebKitNamedFlow extends EventTarget {
   WebKitNamedFlow.internal() : super.internal();
 
+  @DocsEditable
   @DomName('WebKitNamedFlow.firstEmptyRegionIndex')
   int get firstEmptyRegionIndex native "WebKitNamedFlow_firstEmptyRegionIndex_Getter";
 
+  @DocsEditable
   @DomName('WebKitNamedFlow.name')
   String get name native "WebKitNamedFlow_name_Getter";
 
+  @DocsEditable
   @DomName('WebKitNamedFlow.overset')
   bool get overset native "WebKitNamedFlow_overset_Getter";
 
+  @DocsEditable
   @DomName('WebKitNamedFlow.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('WebKitNamedFlow.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('WebKitNamedFlow.getContent')
   List<Node> getContent() native "WebKitNamedFlow_getContent_Callback";
 
+  @DocsEditable
   @DomName('WebKitNamedFlow.getRegions')
   List<Node> getRegions() native "WebKitNamedFlow_getRegions_Callback";
 
+  @DocsEditable
   @DomName('WebKitNamedFlow.getRegionsByContent')
   List<Node> getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
 
+  @DocsEditable
   @DomName('WebKitNamedFlow.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
 
@@ -23941,6 +26549,7 @@ class WebKitNamedFlow extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WebSocket')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -23957,14 +26566,14 @@ class WebSocket extends EventTarget {
 
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  /// @docsEditable true
+  @DocsEditable
   factory WebSocket(String url) => WebSocket._create(url);
   static WebSocket _create(String url) native "WebSocket_constructor_Callback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WebSocketEvents get on =>
     new WebSocketEvents(this);
@@ -23977,30 +26586,39 @@ class WebSocket extends EventTarget {
 
   static const int OPEN = 1;
 
+  @DocsEditable
   @DomName('WebSocket.URL')
   String get Url native "WebSocket_URL_Getter";
 
+  @DocsEditable
   @DomName('WebSocket.binaryType')
   String get binaryType native "WebSocket_binaryType_Getter";
 
+  @DocsEditable
   @DomName('WebSocket.binaryType')
   void set binaryType(String value) native "WebSocket_binaryType_Setter";
 
+  @DocsEditable
   @DomName('WebSocket.bufferedAmount')
   int get bufferedAmount native "WebSocket_bufferedAmount_Getter";
 
+  @DocsEditable
   @DomName('WebSocket.extensions')
   String get extensions native "WebSocket_extensions_Getter";
 
+  @DocsEditable
   @DomName('WebSocket.protocol')
   String get protocol native "WebSocket_protocol_Getter";
 
+  @DocsEditable
   @DomName('WebSocket.readyState')
   int get readyState native "WebSocket_readyState_Getter";
 
+  @DocsEditable
   @DomName('WebSocket.url')
   String get url native "WebSocket_url_Getter";
 
+  @DocsEditable
   @DomName('WebSocket.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
 
@@ -24016,21 +26634,27 @@ class WebSocket extends EventTarget {
     _close_3();
   }
 
+  @DocsEditable
   @DomName('WebSocket.close_1')
   void _close_1(code, reason) native "WebSocket_close_1_Callback";
 
+  @DocsEditable
   @DomName('WebSocket.close_2')
   void _close_2(code) native "WebSocket_close_2_Callback";
 
+  @DocsEditable
   @DomName('WebSocket.close_3')
   void _close_3() native "WebSocket_close_3_Callback";
 
+  @DocsEditable
   @DomName('WebSocket.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "WebSocket_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('WebSocket.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('WebSocket.send')
   void send(data) native "WebSocket_send_Callback";
 
@@ -24044,21 +26668,21 @@ class WebSocket extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class WebSocketEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   WebSocketEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get close => this['close'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24066,19 +26690,24 @@ class WebSocketEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('WheelEvent')
 class WheelEvent extends MouseEvent {
   WheelEvent.internal() : super.internal();
 
+  @DocsEditable
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   bool get webkitDirectionInvertedFromDevice native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
 
+  @DocsEditable
   @DomName('WheelEvent.wheelDeltaX')
   int get $dom_wheelDeltaX native "WheelEvent_wheelDeltaX_Getter";
 
+  @DocsEditable
   @DomName('WheelEvent.wheelDeltaY')
   int get $dom_wheelDeltaY native "WheelEvent_wheelDeltaY_Getter";
 
+  @DocsEditable
   @DomName('WheelEvent.initWebKitWheelEvent')
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
@@ -24096,6 +26725,7 @@ class WheelEvent extends MouseEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
 @DomName('Window')
 class Window extends EventTarget implements WindowBase {
 
@@ -24277,7 +26907,7 @@ class Window extends EventTarget implements WindowBase {
 
   static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WindowEvents get on =>
     new WindowEvents(this);
@@ -24286,42 +26916,55 @@ class Window extends EventTarget implements WindowBase {
 
   static const int TEMPORARY = 0;
 
+  @DocsEditable
   @DomName('DOMWindow.applicationCache')
   ApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.closed')
   bool get closed native "DOMWindow_closed_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.console')
   Console get console native "DOMWindow_console_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.crypto')
   Crypto get crypto native "DOMWindow_crypto_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.defaultStatus')
   String get defaultStatus native "DOMWindow_defaultStatus_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.defaultStatus')
   void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
 
+  @DocsEditable
   @DomName('DOMWindow.defaultstatus')
   String get defaultstatus native "DOMWindow_defaultstatus_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.defaultstatus')
   void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
 
+  @DocsEditable
   @DomName('DOMWindow.devicePixelRatio')
   num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.document')
   Document get document native "DOMWindow_document_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.event')
   Event get event native "DOMWindow_event_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.history')
   History get history native "DOMWindow_history_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.indexedDB')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
@@ -24329,248 +26972,327 @@ class Window extends EventTarget implements WindowBase {
   @Experimental()
   IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.innerHeight')
   int get innerHeight native "DOMWindow_innerHeight_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.innerWidth')
   int get innerWidth native "DOMWindow_innerWidth_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.localStorage')
   Storage get localStorage native "DOMWindow_localStorage_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.location')
   Location get location native "DOMWindow_location_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.location')
   void set location(Location value) native "DOMWindow_location_Setter";
 
+  @DocsEditable
   @DomName('DOMWindow.locationbar')
   BarInfo get locationbar native "DOMWindow_locationbar_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.menubar')
   BarInfo get menubar native "DOMWindow_menubar_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.name')
   String get name native "DOMWindow_name_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.name')
   void set name(String value) native "DOMWindow_name_Setter";
 
+  @DocsEditable
   @DomName('DOMWindow.navigator')
   Navigator get navigator native "DOMWindow_navigator_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.offscreenBuffering')
   bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.opener')
   WindowBase get opener native "DOMWindow_opener_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.outerHeight')
   int get outerHeight native "DOMWindow_outerHeight_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.outerWidth')
   int get outerWidth native "DOMWindow_outerWidth_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.pagePopupController')
   PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.pageXOffset')
   int get pageXOffset native "DOMWindow_pageXOffset_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.pageYOffset')
   int get pageYOffset native "DOMWindow_pageYOffset_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.parent')
   WindowBase get parent native "DOMWindow_parent_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.performance')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE)
   Performance get performance native "DOMWindow_performance_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.personalbar')
   BarInfo get personalbar native "DOMWindow_personalbar_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.screen')
   Screen get screen native "DOMWindow_screen_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.screenLeft')
   int get screenLeft native "DOMWindow_screenLeft_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.screenTop')
   int get screenTop native "DOMWindow_screenTop_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.screenX')
   int get screenX native "DOMWindow_screenX_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.screenY')
   int get screenY native "DOMWindow_screenY_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.scrollX')
   int get scrollX native "DOMWindow_scrollX_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.scrollY')
   int get scrollY native "DOMWindow_scrollY_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.scrollbars')
   BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.self')
   WindowBase get self native "DOMWindow_self_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.sessionStorage')
   Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.status')
   String get status native "DOMWindow_status_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.status')
   void set status(String value) native "DOMWindow_status_Setter";
 
+  @DocsEditable
   @DomName('DOMWindow.statusbar')
   BarInfo get statusbar native "DOMWindow_statusbar_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.styleMedia')
   StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.toolbar')
   BarInfo get toolbar native "DOMWindow_toolbar_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.top')
   WindowBase get top native "DOMWindow_top_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.webkitNotifications')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   NotificationCenter get notifications native "DOMWindow_webkitNotifications_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.webkitStorageInfo')
   StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.window')
   WindowBase get window native "DOMWindow_window_Getter";
 
+  @DocsEditable
   @DomName('DOMWindow.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.alert')
   void alert(String message) native "DOMWindow_alert_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.atob')
   String atob(String string) native "DOMWindow_atob_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.btoa')
   String btoa(String string) native "DOMWindow_btoa_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.cancelAnimationFrame')
   void cancelAnimationFrame(int id) native "DOMWindow_cancelAnimationFrame_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.captureEvents')
   void captureEvents() native "DOMWindow_captureEvents_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.clearInterval')
   void clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.clearTimeout')
   void clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.close')
   void close() native "DOMWindow_close_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.confirm')
   bool confirm(String message) native "DOMWindow_confirm_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.find')
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.getComputedStyle')
   CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.getMatchedCSSRules')
   List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.getSelection')
   DomSelection getSelection() native "DOMWindow_getSelection_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.matchMedia')
   MediaQueryList matchMedia(String query) native "DOMWindow_matchMedia_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.moveBy')
   void moveBy(num x, num y) native "DOMWindow_moveBy_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.moveTo')
   void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.open')
   WindowBase open(String url, String name, [String options]) native "DOMWindow_open_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.openDatabase')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.postMessage')
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.print')
   void print() native "DOMWindow_print_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.releaseEvents')
   void releaseEvents() native "DOMWindow_releaseEvents_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.requestAnimationFrame')
   int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_requestAnimationFrame_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.resizeBy')
   void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.resizeTo')
   void resizeTo(num width, num height) native "DOMWindow_resizeTo_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.scroll')
   void scroll(int x, int y) native "DOMWindow_scroll_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.scrollBy')
   void scrollBy(int x, int y) native "DOMWindow_scrollBy_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.scrollTo')
   void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.setInterval')
   int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.setTimeout')
   int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.showModalDialog')
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.stop')
   void stop() native "DOMWindow_stop_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.webkitCancelAnimationFrame')
   void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.webkitConvertPointFromPageToNode')
   Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.webkitRequestAnimationFrame')
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 
+  @DocsEditable
   @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
@@ -24726,231 +27448,231 @@ class Window extends EventTarget implements WindowBase {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class WindowEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   WindowEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get contentLoaded => this['DOMContentLoaded'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeUnload => this['beforeunload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlay => this['canplay'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get change => this['change'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get click => this['click'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get contextMenu => this['contextmenu'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get doubleClick => this['dblclick'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get deviceMotion => this['devicemotion'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get deviceOrientation => this['deviceorientation'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drag => this['drag'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnd => this['dragend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnter => this['dragenter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragLeave => this['dragleave'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragOver => this['dragover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragStart => this['dragstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drop => this['drop'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get durationChange => this['durationchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get emptied => this['emptied'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get hashChange => this['hashchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get input => this['input'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get invalid => this['invalid'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyDown => this['keydown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyPress => this['keypress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyUp => this['keyup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedData => this['loadeddata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseDown => this['mousedown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseMove => this['mousemove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOut => this['mouseout'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOver => this['mouseover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseUp => this['mouseup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseWheel => this['mousewheel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get offline => this['offline'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get online => this['online'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pageHide => this['pagehide'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pageShow => this['pageshow'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pause => this['pause'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get play => this['play'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get playing => this['playing'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get popState => this['popstate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get rateChange => this['ratechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get reset => this['reset'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get resize => this['resize'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get scroll => this['scroll'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get search => this['search'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeked => this['seeked'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeking => this['seeking'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get select => this['select'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get stalled => this['stalled'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get storage => this['storage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get submit => this['submit'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get suspend => this['suspend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get timeUpdate => this['timeupdate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchCancel => this['touchcancel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchEnd => this['touchend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchMove => this['touchmove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchStart => this['touchstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unload => this['unload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get volumeChange => this['volumechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get waiting => this['waiting'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get animationEnd => this['webkitAnimationEnd'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get animationIteration => this['webkitAnimationIteration'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get animationStart => this['webkitAnimationStart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24960,24 +27682,27 @@ class WindowEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('Worker')
 class Worker extends AbstractWorker {
   Worker.internal() : super.internal();
 
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  /// @docsEditable true
+  @DocsEditable
   factory Worker(String scriptUrl) => Worker._create(scriptUrl);
   static Worker _create(String scriptUrl) native "Worker_constructor_Callback";
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WorkerEvents get on =>
     new WorkerEvents(this);
 
+  @DocsEditable
   @DomName('Worker.postMessage')
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) native "Worker_postMessage_Callback";
 
+  @DocsEditable
   @DomName('Worker.terminate')
   void terminate() native "Worker_terminate_Callback";
 
@@ -24985,12 +27710,12 @@ class Worker extends AbstractWorker {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class WorkerEvents extends AbstractWorkerEvents {
-  /// @docsEditable true
+  @DocsEditable
   WorkerEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25000,13 +27725,14 @@ class WorkerEvents extends AbstractWorkerEvents {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WorkerContext')
 class WorkerContext extends EventTarget {
   WorkerContext.internal() : super.internal();
 
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  /// @docsEditable true
+  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WorkerContextEvents get on =>
     new WorkerContextEvents(this);
@@ -25015,6 +27741,7 @@ class WorkerContext extends EventTarget {
 
   static const int TEMPORARY = 0;
 
+  @DocsEditable
   @DomName('WorkerContext.indexedDB')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
@@ -25022,66 +27749,85 @@ class WorkerContext extends EventTarget {
   @Experimental()
   IdbFactory get indexedDB native "WorkerContext_indexedDB_Getter";
 
+  @DocsEditable
   @DomName('WorkerContext.location')
   WorkerLocation get location native "WorkerContext_location_Getter";
 
+  @DocsEditable
   @DomName('WorkerContext.navigator')
   WorkerNavigator get navigator native "WorkerContext_navigator_Getter";
 
+  @DocsEditable
   @DomName('WorkerContext.self')
   WorkerContext get self native "WorkerContext_self_Getter";
 
+  @DocsEditable
   @DomName('WorkerContext.webkitNotifications')
   NotificationCenter get webkitNotifications native "WorkerContext_webkitNotifications_Getter";
 
+  @DocsEditable
   @DomName('WorkerContext.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerContext_addEventListener_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.clearInterval')
   void clearInterval(int handle) native "WorkerContext_clearInterval_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.clearTimeout')
   void clearTimeout(int handle) native "WorkerContext_clearTimeout_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.close')
   void close() native "WorkerContext_close_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "WorkerContext_dispatchEvent_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.importScripts')
   void importScripts() native "WorkerContext_importScripts_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.openDatabase')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabase_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.openDatabaseSync')
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabaseSync_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerContext_removeEventListener_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.setInterval')
   int setInterval(TimeoutHandler handler, int timeout) native "WorkerContext_setInterval_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.setTimeout')
   int setTimeout(TimeoutHandler handler, int timeout) native "WorkerContext_setTimeout_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.webkitRequestFileSystemSync')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   FileSystemSync requestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   EntrySync resolveLocalFileSystemSyncUrl(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
 
+  @DocsEditable
   @DomName('WorkerContext.webkitResolveLocalFileSystemURL')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
@@ -25091,12 +27837,12 @@ class WorkerContext extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class WorkerContextEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   WorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25106,34 +27852,44 @@ class WorkerContextEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WorkerLocation')
 class WorkerLocation extends NativeFieldWrapperClass1 {
   WorkerLocation.internal();
 
+  @DocsEditable
   @DomName('WorkerLocation.hash')
   String get hash native "WorkerLocation_hash_Getter";
 
+  @DocsEditable
   @DomName('WorkerLocation.host')
   String get host native "WorkerLocation_host_Getter";
 
+  @DocsEditable
   @DomName('WorkerLocation.hostname')
   String get hostname native "WorkerLocation_hostname_Getter";
 
+  @DocsEditable
   @DomName('WorkerLocation.href')
   String get href native "WorkerLocation_href_Getter";
 
+  @DocsEditable
   @DomName('WorkerLocation.pathname')
   String get pathname native "WorkerLocation_pathname_Getter";
 
+  @DocsEditable
   @DomName('WorkerLocation.port')
   String get port native "WorkerLocation_port_Getter";
 
+  @DocsEditable
   @DomName('WorkerLocation.protocol')
   String get protocol native "WorkerLocation_protocol_Getter";
 
+  @DocsEditable
   @DomName('WorkerLocation.search')
   String get search native "WorkerLocation_search_Getter";
 
+  @DocsEditable
   @DomName('WorkerLocation.toString')
   String toString() native "WorkerLocation_toString_Callback";
 
@@ -25145,22 +27901,28 @@ class WorkerLocation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('WorkerNavigator')
 class WorkerNavigator extends NativeFieldWrapperClass1 {
   WorkerNavigator.internal();
 
+  @DocsEditable
   @DomName('WorkerNavigator.appName')
   String get appName native "WorkerNavigator_appName_Getter";
 
+  @DocsEditable
   @DomName('WorkerNavigator.appVersion')
   String get appVersion native "WorkerNavigator_appVersion_Getter";
 
+  @DocsEditable
   @DomName('WorkerNavigator.onLine')
   bool get onLine native "WorkerNavigator_onLine_Getter";
 
+  @DocsEditable
   @DomName('WorkerNavigator.platform')
   String get platform native "WorkerNavigator_platform_Getter";
 
+  @DocsEditable
   @DomName('WorkerNavigator.userAgent')
   String get userAgent native "WorkerNavigator_userAgent_Getter";
 
@@ -25172,20 +27934,24 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XPathEvaluator')
 class XPathEvaluator extends NativeFieldWrapperClass1 {
   XPathEvaluator.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory XPathEvaluator() => XPathEvaluator._create();
   static XPathEvaluator _create() native "XPathEvaluator_constructor_Callback";
 
+  @DocsEditable
   @DomName('XPathEvaluator.createExpression')
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native "XPathEvaluator_createExpression_Callback";
 
+  @DocsEditable
   @DomName('XPathEvaluator.createNSResolver')
   XPathNSResolver createNSResolver(Node nodeResolver) native "XPathEvaluator_createNSResolver_Callback";
 
+  @DocsEditable
   @DomName('XPathEvaluator.evaluate')
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native "XPathEvaluator_evaluate_Callback";
 
@@ -25197,6 +27963,7 @@ class XPathEvaluator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XPathException')
 class XPathException extends NativeFieldWrapperClass1 {
   XPathException.internal();
@@ -25205,15 +27972,19 @@ class XPathException extends NativeFieldWrapperClass1 {
 
   static const int TYPE_ERR = 52;
 
+  @DocsEditable
   @DomName('XPathException.code')
   int get code native "XPathException_code_Getter";
 
+  @DocsEditable
   @DomName('XPathException.message')
   String get message native "XPathException_message_Getter";
 
+  @DocsEditable
   @DomName('XPathException.name')
   String get name native "XPathException_name_Getter";
 
+  @DocsEditable
   @DomName('XPathException.toString')
   String toString() native "XPathException_toString_Callback";
 
@@ -25225,10 +27996,12 @@ class XPathException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XPathExpression')
 class XPathExpression extends NativeFieldWrapperClass1 {
   XPathExpression.internal();
 
+  @DocsEditable
   @DomName('XPathExpression.evaluate')
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native "XPathExpression_evaluate_Callback";
 
@@ -25240,10 +28013,12 @@ class XPathExpression extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XPathNSResolver')
 class XPathNSResolver extends NativeFieldWrapperClass1 {
   XPathNSResolver.internal();
 
+  @DocsEditable
   @DomName('XPathNSResolver.lookupNamespaceURI')
   String lookupNamespaceUri(String prefix) native "XPathNSResolver_lookupNamespaceURI_Callback";
 
@@ -25255,6 +28030,7 @@ class XPathNSResolver extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XPathResult')
 class XPathResult extends NativeFieldWrapperClass1 {
   XPathResult.internal();
@@ -25279,30 +28055,39 @@ class XPathResult extends NativeFieldWrapperClass1 {
 
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
+  @DocsEditable
   @DomName('XPathResult.booleanValue')
   bool get booleanValue native "XPathResult_booleanValue_Getter";
 
+  @DocsEditable
   @DomName('XPathResult.invalidIteratorState')
   bool get invalidIteratorState native "XPathResult_invalidIteratorState_Getter";
 
+  @DocsEditable
   @DomName('XPathResult.numberValue')
   num get numberValue native "XPathResult_numberValue_Getter";
 
+  @DocsEditable
   @DomName('XPathResult.resultType')
   int get resultType native "XPathResult_resultType_Getter";
 
+  @DocsEditable
   @DomName('XPathResult.singleNodeValue')
   Node get singleNodeValue native "XPathResult_singleNodeValue_Getter";
 
+  @DocsEditable
   @DomName('XPathResult.snapshotLength')
   int get snapshotLength native "XPathResult_snapshotLength_Getter";
 
+  @DocsEditable
   @DomName('XPathResult.stringValue')
   String get stringValue native "XPathResult_stringValue_Getter";
 
+  @DocsEditable
   @DomName('XPathResult.iterateNext')
   Node iterateNext() native "XPathResult_iterateNext_Callback";
 
+  @DocsEditable
   @DomName('XPathResult.snapshotItem')
   Node snapshotItem(int index) native "XPathResult_snapshotItem_Callback";
 
@@ -25314,14 +28099,16 @@ class XPathResult extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XMLSerializer')
 class XmlSerializer extends NativeFieldWrapperClass1 {
   XmlSerializer.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory XmlSerializer() => XmlSerializer._create();
   static XmlSerializer _create() native "XMLSerializer_constructor_Callback";
 
+  @DocsEditable
   @DomName('XMLSerializer.serializeToString')
   String serializeToString(Node node) native "XMLSerializer_serializeToString_Callback";
 
@@ -25333,35 +28120,44 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('XSLTProcessor')
 class XsltProcessor extends NativeFieldWrapperClass1 {
   XsltProcessor.internal();
 
-  /// @docsEditable true
+  @DocsEditable
   factory XsltProcessor() => XsltProcessor._create();
   static XsltProcessor _create() native "XSLTProcessor_constructor_Callback";
 
+  @DocsEditable
   @DomName('XSLTProcessor.clearParameters')
   void clearParameters() native "XSLTProcessor_clearParameters_Callback";
 
+  @DocsEditable
   @DomName('XSLTProcessor.getParameter')
   String getParameter(String namespaceURI, String localName) native "XSLTProcessor_getParameter_Callback";
 
+  @DocsEditable
   @DomName('XSLTProcessor.importStylesheet')
   void importStylesheet(Node stylesheet) native "XSLTProcessor_importStylesheet_Callback";
 
+  @DocsEditable
   @DomName('XSLTProcessor.removeParameter')
   void removeParameter(String namespaceURI, String localName) native "XSLTProcessor_removeParameter_Callback";
 
+  @DocsEditable
   @DomName('XSLTProcessor.reset')
   void reset() native "XSLTProcessor_reset_Callback";
 
+  @DocsEditable
   @DomName('XSLTProcessor.setParameter')
   void setParameter(String namespaceURI, String localName, String value) native "XSLTProcessor_setParameter_Callback";
 
+  @DocsEditable
   @DomName('XSLTProcessor.transformToDocument')
   Document transformToDocument(Node source) native "XSLTProcessor_transformToDocument_Callback";
 
+  @DocsEditable
   @DomName('XSLTProcessor.transformToFragment')
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
 
@@ -25373,10 +28169,12 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('ClientRectList')
 class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRect> {
   _ClientRectList.internal();
 
+  @DocsEditable
   @DomName('ClientRectList.length')
   int get length native "ClientRectList_length_Getter";
 
@@ -25528,6 +28326,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 
   // -- end List<ClientRect> mixins.
 
+  @DocsEditable
   @DomName('ClientRectList.item')
   ClientRect item(int index) native "ClientRectList_item_Callback";
 
@@ -25539,10 +28338,12 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSRuleList')
 class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   _CssRuleList.internal();
 
+  @DocsEditable
   @DomName('CSSRuleList.length')
   int get length native "CSSRuleList_length_Getter";
 
@@ -25694,6 +28495,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
   // -- end List<CssRule> mixins.
 
+  @DocsEditable
   @DomName('CSSRuleList.item')
   CssRule item(int index) native "CSSRuleList_item_Callback";
 
@@ -25705,10 +28507,12 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('CSSValueList')
 class _CssValueList extends CssValue implements List<CssValue> {
   _CssValueList.internal() : super.internal();
 
+  @DocsEditable
   @DomName('CSSValueList.length')
   int get length native "CSSValueList_length_Getter";
 
@@ -25860,6 +28664,7 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   // -- end List<CssValue> mixins.
 
+  @DocsEditable
   @DomName('CSSValueList.item')
   CssValue item(int index) native "CSSValueList_item_Callback";
 
@@ -25871,6 +28676,7 @@ class _CssValueList extends CssValue implements List<CssValue> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLDirectoryElement')
 class _DirectoryElement extends _Element_Merged {
   _DirectoryElement.internal() : super.internal();
@@ -25883,100 +28689,132 @@ class _DirectoryElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('HTMLElement')
 class _Element_Merged extends Element {
   _Element_Merged.internal() : super.internal();
 
+  @DocsEditable
   @DomName('HTMLElement.children')
   HtmlCollection get $dom_children native "HTMLElement_children_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.contentEditable')
   String get contentEditable native "HTMLElement_contentEditable_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.contentEditable')
   void set contentEditable(String value) native "HTMLElement_contentEditable_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.dir')
   String get dir native "HTMLElement_dir_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.dir')
   void set dir(String value) native "HTMLElement_dir_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.draggable')
   bool get draggable native "HTMLElement_draggable_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.draggable')
   void set draggable(bool value) native "HTMLElement_draggable_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.hidden')
   bool get hidden native "HTMLElement_hidden_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.hidden')
   void set hidden(bool value) native "HTMLElement_hidden_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.id')
   String get id native "HTMLElement_id_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.id')
   void set id(String value) native "HTMLElement_id_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.innerHTML')
   String get innerHtml native "HTMLElement_innerHTML_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.innerHTML')
   void set innerHtml(String value) native "HTMLElement_innerHTML_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.isContentEditable')
   bool get isContentEditable native "HTMLElement_isContentEditable_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.lang')
   String get lang native "HTMLElement_lang_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.lang')
   void set lang(String value) native "HTMLElement_lang_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.outerHTML')
   String get outerHtml native "HTMLElement_outerHTML_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.spellcheck')
   bool get spellcheck native "HTMLElement_spellcheck_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.spellcheck')
   void set spellcheck(bool value) native "HTMLElement_spellcheck_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.tabIndex')
   int get tabIndex native "HTMLElement_tabIndex_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.tabIndex')
   void set tabIndex(int value) native "HTMLElement_tabIndex_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.title')
   String get title native "HTMLElement_title_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.title')
   void set title(String value) native "HTMLElement_title_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.translate')
   bool get translate native "HTMLElement_translate_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.translate')
   void set translate(bool value) native "HTMLElement_translate_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.webkitdropzone')
   String get webkitdropzone native "HTMLElement_webkitdropzone_Getter";
 
+  @DocsEditable
   @DomName('HTMLElement.webkitdropzone')
   void set webkitdropzone(String value) native "HTMLElement_webkitdropzone_Setter";
 
+  @DocsEditable
   @DomName('HTMLElement.click')
   void click() native "HTMLElement_click_Callback";
 
+  @DocsEditable
   @DomName('HTMLElement.insertAdjacentElement')
   Element insertAdjacentElement(String where, Element element) native "HTMLElement_insertAdjacentElement_Callback";
 
+  @DocsEditable
   @DomName('HTMLElement.insertAdjacentHTML')
   void insertAdjacentHtml(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
 
+  @DocsEditable
   @DomName('HTMLElement.insertAdjacentText')
   void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
 
@@ -25988,10 +28826,12 @@ class _Element_Merged extends Element {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('EntryArray')
 class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   _EntryArray.internal();
 
+  @DocsEditable
   @DomName('EntryArray.length')
   int get length native "EntryArray_length_Getter";
 
@@ -26143,6 +28983,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
   // -- end List<Entry> mixins.
 
+  @DocsEditable
   @DomName('EntryArray.item')
   Entry item(int index) native "EntryArray_item_Callback";
 
@@ -26154,10 +28995,12 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('EntryArraySync')
 class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync> {
   _EntryArraySync.internal();
 
+  @DocsEditable
   @DomName('EntryArraySync.length')
   int get length native "EntryArraySync_length_Getter";
 
@@ -26309,6 +29152,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
   // -- end List<EntrySync> mixins.
 
+  @DocsEditable
   @DomName('EntryArraySync.item')
   EntrySync item(int index) native "EntryArraySync_item_Callback";
 
@@ -26320,10 +29164,12 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('GamepadList')
 class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   _GamepadList.internal();
 
+  @DocsEditable
   @DomName('GamepadList.length')
   int get length native "GamepadList_length_Getter";
 
@@ -26475,6 +29321,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   // -- end List<Gamepad> mixins.
 
+  @DocsEditable
   @DomName('GamepadList.item')
   Gamepad item(int index) native "GamepadList_item_Callback";
 
@@ -26486,10 +29333,12 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('MediaStreamList')
 class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStream> {
   _MediaStreamList.internal();
 
+  @DocsEditable
   @DomName('MediaStreamList.length')
   int get length native "MediaStreamList_length_Getter";
 
@@ -26641,6 +29490,7 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
 
   // -- end List<MediaStream> mixins.
 
+  @DocsEditable
   @DomName('MediaStreamList.item')
   MediaStream item(int index) native "MediaStreamList_item_Callback";
 
@@ -26652,10 +29502,12 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechInputResultList')
 class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<SpeechInputResult> {
   _SpeechInputResultList.internal();
 
+  @DocsEditable
   @DomName('SpeechInputResultList.length')
   int get length native "SpeechInputResultList_length_Getter";
 
@@ -26807,6 +29659,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 
   // -- end List<SpeechInputResult> mixins.
 
+  @DocsEditable
   @DomName('SpeechInputResultList.item')
   SpeechInputResult item(int index) native "SpeechInputResultList_item_Callback";
 
@@ -26818,10 +29671,12 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('SpeechRecognitionResultList')
 class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements List<SpeechRecognitionResult> {
   _SpeechRecognitionResultList.internal();
 
+  @DocsEditable
   @DomName('SpeechRecognitionResultList.length')
   int get length native "SpeechRecognitionResultList_length_Getter";
 
@@ -26973,6 +29828,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 
   // -- end List<SpeechRecognitionResult> mixins.
 
+  @DocsEditable
   @DomName('SpeechRecognitionResultList.item')
   SpeechRecognitionResult item(int index) native "SpeechRecognitionResultList_item_Callback";
 
@@ -26984,10 +29840,12 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
 @DomName('StyleSheetList')
 class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleSheet> {
   _StyleSheetList.internal();
 
+  @DocsEditable
   @DomName('StyleSheetList.length')
   int get length native "StyleSheetList_length_Getter";
 
@@ -27139,6 +29997,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   // -- end List<StyleSheet> mixins.
 
+  @DocsEditable
   @DomName('StyleSheetList.item')
   StyleSheet item(int index) native "StyleSheetList_item_Callback";
 

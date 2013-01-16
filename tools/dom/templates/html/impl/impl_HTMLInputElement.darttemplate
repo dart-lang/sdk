@@ -29,7 +29,6 @@ class $CLASSNAME$EXTENDS implements
     ButtonInputElement
     $NATIVESPEC {
 
-  /// @docsEditable true
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) {

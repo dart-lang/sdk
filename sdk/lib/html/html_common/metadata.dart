@@ -54,3 +54,10 @@ class DomName {
   final String name;
   const DomName(this.name);
 }
+
+
+/// Metadata that specifies that that member is editable through generated
+/// files.
+class DocsEditable {
+  const DocsEditable();
+}

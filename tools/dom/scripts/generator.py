@@ -742,7 +742,8 @@ def FindCommonAnnotations(interface_name, member_name=None):
   else:
     key = interface_name
 
-  annotations = ["@DomName('" + key + "')"]
+  annotations = ["@DocsEditable",
+                 "@DomName('" + key + "')",]
   if (dart_annotations.get(key) != None):
     annotations.extend(dart_annotations.get(key))
 

@@ -6,7 +6,6 @@ part of $LIBRARYNAME;
 $ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
-  /// @docsEditable true
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);

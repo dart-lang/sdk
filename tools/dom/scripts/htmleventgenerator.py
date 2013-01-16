@@ -476,9 +476,9 @@ class HtmlEventGenerator(object):
     template_file = 'impl_%s.darttemplate' % events_class_name
     template = (self._template_loader.TryLoad(template_file) or
         '\n'
-        '/// @docsEditable true\n'
+        '@DocsEditable\n'
         'class $CLASSNAME extends $SUPER {\n'
-        '  /// @docsEditable true\n'
+        '  @DocsEditable\n'
         '  $CLASSNAME(EventTarget _ptr) : super(_ptr);\n'
         '$!MEMBERS}\n')
 
@@ -505,7 +505,7 @@ class HtmlEventGenerator(object):
       if not full_event_name in custom_events:
         implementation_events_members.Emit(
             "\n"
-            "  /// @docsEditable true\n"
+            "  @DocsEditable\n"
             "  EventListenerList get $NAME => this['$DOM_NAME'];\n",
           NAME=html_name,
             DOM_NAME=dom_name)
