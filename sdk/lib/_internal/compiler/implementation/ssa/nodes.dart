@@ -1175,14 +1175,14 @@ abstract class HCheck extends HInstruction {
 
 class HBailoutTarget extends HInstruction {
   final int state;
-  bool isEnabled = false;
+  bool isEnabled = true;
   HBailoutTarget(this.state) : super(<HInstruction>[]);
   void prepareGvn(HTypeMap types) {
     assert(!hasSideEffects(types));
     setUseGvn();
   }
 
-  bool isControlFlow() => true;
+  bool isControlFlow() => isEnabled;
   bool isJsStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
@@ -1210,7 +1210,6 @@ class HTypeGuard extends HCheck {
   HType get guaranteedType => isEnabled ? guardedType : HType.UNKNOWN;
 
   bool isControlFlow() => true;
-
   bool isJsStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
