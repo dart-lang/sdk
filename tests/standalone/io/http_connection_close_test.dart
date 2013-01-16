@@ -43,16 +43,21 @@ void testHttp11Close(bool closeRequest) {
 }
 
 void testStreamResponse() {
+  Timer timer;
   var server = new HttpServer();
+  server.onError = (e) {
+    server.close();
+    timer.cancel();
+  };
   server.listen("127.0.0.1", 0, backlog: 5);
   server.defaultRequestHandler = (var request, var response) {
-    new Timer.repeating(10, (x) {
+    timer = new Timer.repeating(10, (_) {
       Date now = new Date.now();
       try {
         response.outputStream.writeString(
             'data:${now.millisecondsSinceEpoch}\n\n');
       } catch (e) {
-        x.cancel();
+        timer.cancel();
         server.close();
       }
     });
