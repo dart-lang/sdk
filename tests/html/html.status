@@ -260,3 +260,4 @@ svg_3_test: Skip # Timeout
 
 [ $compiler == none && $system == linux && $runtime == drt ]
 audiocontext_test: Fail
+notifications_test: Fail
