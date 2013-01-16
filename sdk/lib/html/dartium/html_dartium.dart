@@ -7658,36 +7658,15 @@ class DomError extends NativeFieldWrapperClass1 {
   String get name native "DOMError_name_Getter";
 
 }
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
 
 
 /// @domName DOMException
 class DomException extends NativeFieldWrapperClass1 {
-
-  static const String INDEX_SIZE = 'IndexSizeError';
-  static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
-  static const String WRONG_DOCUMENT = 'WrongDocumentError';
-  static const String INVALID_CHARACTER = 'InvalidCharacterError';
-  static const String NO_MODIFICATION_ALLOWED = 'NoModificationAllowedError';
-  static const String NOT_FOUND = 'NotFoundError';
-  static const String NOT_SUPPORTED = 'NotSupportedError';
-  static const String INVALID_STATE = 'InvalidStateError';
-  static const String SYNTAX = 'SyntaxError';
-  static const String INVALID_MODIFICATION = 'InvalidModificationError';
-  static const String NAMESPACE = 'NamespaceError';
-  static const String INVALID_ACCESS = 'InvalidAccessError';
-  static const String TYPE_MISMATCH = 'TypeMismatchError';
-  static const String SECURITY = 'SecurityError';
-  static const String NETWORK = 'NetworkError';
-  static const String ABORT = 'AbortError';
-  static const String URL_MISMATCH = 'URLMismatchError';
-  static const String QUOTA_EXCEEDED = 'QuotaExceededError';
-  static const String TIMEOUT = 'TimeoutError';
-  static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
-  static const String DATA_CLONE = 'DataCloneError';
-
   DomException.internal();
 
 
