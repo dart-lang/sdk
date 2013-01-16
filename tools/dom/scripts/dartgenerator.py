@@ -148,16 +148,16 @@ class DartGenerator(object):
       else:
         database.DeleteInterface(interface.id)
 
-      # Ugly temporary hack
-      websocket_interface = database.GetInterface('WebSocket')
-      def make_object(**fields):
-        o = type('Anon', (object,), {})()
-        for k, v in fields.items(): setattr(o, k, v)
-        o.ext_attrs = {}
-        return o
-      arg = make_object(id = 'url', type = make_object(id = 'DOMString'))
-      websocket_interface.ext_attrs['Constructor'] = make_object(arguments = [arg])
-      websocket_interface.ext_attrs['CustomConstructor'] = True
+    # Ugly temporary hack
+    websocket_interface = database.GetInterface('WebSocket')
+    def make_object(**fields):
+      o = type('Anon', (object,), {})()
+      for k, v in fields.items(): setattr(o, k, v)
+      o.ext_attrs = {}
+      return o
+    arg = make_object(id = 'url', type = make_object(id = 'DOMString'))
+    websocket_interface.ext_attrs['Constructor'] = make_object(arguments = [arg])
+    websocket_interface.ext_attrs['CustomConstructor'] = True
 
     self.FilterMembersWithUnidentifiedTypes(database)
 
