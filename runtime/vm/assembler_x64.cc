@@ -295,18 +295,14 @@ void Assembler::movsxw(Register dst, const Address& src) {
 
 
 void Assembler::movw(Register dst, const Address& src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitOperandREX(dst, src, REX_NONE);
-  EmitOperandSizeOverride();
-  EmitUint8(0x8B);
-  EmitOperand(dst & 7, src);
+  FATAL("Use movzxw or movsxw instead.");
 }
 
 
 void Assembler::movw(const Address& dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitOperandREX(src, dst, REX_NONE);
   EmitOperandSizeOverride();
+  EmitOperandREX(src, dst, REX_NONE);
   EmitUint8(0x89);
   EmitOperand(src & 7, dst);
 }
