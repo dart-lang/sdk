@@ -16281,8 +16281,8 @@ class MediaStream extends EventTarget {
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
   @DocsEditable
-  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
-  static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
+  factory MediaStream() => MediaStream._create();
+  static MediaStream _create() native "MediaStream_constructor_Callback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
