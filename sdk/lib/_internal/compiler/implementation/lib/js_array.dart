@@ -34,7 +34,7 @@ class JSArray<E> implements List<E> {
   }
 
   Iterable<E> where(bool f(E element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return new WhereIterable<E>(this, f);
   }
 
   void addAll(Collection<E> collection) {
@@ -53,11 +53,11 @@ class JSArray<E> implements List<E> {
   }
 
   void forEach(void f(E element)) {
-    return IterableMixinWorkaround.forEach(this, f);
+    return Collections.forEach(this, f);
   }
 
   List mappedBy(f(E element)) {
-    return IterableMixinWorkaround.mappedBy(this, f);
+    return new MappedList(this, f);
   }
 
   String join([String separator]) {
@@ -70,35 +70,35 @@ class JSArray<E> implements List<E> {
   }
 
   List<E> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return new ListView<E>(this, 0, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return new TakeWhileIterable<E>(this, test);
   }
 
   List<E> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return new ListView<E>(this, n, null);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return new SkipWhileIterable<E>(this, test);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+    return Collections.reduce(this, initialValue, combine);
   }
 
   E firstMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+    return Collections.firstMatching(this, test, orElse);
   }
 
   E lastMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+    return Collections.lastMatchingInList(this, test, orElse);
   }
 
   E singleMatching(bool test(E value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+    return Collections.singleMatching(this, test);
   }
 
   E elementAt(int index) {
@@ -142,9 +142,9 @@ class JSArray<E> implements List<E> {
     throw new StateError("More than one element");
   }
 
-  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
+  E min([int compare(E a, E b)]) => Collections.min(this, compare);
 
-  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
+  E max([int compare(E a, E b)]) => Collections.max(this, compare);
 
   void removeRange(int start, int length) {
     checkGrowable(this, 'removeRange');
@@ -190,9 +190,9 @@ class JSArray<E> implements List<E> {
     Arrays.copy(from, startFrom, this, start, length);
   }
 
-  bool any(bool f(E element)) => IterableMixinWorkaround.any(this, f);
+  bool any(bool f(E element)) => Collections.any(this, f);
 
-  bool every(bool f(E element)) => IterableMixinWorkaround.every(this, f);
+  bool every(bool f(E element)) => Collections.every(this, f);
 
   void sort([int compare(E a, E b)]) {
     checkMutable(this, 'sort');

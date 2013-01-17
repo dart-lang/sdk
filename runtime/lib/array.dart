@@ -62,63 +62,63 @@ class _ObjectArray<E> implements List<E> {
   // Collection interface.
 
   bool contains(E element) {
-    return IterableMixinWorkaround.contains(this, element);
+    return Collections.contains(this, element);
   }
 
   void forEach(f(E element)) {
-    IterableMixinWorkaround.forEach(this, f);
+    Collections.forEach(this, f);
   }
 
   String join([String separator]) {
-    return IterableMixinWorkaround.joinList(this, separator);
+    return Collections.joinList(this, separator);
   }
 
   List mappedBy(f(E element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
+    return new MappedList<E, dynamic>(this, f);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+    return Collections.reduce(this, initialValue, combine);
   }
 
   Iterable<E> where(bool f(E element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return new WhereIterable<E>(this, f);
   }
 
   List<E> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return new ListView<E>(this, 0, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return new TakeWhileIterable<E>(this, test);
   }
 
   List<E> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return new ListView<E>(this, n, null);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return new SkipWhileIterable<E>(this, test);
   }
 
   bool every(bool f(E element)) {
-    return IterableMixinWorkaround.every(this, f);
+    return Collections.every(this, f);
   }
 
   bool any(bool f(E element)) {
-    return IterableMixinWorkaround.any(this, f);
+    return Collections.any(this, f);
   }
 
   E firstMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+    return Collections.firstMatching(this, test, orElse);
   }
 
   E lastMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+    return Collections.lastMatchingInList(this, test, orElse);
   }
 
   E singleMatching(bool test(E value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+    return Collections.singleMatching(this, test);
   }
 
   E elementAt(int index) {
@@ -192,9 +192,9 @@ class _ObjectArray<E> implements List<E> {
     throw new StateError("More than one element");
   }
 
-  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
+  E min([int compare(E a, E b)]) => Collections.min(this, compare);
 
-  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
+  E max([int compare(E a, E b)]) => Collections.max(this, compare);
 
   List<E> toList() {
     return new List<E>.from(this);
@@ -266,63 +266,63 @@ class _ImmutableArray<E> implements List<E> {
   // Collection interface.
 
   bool contains(E element) {
-    return IterableMixinWorkaround.contains(this, element);
+    return Collections.contains(this, element);
   }
 
   void forEach(f(E element)) {
-    IterableMixinWorkaround.forEach(this, f);
+    Collections.forEach(this, f);
   }
 
   List mappedBy(f(E element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
+    return new MappedList<E, dynamic>(this, f);
   }
 
   String join([String separator]) {
-    return IterableMixinWorkaround.joinList(this, separator);
+    return Collections.joinList(this, separator);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+    return Collections.reduce(this, initialValue, combine);
   }
 
   Iterable<E> where(bool f(E element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return new WhereIterable<E>(this, f);
   }
 
   List<E> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return new ListView<E>(this, 0, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return new TakeWhileIterable<E>(this, test);
   }
 
   List<E> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return new ListView<E>(this, n, null);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return new SkipWhileIterable<E>(this, test);
   }
 
   bool every(bool f(E element)) {
-    return IterableMixinWorkaround.every(this, f);
+    return Collections.every(this, f);
   }
 
   bool any(bool f(E element)) {
-    return IterableMixinWorkaround.any(this, f);
+    return Collections.any(this, f);
   }
 
   E firstMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+    return Collections.firstMatching(this, test, orElse);
   }
 
   E lastMatching(bool test(E value), {E orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+    return Collections.lastMatchingInList(this, test, orElse);
   }
 
   E singleMatching(bool test(E value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+    return Collections.singleMatching(this, test);
   }
 
   E elementAt(int index) {
@@ -400,9 +400,9 @@ class _ImmutableArray<E> implements List<E> {
     throw new StateError("More than one element");
   }
 
-  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
+  E min([int compare(E a, E b)]) => Collections.min(this, compare);
 
-  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
+  E max([int compare(E a, E b)]) => Collections.max(this, compare);
 
   List<E> toList() {
     return new List<E>.from(this);

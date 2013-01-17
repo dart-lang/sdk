@@ -26,14 +26,14 @@ int compareC(C a, C b) => a.x.compareTo(b.x);
 testMinMax(iterable, min, max) {
   Expect.equals(min, iterable.min());
   Expect.equals(min, iterable.min(Comparable.compare));
-  Expect.equals(min, IterableMixinWorkaround.min(iterable));
-  Expect.equals(min, IterableMixinWorkaround.min(iterable, Comparable.compare));
+  Expect.equals(min, Collections.min(iterable));
+  Expect.equals(min, Collections.min(iterable, Comparable.compare));
   Expect.equals(max, iterable.min((a, b) => Comparable.compare(b, a)));
 
   Expect.equals(max, iterable.max());
   Expect.equals(max, iterable.max(Comparable.compare));
-  Expect.equals(max, IterableMixinWorkaround.max(iterable));
-  Expect.equals(max, IterableMixinWorkaround.max(iterable, Comparable.compare));
+  Expect.equals(max, Collections.max(iterable));
+  Expect.equals(max, Collections.max(iterable, Comparable.compare));
   Expect.equals(min, iterable.max((a, b) => Comparable.compare(b, a)));
 }
 
@@ -57,18 +57,18 @@ main() {
 
   // Objects that are not Comparable.
   Expect.equals(const C(0), cList.min(compareC));
-  Expect.equals(const C(0), IterableMixinWorkaround.min(cList, compareC));
+  Expect.equals(const C(0), Collections.min(cList, compareC));
   Expect.equals(const C(0), new List.from(cList).min(compareC));
-  Expect.equals(const C(0), IterableMixinWorkaround.min(new List.from(cList), compareC));
+  Expect.equals(const C(0), Collections.min(new List.from(cList), compareC));
   Expect.equals(const C(0), new Set.from(cList).min(compareC));
-  Expect.equals(const C(0), IterableMixinWorkaround.min(new Set.from(cList), compareC));
+  Expect.equals(const C(0), Collections.min(new Set.from(cList), compareC));
 
   Expect.equals(const C(10), cList.max(compareC));
-  Expect.equals(const C(10), IterableMixinWorkaround.max(cList, compareC));
+  Expect.equals(const C(10), Collections.max(cList, compareC));
   Expect.equals(const C(10), new List.from(cList).max(compareC));
-  Expect.equals(const C(10), IterableMixinWorkaround.max(new List.from(cList), compareC));
+  Expect.equals(const C(10), Collections.max(new List.from(cList), compareC));
   Expect.equals(const C(10), new Set.from(cList).max(compareC));
-  Expect.equals(const C(10), IterableMixinWorkaround.max(new Set.from(cList), compareC));
+  Expect.equals(const C(10), Collections.max(new Set.from(cList), compareC));
 
   bool checkedMode = false;
   assert(checkedMode = true);

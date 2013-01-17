@@ -110,7 +110,7 @@ class FilteredElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+    return Collections.reduce(this, initialValue, combine);
   }
   bool every(bool f(Element element)) => _filtered.every(f);
   bool any(bool f(Element element)) => _filtered.any(f);

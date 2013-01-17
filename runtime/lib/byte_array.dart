@@ -187,7 +187,7 @@ abstract class _ByteArrayBase {
 
   // Methods implementing the Collection interface.
 
-  bool contains(element) => IterableMixinWorkaround.contains(this, element);
+  bool contains(element) => Collections.contains(this, element);
 
   void forEach(void f(element)) {
     var len = this.length;
@@ -197,56 +197,56 @@ abstract class _ByteArrayBase {
   }
 
   List mappedBy(f(int element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
+    return new MappedList<int, dynamic>(this, f);
   }
 
   String join([String separator]) {
-    return IterableMixinWorkaround.join(this, separator);
+    return Collections.join(this, separator);
   }
 
   dynamic reduce(dynamic initialValue,
                  dynamic combine(dynamic initialValue, element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+    return Collections.reduce(this, initialValue, combine);
   }
 
   Collection where(bool f(element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return new WhereIterable<int>(this, f);
   }
 
   List<int> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return new ListView<int>(this, 0, n);
   }
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return new TakeWhileIterable<int>(this, test);
   }
 
   List<int> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return new ListView<int>(this, n, null);
   }
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return new SkipWhileIterable<int>(this, test);
   }
 
   bool every(bool f(element)) {
-    return IterableMixinWorkaround.every(this, f);
+    return Collections.every(this, f);
   }
 
   bool any(bool f(element)) {
-    return IterableMixinWorkaround.any(this, f);
+    return Collections.any(this, f);
   }
 
   int firstMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+    return Collections.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+    return Collections.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
+    return Collections.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -323,9 +323,9 @@ abstract class _ByteArrayBase {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
 
-  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
 
   void removeRange(int start, int length) {
     throw new UnsupportedError(
