@@ -3239,13 +3239,21 @@ class LoadOptimizer : public ValueObject {
             // will ever be used.
             gen->RemoveAll(kill_by_offset_[offset_in_words]);
 
-            Definition* load = map_->Lookup(instr->AsDefinition());
-            if (load != NULL) {
-              // Store has a corresponding numbered load. Try forwarding
-              // stored value to it.
-              gen->Add(load->expr_id());
-              if (out_values == NULL) out_values = CreateBlockOutValues();
-              (*out_values)[load->expr_id()] = GetStoredValue(instr);
+            // Only forward stores to normal arrays and float64 arrays
+            // to loads because other array stores (intXX/uintXX/float32)
+            // may implicitly convert the value stored.
+            StoreIndexedInstr* array_store = instr->AsStoreIndexed();
+            if (array_store == NULL ||
+                array_store->class_id() == kArrayCid ||
+                array_store->class_id() == kFloat64ArrayCid) {
+              Definition* load = map_->Lookup(instr->AsDefinition());
+              if (load != NULL) {
+                // Store has a corresponding numbered load. Try forwarding
+                // stored value to it.
+                gen->Add(load->expr_id());
+                if (out_values == NULL) out_values = CreateBlockOutValues();
+                (*out_values)[load->expr_id()] = GetStoredValue(instr);
+              }
             }
           }
           ASSERT(instr->IsDefinition() &&
