@@ -25,7 +25,7 @@ import "test_runner.dart";
 import "utils.dart";
 
 // TODO(efortuna,whess): Remove this import.
-import 'temp_package_root/path/path.dart' as pathLib;
+import 'vendored_pkg/path/path.dart' as pathLib;
 
 part "browser_test.dart";
 
