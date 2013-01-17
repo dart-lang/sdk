@@ -285,11 +285,6 @@ call_through_getter_test: Fail
 
 
 [ $compiler == none && $runtime == drt ]
-call_constructor_on_unresolvable_class_test/01: Fail # Issue 2264
-call_constructor_on_unresolvable_class_test/02: Fail # Issue 2264
-call_constructor_on_unresolvable_class_test/03: Fail # Issue 2264
-call_constructor_on_unresolvable_class_test/07: Fail # Issue 2264
-call_constructor_on_unresolvable_class_test/none: Fail # Issue 2264
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
