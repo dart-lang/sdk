@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of html;
-$ANNOTATIONS
-class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 
   // Override default options, since IE returns SelectElement itself and it

@@ -4,7 +4,7 @@
 
 part of html;
 
-class $CLASSNAME extends $SUPER {
+$(ANNOTATIONS)class $CLASSNAME extends $SUPER {
   $CLASSNAME(EventTarget _ptr) : super(_ptr);
 $!MEMBERS
   EventListenerList get mouseWheel {

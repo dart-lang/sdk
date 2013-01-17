@@ -513,106 +513,143 @@ def FindConversion(idl_type, direction, interface, member):
 
 dart2js_annotations = {
 
-    'CanvasRenderingContext2D.createImageData':
+    'CanvasRenderingContext2D.createImageData': [
       "@Creates('ImageData|=Object')",
+    ],
 
-    'CanvasRenderingContext2D.getImageData':
+    'CanvasRenderingContext2D.getImageData': [
       "@Creates('ImageData|=Object')",
+    ],
 
-    'CanvasRenderingContext2D.webkitGetImageDataHD':
+    'CanvasRenderingContext2D.webkitGetImageDataHD': [
       "@Creates('ImageData|=Object')",
+    ],
 
-    'CanvasRenderingContext2D.fillStyle':
-      "@Creates('String|CanvasGradient|CanvasPattern') "
+    'CanvasRenderingContext2D.fillStyle': [
+      "@Creates('String|CanvasGradient|CanvasPattern')",
       "@Returns('String|CanvasGradient|CanvasPattern')",
+    ],
 
-    'CanvasRenderingContext2D.strokeStyle':
-      "@Creates('String|CanvasGradient|CanvasPattern') "
+    'CanvasRenderingContext2D.strokeStyle': [
+      "@Creates('String|CanvasGradient|CanvasPattern')",
       "@Returns('String|CanvasGradient|CanvasPattern')",
+    ],
 
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
-    'DOMWindow':
-      "@Creates('Window|=Object') @Returns('Window|=Object')",
+    'DOMWindow': [
+      "@Creates('Window|=Object')",
+      "@Returns('Window|=Object')",
+    ],
 
-    'DOMWindow.openDatabase': "@Creates('Database') @Creates('DatabaseSync')",
+    'DOMWindow.openDatabase': [
+      "@Creates('Database')",
+      "@Creates('DatabaseSync')",
+    ],
 
     # Cross-frame windows are EventTargets.
-    '-EventTarget':
-      "@Creates('EventTarget|=Object') @Returns('EventTarget|=Object')",
+    '-EventTarget': [
+      "@Creates('EventTarget|=Object')",
+      "@Returns('EventTarget|=Object')",
+    ],
 
     # To be in callback with the browser-created Event, we had to have called
     # addEventListener on the target, so we avoid
-    'Event.currentTarget':
-        "@Creates('Null') @Returns('EventTarget|=Object')",
+    'Event.currentTarget': [
+      "@Creates('Null')",
+      "@Returns('EventTarget|=Object')",
+    ],
 
     # Only nodes in the DOM bubble and have target !== currentTarget.
-    'Event.target':
-        "@Creates('Node') @Returns('EventTarget|=Object')",
+    'Event.target': [
+      "@Creates('Node')",
+      "@Returns('EventTarget|=Object')",
+    ],
 
-    'MouseEvent.relatedTarget':
-        "@Creates('Node') @Returns('EventTarget|=Object')",
+    'MouseEvent.relatedTarget': [
+      "@Creates('Node')",
+      "@Returns('EventTarget|=Object')",
+    ],
 
     # Touch targets are Elements in a Document, or the Document.
-    'Touch.target':
-        "@Creates('Element|Document') @Returns('Element|Document')",
+    'Touch.target': [
+      "@Creates('Element|Document')",
+      "@Returns('Element|Document')",
+    ],
 
 
-    'FileReader.result': "@Creates('String|ArrayBuffer|Null')",
+    'FileReader.result': ["@Creates('String|ArrayBuffer|Null')"],
 
     # Rather than have the result of an IDBRequest as a union over all possible
     # results, we mark the result as instantiating any classes, and mark
     # each operation with the classes that it could cause to be asynchronously
     # instantiated.
-    'IDBRequest.result':  "@Creates('Null')",
+    'IDBRequest.result': ["@Creates('Null')"],
 
     # The source is usually a participant in the operation that generated the
     # IDBRequest.
-    'IDBRequest.source':  "@Creates('Null')",
+    'IDBRequest.source':  ["@Creates('Null')"],
 
-    'IDBFactory.open': "@Creates('Database')",
+    'IDBFactory.open': ["@Creates('Database')"],
 
-    'IDBObjectStore.put': "@_annotation_Creates_IDBKey",
-    'IDBObjectStore.add': "@_annotation_Creates_IDBKey",
-    'IDBObjectStore.get': "@annotation_Creates_SerializedScriptValue",
-    'IDBObjectStore.openCursor': "@Creates('Cursor')",
+    'IDBObjectStore.put': ["@_annotation_Creates_IDBKey"],
+    'IDBObjectStore.add': ["@_annotation_Creates_IDBKey"],
+    'IDBObjectStore.get': ["@annotation_Creates_SerializedScriptValue"],
+    'IDBObjectStore.openCursor': ["@Creates('Cursor')"],
 
-    'IDBIndex.get': "@annotation_Creates_SerializedScriptValue",
-    'IDBIndex.getKey':
-      "@annotation_Creates_SerializedScriptValue "
+    'IDBIndex.get': ["@annotation_Creates_SerializedScriptValue"],
+    'IDBIndex.getKey': [
+      "@annotation_Creates_SerializedScriptValue",
       # The source is the object store behind the index.
       "@Creates('ObjectStore')",
-    'IDBIndex.openCursor': "@Creates('Cursor')",
-    'IDBIndex.openKeyCursor': "@Creates('Cursor')",
+    ],
+    'IDBIndex.openCursor': ["@Creates('Cursor')"],
+    'IDBIndex.openKeyCursor': ["@Creates('Cursor')"],
 
-    'IDBCursorWithValue.value':
-      '@annotation_Creates_SerializedScriptValue '
+    'IDBCursorWithValue.value': [
+      '@annotation_Creates_SerializedScriptValue',
       '@annotation_Returns_SerializedScriptValue',
+    ],
 
-    'IDBCursor.key': "@_annotation_Creates_IDBKey @_annotation_Returns_IDBKey",
+    'IDBCursor.key': [
+      "@_annotation_Creates_IDBKey",
+      "@_annotation_Returns_IDBKey",
+    ],
 
-    '+IDBRequest': "@Returns('Request') @Creates('Request')",
+    '+IDBRequest': [
+      "@Returns('Request')",
+      "@Creates('Request')",
+    ],
 
-    '+IDBOpenDBRequest': "@Returns('Request') @Creates('Request')",
-    '+IDBVersionChangeRequest': "@Returns('Request') @Creates('Request')",
+    '+IDBOpenDBRequest': [
+      "@Returns('Request')",
+      "@Creates('Request')",
+    ],
+    '+IDBVersionChangeRequest': [
+      "@Returns('Request')",
+      "@Creates('Request')",
+    ],
 
+    'MessageEvent.ports': ["@Creates('=List')"],
 
-    'MessageEvent.ports': "@Creates('=List')",
-
-    'MessageEvent.data':
-      "@annotation_Creates_SerializedScriptValue "
+    'MessageEvent.data': [
+      "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
-    'PopStateEvent.state':
-      "@annotation_Creates_SerializedScriptValue "
+    ],
+    'PopStateEvent.state': [
+      "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
-    'SerializedScriptValue':
-      "@annotation_Creates_SerializedScriptValue "
+    ],
+    'SerializedScriptValue': [
+      "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
+    ],
 
-    'SQLResultSetRowList.item': "@Creates('=Object')",
+    'SQLResultSetRowList.item': ["@Creates('=Object')"],
 
-    'XMLHttpRequest.response':
+    'XMLHttpRequest.response': [
       "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
+    ],
 }
 
 # Placeholder to add experimental flag, implementation for this is
@@ -720,6 +757,12 @@ dart_annotations = {
   ],
   'IDBFactory': _indexed_db_annotations,
   'IDBDatabase': _indexed_db_annotations,
+  'MutationObserver': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+    "@Experimental()",
+  ],
   'NotificationCenter': _webkit_experimental_annotations,
   'Performance': _performance_annotations,
   'ShadowRoot': [
@@ -754,13 +797,11 @@ def FindDart2JSAnnotations(idl_type, interface_name, member_name):
   both dart2js and dartium.
   """
   annotations = FindCommonAnnotations(interface_name, member_name)
-  if annotations:
-    annotations = ' '.join(annotations)
 
   ann2 = _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name)
   if ann2:
     if annotations:
-      annotations = annotations + ' ' + ann2
+      annotations.extend(ann2)
     else:
       annotations = ann2
   return annotations
@@ -772,6 +813,13 @@ def AnyConversionAnnotations(idl_type, interface_name, member_name):
   else:
     return False
 
+def FormatAnnotations(annotations, indentation):
+  if annotations:
+    newline = '\n%s' % indentation
+    result = newline.join(annotations) + newline
+    return result
+  return ''
+
 def _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name):
   """ Finds dart2js-specific annotations. This does not include ones shared with
   dartium.
@@ -780,10 +828,10 @@ def _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name):
   if ann1:
     ann2 = dart2js_annotations.get('+' + idl_type)
     if ann2:
-      return ann2 + ' ' + ann1
+      return ann1.extend(ann2)
     ann2 = dart2js_annotations.get(idl_type)
     if ann2:
-      return ann2 + ' ' + ann1
+      return ann1.extend(ann2)
     return ann1
 
   ann2 = dart2js_annotations.get('-' + idl_type)

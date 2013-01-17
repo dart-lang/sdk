@@ -393,15 +393,13 @@ class HtmlDartInterfaceGenerator(object):
     if implements:
       implements_str = ' implements ' + ', '.join(set(implements))
 
-    annotations = FindCommonAnnotations(self._interface.doc_js_name)
-    annotations_str = ''
-    if annotations:
-      annotations_str = '\n' + '\n'.join(annotations)
+    annotations = FormatAnnotations(
+        FindCommonAnnotations(self._interface.doc_js_name), '')
 
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
         LIBRARYNAME=self._library_name,
-        ANNOTATIONS=annotations_str,
+        ANNOTATIONS=annotations,
         CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=implements_str,
@@ -922,19 +920,20 @@ class Dart2JSBackend(HtmlDartGenerator):
       return  "@JSName('%s')\n  " % idl_name
     return ''
 
-  def _Annotations(self, idl_type, idl_member_name):
-    out = ''
+  def _Annotations(self, idl_type, idl_member_name, indent='  '):
     annotations = FindDart2JSAnnotations(idl_type, self._interface.id,
         idl_member_name)
-    if annotations:
-      out = '%s\n  ' % annotations
+
     if not AnyConversionAnnotations(idl_type, self._interface.id,
                                   idl_member_name):
       return_type = self.SecureOutputType(idl_type)
       native_type = self._NarrowToImplementationType(idl_type)
       if native_type != return_type:
-        out += "@Returns('%s') @Creates('%s')\n  " % (native_type, native_type)
-    return out
+        annotations.extend([
+          "@Returns('%s')" % native_type,
+          "@Creates('%s')" % native_type,
+        ])
+    return FormatAnnotations(annotations, indent);
 
   def CustomJSMembers(self):
     return _js_custom_members
