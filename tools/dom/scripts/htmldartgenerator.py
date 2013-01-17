@@ -161,7 +161,8 @@ class HtmlDartGenerator(object):
     # merging the relevant data into info itself.
     method_name = self._renamer.RenameMember(self._interface.id,
                                              info.operations[0],
-                                             info.name)
+                                             info.name,
+                                             'call:')
     if not method_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.

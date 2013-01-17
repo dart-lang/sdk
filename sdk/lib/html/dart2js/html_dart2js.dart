@@ -5764,99 +5764,9 @@ class Document extends Node  native "*Document"
 {
 
 
-  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
-
-  static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
-
-  static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
-
-  static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
-
-  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
-
-  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
-
-  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
-
-  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
-
-  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
-
-  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
-
-  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
-
-  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
-
-  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
-
-  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
-
-  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
-
-  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
-  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
-
-  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
-
-  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
-
-  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
-
-  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
-
-  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
-
-  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
-
-  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
-
-  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
-
-  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
-
-  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
-
   static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
 
-  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
-
-  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
-
-  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
-
-  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
-
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
-
-  static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
-
-  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
-
-  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
-
-  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
-
-  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
-
-  static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
-
-  static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
@@ -6056,99 +5966,99 @@ class Document extends Node  native "*Document"
   @DocsEditable @DomName('Document.webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native;
 
-  Stream<Event> get onAbort => abortEvent.forTarget(this);
+  Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+  Stream<Event> get onBeforeCopy => Element.beforeCopyEvent.forTarget(this);
 
-  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+  Stream<Event> get onBeforeCut => Element.beforeCutEvent.forTarget(this);
 
-  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+  Stream<Event> get onBeforePaste => Element.beforePasteEvent.forTarget(this);
 
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  Stream<Event> get onChange => changeEvent.forTarget(this);
+  Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+  Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+  Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  Stream<Event> get onCopy => copyEvent.forTarget(this);
+  Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
 
-  Stream<Event> get onCut => cutEvent.forTarget(this);
+  Stream<Event> get onCut => Element.cutEvent.forTarget(this);
 
-  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+  Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+  Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+  Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+  Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+  Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+  Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
-  Stream<Event> get onInput => inputEvent.forTarget(this);
+  Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+  Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
+  Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+  Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
-  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+  Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
 
   Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
-  Stream<Event> get onReset => resetEvent.forTarget(this);
+  Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
-  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+  Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  Stream<Event> get onSearch => searchEvent.forTarget(this);
+  Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  Stream<Event> get onSelect => selectEvent.forTarget(this);
+  Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
   Stream<Event> get onSelectionChange => selectionChangeEvent.forTarget(this);
 
-  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+  Stream<Event> get onSelectStart => Element.selectStartEvent.forTarget(this);
 
-  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+  Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
-  Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
+  Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
-  Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
+  Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
@@ -22633,85 +22543,15 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
-  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
-
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
-
-  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
-
-  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
-
-  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
-
-  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
-
-  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
-  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
-
-  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
-
-  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
-
-  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
-
-  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
-
-  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
-
-  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
-
-  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
-
-  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
-
-  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
   static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
 
-  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
-
-  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
-
-  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
-
-  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
-
-  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
-
-  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
-
-  static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
-
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
-
-  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
-
-  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
-
-  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
-
-  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
-
-  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
 
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
@@ -22721,63 +22561,19 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
 
-  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
-
-  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
-
-  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
-
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
-
-  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
-
-  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
-
-  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
-
-  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
-
-  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
-
-  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
-
-  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
-
-  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
-
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
-  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
-
-  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
-
-  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
-
-  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
-
-  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
-
-  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
-
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
-
-  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
-
-  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -23061,85 +22857,69 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
-  Stream<Event> get onAbort => abortEvent.forTarget(this);
+  Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
+  Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
+  Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  Stream<Event> get onChange => changeEvent.forTarget(this);
+  Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
-
-  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
-
-  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+  Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+  Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+  Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+  Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+  Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+  Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
+  Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
-
-  Stream<Event> get onEnded => endedEvent.forTarget(this);
-
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
   Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
 
-  Stream<Event> get onInput => inputEvent.forTarget(this);
+  Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+  Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
-
-  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
-
-  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
-
-  Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
+  Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+  Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
@@ -23149,55 +22929,31 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
 
-  Stream<Event> get onPause => pauseEvent.forTarget(this);
-
-  Stream<Event> get onPlay => playEvent.forTarget(this);
-
-  Stream<Event> get onPlaying => playingEvent.forTarget(this);
-
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
-  Stream<Event> get onProgress => progressEvent.forTarget(this);
-
-  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
-
-  Stream<Event> get onReset => resetEvent.forTarget(this);
+  Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+  Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  Stream<Event> get onSearch => searchEvent.forTarget(this);
+  Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
-
-  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
-
-  Stream<Event> get onSelect => selectEvent.forTarget(this);
-
-  Stream<Event> get onStalled => stalledEvent.forTarget(this);
+  Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
-  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+  Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
-
-  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
-
-  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
-
-  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
-
-  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
 
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
@@ -23205,7 +22961,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
-  Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
+  Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 }
 
@@ -24729,62 +24485,10 @@ class _FrameElement extends Element native "*HTMLFrameElement" {
 @DomName('HTMLFrameSetElement')
 class _FrameSetElement extends Element native "*HTMLFrameSetElement" {
 
-  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
-  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
-
-  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
-
-  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
-
-  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
-
-  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
-
-  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   _FrameSetElementEvents get on =>
     new _FrameSetElementEvents(this);
-
-  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
-
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
-
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
-
-  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
-
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
-
-  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
-
-  Stream<Event> get onOffline => offlineEvent.forTarget(this);
-
-  Stream<Event> get onOnline => onlineEvent.forTarget(this);
-
-  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
-
-  Stream<Event> get onResize => resizeEvent.forTarget(this);
-
-  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
-
-  Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
 
 @DocsEditable

@@ -174,7 +174,7 @@ _renamed_html_members = monitored.Dict('htmlrenamer._renamed_html_members', {
 # Members and classes from the dom that should be removed completely from
 # dart:html.  These could be expressed in the IDL instead but expressing this
 # as a simple table instead is more concise.
-# Syntax is: ClassName.(get\.|set\.)?MemberName
+# Syntax is: ClassName.(get\:|set\:|call\:|on\:)?MemberName
 # Using get: and set: is optional and should only be used when a getter needs
 # to be suppressed but not the setter, etc.
 # TODO(jacobr): cleanup and augment this list.
@@ -191,9 +191,9 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'CanvasRenderingContext2D.setMiterLimit',
     'CanvasRenderingContext2D.setShadow',
     'CanvasRenderingContext2D.setStrokeColor',
-    'DOMWindow.blur',
+    'DOMWindow.call:blur',
     'DOMWindow.clientInformation',
-    'DOMWindow.focus',
+    'DOMWindow.call:focus',
     'DOMWindow.get:frames',
     'DOMWindow.get:length',
     'DOMWindow.prompt',
@@ -461,7 +461,7 @@ class HtmlRenamer(object):
     """
     interface = self._database.GetInterface(interface_name)
 
-    if self._FindMatch(interface, member, member_prefix, _removed_html_members):
+    if self.ShouldSuppressMember(interface, member, member_prefix):
       return None
 
     if 'CheckSecurityForNode' in member_node.ext_attrs:
@@ -478,6 +478,13 @@ class HtmlRenamer(object):
     if dartify_name:
       target_name = self._DartifyMemberName(target_name)
     return target_name
+
+  def ShouldSuppressMember(self, interface, member, member_prefix=''):
+    """ Returns true if the member should be suppressed."""
+    if self._FindMatch(interface, member, member_prefix,
+        _removed_html_members):
+      return True
+    return False
 
   def _FindMatch(self, interface, member, member_prefix, candidates):
     for interface in self._database.Hierarchy(interface):

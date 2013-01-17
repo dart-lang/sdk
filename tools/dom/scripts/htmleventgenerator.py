@@ -380,14 +380,19 @@ class HtmlEventGenerator(object):
     self._renamer = renamer
     self._template_loader = template_loader
 
-  def EmitStreamProviders(self, interface, html_interface_name, custom_events,
+  def EmitStreamProviders(self, interface, custom_events,
       members_emitter):
-    events = self._GetEvents(interface, html_interface_name, custom_events)
+    events = self._GetEvents(interface, custom_events)
     if not events:
       return
 
     for event_info in events:
       (dom_name, html_name, event_type) = event_info
+
+      # If we're using a different provider, then don't declare one.
+      if self._GetEventRedirection(interface, html_name, event_type):
+        continue
+
       members_emitter.Emit(
           "\n"
           "  static const EventStreamProvider<$TYPE> $(NAME)Event = "
@@ -396,9 +401,9 @@ class HtmlEventGenerator(object):
           DOM_NAME=dom_name,
           TYPE=event_type)
 
-  def EmitStreamGetters(self, interface, html_interface_name, custom_events,
+  def EmitStreamGetters(self, interface, custom_events,
       members_emitter):
-    events = self._GetEvents(interface, html_interface_name, custom_events)
+    events = self._GetEvents(interface, custom_events)
     if not events:
       return
 
@@ -406,18 +411,29 @@ class HtmlEventGenerator(object):
       (dom_name, html_name, event_type) = event_info
       getter_name = 'on%s%s' % (html_name[:1].upper(), html_name[1:])
 
+      # If the provider is declared elsewhere, point to that.
+      redirection = self._GetEventRedirection(interface, html_name, event_type)
+      if redirection:
+        provider = '%s.%sEvent' % (redirection, html_name)
+      else:
+        provider = html_name + 'Event'
+
       members_emitter.Emit(
           "\n"
           "  Stream<$TYPE> get $(NAME) => $PROVIDER.forTarget(this);\n",
           NAME=getter_name,
-          PROVIDER=html_name + 'Event',
+          PROVIDER=provider,
           TYPE=event_type)
 
-  def _GetEvents(self, interface, html_interface_name, custom_events):
+  def _GetEvents(self, interface, custom_events):
+    """ Gets a list of all of the events for the specified interface.
+    """
     events = set([attr for attr in interface.attributes
                   if attr.type.id == 'EventListener'])
     if not events and interface.id not in _html_explicit_event_classes:
       return None
+
+    html_interface_name = interface.doc_js_name
 
     dom_event_names = set()
     for event in events:
@@ -434,12 +450,49 @@ class HtmlEventGenerator(object):
         continue
 
       (html_name, event_type) = event_info
+      if self._IsEventSuppressed(interface, html_name, event_type):
+        continue
+
       full_event_name = '%sEvents.%s' % (html_interface_name, html_name)
       if not full_event_name in custom_events:
         events.append((dom_name, html_name, event_type))
     return events
 
+  def _HasEvent(self, events, event_name, event_type):
+    """ Checks if the event is declared in the list of events (from _GetEvents),
+    with the same event type.
+    """
+    for (dom_name, html_name, found_type) in events:
+      if html_name == event_name and event_type == found_type:
+        return True
+    return False
+
+  def _IsEventSuppressed(self, interface, event_name, event_type):
+    """ Checks if the event should not be emitted.
+    """
+    if self._renamer.ShouldSuppressMember(interface, event_name, 'on:'):
+      return True
+
+    if interface.doc_js_name == 'Window':
+      media_interface = self._database.GetInterface('HTMLMediaElement')
+      media_events = self._GetEvents(media_interface, [])
+      if self._HasEvent(media_events, event_name, event_type):
+        return True
+
+  def _GetEventRedirection(self, interface, event_name, event_type):
+    """ For events which are declared in one place, but exposed elsewhere,
+    this gets the source of the event (where the provider is declared)
+    """
+    if interface.doc_js_name == 'Window' or interface.doc_js_name == 'Document':
+      element_interface = self._database.GetInterface('Element')
+      element_events = self._GetEvents(element_interface, [])
+      if self._HasEvent(element_events, event_name, event_type):
+        return 'Element'
+    return None
+
   def _FindEventInfo(self, html_interface_name, dom_event_name):
+    """ Finds the event info (event name and type).
+    """
     key = '%s.%s' % (html_interface_name, dom_event_name)
     if key in _html_event_types:
       return _html_event_types[key]
