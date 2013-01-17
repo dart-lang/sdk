@@ -1041,14 +1041,22 @@ intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
       return Float32Array::kBytesPerElement;
     case kFloat64ArrayCid:
       return Float64Array::kBytesPerElement;
+    case kInt8ArrayCid:
+      return Int8Array::kBytesPerElement;
     case kUint8ArrayCid:
       return Uint8Array::kBytesPerElement;
     case kUint8ClampedArrayCid:
       return Uint8ClampedArray::kBytesPerElement;
+    case kInt16ArrayCid:
+      return Int16Array::kBytesPerElement;
+    case kUint16ArrayCid:
+      return Uint16Array::kBytesPerElement;
     case kOneByteStringCid:
       return OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
       return TwoByteString::kBytesPerElement;
+    case kExternalUint8ArrayCid:
+      return ExternalUint8Array::kBytesPerElement;
     default:
       UNIMPLEMENTED();
       return 0;
@@ -1065,10 +1073,16 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
       return Float32Array::data_offset();
     case kFloat64ArrayCid:
       return Float64Array::data_offset();
+    case kInt8ArrayCid:
+      return Int8Array::data_offset();
     case kUint8ArrayCid:
       return Uint8Array::data_offset();
     case kUint8ClampedArrayCid:
       return Uint8ClampedArray::data_offset();
+    case kInt16ArrayCid:
+      return Int16Array::data_offset();
+    case kUint16ArrayCid:
+      return Uint16Array::data_offset();
     case kOneByteStringCid:
       return OneByteString::data_offset();
     case kTwoByteStringCid:
@@ -1106,11 +1120,17 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
       return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
     case kFloat64ArrayCid:
       return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
+    case kInt8ArrayCid:
+      return FieldAddress(array, index, TIMES_1, Int8Array::data_offset());
     case kUint8ArrayCid:
       return FieldAddress(array, index, TIMES_1, Uint8Array::data_offset());
     case kUint8ClampedArrayCid:
       return
           FieldAddress(array, index, TIMES_1, Uint8ClampedArray::data_offset());
+    case kInt16ArrayCid:
+      return FieldAddress(array, index, TIMES_1, Int16Array::data_offset());
+    case kUint16ArrayCid:
+      return FieldAddress(array, index, TIMES_1, Uint16Array::data_offset());
     case kOneByteStringCid:
       return FieldAddress(array, index, TIMES_1, OneByteString::data_offset());
     case kTwoByteStringCid:
@@ -1118,6 +1138,26 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
     default:
       UNIMPLEMENTED();
       return FieldAddress(SPREG, 0);
+  }
+}
+
+
+Address FlowGraphCompiler::ExternalElementAddressForIntIndex(intptr_t cid,
+                                                             Register array,
+                                                             intptr_t index) {
+  return Address(array, index * ElementSizeFor(cid));
+}
+
+
+Address FlowGraphCompiler::ExternalElementAddressForRegIndex(intptr_t cid,
+                                                             Register array,
+                                                             Register index) {
+  switch (cid) {
+    case kExternalUint8ArrayCid:
+      return Address(array, index, TIMES_1, 0);
+    default:
+      UNIMPLEMENTED();
+      return Address(SPREG, 0);
   }
 }
 

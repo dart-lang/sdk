@@ -1131,9 +1131,12 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return Type::Double();
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
       return Type::IntType();
     default:
       UNIMPLEMENTED();
@@ -1150,9 +1153,12 @@ intptr_t LoadIndexedInstr::ResultCid() const {
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return kDoubleCid;
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
       return kSmiCid;
     default:
       UNIMPLEMENTED();
@@ -1165,9 +1171,12 @@ Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -1190,7 +1199,11 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -2705,11 +2718,23 @@ void StringCharCodeAtInstr::InferRange() {
 
 void LoadIndexedInstr::InferRange() {
   switch (class_id()) {
+    case kInt8ArrayCid:
+      range_ = new Range(RangeBoundary::FromConstant(-128),
+                         RangeBoundary::FromConstant(127));
+      break;
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(255));
+      break;
+    case kInt16ArrayCid:
+      range_ = new Range(RangeBoundary::FromConstant(-32768),
+                         RangeBoundary::FromConstant(32767));
+      break;
+    case kUint16ArrayCid:
+      range_ = new Range(RangeBoundary::FromConstant(0),
+                         RangeBoundary::FromConstant(65535));
       break;
     default:
       Definition::InferRange();

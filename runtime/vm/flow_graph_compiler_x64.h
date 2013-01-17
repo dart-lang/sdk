@@ -243,6 +243,12 @@ class FlowGraphCompiler : public ValueObject {
   static FieldAddress ElementAddressForRegIndex(intptr_t cid,
                                                 Register array,
                                                 Register index);
+  static Address ExternalElementAddressForIntIndex(intptr_t cid,
+                                                   Register array,
+                                                   intptr_t offset);
+  static Address ExternalElementAddressForRegIndex(intptr_t cid,
+                                                   Register array,
+                                                   Register index);
 
  private:
   void EmitFrameEntry();

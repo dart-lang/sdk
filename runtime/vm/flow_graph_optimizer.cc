@@ -598,7 +598,11 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       }
       break;
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
       // Check that value is always smi.
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       if ((value_check.NumberOfChecks() != 1) ||
@@ -649,14 +653,19 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         type_args = new Value(load_type_args);
         break;
       }
+      case kInt8ArrayCid:
       case kUint8ArrayCid:
+      case kUint8ClampedArrayCid:
+      case kInt16ArrayCid:
+      case kUint16ArrayCid:
+        ASSERT(value_type.IsIntType());
+        // Fall through.
       case kFloat32ArrayCid:
       case kFloat64ArrayCid: {
         ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
         InsertBefore(call, null_constant, NULL, Definition::kValue);
         instantiator = new Value(null_constant);
         type_args = new Value(null_constant);
-        ASSERT((class_id != kUint8ArrayCid) || value_type.IsIntType());
         ASSERT((class_id != kFloat32ArrayCid && class_id != kFloat64ArrayCid) ||
                value_type.IsDoubleType());
         ASSERT(value_type.IsInstantiated());
@@ -720,9 +729,12 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kGrowableObjectArrayCid:
     case kFloat32ArrayCid:
     case kFloat64ArrayCid:
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
       // Acceptable load index classes.
       break;
     default:

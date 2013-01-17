@@ -268,7 +268,6 @@ class DeoptRetBeforeAddressInstr : public DeoptInstr {
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = continue_at_pc;
 
-
     uword pc = code.GetPcForDeoptId(deopt_id_, PcDescriptors::kIcCall);
     if (pc != 0) {
       // If the deoptimization happened at an IC call, update the IC data
