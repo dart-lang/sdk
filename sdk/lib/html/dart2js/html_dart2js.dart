@@ -6541,21 +6541,53 @@ class DomError native "*DOMError" {
   @DocsEditable @DomName('DOMError.name')
   final String name;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-
-@DocsEditable
-@DomName('DOMException')
+/// @domName DOMException
 class DomException native "*DOMException" {
+
+  static const String INDEX_SIZE = 'IndexSizeError';
+  static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
+  static const String WRONG_DOCUMENT = 'WrongDocumentError';
+  static const String INVALID_CHARACTER = 'InvalidCharacterError';
+  static const String NO_MODIFICATION_ALLOWED = 'NoModificationAllowedError';
+  static const String NOT_FOUND = 'NotFoundError';
+  static const String NOT_SUPPORTED = 'NotSupportedError';
+  static const String INVALID_STATE = 'InvalidStateError';
+  static const String SYNTAX = 'SyntaxError';
+  static const String INVALID_MODIFICATION = 'InvalidModificationError';
+  static const String NAMESPACE = 'NamespaceError';
+  static const String INVALID_ACCESS = 'InvalidAccessError';
+  static const String TYPE_MISMATCH = 'TypeMismatchError';
+  static const String SECURITY = 'SecurityError';
+  static const String NETWORK = 'NetworkError';
+  static const String ABORT = 'AbortError';
+  static const String URL_MISMATCH = 'URLMismatchError';
+  static const String QUOTA_EXCEEDED = 'QuotaExceededError';
+  static const String TIMEOUT = 'TimeoutError';
+  static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
+  static const String DATA_CLONE = 'DataCloneError';
+
+  String get name {
+    var errorName = JS('String', '#.name', this);
+    // Although Safari nightly has updated the name to SecurityError, Safari 5
+    // and 6 still return SECURITY_ERR.
+    if (_Device.isWebKit && errorName == 'SECURITY_ERR') return 'SecurityError';
+    // Chrome release still uses old string, remove this line when Chrome stable
+    // also prints out SyntaxError.
+    if (_Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
+    return errorName;
+  }
 
   @DocsEditable @DomName('DOMCoreException.message')
   final String message;
 
   @DocsEditable @DomName('DOMCoreException.toString')
   String toString() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
