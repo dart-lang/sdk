@@ -145,6 +145,14 @@ class MockCompiler extends Compiler {
   }
 
   /**
+   * Registers the [source] with [uri] making it possible load [source] as a
+   * library.
+   */
+  void registerSource(Uri uri, String source) {
+    sourceFiles[uri.toString()] = new MockFile(source);
+  }
+
+  /**
    * Used internally to create a library from a source text. The created library
    * is fixed to export its top-level declarations.
    */
