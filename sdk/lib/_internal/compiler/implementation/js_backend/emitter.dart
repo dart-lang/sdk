@@ -1872,7 +1872,7 @@ $lazyInitializerLogic
     if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
       Selector selector = new Selector.callClosure(0);
       String invocationName = namer.invocationName(selector);
-      buffer.add("$mainAccess.$invocationName = $mainAccess");
+      buffer.add("$mainAccess.$invocationName = $mainAccess$N");
     }
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }

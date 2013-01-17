@@ -892,10 +892,14 @@ $throw(ex) {
  * Wrapper class for throwing exceptions.
  */
 class DartError {
-  /// The Dart object (or primitive JavaScript value) which was thrown.
-  final dartException;
+  /// The Dart object (or primitive JavaScript value) which was thrown is
+  /// attached to this object as a field named 'dartException'.  We do this
+  /// only in raw JS so that we can use the 'in' operator and so that the
+  /// minifier does not rename the field.  Therefore it is not declared as a
+  /// real field.
 
-  DartError(this.dartException) {
+  DartError(var dartException) {
+    JS('void', '#.dartException = #', this, dartException);
     // Install a toString method that the JavaScript system will call
     // to format uncaught exceptions.
     JS('void', '#.toString = #', this, DART_CLOSURE_TO_JS(toStringWrapper));
@@ -925,6 +929,7 @@ class DartError {
     // trace and Chrome even applies source maps to the stack
     // trace. Remeber, this method is only ever invoked by the browser
     // when an uncaught exception occurs.
+    var dartException = JS('var', r'#.dartException', this);
     if (JS('bool', '!!Error.captureStackTrace') || (stack == null)) {
       return dartException.toString();
     } else {
