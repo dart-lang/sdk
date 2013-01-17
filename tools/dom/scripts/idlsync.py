@@ -13,7 +13,6 @@ import sys
 
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 DART_PATH = os.path.abspath(os.path.join(SCRIPT_PATH, '..', '..', '..'))
-print '***', DART_PATH
 
 # Path to install latest IDL.
 IDL_PATH = os.path.join(DART_PATH, 'third_party', 'WebCore')
