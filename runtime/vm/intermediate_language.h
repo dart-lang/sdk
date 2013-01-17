@@ -2284,9 +2284,10 @@ class EqualityCompareInstr : public ComparisonInstr {
                        Value* left,
                        Value* right)
       : ComparisonInstr(kind, left, right),
-        ic_data_(Isolate::Current()->GetICDataForDeoptId(deopt_id())),
         token_pos_(token_pos),
         receiver_class_id_(kIllegalCid) {
+    // deopt_id() checks receiver_class_id_ value.
+    ic_data_ = Isolate::Current()->GetICDataForDeoptId(deopt_id());
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
 
@@ -2351,9 +2352,10 @@ class RelationalOpInstr : public ComparisonInstr {
                     Value* left,
                     Value* right)
       : ComparisonInstr(kind, left, right),
-        ic_data_(Isolate::Current()->GetICDataForDeoptId(deopt_id())),
         token_pos_(token_pos),
         operands_class_id_(kIllegalCid) {
+    // deopt_id() checks operands_class_id_ value.
+    ic_data_ = Isolate::Current()->GetICDataForDeoptId(deopt_id());
     ASSERT(Token::IsRelationalOperator(kind));
   }
 
