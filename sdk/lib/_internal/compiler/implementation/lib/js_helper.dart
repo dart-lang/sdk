@@ -735,7 +735,7 @@ class Primitives {
     return JS('var', r'$[#]', className);
   }
 
-  static bool identical(a, b) {
+  static bool identicalImplementation(a, b) {
     return JS('bool', '# == null', a)
       ? JS('bool', '# == null', b)
       : JS('bool', '# === #', a, b);

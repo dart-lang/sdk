@@ -253,4 +253,6 @@ patch class RegExp {
 }
 
 // Patch for 'identical' function.
-patch bool identical(Object a, Object b) => Primitives.identical(a, b);
+patch bool identical(Object a, Object b) {
+  return Primitives.identicalImplementation(a, b);
+}

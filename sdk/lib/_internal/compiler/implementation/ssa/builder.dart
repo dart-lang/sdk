@@ -3435,7 +3435,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     compiler.ensure(!element.isGenerativeConstructor());
     if (element.isFunction()) {
-      if (tryInlineMethod(element, selector, node.arguments)) {
+      bool isIdenticalFunction = element == compiler.identicalFunction;
+
+      if (!isIdenticalFunction
+          && tryInlineMethod(element, selector, node.arguments)) {
         return;
       }
 
@@ -3452,7 +3455,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
       }
 
-      if (identical(element, compiler.identicalFunction)) {
+      if (isIdenticalFunction) {
         pushWithPosition(new HIdentity(target, inputs[1], inputs[2]), node);
         return;
       }
