@@ -6943,60 +6943,51 @@ intptr_t ExceptionHandlers::Length() const {
 }
 
 
-void ExceptionHandlers::SetHandlerInfo(intptr_t index,
-                                       intptr_t try_index,
+void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        intptr_t outer_try_index,
                                        intptr_t handler_pc) const {
-  ASSERT((index >= 0) && (index < Length()));
-  RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data_[index];
-  info->try_index = try_index;
+  ASSERT((try_index >= 0) && (try_index < Length()));
+  RawExceptionHandlers::HandlerInfo* info = &raw_ptr()->data_[try_index];
   info->outer_try_index = outer_try_index;
   info->handler_pc = handler_pc;
 }
 
 void ExceptionHandlers::GetHandlerInfo(
-                            intptr_t index,
+                            intptr_t try_index,
                             RawExceptionHandlers::HandlerInfo* info) const {
-  ASSERT((index >= 0) && (index < Length()));
+  ASSERT((try_index >= 0) && (try_index < Length()));
   ASSERT(info != NULL);
-  RawExceptionHandlers::HandlerInfo* data = &raw_ptr()->data_[index];
-  info->try_index = data->try_index;
+  RawExceptionHandlers::HandlerInfo* data = &raw_ptr()->data_[try_index];
   info->outer_try_index = data->outer_try_index;
   info->handler_pc = data->handler_pc;
 }
 
 
-intptr_t ExceptionHandlers::TryIndex(intptr_t index) const {
-  ASSERT((index >= 0) && (index < Length()));
-  return raw_ptr()->data_[index].try_index;
+intptr_t ExceptionHandlers::HandlerPC(intptr_t try_index) const {
+  ASSERT((try_index >= 0) && (try_index < Length()));
+  return raw_ptr()->data_[try_index].handler_pc;
 }
 
 
-intptr_t ExceptionHandlers::HandlerPC(intptr_t index) const {
-  ASSERT((index >= 0) && (index < Length()));
-  return raw_ptr()->data_[index].handler_pc;
+intptr_t ExceptionHandlers::OuterTryIndex(intptr_t try_index) const {
+  ASSERT((try_index >= 0) && (try_index < Length()));
+  return raw_ptr()->data_[try_index].outer_try_index;
 }
 
 
-intptr_t ExceptionHandlers::OuterTryIndex(intptr_t index) const {
-  ASSERT((index >= 0) && (index < Length()));
-  return raw_ptr()->data_[index].outer_try_index;
-}
-
-
-void ExceptionHandlers::SetHandledTypes(intptr_t index,
+void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
                                         const Array& handled_types) const {
-  ASSERT((index >= 0) && (index < Length()));
+  ASSERT((try_index >= 0) && (try_index < Length()));
   const Array& handled_types_data =
       Array::Handle(raw_ptr()->handled_types_data_);
-  handled_types_data.SetAt(index, handled_types);
+  handled_types_data.SetAt(try_index, handled_types);
 }
 
 
-RawArray* ExceptionHandlers::GetHandledTypes(intptr_t index) const {
-  ASSERT((index >= 0) && (index < Length()));
+RawArray* ExceptionHandlers::GetHandledTypes(intptr_t try_index) const {
+  ASSERT((try_index >= 0) && (try_index < Length()));
   Array& array = Array::Handle(raw_ptr()->handled_types_data_);
-  array ^= array.At(index);
+  array ^= array.At(try_index);
   return array.raw();
 }
 
@@ -7046,7 +7037,7 @@ const char* ExceptionHandlers::ToCString() const {
     ASSERT(!handled_types.IsNull());
     intptr_t num_types = handled_types.Length();
     len += OS::SNPrint(NULL, 0, kFormat,
-                       info.try_index,
+                       i,
                        info.handler_pc,
                        num_types,
                        info.outer_try_index);
@@ -7067,7 +7058,7 @@ const char* ExceptionHandlers::ToCString() const {
     num_chars += OS::SNPrint((buffer + num_chars),
                              (len - num_chars),
                              kFormat,
-                             info.try_index,
+                             i,
                              info.handler_pc,
                              num_types,
                              info.outer_try_index);

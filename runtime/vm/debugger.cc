@@ -378,20 +378,6 @@ RawContext* ActivationFrame::CallerContext() {
 }
 
 
-// TODO(hausner): Eliminate this helper function by sorting the
-// ExceptionHandlers entries by try_index and eliminating
-// the try_index field altogether.
-static intptr_t FindTryIndex(const ExceptionHandlers& handlers,
-                             intptr_t try_index) {
-  intptr_t len = handlers.Length();
-  for (int i = 0; i < len; i++) {
-    if (handlers.TryIndex(i) == try_index) return i;
-  }
-  UNREACHABLE();
-  return -1;
-}
-
-
 ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
     const Instance& exc_obj) const {
   ExceptionHandlers& handlers = ExceptionHandlers::Handle();
@@ -407,11 +393,10 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
     ASSERT(!handlers.IsNull());
     intptr_t num_handlers_checked = 0;
     while (try_index >= 0) {
-      intptr_t i = FindTryIndex(handlers, try_index);
       // Detect circles in the exception handler data.
       num_handlers_checked++;
       ASSERT(num_handlers_checked <= handlers.Length());
-      handled_types = handlers.GetHandledTypes(i);
+      handled_types = handlers.GetHandledTypes(try_index);
       const intptr_t num_types = handled_types.Length();
       for (int k = 0; k < num_types; k++) {
         type ^= handled_types.At(k);
@@ -424,7 +409,7 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
           return frame;
         }
       }
-      try_index = handlers.OuterTryIndex(i);
+      try_index = handlers.OuterTryIndex(try_index);
     }
   }
   return NULL;

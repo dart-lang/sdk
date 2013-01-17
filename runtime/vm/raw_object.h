@@ -859,10 +859,11 @@ class RawLocalVarDescriptors : public RawObject {
 
 class RawExceptionHandlers : public RawObject {
  public:
+  // The index into the ExceptionHandlers table corresponds to
+  // the try_index of the handler.
   struct HandlerInfo {
-    int16_t try_index;        // Try block index associated with handler.
-    int16_t outer_try_index;  // Try block index of enclosing try block.
-    intptr_t handler_pc;      // PC value of handler.
+    intptr_t outer_try_index;  // Try block index of enclosing try block.
+    intptr_t handler_pc;       // PC value of handler.
   };
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);

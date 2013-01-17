@@ -98,10 +98,9 @@ class StackmapTableBuilder : public ZoneAllocated {
 class ExceptionHandlerList : public ZoneAllocated {
  public:
   struct HandlerDesc {
-    intptr_t try_index;        // Try block index handled by the handler.
     intptr_t outer_try_index;  // Try block in which this try block is nested.
     intptr_t pc_offset;        // Handler PC offset value.
-    const Array* handler_types;      // Catch clause guards.
+    const Array* handler_types;   // Catch clause guards.
   };
 
   ExceptionHandlerList() : list_() {}
@@ -110,33 +109,26 @@ class ExceptionHandlerList : public ZoneAllocated {
     return list_.length();
   }
 
-  intptr_t TryIndex(int index) const {
-    return list_[index].try_index;
-  }
-  intptr_t OuterTryIndex(int index) const {
-    return list_[index].outer_try_index;
-  }
-  intptr_t PcOffset(int index) const {
-    return list_[index].pc_offset;
-  }
-  const Array& HandlerTypes(int index) const {
-    return *list_[index].handler_types;
-  }
-  void SetPcOffset(int index, intptr_t handler_pc) {
-    list_[index].pc_offset = handler_pc;
+  void AddPlaceHolder() {
+    struct HandlerDesc data;
+    data.outer_try_index = -1;
+    data.pc_offset = -1;
+    data.handler_types = NULL;
+    list_.Add(data);
   }
 
   void AddHandler(intptr_t try_index,
                   intptr_t outer_try_index,
                   intptr_t pc_offset,
                   const Array& handler_types) {
-    struct HandlerDesc data;
-    data.try_index = try_index;
-    data.outer_try_index = outer_try_index;
-    data.pc_offset = pc_offset;
+    ASSERT(try_index >= 0);
+    while (Length() <= try_index) {
+      AddPlaceHolder();
+    }
+    list_[try_index].outer_try_index = outer_try_index;
+    list_[try_index].pc_offset = pc_offset;
     ASSERT(handler_types.IsZoneHandle());
-    data.handler_types = &handler_types;
-    list_.Add(data);
+    list_[try_index].handler_types = &handler_types;
   }
 
   RawExceptionHandlers* FinalizeExceptionHandlers(uword entry_point) {
@@ -144,9 +136,12 @@ class ExceptionHandlerList : public ZoneAllocated {
     const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(ExceptionHandlers::New(num_handlers));
     for (intptr_t i = 0; i < num_handlers; i++) {
-      handlers.SetHandlerInfo(i, TryIndex(i), OuterTryIndex(i),
-                               (entry_point + PcOffset(i)));
-      handlers.SetHandledTypes(i, HandlerTypes(i));
+      // Assert that every element in the array has been initialized.
+      ASSERT(list_[i].handler_types != NULL);
+      handlers.SetHandlerInfo(i,
+                              list_[i].outer_try_index,
+                              (entry_point + list_[i].pc_offset));
+      handlers.SetHandledTypes(i, *list_[i].handler_types);
     }
     return handlers.raw();
   }

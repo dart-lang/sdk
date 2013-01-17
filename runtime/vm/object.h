@@ -2397,20 +2397,18 @@ class ExceptionHandlers : public Object {
  public:
   intptr_t Length() const;
 
-  void GetHandlerInfo(intptr_t index,
+  void GetHandlerInfo(intptr_t try_index,
                       RawExceptionHandlers::HandlerInfo* info) const;
 
-  intptr_t TryIndex(intptr_t index) const;
-  intptr_t HandlerPC(intptr_t index) const;
-  intptr_t OuterTryIndex(intptr_t index) const;
+  intptr_t HandlerPC(intptr_t try_index) const;
+  intptr_t OuterTryIndex(intptr_t try_index) const;
 
-  void SetHandlerInfo(intptr_t index,
-                      intptr_t try_index,
+  void SetHandlerInfo(intptr_t try_index,
                       intptr_t outer_try_index,
                       intptr_t handler_pc) const;
 
-  RawArray* GetHandledTypes(intptr_t index) const;
-  void SetHandledTypes(intptr_t index, const Array& handled_types) const;
+  RawArray* GetHandledTypes(intptr_t try_index) const;
+  void SetHandledTypes(intptr_t try_index, const Array& handled_types) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawExceptionHandlers) == OFFSET_OF(RawExceptionHandlers,
