@@ -511,22 +511,158 @@ testSetters() {
                             result.double]);  // dynamic.y = double
 }
 
-testNamedParameters() {
+testOptionalNamedParameters() {
   final String source = r"""
       class A {
         var x, y, z, w;
         A(this.x, {this.y, this.z, this.w});
       }
+      class B {
+        var x, y;
+        B(this.x, {this.y});
+      }
+      class C {
+        var x, y;
+        C(this.x, {this.y});
+      }
+      class Test {
+        var a, b, c, d;
+        var e, f;
+        var g, h;
+
+        Test(this.a, this.b, this.c, this.d,
+             this.e, this.f,
+             this.g, this.h);
+
+        f1(x, {y, z, w}) {
+          a = x;
+          b = y;
+          c = z;
+          d = w;
+        }
+        f2(x, {y}) {
+          e = x;
+          f = y;
+        }
+        f3(x, {y}) {
+          g = x;
+          h = y;
+        }
+      }
+      class Foo {
+      }
       main() {
+        // We want to test expiclitely for null later so we initialize all the
+        // fields of Test with a placeholder type: Foo.
+        var foo = new Foo();
+        var test = new Test(foo, foo, foo, foo, foo, foo, foo, foo);
+
         new A(42);
         new A('abc', w: true, z: 42.0);
+        test.f1(42);
+        test.f1('abc', w: true, z: 42.0);
+
+        new B('abc', y: true);
+        new B(1, 2);  // too many positional arguments
+        test.f2('abc', y: true);
+        test.f2(1, 2);  // too many positional arguments
+
+        new C('abc', y: true);
+        new C(1, z: 2);  // non-existing named parameter
+        test.f3('abc', y: true);
+        test.f3(1, z: 2);  // non-existing named parameter
       }
       """;
   AnalysisResult result = analyze(source);
+
+  final foo = result.base('Foo');
+  final nil = new NullBaseType();
+
   result.checkFieldHasType('A', 'x', [result.int, result.string]);
-  result.checkFieldHasType('A', 'y', [new NullBaseType()]);
-  result.checkFieldHasType('A', 'z', [new NullBaseType(), result.double]);
-  result.checkFieldHasType('A', 'w', [new NullBaseType(), result.bool]);
+  result.checkFieldHasType('A', 'y', [nil]);
+  result.checkFieldHasType('A', 'z', [nil, result.double]);
+  result.checkFieldHasType('A', 'w', [nil, result.bool]);
+  result.checkFieldHasType('Test', 'a', [foo, result.int, result.string]);
+  result.checkFieldHasType('Test', 'b', [foo, nil]);
+  result.checkFieldHasType('Test', 'c', [foo, nil, result.double]);
+  result.checkFieldHasType('Test', 'd', [foo, nil, result.bool]);
+
+  result.checkFieldHasType('B', 'x', [result.string]);
+  result.checkFieldHasType('B', 'y', [result.bool]);
+  result.checkFieldHasType('Test', 'e', [foo, result.string]);
+  result.checkFieldHasType('Test', 'f', [foo, result.bool]);
+
+  result.checkFieldHasType('C', 'x', [result.string]);
+  result.checkFieldHasType('C', 'y', [result.bool]);
+  result.checkFieldHasType('Test', 'g', [foo, result.string]);
+  result.checkFieldHasType('Test', 'h', [foo, result.bool]);
+}
+
+testOptionalPositionalParameters() {
+  final String source = r"""
+    class A {
+      var x, y, z, w;
+      A(this.x, [this.y, this.z, this.w]);
+    }
+    class B {
+      var x, y;
+      B(this.x, [this.y]);
+    }
+    class Test {
+      var a, b, c, d;
+      var e, f;
+
+      Test(this.a, this.b, this.c, this.d,
+           this.e, this.f);
+
+      f1(x, [y, z, w]) {
+        a = x;
+        b = y;
+        c = z;
+        d = w;
+      }
+      f2(x, [y]) {
+        e = x;
+        f = y;
+      }
+    }
+    class Foo {
+    }
+    main() {
+      // We want to test expiclitely for null later so we initialize all the
+      // fields of Test with a placeholder type: Foo.
+      var foo = new Foo();
+      var test = new Test(foo, foo, foo, foo, foo, foo);
+
+      new A(42);
+      new A('abc', true, 42.0);
+      test.f1(42);
+      test.f1('abc', true, 42.0);
+
+      new B('a', true);
+      new B(1, 2, 3);  // too many arguments
+      test.f2('a', true);
+      test.f2(1, 2, 3);  // too many arguments
+    }
+  """;
+  AnalysisResult result = analyze(source);
+
+  final foo = result.base('Foo');
+  final nil = new NullBaseType();
+
+  result.checkFieldHasType('A', 'x', [result.int, result.string]);
+  result.checkFieldHasType('A', 'y', [nil, result.bool]);
+  result.checkFieldHasType('A', 'z', [nil, result.double]);
+  result.checkFieldHasType('A', 'w', [nil]);
+  result.checkFieldHasType('Test', 'a', [foo, result.int, result.string]);
+  result.checkFieldHasType('Test', 'b', [foo, nil, result.bool]);
+  result.checkFieldHasType('Test', 'c', [foo, nil, result.double]);
+  result.checkFieldHasType('Test', 'd', [foo, nil]);
+
+  result.checkFieldHasType('B', 'x', [result.string]);
+  result.checkFieldHasType('B', 'y', [result.bool]);
+  result.checkFieldHasType('Test', 'e', [foo, result.string]);
+  result.checkFieldHasType('Test', 'f', [foo, result.bool]);
 }
 
 testListLiterals() {
@@ -861,7 +997,8 @@ void main() {
   testConstructor();
   testGetters();
   testSetters();
-  testNamedParameters();
+  testOptionalNamedParameters();
+  testOptionalPositionalParameters();
   testListLiterals();
   testMapLiterals();
   testReturn();

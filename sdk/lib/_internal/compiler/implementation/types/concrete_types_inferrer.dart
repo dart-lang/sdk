@@ -678,62 +678,81 @@ class ConcreteTypesInferrer {
                                                 ArgumentsTypes argumentsTypes) {
     final Map<Element, ConcreteType> result = new Map<Element, ConcreteType>();
     final FunctionSignature signature = function.computeSignature(compiler);
-    // too many arguments
+
+    // guard 1: too many arguments
     if (argumentsTypes.length > signature.parameterCount) {
       return null;
     }
-    // not enough arguments
+    // guard 2: not enough arguments
     if (argumentsTypes.positional.length < signature.requiredParameterCount) {
       return null;
     }
-    final HasNextIterator<ConcreteType> remainingPositionalArguments =
-        new HasNextIterator<ConcreteType>(argumentsTypes.positional.iterator);
+    // guard 3: too many positional arguments
+    if (signature.optionalParametersAreNamed &&
+        argumentsTypes.positional.length > signature.requiredParameterCount) {
+      return null;
+    }
+
+    handleLeftoverOptionalParameter(Element parameter) {
+      // TODO(polux): use default value whenever available
+      // TODO(polux): add a marker to indicate whether an argument was provided
+      //     in order to handle "?parameter" tests
+      result[parameter] = singletonConcreteType(const NullBaseType());
+    }
+
+    final Iterator<ConcreteType> remainingPositionalArguments =
+        argumentsTypes.positional.iterator;
     // we attach each positional parameter to its corresponding positional
     // argument
     for (Link<Element> requiredParameters = signature.requiredParameters;
-         !requiredParameters.isEmpty;
-         requiredParameters = requiredParameters.tail) {
+        !requiredParameters.isEmpty;
+        requiredParameters = requiredParameters.tail) {
       final Element requiredParameter = requiredParameters.head;
-      // we know next() is defined because of the guard above
-      result[requiredParameter] = remainingPositionalArguments.next();
+      // we know moveNext() succeeds because of guard 2
+      remainingPositionalArguments.moveNext();
+      result[requiredParameter] = remainingPositionalArguments.current;
     }
-    // we attach the remaining positional arguments to their corresponding
-    // named arguments
-    Link<Element> remainingNamedParameters = signature.optionalParameters;
-    while (remainingPositionalArguments.hasNext) {
-      final Element namedParameter = remainingNamedParameters.head;
-      result[namedParameter] = remainingPositionalArguments.next();
-      // we know tail is defined because of the guard above
-      remainingNamedParameters = remainingNamedParameters.tail;
+    if (signature.optionalParametersAreNamed) {
+      // we build a map out of the remaining named parameters
+      Link<Element> remainingOptionalParameters = signature.optionalParameters;
+      final Map<SourceString, Element> leftOverNamedParameters =
+          new Map<SourceString, Element>();
+      for (;
+           !remainingOptionalParameters.isEmpty;
+           remainingOptionalParameters = remainingOptionalParameters.tail) {
+        final Element namedParameter = remainingOptionalParameters.head;
+        leftOverNamedParameters[namedParameter.name] = namedParameter;
+      }
+      // we attach the named arguments to their corresponding optional
+      // parameters
+      for (Identifier identifier in argumentsTypes.named.keys) {
+        final ConcreteType concreteType = argumentsTypes.named[identifier];
+        SourceString source = identifier.source;
+        final Element namedParameter = leftOverNamedParameters[source];
+        // unexisting or already used named parameter
+        if (namedParameter == null) return null;
+        result[namedParameter] = concreteType;
+        leftOverNamedParameters.remove(source);
+      }
+      leftOverNamedParameters.forEach((_, Element parameter) {
+        handleLeftoverOptionalParameter(parameter);
+      });
+    } else { // optional parameters are positional
+      // we attach the remaining positional arguments to their corresponding
+      // optional parameters
+      Link<Element> remainingOptionalParameters = signature.optionalParameters;
+      while (remainingPositionalArguments.moveNext()) {
+        final Element optionalParameter = remainingOptionalParameters.head;
+        result[optionalParameter] = remainingPositionalArguments.current;
+        // we know tail is defined because of guard 1
+        remainingOptionalParameters = remainingOptionalParameters.tail;
+      }
+      for (;
+           !remainingOptionalParameters.isEmpty;
+           remainingOptionalParameters = remainingOptionalParameters.tail) {
+        handleLeftoverOptionalParameter(remainingOptionalParameters.head);
+      }
     }
-    // we build a map out of the remaining named parameters
-    final Map<SourceString, Element> leftOverNamedParameters =
-        new Map<SourceString, Element>();
-    for (;
-         !remainingNamedParameters.isEmpty;
-         remainingNamedParameters = remainingNamedParameters.tail) {
-      final Element namedParameter = remainingNamedParameters.head;
-      leftOverNamedParameters[namedParameter.name] = namedParameter;
-    }
-    // we attach the named arguments to their corresponding named paramaters
-    // (we don't use foreach because we want to be able to return early)
-    for (Identifier identifier in argumentsTypes.named.keys) {
-      final ConcreteType concreteType = argumentsTypes.named[identifier];
-      SourceString source = identifier.source;
-      final Element namedParameter = leftOverNamedParameters[source];
-      // unexisting or already used named parameter
-      if (namedParameter == null) return null;
-      result[namedParameter] = concreteType;
-      leftOverNamedParameters.remove(source);
-    };
-    // we use null for each unused named parameter
-    // TODO(polux): use default value whenever available
-    // TODO(polux): add a marker to indicate whether an argument was provided
-    //     in order to handle "?parameter" tests
-    leftOverNamedParameters.forEach((_, Element namedParameter) {
-      result[namedParameter] =
-          singletonConcreteType(const NullBaseType());
-    });
     return result;
   }
 
