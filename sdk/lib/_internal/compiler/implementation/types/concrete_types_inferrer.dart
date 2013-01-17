@@ -32,6 +32,7 @@ class ClassBaseType implements BaseType {
   final ClassElement element;
 
   ClassBaseType(this.element);
+
   bool operator ==(BaseType other) {
     if (identical(this, other)) return true;
     if (other is! ClassBaseType) return false;
@@ -194,14 +195,15 @@ class UnionType implements ConcreteType {
 class ConcreteTypeCartesianProduct
     extends Iterable<ConcreteTypesEnvironment> {
   final ConcreteTypesInferrer inferrer;
-  final BaseType baseTypeOfThis;
+  final ClassElement typeOfThis;
   final Map<Element, ConcreteType> concreteTypes;
-  ConcreteTypeCartesianProduct(this.inferrer, this.baseTypeOfThis,
+  ConcreteTypeCartesianProduct(this.inferrer, this.typeOfThis,
                                this.concreteTypes);
   Iterator get iterator => concreteTypes.isEmpty
-      ? [new ConcreteTypesEnvironment(inferrer, baseTypeOfThis)].iterator
-      : new ConcreteTypeCartesianProductIterator(inferrer, baseTypeOfThis,
-                                                 concreteTypes);
+      ? [new ConcreteTypesEnvironment(inferrer, new ClassBaseType(typeOfThis))]
+            .iterator
+      : new ConcreteTypeCartesianProductIterator(inferrer,
+            new ClassBaseType(typeOfThis), concreteTypes);
   String toString() {
     List<ConcreteTypesEnvironment> cartesianProduct =
         new List<ConcreteTypesEnvironment>.from(this);
@@ -647,7 +649,7 @@ class ConcreteTypesInferrer {
    * of [receiverType].
    */
   ConcreteType getSendReturnType(FunctionElement function,
-                                 BaseType receiverType,
+                                 ClassElement receiverType,
                                  ArgumentsTypes argumentsTypes) {
     ConcreteType result = emptyConcreteType;
     Map<Element, ConcreteType> argumentMap =
@@ -656,6 +658,7 @@ class ConcreteTypesInferrer {
     if (argumentMap == null) {
       return emptyConcreteType;
     }
+
     argumentMap.forEach(augmentParameterType);
     ConcreteTypeCartesianProduct product =
         new ConcreteTypeCartesianProduct(this, receiverType, argumentMap);
@@ -815,7 +818,7 @@ class ConcreteTypesInferrer {
           new Selector.callDefaultConstructor(enclosingClass.getLibrary()));
         final superClassConcreteType = singletonConcreteType(
             new ClassBaseType(enclosingClass));
-        getSendReturnType(target, new ClassBaseType(enclosingClass),
+        getSendReturnType(target, enclosingClass,
             new ArgumentsTypes(new List(), new Map()));
       }
     }
@@ -1051,8 +1054,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       // exceptions for instance, we need to do it by uncommenting the following
       // line.
       // inferrer.addCaller(setter, currentMethod);
-      BaseType baseReceiverType = new ClassBaseType(receiver.enclosingElement);
-      inferrer.getSendReturnType(setter, baseReceiverType,
+      inferrer.getSendReturnType(setter, receiver.enclosingElement,
           new ArgumentsTypes([argumentType], new Map()));
     }
     return argumentType;
@@ -1062,7 +1064,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
                               SourceString name) {
     ConcreteType receiverType = analyze(receiver);
 
-    void augmentField(BaseType baseReceiverType, Element member) {
+    void augmentField(ClassElement receiverType, Element member) {
       if (member.isField()) {
         inferrer.augmentFieldType(member, argumentType);
       } else if (member.isAbstractField()){
@@ -1074,7 +1076,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         // exceptions for instance, we need to do it by uncommenting the
         // following line.
         // inferrer.addCaller(setter, currentMethod);
-        inferrer.getSendReturnType(setter, baseReceiverType,
+        inferrer.getSendReturnType(setter, receiverType,
             new ArgumentsTypes([argumentType], new Map()));
       }
       // since this is a sendSet we ignore non-fields
@@ -1083,9 +1085,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     if (receiverType.isUnkown()) {
       for (Element member in inferrer.getMembersByName(name)) {
         if (!(member.isField() || member.isAbstractField())) continue;
-        Element classElem = member.getEnclosingClass();
-        BaseType baseReceiverType = new ClassBaseType(classElem);
-        augmentField(baseReceiverType, member);
+        Element cls = member.getEnclosingClass();
+        augmentField(cls, member);
       }
     } else {
       for (BaseType baseReceiverType in receiverType.baseTypes) {
@@ -1093,7 +1094,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         ClassBaseType baseReceiverClassType = baseReceiverType;
         Element member = baseReceiverClassType.element.lookupMember(name);
         if (member != null) {
-          augmentField(baseReceiverClassType, member);
+          augmentField(baseReceiverClassType.element, member);
         }
       }
     }
@@ -1197,8 +1198,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     Element constructor = elements[node.send];
     inferrer.addCaller(constructor, currentMethod);
     ClassElement cls = constructor.enclosingElement;
-    return inferrer.getSendReturnType(constructor,
-        new ClassBaseType(cls), analyzeArguments(node.send.arguments));
+    return inferrer.getSendReturnType(constructor, cls,
+                                      analyzeArguments(node.send.arguments));
   }
 
   ConcreteType visitLiteralList(LiteralList node) {
@@ -1366,11 +1367,11 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     return inferrer.getFieldType(field);
   }
 
-  ConcreteType analyzeGetterSend(BaseType baseReceiverType,
+  ConcreteType analyzeGetterSend(ClassElement receiverType,
                                  FunctionElement getter) {
       inferrer.addCaller(getter, currentMethod);
       return inferrer.getSendReturnType(getter,
-                                        baseReceiverType,
+                                        receiverType,
                                         new ArgumentsTypes([], new Map()));
   }
 
@@ -1388,9 +1389,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
           return analyzeFieldRead(element);
         } else {
           assert(element.isGetter());
-          ClassBaseType baseReceiverType =
-              new ClassBaseType(element.enclosingElement);
-          return analyzeGetterSend(baseReceiverType, element);
+          ClassElement receiverType = element.enclosingElement;
+          return analyzeGetterSend(receiverType, element);
         }
       }
     } else {
@@ -1398,7 +1398,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       assert(node.receiver != null);
 
       ConcreteType result = inferrer.emptyConcreteType;
-      void augmentResult(BaseType baseReceiverType, Element member) {
+      void augmentResult(ClassElement baseReceiverType, Element member) {
         if (member.isField()) {
           result = inferrer.union(result, analyzeFieldRead(member));
         } else if (member.isAbstractField()){
@@ -1417,18 +1417,18 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
             inferrer.getMembersByName(node.selector.asIdentifier().source);
         for (Element member in members) {
           if (!(member.isField() || member.isAbstractField())) continue;
-          Element classElement = member.getEnclosingClass();
-          ClassBaseType baseReceiverType = new ClassBaseType(classElement);
-          augmentResult(baseReceiverType, member);
+          Element cls = member.getEnclosingClass();
+          augmentResult(cls, member);
         }
       } else {
         for (BaseType baseReceiverType in receiverType.baseTypes) {
           if (!baseReceiverType.isNull()) {
             ClassBaseType classBaseType = baseReceiverType;
-            Element getterOrField = classBaseType.element
-                .lookupMember(node.selector.asIdentifier().source);
+            ClassElement cls = classBaseType.element;
+            Element getterOrField =
+                cls.lookupMember(node.selector.asIdentifier().source);
             if (getterOrField != null) {
-              augmentResult(baseReceiverType, getterOrField);
+              augmentResult(cls, getterOrField);
             }
           }
         }
@@ -1455,26 +1455,23 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         if (!element.isFunction()) continue;
         FunctionElement method = element;
         inferrer.addCaller(method, currentMethod);
-        Element classElem = method.enclosingElement;
-        ClassBaseType baseReceiverType = new ClassBaseType(classElem);
+        Element cls = method.enclosingElement;
         result = inferrer.union(
             result,
-            inferrer.getSendReturnType(method,baseReceiverType,
-                                       argumentsTypes));
+            inferrer.getSendReturnType(method, cls, argumentsTypes));
       }
 
     } else {
       for (BaseType baseReceiverType in receiverType.baseTypes) {
         if (!baseReceiverType.isNull()) {
           ClassBaseType classBaseReceiverType = baseReceiverType;
-          FunctionElement method = classBaseReceiverType.element.lookupMember(
-              canonicalizedMethodName);
+          ClassElement cls = classBaseReceiverType.element;
+          FunctionElement method = cls.lookupMember(canonicalizedMethodName);
           if (method != null) {
             inferrer.addCaller(method, currentMethod);
             result = inferrer.union(
                 result,
-                inferrer.getSendReturnType(method, baseReceiverType,
-                                           argumentsTypes));
+                inferrer.getSendReturnType(method, cls, argumentsTypes));
           }
         }
       }
