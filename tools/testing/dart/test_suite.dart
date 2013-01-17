@@ -418,6 +418,8 @@ class StandardTestSuite extends TestSuite {
    */
   List serverList;
 
+  static final RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
+
   StandardTestSuite(Map configuration,
                     String suiteName,
                     Path suiteDirectory,
@@ -1290,11 +1292,13 @@ class StandardTestSuite extends TestSuite {
    * configurations, so it may not use [configuration].
    */
   static Map readOptionsFromFile(Path filePath) {
+    if (filePath.segments().contains('co19')) {
+      return readOptionsFromCo19File(filePath);
+    }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
-    RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
     RegExp multiHtmlTestRegExp =
         new RegExp(r"useHtmlIndividualConfiguration()");
     RegExp staticTypeRegExp =
@@ -1320,8 +1324,6 @@ class StandardTestSuite extends TestSuite {
     List<List> result = new List<List>();
     List<String> dartOptions;
     String packageRoot;
-    bool hasCompileError = contents.contains("@compile-error");
-    bool hasRuntimeError = contents.contains("@runtime-error");
     bool isStaticClean = false;
 
     Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
@@ -1401,8 +1403,8 @@ class StandardTestSuite extends TestSuite {
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "packageRoot": packageRoot,
-             "hasCompileError": hasCompileError,
-             "hasRuntimeError": hasRuntimeError,
+             "hasCompileError": false,
+             "hasRuntimeError": false,
              "isStaticClean" : isStaticClean,
              "otherScripts": otherScripts,
              "isMultitest": isMultitest,
@@ -1429,6 +1431,64 @@ class StandardTestSuite extends TestSuite {
     // vm options are still compiled into the same output file which
     // may lead to reads from empty files.
     return [vmOptions[0]];
+  }
+
+  /**
+   * Read options from a co19 test file.
+   *
+   * The reason this is different from [readOptionsFromFile] is that
+   * co19 is developed based on a contract which defines certain test
+   * tags. These tags may appear unused, but should not be removed
+   * without consulting with the co19 team.
+   *
+   * Also, [readOptionsFromFile] recognizes a number of additional
+   * tags that are not appropriate for use in general tests of
+   * conformance to the Dart language. Any Dart implementation must
+   * pass the co19 test suite as is, and not require extra flags,
+   * environment variables, configuration files, etc.
+   */
+  static Map readOptionsFromCo19File(Path filePath) {
+    String contents = decodeUtf8(new File.fromPath(filePath).readAsBytesSync());
+
+    bool hasCompileError = contents.contains("@compile-error");
+    bool hasRuntimeError = contents.contains("@runtime-error");
+    bool hasDynamicTypeError = contents.contains("@dynamic-type-error");
+    bool hasStaticWarning = contents.contains("@static-warning");
+    bool isMultitest = multiTestRegExp.hasMatch(contents);
+
+    if (hasDynamicTypeError) {
+      // TODO(ahe): Remove this warning when co19 no longer uses this tag.
+
+      // @dynamic-type-error has been replaced by tests that use
+      // tests/co19/src/Utils/dynamic_check.dart to dynamically detect
+      // if a test is running in checked mode or not and change its
+      // expectations accordingly.
+
+      // Using stderr.writeString to avoid breaking dartc/junit_tests
+      // which parses the output of the --list option.
+      stderr.writeString(
+          "Warning: deprecated @dynamic-type-error tag used in $filePath\n");
+    }
+
+    return {
+      "vmOptions": <List>[[]],
+      "dartOptions": null,
+      "packageRoot": null,
+      "hasCompileError": hasCompileError,
+      "hasRuntimeError": hasRuntimeError,
+      "isStaticClean" : !hasStaticWarning,
+      "otherScripts": <String>[],
+      "isMultitest": isMultitest,
+      "isMultiHtmlTest": false,
+      "subtestNames": <String>[],
+      "containsLeadingHash": false,
+      "isolateStubs": '',
+      "containsDomImport": false,
+      "isLibraryDefinition": false,
+      "containsSourceOrImport": false,
+      "numStaticTypeAnnotations": 0,
+      "numCompileTimeAnnotations": 0,
+    };
   }
 }
 
