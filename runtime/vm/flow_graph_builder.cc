@@ -31,6 +31,13 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
 DECLARE_FLAG(bool, enable_type_checks);
 
 
+static const String& PrivateCoreLibName(const String& str) {
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const String& private_name = String::ZoneHandle(core_lib.PrivateName(str));
+  return private_name;
+}
+
+
 FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
                                    InliningContext* inlining_context)
   : parsed_function_(parsed_function),
@@ -950,7 +957,6 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
                                 &push_instantiator,
                                 &push_type_args);
   }
-  const String& name = String::ZoneHandle(Symbols::New("_instanceOf"));
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(5);
   arguments->Add(push_left);
@@ -965,12 +971,13 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   Value* negate_arg = Bind(new ConstantInstr(negate));
   arguments->Add(PushArgument(negate_arg));
   const intptr_t kNumArgsChecked = 1;
-  InstanceCallInstr* call = new InstanceCallInstr(node->token_pos(),
-                                                  name,
-                                                  node->kind(),
-                                                  arguments,
-                                                  Array::ZoneHandle(),
-                                                  kNumArgsChecked);
+  InstanceCallInstr* call = new InstanceCallInstr(
+      node->token_pos(),
+      PrivateCoreLibName(Symbols::_instanceOf()),
+      node->kind(),
+      arguments,
+      Array::ZoneHandle(),
+      kNumArgsChecked);
   ReturnDefinition(call);
 }
 
@@ -2879,9 +2886,10 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
       corelib.LookupClassAllowPrivate(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
   const Function& allocation_function = Function::ZoneHandle(
-      Resolver::ResolveStaticByName(mirror_class,
-                                    Symbols::AllocateInvocationMirror(),
-                                    Resolver::kIsQualified));
+      Resolver::ResolveStaticByName(
+          mirror_class,
+          PrivateCoreLibName(Symbols::AllocateInvocationMirror()),
+          Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
 
   // Evaluate the receiver before the arguments. This will be used
@@ -2975,7 +2983,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   ASSERT(!cls.IsNull());
   const Function& func = Function::ZoneHandle(
       Resolver::ResolveStatic(cls,
-                              Symbols::ThrowNew(),
+                              PrivateCoreLibName(Symbols::ThrowNew()),
                               arguments->length(),
                               Array::ZoneHandle(),
                               Resolver::kIsQualified));

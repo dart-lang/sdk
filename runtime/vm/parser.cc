@@ -1333,6 +1333,13 @@ static RawClass* LookupCoreClass(const String& class_name) {
 }
 
 
+static const String& PrivateCoreLibName(const String& str) {
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const String& private_name = String::ZoneHandle(core_lib.PrivateName(str));
+  return private_name;
+}
+
+
 StaticCallNode* Parser::BuildInvocationMirrorAllocation(
     intptr_t call_pos,
     const String& function_name,
@@ -1361,7 +1368,8 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
       Class::Handle(LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
   const Function& allocation_function = Function::ZoneHandle(
-      mirror_class.LookupStaticFunction(Symbols::AllocateInvocationMirror()));
+      mirror_class.LookupStaticFunction(
+          PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
   ASSERT(!allocation_function.IsNull());
   return new StaticCallNode(call_pos, allocation_function, arguments);
 }
@@ -5408,7 +5416,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
             TokenPos(), Integer::ZoneHandle(Integer::New(TokenPos()))));
         current_block_->statements->Add(
             MakeStaticCall(Symbols::FallThroughError(),
-                           Symbols::ThrowNew(),
+                           PrivateCoreLibName(Symbols::ThrowNew()),
                            arguments));
       }
       break;
@@ -5752,7 +5760,7 @@ AstNode* Parser::MakeAssertCall(intptr_t begin, intptr_t end) {
   arguments->Add(new LiteralNode(end,
       Integer::ZoneHandle(Integer::New(end))));
   return MakeStaticCall(Symbols::AssertionError(),
-                        Symbols::ThrowNew(),
+                        PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
 }
 
@@ -6599,7 +6607,9 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
   const Error& error = Error::Handle(type.malformed_error());
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
       Symbols::New(error.ToErrorCString()))));
-  return MakeStaticCall(Symbols::TypeError(), Symbols::ThrowNew(), arguments);
+  return MakeStaticCall(Symbols::TypeError(),
+                        PrivateCoreLibName(Symbols::ThrowNew()),
+                        arguments);
 }
 
 
@@ -6629,7 +6639,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   // List existingArgumentNames.
   arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
   return MakeStaticCall(Symbols::NoSuchMethodError(),
-                        Symbols::ThrowNew(),
+                        PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
 }
 
@@ -8598,7 +8608,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
         Class::Handle(LookupCoreClass(Symbols::List()));
     ASSERT(!factory_class.IsNull());
     const Function& factory_method = Function::ZoneHandle(
-        factory_class.LookupFactory(Symbols::ListLiteralFactory()));
+        factory_class.LookupFactory(
+            PrivateCoreLibName(Symbols::ListLiteralFactory())));
     ASSERT(!factory_method.IsNull());
     if (!type_arguments.IsNull() &&
         !type_arguments.IsInstantiated() &&
@@ -8810,7 +8821,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     constr_args->Add(new LiteralNode(literal_pos, key_value_array));
     const Function& map_constr =
         Function::ZoneHandle(immutable_map_class.LookupConstructor(
-            Symbols::ImmutableMapConstructor()));
+            PrivateCoreLibName(Symbols::ImmutableMapConstructor())));
     ASSERT(!map_constr.IsNull());
     const Object& constructor_result = Object::Handle(
         EvaluateConstConstructorCall(immutable_map_class,
@@ -8830,7 +8841,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
         Class::Handle(LookupCoreClass(Symbols::Map()));
     ASSERT(!factory_class.IsNull());
     const Function& factory_method = Function::ZoneHandle(
-        factory_class.LookupFactory(Symbols::MapLiteralFactory()));
+        factory_class.LookupFactory(
+            PrivateCoreLibName(Symbols::MapLiteralFactory())));
     ASSERT(!factory_method.IsNull());
     if (!map_type_arguments.IsNull() &&
         !map_type_arguments.IsInstantiated() &&
@@ -9043,7 +9055,7 @@ AstNode* Parser::ParseNewOperator() {
     arguments->Add(new LiteralNode(
         TokenPos(), String::ZoneHandle(type_class_name.raw())));
     return MakeStaticCall(Symbols::AbstractClassInstantiationError(),
-                          Symbols::ThrowNew(),
+                          PrivateCoreLibName(Symbols::ThrowNew()),
                           arguments);
   }
   String& error_message = String::Handle();
@@ -9138,7 +9150,8 @@ String& Parser::Interpolate(ArrayNode* values) {
   const Class& cls = Class::Handle(LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
   const Function& func =
-      Function::Handle(cls.LookupStaticFunction(Symbols::Interpolate()));
+      Function::Handle(cls.LookupStaticFunction(
+          PrivateCoreLibName(Symbols::Interpolate())));
   ASSERT(!func.IsNull());
 
   // Build the array of literal values to interpolate.
@@ -9230,7 +9243,7 @@ AstNode* Parser::ParseStringLiteral() {
         new ArgumentListNode(values->token_pos());
     interpolate_arg->Add(values);
     primary = MakeStaticCall(Symbols::StringBase(),
-                             Symbols::Interpolate(),
+                             PrivateCoreLibName(Symbols::Interpolate()),
                              interpolate_arg);
   }
   return primary;

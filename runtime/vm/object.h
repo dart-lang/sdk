@@ -704,10 +704,13 @@ class Class : public Object {
   RawFunction* LookupClosureFunction(intptr_t token_pos) const;
 
   RawFunction* LookupDynamicFunction(const String& name) const;
+  RawFunction* LookupDynamicFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupStaticFunction(const String& name) const;
+  RawFunction* LookupStaticFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupConstructor(const String& name) const;
   RawFunction* LookupFactory(const String& name) const;
   RawFunction* LookupFunction(const String& name) const;
+  RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
   RawFunction* LookupSetterFunction(const String& name) const;
   RawFunction* LookupFunctionAtToken(intptr_t token_pos) const;

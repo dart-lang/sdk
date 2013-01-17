@@ -2191,8 +2191,27 @@ RawFunction* Class::LookupDynamicFunction(const String& name) const {
 }
 
 
+RawFunction* Class::LookupDynamicFunctionAllowPrivate(
+    const String& name) const {
+  Function& function = Function::Handle(LookupFunctionAllowPrivate(name));
+  if (function.IsNull() || !function.IsDynamicFunction()) {
+    return Function::null();
+  }
+  return function.raw();
+}
+
+
 RawFunction* Class::LookupStaticFunction(const String& name) const {
   Function& function = Function::Handle(LookupFunction(name));
+  if (function.IsNull() || !function.IsStaticFunction()) {
+    return Function::null();
+  }
+  return function.raw();
+}
+
+
+RawFunction* Class::LookupStaticFunctionAllowPrivate(const String& name) const {
+  Function& function = Function::Handle(LookupFunctionAllowPrivate(name));
   if (function.IsNull() || !function.IsStaticFunction()) {
     return Function::null();
   }
@@ -2253,6 +2272,40 @@ RawFunction* Class::LookupFunction(const String& name) const {
     return Function::null();
   }
   Function& function = Function::Handle(isolate, Function::null());
+  if (name.IsSymbol()) {
+    // Quick Symbol compare.
+    intptr_t len = funcs.Length();
+    for (intptr_t i = 0; i < len; i++) {
+      function ^= funcs.At(i);
+      if (function.name() == name.raw()) {
+        return function.raw();
+      }
+    }
+  } else {
+    String& function_name = String::Handle(isolate, String::null());
+    intptr_t len = funcs.Length();
+    for (intptr_t i = 0; i < len; i++) {
+      function ^= funcs.At(i);
+      function_name ^= function.name();
+      if (function_name.Equals(name)) {
+        return function.raw();
+      }
+    }
+  }
+  // No function found.
+  return Function::null();
+}
+
+
+RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(name.IsOneByteString());
+  Array& funcs = Array::Handle(isolate, functions());
+  if (funcs.IsNull()) {
+    // This can occur, e.g., for Null classes.
+    return Function::null();
+  }
+  Function& function = Function::Handle(isolate, Function::null());
   String& function_name = String::Handle(isolate, String::null());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
@@ -2262,7 +2315,6 @@ RawFunction* Class::LookupFunction(const String& name) const {
       return function.raw();
     }
   }
-
   // No function found.
   return Function::null();
 }
@@ -6189,8 +6241,24 @@ bool Library::IsKeyUsed(intptr_t key) {
 }
 
 
+static bool IsPrivate(const String& name) {
+  if (ShouldBePrivate(name)) return true;
+  // Factory names: List._fromLiteral.
+  for (intptr_t i = 1; i < name.Length() - 1; i++) {
+    if (name.CharAt(i) == '.') {
+      if (name.CharAt(i + 1) == '_') {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
+// Cannot handle qualified names properly as it only appends private key to
+// the end (e.g. _Alfa.foo -> _Alfa.foo@...).
 RawString* Library::PrivateName(const String& name) const {
-  ASSERT(ShouldBePrivate(name));
+  ASSERT(IsPrivate(name));
   // ASSERT(strchr(name, '@') == NULL);
   String& str = String::Handle();
   str ^= name.raw();

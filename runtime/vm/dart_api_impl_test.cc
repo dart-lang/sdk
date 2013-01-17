@@ -3617,6 +3617,15 @@ TEST_CASE(New_Issue2971) {
 }
 
 
+static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
+  EXPECT(Dart_IsLibrary(lib));
+  Isolate* isolate = Isolate::Current();
+  const Library& library_obj = Api::UnwrapLibraryHandle(isolate, lib);
+  const String& name = String::Handle(String::New(str));
+  return Api::NewHandle(isolate, library_obj.PrivateName(name));
+}
+
+
 TEST_CASE(Invoke) {
   const char* kScriptChars =
       "class BaseMethods {\n"
@@ -3666,8 +3675,7 @@ TEST_CASE(Invoke) {
   EXPECT_ERROR(Dart_Invoke(instance, name, 2, bad_args),
                "did not find instance method 'Methods.instanceMethod'");
 
-  // Hidden instance method.
-  name = NewString("_instanceMethod");
+  name = PrivateLibName(lib, "_instanceMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
   result = Dart_Invoke(instance, name, 1, args);
@@ -3698,7 +3706,7 @@ TEST_CASE(Invoke) {
                "did not find static method 'Methods.staticMethod'");
 
   // Hidden static method.
-  name = NewString("_staticMethod");
+  name = PrivateLibName(lib, "_staticMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(cls, name, 1, args);
@@ -3727,7 +3735,7 @@ TEST_CASE(Invoke) {
                "2 passed, 1 expected.");
 
   // Hidden top-level method.
-  name = NewString("_topMethod");
+  name = PrivateLibName(lib, "_topMethod");
   EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(lib, name, 1, args);

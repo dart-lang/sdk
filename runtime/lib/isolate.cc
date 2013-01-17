@@ -62,12 +62,15 @@ static RawObject* ReceivePortCreate(intptr_t port_id) {
     ASSERT(!isolate_lib.IsNull());
     const String& class_name =
         String::Handle(isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+    const String& function_name =
+        String::Handle(isolate_lib.PrivateName(Symbols::_get_or_create()));
     func = Resolver::ResolveStatic(isolate_lib,
                                    class_name,
-                                   Symbols::_get_or_create(),
+                                   function_name,
                                    kNumArguments,
                                    Object::empty_array(),
                                    Resolver::kIsQualified);
+    ASSERT(!func.IsNull());
     isolate->object_store()->set_receive_port_create_function(func);
   }
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));

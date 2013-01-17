@@ -188,6 +188,9 @@ class ObjectPointerVisitor;
   V(SwitchExpr, ":switch_expr")                                                \
   V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \
+  V(_instanceOf, "_instanceOf")                                                \
+  V(PrivateGetterPrefix, "get:_")                                              \
+  V(PrivateSetterPrefix, "set:_")                                              \
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
