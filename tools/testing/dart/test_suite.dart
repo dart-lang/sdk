@@ -627,8 +627,6 @@ class StandardTestSuite extends TestSuite {
     String testName;
 
     if (optionsFromFile['isMultitest']) {
-      // Multitests do not run on browsers.
-      if (TestUtils.isBrowserRuntime(configuration['runtime'])) return;
       // Multitests are in [build directory]/generated_tests/... .
       // The test name will be '[test filename (no extension)]/[multitest key].
       String name = filePath.filenameWithoutExtension;
@@ -835,8 +833,10 @@ class StandardTestSuite extends TestSuite {
     bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
     if (isWrappingRequired
         && !isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
-      print('Warning for $filename: Browser tests require #library '
-            'in any file that uses #import, #source, or #resource');
+      print('Warning for $filename: Browser tests require "library" '
+            'in any file that uses "import" or "source". '
+            'Please mark this test as failing in the status file. '
+            '(see http://dartbug.com/2264)');
     }
 
     final String compiler = configuration['compiler'];
@@ -1310,7 +1310,7 @@ class StandardTestSuite extends TestSuite {
     RegExp libraryDefinitionRegExp =
         new RegExp(r"^[#]?library[\( ]", multiLine: true);
     RegExp sourceOrImportRegExp =
-        new RegExp("^(#source|#import|part)[ \t]+[\('\"]", multiLine: true);
+        new RegExp("^(#?source|#?import|part)[ \t]+[\('\"]", multiLine: true);
 
     var bytes = new File.fromPath(filePath).readAsBytesSync();
     String contents = decodeUtf8(bytes);
