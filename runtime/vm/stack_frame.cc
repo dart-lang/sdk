@@ -315,7 +315,7 @@ RawFunction* InlinedFunctionsInDartFrameIterator::GetNextFunction(uword* pc) {
     index_ += 1;
     intptr_t deopt_instr = deopt_info_.Instruction(cur_index);
     ASSERT(deopt_instr != DeoptInstr::kRetBeforeAddress);
-    if ((deopt_instr == DeoptInstr::kRetAfterAddress)) {
+    if (deopt_instr == DeoptInstr::kRetAfterAddress) {
       intptr_t deopt_from_index = deopt_info_.FromIndex(cur_index);
       *pc = DeoptInstr::GetRetAfterAddress(deopt_from_index,
                                            object_table_,

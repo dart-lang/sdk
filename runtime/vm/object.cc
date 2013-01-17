@@ -2271,19 +2271,19 @@ RawFunction* Class::LookupFunction(const String& name) const {
     // This can occur, e.g., for Null classes.
     return Function::null();
   }
-  Function& function = Function::Handle(isolate, Function::null());
+  const intptr_t len = funcs.Length();
   if (name.IsSymbol()) {
     // Quick Symbol compare.
-    intptr_t len = funcs.Length();
+    NoGCScope no_gc;
     for (intptr_t i = 0; i < len; i++) {
-      function ^= funcs.At(i);
-      if (function.name() == name.raw()) {
-        return function.raw();
+      RawFunction* raw_func = reinterpret_cast<RawFunction*>(funcs.At(i));
+      if (raw_func->ptr()->name_ == name.raw()) {
+        return raw_func;
       }
     }
   } else {
+    Function& function = Function::Handle(isolate, Function::null());
     String& function_name = String::Handle(isolate, String::null());
-    intptr_t len = funcs.Length();
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       function_name ^= function.name();

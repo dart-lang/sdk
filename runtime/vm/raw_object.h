@@ -543,6 +543,7 @@ class RawFunction : public RawObject {
   };
 
  private:
+  friend class Class;
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
