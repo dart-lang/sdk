@@ -4,6 +4,9 @@
 //
 // Test correct load elimination for scalar lists.
 
+// TODO: remove once bug 2264 fixed.
+library int_array_load_elimination;
+
 import 'dart:scalarlist';
 
 void testUint16() {
