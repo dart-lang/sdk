@@ -26,6 +26,10 @@ interface ElementTraversal {
 };
 Element implements ElementTraversal;
 
+// TODO(antonm): fix it
+[Supplemental, Constructor]
+interface MediaStream {};
+
 [Callback]
 interface TimeoutHandler {
   void handleEvent();
@@ -285,6 +289,13 @@ interface VoidCallback {
 
 interface SVGNumber {
   [StrictTypeChecking, Custom] attribute float value;
+};
+
+// TODO(antonm): get rid of it to follow V8 bindings.
+[
+  Callback
+] interface MutationCallback {
+  [Custom] boolean handleEvent(in MutationRecordArray mutations, in MutationObserver observer);
 };
 
 [Supplemental,
