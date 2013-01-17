@@ -58,46 +58,47 @@ class _ChildrenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -142,7 +143,7 @@ class _ChildrenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -210,11 +211,11 @@ class _ChildrenElementList implements List {
   }
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 
@@ -241,15 +242,16 @@ class _FrozenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -273,31 +275,31 @@ class _FrozenElementList implements List {
   Set<Element> toSet() => new Set<Element>.from(this);
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -338,7 +340,7 @@ class _FrozenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -381,11 +383,11 @@ class _FrozenElementList implements List {
   Element get single => _nodeList.single;
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 

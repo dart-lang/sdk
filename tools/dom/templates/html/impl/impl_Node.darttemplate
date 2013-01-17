@@ -52,11 +52,11 @@ $else
 $endif
 
   Node min([int compare(Node a, Node b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Node max([int compare(Node a, Node b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 
   void add(Node value) {
@@ -102,28 +102,30 @@ $endif
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Node element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  List mappedBy(f(Node element)) =>
-      new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
+  }
 
-  Iterable<Node> where(bool f(Node element)) =>
-     new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
@@ -133,31 +135,31 @@ $endif
   // From List<Node>:
 
   List<Node> take(int n) {
-    return new ListView<Node>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Node> skip(int n) {
-    return new ListView<Node>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
