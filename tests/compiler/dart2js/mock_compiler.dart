@@ -67,6 +67,16 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class JSNumber {
     operator-() {}
+    operator +(other) {}
+    operator -(other) {}
+    operator ~/(other) {}
+    operator /(other) {}
+    operator *(other) {}
+    operator <<(other) {}
+    operator >>(other) {}
+    operator |(other) {}
+    operator &(other) {}
+    operator ^(other) {}
   }
   class JSInt {
   }

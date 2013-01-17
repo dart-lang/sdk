@@ -41,13 +41,14 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void considerForArgumentTypeOptimization(HInstruction instruction) {
-    if (instruction is !HBinaryArithmetic) return;
     // Update the pending optimizations map based on the potentially
     // new types of the operands. If the operand types no longer allow
     // us to optimize, we remove the pending optimization.
-    HBinaryArithmetic arithmetic = instruction;
-    HInstruction left = arithmetic.left;
-    HInstruction right = arithmetic.right;
+    if (instruction is !HInvokeDynamicMethod) return;
+    HInvokeDynamicMethod invoke = instruction;
+    if (instruction.specializer is !BinaryArithmeticSpecializer) return;
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
     if (left.isNumber(types) && !right.isNumber(types)) {
       pendingOptimizations[instruction] = () {
         // This callback function is invoked after we're done

@@ -12,22 +12,6 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 
 // Performance critical helper methods.
-add(var a, var b) => (a is num && b is num)
-    ? JS('num', r'# + #', a, b)
-    : add$slow(a, b);
-
-sub(var a, var b) => (a is num && b is num)
-    ? JS('num', r'# - #', a, b)
-    : sub$slow(a, b);
-
-div(var a, var b) => (a is num && b is num)
-    ? JS('num', r'# / #', a, b)
-    : div$slow(a, b);
-
-mul(var a, var b) => (a is num && b is num)
-    ? JS('num', r'# * #', a, b)
-    : mul$slow(a, b);
-
 gt(var a, var b) => (a is num && b is num)
     ? JS('bool', r'# > #', a, b)
     : gt$slow(a, b);
@@ -79,56 +63,6 @@ bool checkNumbers(var a, var b) {
 
 bool isJsArray(var value) {
   return value != null && JS('bool', r'#.constructor === Array', value);
-}
-
-add$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('num', r'# + #', a, b);
-  }
-  return UNINTERCEPTED(a + b);
-}
-
-div$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('num', r'# / #', a, b);
-  }
-  return UNINTERCEPTED(a / b);
-}
-
-mul$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('num', r'# * #', a, b);
-  }
-  return UNINTERCEPTED(a * b);
-}
-
-sub$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('num', r'# - #', a, b);
-  }
-  return UNINTERCEPTED(a - b);
-}
-
-mod(var a, var b) {
-  if (checkNumbers(a, b)) {
-    // Euclidean Modulo.
-    num result = JS('num', r'# % #', a, b);
-    if (result == 0) return 0;  // Make sure we don't return -0.0.
-    if (result > 0) return result;
-    if (JS('num', '#', b) < 0) {
-      return result - JS('num', '#', b);
-    } else {
-      return result + JS('num', '#', b);
-    }
-  }
-  return UNINTERCEPTED(a % b);
-}
-
-tdiv(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return (JS('num', r'# / #', a, b)).truncate();
-  }
-  return UNINTERCEPTED(a ~/ b);
 }
 
 eq(var a, var b) {
@@ -185,65 +119,6 @@ le$slow(var a, var b) {
     return JS('bool', r'# <= #', a, b);
   }
   return UNINTERCEPTED(a <= b);
-}
-
-shl(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    if (JS('num', '#', b) < 0) throw new ArgumentError(b);
-    // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
-    // by 33 is hence equivalent to a shift by 1.
-    if (JS('bool', r'# > 31', b)) return 0;
-    return JS('num', r'(# << #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a << b);
-}
-
-shr(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    if (JS('num', '#', b) < 0) throw new ArgumentError(b);
-    if (JS('num', '#', a) > 0) {
-      // JavaScript only looks at the last 5 bits of the shift-amount. In JS
-      // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
-      // computation when that happens.
-      if (JS('bool', r'# > 31', b)) return 0;
-      // Given that 'a' is positive we must not use '>>'. Otherwise a number
-      // that has the 31st bit set would be treated as negative and shift in
-      // ones.
-      return JS('num', r'# >>> #', a, b);
-    }
-    // For negative numbers we just clamp the shift-by amount. 'a' could be
-    // negative but not have its 31st bit set. The ">>" would then shift in
-    // 0s instead of 1s. Therefore we cannot simply return 0xFFFFFFFF.
-    if (JS('num', '#', b) > 31) b = 31;
-    return JS('num', r'(# >> #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a >> b);
-}
-
-and(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    return JS('num', r'(# & #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a & b);
-}
-
-or(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    return JS('num', r'(# | #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a | b);
-}
-
-xor(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    return JS('num', r'(# ^ #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a ^ b);
 }
 
 checkMutable(list, reason) {

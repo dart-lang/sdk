@@ -397,8 +397,6 @@ class HInstructionStringifier implements HVisitor<String> {
     return "While ($conditionId): (B${bodyBlock.id}) then (B${exitBlock.id})";
   }
 
-  String visitModulo(HModulo node) => visitInvokeStatic(node);
-
   String visitMultiply(HMultiply node) => visitInvokeStatic(node);
 
   String visitNegate(HNegate node) {
@@ -430,8 +428,6 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";
 
   String visitShiftLeft(HShiftLeft node) => visitInvokeStatic(node);
-
-  String visitShiftRight(HShiftRight node) => visitInvokeStatic(node);
 
   String visitStatic(HStatic node)
       => "Static ${node.element.name.slowToString()}";
@@ -471,10 +467,6 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitThis(HThis node) => "this";
 
   String visitThrow(HThrow node) => "Throw ${temporaryId(node.inputs[0])}";
-
-  String visitTruncatingDivide(HTruncatingDivide node) {
-    return visitInvokeStatic(node);
-  }
 
   String visitExitTry(HExitTry node) {
     return "Exit try";

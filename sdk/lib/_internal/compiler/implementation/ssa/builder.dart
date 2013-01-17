@@ -416,9 +416,10 @@ class LocalsHandler {
     });
     if (closureData.isClosure()) {
       // Inside closure redirect references to itself to [:this:].
-      builder.thisInstruction = new HThis(closureData.thisElement);
-      builder.graph.entry.addAtEntry(builder.thisInstruction);
-      updateLocal(closureData.closureElement, builder.thisInstruction);
+      HThis thisInstruction = new HThis(closureData.thisElement);
+      builder.graph.thisInstruction = thisInstruction;
+      builder.graph.entry.addAtEntry(thisInstruction);
+      updateLocal(closureData.closureElement, thisInstruction);
     } else if (element.isInstanceMember()
                || element.isGenerativeConstructor()) {
       // Once closures have been mapped to classes their instance members might
@@ -426,10 +427,11 @@ class LocalsHandler {
       // context.
       ClassElement cls = element.getEnclosingClass();
       DartType type = cls.computeType(builder.compiler);
-      builder.thisInstruction = new HThis(closureData.thisElement,
-                                          new HBoundedType.nonNull(type));
-      builder.graph.entry.addAtEntry(builder.thisInstruction);
-      directLocals[closureData.thisElement] = builder.thisInstruction;
+      HThis thisInstruction = new HThis(closureData.thisElement,
+                                        new HBoundedType.nonNull(type));
+      builder.graph.thisInstruction = thisInstruction;
+      builder.graph.entry.addAtEntry(thisInstruction);
+      directLocals[closureData.thisElement] = thisInstruction;
     }
 
     // If this method is an intercepted method, add the extra
@@ -926,7 +928,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
   Map<Element, HInstruction> parameters;
-  HInstruction thisInstruction;
   final RuntimeTypeInformation rti;
   HParameterValue lastAddedParameter;
 
@@ -2315,58 +2316,73 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     pushWithPosition(result, node);
   }
 
-  void visitBinary(HInstruction left, Operator op, HInstruction right) {
+  void visitBinary(
+      HInstruction left, Operator op, HInstruction right, Send send) {
+    Selector selector = null;
+    // TODO(ngeoffray): The resolver creates these selectors already
+    // but does not put them on the [send] instruction.
+    switch (op.source.stringValue) {
+      case "+":
+      case "+=":
+      case "++":
+        selector = new Selector.binaryOperator(const SourceString('+'));
+        break;
+      case "-":
+      case "-=":
+      case "--":
+        selector = new Selector.binaryOperator(const SourceString('-'));
+        break;
+      case "*":
+      case "*=":
+        selector = new Selector.binaryOperator(const SourceString('*'));
+        break;
+      case "/":
+      case "/=":
+        selector = new Selector.binaryOperator(const SourceString('/'));
+        break;
+      case "~/":
+      case "~/=":
+        selector = new Selector.binaryOperator(const SourceString('~/'));
+        break;
+      case "%":
+      case "%=":
+        selector = new Selector.binaryOperator(const SourceString('%'));
+        break;
+      case "<<":
+      case "<<=":
+        selector = new Selector.binaryOperator(const SourceString('<<'));
+        break;
+      case ">>":
+      case ">>=":
+        selector = new Selector.binaryOperator(const SourceString('>>'));
+        break;
+      case "|":
+      case "|=":
+        selector = new Selector.binaryOperator(const SourceString('|'));
+        break;
+      case "&":
+      case "&=":
+        selector = new Selector.binaryOperator(const SourceString('&'));
+        break;
+      case "^":
+      case "^=":
+        selector = new Selector.binaryOperator(const SourceString('^'));
+        break;
+      default:
+        break;
+    }
+
+    if (selector != null) {
+      pushWithPosition(
+            buildInvokeDynamic(send, selector, left, [right]),
+            op);
+      return;
+    }
     Element element = interceptors.getOperatorInterceptor(op);
     assert(element != null);
     HInstruction target = new HStatic(element);
     add(target);
     switch (op.source.stringValue) {
-      case "+":
-      case "++":
-      case "+=":
-        pushWithPosition(new HAdd(target, left, right), op);
-        break;
-      case "-":
-      case "--":
-      case "-=":
-        pushWithPosition(new HSubtract(target, left, right), op);
-        break;
-      case "*":
-      case "*=":
-        pushWithPosition(new HMultiply(target, left, right), op);
-        break;
-      case "/":
-      case "/=":
-        pushWithPosition(new HDivide(target, left, right), op);
-        break;
-      case "~/":
-      case "~/=":
-        pushWithPosition(new HTruncatingDivide(target, left, right), op);
-        break;
-      case "%":
-      case "%=":
-        pushWithPosition(new HModulo(target, left, right), op);
-        break;
-      case "<<":
-      case "<<=":
-        pushWithPosition(new HShiftLeft(target, left, right), op);
-        break;
-      case ">>":
-      case ">>=":
-        pushWithPosition(new HShiftRight(target, left, right), op);
-        break;
-      case "|":
-      case "|=":
-        pushWithPosition(new HBitOr(target, left, right), op);
-        break;
-      case "&":
-      case "&=":
-        pushWithPosition(new HBitAnd(target, left, right), op);
-        break;
-      case "^":
-      case "^=":
-        pushWithPosition(new HBitXor(target, left, right), op);
-        break;
       case "==":
         pushWithPosition(new HEquals(target, left, right), op);
         break;
@@ -2418,14 +2434,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return result;
   }
 
-  Set<ClassElement> getInterceptedClassesOn(Send send, Selector selector) {
+  Set<ClassElement> getInterceptedClassesOn(Selector selector) {
     if (!methodInterceptionEnabled) return null;
-    if (!backend.isInterceptorClass(currentElement.getEnclosingClass())
-        && send.receiver == null) {
-      // The call applies to [:this:] which can not be an interceptor
-      // object.
-      return null;
-    }
     return interceptors.getInterceptedClassesOn(selector);
   }
 
@@ -2440,8 +2450,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         : elements.getSelector(send.selector);
     assert(selector.isGetter());
     SourceString getterName = selector.name;
-    Set<ClassElement> interceptedClasses =
-        getInterceptedClassesOn(send, selector);
+    Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
 
     bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
     if (interceptedClasses != null) {
@@ -2509,8 +2518,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(selector.isSetter());
     SourceString setterName = selector.name;
     bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
-    Set<ClassElement> interceptedClasses =
-        getInterceptedClassesOn(send, selector);
+    Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
     if (interceptedClasses != null) {
       // If we're using an interceptor class, emit a call to the
       // getInterceptor method and then the actual dynamic call on the
@@ -2569,11 +2577,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction invokeInterceptor(Set<ClassElement> intercepted,
                                  HInstruction receiver,
                                  Send send) {
-    if (send != null
-        && backend.isInterceptorClass(currentElement.getEnclosingClass())
-        && send.receiver == null) {
-      return thisInstruction;
-    }
     HInterceptor interceptor = new HInterceptor(intercepted, receiver);
     add(interceptor);
     return interceptor;
@@ -2785,7 +2788,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(node.argumentsNode);
       var right = pop();
       var left = pop();
-      visitBinary(left, op, right);
+      visitBinary(left, op, right, node);
     }
   }
 
@@ -3640,8 +3643,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                           Selector selector,
                                           HInstruction receiver,
                                           List<HInstruction> arguments) {
-    Set<ClassElement> interceptedClasses =
-        getInterceptedClassesOn(node, selector);
+    Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
     List<HInstruction> inputs = <HInstruction>[];
     bool isIntercepted = interceptedClasses != null;
     if (isIntercepted) {
@@ -3704,7 +3706,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         HInvokeDynamicMethod left = buildInvokeDynamic(
             node, new Selector.index(), receiver, [index]);
         add(left);
-        visitBinary(left, op, value);
+        visitBinary(left, op, value, node);
         value = pop();
         HInvokeDynamicMethod assign = buildInvokeDynamic(
             node, new Selector.indexSet(), receiver, [index, value]);
@@ -3749,7 +3751,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         right = graph.addConstantInt(1, constantSystem);
       }
-      visitBinary(left, op, right);
+      visitBinary(left, op, right, node);
       HInstruction operation = pop();
       assert(operation != null);
       if (Elements.isInstanceSend(node, elements)) {

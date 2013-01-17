@@ -141,9 +141,96 @@ class JSNumber {
     }
   }
 
-  int get hashCode => this & 0x1FFFFFFF;
+  int get hashCode => JS('int', '# & 0x1FFFFFFF', this);
 
   num operator -() => JS('num', r'-#', this);
+
+  num operator +(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# + #', this, other);
+  }
+
+  num operator -(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# - #', this, other);
+  }
+
+  num operator /(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# / #', this, other);
+  }
+
+  num operator *(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# * #', this, other);
+  }
+
+  num operator %(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    // Euclidean Modulo.
+    num result = JS('num', r'# % #', this, other);
+    if (result == 0) return 0;  // Make sure we don't return -0.0.
+    if (result > 0) return result;
+    if (JS('num', '#', other) < 0) {
+      return result - JS('num', '#', other);
+    } else {
+      return result + JS('num', '#', other);
+    }
+  }
+
+  num operator ~/(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return (JS('num', r'# / #', this, other)).truncate();
+  }
+
+  // TODO(ngeoffray): Move the bit operations below to [JSInt] and
+  // make them take an int. Because this will make operations slower,
+  // we define these methods on number for now but we need to decide
+  // the grain at which we do the type checks.
+
+  num operator <<(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    if (JS('num', '#', other) < 0) throw new ArgumentError(other);
+    // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
+    // by 33 is hence equivalent to a shift by 1.
+    if (JS('bool', r'# > 31', other)) return 0;
+    return JS('num', r'(# << #) >>> 0', this, other);
+  }
+
+  num operator >>(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    if (JS('num', '#', other) < 0) throw new ArgumentError(other);
+    if (JS('num', '#', this) > 0) {
+      // JavaScript only looks at the last 5 bits of the shift-amount. In JS
+      // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
+      // computation when that happens.
+      if (JS('bool', r'# > 31', other)) return 0;
+      // Given that 'a' is positive we must not use '>>'. Otherwise a number
+      // that has the 31st bit set would be treated as negative and shift in
+      // ones.
+      return JS('num', r'# >>> #', this, other);
+    }
+    // For negative numbers we just clamp the shift-by amount. 'a' could be
+    // negative but not have its 31st bit set. The ">>" would then shift in
+    // 0s instead of 1s. Therefore we cannot simply return 0xFFFFFFFF.
+    if (JS('num', '#', other) > 31) other = 31;
+    return JS('num', r'(# >> #) >>> 0', this, other);
+  }
+
+  num operator &(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', r'(# & #) >>> 0', this, other);    
+  }
+
+  num operator |(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', r'(# | #) >>> 0', this, other);    
+  }
+
+  num operator ^(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', r'(# ^ #) >>> 0', this, other);    
+  }
 }
 
 class JSInt extends JSNumber {
@@ -155,7 +242,7 @@ class JSInt extends JSNumber {
 
   Type get runtimeType => int;
 
-  int operator ~() => JS('num', r'(~#) >>> 0', this);
+  int operator ~() => JS('int', r'(~#) >>> 0', this);
 }
 
 class JSDouble extends JSNumber {

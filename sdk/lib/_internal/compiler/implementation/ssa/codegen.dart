@@ -1258,6 +1258,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeBinary(HInvokeBinary node, String op) {
+    use(node.left);
+    js.Expression jsLeft = pop();
+    use(node.right);
+    push(new js.Binary(op, jsLeft, pop()), node);
+  }
+
+  visitRelational(HRelational node, String op) {
     if (node.isBuiltin(types)) {
       use(node.left);
       js.Expression jsLeft = pop();
@@ -1272,7 +1279,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
     visitInvokeBinary(node, op);
-    if (node.isBuiltin(types) && requiresUintConversion(node)) {
+    if (requiresUintConversion(node)) {
       push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
@@ -1331,24 +1338,18 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitDivide(HDivide node)         => visitInvokeBinary(node, '/');
   visitMultiply(HMultiply node)     => visitInvokeBinary(node, '*');
   visitSubtract(HSubtract node)     => visitInvokeBinary(node, '-');
-  // Truncating divide does not have a JS equivalent.
-  visitTruncatingDivide(HTruncatingDivide node) => visitInvokeStatic(node);
-  // Modulo cannot be mapped to the native operator (different semantics).
-  visitModulo(HModulo node)                     => visitInvokeStatic(node);
-
   visitBitAnd(HBitAnd node)         => visitBitInvokeBinary(node, '&');
   visitBitNot(HBitNot node)         => visitBitInvokeUnary(node, '~');
   visitBitOr(HBitOr node)           => visitBitInvokeBinary(node, '|');
   visitBitXor(HBitXor node)         => visitBitInvokeBinary(node, '^');
-  visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>');
   visitShiftLeft(HShiftLeft node)   => visitBitInvokeBinary(node, '<<');
 
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
-  visitLess(HLess node)                 => visitInvokeBinary(node, '<');
-  visitLessEqual(HLessEqual node)       => visitInvokeBinary(node, '<=');
-  visitGreater(HGreater node)           => visitInvokeBinary(node, '>');
-  visitGreaterEqual(HGreaterEqual node) => visitInvokeBinary(node, '>=');
+  visitLess(HLess node)                 => visitRelational(node, '<');
+  visitLessEqual(HLessEqual node)       => visitRelational(node, '<=');
+  visitGreater(HGreater node)           => visitRelational(node, '>');
+  visitGreaterEqual(HGreaterEqual node) => visitRelational(node, '>=');
 
   visitBoolify(HBoolify node) {
     assert(node.inputs.length == 1);
@@ -1886,7 +1887,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       };
       HRelational relational = input;
       BinaryOperation operation = relational.operation(backend.constantSystem);
-      visitInvokeBinary(input, inverseOperator[operation.name.stringValue]);
+      visitRelational(input, inverseOperator[operation.name.stringValue]);
     } else {
       use(input);
       push(new js.Prefix("!", pop()));

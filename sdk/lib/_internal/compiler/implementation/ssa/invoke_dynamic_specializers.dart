@@ -31,6 +31,8 @@ class InvokeDynamicSpecializer {
     return null;
   }
 
+  Operation operation(ConstantSystem constantSystem) => null;
+
   static InvokeDynamicSpecializer lookupSpecializer(Selector selector) {
     if (selector.kind == SelectorKind.INDEX) {
       return selector.name == const SourceString('[]')
@@ -41,6 +43,28 @@ class InvokeDynamicSpecializer {
         return const UnaryNegateSpecializer();
       } else if (selector.name == const SourceString('~')) {
         return const BitNotSpecializer();
+      } else if (selector.name == const SourceString('+')) {
+        return const AddSpecializer();
+      } else if (selector.name == const SourceString('-')) {
+        return const SubtractSpecializer();
+      } else if (selector.name == const SourceString('*')) {
+        return const MultiplySpecializer();
+      } else if (selector.name == const SourceString('/')) {
+        return const DivideSpecializer();
+      } else if (selector.name == const SourceString('~/')) {
+        return const TruncatingDivideSpecializer();
+      } else if (selector.name == const SourceString('%')) {
+        return const ModuloSpecializer();
+      } else if (selector.name == const SourceString('>>')) {
+        return const ShiftRightSpecializer();
+      } else if (selector.name == const SourceString('<<')) {
+        return const ShiftLeftSpecializer();
+      } else if (selector.name == const SourceString('&')) {
+        return const BitAndSpecializer();
+      } else if (selector.name == const SourceString('|')) {
+        return const BitOrSpecializer();
+      } else if (selector.name == const SourceString('^')) {
+        return const BitXorSpecializer();
       }
     }
     return const InvokeDynamicSpecializer();
@@ -108,6 +132,10 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
 class BitNotSpecializer extends InvokeDynamicSpecializer {
   const BitNotSpecializer();
 
+  UnaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.bitNot;
+  }
+
   HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
                                    HInstruction input,
                                    HTypeMap types,
@@ -141,6 +169,10 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
 class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
   const UnaryNegateSpecializer();
 
+  UnaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.negate;
+  }
+
   HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
                                    HInstruction input,
                                    HTypeMap types,
@@ -169,5 +201,262 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(types)) return new HNegate(input);
     return null;
+  }
+}
+
+abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
+  const BinaryArithmeticSpecializer();
+
+  HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
+                                  HTypeMap types,
+                                  Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    if (left.isInteger(types) && right.isInteger(types)) return HType.INTEGER;
+    if (left.isNumber(types)) {
+      if (left.isDouble(types) || right.isDouble(types)) return HType.DOUBLE;
+      return HType.NUMBER;
+    }
+    return HType.UNKNOWN;
+  }
+
+  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+                                   HInstruction input,
+                                   HTypeMap types,
+                                   Compiler compiler) {
+    if (input == instruction.inputs[0]) return HType.UNKNOWN;
+
+    HType propagatedType = types[instruction];
+    // If the desired output type should be an integer we want to get two
+    // integers as arguments.
+    if (propagatedType.isInteger()) return HType.INTEGER;
+    // If the outgoing type should be a number we can get that if both inputs
+    // are numbers. If we don't know the outgoing type we try to make it a
+    // number.
+    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
+      return HType.NUMBER;
+    }
+    // Even if the desired outgoing type is not a number we still want the
+    // second argument to be a number if the first one is a number. This will
+    // not help for the outgoing type, but at least the binary arithmetic
+    // operation will not have type problems.
+    // TODO(floitsch): normally we shouldn't request a number, but simply
+    // throw an ArgumentError if it isn't. This would be similar
+    // to the array case.
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    if (input == right && left.isNumber(types)) return HType.NUMBER;
+    return HType.UNKNOWN;
+  }
+
+  bool isBuiltin(HInvokeDynamicMethod instruction, HTypeMap types) {
+    return instruction.inputs[1].isNumber(types)
+        && instruction.inputs[2].isNumber(types);
+  }
+
+  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+                                   HTypeMap types) {
+    if (isBuiltin(instruction, types)) {
+      return newBuiltinVariant(instruction.inputs[1], instruction.inputs[2]);
+    }
+    return null;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right);
+}
+
+class AddSpecializer extends BinaryArithmeticSpecializer {
+  const AddSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.add;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HAdd(left, right);
+  }
+}
+
+class DivideSpecializer extends BinaryArithmeticSpecializer {
+  const DivideSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.divide;
+  }
+
+  HType computeTypeFromInputTypes(HInstruction instruction,
+                                  HTypeMap types,
+                                  Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    if (left.isNumber(types)) return HType.DOUBLE;
+    return HType.UNKNOWN;
+  }
+
+  HType computeDesiredTypeForInput(HInstruction instruction,
+                                   HInstruction input,
+                                   HTypeMap types,
+                                   Compiler compiler) {
+    if (input == instruction.inputs[0]) return HType.UNKNOWN;
+    // A division can never return an integer. So don't ask for integer inputs.
+    if (instruction.isInteger(types)) return HType.UNKNOWN;
+    return super.computeDesiredTypeForInput(
+        instruction, input, types, compiler);
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HDivide(left, right);
+  }
+}
+
+class ModuloSpecializer extends BinaryArithmeticSpecializer {
+  const ModuloSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.modulo;
+  }
+
+  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+                                   HTypeMap types) {
+    // Modulo cannot be mapped to the native operator (different semantics).    
+    return null;
+  }
+}
+
+class MultiplySpecializer extends BinaryArithmeticSpecializer {
+  const MultiplySpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.multiply;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HMultiply(left, right);
+  }
+}
+
+class SubtractSpecializer extends BinaryArithmeticSpecializer {
+  const SubtractSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.subtract;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HSubtract(left, right);
+  }
+}
+
+class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
+  const TruncatingDivideSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.truncatingDivide;
+  }
+
+  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+                                   HTypeMap types) {
+    // Truncating divide does not have a JS equivalent.    
+    return null;
+  }
+}
+
+abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
+  const BinaryBitOpSpecializer();
+
+  HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
+                                  HTypeMap types,
+                                  Compiler compiler) {
+    // All bitwise operations on primitive types either produce an
+    // integer or throw an error.
+    HInstruction left = instruction.inputs[1];
+    if (left.isPrimitive(types)) return HType.INTEGER;
+    return HType.UNKNOWN;
+  }
+
+  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+                                   HInstruction input,
+                                   HTypeMap types,
+                                   Compiler compiler) {
+    if (input == instruction.inputs[0]) return HType.UNKNOWN;
+    HType propagatedType = types[instruction];
+    // If the outgoing type should be a number we can get that only if both
+    // inputs are integers. If we don't know the outgoing type we try to make
+    // it an integer.
+    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
+      return HType.INTEGER;
+    }
+    return HType.UNKNOWN;
+  }
+}
+
+class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
+  const ShiftLeftSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.shiftLeft;
+  }
+
+  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+                                   HTypeMap types) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    if (!left.isNumber(types) || !right.isConstantInteger()) return null;
+    HConstant rightConstant = right;
+    IntConstant intConstant = rightConstant.constant;
+    int count = intConstant.value;
+    if (count >= 0 && count <= 31) {
+      return new HShiftLeft(left, right);
+    }
+    return null;
+  }
+}
+
+class ShiftRightSpecializer extends BinaryBitOpSpecializer {
+  const ShiftRightSpecializer();
+
+  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+                                   HTypeMap types) {
+    // Shift right cannot be mapped to the native operator easily.    
+    return null;
+  }
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.shiftRight;
+  }
+}
+
+class BitOrSpecializer extends BinaryBitOpSpecializer {
+  const BitOrSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.bitOr;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HBitOr(left, right);
+  }
+}
+
+class BitAndSpecializer extends BinaryBitOpSpecializer {
+  const BitAndSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.bitAnd;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HBitAnd(left, right);
+  }
+}
+
+class BitXorSpecializer extends BinaryBitOpSpecializer {
+  const BitXorSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.bitXor;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HBitXor(left, right);
   }
 }
