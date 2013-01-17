@@ -205,7 +205,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return folded != null ? folded : node;
   }
 
-  HInstruction foldUnary(Operation operation, HInstruction operand) {
+  HInstruction foldUnary(UnaryOperation operation, HInstruction operand) {
     if (operand is HConstant) {
       HConstant receiver = operand;
       Constant folded = operation.fold(receiver.constant);
@@ -366,7 +366,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  HInstruction foldBinary(Operation operation,
+  HInstruction foldBinary(BinaryOperation operation,
                           HInstruction left,
                           HInstruction right) {
     if (left is HConstant && right is HConstant) {

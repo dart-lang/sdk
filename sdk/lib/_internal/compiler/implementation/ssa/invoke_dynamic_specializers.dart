@@ -320,6 +320,10 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
     // Modulo cannot be mapped to the native operator (different semantics).    
     return null;
   }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    throw 'Modulo has no builtin variant';
+  }
 }
 
 class MultiplySpecializer extends BinaryArithmeticSpecializer {
@@ -357,6 +361,10 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
                                    HTypeMap types) {
     // Truncating divide does not have a JS equivalent.    
     return null;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    throw 'Truncating divide has no builtin variant';
   }
 }
 
@@ -405,9 +413,13 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
     IntConstant intConstant = rightConstant.constant;
     int count = intConstant.value;
     if (count >= 0 && count <= 31) {
-      return new HShiftLeft(left, right);
+      return newBuiltinVariant(left, right);
     }
     return null;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HShiftLeft(left, right);
   }
 }
 
@@ -418,6 +430,10 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
                                    HTypeMap types) {
     // Shift right cannot be mapped to the native operator easily.    
     return null;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    throw 'Shift right has no builtin variant';
   }
 
   BinaryOperation operation(ConstantSystem constantSystem) {

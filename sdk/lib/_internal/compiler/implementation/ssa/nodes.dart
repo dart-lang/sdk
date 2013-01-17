@@ -2045,6 +2045,8 @@ abstract class HRelational extends HInvokeStatic {
 
   HInstruction get left => inputs[1];
   HInstruction get right => inputs[2];      
+
+  BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HEquals extends HRelational {

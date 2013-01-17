@@ -225,18 +225,24 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Boolify: ${temporaryId(node.inputs[0])}";
   }
 
-  String visitAdd(HAdd node) => visitInvokeStatic(node);
+  String handleBinaryArithmetic(HBinaryArithmetic node, String op) {
+    String left = temporaryId(node.left);
+    String right= temporaryId(node.right);
+    return '$left $op $right';
+  }
 
-  String visitBitAnd(HBitAnd node) => visitInvokeStatic(node);
+  String visitAdd(HAdd node) => handleBinaryArithmetic(node, '+');
+
+  String visitBitAnd(HBitAnd node) => handleBinaryArithmetic(node, '&');
 
   String visitBitNot(HBitNot node) {
     String operand = temporaryId(node.operand);
     return "~$operand";
   }
 
-  String visitBitOr(HBitOr node) => visitInvokeStatic(node);
+  String visitBitOr(HBitOr node) => handleBinaryArithmetic(node, '|');
 
-  String visitBitXor(HBitXor node) => visitInvokeStatic(node);
+  String visitBitXor(HBitXor node) => handleBinaryArithmetic(node, '^');
 
   String visitBoundsCheck(HBoundsCheck node) {
     String lengthId = temporaryId(node.length);
@@ -262,7 +268,7 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Continue: (B${target.id})";
   }
 
-  String visitDivide(HDivide node) => visitInvokeStatic(node);
+  String visitDivide(HDivide node) => handleBinaryArithmetic(node, '/');
 
   String visitEquals(HEquals node) => visitInvokeStatic(node);
 
@@ -397,7 +403,7 @@ class HInstructionStringifier implements HVisitor<String> {
     return "While ($conditionId): (B${bodyBlock.id}) then (B${exitBlock.id})";
   }
 
-  String visitMultiply(HMultiply node) => visitInvokeStatic(node);
+  String visitMultiply(HMultiply node) => handleBinaryArithmetic(node, '*');
 
   String visitNegate(HNegate node) {
     String operand = temporaryId(node.operand);
@@ -427,7 +433,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";
 
-  String visitShiftLeft(HShiftLeft node) => visitInvokeStatic(node);
+  String visitShiftLeft(HShiftLeft node) => handleBinaryArithmetic(node, '<<');
 
   String visitStatic(HStatic node)
       => "Static ${node.element.name.slowToString()}";
@@ -446,7 +452,7 @@ class HInstructionStringifier implements HVisitor<String> {
     return "StringConcat: $leftId + $rightId";
   }
 
-  String visitSubtract(HSubtract node) => visitInvokeStatic(node);
+  String visitSubtract(HSubtract node) => handleBinaryArithmetic(node, '-');
 
   String visitSwitch(HSwitch node) {
     StringBuffer buf = new StringBuffer();
