@@ -20,8 +20,8 @@ String get _browserPrefix {
   }
   return _cachedBrowserPrefix;
 }
-
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$ANNOTATIONS
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.create$CLASSNAME();
   factory $CLASSNAME.css(String css) =>
       _$(CLASSNAME)FactoryProvider.create$(CLASSNAME)_css(css);

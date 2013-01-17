@@ -754,15 +754,18 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
-    annotations = FormatAnnotations(
-        FindCommonAnnotations(self._interface.id, idl_name), '  ')
+    annotations = FindCommonAnnotations(self._interface.id, idl_name)
+    if annotations:
+      annotation_str = '\n  ' + '\n  '.join(annotations)
+    else:
+      annotation_str = ''
 
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
     self._members_emitter.Emit(
-        '\n'
-        '  $ANNOTATIONS$DART_DECLARATION native "$NATIVE_BINDING";\n',
+        '$ANNOTATIONS'
+        '\n  $DART_DECLARATION native "$NATIVE_BINDING";\n',
         DOMINTERFACE=self._interface.id,
-        ANNOTATIONS=annotations,
+        ANNOTATIONS=annotation_str,
         DART_DECLARATION=dart_declaration,
         NATIVE_BINDING=native_binding)
 

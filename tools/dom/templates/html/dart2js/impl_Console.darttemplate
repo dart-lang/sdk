@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of html;
-
-$(ANNOTATIONS)class Console {
+$ANNOTATIONS
+class Console {
 
   static Console safeConsole = new Console();
 

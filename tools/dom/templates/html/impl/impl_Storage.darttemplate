@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of html;
-
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS implements Map<String, String>
-    $NATIVESPEC {
+$ANNOTATIONS
+class $CLASSNAME$EXTENDS implements Map<String, String> $NATIVESPEC {
 
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => values.any((e) => e == value);

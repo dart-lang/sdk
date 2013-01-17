@@ -6,33 +6,34 @@ part of html;
 
 /**
  * A utility for retrieving data from a URL.
- *
+ * 
  * HttpRequest can be used to obtain data from http, ftp, and file
- * protocols.
- *
+ * protocols. 
+ * 
  * For example, suppose we're developing these API docs, and we
  * wish to retrieve the HTML of the top-level page and print it out.
  * The easiest way to do that would be:
- *
+ * 
  *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
  *         (request) => print(request.responseText));
- *
+ * 
  * **Important**: With the default behavior of this class, your
  * code making the request should be served from the same origin (domain name,
  * port, and application layer protocol) as the URL you are trying to access
- * with HttpRequest. However, there are ways to
+ * with HttpRequest. However, there are ways to 
  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
- *
+ * 
  * See also:
  *
  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
  * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+@DomName('XMLHttpRequest')
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   /**
    * Creates a URL get request for the specified `url`.
-   *
+   * 
    * After completing the request, the object will call the user-provided
    * [onComplete] callback.
    */
@@ -44,8 +45,8 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * Creates a URL GET request for the specified `url` with
    * credentials such a cookie (already) set in the header or
    * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
-   *
-   * After completing the request, the object will call the user-provided
+   * 
+   * After completing the request, the object will call the user-provided 
    * [onComplete] callback.
    *
    * A few other details to keep in mind when using credentials:
@@ -54,7 +55,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
-   *
+   * 
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   factory $CLASSNAME.getWithCredentials(String url,

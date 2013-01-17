@@ -6780,6 +6780,8 @@ class DivElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
+@DomName('Document')
 /**
  * The base class for all documents.
  *
@@ -6789,8 +6791,6 @@ class DivElement extends _Element_Merged {
  * If you aren't comfortable with DOM concepts, see the Dart tutorial
  * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
  */
-@DocsEditable
-@DomName('Document')
 class Document extends Node 
 {
 
@@ -8845,8 +8845,6 @@ class _ElementCssClassSet extends CssClassSet {
 /**
  * An abstract class, which all HTML elements extend.
  */
-@DocsEditable
-@DomName('Element')
 abstract class Element extends Node implements ElementTraversal {
 
   /**
@@ -10433,7 +10431,7 @@ class EventSourceEvents extends Events {
  * Events can either be accessed by string name (using the indexed getter) or by
  * getters exposed by subclasses. Use the getters exposed by subclasses when
  * possible for better compile-time type checks.
- *
+ * 
  * Using an indexed getter:
  *     events['mouseover'].add((e) => print("Mouse over!"));
  *
@@ -10488,6 +10486,8 @@ class EventListenerList {
   }
 }
 
+@DocsEditable
+@DomName('EventTarget')
 /**
  * Base class for all browser objects that support events.
  *
@@ -10495,9 +10495,7 @@ class EventListenerList {
  * [$dom_addEventListener], [$dom_dispatchEvent], and
  * [$dom_removeEventListener]) for compile-time type checks and a more concise
  * API.
- */
-@DocsEditable
-@DomName('EventTarget')
+ */ 
 class EventTarget extends NativeFieldWrapperClass1 {
 
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -12018,6 +12016,7 @@ class HeadingElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
+
 @DocsEditable
 @DomName('History')
 class History extends NativeFieldWrapperClass1 implements HistoryBase {
@@ -12613,35 +12612,34 @@ class HtmlOptionsCollection extends HtmlCollection {
 
 /**
  * A utility for retrieving data from a URL.
- *
+ * 
  * HttpRequest can be used to obtain data from http, ftp, and file
- * protocols.
- *
+ * protocols. 
+ * 
  * For example, suppose we're developing these API docs, and we
  * wish to retrieve the HTML of the top-level page and print it out.
  * The easiest way to do that would be:
- *
+ * 
  *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
  *         (request) => print(request.responseText));
- *
+ * 
  * **Important**: With the default behavior of this class, your
  * code making the request should be served from the same origin (domain name,
  * port, and application layer protocol) as the URL you are trying to access
- * with HttpRequest. However, there are ways to
+ * with HttpRequest. However, there are ways to 
  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
- *
+ * 
  * See also:
  *
  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
  * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
-@DocsEditable
 @DomName('XMLHttpRequest')
 class HttpRequest extends EventTarget {
   /**
    * Creates a URL get request for the specified `url`.
-   *
+   * 
    * After completing the request, the object will call the user-provided
    * [onComplete] callback.
    */
@@ -12653,8 +12651,8 @@ class HttpRequest extends EventTarget {
    * Creates a URL GET request for the specified `url` with
    * credentials such a cookie (already) set in the header or
    * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
-   *
-   * After completing the request, the object will call the user-provided
+   * 
+   * After completing the request, the object will call the user-provided 
    * [onComplete] callback.
    *
    * A few other details to keep in mind when using credentials:
@@ -12663,7 +12661,7 @@ class HttpRequest extends EventTarget {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
-   *
+   * 
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   factory HttpRequest.getWithCredentials(String url,
@@ -14910,12 +14908,11 @@ class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent {
 
   factory KeyboardEvent(String type, Window view,
-      [bool canBubble = true, bool cancelable = true,
+      [bool canBubble = true, bool cancelable = true, 
       String keyIdentifier = "", int keyLocation = 1, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       bool altGraphKey = false]) {
@@ -14927,7 +14924,7 @@ class KeyboardEvent extends UIEvent {
 
   @DomName('KeyboardEvent.keyCode')
   int get keyCode => $dom_keyCode;
-
+  
   @DomName('KeyboardEvent.charCode')
   int get charCode => $dom_charCode;
   KeyboardEvent.internal() : super.internal();
@@ -21496,8 +21493,7 @@ class SqlTransactionSync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('Storage')
-class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
-     {
+class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => values.any((e) => e == value);

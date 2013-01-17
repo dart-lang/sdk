@@ -10,7 +10,7 @@ part of html;
  * Events can either be accessed by string name (using the indexed getter) or by
  * getters exposed by subclasses. Use the getters exposed by subclasses when
  * possible for better compile-time type checks.
- *
+ * 
  * Using an indexed getter:
  *     events['mouseover'].add((e) => print("Mouse over!"));
  *
@@ -64,7 +64,7 @@ class EventListenerList {
     _ptr.$dom_removeEventListener(_type, listener, useCapture);
   }
 }
-
+$ANNOTATIONS
 /**
  * Base class for all browser objects that support events.
  *
@@ -72,8 +72,8 @@ class EventListenerList {
  * [$dom_addEventListener], [$dom_dispatchEvent], and
  * [$dom_removeEventListener]) for compile-time type checks and a more concise
  * API.
- */
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+ */ 
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   Events get on => new Events(this);
