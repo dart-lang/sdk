@@ -34,7 +34,6 @@ import '../../libraries.dart';
 
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-part 'src/dartdoc/comment_map.dart';
 part 'src/dartdoc/nav.dart';
 part 'src/dartdoc/utils.dart';
 

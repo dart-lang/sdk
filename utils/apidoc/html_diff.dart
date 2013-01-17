@@ -65,8 +65,6 @@ class HtmlDiff {
   /** A map from `dart:html` types to corresponding `@DomName` types. */
   final Map<String, Set<String>> htmlTypesToDom;
 
-  final CommentMap comments;
-
   /** If true, then print warning messages. */
   final bool _printWarnings;
 
@@ -90,8 +88,7 @@ class HtmlDiff {
   HtmlDiff({bool printWarnings: false}) :
     _printWarnings = printWarnings,
     htmlToDom = new Map<String, Set<String>>(),
-    htmlTypesToDom = new Map<String, Set<String>>(),
-    comments = new CommentMap();
+    htmlTypesToDom = new Map<String, Set<String>>();
 
   void warn(String s) {
     if (_printWarnings) {
