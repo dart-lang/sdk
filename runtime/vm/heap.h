@@ -155,6 +155,10 @@ class Heap {
   // Print heap sizes.
   void PrintSizes() const;
 
+  // Return amount of memory used and capacity in a space.
+  intptr_t Used(Space space) const;
+  intptr_t Capacity(Space space) const;
+
   // Returns the [lowest, highest) addresses in the heap.
   void StartEndAddress(uword* start, uword* end) const;
 
