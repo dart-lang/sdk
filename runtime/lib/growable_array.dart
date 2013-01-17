@@ -163,9 +163,9 @@ class _GrowableObjectArray<T> implements List<T> {
     throw new StateError("More than one element");
   }
 
-  T min([int compare(T a, T b)]) => Collections.min(this, compare);
+  T min([int compare(T a, T b)]) => IterableMixinWorkaround.min(this, compare);
 
-  T max([int compare(T a, T b)]) => Collections.max(this, compare);
+  T max([int compare(T a, T b)]) => IterableMixinWorkaround.max(this, compare);
 
   int indexOf(T element, [int start = 0]) {
     return Arrays.indexOf(this, element, start, length);
@@ -187,11 +187,11 @@ class _GrowableObjectArray<T> implements List<T> {
   // Collection interface.
 
   bool contains(T element) {
-    return Collections.contains(this, element);
+    return IterableMixinWorkaround.contains(this, element);
   }
 
   void forEach(f(T element)) {
-    // TODO(srdjan): Use Collections.forEach(this, f);
+    // TODO(srdjan): Use IterableMixinWorkaround.forEach(this, f);
     // Accessing the list directly improves DeltaBlue performance by 25%.
     for (int i = 0; i < length; i++) {
       f(this[i]);
@@ -217,51 +217,51 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   List mappedBy(f(T element)) {
-    return new MappedList<T, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
   reduce(initialValue, combine(previousValue, T element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   Iterable<T> where(bool f(T element)) {
-    return new WhereIterable<T>(this, f);
+    return IterableMixinWorkaround.where(this, f);
   }
 
   List<T> take(int n) {
-    return new ListView<T>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<T> takeWhile(bool test(T value)) {
-    return new TakeWhileIterable<T>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<T> skip(int n) {
-    return new ListView<T>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<T> skipWhile(bool test(T value)) {
-    return new SkipWhileIterable<T>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   bool every(bool f(T element)) {
-    return Collections.every(this, f);
+    return IterableMixinWorkaround.every(this, f);
   }
 
   bool any(bool f(T element)) {
-    return Collections.any(this, f);
+    return IterableMixinWorkaround.any(this, f);
   }
 
   T firstMatching(bool test(T value), {T orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   T lastMatching(bool test(T value), {T orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   T singleMatching(bool test(T value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   T elementAt(int index) {

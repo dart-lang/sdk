@@ -6669,50 +6669,50 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(DomMimeType element) => Collections.contains(this, element);
+  bool contains(DomMimeType element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(DomMimeType element)) => Collections.forEach(this, f);
+  void forEach(void f(DomMimeType element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomMimeType element)) => new MappedList<DomMimeType, dynamic>(this, f);
+  List mappedBy(f(DomMimeType element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<DomMimeType> where(bool f(DomMimeType element)) => new WhereIterable<DomMimeType>(this, f);
+  Iterable<DomMimeType> where(bool f(DomMimeType element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(DomMimeType element)) => Collections.every(this, f);
+  bool every(bool f(DomMimeType element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(DomMimeType element)) => Collections.any(this, f);
+  bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
 
   List<DomMimeType> toList() => new List<DomMimeType>.from(this);
   Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<DomMimeType> take(int n) => new ListView<DomMimeType>(this, 0, n);
+  List<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
-    return new TakeWhileIterable<DomMimeType>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomMimeType> skip(int n) => new ListView<DomMimeType>(this, n, null);
+  List<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
-    return new SkipWhileIterable<DomMimeType>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   DomMimeType firstMatching(bool test(DomMimeType value), { DomMimeType orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   DomMimeType lastMatching(bool test(DomMimeType value), {DomMimeType orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   DomMimeType singleMatching(bool test(DomMimeType value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   DomMimeType elementAt(int index) {
@@ -6770,9 +6770,9 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new StateError("More than one element");
   }
 
-  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => Collections.min(this, compare);
+  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => IterableMixinWorkaround.min(this, compare);
 
-  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => Collections.max(this, compare);
+  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => IterableMixinWorkaround.max(this, compare);
 
   DomMimeType removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -6881,50 +6881,50 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(DomPlugin element) => Collections.contains(this, element);
+  bool contains(DomPlugin element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(DomPlugin element)) => Collections.forEach(this, f);
+  void forEach(void f(DomPlugin element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomPlugin element)) => new MappedList<DomPlugin, dynamic>(this, f);
+  List mappedBy(f(DomPlugin element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<DomPlugin> where(bool f(DomPlugin element)) => new WhereIterable<DomPlugin>(this, f);
+  Iterable<DomPlugin> where(bool f(DomPlugin element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(DomPlugin element)) => Collections.every(this, f);
+  bool every(bool f(DomPlugin element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(DomPlugin element)) => Collections.any(this, f);
+  bool any(bool f(DomPlugin element)) => IterableMixinWorkaround.any(this, f);
 
   List<DomPlugin> toList() => new List<DomPlugin>.from(this);
   Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<DomPlugin> take(int n) => new ListView<DomPlugin>(this, 0, n);
+  List<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
-    return new TakeWhileIterable<DomPlugin>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomPlugin> skip(int n) => new ListView<DomPlugin>(this, n, null);
+  List<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
-    return new SkipWhileIterable<DomPlugin>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   DomPlugin firstMatching(bool test(DomPlugin value), { DomPlugin orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   DomPlugin lastMatching(bool test(DomPlugin value), {DomPlugin orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   DomPlugin singleMatching(bool test(DomPlugin value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   DomPlugin elementAt(int index) {
@@ -6982,9 +6982,9 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new StateError("More than one element");
   }
 
-  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => Collections.min(this, compare);
+  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => IterableMixinWorkaround.min(this, compare);
 
-  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => Collections.max(this, compare);
+  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => IterableMixinWorkaround.max(this, compare);
 
   DomPlugin removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -7152,50 +7152,50 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   // contains() defined by IDL.
 
-  void forEach(void f(String element)) => Collections.forEach(this, f);
+  void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(String element)) => new MappedList<String, dynamic>(this, f);
+  List mappedBy(f(String element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<String> where(bool f(String element)) => new WhereIterable<String>(this, f);
+  Iterable<String> where(bool f(String element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(String element)) => Collections.every(this, f);
+  bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(String element)) => Collections.any(this, f);
+  bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
 
   List<String> toList() => new List<String>.from(this);
   Set<String> toSet() => new Set<String>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<String> take(int n) => new ListView<String>(this, 0, n);
+  List<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<String> takeWhile(bool test(String value)) {
-    return new TakeWhileIterable<String>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<String> skip(int n) => new ListView<String>(this, n, null);
+  List<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<String> skipWhile(bool test(String value)) {
-    return new SkipWhileIterable<String>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   String firstMatching(bool test(String value), { String orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   String lastMatching(bool test(String value), {String orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   String singleMatching(bool test(String value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   String elementAt(int index) {
@@ -7253,9 +7253,9 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new StateError("More than one element");
   }
 
-  String min([int compare(String a, String b)]) => Collections.min(this, compare);
+  String min([int compare(String a, String b)]) => IterableMixinWorkaround.min(this, compare);
 
-  String max([int compare(String a, String b)]) => Collections.max(this, compare);
+  String max([int compare(String a, String b)]) => IterableMixinWorkaround.max(this, compare);
 
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -7381,46 +7381,47 @@ class _ChildrenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -7465,7 +7466,7 @@ class _ChildrenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -7533,11 +7534,11 @@ class _ChildrenElementList implements List {
   }
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 
@@ -7564,15 +7565,16 @@ class _FrozenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -7596,31 +7598,31 @@ class _FrozenElementList implements List {
   Set<Element> toSet() => new Set<Element>.from(this);
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -7661,7 +7663,7 @@ class _FrozenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -7704,11 +7706,11 @@ class _FrozenElementList implements List {
   Element get single => _nodeList.single;
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 
@@ -9614,50 +9616,50 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(File element) => Collections.contains(this, element);
+  bool contains(File element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(File element)) => Collections.forEach(this, f);
+  void forEach(void f(File element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(File element)) => new MappedList<File, dynamic>(this, f);
+  List mappedBy(f(File element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<File> where(bool f(File element)) => new WhereIterable<File>(this, f);
+  Iterable<File> where(bool f(File element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(File element)) => Collections.every(this, f);
+  bool every(bool f(File element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(File element)) => Collections.any(this, f);
+  bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
 
   List<File> toList() => new List<File>.from(this);
   Set<File> toSet() => new Set<File>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<File> take(int n) => new ListView<File>(this, 0, n);
+  List<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<File> takeWhile(bool test(File value)) {
-    return new TakeWhileIterable<File>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<File> skip(int n) => new ListView<File>(this, n, null);
+  List<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<File> skipWhile(bool test(File value)) {
-    return new SkipWhileIterable<File>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   File firstMatching(bool test(File value), { File orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   File lastMatching(bool test(File value), {File orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   File singleMatching(bool test(File value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   File elementAt(int index) {
@@ -9715,9 +9717,9 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new StateError("More than one element");
   }
 
-  File min([int compare(File a, File b)]) => Collections.min(this, compare);
+  File min([int compare(File a, File b)]) => IterableMixinWorkaround.min(this, compare);
 
-  File max([int compare(File a, File b)]) => Collections.max(this, compare);
+  File max([int compare(File a, File b)]) => IterableMixinWorkaround.max(this, compare);
 
   File removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -10104,50 +10106,50 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(num element) => Collections.contains(this, element);
+  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(num element)) => Collections.forEach(this, f);
+  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+  Iterable<num> where(bool f(num element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(num element)) => Collections.every(this, f);
+  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(num element)) => Collections.any(this, f);
+  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
   List<num> toList() => new List<num>.from(this);
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => new ListView<num>(this, 0, n);
+  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
-    return new TakeWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => new ListView<num>(this, n, null);
+  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
-    return new SkipWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   num firstMatching(bool test(num value), { num orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   num lastMatching(bool test(num value), {num orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   num singleMatching(bool test(num value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   num elementAt(int index) {
@@ -10205,9 +10207,9 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => Collections.min(this, compare);
+  num min([int compare(num a, num b)]) => IterableMixinWorkaround.min(this, compare);
 
-  num max([int compare(num a, num b)]) => Collections.max(this, compare);
+  num max([int compare(num a, num b)]) => IterableMixinWorkaround.max(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -10280,50 +10282,50 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(num element) => Collections.contains(this, element);
+  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(num element)) => Collections.forEach(this, f);
+  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+  Iterable<num> where(bool f(num element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(num element)) => Collections.every(this, f);
+  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(num element)) => Collections.any(this, f);
+  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
   List<num> toList() => new List<num>.from(this);
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => new ListView<num>(this, 0, n);
+  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
-    return new TakeWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => new ListView<num>(this, n, null);
+  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
-    return new SkipWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   num firstMatching(bool test(num value), { num orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   num lastMatching(bool test(num value), {num orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   num singleMatching(bool test(num value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   num elementAt(int index) {
@@ -10381,9 +10383,9 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => Collections.min(this, compare);
+  num min([int compare(num a, num b)]) => IterableMixinWorkaround.min(this, compare);
 
-  num max([int compare(num a, num b)]) => Collections.max(this, compare);
+  num max([int compare(num a, num b)]) => IterableMixinWorkaround.max(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -10706,50 +10708,50 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -10807,9 +10809,9 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -10877,50 +10879,50 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -10978,9 +10980,9 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -12471,50 +12473,50 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -12572,9 +12574,9 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -12647,50 +12649,50 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -12748,9 +12750,9 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -12823,50 +12825,50 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -12924,9 +12926,9 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -14707,50 +14709,50 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -14808,9 +14810,9 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -15009,11 +15011,11 @@ class _ChildNodeListLazy implements List {
   }
 
   Node min([int compare(Node a, Node b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Node max([int compare(Node a, Node b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 
   void add(Node value) {
@@ -15059,28 +15061,30 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Node element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  List mappedBy(f(Node element)) =>
-      new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
+  }
 
-  Iterable<Node> where(bool f(Node element)) =>
-     new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
@@ -15090,31 +15094,31 @@ class _ChildNodeListLazy implements List {
   // From List<Node>:
 
   List<Node> take(int n) {
-    return new ListView<Node>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Node> skip(int n) {
-    return new ListView<Node>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -15413,50 +15417,50 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -15514,9 +15518,9 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -17475,50 +17479,50 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SourceBuffer element) => Collections.contains(this, element);
+  bool contains(SourceBuffer element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
+  void forEach(void f(SourceBuffer element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SourceBuffer element)) => new MappedList<SourceBuffer, dynamic>(this, f);
+  List mappedBy(f(SourceBuffer element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) => new WhereIterable<SourceBuffer>(this, f);
+  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
+  bool every(bool f(SourceBuffer element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SourceBuffer element)) => Collections.any(this, f);
+  bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
 
   List<SourceBuffer> toList() => new List<SourceBuffer>.from(this);
   Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SourceBuffer> take(int n) => new ListView<SourceBuffer>(this, 0, n);
+  List<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SourceBuffer> takeWhile(bool test(SourceBuffer value)) {
-    return new TakeWhileIterable<SourceBuffer>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SourceBuffer> skip(int n) => new ListView<SourceBuffer>(this, n, null);
+  List<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SourceBuffer> skipWhile(bool test(SourceBuffer value)) {
-    return new SkipWhileIterable<SourceBuffer>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SourceBuffer firstMatching(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SourceBuffer lastMatching(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SourceBuffer singleMatching(bool test(SourceBuffer value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SourceBuffer elementAt(int index) {
@@ -17576,9 +17580,9 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.min(this, compare);
+  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.max(this, compare);
+  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => IterableMixinWorkaround.max(this, compare);
 
   SourceBuffer removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -17710,50 +17714,50 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SpeechGrammar element) => Collections.contains(this, element);
+  bool contains(SpeechGrammar element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
+  void forEach(void f(SpeechGrammar element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechGrammar element)) => new MappedList<SpeechGrammar, dynamic>(this, f);
+  List mappedBy(f(SpeechGrammar element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) => new WhereIterable<SpeechGrammar>(this, f);
+  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
+  bool every(bool f(SpeechGrammar element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SpeechGrammar element)) => Collections.any(this, f);
+  bool any(bool f(SpeechGrammar element)) => IterableMixinWorkaround.any(this, f);
 
   List<SpeechGrammar> toList() => new List<SpeechGrammar>.from(this);
   Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechGrammar> take(int n) => new ListView<SpeechGrammar>(this, 0, n);
+  List<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechGrammar> takeWhile(bool test(SpeechGrammar value)) {
-    return new TakeWhileIterable<SpeechGrammar>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechGrammar> skip(int n) => new ListView<SpeechGrammar>(this, n, null);
+  List<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechGrammar> skipWhile(bool test(SpeechGrammar value)) {
-    return new SkipWhileIterable<SpeechGrammar>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SpeechGrammar firstMatching(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SpeechGrammar lastMatching(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SpeechGrammar singleMatching(bool test(SpeechGrammar value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SpeechGrammar elementAt(int index) {
@@ -17811,9 +17815,9 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new StateError("More than one element");
   }
 
-  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.min(this, compare);
+  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.max(this, compare);
+  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => IterableMixinWorkaround.max(this, compare);
 
   SpeechGrammar removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -18206,50 +18210,50 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Map element) => Collections.contains(this, element);
+  bool contains(Map element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Map element)) => Collections.forEach(this, f);
+  void forEach(void f(Map element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Map element)) => new MappedList<Map, dynamic>(this, f);
+  List mappedBy(f(Map element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Map> where(bool f(Map element)) => new WhereIterable<Map>(this, f);
+  Iterable<Map> where(bool f(Map element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Map element)) => Collections.every(this, f);
+  bool every(bool f(Map element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Map element)) => Collections.any(this, f);
+  bool any(bool f(Map element)) => IterableMixinWorkaround.any(this, f);
 
   List<Map> toList() => new List<Map>.from(this);
   Set<Map> toSet() => new Set<Map>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Map> take(int n) => new ListView<Map>(this, 0, n);
+  List<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Map> takeWhile(bool test(Map value)) {
-    return new TakeWhileIterable<Map>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Map> skip(int n) => new ListView<Map>(this, n, null);
+  List<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Map> skipWhile(bool test(Map value)) {
-    return new SkipWhileIterable<Map>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Map firstMatching(bool test(Map value), { Map orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Map lastMatching(bool test(Map value), {Map orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Map singleMatching(bool test(Map value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Map elementAt(int index) {
@@ -18307,9 +18311,9 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new StateError("More than one element");
   }
 
-  Map min([int compare(Map a, Map b)]) => Collections.min(this, compare);
+  Map min([int compare(Map a, Map b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Map max([int compare(Map a, Map b)]) => Collections.max(this, compare);
+  Map max([int compare(Map a, Map b)]) => IterableMixinWorkaround.max(this, compare);
 
   Map removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -19108,50 +19112,50 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(TextTrackCue element) => Collections.contains(this, element);
+  bool contains(TextTrackCue element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
+  void forEach(void f(TextTrackCue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrackCue element)) => new MappedList<TextTrackCue, dynamic>(this, f);
+  List mappedBy(f(TextTrackCue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) => new WhereIterable<TextTrackCue>(this, f);
+  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
+  bool every(bool f(TextTrackCue element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(TextTrackCue element)) => Collections.any(this, f);
+  bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
 
   List<TextTrackCue> toList() => new List<TextTrackCue>.from(this);
   Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrackCue> take(int n) => new ListView<TextTrackCue>(this, 0, n);
+  List<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrackCue> takeWhile(bool test(TextTrackCue value)) {
-    return new TakeWhileIterable<TextTrackCue>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrackCue> skip(int n) => new ListView<TextTrackCue>(this, n, null);
+  List<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrackCue> skipWhile(bool test(TextTrackCue value)) {
-    return new SkipWhileIterable<TextTrackCue>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   TextTrackCue firstMatching(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   TextTrackCue lastMatching(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   TextTrackCue singleMatching(bool test(TextTrackCue value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   TextTrackCue elementAt(int index) {
@@ -19209,9 +19213,9 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.min(this, compare);
+  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => IterableMixinWorkaround.min(this, compare);
 
-  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.max(this, compare);
+  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => IterableMixinWorkaround.max(this, compare);
 
   TextTrackCue removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -19282,50 +19286,50 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(TextTrack element) => Collections.contains(this, element);
+  bool contains(TextTrack element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
+  void forEach(void f(TextTrack element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrack element)) => new MappedList<TextTrack, dynamic>(this, f);
+  List mappedBy(f(TextTrack element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<TextTrack> where(bool f(TextTrack element)) => new WhereIterable<TextTrack>(this, f);
+  Iterable<TextTrack> where(bool f(TextTrack element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(TextTrack element)) => Collections.every(this, f);
+  bool every(bool f(TextTrack element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(TextTrack element)) => Collections.any(this, f);
+  bool any(bool f(TextTrack element)) => IterableMixinWorkaround.any(this, f);
 
   List<TextTrack> toList() => new List<TextTrack>.from(this);
   Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrack> take(int n) => new ListView<TextTrack>(this, 0, n);
+  List<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrack> takeWhile(bool test(TextTrack value)) {
-    return new TakeWhileIterable<TextTrack>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrack> skip(int n) => new ListView<TextTrack>(this, n, null);
+  List<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrack> skipWhile(bool test(TextTrack value)) {
-    return new SkipWhileIterable<TextTrack>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   TextTrack firstMatching(bool test(TextTrack value), { TextTrack orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   TextTrack lastMatching(bool test(TextTrack value), {TextTrack orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   TextTrack singleMatching(bool test(TextTrack value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   TextTrack elementAt(int index) {
@@ -19383,9 +19387,9 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new StateError("More than one element");
   }
 
-  TextTrack min([int compare(TextTrack a, TextTrack b)]) => Collections.min(this, compare);
+  TextTrack min([int compare(TextTrack a, TextTrack b)]) => IterableMixinWorkaround.min(this, compare);
 
-  TextTrack max([int compare(TextTrack a, TextTrack b)]) => Collections.max(this, compare);
+  TextTrack max([int compare(TextTrack a, TextTrack b)]) => IterableMixinWorkaround.max(this, compare);
 
   TextTrack removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -19591,50 +19595,50 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Touch element) => Collections.contains(this, element);
+  bool contains(Touch element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Touch element)) => Collections.forEach(this, f);
+  void forEach(void f(Touch element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Touch element)) => new MappedList<Touch, dynamic>(this, f);
+  List mappedBy(f(Touch element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Touch> where(bool f(Touch element)) => new WhereIterable<Touch>(this, f);
+  Iterable<Touch> where(bool f(Touch element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Touch element)) => Collections.every(this, f);
+  bool every(bool f(Touch element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Touch element)) => Collections.any(this, f);
+  bool any(bool f(Touch element)) => IterableMixinWorkaround.any(this, f);
 
   List<Touch> toList() => new List<Touch>.from(this);
   Set<Touch> toSet() => new Set<Touch>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Touch> take(int n) => new ListView<Touch>(this, 0, n);
+  List<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Touch> takeWhile(bool test(Touch value)) {
-    return new TakeWhileIterable<Touch>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Touch> skip(int n) => new ListView<Touch>(this, n, null);
+  List<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Touch> skipWhile(bool test(Touch value)) {
-    return new SkipWhileIterable<Touch>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Touch firstMatching(bool test(Touch value), { Touch orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Touch lastMatching(bool test(Touch value), {Touch orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Touch singleMatching(bool test(Touch value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Touch elementAt(int index) {
@@ -19692,9 +19696,9 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new StateError("More than one element");
   }
 
-  Touch min([int compare(Touch a, Touch b)]) => Collections.min(this, compare);
+  Touch min([int compare(Touch a, Touch b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Touch max([int compare(Touch a, Touch b)]) => Collections.max(this, compare);
+  Touch max([int compare(Touch a, Touch b)]) => IterableMixinWorkaround.max(this, compare);
 
   Touch removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -19959,50 +19963,50 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -20060,9 +20064,9 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -20135,50 +20139,50 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -20236,9 +20240,9 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -20311,50 +20315,50 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -20412,9 +20416,9 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -20485,50 +20489,50 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -20586,9 +20590,9 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -23919,50 +23923,50 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(ClientRect element) => Collections.contains(this, element);
+  bool contains(ClientRect element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
+  void forEach(void f(ClientRect element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(ClientRect element)) => new MappedList<ClientRect, dynamic>(this, f);
+  List mappedBy(f(ClientRect element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<ClientRect> where(bool f(ClientRect element)) => new WhereIterable<ClientRect>(this, f);
+  Iterable<ClientRect> where(bool f(ClientRect element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(ClientRect element)) => Collections.every(this, f);
+  bool every(bool f(ClientRect element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(ClientRect element)) => Collections.any(this, f);
+  bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
 
   List<ClientRect> toList() => new List<ClientRect>.from(this);
   Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<ClientRect> take(int n) => new ListView<ClientRect>(this, 0, n);
+  List<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
-    return new TakeWhileIterable<ClientRect>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<ClientRect> skip(int n) => new ListView<ClientRect>(this, n, null);
+  List<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
-    return new SkipWhileIterable<ClientRect>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   ClientRect firstMatching(bool test(ClientRect value), { ClientRect orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   ClientRect lastMatching(bool test(ClientRect value), {ClientRect orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   ClientRect singleMatching(bool test(ClientRect value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   ClientRect elementAt(int index) {
@@ -24020,9 +24024,9 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     throw new StateError("More than one element");
   }
 
-  ClientRect min([int compare(ClientRect a, ClientRect b)]) => Collections.min(this, compare);
+  ClientRect min([int compare(ClientRect a, ClientRect b)]) => IterableMixinWorkaround.min(this, compare);
 
-  ClientRect max([int compare(ClientRect a, ClientRect b)]) => Collections.max(this, compare);
+  ClientRect max([int compare(ClientRect a, ClientRect b)]) => IterableMixinWorkaround.max(this, compare);
 
   ClientRect removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -24083,50 +24087,50 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(CssRule element) => Collections.contains(this, element);
+  bool contains(CssRule element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(CssRule element)) => Collections.forEach(this, f);
+  void forEach(void f(CssRule element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssRule element)) => new MappedList<CssRule, dynamic>(this, f);
+  List mappedBy(f(CssRule element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<CssRule> where(bool f(CssRule element)) => new WhereIterable<CssRule>(this, f);
+  Iterable<CssRule> where(bool f(CssRule element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(CssRule element)) => Collections.every(this, f);
+  bool every(bool f(CssRule element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(CssRule element)) => Collections.any(this, f);
+  bool any(bool f(CssRule element)) => IterableMixinWorkaround.any(this, f);
 
   List<CssRule> toList() => new List<CssRule>.from(this);
   Set<CssRule> toSet() => new Set<CssRule>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<CssRule> take(int n) => new ListView<CssRule>(this, 0, n);
+  List<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssRule> takeWhile(bool test(CssRule value)) {
-    return new TakeWhileIterable<CssRule>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssRule> skip(int n) => new ListView<CssRule>(this, n, null);
+  List<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssRule> skipWhile(bool test(CssRule value)) {
-    return new SkipWhileIterable<CssRule>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   CssRule firstMatching(bool test(CssRule value), { CssRule orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   CssRule lastMatching(bool test(CssRule value), {CssRule orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   CssRule singleMatching(bool test(CssRule value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   CssRule elementAt(int index) {
@@ -24184,9 +24188,9 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new StateError("More than one element");
   }
 
-  CssRule min([int compare(CssRule a, CssRule b)]) => Collections.min(this, compare);
+  CssRule min([int compare(CssRule a, CssRule b)]) => IterableMixinWorkaround.min(this, compare);
 
-  CssRule max([int compare(CssRule a, CssRule b)]) => Collections.max(this, compare);
+  CssRule max([int compare(CssRule a, CssRule b)]) => IterableMixinWorkaround.max(this, compare);
 
   CssRule removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -24247,50 +24251,50 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(CssValue element) => Collections.contains(this, element);
+  bool contains(CssValue element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(CssValue element)) => Collections.forEach(this, f);
+  void forEach(void f(CssValue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssValue element)) => new MappedList<CssValue, dynamic>(this, f);
+  List mappedBy(f(CssValue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<CssValue> where(bool f(CssValue element)) => new WhereIterable<CssValue>(this, f);
+  Iterable<CssValue> where(bool f(CssValue element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(CssValue element)) => Collections.every(this, f);
+  bool every(bool f(CssValue element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(CssValue element)) => Collections.any(this, f);
+  bool any(bool f(CssValue element)) => IterableMixinWorkaround.any(this, f);
 
   List<CssValue> toList() => new List<CssValue>.from(this);
   Set<CssValue> toSet() => new Set<CssValue>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<CssValue> take(int n) => new ListView<CssValue>(this, 0, n);
+  List<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssValue> takeWhile(bool test(CssValue value)) {
-    return new TakeWhileIterable<CssValue>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssValue> skip(int n) => new ListView<CssValue>(this, n, null);
+  List<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssValue> skipWhile(bool test(CssValue value)) {
-    return new SkipWhileIterable<CssValue>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   CssValue firstMatching(bool test(CssValue value), { CssValue orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   CssValue lastMatching(bool test(CssValue value), {CssValue orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   CssValue singleMatching(bool test(CssValue value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   CssValue elementAt(int index) {
@@ -24348,9 +24352,9 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
     throw new StateError("More than one element");
   }
 
-  CssValue min([int compare(CssValue a, CssValue b)]) => Collections.min(this, compare);
+  CssValue min([int compare(CssValue a, CssValue b)]) => IterableMixinWorkaround.min(this, compare);
 
-  CssValue max([int compare(CssValue a, CssValue b)]) => Collections.max(this, compare);
+  CssValue max([int compare(CssValue a, CssValue b)]) => IterableMixinWorkaround.max(this, compare);
 
   CssValue removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -24421,50 +24425,50 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Entry element) => Collections.contains(this, element);
+  bool contains(Entry element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Entry element)) => Collections.forEach(this, f);
+  void forEach(void f(Entry element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Entry element)) => new MappedList<Entry, dynamic>(this, f);
+  List mappedBy(f(Entry element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Entry> where(bool f(Entry element)) => new WhereIterable<Entry>(this, f);
+  Iterable<Entry> where(bool f(Entry element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Entry element)) => Collections.every(this, f);
+  bool every(bool f(Entry element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Entry element)) => Collections.any(this, f);
+  bool any(bool f(Entry element)) => IterableMixinWorkaround.any(this, f);
 
   List<Entry> toList() => new List<Entry>.from(this);
   Set<Entry> toSet() => new Set<Entry>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Entry> take(int n) => new ListView<Entry>(this, 0, n);
+  List<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Entry> takeWhile(bool test(Entry value)) {
-    return new TakeWhileIterable<Entry>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Entry> skip(int n) => new ListView<Entry>(this, n, null);
+  List<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Entry> skipWhile(bool test(Entry value)) {
-    return new SkipWhileIterable<Entry>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Entry firstMatching(bool test(Entry value), { Entry orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Entry lastMatching(bool test(Entry value), {Entry orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Entry singleMatching(bool test(Entry value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Entry elementAt(int index) {
@@ -24522,9 +24526,9 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new StateError("More than one element");
   }
 
-  Entry min([int compare(Entry a, Entry b)]) => Collections.min(this, compare);
+  Entry min([int compare(Entry a, Entry b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Entry max([int compare(Entry a, Entry b)]) => Collections.max(this, compare);
+  Entry max([int compare(Entry a, Entry b)]) => IterableMixinWorkaround.max(this, compare);
 
   Entry removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -24585,50 +24589,50 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(EntrySync element) => Collections.contains(this, element);
+  bool contains(EntrySync element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
+  void forEach(void f(EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(EntrySync element)) => new MappedList<EntrySync, dynamic>(this, f);
+  List mappedBy(f(EntrySync element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<EntrySync> where(bool f(EntrySync element)) => new WhereIterable<EntrySync>(this, f);
+  Iterable<EntrySync> where(bool f(EntrySync element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(EntrySync element)) => Collections.every(this, f);
+  bool every(bool f(EntrySync element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(EntrySync element)) => Collections.any(this, f);
+  bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
 
   List<EntrySync> toList() => new List<EntrySync>.from(this);
   Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<EntrySync> take(int n) => new ListView<EntrySync>(this, 0, n);
+  List<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
-    return new TakeWhileIterable<EntrySync>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<EntrySync> skip(int n) => new ListView<EntrySync>(this, n, null);
+  List<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
-    return new SkipWhileIterable<EntrySync>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   EntrySync firstMatching(bool test(EntrySync value), { EntrySync orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   EntrySync lastMatching(bool test(EntrySync value), {EntrySync orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   EntrySync singleMatching(bool test(EntrySync value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   EntrySync elementAt(int index) {
@@ -24686,9 +24690,9 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new StateError("More than one element");
   }
 
-  EntrySync min([int compare(EntrySync a, EntrySync b)]) => Collections.min(this, compare);
+  EntrySync min([int compare(EntrySync a, EntrySync b)]) => IterableMixinWorkaround.min(this, compare);
 
-  EntrySync max([int compare(EntrySync a, EntrySync b)]) => Collections.max(this, compare);
+  EntrySync max([int compare(EntrySync a, EntrySync b)]) => IterableMixinWorkaround.max(this, compare);
 
   EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -24881,50 +24885,50 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Gamepad element) => Collections.contains(this, element);
+  bool contains(Gamepad element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
+  void forEach(void f(Gamepad element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Gamepad element)) => new MappedList<Gamepad, dynamic>(this, f);
+  List mappedBy(f(Gamepad element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Gamepad> where(bool f(Gamepad element)) => new WhereIterable<Gamepad>(this, f);
+  Iterable<Gamepad> where(bool f(Gamepad element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Gamepad element)) => Collections.every(this, f);
+  bool every(bool f(Gamepad element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Gamepad element)) => Collections.any(this, f);
+  bool any(bool f(Gamepad element)) => IterableMixinWorkaround.any(this, f);
 
   List<Gamepad> toList() => new List<Gamepad>.from(this);
   Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Gamepad> take(int n) => new ListView<Gamepad>(this, 0, n);
+  List<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Gamepad> takeWhile(bool test(Gamepad value)) {
-    return new TakeWhileIterable<Gamepad>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Gamepad> skip(int n) => new ListView<Gamepad>(this, n, null);
+  List<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Gamepad> skipWhile(bool test(Gamepad value)) {
-    return new SkipWhileIterable<Gamepad>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Gamepad firstMatching(bool test(Gamepad value), { Gamepad orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Gamepad lastMatching(bool test(Gamepad value), {Gamepad orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Gamepad singleMatching(bool test(Gamepad value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Gamepad elementAt(int index) {
@@ -24982,9 +24986,9 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new StateError("More than one element");
   }
 
-  Gamepad min([int compare(Gamepad a, Gamepad b)]) => Collections.min(this, compare);
+  Gamepad min([int compare(Gamepad a, Gamepad b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Gamepad max([int compare(Gamepad a, Gamepad b)]) => Collections.max(this, compare);
+  Gamepad max([int compare(Gamepad a, Gamepad b)]) => IterableMixinWorkaround.max(this, compare);
 
   Gamepad removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -25055,50 +25059,50 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(MediaStream element) => Collections.contains(this, element);
+  bool contains(MediaStream element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
+  void forEach(void f(MediaStream element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(MediaStream element)) => new MappedList<MediaStream, dynamic>(this, f);
+  List mappedBy(f(MediaStream element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<MediaStream> where(bool f(MediaStream element)) => new WhereIterable<MediaStream>(this, f);
+  Iterable<MediaStream> where(bool f(MediaStream element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(MediaStream element)) => Collections.every(this, f);
+  bool every(bool f(MediaStream element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(MediaStream element)) => Collections.any(this, f);
+  bool any(bool f(MediaStream element)) => IterableMixinWorkaround.any(this, f);
 
   List<MediaStream> toList() => new List<MediaStream>.from(this);
   Set<MediaStream> toSet() => new Set<MediaStream>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<MediaStream> take(int n) => new ListView<MediaStream>(this, 0, n);
+  List<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
-    return new TakeWhileIterable<MediaStream>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<MediaStream> skip(int n) => new ListView<MediaStream>(this, n, null);
+  List<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
-    return new SkipWhileIterable<MediaStream>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   MediaStream firstMatching(bool test(MediaStream value), { MediaStream orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   MediaStream lastMatching(bool test(MediaStream value), {MediaStream orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   MediaStream singleMatching(bool test(MediaStream value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   MediaStream elementAt(int index) {
@@ -25156,9 +25160,9 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     throw new StateError("More than one element");
   }
 
-  MediaStream min([int compare(MediaStream a, MediaStream b)]) => Collections.min(this, compare);
+  MediaStream min([int compare(MediaStream a, MediaStream b)]) => IterableMixinWorkaround.min(this, compare);
 
-  MediaStream max([int compare(MediaStream a, MediaStream b)]) => Collections.max(this, compare);
+  MediaStream max([int compare(MediaStream a, MediaStream b)]) => IterableMixinWorkaround.max(this, compare);
 
   MediaStream removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -25219,50 +25223,50 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SpeechInputResult element) => Collections.contains(this, element);
+  bool contains(SpeechInputResult element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
+  void forEach(void f(SpeechInputResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechInputResult element)) => new MappedList<SpeechInputResult, dynamic>(this, f);
+  List mappedBy(f(SpeechInputResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) => new WhereIterable<SpeechInputResult>(this, f);
+  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
+  bool every(bool f(SpeechInputResult element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SpeechInputResult element)) => Collections.any(this, f);
+  bool any(bool f(SpeechInputResult element)) => IterableMixinWorkaround.any(this, f);
 
   List<SpeechInputResult> toList() => new List<SpeechInputResult>.from(this);
   Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechInputResult> take(int n) => new ListView<SpeechInputResult>(this, 0, n);
+  List<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechInputResult> takeWhile(bool test(SpeechInputResult value)) {
-    return new TakeWhileIterable<SpeechInputResult>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechInputResult> skip(int n) => new ListView<SpeechInputResult>(this, n, null);
+  List<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechInputResult> skipWhile(bool test(SpeechInputResult value)) {
-    return new SkipWhileIterable<SpeechInputResult>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SpeechInputResult firstMatching(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SpeechInputResult lastMatching(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SpeechInputResult singleMatching(bool test(SpeechInputResult value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SpeechInputResult elementAt(int index) {
@@ -25320,9 +25324,9 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new StateError("More than one element");
   }
 
-  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.min(this, compare);
+  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.max(this, compare);
+  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => IterableMixinWorkaround.max(this, compare);
 
   SpeechInputResult removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -25383,50 +25387,50 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
+  bool contains(SpeechRecognitionResult element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
+  void forEach(void f(SpeechRecognitionResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechRecognitionResult element)) => new MappedList<SpeechRecognitionResult, dynamic>(this, f);
+  List mappedBy(f(SpeechRecognitionResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) => new WhereIterable<SpeechRecognitionResult>(this, f);
+  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
+  bool every(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SpeechRecognitionResult element)) => Collections.any(this, f);
+  bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
 
   List<SpeechRecognitionResult> toList() => new List<SpeechRecognitionResult>.from(this);
   Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechRecognitionResult> take(int n) => new ListView<SpeechRecognitionResult>(this, 0, n);
+  List<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechRecognitionResult> takeWhile(bool test(SpeechRecognitionResult value)) {
-    return new TakeWhileIterable<SpeechRecognitionResult>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechRecognitionResult> skip(int n) => new ListView<SpeechRecognitionResult>(this, n, null);
+  List<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechRecognitionResult> skipWhile(bool test(SpeechRecognitionResult value)) {
-    return new SkipWhileIterable<SpeechRecognitionResult>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SpeechRecognitionResult firstMatching(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SpeechRecognitionResult lastMatching(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SpeechRecognitionResult singleMatching(bool test(SpeechRecognitionResult value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SpeechRecognitionResult elementAt(int index) {
@@ -25484,9 +25488,9 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new StateError("More than one element");
   }
 
-  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.min(this, compare);
+  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.max(this, compare);
+  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => IterableMixinWorkaround.max(this, compare);
 
   SpeechRecognitionResult removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
@@ -25547,50 +25551,50 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(StyleSheet element) => Collections.contains(this, element);
+  bool contains(StyleSheet element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
+  void forEach(void f(StyleSheet element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(StyleSheet element)) => new MappedList<StyleSheet, dynamic>(this, f);
+  List mappedBy(f(StyleSheet element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<StyleSheet> where(bool f(StyleSheet element)) => new WhereIterable<StyleSheet>(this, f);
+  Iterable<StyleSheet> where(bool f(StyleSheet element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
+  bool every(bool f(StyleSheet element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(StyleSheet element)) => Collections.any(this, f);
+  bool any(bool f(StyleSheet element)) => IterableMixinWorkaround.any(this, f);
 
   List<StyleSheet> toList() => new List<StyleSheet>.from(this);
   Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<StyleSheet> take(int n) => new ListView<StyleSheet>(this, 0, n);
+  List<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<StyleSheet> takeWhile(bool test(StyleSheet value)) {
-    return new TakeWhileIterable<StyleSheet>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<StyleSheet> skip(int n) => new ListView<StyleSheet>(this, n, null);
+  List<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<StyleSheet> skipWhile(bool test(StyleSheet value)) {
-    return new SkipWhileIterable<StyleSheet>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   StyleSheet firstMatching(bool test(StyleSheet value), { StyleSheet orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   StyleSheet lastMatching(bool test(StyleSheet value), {StyleSheet orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   StyleSheet singleMatching(bool test(StyleSheet value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   StyleSheet elementAt(int index) {
@@ -25648,9 +25652,9 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new StateError("More than one element");
   }
 
-  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => Collections.min(this, compare);
+  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => IterableMixinWorkaround.min(this, compare);
 
-  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => Collections.max(this, compare);
+  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => IterableMixinWorkaround.max(this, compare);
 
   StyleSheet removeAt(int pos) {
     throw new UnsupportedError("Cannot removeAt on immutable List.");
