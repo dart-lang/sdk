@@ -74,9 +74,9 @@ interface_factories = {
     'Int16Array': '_TypedArrayFactoryProvider',
     'Int32Array': '_TypedArrayFactoryProvider',
     'Uint8Array': '_TypedArrayFactoryProvider',
+    'Uint8ClampedArray': '_TypedArrayFactoryProvider',
     'Uint16Array': '_TypedArrayFactoryProvider',
     'Uint32Array': '_TypedArrayFactoryProvider',
-    'Uint8ClampedArray': '_TypedArrayFactoryProvider',
 }
 
 #
@@ -873,9 +873,9 @@ class IDLTypeInfo(object):
         'Int16Array',
         'Int32Array',
         'Uint8Array',
+        'Uint8ClampedArray',
         'Uint16Array',
         'Uint32Array',
-        'Uint8ClampedArray',
     ]
 
     if self._idl_type in WTF_INCLUDES:
@@ -1242,6 +1242,7 @@ _idl_type_registry = {
     'Int16Array': TypedArrayTypeData('int'),
     'Int32Array': TypedArrayTypeData('int'),
     'Uint8Array': TypedArrayTypeData('int'),
+    'Uint8ClampedArray': TypedArrayTypeData('int'),
     'Uint16Array': TypedArrayTypeData('int'),
     'Uint32Array': TypedArrayTypeData('int'),
 

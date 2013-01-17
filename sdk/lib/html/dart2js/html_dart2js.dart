@@ -20456,7 +20456,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
 @DocsEditable
 @DomName('Uint8ClampedArray')
-class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
+class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior, List<int> native "*Uint8ClampedArray" {
 
   factory Uint8ClampedArray(int length) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray(length);
@@ -20469,6 +20469,151 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
 
   // Use implementation from Uint8Array.
   // final int length;
+
+  int operator[](int index) => JS("int", "#[#]", this, index);
+
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => Collections.contains(this, element);
+
+  void forEach(void f(int element)) => Collections.forEach(this, f);
+
+  String join([String separator]) => Collections.joinList(this, separator);
+
+  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+
+  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+
+  bool every(bool f(int element)) => Collections.every(this, f);
+
+  bool any(bool f(int element)) => Collections.any(this, f);
+
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => new ListView<int>(this, 0, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return new TakeWhileIterable<int>(this, test);
+  }
+
+  List<int> skip(int n) => new ListView<int>(this, n, null);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return new SkipWhileIterable<int>(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return Collections.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return Collections.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return Collections.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+
+  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot removeAt on immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot removeLast on immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <int>[]);
+
+  // -- end List<int> mixins.
 
   @JSName('set')
   @DocsEditable @DomName('Uint8ClampedArray.set')
