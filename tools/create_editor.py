@@ -36,7 +36,7 @@ ARCH_CONFIG = {
 }
 
 def AntPath():
-  parent = join('third_party', 'apache_ant', 'v1_7_1', 'bin')
+  parent = join('third_party', 'apache_ant', '1.8.4', 'bin')
   if utils.IsWindows():
     return join(parent, 'ant.bat')
   else:
@@ -122,7 +122,7 @@ def Main():
   if options.mode:
     mode = options.mode
   if options.arch:
-    mode = options.arch
+    arch = options.arch
 
   # If an output dir was not given, create one from os, mode, and arch.
   if not OUTPUT:
