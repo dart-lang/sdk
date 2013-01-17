@@ -169,7 +169,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final Set<HInstruction> controlFlowOperators;
   final Map<Element, ElementAction> breakAction;
   final Map<Element, ElementAction> continueAction;
-  final Map<Element, String> parameterNames;
   final List<js.Parameter> parameters;
 
   js.Block currentContainer;
@@ -214,7 +213,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     : this.work = work,
       this.types =
           (work.compilationContext as JavaScriptItemCompilationContext).types,
-      parameterNames = new LinkedHashMap<Element, String>(),
       declaredLocals = new Set<String>(),
       collectedVariableDeclarations = new OrderedSet<String>(),
       currentContainer = new js.Block.empty(),
@@ -359,8 +357,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         compiler,
         intervalBuilder.liveInstructions,
         intervalBuilder.liveIntervals,
-        generateAtUseSite,
-        parameterNames);
+        generateAtUseSite);
     allocator.visitGraph(graph);
     variableNames = allocator.names;
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
@@ -668,6 +665,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         needsAssignment = false;
       }
     }
+    if (instruction is HLocalValue) {
+      needsAssignment = false;
+    }
 
     if (needsAssignment &&
         !instruction.isControlFlow() && variableNames.hasName(instruction)) {
@@ -802,7 +802,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (info.catchBlock != null) {
       HParameterValue exception = info.catchVariable;
       String name = variableNames.getName(exception);
-      parameterNames[exception.sourceElement] = name;
       js.VariableDeclaration decl = new js.VariableDeclaration(name);
       js.Block catchBlock = generateStatementsInNewBlock(info.catchBlock);
       catchPart = new js.Catch(decl, catchBlock);
@@ -1894,11 +1893,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  visitParameterValue(HParameterValue node) => visitLocalValue(node);
+  visitParameterValue(HParameterValue node) {
+    assert(!isGenerateAtUseSite(node));
+    String name = variableNames.getName(node);
+    parameters.add(new js.Parameter(name));
+    declaredLocals.add(name);
+  }
 
   visitLocalValue(HLocalValue node) {
-    assert(isGenerateAtUseSite(node));
-    push(new js.VariableUse(variableNames.getName(node)), node);
+    assert(!isGenerateAtUseSite(node));
+    String name = variableNames.getName(node);
+    collectedVariableDeclarations.add(name);
   }
 
   visitPhi(HPhi node) {
@@ -2497,12 +2502,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   int maxBailoutParameters;
 
   HBasicBlock beginGraph(HGraph graph) {
-    // Declare the parameter names only for the optimized version. The
-    // unoptimized version has different parameters.
-    parameterNames.forEach((Element element, String name) {
-      parameters.add(new js.Parameter(name));
-      declaredLocals.add(name);
-    });
     return graph.entry;
   }
 
@@ -2777,6 +2776,11 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       // Put back the original first instruction of the block.
       propagator.firstBailoutTarget.block.first = savedFirstInstruction;
     }
+  }
+
+  visitParameterValue(HParameterValue node) {
+    // Nothing to do, parameters are dealt with specially in a bailout
+    // method.
   }
 
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;

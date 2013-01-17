@@ -34,7 +34,8 @@ class SsaInstructionMerger extends HBaseVisitor {
     if (!generateAtUseSite.contains(input)
         && !input.isCodeMotionInvariant()
         && input.usedBy.length == 1
-        && input is !HPhi) {
+        && input is !HPhi
+        && input is !HLocalValue) {
       expectedInputs.add(input);
     }
   }

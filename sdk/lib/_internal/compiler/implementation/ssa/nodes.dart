@@ -2034,7 +2034,6 @@ class HLocalValue extends HInstruction {
   }
   toString() => 'local ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitLocalValue(this);
-  bool isCodeMotionInvariant() => true;
 }
 
 class HParameterValue extends HLocalValue {
@@ -2050,6 +2049,7 @@ class HThis extends HParameterValue {
   }
   toString() => 'this';
   accept(HVisitor visitor) => visitor.visitThis(this);
+  bool isCodeMotionInvariant() => true;
 }
 
 class HPhi extends HInstruction {

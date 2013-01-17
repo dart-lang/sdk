@@ -4535,7 +4535,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Note that the name of this element is irrelevant.
       Element element = new ElementX(
           const SourceString('exception'), ElementKind.PARAMETER, work.element);
-      exception = new HParameterValue(element);
+      exception = new HLocalValue(element);
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
