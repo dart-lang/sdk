@@ -2117,7 +2117,7 @@ class Crypto extends NativeFieldWrapperClass1 {
 
   @DocsEditable
   @DomName('Crypto.getRandomValues')
-  void getRandomValues(ArrayBufferView array) native "Crypto_getRandomValues_Callback";
+  ArrayBufferView getRandomValues(ArrayBufferView array) native "Crypto_getRandomValues_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10441,8 +10441,13 @@ class EventSource extends EventTarget {
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
-  factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
-  static EventSource _create(String scriptUrl) native "EventSource_constructor_Callback";
+  factory EventSource(String url, [Map eventSourceInit]) {
+    if (!?eventSourceInit) {
+      return EventSource._create(url);
+    }
+    return EventSource._create(url, eventSourceInit);
+  }
+  static EventSource _create(String url, [Map eventSourceInit]) native "EventSource_constructor_Callback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -10462,6 +10467,10 @@ class EventSource extends EventTarget {
   @DocsEditable
   @DomName('EventSource.url')
   String get url native "EventSource_url_Getter";
+
+  @DocsEditable
+  @DomName('EventSource.withCredentials')
+  bool get withCredentials native "EventSource_withCredentials_Getter";
 
   @DocsEditable
   @DomName('EventSource.addEventListener')
@@ -16291,37 +16300,49 @@ class MediaStream extends EventTarget {
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
-  static const int ENDED = 2;
-
-  static const int LIVE = 1;
+  @DocsEditable
+  @DomName('MediaStream.ended')
+  bool get ended native "MediaStream_ended_Getter";
 
   @DocsEditable
-  @DomName('MediaStream.audioTracks')
-  MediaStreamTrackList get audioTracks native "MediaStream_audioTracks_Getter";
+  @DomName('MediaStream.id')
+  String get id native "MediaStream_id_Getter";
 
   @DocsEditable
   @DomName('MediaStream.label')
   String get label native "MediaStream_label_Getter";
 
   @DocsEditable
-  @DomName('MediaStream.readyState')
-  int get readyState native "MediaStream_readyState_Getter";
-
-  @DocsEditable
-  @DomName('MediaStream.videoTracks')
-  MediaStreamTrackList get videoTracks native "MediaStream_videoTracks_Getter";
-
-  @DocsEditable
   @DomName('MediaStream.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
+
+  @DocsEditable
+  @DomName('MediaStream.addTrack')
+  void addTrack(MediaStreamTrack track) native "MediaStream_addTrack_Callback";
 
   @DocsEditable
   @DomName('MediaStream.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
 
   @DocsEditable
+  @DomName('MediaStream.getAudioTracks')
+  List<MediaStreamTrack> getAudioTracks() native "MediaStream_getAudioTracks_Callback";
+
+  @DocsEditable
+  @DomName('MediaStream.getTrackById')
+  MediaStreamTrack getTrackById(String trackId) native "MediaStream_getTrackById_Callback";
+
+  @DocsEditable
+  @DomName('MediaStream.getVideoTracks')
+  List<MediaStreamTrack> getVideoTracks() native "MediaStream_getVideoTracks_Callback";
+
+  @DocsEditable
   @DomName('MediaStream.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
+
+  @DocsEditable
+  @DomName('MediaStream.removeTrack')
+  void removeTrack(MediaStreamTrack track) native "MediaStream_removeTrack_Callback";
 
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
@@ -16333,7 +16354,13 @@ class MediaStreamEvents extends Events {
   MediaStreamEvents(EventTarget _ptr) : super(_ptr);
 
   @DocsEditable
+  EventListenerList get addTrack => this['addtrack'];
+
+  @DocsEditable
   EventListenerList get ended => this['ended'];
+
+  @DocsEditable
+  EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16388,6 +16415,10 @@ class MediaStreamTrack extends EventTarget {
   @DocsEditable
   @DomName('MediaStreamTrack.enabled')
   void set enabled(bool value) native "MediaStreamTrack_enabled_Setter";
+
+  @DocsEditable
+  @DomName('MediaStreamTrack.id')
+  String get id native "MediaStreamTrack_id_Getter";
 
   @DocsEditable
   @DomName('MediaStreamTrack.kind')
@@ -16451,72 +16482,6 @@ class MediaStreamTrackEvent extends Event {
   @DomName('MediaStreamTrackEvent.track')
   MediaStreamTrack get track native "MediaStreamTrackEvent_track_Getter";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('MediaStreamTrackList')
-class MediaStreamTrackList extends EventTarget {
-  MediaStreamTrackList.internal() : super.internal();
-
-  static const EventStreamProvider<MediaStreamTrackEvent> addTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('addtrack');
-
-  static const EventStreamProvider<MediaStreamTrackEvent> removeTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('removetrack');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  MediaStreamTrackListEvents get on =>
-    new MediaStreamTrackListEvents(this);
-
-  @DocsEditable
-  @DomName('MediaStreamTrackList.length')
-  int get length native "MediaStreamTrackList_length_Getter";
-
-  @DocsEditable
-  @DomName('MediaStreamTrackList.add')
-  void add(MediaStreamTrack track) native "MediaStreamTrackList_add_Callback";
-
-  @DocsEditable
-  @DomName('MediaStreamTrackList.addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_addEventListener_Callback";
-
-  @DocsEditable
-  @DomName('MediaStreamTrackList.dispatchEvent')
-  bool $dom_dispatchEvent(Event event) native "MediaStreamTrackList_dispatchEvent_Callback";
-
-  @DocsEditable
-  @DomName('MediaStreamTrackList.item')
-  MediaStreamTrack item(int index) native "MediaStreamTrackList_item_Callback";
-
-  @DocsEditable
-  @DomName('MediaStreamTrackList.remove')
-  void remove(MediaStreamTrack track) native "MediaStreamTrackList_remove_Callback";
-
-  @DocsEditable
-  @DomName('MediaStreamTrackList.removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_removeEventListener_Callback";
-
-  Stream<MediaStreamTrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
-
-  Stream<MediaStreamTrackEvent> get onRemoveTrack => removeTrackEvent.forTarget(this);
-
-}
-
-@DocsEditable
-class MediaStreamTrackListEvents extends Events {
-  @DocsEditable
-  MediaStreamTrackListEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get addTrack => this['addtrack'];
-
-  @DocsEditable
-  EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20135,6 +20100,10 @@ class ScriptProfile extends NativeFieldWrapperClass1 {
   ScriptProfileNode get head native "ScriptProfile_head_Getter";
 
   @DocsEditable
+  @DomName('ScriptProfile.idleTime')
+  num get idleTime native "ScriptProfile_idleTime_Getter";
+
+  @DocsEditable
   @DomName('ScriptProfile.title')
   String get title native "ScriptProfile_title_Getter";
 
@@ -20410,6 +20379,10 @@ class ShadowRoot extends DocumentFragment {
   @DocsEditable
   @DomName('ShadowRoot.cloneNode')
   Node clone(bool deep) native "ShadowRoot_cloneNode_Callback";
+
+  @DocsEditable
+  @DomName('ShadowRoot.elementFromPoint')
+  Element elementFromPoint(int x, int y) native "ShadowRoot_elementFromPoint_Callback";
 
   @DocsEditable
   @DomName('ShadowRoot.getElementById')

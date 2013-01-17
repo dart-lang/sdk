@@ -458,7 +458,7 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
   final AudioParam gain;
 
   @DocsEditable @DomName('BiquadFilterNode.type')
-  int type;
+  String type;
 
   @DocsEditable @DomName('BiquadFilterNode.getFrequencyResponse')
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
@@ -657,7 +657,7 @@ class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
   final int playbackState;
 
   @DocsEditable @DomName('OscillatorNode.type')
-  int type;
+  String type;
 
   @DocsEditable @DomName('OscillatorNode.setWaveTable')
   void setWaveTable(WaveTable waveTable) native;
@@ -700,13 +700,13 @@ class PannerNode extends AudioNode native "*PannerNode" {
   num coneOuterGain;
 
   @DocsEditable @DomName('PannerNode.distanceModel')
-  int distanceModel;
+  String distanceModel;
 
   @DocsEditable @DomName('PannerNode.maxDistance')
   num maxDistance;
 
   @DocsEditable @DomName('PannerNode.panningModel')
-  int panningModel;
+  String panningModel;
 
   @DocsEditable @DomName('PannerNode.refDistance')
   num refDistance;

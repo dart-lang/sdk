@@ -1503,7 +1503,7 @@ class Counter native "*Counter" {
 class Crypto native "*Crypto" {
 
   @DocsEditable @DomName('Crypto.getRandomValues')
-  void getRandomValues(ArrayBufferView array) native;
+  ArrayBufferView getRandomValues(ArrayBufferView array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9236,8 +9236,18 @@ class EventSource extends EventTarget native "*EventSource" {
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
-  factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
-  static EventSource _create(String scriptUrl) => JS('EventSource', 'new EventSource(#)', scriptUrl);
+  factory EventSource(String url, [Map eventSourceInit]) {
+    if (!?eventSourceInit) {
+      return EventSource._create(url);
+    }
+    return EventSource._create(url, eventSourceInit);
+  }
+  static EventSource _create(String url, [Map eventSourceInit]) {
+    if (!?eventSourceInit) {
+      return JS('EventSource', 'new EventSource(#)', url);
+    }
+    return JS('EventSource', 'new EventSource(#,#)', url, eventSourceInit);
+  }
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -9255,6 +9265,9 @@ class EventSource extends EventTarget native "*EventSource" {
 
   @DocsEditable @DomName('EventSource.url')
   final String url;
+
+  @DocsEditable @DomName('EventSource.withCredentials')
+  final bool withCredentials;
 
   @JSName('addEventListener')
   @DocsEditable @DomName('EventSource.addEventListener')
@@ -13929,33 +13942,41 @@ class MediaStream extends EventTarget native "*MediaStream" {
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
-  static const int ENDED = 2;
+  @DocsEditable @DomName('MediaStream.ended')
+  final bool ended;
 
-  static const int LIVE = 1;
-
-  @DocsEditable @DomName('MediaStream.audioTracks')
-  final MediaStreamTrackList audioTracks;
+  @DocsEditable @DomName('MediaStream.id')
+  final String id;
 
   @DocsEditable @DomName('MediaStream.label')
   final String label;
-
-  @DocsEditable @DomName('MediaStream.readyState')
-  final int readyState;
-
-  @DocsEditable @DomName('MediaStream.videoTracks')
-  final MediaStreamTrackList videoTracks;
 
   @JSName('addEventListener')
   @DocsEditable @DomName('MediaStream.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
+  @DocsEditable @DomName('MediaStream.addTrack')
+  void addTrack(MediaStreamTrack track) native;
+
   @JSName('dispatchEvent')
   @DocsEditable @DomName('MediaStream.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
+  @DocsEditable @DomName('MediaStream.getAudioTracks')
+  List<MediaStreamTrack> getAudioTracks() native;
+
+  @DocsEditable @DomName('MediaStream.getTrackById')
+  MediaStreamTrack getTrackById(String trackId) native;
+
+  @DocsEditable @DomName('MediaStream.getVideoTracks')
+  List<MediaStreamTrack> getVideoTracks() native;
+
   @JSName('removeEventListener')
   @DocsEditable @DomName('MediaStream.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DocsEditable @DomName('MediaStream.removeTrack')
+  void removeTrack(MediaStreamTrack track) native;
 
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 }
@@ -13966,7 +13987,13 @@ class MediaStreamEvents extends Events {
   MediaStreamEvents(EventTarget _ptr) : super(_ptr);
 
   @DocsEditable
+  EventListenerList get addTrack => this['addtrack'];
+
+  @DocsEditable
   EventListenerList get ended => this['ended'];
+
+  @DocsEditable
+  EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14010,6 +14037,9 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   @DocsEditable @DomName('MediaStreamTrack.enabled')
   bool enabled;
+
+  @DocsEditable @DomName('MediaStreamTrack.id')
+  final String id;
 
   @DocsEditable @DomName('MediaStreamTrack.kind')
   final String kind;
@@ -14065,65 +14095,6 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 
   @DocsEditable @DomName('MediaStreamTrackEvent.track')
   final MediaStreamTrack track;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-
-@DocsEditable
-@DomName('MediaStreamTrackList')
-class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
-
-  static const EventStreamProvider<MediaStreamTrackEvent> addTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('addtrack');
-
-  static const EventStreamProvider<MediaStreamTrackEvent> removeTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('removetrack');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  MediaStreamTrackListEvents get on =>
-    new MediaStreamTrackListEvents(this);
-
-  @DocsEditable @DomName('MediaStreamTrackList.length')
-  final int length;
-
-  @DocsEditable @DomName('MediaStreamTrackList.add')
-  void add(MediaStreamTrack track) native;
-
-  @JSName('addEventListener')
-  @DocsEditable @DomName('MediaStreamTrackList.addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @JSName('dispatchEvent')
-  @DocsEditable @DomName('MediaStreamTrackList.dispatchEvent')
-  bool $dom_dispatchEvent(Event event) native;
-
-  @DocsEditable @DomName('MediaStreamTrackList.item')
-  MediaStreamTrack item(int index) native;
-
-  @DocsEditable @DomName('MediaStreamTrackList.remove')
-  void remove(MediaStreamTrack track) native;
-
-  @JSName('removeEventListener')
-  @DocsEditable @DomName('MediaStreamTrackList.removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  Stream<MediaStreamTrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
-
-  Stream<MediaStreamTrackEvent> get onRemoveTrack => removeTrackEvent.forTarget(this);
-}
-
-@DocsEditable
-class MediaStreamTrackListEvents extends Events {
-  @DocsEditable
-  MediaStreamTrackListEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get addTrack => this['addtrack'];
-
-  @DocsEditable
-  EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17165,6 +17136,9 @@ class ScriptProfile native "*ScriptProfile" {
   @DocsEditable @DomName('ScriptProfile.head')
   final ScriptProfileNode head;
 
+  @DocsEditable @DomName('ScriptProfile.idleTime')
+  final num idleTime;
+
   @DocsEditable @DomName('ScriptProfile.title')
   final String title;
 
@@ -17347,6 +17321,9 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
   @JSName('cloneNode')
   @DocsEditable @DomName('ShadowRoot.cloneNode')
   Node clone(bool deep) native;
+
+  @DocsEditable @DomName('ShadowRoot.elementFromPoint')
+  Element elementFromPoint(int x, int y) native;
 
   @JSName('getElementById')
   @DocsEditable @DomName('ShadowRoot.getElementById')

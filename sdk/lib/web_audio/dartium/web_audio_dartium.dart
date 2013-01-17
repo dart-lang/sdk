@@ -679,11 +679,11 @@ class BiquadFilterNode extends AudioNode {
 
   @DocsEditable
   @DomName('BiquadFilterNode.type')
-  int get type native "BiquadFilterNode_type_Getter";
+  String get type native "BiquadFilterNode_type_Getter";
 
   @DocsEditable
   @DomName('BiquadFilterNode.type')
-  void set type(int value) native "BiquadFilterNode_type_Setter";
+  void set type(String value) native "BiquadFilterNode_type_Setter";
 
   @DocsEditable
   @DomName('BiquadFilterNode.getFrequencyResponse')
@@ -945,11 +945,11 @@ class OscillatorNode extends AudioSourceNode {
 
   @DocsEditable
   @DomName('OscillatorNode.type')
-  int get type native "OscillatorNode_type_Getter";
+  String get type native "OscillatorNode_type_Getter";
 
   @DocsEditable
   @DomName('OscillatorNode.type')
-  void set type(int value) native "OscillatorNode_type_Setter";
+  void set type(String value) native "OscillatorNode_type_Setter";
 
   @DocsEditable
   @DomName('OscillatorNode.setWaveTable')
@@ -1014,11 +1014,11 @@ class PannerNode extends AudioNode {
 
   @DocsEditable
   @DomName('PannerNode.distanceModel')
-  int get distanceModel native "PannerNode_distanceModel_Getter";
+  String get distanceModel native "PannerNode_distanceModel_Getter";
 
   @DocsEditable
   @DomName('PannerNode.distanceModel')
-  void set distanceModel(int value) native "PannerNode_distanceModel_Setter";
+  void set distanceModel(String value) native "PannerNode_distanceModel_Setter";
 
   @DocsEditable
   @DomName('PannerNode.maxDistance')
@@ -1030,11 +1030,11 @@ class PannerNode extends AudioNode {
 
   @DocsEditable
   @DomName('PannerNode.panningModel')
-  int get panningModel native "PannerNode_panningModel_Getter";
+  String get panningModel native "PannerNode_panningModel_Getter";
 
   @DocsEditable
   @DomName('PannerNode.panningModel')
-  void set panningModel(int value) native "PannerNode_panningModel_Setter";
+  void set panningModel(String value) native "PannerNode_panningModel_Setter";
 
   @DocsEditable
   @DomName('PannerNode.refDistance')
