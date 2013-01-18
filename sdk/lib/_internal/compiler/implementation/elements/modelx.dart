@@ -1401,13 +1401,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   Link<DartType> get typeVariables => thisType.typeArguments;
 
-  ClassElement ensureResolved(Compiler compiler) {
-    if (resolutionState == STATE_NOT_STARTED) {
-      compiler.resolver.resolveClass(this);
-    }
-    return this;
-  }
-
   void addBackendMember(Element member) {
     backendMembers = backendMembers.prepend(member);
   }
@@ -1747,6 +1740,13 @@ abstract class ClassElementX extends BaseClassElementX {
     return false;
   }
 
+  ClassElement ensureResolved(Compiler compiler) {
+    if (resolutionState == STATE_NOT_STARTED) {
+      compiler.resolver.resolveClass(this);
+    }
+    return this;
+  }
+
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
 
   String toString() {
@@ -1761,19 +1761,30 @@ abstract class ClassElementX extends BaseClassElementX {
 }
 
 class MixinApplicationElementX extends BaseClassElementX {
-  MixinApplicationElementX(SourceString name,
-                           Element enclosing,
-                           int id,
-                           int initialState)
-      : super(name, enclosing, id, initialState);
+  final MixinApplication cachedNode;
 
   // TODO(kasperl): The analyzer complains when I don't have these two
   // fields. This is pretty weird. I cannot replace them with getters.
   final ClassElement patch = null;
   final ClassElement origin = null;
 
+  MixinApplicationElementX(SourceString name, Element enclosing, int id,
+                           this.cachedNode)
+      : super(name, enclosing, id, STATE_NOT_STARTED);
+
   bool get hasConstructor => false;
   bool get hasLocalScopeMembers => false;
+
+  Token position() => cachedNode.getBeginToken();
+
+  Node parseNode(DiagnosticListener listener) => cachedNode;
+
+  ClassElement ensureResolved(Compiler compiler) {
+    if (resolutionState == STATE_NOT_STARTED) {
+      compiler.resolver.resolveMixinApplication(this);
+    }
+    return this;
+  }
 
   Element localLookup(SourceString name) {
     // TODO(kasperl): Unimplemented for now.

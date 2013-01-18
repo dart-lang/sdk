@@ -28,7 +28,6 @@ import '../scanner/scannerlib.dart' show Token,
                                          isUserDefinableOperator,
                                          isMinusOperator;
 
-
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;
 const int STATE_DONE = 2;

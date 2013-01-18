@@ -418,6 +418,17 @@ class ResolverTask extends CompilerTask {
   ClassElement currentlyResolvedClass;
   Queue<ClassElement> pendingClassesToBeResolved = new Queue<ClassElement>();
 
+  void resolveMixinApplication(MixinApplicationElement element) {
+    // TODO(kasperl): Implement this.
+    assert(element.resolutionState == STATE_NOT_STARTED);
+    element.resolutionState = STATE_STARTED;
+    compiler.reportMessage(
+        compiler.spanFromSpannable(element.cachedNode),
+        MessageKind.GENERIC.error(['unimplemented mixin application']),
+        Diagnostic.ERROR);
+    element.resolutionState = STATE_DONE;
+  }
+
   /**
    * Resolve the class [element].
    *

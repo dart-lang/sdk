@@ -827,14 +827,14 @@ class ElementListener extends Listener {
   }
 
   void endNamedMixinApplication(Token typedefKeyword, Token endToken) {
-    Node mixinApplication = popNode();
+    MixinApplication mixinApplication = popNode();
     NodeList typeVariables = popNode();
     Identifier name = popNode();
+    int id = idGenerator();
+    Element enclosing = compilationUnitElement;
+    pushElement(new MixinApplicationElementX(
+        name.source, enclosing, id, mixinApplication));
     rejectBuiltInIdentifier(name);
-    // TODO(kasperl): Push an element corresponding to the named mixin
-    // application instead of rejecting this.
-    recoverableError('unsupported mixin application in typedef',
-                     node: mixinApplication);
   }
 
   void endMixinApplication() {
