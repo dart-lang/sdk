@@ -4073,7 +4073,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   virtual bool AttributesEqual(Instruction* other) const;
 
-  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const;
 
   Value* value() const { return inputs_[0]; }
 

@@ -8129,6 +8129,19 @@ bool ICData::AllReceiversAreNumbers() const {
 }
 
 
+bool ICData::HasReceiverClassId(intptr_t class_id) const {
+  ASSERT(num_args_tested() > 0);
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    const intptr_t test_class_id = GetReceiverClassIdAt(i);
+    if (test_class_id == class_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 // Returns true if all targets are the same.
 // TODO(srdjan): if targets are native use their C_function to compare.
 bool ICData::HasOneTarget() const {

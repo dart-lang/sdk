@@ -2989,6 +2989,7 @@ class ICData : public Object {
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
+  bool HasReceiverClassId(intptr_t class_id) const;
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,

@@ -347,19 +347,6 @@ void FlowGraphOptimizer::SelectRepresentations() {
 }
 
 
-static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
-  ASSERT(ic_data.num_args_tested() > 0);
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    const intptr_t test_class_id = ic_data.GetReceiverClassIdAt(i);
-    if (test_class_id == class_id) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
                                               intptr_t receiver_class_id,
                                               intptr_t argument_class_id) {
@@ -417,18 +404,18 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
 
 static bool HasOnlyOneSmi(const ICData& ic_data) {
   return (ic_data.NumberOfChecks() == 1)
-      && ICDataHasReceiverClassId(ic_data, kSmiCid);
+      && ic_data.HasReceiverClassId(kSmiCid);
 }
 
 
 static bool HasOnlySmiOrMint(const ICData& ic_data) {
   if (ic_data.NumberOfChecks() == 1) {
-    return ICDataHasReceiverClassId(ic_data, kSmiCid)
-        || ICDataHasReceiverClassId(ic_data, kMintCid);
+    return ic_data.HasReceiverClassId(kSmiCid)
+        || ic_data.HasReceiverClassId(kMintCid);
   }
   return (ic_data.NumberOfChecks() == 2)
-      && ICDataHasReceiverClassId(ic_data, kSmiCid)
-      && ICDataHasReceiverClassId(ic_data, kMintCid);
+      && ic_data.HasReceiverClassId(kSmiCid)
+      && ic_data.HasReceiverClassId(kMintCid);
 }
 
 
@@ -450,7 +437,7 @@ static bool HasTwoMintOrSmi(const ICData& ic_data) {
 
 static bool HasOnlyOneDouble(const ICData& ic_data) {
   return (ic_data.NumberOfChecks() == 1)
-      && ICDataHasReceiverClassId(ic_data, kDoubleCid);
+      && ic_data.HasReceiverClassId(kDoubleCid);
 }
 
 

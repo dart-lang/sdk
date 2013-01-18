@@ -103,6 +103,14 @@ bool CheckClassInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool CheckClassInstr::AffectedBySideEffect() const {
+  // The class-id of string objects is not invariant: Externalization of strings
+  // via the API can change the class-id.
+  return unary_checks().HasReceiverClassId(kOneByteStringCid)
+      || unary_checks().HasReceiverClassId(kTwoByteStringCid);
+}
+
+
 bool CheckArrayBoundInstr::AttributesEqual(Instruction* other) const {
   CheckArrayBoundInstr* other_check = other->AsCheckArrayBound();
   ASSERT(other_check != NULL);

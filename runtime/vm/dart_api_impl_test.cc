@@ -7451,6 +7451,71 @@ TEST_CASE(LazyLoadDeoptimizes) {
   EXPECT_VALID(result);
 }
 
+
+// Test external strings and optimized code.
+static void ExternalStringDeoptimize_Finalize(void* peer) {
+  delete[] reinterpret_cast<char*>(peer);
+}
+
+
+static void A_change_str_native(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle str = Dart_GetNativeArgument(args, 0);
+  EXPECT(Dart_IsString(str));
+  intptr_t size = 0;
+  EXPECT_VALID(Dart_StringStorageSize(str, &size));
+  char* str_data = new char[size];
+  Dart_Handle result =
+      Dart_MakeExternalString(str,
+                              str_data,
+                              size,
+                              str_data,
+                              &ExternalStringDeoptimize_Finalize);
+  EXPECT_VALID(result);
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction ExternalStringDeoptimize_native_lookup(
+    Dart_Handle name, int argument_count) {
+  return reinterpret_cast<Dart_NativeFunction>(&A_change_str_native);
+}
+
+
+TEST_CASE(ExternalStringDeoptimize) {
+  const char* kScriptChars =
+      "String str = 'A';\n"
+      "class A {\n"
+      "  static change_str(String s) native 'A_change_str';\n"
+      "}\n"
+      "sum_chars(String s, bool b) {\n"
+      "  var result = 0;\n"
+      "  for (var i = 0; i < s.length; i++) {\n"
+      "    if (b && i == 0) A.change_str(str);\n"
+      "    result += s.charCodeAt(i);"
+      "  }\n"
+      "  return result;\n"
+      "}\n"
+      "main() {\n"
+      "  str = '$str$str';\n"
+      "  for (var i = 0; i < 2000; i++) sum_chars(str, false);\n"
+      "  var x = sum_chars(str, false);\n"
+      "  var y = sum_chars(str, true);\n"
+      "  return x + y;\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars,
+                               &ExternalStringDeoptimize_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(260, value);
+}
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart
