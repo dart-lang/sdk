@@ -110,7 +110,7 @@ main() {
   void testForEachCollection(value) {
     other_map[value] = value;
   }
-  Collection values = Maps.getValues(map);
+  Iterable values = Maps.getValues(map);
   other_map = new Map();
   values.forEach(testForEachCollection);
   Expect.equals(true, !other_map.containsKey(key1));

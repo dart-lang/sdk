@@ -45,7 +45,9 @@ class Maps {
   }
 
   static forEach(Map map, void f(key, value)) {
-    map.keys.forEach(f);
+    for (final k in map.keys) {
+      f(k, map[k]);
+    }
   }
 
   static Iterable getValues(Map map) {
