@@ -120,30 +120,26 @@ main() {
     }
   }
 
-  var configurationIterator = configurations.iterator;
-  void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.moveNext()) return;
-
-    var conf = configurationIterator.current;
+  var testSuites = new List<TestSuite>();
+  for (var conf in configurations) {
     TestingServerRunner.setPackageRootDir(conf);
-
     for (String key in selectors.keys) {
       if (key == 'co19') {
-        queue.addTestSuite(new Co19TestSuite(conf));
+        testSuites.add(new Co19TestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {
         // vm tests contain both cc tests (added here) and dart tests (added in
         // [TEST_SUITE_DIRECTORIES]).
-        queue.addTestSuite(new VMTestSuite(conf));
+        testSuites.add(new VMTestSuite(conf));
       } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
-        queue.addTestSuite(new SamplesDartcTestSuite(conf));
-        queue.addTestSuite(new JUnitDartcTestSuite(conf));
+        testSuites.add(new SamplesDartcTestSuite(conf));
+        testSuites.add(new JUnitDartcTestSuite(conf));
       }
     }
 
     for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
       final name = testSuiteDir.filename;
       if (selectors.containsKey(name)) {
-        queue.addTestSuite(
+        testSuites.add(
             new StandardTestSuite.forDirectory(conf, testSuiteDir,
             serverList: TestingServerRunner.serverList));
       }
@@ -155,7 +151,7 @@ main() {
                    progressIndicator,
                    startTime,
                    printTiming,
-                   enqueueConfiguration,
+                   testSuites,
                    () => TestingServerRunner.terminateHttpServers(),
                    verbose,
                    listTests);

@@ -1426,15 +1426,14 @@ class BatchRunnerProcess {
  */
 class ProcessQueue {
   int _numProcesses = 0;
-  int _activeTestListers = 0;
   int _maxProcesses;
+  bool _allTestsWereEnqueued = false;
 
   /** The number of tests we allow to actually fail before we stop retrying. */
   int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
   bool _listTests;
   Function _allDone;
-  EnqueueMoreWork _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
 
@@ -1468,7 +1467,7 @@ class ProcessQueue {
                String progress,
                Date startTime,
                bool printTiming,
-               this._enqueueMoreWork,
+               testSuites,
                this._allDone,
                [bool verbose = false,
                 bool listTests = false])
@@ -1480,20 +1479,7 @@ class ProcessQueue {
                                                    printTiming),
         _batchProcesses = new Map<String, List<BatchRunnerProcess>>(),
         _testCache = new Map<String, List<TestInformation>>() {
-    _checkDone();
-  }
-
-  /**
-   * Registers a TestSuite so that all of its tests will be run.
-   */
-  void addTestSuite(TestSuite testSuite) {
-    _activeTestListers++;
-    testSuite.forEachTest(_runTest, _testCache, _testListerDone);
-  }
-
-  void _testListerDone() {
-    _activeTestListers--;
-    _checkDone();
+    _runTests(testSuites);
   }
 
   /**
@@ -1510,18 +1496,28 @@ class ProcessQueue {
   }
 
   void _checkDone() {
-    // When there are no more active test listers ask for more work
-    // from process queue users.
-    if (_activeTestListers == 0) {
-     _enqueueMoreWork(this);
+    if (_allTestsWereEnqueued && _tests.isEmpty && _numProcesses == 0) {
+      _terminateBatchRunners().then((_) => _cleanupAndMarkDone());
     }
-    // If there is still no work, we are done.
-    if (_activeTestListers == 0) {
-      _progress.allTestsKnown();
-      if (_tests.isEmpty && _numProcesses == 0) {
-        _terminateBatchRunners().then((_) => _cleanupAndMarkDone());
+  }
+
+  void _runTests(List<TestSuite> testSuites) {
+    // FIXME: For some reason we cannot call this method on all test suites
+    // in parallel.
+    // If we do, not all tests get enqueued (if --arch=all was specified,
+    // we don't get twice the number of tests [tested on -rvm -cnone])
+    // Issue: 7927
+    Iterator<TestSuite> iterator = testSuites.iterator;
+    void enqueueNextSuite() {
+      if (!iterator.moveNext()) {
+        _allTestsWereEnqueued = true;
+        _progress.allTestsKnown();
+        _checkDone();
+      } else {
+        iterator.current.forEachTest(_runTest, _testCache, enqueueNextSuite);
       }
     }
+    enqueueNextSuite();
   }
 
   /**
