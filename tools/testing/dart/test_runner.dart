@@ -1490,9 +1490,8 @@ class ProcessQueue {
     _allDone();
     if (browserUsed != '' && _seleniumServer != null) {
       _seleniumServer.kill();
-    } else {
-      _progress.allDone();
     }
+    _progress.allDone();
   }
 
   void _checkDone() {

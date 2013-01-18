@@ -270,9 +270,17 @@ Note: currently only implemented for dart2js.''',
               false,
               'bool'),
           new _TestOptionSpecification(
-              'append_flaky_log',
-              'Do not delete the old flaky log but rather append to it.',
-              ['--append_flaky_log'],
+              'append_logs',
+              'Do not delete old logs but rather append to them.',
+              ['--append_logs'],
+              [],
+              false,
+              'bool'
+              ),
+          new _TestOptionSpecification(
+              'write_debug_log',
+              'Don\'t write debug messages to stdout but rather to a logfile.',
+              ['--write-debug-log'],
               [],
               false,
               'bool'

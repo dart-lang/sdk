@@ -30,6 +30,7 @@ import "testing/dart/test_options.dart";
 import "testing/dart/test_suite.dart";
 import "testing/dart/test_progress.dart";
 import "testing/dart/http_server.dart";
+import "testing/dart/utils.dart";
 
 import "../compiler/tests/dartc/test_config.dart";
 import "../runtime/tests/vm/test_config.dart";
@@ -82,12 +83,15 @@ main() {
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
 
-  if (!firstConf['append_flaky_log'])  {
+  if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
     if (file.existsSync()) {
       file.deleteSync();
     }
   }
+
+  DebugLogger.init(firstConf['write_debug_log'] ?
+      TestUtils.debugLogfile() : null, append: firstConf['append_logs']);
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
@@ -146,13 +150,18 @@ main() {
     }
   }
 
+  void allTestsFinished() {
+    TestingServerRunner.terminateHttpServers();
+    DebugLogger.close();
+  }
+
   // Start process queue.
   new ProcessQueue(maxProcesses,
                    progressIndicator,
                    startTime,
                    printTiming,
                    testSuites,
-                   () => TestingServerRunner.terminateHttpServers(),
+                   allTestsFinished,
                    verbose,
                    listTests);
 }

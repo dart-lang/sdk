@@ -4,8 +4,50 @@
 
 library utils;
 
+import 'dart:io';
 import 'dart:utf' as utf;
 
+class DebugLogger {
+  static OutputStream _stream;
+
+  /**
+   * If [path] was null, the DebugLogger will write messages to stdout.
+   */
+  static init(Path path, {append: false}) {
+    if (path != null) {
+      var mode = append ? FileMode.APPEND : FileMode.WRITE;
+      _stream = new File.fromPath(path).openOutputStream(mode);
+    }
+  }
+
+  static void close() {
+    if (_stream != null) {
+      _stream.close();
+      _stream = null;
+    }
+  }
+
+  static void info(String msg) {
+    _print("Info: $msg");
+  }
+
+  static void warning(String msg) {
+    _print("Warning: $msg");
+  }
+
+  static void error(String msg) {
+    _print("Error: $msg");
+  }
+
+  static void _print(String msg) {
+    if (_stream != null) {
+      _stream.write(encodeUtf8(msg));
+      _stream.write([0x0a]);
+    } else {
+      print(msg);
+    }
+  }
+}
 
 List<int> encodeUtf8(String string) {
   return utf.encodeUtf8(string);

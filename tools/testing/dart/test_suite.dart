@@ -1714,6 +1714,10 @@ class TestUtils {
     return completer.future;
   }
 
+  static Path debugLogfile() {
+    return new Path(".debug.log");
+  }
+
   static String flakyFileName() {
     // If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
     // will be written to this file. This is useful for the debugging of

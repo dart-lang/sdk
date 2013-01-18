@@ -50,8 +50,8 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
-  
-  if (!firstConf['append_flaky_log'])  {
+
+  if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
     if (file.existsSync()) {
       file.deleteSync();

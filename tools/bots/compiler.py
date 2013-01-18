@@ -121,7 +121,8 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
                 '--runtime=' + runtime,
                 '--time',
                 '--use-sdk',
-                '--report'])
+                '--report',
+                '--write-debug-log'])
 
     # TODO(ricow/kustermann): Issue 7339
     if runtime == "safari":
@@ -136,7 +137,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
     if IsFirstTestStepCall:
       IsFirstTestStepCall = False
     else:
-      cmd.append('--append_flaky_log')
+      cmd.append('--append_logs')
 
     if flags:
       cmd.extend(flags)
