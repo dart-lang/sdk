@@ -5,6 +5,7 @@
 library dart.core;
 
 import "dart:collection";
+import "dart:collection-dev";
 
 part "bool.dart";
 part "collection.dart";
