@@ -25,8 +25,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'HTMLMarqueeElement' : '_MarqueeElement',
     'IDBAny': '_Any', # Suppressed, but needs to exist for Dartium.
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
-    'NavigatorUserMediaErrorCallback': '_NavigatorUserMediaErrorCallback',
-    'NavigatorUserMediaSuccessCallback': '_NavigatorUserMediaSuccessCallback',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
@@ -157,7 +155,6 @@ _renamed_html_members = monitored.Dict('htmlrenamer._renamed_html_members', {
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
     'Element.webkitMatchesSelector' : 'matches',
-    'Navigator.webkitGetUserMedia': '_getUserMedia',
     'Node.cloneNode': 'clone',
     'Node.nextSibling': 'nextNode',
     'Node.ownerDocument': 'document',
@@ -514,9 +511,6 @@ class HtmlRenamer(object):
 
   def DartifyTypeName(self, type_name):
     """Converts a DOM name to a Dart-friendly class name. """
-
-    if type_name in html_interface_renames:
-      return html_interface_renames[type_name]
 
     # Strip off any standard prefixes.
     name = re.sub(r'^SVG', '', type_name)

@@ -65,7 +65,6 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 isolates_test: Skip
 measurement_test: Fail, Pass
-media_stream_test/supported: Fail
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
@@ -126,7 +125,6 @@ input_element_test/supported_tel: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail
-media_stream_test/supported: Fail
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
@@ -162,7 +160,6 @@ input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please tria
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_week: Fail, Crash
 fileapi_test/supported: Fail
-media_stream_test/supported: Fail
 node_test: Skip # Issue 6457
 shadow_dom_test/supported: Fail
 
@@ -229,7 +226,6 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
-media_stream_test/supported: Fail   # Supported in FF 18 behind flag.
 notifications_test/supported: Fail
 shadow_dom_test/supported: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
