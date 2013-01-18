@@ -6153,16 +6153,16 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Namespace& math_ns = Namespace::Handle(
       Namespace::New(math_lib, Array::Handle(), Array::Handle()));
-  Library::InitCollectionLibrary(isolate);
-  const Library& collection_lib =
-      Library::Handle(Library::CollectionLibrary());
-  const Namespace& collection_ns = Namespace::Handle(
-      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
   Library::InitCollectionDevLibrary(isolate);
   const Library& collection_dev_lib =
       Library::Handle(Library::CollectionDevLibrary());
   const Namespace& collection_dev_ns = Namespace::Handle(
       Namespace::New(collection_dev_lib, Array::Handle(), Array::Handle()));
+  Library::InitCollectionLibrary(isolate);
+  const Library& collection_lib =
+      Library::Handle(Library::CollectionLibrary());
+  const Namespace& collection_ns = Namespace::Handle(
+      Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
   core_lib.AddImport(math_ns);
   core_lib.AddImport(collection_ns);
   core_lib.AddImport(collection_dev_ns);
@@ -6183,7 +6183,12 @@ void Library::InitCollectionLibrary(Isolate* isolate) {
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   const Namespace& math_ns = Namespace::Handle(
       Namespace::New(math_lib, Array::Handle(), Array::Handle()));
+  const Library& collection_dev_lib =
+      Library::Handle(Library::CollectionDevLibrary());
+  const Namespace& collection_dev_ns = Namespace::Handle(
+      Namespace::New(collection_dev_lib, Array::Handle(), Array::Handle()));
   lib.AddImport(math_ns);
+  lib.AddImport(collection_dev_ns);
   isolate->object_store()->set_collection_library(lib);
 }
 

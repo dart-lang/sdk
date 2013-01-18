@@ -4,6 +4,8 @@
 
 library dart.collection;
 
+import 'dart:collection-dev';
+
 part 'arrays.dart';
 part 'collections.dart';
 part 'maps.dart';

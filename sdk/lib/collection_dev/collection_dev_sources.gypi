@@ -5,7 +5,6 @@
 # This file contains all sources for the dart:collection-dev library.
 {
   'sources': [
-    'empty.dart',
+    'iterable.dart',
   ],
 }
-
