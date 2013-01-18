@@ -38,12 +38,6 @@ class GeneratorOptions(object):
     self.type_registry = type_registry
     self.renamer = renamer
 
-# TODO(vsm): Remove once we fix Dartium to pass in the database directly.
-def Generate(database_dir, use_database_cache, dart2js_output_dir=None,
-             dartium_output_dir=None):
-  database = LoadDatabase(database_dir, use_database_cache)
-  GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir)
-
 def LoadDatabase(database_dir, use_database_cache):
   common_database = database.Database(database_dir)
   if use_database_cache:
