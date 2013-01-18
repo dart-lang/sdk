@@ -53,6 +53,7 @@ _js_custom_members = set([
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
     'Navigator.language',
+    'Navigator.webkitGetUserMedia',
     'URL.createObjectURL',
     'URL.revokeObjectURL',
     'WheelEvent.wheelDeltaX',
