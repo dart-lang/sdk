@@ -28,6 +28,8 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
   "collection": const LibraryInfo("collection/collection.dart"),
 
+  "collection-dev": const LibraryInfo("collection_dev/collection_dev.dart"),
+
   "core": const LibraryInfo(
       "core/core.dart",
       dart2jsPatchPath: "_internal/compiler/implementation/lib/core_patch.dart"),
