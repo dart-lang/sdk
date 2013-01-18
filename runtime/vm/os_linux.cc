@@ -250,7 +250,8 @@ void OS::AlignedFree(void* ptr) {
 word OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   const int kMinimumAlignment = 16;
-#elif defined(TARGET_ARCH_ARM)
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+  // TODO(regis): Verify alignment constraints on MIPS.
   const int kMinimumAlignment = 8;
 #else
 #error Unsupported architecture.
@@ -268,7 +269,8 @@ word OS::ActivationFrameAlignment() {
 word OS::PreferredCodeAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   const int kMinimumAlignment = 16;
-#elif defined(TARGET_ARCH_ARM)
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+  // TODO(regis): Verify alignment constraints on MIPS.
   const int kMinimumAlignment = 16;
 #else
 #error Unsupported architecture.

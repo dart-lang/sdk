@@ -11,6 +11,8 @@
 #include "vm/assembler_macros_x64.h"
 #elif defined(TARGET_ARCH_ARM)
 #include "vm/assembler_macros_arm.h"
+#elif defined(TARGET_ARCH_MIPS)
+#include "vm/assembler_macros_mips.h"
 #else
 #error Unknown architecture.
 #endif

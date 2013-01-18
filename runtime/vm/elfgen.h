@@ -342,7 +342,9 @@ int ElfGen::AddFunction(const char* name, uword pc, intptr_t size) {
 #endif
   WriteWord(symtab, pc);  // st_value
   WriteWord(symtab, size);  // st_size
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_ARM) ||                                                \
+    defined(TARGET_ARCH_MIPS)
   // st_info + (st_other<<8)
   WriteShort(symtab, (kSTB_EXPORTED << 4) + kSTT_FUNC);
   WriteShort(symtab, kText);  // st_shndx
@@ -383,7 +385,9 @@ int ElfGen::AddName(const char* str) {
 void ElfGen::AddELFHeader(int shoff) {
   ASSERT(text_vma_ != 0);  // Code must have been added.
   Write(&header_, kEI_MAG0_MAG3, 4);  // EI_MAG0..EI_MAG3
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_ARM) ||                                                \
+    defined(TARGET_ARCH_MIPS)
   WriteByte(&header_, kELFCLASS32);  // EI_CLASS
 #elif defined(TARGET_ARCH_X64)
   WriteByte(&header_, kELFCLASS64);  // EI_CLASS

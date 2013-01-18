@@ -114,11 +114,7 @@
       },
 
       'ReleaseSIMARM': {
-        # Should not inherit from Dart_Release (see DebugSIMARM).
-        'inherit_from': ['Dart_Base', 'Dart_simarm_Base'],
-        'defines': [
-          'NDEBUG',
-        ],
+        'inherit_from': ['Dart_Base', 'Dart_simarm_Base', 'Dart_Release'],
       },
 
       'DebugARM': {
@@ -140,11 +136,7 @@
       },
 
       'ReleaseSIMMIPS': {
-        # Should not inherit from Dart_Release (see DebugSIMMIPS).
-        'inherit_from': ['Dart_Base', 'Dart_simmips_Base'],
-        'defines': [
-          'NDEBUG',
-        ],
+        'inherit_from': ['Dart_Base', 'Dart_simmips_Base', 'Dart_Release'],
       },
 
       'DebugMIPS': {

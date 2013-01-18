@@ -200,6 +200,8 @@ class AssemblerBuffer : public ValueObject {
 #include "vm/assembler_x64.h"
 #elif defined(TARGET_ARCH_ARM)
 #include "vm/assembler_arm.h"
+#elif defined(TARGET_ARCH_MIPS)
+#include "vm/assembler_mips.h"
 #else
 #error Unknown architecture.
 #endif
