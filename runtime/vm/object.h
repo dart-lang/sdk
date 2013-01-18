@@ -33,6 +33,12 @@ class DeoptInstr;
 class LocalScope;
 class Symbols;
 
+#if defined(DEBUG)
+#define CHECK_HANDLE() CheckHandle();
+#else
+#define CHECK_HANDLE()
+#endif
+
 #define OBJECT_IMPLEMENTATION(object, super)                                   \
  public:  /* NOLINT */                                                         \
   Raw##object* raw() const { return reinterpret_cast<Raw##object*>(raw_); }    \
@@ -43,6 +49,10 @@ class Symbols;
   void operator^=(RawObject* value) {                                          \
     initializeHandle(this, value);                                             \
     ASSERT(IsNull() || Is##object());                                          \
+  }                                                                            \
+  void operator|=(RawObject* value) {                                          \
+    raw_ = value;                                                              \
+    CHECK_HANDLE();                                                            \
   }                                                                            \
   static object& Handle(Isolate* isolate, Raw##object* raw_ptr) {              \
     object* obj =                                                              \
@@ -366,6 +376,7 @@ class Object {
   }
 
   inline void SetRaw(RawObject* value);
+  void CheckHandle() const;
 
   cpp_vtable vtable() const { return bit_copy<cpp_vtable>(*this); }
   void set_vtable(cpp_vtable value) { *vtable_address() = value; }

@@ -1187,6 +1187,32 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
 }
 
 
+void Object::CheckHandle() const {
+#if defined(DEBUG)
+  if (raw_ != Object::null()) {
+    if ((reinterpret_cast<uword>(raw_) & kSmiTagMask) == kSmiTag) {
+      ASSERT(vtable() == Smi::handle_vtable_);
+      return;
+    }
+    intptr_t cid = raw_->GetClassId();
+    if (cid >= kNumPredefinedCids) {
+      cid = kInstanceCid;
+    }
+    ASSERT(vtable() == builtin_vtables_[cid]);
+    Isolate* isolate = Isolate::Current();
+    if (FLAG_verify_handles) {
+      Heap* isolate_heap = isolate->heap();
+      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
+      ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
+             vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
+    }
+    ASSERT(builtin_vtables_[cid] ==
+           isolate->class_table()->At(cid)->ptr()->handle_vtable_);
+  }
+#endif
+}
+
+
 RawObject* Object::Allocate(intptr_t cls_id,
                             intptr_t size,
                             Heap::Space space) {
@@ -1415,7 +1441,7 @@ bool Class::HasInstanceFields() const {
   const Array& field_array = Array::Handle(fields());
   Field& field = Field::Handle();
   for (intptr_t i = 0; i < field_array.Length(); ++i) {
-    field ^= field_array.At(i);
+    field |= field_array.At(i);
     if (!field.is_static()) {
       return true;
     }
@@ -1462,7 +1488,7 @@ RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
   intptr_t best_fit_token_pos = -1;
   intptr_t best_fit_index = -1;
   for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures.At(i);
+    closure |= closures.At(i);
     ASSERT(!closure.IsNull());
     if ((closure.token_pos() <= token_pos) &&
         (token_pos < closure.end_token_pos()) &&
@@ -1630,7 +1656,7 @@ void Class::CalculateFieldOffsets() const {
   Field& field = Field::Handle();
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
-    field ^= flds.At(i);
+    field |= flds.At(i);
     // Offset is computed only for instance fields.
     if (!field.is_static()) {
       ASSERT(field.Offset() == 0);
@@ -1686,7 +1712,7 @@ const char* Class::ApplyPatch(const Class& patch) const {
   const GrowableObjectArray& new_functions = GrowableObjectArray::Handle(
       GrowableObjectArray::New(orig_len));
   for (intptr_t i = 0; i < orig_len; i++) {
-    orig_func ^= orig_list.At(i);
+    orig_func |= orig_list.At(i);
     member_name = orig_func.name();
     func = patch.LookupFunction(member_name);
     if (func.IsNull()) {
@@ -1701,7 +1727,7 @@ const char* Class::ApplyPatch(const Class& patch) const {
     }
   }
   for (intptr_t i = 0; i < patch_len; i++) {
-    func ^= patch_list.At(i);
+    func |= patch_list.At(i);
     func.set_owner(patch_class);
     new_functions.Add(func);
   }
@@ -1719,7 +1745,7 @@ const char* Class::ApplyPatch(const Class& patch) const {
   Field& orig_field = Field::Handle();
   new_list = Array::New(patch_len + orig_len);
   for (intptr_t i = 0; i < patch_len; i++) {
-    field ^= patch_list.At(i);
+    field |= patch_list.At(i);
     field.set_owner(*this);
     member_name = field.name();
     // TODO(iposva): Verify non-public fields only.
@@ -1732,7 +1758,7 @@ const char* Class::ApplyPatch(const Class& patch) const {
     new_list.SetAt(i, field);
   }
   for (intptr_t i = 0; i < orig_len; i++) {
-    field ^= orig_list.At(i);
+    field |= orig_list.At(i);
     new_list.SetAt(patch_len + i, field);
   }
   SetFields(new_list);
@@ -2271,22 +2297,22 @@ RawFunction* Class::LookupFunction(const String& name) const {
     // This can occur, e.g., for Null classes.
     return Function::null();
   }
+  Function& function = Function::Handle(isolate, Function::null());
   const intptr_t len = funcs.Length();
   if (name.IsSymbol()) {
     // Quick Symbol compare.
     NoGCScope no_gc;
     for (intptr_t i = 0; i < len; i++) {
-      RawFunction* raw_func = reinterpret_cast<RawFunction*>(funcs.At(i));
-      if (raw_func->ptr()->name_ == name.raw()) {
-        return raw_func;
+      function |= funcs.At(i);
+      if (function.name() == name.raw()) {
+        return function.raw();
       }
     }
   } else {
-    Function& function = Function::Handle(isolate, Function::null());
     String& function_name = String::Handle(isolate, String::null());
     for (intptr_t i = 0; i < len; i++) {
-      function ^= funcs.At(i);
-      function_name ^= function.name();
+      function |= funcs.At(i);
+      function_name |= function.name();
       if (function_name.Equals(name)) {
         return function.raw();
       }
@@ -2309,8 +2335,8 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
   String& function_name = String::Handle(isolate, String::null());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
-    function ^= funcs.At(i);
-    function_name ^= function.name();
+    function |= funcs.At(i);
+    function_name |= function.name();
     if (OneByteString::EqualsIgnoringPrivateKey(function_name, name)) {
       return function.raw();
     }
@@ -2339,8 +2365,8 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
   String& function_name = String::Handle(isolate, String::null());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
-    function ^= funcs.At(i);
-    function_name ^= function.name();
+    function |= funcs.At(i);
+    function_name |= function.name();
     if (MatchesAccessorName(function_name, prefix, prefix_length, name)) {
       return function.raw();
     }
@@ -2362,7 +2388,7 @@ RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
   Array& funcs = Array::Handle(functions());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
-    func ^= funcs.At(i);
+    func |= funcs.At(i);
     if ((func.token_pos() <= token_pos) &&
         (token_pos <= func.end_token_pos())) {
       return func.raw();
@@ -2411,8 +2437,8 @@ RawField* Class::LookupField(const String& name) const {
   String& field_name = String::Handle(isolate, String::null());
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
-    field ^= flds.At(i);
-    field_name ^= field.name();
+    field |= flds.At(i);
+    field_name |= field.name();
     if (OneByteString::EqualsIgnoringPrivateKey(field_name, name)) {
       return field.raw();
     }
@@ -5556,7 +5582,7 @@ RawObject* Library::LookupExport(const String& name) const {
     Namespace& ns = Namespace::Handle();
     Object& obj = Object::Handle();
     for (int i = 0; i < exports.Length(); i++) {
-      ns ^= exports.At(i);
+      ns |= exports.At(i);
       obj = ns.Lookup(name);
       if (!obj.IsNull()) {
         return obj.raw();
@@ -5638,7 +5664,7 @@ RawArray* Library::LoadedScripts() const {
       }
       bool is_unique = true;
       for (int i = 0; i < scripts.Length(); i++) {
-        script_obj ^= scripts.At(i);
+        script_obj |= scripts.At(i);
         if (script_obj.raw() == owner_script.raw()) {
           // We already have a reference to this script.
           is_unique = false;
@@ -5666,7 +5692,7 @@ RawScript* Library::LookupScript(const String& url) const {
   String& script_url = String::Handle();
   intptr_t num_scripts = scripts.Length();
   for (int i = 0; i < num_scripts; i++) {
-    script ^= scripts.At(i);
+    script |= scripts.At(i);
     script_url = script.url();
     if (script_url.Equals(url)) {
       return script.raw();
@@ -5720,7 +5746,7 @@ RawFunction* Library::LookupFunctionInScript(const Script& script,
   Array& anon_classes = Array::Handle(this->raw_ptr()->anonymous_classes_);
   intptr_t num_anonymous = raw_ptr()->num_anonymous_;
   for (int i = 0; i < num_anonymous; i++) {
-    cls ^= anon_classes.At(i);
+    cls |= anon_classes.At(i);
     ASSERT(!cls.IsNull());
     if (script.raw() == cls.script()) {
       func = cls.LookupFunctionAtToken(token_pos);
@@ -5769,10 +5795,10 @@ RawField* Library::LookupFieldAllowPrivate(const String& name) const {
   Namespace& import = Namespace::Handle();
   Object& obj = Object::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
-    import ^= imports.At(j);
+    import |= imports.At(j);
     obj = import.Lookup(name);
     if (!obj.IsNull() && obj.IsField()) {
-      field ^= obj.raw();
+      field |= obj.raw();
       return field.raw();
     }
   }
@@ -5818,10 +5844,10 @@ RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
   Namespace& import = Namespace::Handle();
   Object& obj = Object::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
-    import ^= imports.At(j);
+    import |= imports.At(j);
     obj = import.Lookup(name);
     if (!obj.IsNull() && obj.IsFunction()) {
-      function ^= obj.raw();
+      function |= obj.raw();
       return function.raw();
     }
   }
@@ -5856,7 +5882,7 @@ RawObject* Library::LookupObject(const String& name) const {
   const Array& imports = Array::Handle(this->imports());
   Namespace& import = Namespace::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
-    import ^= imports.At(j);
+    import |= imports.At(j);
     obj = import.Lookup(name);
     if (!obj.IsNull()) {
       return obj.raw();
@@ -6207,7 +6233,7 @@ RawLibrary* Library::LookupLibrary(const String &url) {
   GrowableObjectArray& libs = GrowableObjectArray::Handle(
       isolate, isolate->object_store()->libraries());
   for (int i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
+    lib |= libs.At(i);
     lib_url = lib.url();
     if (lib_url.Equals(url)) {
       return lib.raw();
@@ -6230,8 +6256,8 @@ bool Library::IsKeyUsed(intptr_t key) {
   Library& lib = Library::Handle();
   String& lib_url = String::Handle();
   for (int i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    lib_url ^= lib.url();
+    lib |= libs.At(i);
+    lib_url |= lib.url();
     lib_key = lib_url.Hash();
     if (lib_key == key) {
       return true;
@@ -6395,7 +6421,7 @@ RawClass* LibraryPrefix::LookupLocalClass(const String& class_name) const {
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
-    import ^= imports.At(i);
+    import |= imports.At(i);
     obj = import.Lookup(class_name);
     if (!obj.IsNull() && obj.IsClass()) {
       // TODO(hausner):
@@ -6469,7 +6495,7 @@ bool Namespace::HidesName(const String& name) const {
     String& hidden = String::Handle();
     intptr_t num_names = names.Length();
     for (intptr_t i = 0; i < num_names; i++) {
-      hidden ^= names.At(i);
+      hidden |= names.At(i);
       if (name.Equals(hidden)) {
         return true;
       }
@@ -6482,7 +6508,7 @@ bool Namespace::HidesName(const String& name) const {
     String& shown = String::Handle();
     intptr_t num_names = names.Length();
     for (intptr_t i = 0; i < num_names; i++) {
-      shown ^= names.At(i);
+      shown |= names.At(i);
       if (name.Equals(shown)) {
         return false;
       }
@@ -6541,10 +6567,10 @@ RawError* Library::CompileAll() {
   Library& lib = Library::Handle();
   Class& cls = Class::Handle();
   for (int i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
+    lib |= libs.At(i);
     ClassDictionaryIterator it(lib);
     while (it.HasNext()) {
-      cls ^= it.GetNextClass();
+      cls |= it.GetNextClass();
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
         return error.raw();
@@ -6552,7 +6578,7 @@ RawError* Library::CompileAll() {
     }
     Array& anon_classes = Array::Handle(lib.raw_ptr()->anonymous_classes_);
     for (int i = 0; i < lib.raw_ptr()->num_anonymous_; i++) {
-      cls ^= anon_classes.At(i);
+      cls |= anon_classes.At(i);
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
         return error.raw();
@@ -7294,7 +7320,7 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
   for (intptr_t i = 0; i < array.Length(); i += kSCallTableEntryLength) {
     if (array.At(i) == raw_code_offset) {
       Function& function = Function::Handle();
-      function ^= array.At(i + kSCallTableFunctionEntry);
+      function |= array.At(i + kSCallTableFunctionEntry);
       return function.raw();
     }
   }
