@@ -229,7 +229,6 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
-media_stream_test/supported: Fail   # Supported in FF 18 behind flag.
 notifications_test/supported: Fail
 shadow_dom_test/supported: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
