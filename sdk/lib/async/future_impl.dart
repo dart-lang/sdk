@@ -30,12 +30,8 @@ class _CompleterImpl<T> implements Completer<T> {
     } else {
       asyncError = new AsyncError(error, stackTrace);
     }
-    // Never complete an error in the same cycle. Otherwise users might
-    // not have a chance to register their error-handlers.
-    new Timer(0, (_) {
-      _FutureImpl future = this.future;
-      future._setError(asyncError);
-    });
+    _FutureImpl future = this.future;
+    future._setError(asyncError);
   }
 }
 
@@ -69,13 +65,20 @@ class _FutureImpl<T> implements Future<T> {
   static const int _INCOMPLETE = 0;
   static const int _VALUE = 1;
   static const int _ERROR = 2;
+  static const int _UNHANDLED_ERROR = 4;
 
   /** Whether the future is complete, and as what. */
   int _state = _INCOMPLETE;
 
   bool get _isComplete => _state != _INCOMPLETE;
   bool get _hasValue => _state == _VALUE;
-  bool get _hasError => _state == _ERROR;
+  bool get _hasError => (_state & _ERROR) != 0;
+  bool get _hasUnhandledError => (_state & _UNHANDLED_ERROR) != 0;
+
+  void _clearUnhandledError() {
+    // Works because _UNHANDLED_ERROR is highest bit in use.
+    _state &= ~_UNHANDLED_ERROR;
+  }
 
   /**
    * Either the result, or a list of listeners until the future completes.
@@ -105,11 +108,11 @@ class _FutureImpl<T> implements Future<T> {
     } else {
       asyncError = new AsyncError(error, stackTrace);
     }
-    new Timer(0, (_) { _setError(asyncError); });
+    _setError(asyncError);
   }
 
   factory _FutureImpl.wait(Iterable<Future> futures) {
-    // TODO(ajohnsen): can we do better wrt the generic type T?
+    // TODO(ajohnsen): can we do better wrt. the generic type T?
     if (futures.isEmpty) {
       return new Future<List>.immediate(const []);
     }
@@ -175,20 +178,22 @@ class _FutureImpl<T> implements Future<T> {
     if (!_isComplete) {
       _addListener(whenFuture);
     } else if (_hasValue) {
+      T value = _resultOrListeners;
       new Timer(0, (_) {
-        T value = _resultOrListeners;
         whenFuture._sendValue(value);
       });
     } else {
       assert(_hasError);
+      _clearUnhandledError();
+      AsyncError error = _resultOrListeners;
       new Timer(0, (_) {
-        AsyncError error = _resultOrListeners;
         whenFuture._sendError(error);
       });
     }
     return whenFuture;
   }
 
+  /** Handle a late listener on a completed future with a value. */
   Future _handleValue(onValue(var value)) {
     assert(_hasValue);
     _ThenFuture thenFuture = new _ThenFuture(onValue);
@@ -197,8 +202,10 @@ class _FutureImpl<T> implements Future<T> {
     return thenFuture;
   }
 
+  /** Handle a late listener on a completed future with an error. */
   Future _handleError(onError(AsyncError error), bool test(error)) {
     assert(_hasError);
+    _clearUnhandledError();
     AsyncError error = _resultOrListeners;
     _CatchErrorFuture errorFuture = new _CatchErrorFuture(onError, test);
     new Timer(0, (_) { errorFuture._sendError(error); });
@@ -208,7 +215,7 @@ class _FutureImpl<T> implements Future<T> {
   Stream<T> asStream() => new Stream.fromFuture(this);
 
   void _setValue(T value) {
-    if (_state != _INCOMPLETE) throw new StateError("Future already completed");
+    if (_isComplete) throw new StateError("Future already completed");
     _FutureListener listeners = _removeListeners();
     _state = _VALUE;
     _resultOrListeners = value;
@@ -226,15 +233,33 @@ class _FutureImpl<T> implements Future<T> {
     _state = _ERROR;
     _resultOrListeners = error;
     if (listeners == null) {
-      error.throwDelayed();
+      _scheduleUnhandledError();
       return;
     }
-    while (listeners != null) {
+    do {
       _FutureListener listener = listeners;
       listeners = listener._nextListener;
       listener._nextListener = null;
       listener._sendError(error);
-    }
+    } while (listeners != null);
+  }
+
+  void _scheduleUnhandledError() {
+    _state |= _UNHANDLED_ERROR;
+    // Wait for the rest of the current event's duration to see
+    // if a subscriber is added to handle the error.
+    new Timer(0, (_) {
+      if (_hasUnhandledError) {
+        // No error handler has been added since the error was set.
+        _clearUnhandledError();
+        AsyncError error = _resultOrListeners;
+        print("Uncaught Error: ${error.error}");
+        if (stackTrace != null) {
+          print("Stack Trace:\n${error.stackTrace}\n");
+        }
+        throw error.error;
+      }
+    });
   }
 
   void _addListener(_FutureListener listener) {
@@ -453,7 +478,6 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
       _setError(new AsyncError(e, s));
       return;
     }
-
     _setValue(value);
   }
 
@@ -469,8 +493,7 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
         return;
       }
     } on AsyncError catch (e) {
-      _setError(e);
-      return;
+      error = e;
     } catch (e, s) {
       error = new AsyncError.withCause(e, s, error);
     }
