@@ -14097,12 +14097,12 @@ class MediaSource extends EventTarget native "*MediaSource" {
   @DocsEditable @DomName('MediaSource.removeSourceBuffer')
   void removeSourceBuffer(SourceBuffer buffer) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-
+/// @domName MediaStream; @docsEditable true
 @DocsEditable
 @DomName('MediaStream')
 class MediaStream extends EventTarget native "*MediaStream" {
@@ -14155,6 +14155,22 @@ class MediaStream extends EventTarget native "*MediaStream" {
   void removeTrack(MediaStreamTrack track) native;
 
   Stream<Event> get onEnded => endedEvent.forTarget(this);
+
+
+  /**
+   * Checks if the MediaStream APIs are supported on the current platform.
+   *
+   * See also:
+   *
+   * * [Navigator.getUserMedia]
+   */
+  static bool get supported =>
+    JS('bool', '''!!(#.getUserMedia || #.webkitGetUserMedia ||
+        #.mozGetUserMedia || #.msGetUserMedia)''',
+        window.navigator,
+        window.navigator,
+        window.navigator,
+        window.navigator);
 }
 
 @DocsEditable
@@ -15039,7 +15055,58 @@ class Navigator native "*Navigator" {
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);
-  
+
+  /**
+   * Gets a stream (video and or audio) from the local computer.
+   *
+   * Use [MediaStream.supported] to check if this is supported by the current
+   * platform.
+   *
+   * Example use:
+   *
+   *     window.navigator.getUserMedia(audio:true, video: true).then((stream) {
+   *       var video = new VideoElement()
+   *         ..autoplay = true
+   *         ..src = Url.createObjectUrl(stream);
+   *       document.body.append(video);
+   *     });
+   *
+   * See also:
+   * * [MediaStream.supported]
+   */
+  @DomName('Navigator.webkitGetUserMedia')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental()
+  Future<LocalMediaStream> getUserMedia({bool audio=false, bool video=false}) {
+    var completer = new Completer<LocalMediaStream>();
+    var options = {
+      'audio': audio,
+      'video': video
+    };
+    _ensureGetUserMedia();
+    this._getUserMedia(convertDartToNative_Dictionary(options),
+      (stream) {
+        completer.complete(stream);
+      },
+      (error) {
+        completer.completeError(error);
+      });
+    return completer.future;
+  }
+
+  _ensureGetUserMedia() {
+    if (JS('bool', '!(#.getUserMedia)', this)) {
+      JS('void', '#.getUserMedia = '
+          '(#.getUserMedia || #.webkitGetUserMedia || #.mozGetUserMedia ||'
+          '#.msGetUserMedia)', this, this, this, this, this);
+    }
+  }
+
+  @JSName('getUserMedia')
+  void _getUserMedia(options, _NavigatorUserMediaSuccessCallback success,
+      _NavigatorUserMediaErrorCallback error) native;
+
+
   @DocsEditable @DomName('Navigator.appCodeName')
   final String appCodeName;
 
@@ -15095,23 +15162,6 @@ class Navigator native "*Navigator" {
   @Returns('_GamepadList') @Creates('_GamepadList')
   List<Gamepad> webkitGetGamepads() native;
 
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) {
-    if (?errorCallback) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      _webkitGetUserMedia_1(options_1, successCallback, errorCallback);
-      return;
-    }
-    var options_2 = convertDartToNative_Dictionary(options);
-    _webkitGetUserMedia_2(options_2, successCallback);
-    return;
-  }
-  @JSName('webkitGetUserMedia')
-  @DocsEditable @DomName('Navigator.webkitGetUserMedia')
-  void _webkitGetUserMedia_1(options, NavigatorUserMediaSuccessCallback successCallback, NavigatorUserMediaErrorCallback errorCallback) native;
-  @JSName('webkitGetUserMedia')
-  @DocsEditable @DomName('Navigator.webkitGetUserMedia')
-  void _webkitGetUserMedia_2(options, NavigatorUserMediaSuccessCallback successCallback) native;
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15135,7 +15185,7 @@ class NavigatorUserMediaError native "*NavigatorUserMediaError" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+typedef void _NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15143,7 +15193,7 @@ typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
+typedef void _NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

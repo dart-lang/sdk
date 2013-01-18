@@ -1,0 +1,29 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+/// @domName $DOMNAME; @docsEditable true$ANNOTATIONS
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+
+  /**
+   * Checks if the MediaStream APIs are supported on the current platform.
+   *
+   * See also:
+   *
+   * * [Navigator.getUserMedia]
+   */
+$if DART2JS
+  static bool get supported =>
+    JS('bool', '''!!(#.getUserMedia || #.webkitGetUserMedia ||
+        #.mozGetUserMedia || #.msGetUserMedia)''',
+        window.navigator,
+        window.navigator,
+        window.navigator,
+        window.navigator);
+$else
+  static bool get supported => true;
+$endif
+}

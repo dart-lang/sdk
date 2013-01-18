@@ -16453,13 +16453,12 @@ class MediaSource extends EventTarget {
   void removeSourceBuffer(SourceBuffer buffer) native "MediaSource_removeSourceBuffer_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
+/// @domName MediaStream; @docsEditable true
 @DocsEditable
 @DomName('MediaStream')
 class MediaStream extends EventTarget {
@@ -16522,6 +16521,15 @@ class MediaStream extends EventTarget {
 
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
+
+  /**
+   * Checks if the MediaStream APIs are supported on the current platform.
+   *
+   * See also:
+   *
+   * * [Navigator.getUserMedia]
+   */
+  static bool get supported => true;
 }
 
 @DocsEditable
@@ -17510,12 +17518,50 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable
 @DomName('Navigator')
 class Navigator extends NativeFieldWrapperClass1 {
+
+
+  /**
+   * Gets a stream (video and or audio) from the local computer.
+   *
+   * Use [MediaStream.supported] to check if this is supported by the current
+   * platform.
+   *
+   * Example use:
+   *
+   *     window.navigator.getUserMedia(audio:true, video: true).then((stream) {
+   *       var video = new VideoElement()
+   *         ..autoplay = true
+   *         ..src = Url.createObjectUrl(stream);
+   *       document.body.append(video);
+   *     });
+   *
+   * See also:
+   * * [MediaStream.supported]
+   */
+  @DomName('Navigator.webkitGetUserMedia')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental()
+  Future<LocalMediaStream> getUserMedia({bool audio=false, bool video=false}) {
+    var completer = new Completer<LocalMediaStream>();
+    var options = {
+      'audio': audio,
+      'video': video
+    };
+    this._getUserMedia(options,
+      (stream) {
+        completer.complete(stream);
+      },
+      (error) {
+        completer.completeError(error);
+      });
+    return completer.future;
+  }
+
+
   Navigator.internal();
 
   @DocsEditable
@@ -17596,7 +17642,7 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DocsEditable
   @DomName('Navigator.webkitGetUserMedia')
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
+  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, [_NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17625,7 +17671,7 @@ class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+typedef void _NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17633,7 +17679,7 @@ typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
+typedef void _NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
