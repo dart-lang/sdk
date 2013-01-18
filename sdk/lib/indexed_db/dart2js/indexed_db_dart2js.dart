@@ -138,19 +138,26 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 @DomName('IDBCursor')
 class Cursor native "*IDBCursor" {
 
-  @DocsEditable @DomName('IDBCursor.direction')
+  @DocsEditable
+  @DomName('IDBCursor.direction')
   final String direction;
 
-  @DocsEditable @DomName('IDBCursor.key') @_annotation_Creates_IDBKey @_annotation_Returns_IDBKey
+  @DocsEditable
+  @DomName('IDBCursor.key')
+  @_annotation_Creates_IDBKey
+  @_annotation_Returns_IDBKey
   final Object key;
 
-  @DocsEditable @DomName('IDBCursor.primaryKey')
+  @DocsEditable
+  @DomName('IDBCursor.primaryKey')
   final Object primaryKey;
 
-  @DocsEditable @DomName('IDBCursor.source')
+  @DocsEditable
+  @DomName('IDBCursor.source')
   final dynamic source;
 
-  @DocsEditable @DomName('IDBCursor.advance')
+  @DocsEditable
+  @DomName('IDBCursor.advance')
   void advance(int count) native;
 
   void continueFunction([/*IDBKey*/ key]) {
@@ -163,13 +170,16 @@ class Cursor native "*IDBCursor" {
     return;
   }
   @JSName('continue')
-  @DocsEditable @DomName('IDBCursor.continue')
+  @DocsEditable
+  @DomName('IDBCursor.continue')
   void _continueFunction_1(key) native;
   @JSName('continue')
-  @DocsEditable @DomName('IDBCursor.continue')
+  @DocsEditable
+  @DomName('IDBCursor.continue')
   void _continueFunction_2() native;
 
-  @DocsEditable @DomName('IDBCursor.delete')
+  @DocsEditable
+  @DomName('IDBCursor.delete')
   Request delete() native;
 
   Request update(/*any*/ value) {
@@ -177,7 +187,8 @@ class Cursor native "*IDBCursor" {
     return _update_1(value_1);
   }
   @JSName('update')
-  @DocsEditable @DomName('IDBCursor.update')
+  @DocsEditable
+  @DomName('IDBCursor.update')
   Request _update_1(value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -190,7 +201,10 @@ class Cursor native "*IDBCursor" {
 @DomName('IDBCursorWithValue')
 class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
 
-  @DocsEditable @DomName('IDBCursorWithValue.value') @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
+  @DocsEditable
+  @DomName('IDBCursorWithValue.value')
+  @annotation_Creates_SerializedScriptValue
+  @annotation_Returns_SerializedScriptValue
   final Object value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -235,21 +249,27 @@ class Database extends EventTarget native "*IDBDatabase" {
   DatabaseEvents get on =>
     new DatabaseEvents(this);
 
-  @DocsEditable @DomName('IDBDatabase.name')
+  @DocsEditable
+  @DomName('IDBDatabase.name')
   final String name;
 
-  @DocsEditable @DomName('IDBDatabase.objectStoreNames')
-  @Returns('DomStringList') @Creates('DomStringList')
+  @DocsEditable
+  @DomName('IDBDatabase.objectStoreNames')
+  @Returns('DomStringList')
+  @Creates('DomStringList')
   final List<String> objectStoreNames;
 
-  @DocsEditable @DomName('IDBDatabase.version')
+  @DocsEditable
+  @DomName('IDBDatabase.version')
   final dynamic version;
 
   @JSName('addEventListener')
-  @DocsEditable @DomName('IDBDatabase.addEventListener')
+  @DocsEditable
+  @DomName('IDBDatabase.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable @DomName('IDBDatabase.close')
+  @DocsEditable
+  @DomName('IDBDatabase.close')
   void close() native;
 
   ObjectStore createObjectStore(String name, [Map options]) {
@@ -260,21 +280,26 @@ class Database extends EventTarget native "*IDBDatabase" {
     return _createObjectStore_2(name);
   }
   @JSName('createObjectStore')
-  @DocsEditable @DomName('IDBDatabase.createObjectStore')
+  @DocsEditable
+  @DomName('IDBDatabase.createObjectStore')
   ObjectStore _createObjectStore_1(name, options) native;
   @JSName('createObjectStore')
-  @DocsEditable @DomName('IDBDatabase.createObjectStore')
+  @DocsEditable
+  @DomName('IDBDatabase.createObjectStore')
   ObjectStore _createObjectStore_2(name) native;
 
-  @DocsEditable @DomName('IDBDatabase.deleteObjectStore')
+  @DocsEditable
+  @DomName('IDBDatabase.deleteObjectStore')
   void deleteObjectStore(String name) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable @DomName('IDBDatabase.dispatchEvent')
+  @DocsEditable
+  @DomName('IDBDatabase.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable @DomName('IDBDatabase.removeEventListener')
+  @DocsEditable
+  @DomName('IDBDatabase.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -327,16 +352,23 @@ class IdbFactory native "*IDBFactory" {
     return _cmp_1(first_1, second_2);
   }
   @JSName('cmp')
-  @DocsEditable @DomName('IDBFactory.cmp')
+  @DocsEditable
+  @DomName('IDBFactory.cmp')
   int _cmp_1(first, second) native;
 
-  @DocsEditable @DomName('IDBFactory.deleteDatabase')
+  @DocsEditable
+  @DomName('IDBFactory.deleteDatabase')
   VersionChangeRequest deleteDatabase(String name) native;
 
-  @DocsEditable @DomName('IDBFactory.open') @Returns('Request') @Creates('Request') @Creates('Database')
+  @DocsEditable
+  @DomName('IDBFactory.open')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Database')
   OpenDBRequest open(String name, [int version]) native;
 
-  @DocsEditable @DomName('IDBFactory.webkitGetDatabaseNames')
+  @DocsEditable
+  @DomName('IDBFactory.webkitGetDatabaseNames')
   Request webkitGetDatabaseNames() native;
 
 }
@@ -350,19 +382,24 @@ class IdbFactory native "*IDBFactory" {
 @DomName('IDBIndex')
 class Index native "*IDBIndex" {
 
-  @DocsEditable @DomName('IDBIndex.keyPath')
+  @DocsEditable
+  @DomName('IDBIndex.keyPath')
   final dynamic keyPath;
 
-  @DocsEditable @DomName('IDBIndex.multiEntry')
+  @DocsEditable
+  @DomName('IDBIndex.multiEntry')
   final bool multiEntry;
 
-  @DocsEditable @DomName('IDBIndex.name')
+  @DocsEditable
+  @DomName('IDBIndex.name')
   final String name;
 
-  @DocsEditable @DomName('IDBIndex.objectStore')
+  @DocsEditable
+  @DomName('IDBIndex.objectStore')
   final ObjectStore objectStore;
 
-  @DocsEditable @DomName('IDBIndex.unique')
+  @DocsEditable
+  @DomName('IDBIndex.unique')
   final bool unique;
 
   Request count([key_OR_range]) {
@@ -379,13 +416,16 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('count')
-  @DocsEditable @DomName('IDBIndex.count')
+  @DocsEditable
+  @DomName('IDBIndex.count')
   Request _count_1() native;
   @JSName('count')
-  @DocsEditable @DomName('IDBIndex.count')
+  @DocsEditable
+  @DomName('IDBIndex.count')
   Request _count_2(KeyRange range) native;
   @JSName('count')
-  @DocsEditable @DomName('IDBIndex.count')
+  @DocsEditable
+  @DomName('IDBIndex.count')
   Request _count_3(key) native;
 
   Request get(key) {
@@ -399,10 +439,18 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('get')
-  @DocsEditable @DomName('IDBIndex.get') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
+  @DocsEditable
+  @DomName('IDBIndex.get')
+  @Returns('Request')
+  @Creates('Request')
+  @annotation_Creates_SerializedScriptValue
   Request _get_1(KeyRange key) native;
   @JSName('get')
-  @DocsEditable @DomName('IDBIndex.get') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
+  @DocsEditable
+  @DomName('IDBIndex.get')
+  @Returns('Request')
+  @Creates('Request')
+  @annotation_Creates_SerializedScriptValue
   Request _get_2(key) native;
 
   Request getKey(key) {
@@ -416,10 +464,20 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('getKey')
-  @DocsEditable @DomName('IDBIndex.getKey') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue @Creates('ObjectStore')
+  @DocsEditable
+  @DomName('IDBIndex.getKey')
+  @Returns('Request')
+  @Creates('Request')
+  @annotation_Creates_SerializedScriptValue
+  @Creates('ObjectStore')
   Request _getKey_1(KeyRange key) native;
   @JSName('getKey')
-  @DocsEditable @DomName('IDBIndex.getKey') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue @Creates('ObjectStore')
+  @DocsEditable
+  @DomName('IDBIndex.getKey')
+  @Returns('Request')
+  @Creates('Request')
+  @annotation_Creates_SerializedScriptValue
+  @Creates('ObjectStore')
   Request _getKey_2(key) native;
 
   Request openCursor([key_OR_range, String direction]) {
@@ -446,19 +504,39 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_1() native;
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_2(KeyRange range) native;
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_3(KeyRange range, direction) native;
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_4(key) native;
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBIndex.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_5(key, direction) native;
 
   Request openKeyCursor([key_OR_range, String direction]) {
@@ -485,19 +563,39 @@ class Index native "*IDBIndex" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('openKeyCursor')
-  @DocsEditable @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openKeyCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openKeyCursor_1() native;
   @JSName('openKeyCursor')
-  @DocsEditable @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openKeyCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openKeyCursor_2(KeyRange range) native;
   @JSName('openKeyCursor')
-  @DocsEditable @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openKeyCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openKeyCursor_3(KeyRange range, direction) native;
   @JSName('openKeyCursor')
-  @DocsEditable @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openKeyCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openKeyCursor_4(key) native;
   @JSName('openKeyCursor')
-  @DocsEditable @DomName('IDBIndex.openKeyCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBIndex.openKeyCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openKeyCursor_5(key, direction) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -539,18 +637,22 @@ class KeyRange native "*IDBKeyRange" {
 
   dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
   @JSName('lower')
-  @DocsEditable @DomName('IDBKeyRange.lower')
+  @DocsEditable
+  @DomName('IDBKeyRange.lower')
   final dynamic _lower;
 
-  @DocsEditable @DomName('IDBKeyRange.lowerOpen')
+  @DocsEditable
+  @DomName('IDBKeyRange.lowerOpen')
   final bool lowerOpen;
 
   dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
   @JSName('upper')
-  @DocsEditable @DomName('IDBKeyRange.upper')
+  @DocsEditable
+  @DomName('IDBKeyRange.upper')
   final dynamic _upper;
 
-  @DocsEditable @DomName('IDBKeyRange.upperOpen')
+  @DocsEditable
+  @DomName('IDBKeyRange.upperOpen')
   final bool upperOpen;
 
   static KeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
@@ -569,13 +671,16 @@ class KeyRange native "*IDBKeyRange" {
     return _bound__3(lower_5, upper_6);
   }
   @JSName('bound')
-  @DocsEditable @DomName('IDBKeyRange.bound')
+  @DocsEditable
+  @DomName('IDBKeyRange.bound')
   static KeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native;
   @JSName('bound')
-  @DocsEditable @DomName('IDBKeyRange.bound')
+  @DocsEditable
+  @DomName('IDBKeyRange.bound')
   static KeyRange _bound__2(lower, upper, lowerOpen) native;
   @JSName('bound')
-  @DocsEditable @DomName('IDBKeyRange.bound')
+  @DocsEditable
+  @DomName('IDBKeyRange.bound')
   static KeyRange _bound__3(lower, upper) native;
 
   static KeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
@@ -587,10 +692,12 @@ class KeyRange native "*IDBKeyRange" {
     return _lowerBound__2(bound_2);
   }
   @JSName('lowerBound')
-  @DocsEditable @DomName('IDBKeyRange.lowerBound')
+  @DocsEditable
+  @DomName('IDBKeyRange.lowerBound')
   static KeyRange _lowerBound__1(bound, open) native;
   @JSName('lowerBound')
-  @DocsEditable @DomName('IDBKeyRange.lowerBound')
+  @DocsEditable
+  @DomName('IDBKeyRange.lowerBound')
   static KeyRange _lowerBound__2(bound) native;
 
   static KeyRange only_(/*IDBKey*/ value) {
@@ -598,7 +705,8 @@ class KeyRange native "*IDBKeyRange" {
     return _only__1(value_1);
   }
   @JSName('only')
-  @DocsEditable @DomName('IDBKeyRange.only')
+  @DocsEditable
+  @DomName('IDBKeyRange.only')
   static KeyRange _only__1(value) native;
 
   static KeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
@@ -610,10 +718,12 @@ class KeyRange native "*IDBKeyRange" {
     return _upperBound__2(bound_2);
   }
   @JSName('upperBound')
-  @DocsEditable @DomName('IDBKeyRange.upperBound')
+  @DocsEditable
+  @DomName('IDBKeyRange.upperBound')
   static KeyRange _upperBound__1(bound, open) native;
   @JSName('upperBound')
-  @DocsEditable @DomName('IDBKeyRange.upperBound')
+  @DocsEditable
+  @DomName('IDBKeyRange.upperBound')
   static KeyRange _upperBound__2(bound) native;
 
 }
@@ -627,20 +737,26 @@ class KeyRange native "*IDBKeyRange" {
 @DomName('IDBObjectStore')
 class ObjectStore native "*IDBObjectStore" {
 
-  @DocsEditable @DomName('IDBObjectStore.autoIncrement')
+  @DocsEditable
+  @DomName('IDBObjectStore.autoIncrement')
   final bool autoIncrement;
 
-  @DocsEditable @DomName('IDBObjectStore.indexNames')
-  @Returns('DomStringList') @Creates('DomStringList')
+  @DocsEditable
+  @DomName('IDBObjectStore.indexNames')
+  @Returns('DomStringList')
+  @Creates('DomStringList')
   final List<String> indexNames;
 
-  @DocsEditable @DomName('IDBObjectStore.keyPath')
+  @DocsEditable
+  @DomName('IDBObjectStore.keyPath')
   final dynamic keyPath;
 
-  @DocsEditable @DomName('IDBObjectStore.name')
+  @DocsEditable
+  @DomName('IDBObjectStore.name')
   final String name;
 
-  @DocsEditable @DomName('IDBObjectStore.transaction')
+  @DocsEditable
+  @DomName('IDBObjectStore.transaction')
   final Transaction transaction;
 
   Request add(/*any*/ value, [/*IDBKey*/ key]) {
@@ -653,13 +769,22 @@ class ObjectStore native "*IDBObjectStore" {
     return _add_2(value_3);
   }
   @JSName('add')
-  @DocsEditable @DomName('IDBObjectStore.add') @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
+  @DocsEditable
+  @DomName('IDBObjectStore.add')
+  @Returns('Request')
+  @Creates('Request')
+  @_annotation_Creates_IDBKey
   Request _add_1(value, key) native;
   @JSName('add')
-  @DocsEditable @DomName('IDBObjectStore.add') @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
+  @DocsEditable
+  @DomName('IDBObjectStore.add')
+  @Returns('Request')
+  @Creates('Request')
+  @_annotation_Creates_IDBKey
   Request _add_2(value) native;
 
-  @DocsEditable @DomName('IDBObjectStore.clear')
+  @DocsEditable
+  @DomName('IDBObjectStore.clear')
   Request clear() native;
 
   Request count([key_OR_range]) {
@@ -676,13 +801,16 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('count')
-  @DocsEditable @DomName('IDBObjectStore.count')
+  @DocsEditable
+  @DomName('IDBObjectStore.count')
   Request _count_1() native;
   @JSName('count')
-  @DocsEditable @DomName('IDBObjectStore.count')
+  @DocsEditable
+  @DomName('IDBObjectStore.count')
   Request _count_2(KeyRange range) native;
   @JSName('count')
-  @DocsEditable @DomName('IDBObjectStore.count')
+  @DocsEditable
+  @DomName('IDBObjectStore.count')
   Request _count_3(key) native;
 
   Index createIndex(String name, keyPath, [Map options]) {
@@ -705,16 +833,20 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createIndex')
-  @DocsEditable @DomName('IDBObjectStore.createIndex')
+  @DocsEditable
+  @DomName('IDBObjectStore.createIndex')
   Index _createIndex_1(name, List<String> keyPath) native;
   @JSName('createIndex')
-  @DocsEditable @DomName('IDBObjectStore.createIndex')
+  @DocsEditable
+  @DomName('IDBObjectStore.createIndex')
   Index _createIndex_2(name, List<String> keyPath, options) native;
   @JSName('createIndex')
-  @DocsEditable @DomName('IDBObjectStore.createIndex')
+  @DocsEditable
+  @DomName('IDBObjectStore.createIndex')
   Index _createIndex_3(name, String keyPath) native;
   @JSName('createIndex')
-  @DocsEditable @DomName('IDBObjectStore.createIndex')
+  @DocsEditable
+  @DomName('IDBObjectStore.createIndex')
   Index _createIndex_4(name, String keyPath, options) native;
 
   Request delete(key_OR_keyRange) {
@@ -728,13 +860,16 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('delete')
-  @DocsEditable @DomName('IDBObjectStore.delete')
+  @DocsEditable
+  @DomName('IDBObjectStore.delete')
   Request _delete_1(KeyRange keyRange) native;
   @JSName('delete')
-  @DocsEditable @DomName('IDBObjectStore.delete')
+  @DocsEditable
+  @DomName('IDBObjectStore.delete')
   Request _delete_2(key) native;
 
-  @DocsEditable @DomName('IDBObjectStore.deleteIndex')
+  @DocsEditable
+  @DomName('IDBObjectStore.deleteIndex')
   void deleteIndex(String name) native;
 
   Request getObject(key) {
@@ -748,13 +883,22 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('get')
-  @DocsEditable @DomName('IDBObjectStore.get') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
+  @DocsEditable
+  @DomName('IDBObjectStore.get')
+  @Returns('Request')
+  @Creates('Request')
+  @annotation_Creates_SerializedScriptValue
   Request _getObject_1(KeyRange key) native;
   @JSName('get')
-  @DocsEditable @DomName('IDBObjectStore.get') @Returns('Request') @Creates('Request') @annotation_Creates_SerializedScriptValue
+  @DocsEditable
+  @DomName('IDBObjectStore.get')
+  @Returns('Request')
+  @Creates('Request')
+  @annotation_Creates_SerializedScriptValue
   Request _getObject_2(key) native;
 
-  @DocsEditable @DomName('IDBObjectStore.index')
+  @DocsEditable
+  @DomName('IDBObjectStore.index')
   Index index(String name) native;
 
   Request openCursor([key_OR_range, String direction]) {
@@ -781,19 +925,39 @@ class ObjectStore native "*IDBObjectStore" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBObjectStore.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_1() native;
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBObjectStore.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_2(KeyRange range) native;
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBObjectStore.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_3(KeyRange range, direction) native;
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBObjectStore.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_4(key) native;
   @JSName('openCursor')
-  @DocsEditable @DomName('IDBObjectStore.openCursor') @Returns('Request') @Creates('Request') @Creates('Cursor')
+  @DocsEditable
+  @DomName('IDBObjectStore.openCursor')
+  @Returns('Request')
+  @Creates('Request')
+  @Creates('Cursor')
   Request _openCursor_5(key, direction) native;
 
   Request put(/*any*/ value, [/*IDBKey*/ key]) {
@@ -806,10 +970,18 @@ class ObjectStore native "*IDBObjectStore" {
     return _put_2(value_3);
   }
   @JSName('put')
-  @DocsEditable @DomName('IDBObjectStore.put') @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
+  @DocsEditable
+  @DomName('IDBObjectStore.put')
+  @Returns('Request')
+  @Creates('Request')
+  @_annotation_Creates_IDBKey
   Request _put_1(value, key) native;
   @JSName('put')
-  @DocsEditable @DomName('IDBObjectStore.put') @Returns('Request') @Creates('Request') @_annotation_Creates_IDBKey
+  @DocsEditable
+  @DomName('IDBObjectStore.put')
+  @Returns('Request')
+  @Creates('Request')
+  @_annotation_Creates_IDBKey
   Request _put_2(value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -866,36 +1038,47 @@ class Request extends EventTarget native "*IDBRequest" {
   RequestEvents get on =>
     new RequestEvents(this);
 
-  @DocsEditable @DomName('IDBRequest.error')
+  @DocsEditable
+  @DomName('IDBRequest.error')
   final DomError error;
 
-  @DocsEditable @DomName('IDBRequest.readyState')
+  @DocsEditable
+  @DomName('IDBRequest.readyState')
   final String readyState;
 
   dynamic get result => _convertNativeToDart_IDBAny(this._result);
   @JSName('result')
-  @DocsEditable @DomName('IDBRequest.result') @Creates('Null')
+  @DocsEditable
+  @DomName('IDBRequest.result')
+  @Creates('Null')
   final dynamic _result;
 
-  @DocsEditable @DomName('IDBRequest.source') @Creates('Null')
+  @DocsEditable
+  @DomName('IDBRequest.source')
+  @Creates('Null')
   final dynamic source;
 
-  @DocsEditable @DomName('IDBRequest.transaction')
+  @DocsEditable
+  @DomName('IDBRequest.transaction')
   final Transaction transaction;
 
-  @DocsEditable @DomName('IDBRequest.webkitErrorMessage')
+  @DocsEditable
+  @DomName('IDBRequest.webkitErrorMessage')
   final String webkitErrorMessage;
 
   @JSName('addEventListener')
-  @DocsEditable @DomName('IDBRequest.addEventListener')
+  @DocsEditable
+  @DomName('IDBRequest.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable @DomName('IDBRequest.dispatchEvent')
+  @DocsEditable
+  @DomName('IDBRequest.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable @DomName('IDBRequest.removeEventListener')
+  @DocsEditable
+  @DomName('IDBRequest.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -935,34 +1118,43 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   TransactionEvents get on =>
     new TransactionEvents(this);
 
-  @DocsEditable @DomName('IDBTransaction.db')
+  @DocsEditable
+  @DomName('IDBTransaction.db')
   final Database db;
 
-  @DocsEditable @DomName('IDBTransaction.error')
+  @DocsEditable
+  @DomName('IDBTransaction.error')
   final DomError error;
 
-  @DocsEditable @DomName('IDBTransaction.mode')
+  @DocsEditable
+  @DomName('IDBTransaction.mode')
   final String mode;
 
-  @DocsEditable @DomName('IDBTransaction.webkitErrorMessage')
+  @DocsEditable
+  @DomName('IDBTransaction.webkitErrorMessage')
   final String webkitErrorMessage;
 
-  @DocsEditable @DomName('IDBTransaction.abort')
+  @DocsEditable
+  @DomName('IDBTransaction.abort')
   void abort() native;
 
   @JSName('addEventListener')
-  @DocsEditable @DomName('IDBTransaction.addEventListener')
+  @DocsEditable
+  @DomName('IDBTransaction.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable @DomName('IDBTransaction.dispatchEvent')
+  @DocsEditable
+  @DomName('IDBTransaction.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  @DocsEditable @DomName('IDBTransaction.objectStore')
+  @DocsEditable
+  @DomName('IDBTransaction.objectStore')
   ObjectStore objectStore(String name) native;
 
   @JSName('removeEventListener')
-  @DocsEditable @DomName('IDBTransaction.removeEventListener')
+  @DocsEditable
+  @DomName('IDBTransaction.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -996,10 +1188,12 @@ class TransactionEvents extends Events {
 @DomName('IDBVersionChangeEvent')
 class UpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
 
-  @DocsEditable @DomName('IDBUpgradeNeededEvent.newVersion')
+  @DocsEditable
+  @DomName('IDBUpgradeNeededEvent.newVersion')
   final int newVersion;
 
-  @DocsEditable @DomName('IDBUpgradeNeededEvent.oldVersion')
+  @DocsEditable
+  @DomName('IDBUpgradeNeededEvent.oldVersion')
   final int oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1012,7 +1206,8 @@ class UpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
 @DomName('IDBVersionChangeEvent')
 class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
-  @DocsEditable @DomName('IDBVersionChangeEvent.version')
+  @DocsEditable
+  @DomName('IDBVersionChangeEvent.version')
   final String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
