@@ -626,7 +626,7 @@ class ClassDesc : public ValueObject {
   bool has_constructor() const {
     Function& func = Function::Handle();
     for (int i = 0; i < functions_.Length(); i++) {
-      func ^= functions_.At(i);
+      func |= functions_.At(i);
       if (func.kind() == RawFunction::kConstructor) {
         return true;
       }
@@ -660,7 +660,7 @@ class ClassDesc : public ValueObject {
     String& test_name = String::Handle();
     Field& field = Field::Handle();
     for (int i = 0; i < fields_.Length(); i++) {
-      field ^= fields_.At(i);
+      field |= fields_.At(i);
       test_name = field.name();
       if (name.Equals(test_name)) {
         return &field;
@@ -677,7 +677,7 @@ class ClassDesc : public ValueObject {
     String& test_name = String::Handle();
     Function& func = Function::Handle();
     for (int i = 0; i < functions_.Length(); i++) {
-      func ^= functions_.At(i);
+      func |= functions_.At(i);
       test_name = func.name();
       if (name.Equals(test_name)) {
         return &func;
@@ -1766,7 +1766,7 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
   Field& field = Field::Handle();
   SequenceNode* initializers = current_block_->statements;
   for (int field_num = 0; field_num < fields.Length(); field_num++) {
-    field ^= fields.At(field_num);
+    field |= fields.At(field_num);
     if (field.is_static() || !field.is_final()) {
       continue;
     }
@@ -1798,10 +1798,10 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
   Field& f = Field::Handle();
   const intptr_t saved_pos = TokenPos();
   for (int i = 0; i < fields.Length(); i++) {
-    f ^= fields.At(i);
+    f |= fields.At(i);
     if (!f.is_static() && f.has_initializer()) {
       Field& field = Field::ZoneHandle();
-      field ^= fields.At(i);
+      field |= fields.At(i);
       if (field.is_final()) {
         // Final fields with initializer expression may not be initialized
         // again by constructors. Remember that this field is already
@@ -7113,7 +7113,7 @@ ArgumentListNode* Parser::ParseActualParameters(
         // canonicalized strings.
         ASSERT(CurrentLiteral()->IsSymbol());
         for (int i = 0; i < names.Length(); i++) {
-          arg_name ^= names.At(i);
+          arg_name |= names.At(i);
           if (CurrentLiteral()->Equals(arg_name)) {
             ErrorMsg("duplicate named argument");
           }
@@ -8135,7 +8135,7 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
     intptr_t num_imports = library_.num_imports();
     Object& imported_obj = Object::Handle();
     for (int i = 0; i < num_imports; i++) {
-      import ^= library_.ImportAt(i);
+      import |= library_.ImportAt(i);
       imported_obj = LookupNameInImport(import, name);
       if (!imported_obj.IsNull()) {
         const Library& lib = Library::Handle(import.library());
@@ -8238,7 +8238,7 @@ RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
   Object& resolved_obj = Object::Handle();
   const Array& imports = Array::Handle(prefix.imports());
   for (intptr_t i = 0; i < prefix.num_imports(); i++) {
-    import ^= imports.At(i);
+    import |= imports.At(i);
     resolved_obj = LookupNameInImport(import, name);
     if (!resolved_obj.IsNull()) {
       obj = resolved_obj.raw();
