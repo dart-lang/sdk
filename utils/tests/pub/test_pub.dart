@@ -29,6 +29,16 @@ import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
 import '../../pub/validator.dart';
 import '../../pub/yaml/yaml.dart';
+import 'command_line_config.dart';
+
+/// This should be called at the top of a test file to set up an appropriate
+/// test configuration for the machine running the tests.
+initConfig() {
+  // If we aren't running on the bots, use the human-friendly config.
+  if (new Options().arguments.contains('--human')) {
+    configure(new CommandLineConfiguration());
+  }
+}
 
 /// Creates a new [FileDescriptor] with [name] and [contents].
 FileDescriptor file(Pattern name, String contents) =>
@@ -456,7 +466,6 @@ integration(String description, body()) {
 /// once per test case.
 void _run() {
   var createdSandboxDir;
-
   var asyncDone = expectAsync0(() {});
 
   Future cleanup() {
