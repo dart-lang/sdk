@@ -455,7 +455,7 @@ final _TIMEOUT = 30000;
 
 /// Defines an integration test. The [body] should schedule a series of
 /// operations which will be run asynchronously.
-integration(String description, body()) {
+void integration(String description, void body()) {
   test(description, () {
     body();
     _run();

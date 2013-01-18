@@ -8,7 +8,6 @@ import 'dart:io';
 import 'dart:json' as json;
 
 import 'test_pub.dart';
-import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/io.dart';
 

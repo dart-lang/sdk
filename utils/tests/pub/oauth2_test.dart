@@ -9,7 +9,6 @@ import 'dart:json' as json;
 import 'dart:uri';
 
 import 'test_pub.dart';
-import 'test_pub.dart';
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/io.dart';

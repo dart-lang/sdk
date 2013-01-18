@@ -45,8 +45,9 @@ third_party/gsutil/*/gsutilc
 # From the Mac OS X Finder
 .DS_Store
 
-# Pub generated "packages" directories
+# Pub generated "packages" directories and files
 packages
+pubspec.lock
 
 # Vim temporary swap files.
 *.swp
