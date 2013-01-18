@@ -6,6 +6,7 @@
 """This module provides functionality to generate dart:html event classes."""
 
 import logging
+from generator import FindCommonAnnotations, FormatAnnotations
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -393,10 +394,14 @@ class HtmlEventGenerator(object):
       if self._GetEventRedirection(interface, html_name, event_type):
         continue
 
+      annotations = FormatAnnotations(
+          FindCommonAnnotations(interface.id, dom_name), '  ')
+
       members_emitter.Emit(
           "\n"
-          "  static const EventStreamProvider<$TYPE> $(NAME)Event = "
-          "const EventStreamProvider<$TYPE>('$DOM_NAME');\n",
+          "  $(ANNOTATIONS)static const EventStreamProvider<$TYPE> "
+          "$(NAME)Event = const EventStreamProvider<$TYPE>('$DOM_NAME');\n",
+          ANNOTATIONS=annotations,
           NAME=html_name,
           DOM_NAME=dom_name,
           TYPE=event_type)
@@ -418,9 +423,14 @@ class HtmlEventGenerator(object):
       else:
         provider = html_name + 'Event'
 
+      annotations = FormatAnnotations(
+          FindCommonAnnotations(interface.id, dom_name), '  ')
+
       members_emitter.Emit(
           "\n"
-          "  Stream<$TYPE> get $(NAME) => $PROVIDER.forTarget(this);\n",
+          "  $(ANNOTATIONS)Stream<$TYPE> get $(NAME) => "
+          "$PROVIDER.forTarget(this);\n",
+          ANNOTATIONS=annotations,
           NAME=getter_name,
           PROVIDER=provider,
           TYPE=event_type)

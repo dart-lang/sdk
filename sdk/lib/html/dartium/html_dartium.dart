@@ -78,6 +78,8 @@ _callPortSync(num id, var message) {
 class AbstractWorker extends EventTarget {
   AbstractWorker.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('AbstractWorker.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DocsEditable
@@ -97,6 +99,8 @@ class AbstractWorker extends EventTarget {
   @DomName('AbstractWorker.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_removeEventListener_Callback";
 
+  @DocsEditable
+  @DomName('AbstractWorker.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
 }
@@ -295,20 +299,36 @@ class AnimationEvent extends Event {
 class ApplicationCache extends EventTarget {
   ApplicationCache.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.cached')
   static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.checking')
   static const EventStreamProvider<Event> checkingEvent = const EventStreamProvider<Event>('checking');
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.downloading')
   static const EventStreamProvider<Event> downloadingEvent = const EventStreamProvider<Event>('downloading');
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.noupdate')
   static const EventStreamProvider<Event> noUpdateEvent = const EventStreamProvider<Event>('noupdate');
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.obsolete')
   static const EventStreamProvider<Event> obsoleteEvent = const EventStreamProvider<Event>('obsolete');
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.progress')
   static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.updateready')
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
   /// Checks if this type is supported on the current platform.
@@ -359,20 +379,36 @@ class ApplicationCache extends EventTarget {
   @DomName('DOMApplicationCache.update')
   void update() native "DOMApplicationCache_update_Callback";
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.cached')
   Stream<Event> get onCached => cachedEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.checking')
   Stream<Event> get onChecking => checkingEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.downloading')
   Stream<Event> get onDownloading => downloadingEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.noupdate')
   Stream<Event> get onNoUpdate => noUpdateEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.obsolete')
   Stream<Event> get onObsolete => obsoleteEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.progress')
   Stream<Event> get onProgress => progressEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMApplicationCache.updateready')
   Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
 
 }
@@ -682,12 +718,20 @@ class BaseElement extends _Element_Merged {
 class BatteryManager extends EventTarget {
   BatteryManager.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('BatteryManager.chargingchange')
   static const EventStreamProvider<Event> chargingChangeEvent = const EventStreamProvider<Event>('chargingchange');
 
+  @DocsEditable
+  @DomName('BatteryManager.chargingtimechange')
   static const EventStreamProvider<Event> chargingTimeChangeEvent = const EventStreamProvider<Event>('chargingtimechange');
 
+  @DocsEditable
+  @DomName('BatteryManager.dischargingtimechange')
   static const EventStreamProvider<Event> dischargingTimeChangeEvent = const EventStreamProvider<Event>('dischargingtimechange');
 
+  @DocsEditable
+  @DomName('BatteryManager.levelchange')
   static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
 
   @DocsEditable
@@ -723,12 +767,20 @@ class BatteryManager extends EventTarget {
   @DomName('BatteryManager.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_removeEventListener_Callback";
 
+  @DocsEditable
+  @DomName('BatteryManager.chargingchange')
   Stream<Event> get onChargingChange => chargingChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('BatteryManager.chargingtimechange')
   Stream<Event> get onChargingTimeChange => chargingTimeChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('BatteryManager.dischargingtimechange')
   Stream<Event> get onDischargingTimeChange => dischargingTimeChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('BatteryManager.levelchange')
   Stream<Event> get onLevelChange => levelChangeEvent.forTarget(this);
 
 }
@@ -840,30 +892,56 @@ class Blob extends NativeFieldWrapperClass1 {
 class BodyElement extends _Element_Merged {
   BodyElement.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.beforeunload')
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.blur')
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.focus')
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.hashchange')
   static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.load')
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.message')
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.offline')
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.online')
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.popstate')
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.resize')
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.storage')
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.unload')
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
   @DocsEditable
@@ -874,30 +952,56 @@ class BodyElement extends _Element_Merged {
   BodyElementEvents get on =>
     new BodyElementEvents(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.beforeunload')
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.blur')
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.focus')
   Stream<Event> get onFocus => focusEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.hashchange')
   Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.load')
   Stream<Event> get onLoad => loadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.message')
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.offline')
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.online')
   Stream<Event> get onOnline => onlineEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.popstate')
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.resize')
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.storage')
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLBodyElement.unload')
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
 }
@@ -6565,6 +6669,8 @@ class DatabaseSync extends NativeFieldWrapperClass1 {
 class DedicatedWorkerContext extends WorkerContext {
   DedicatedWorkerContext.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('DedicatedWorkerContext.message')
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
   @DocsEditable
@@ -6576,6 +6682,8 @@ class DedicatedWorkerContext extends WorkerContext {
   @DomName('DedicatedWorkerContext.postMessage')
   void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
 
+  @DocsEditable
+  @DomName('DedicatedWorkerContext.message')
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
 }
@@ -6797,12 +6905,20 @@ class Document extends Node
 
   Document.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('Document.readystatechange')
   static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
 
+  @DocsEditable
+  @DomName('Document.selectionchange')
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
 
+  @DocsEditable
+  @DomName('Document.webkitpointerlockchange')
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
+  @DocsEditable
+  @DomName('Document.webkitpointerlockerror')
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
   @DocsEditable
@@ -7022,102 +7138,200 @@ class Document extends Node
   @DomName('Document.webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
+  @DocsEditable
+  @DomName('Document.abort')
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.beforecopy')
   Stream<Event> get onBeforeCopy => Element.beforeCopyEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.beforecut')
   Stream<Event> get onBeforeCut => Element.beforeCutEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.beforepaste')
   Stream<Event> get onBeforePaste => Element.beforePasteEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.blur')
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.change')
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.click')
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.contextmenu')
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.copy')
   Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.cut')
   Stream<Event> get onCut => Element.cutEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.dblclick')
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.drag')
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.dragend')
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.dragenter')
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.dragleave')
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.dragover')
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.dragstart')
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.drop')
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.error')
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.focus')
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.input')
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.invalid')
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.keydown')
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.keypress')
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.keyup')
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.load')
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.mousedown')
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.mousemove')
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.mouseout')
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.mouseover')
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.mouseup')
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.mousewheel')
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.paste')
   Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.readystatechange')
   Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.reset')
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.scroll')
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.search')
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.select')
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.selectionchange')
   Stream<Event> get onSelectionChange => selectionChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.selectstart')
   Stream<Event> get onSelectStart => Element.selectStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.submit')
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.touchcancel')
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.touchend')
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.touchmove')
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.touchstart')
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.webkitfullscreenchange')
   Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.webkitfullscreenerror')
   Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.webkitpointerlockchange')
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Document.webkitpointerlockerror')
   Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
 
 
@@ -9230,100 +9444,196 @@ abstract class Element extends Node implements ElementTraversal {
 
   Element.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('Element.abort')
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
+  @DocsEditable
+  @DomName('Element.beforecopy')
   static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
 
+  @DocsEditable
+  @DomName('Element.beforecut')
   static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
 
+  @DocsEditable
+  @DomName('Element.beforepaste')
   static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
 
+  @DocsEditable
+  @DomName('Element.blur')
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
+  @DocsEditable
+  @DomName('Element.change')
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
+  @DocsEditable
+  @DomName('Element.click')
   static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
 
+  @DocsEditable
+  @DomName('Element.contextmenu')
   static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
 
+  @DocsEditable
+  @DomName('Element.copy')
   static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
 
+  @DocsEditable
+  @DomName('Element.cut')
   static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
 
+  @DocsEditable
+  @DomName('Element.dblclick')
   static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
+  @DocsEditable
+  @DomName('Element.drag')
   static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
 
+  @DocsEditable
+  @DomName('Element.dragend')
   static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
 
+  @DocsEditable
+  @DomName('Element.dragenter')
   static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
 
+  @DocsEditable
+  @DomName('Element.dragleave')
   static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
 
+  @DocsEditable
+  @DomName('Element.dragover')
   static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
 
+  @DocsEditable
+  @DomName('Element.dragstart')
   static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
 
+  @DocsEditable
+  @DomName('Element.drop')
   static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
 
+  @DocsEditable
+  @DomName('Element.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DocsEditable
+  @DomName('Element.focus')
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
+  @DocsEditable
+  @DomName('Element.input')
   static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
 
+  @DocsEditable
+  @DomName('Element.invalid')
   static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
 
+  @DocsEditable
+  @DomName('Element.keydown')
   static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
 
+  @DocsEditable
+  @DomName('Element.keypress')
   static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
 
+  @DocsEditable
+  @DomName('Element.keyup')
   static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
 
+  @DocsEditable
+  @DomName('Element.load')
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
+  @DocsEditable
+  @DomName('Element.mousedown')
   static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
 
+  @DocsEditable
+  @DomName('Element.mousemove')
   static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
 
+  @DocsEditable
+  @DomName('Element.mouseout')
   static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
 
+  @DocsEditable
+  @DomName('Element.mouseover')
   static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
 
+  @DocsEditable
+  @DomName('Element.mouseup')
   static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
 
+  @DocsEditable
+  @DomName('Element.mousewheel')
   static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
 
+  @DocsEditable
+  @DomName('Element.paste')
   static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
 
+  @DocsEditable
+  @DomName('Element.reset')
   static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
+  @DocsEditable
+  @DomName('Element.scroll')
   static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
 
+  @DocsEditable
+  @DomName('Element.search')
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
+  @DocsEditable
+  @DomName('Element.select')
   static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
 
+  @DocsEditable
+  @DomName('Element.selectstart')
   static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
 
+  @DocsEditable
+  @DomName('Element.submit')
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
 
+  @DocsEditable
+  @DomName('Element.touchcancel')
   static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
 
+  @DocsEditable
+  @DomName('Element.touchend')
   static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
 
+  @DocsEditable
+  @DomName('Element.touchenter')
   static const EventStreamProvider<TouchEvent> touchEnterEvent = const EventStreamProvider<TouchEvent>('touchenter');
 
+  @DocsEditable
+  @DomName('Element.touchleave')
   static const EventStreamProvider<TouchEvent> touchLeaveEvent = const EventStreamProvider<TouchEvent>('touchleave');
 
+  @DocsEditable
+  @DomName('Element.touchmove')
   static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
 
+  @DocsEditable
+  @DomName('Element.touchstart')
   static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
 
+  @DocsEditable
+  @DomName('Element.webkitTransitionEnd')
   static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
+  @DocsEditable
+  @DomName('Element.webkitfullscreenchange')
   static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
 
+  @DocsEditable
+  @DomName('Element.webkitfullscreenerror')
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   @DocsEditable
@@ -9597,100 +9907,196 @@ abstract class Element extends Node implements ElementTraversal {
   @DomName('Element.webkitRequestPointerLock')
   void webkitRequestPointerLock() native "Element_webkitRequestPointerLock_Callback";
 
+  @DocsEditable
+  @DomName('Element.abort')
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.beforecopy')
   Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.beforecut')
   Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.beforepaste')
   Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.blur')
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.change')
   Stream<Event> get onChange => changeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.click')
   Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.contextmenu')
   Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.copy')
   Stream<Event> get onCopy => copyEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.cut')
   Stream<Event> get onCut => cutEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.dblclick')
   Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.drag')
   Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.dragend')
   Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.dragenter')
   Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.dragleave')
   Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.dragover')
   Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.dragstart')
   Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.drop')
   Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.focus')
   Stream<Event> get onFocus => focusEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.input')
   Stream<Event> get onInput => inputEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.invalid')
   Stream<Event> get onInvalid => invalidEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.keydown')
   Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.keypress')
   Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.keyup')
   Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.load')
   Stream<Event> get onLoad => loadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.mousedown')
   Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.mousemove')
   Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.mouseout')
   Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.mouseover')
   Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.mouseup')
   Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.mousewheel')
   Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.paste')
   Stream<Event> get onPaste => pasteEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.reset')
   Stream<Event> get onReset => resetEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.scroll')
   Stream<Event> get onScroll => scrollEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.search')
   Stream<Event> get onSearch => searchEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.select')
   Stream<Event> get onSelect => selectEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.selectstart')
   Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.submit')
   Stream<Event> get onSubmit => submitEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.touchcancel')
   Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.touchend')
   Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.touchenter')
   Stream<TouchEvent> get onTouchEnter => touchEnterEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.touchleave')
   Stream<TouchEvent> get onTouchLeave => touchLeaveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.touchmove')
   Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.touchstart')
   Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.webkitTransitionEnd')
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.webkitfullscreenchange')
   Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Element.webkitfullscreenerror')
   Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
 
 }
@@ -10452,10 +10858,16 @@ class EventException extends NativeFieldWrapperClass1 {
 class EventSource extends EventTarget {
   EventSource.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('EventSource.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DocsEditable
+  @DomName('EventSource.message')
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  @DocsEditable
+  @DomName('EventSource.open')
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
@@ -10506,10 +10918,16 @@ class EventSource extends EventTarget {
   @DomName('EventSource.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_removeEventListener_Callback";
 
+  @DocsEditable
+  @DomName('EventSource.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('EventSource.message')
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('EventSource.open')
   Stream<Event> get onOpen => openEvent.forTarget(this);
 
 }
@@ -11074,16 +11492,28 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 class FileReader extends EventTarget {
   FileReader.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('FileReader.abort')
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
+  @DocsEditable
+  @DomName('FileReader.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DocsEditable
+  @DomName('FileReader.load')
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
+  @DocsEditable
+  @DomName('FileReader.loadend')
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
+  @DocsEditable
+  @DomName('FileReader.loadstart')
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
+  @DocsEditable
+  @DomName('FileReader.progress')
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DocsEditable
@@ -11157,16 +11587,28 @@ class FileReader extends EventTarget {
   @DomName('FileReader.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
 
+  @DocsEditable
+  @DomName('FileReader.abort')
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileReader.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileReader.load')
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileReader.loadend')
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileReader.loadstart')
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileReader.progress')
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
 }
@@ -11303,16 +11745,28 @@ class FileSystemSync extends NativeFieldWrapperClass1 {
 class FileWriter extends EventTarget {
   FileWriter.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('FileWriter.abort')
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
+  @DocsEditable
+  @DomName('FileWriter.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DocsEditable
+  @DomName('FileWriter.progress')
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  @DocsEditable
+  @DomName('FileWriter.write')
   static const EventStreamProvider<ProgressEvent> writeEvent = const EventStreamProvider<ProgressEvent>('write');
 
+  @DocsEditable
+  @DomName('FileWriter.writeend')
   static const EventStreamProvider<ProgressEvent> writeEndEvent = const EventStreamProvider<ProgressEvent>('writeend');
 
+  @DocsEditable
+  @DomName('FileWriter.writestart')
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
   @DocsEditable
@@ -11370,16 +11824,28 @@ class FileWriter extends EventTarget {
   @DomName('FileWriter.write')
   void write(Blob data) native "FileWriter_write_Callback";
 
+  @DocsEditable
+  @DomName('FileWriter.abort')
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileWriter.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileWriter.progress')
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileWriter.write')
   Stream<ProgressEvent> get onWrite => writeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileWriter.writeend')
   Stream<ProgressEvent> get onWriteEnd => writeEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('FileWriter.writestart')
   Stream<ProgressEvent> get onWriteStart => writeStartEvent.forTarget(this);
 
 }
@@ -12878,18 +13344,32 @@ class HttpRequest extends EventTarget {
 
   HttpRequest.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.abort')
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.error')
   static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.load')
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.loadend')
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.loadstart')
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.progress')
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.readystatechange')
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
   @DocsEditable
@@ -12995,18 +13475,32 @@ class HttpRequest extends EventTarget {
   @DomName('XMLHttpRequest.setRequestHeader')
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.abort')
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.error')
   Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.load')
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.loadend')
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.loadstart')
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.progress')
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequest.readystatechange')
   Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
 }
@@ -13103,16 +13597,28 @@ class HttpRequestProgressEvent extends ProgressEvent {
 class HttpRequestUpload extends EventTarget {
   HttpRequestUpload.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.abort')
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.error')
   static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.load')
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.loadend')
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.loadstart')
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.progress')
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DocsEditable
@@ -13132,16 +13638,28 @@ class HttpRequestUpload extends EventTarget {
   @DomName('XMLHttpRequestUpload.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_removeEventListener_Callback";
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.abort')
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.error')
   Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.load')
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.loadend')
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.loadstart')
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.progress')
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
 }
@@ -13420,6 +13938,8 @@ class InputElement extends _Element_Merged implements
   }
   InputElement.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('HTMLInputElement.webkitSpeechChange')
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
   @DocsEditable
@@ -13859,6 +14379,8 @@ class InputElement extends _Element_Merged implements
   @DomName('HTMLInputElement.stepUp_2')
   void _stepUp_2() native "HTMLInputElement_stepUp_2_Callback";
 
+  @DocsEditable
+  @DomName('HTMLInputElement.webkitSpeechChange')
   Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
 
 }
@@ -15748,54 +16270,104 @@ class MediaController extends EventTarget {
 class MediaElement extends _Element_Merged {
   MediaElement.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.canplay')
   static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.canplaythrough')
   static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.durationchange')
   static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.emptied')
   static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.ended')
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.loadeddata')
   static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.loadedmetadata')
   static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.loadstart')
   static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.pause')
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.play')
   static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.playing')
   static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.progress')
   static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.ratechange')
   static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.seeked')
   static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.seeking')
   static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.show')
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.stalled')
   static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.suspend')
   static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.timeupdate')
   static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.volumechange')
   static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.waiting')
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitkeyadded')
   static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitkeyerror')
   static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitkeymessage')
   static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitneedkey')
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
   @DocsEditable
@@ -16083,54 +16655,104 @@ class MediaElement extends _Element_Merged {
   @DomName('HTMLMediaElement.webkitGenerateKeyRequest_2')
   void _webkitGenerateKeyRequest_2(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.canplay')
   Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.canplaythrough')
   Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.durationchange')
   Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.emptied')
   Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.ended')
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.loadeddata')
   Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.loadedmetadata')
   Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.loadstart')
   Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.pause')
   Stream<Event> get onPause => pauseEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.play')
   Stream<Event> get onPlay => playEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.playing')
   Stream<Event> get onPlaying => playingEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.progress')
   Stream<Event> get onProgress => progressEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.ratechange')
   Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.seeked')
   Stream<Event> get onSeeked => seekedEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.seeking')
   Stream<Event> get onSeeking => seekingEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.show')
   Stream<Event> get onShow => showEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.stalled')
   Stream<Event> get onStalled => stalledEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.suspend')
   Stream<Event> get onSuspend => suspendEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.timeupdate')
   Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.volumechange')
   Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.waiting')
   Stream<Event> get onWaiting => waitingEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitkeyadded')
   Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitkeyerror')
   Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitkeymessage')
   Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitneedkey')
   Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 
 }
@@ -16467,6 +17089,8 @@ class MediaSource extends EventTarget {
 class MediaStream extends EventTarget {
   MediaStream.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('MediaStream.ended')
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
   @DocsEditable
@@ -16522,6 +17146,8 @@ class MediaStream extends EventTarget {
   @DomName('MediaStream.removeTrack')
   void removeTrack(MediaStreamTrack track) native "MediaStream_removeTrack_Callback";
 
+  @DocsEditable
+  @DomName('MediaStream.ended')
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
 
@@ -16578,10 +17204,16 @@ class MediaStreamEvent extends Event {
 class MediaStreamTrack extends EventTarget {
   MediaStreamTrack.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('MediaStreamTrack.ended')
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
+  @DocsEditable
+  @DomName('MediaStreamTrack.mute')
   static const EventStreamProvider<Event> muteEvent = const EventStreamProvider<Event>('mute');
 
+  @DocsEditable
+  @DomName('MediaStreamTrack.unmute')
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
   @DocsEditable
@@ -16631,10 +17263,16 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_removeEventListener_Callback";
 
+  @DocsEditable
+  @DomName('MediaStreamTrack.ended')
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('MediaStreamTrack.mute')
   Stream<Event> get onMute => muteEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('MediaStreamTrack.unmute')
   Stream<Event> get onUnmute => unmuteEvent.forTarget(this);
 
 }
@@ -16789,6 +17427,8 @@ class MessageEvent extends Event {
 class MessagePort extends EventTarget {
   MessagePort.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('MessagePort.message')
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
   @DocsEditable
@@ -16820,6 +17460,8 @@ class MessagePort extends EventTarget {
   @DomName('MessagePort.start')
   void start() native "MessagePort_start_Callback";
 
+  @DocsEditable
+  @DomName('MessagePort.message')
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
 }
@@ -18364,14 +19006,24 @@ class Notation extends Node {
 class Notification extends EventTarget {
   Notification.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('Notification.click')
   static const EventStreamProvider<Event> clickEvent = const EventStreamProvider<Event>('click');
 
+  @DocsEditable
+  @DomName('Notification.close')
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
+  @DocsEditable
+  @DomName('Notification.display')
   static const EventStreamProvider<Event> displayEvent = const EventStreamProvider<Event>('display');
 
+  @DocsEditable
+  @DomName('Notification.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DocsEditable
+  @DomName('Notification.show')
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
   @DocsEditable
@@ -18444,14 +19096,24 @@ class Notification extends EventTarget {
   @DomName('Notification.show')
   void show() native "Notification_show_Callback";
 
+  @DocsEditable
+  @DomName('Notification.click')
   Stream<Event> get onClick => clickEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Notification.close')
   Stream<Event> get onClose => closeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Notification.display')
   Stream<Event> get onDisplay => displayEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Notification.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('Notification.show')
   Stream<Event> get onShow => showEvent.forTarget(this);
 
 }
@@ -19762,12 +20424,20 @@ class RgbColor extends NativeFieldWrapperClass1 {
 class RtcDataChannel extends EventTarget {
   RtcDataChannel.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('RTCDataChannel.close')
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
+  @DocsEditable
+  @DomName('RTCDataChannel.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DocsEditable
+  @DomName('RTCDataChannel.message')
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  @DocsEditable
+  @DomName('RTCDataChannel.open')
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
@@ -19851,12 +20521,20 @@ class RtcDataChannel extends EventTarget {
   @DomName('RTCDataChannel.send_4')
   void _send_4(data) native "RTCDataChannel_send_4_Callback";
 
+  @DocsEditable
+  @DomName('RTCDataChannel.close')
   Stream<Event> get onClose => closeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCDataChannel.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCDataChannel.message')
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCDataChannel.open')
   Stream<Event> get onOpen => openEvent.forTarget(this);
 
 }
@@ -19953,20 +20631,36 @@ class RtcIceCandidateEvent extends Event {
 class RtcPeerConnection extends EventTarget {
   RtcPeerConnection.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.addstream')
   static const EventStreamProvider<MediaStreamEvent> addStreamEvent = const EventStreamProvider<MediaStreamEvent>('addstream');
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.datachannel')
   static const EventStreamProvider<RtcDataChannelEvent> dataChannelEvent = const EventStreamProvider<RtcDataChannelEvent>('datachannel');
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.icecandidate')
   static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.icechange')
   static const EventStreamProvider<Event> iceChangeEvent = const EventStreamProvider<Event>('icechange');
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.negotiationneeded')
   static const EventStreamProvider<Event> negotiationNeededEvent = const EventStreamProvider<Event>('negotiationneeded');
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.open')
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.removestream')
   static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.statechange')
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
   @DocsEditable
@@ -20067,20 +20761,36 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.updateIce')
   void updateIce([Map configuration, Map mediaConstraints]) native "RTCPeerConnection_updateIce_Callback";
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.addstream')
   Stream<MediaStreamEvent> get onAddStream => addStreamEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.datachannel')
   Stream<RtcDataChannelEvent> get onDataChannel => dataChannelEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.icecandidate')
   Stream<RtcIceCandidateEvent> get onIceCandidate => iceCandidateEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.icechange')
   Stream<Event> get onIceChange => iceChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.negotiationneeded')
   Stream<Event> get onNegotiationNeeded => negotiationNeededEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.open')
   Stream<Event> get onOpen => openEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.removestream')
   Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('RTCPeerConnection.statechange')
   Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
 
 }
@@ -20729,6 +21439,8 @@ class SharedWorker extends AbstractWorker {
 class SharedWorkerContext extends WorkerContext {
   SharedWorkerContext.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('SharedWorkerContext.connect')
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
   @DocsEditable
@@ -20740,6 +21452,8 @@ class SharedWorkerContext extends WorkerContext {
   @DomName('SharedWorkerContext.name')
   String get name native "SharedWorkerContext_name_Getter";
 
+  @DocsEditable
+  @DomName('SharedWorkerContext.connect')
   Stream<Event> get onConnect => connectEvent.forTarget(this);
 
 }
@@ -21350,26 +22064,48 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 class SpeechRecognition extends EventTarget {
   SpeechRecognition.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('SpeechRecognition.audioend')
   static const EventStreamProvider<Event> audioEndEvent = const EventStreamProvider<Event>('audioend');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.audiostart')
   static const EventStreamProvider<Event> audioStartEvent = const EventStreamProvider<Event>('audiostart');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.end')
   static const EventStreamProvider<Event> endEvent = const EventStreamProvider<Event>('end');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.error')
   static const EventStreamProvider<SpeechRecognitionError> errorEvent = const EventStreamProvider<SpeechRecognitionError>('error');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.nomatch')
   static const EventStreamProvider<SpeechRecognitionEvent> noMatchEvent = const EventStreamProvider<SpeechRecognitionEvent>('nomatch');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.result')
   static const EventStreamProvider<SpeechRecognitionEvent> resultEvent = const EventStreamProvider<SpeechRecognitionEvent>('result');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.soundend')
   static const EventStreamProvider<Event> soundEndEvent = const EventStreamProvider<Event>('soundend');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.soundstart')
   static const EventStreamProvider<Event> soundStartEvent = const EventStreamProvider<Event>('soundstart');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.speechend')
   static const EventStreamProvider<Event> speechEndEvent = const EventStreamProvider<Event>('speechend');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.speechstart')
   static const EventStreamProvider<Event> speechStartEvent = const EventStreamProvider<Event>('speechstart');
 
+  @DocsEditable
+  @DomName('SpeechRecognition.start')
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
   @DocsEditable
@@ -21445,26 +22181,48 @@ class SpeechRecognition extends EventTarget {
   @DomName('SpeechRecognition.stop')
   void stop() native "SpeechRecognition_stop_Callback";
 
+  @DocsEditable
+  @DomName('SpeechRecognition.audioend')
   Stream<Event> get onAudioEnd => audioEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.audiostart')
   Stream<Event> get onAudioStart => audioStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.end')
   Stream<Event> get onEnd => endEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.error')
   Stream<SpeechRecognitionError> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.nomatch')
   Stream<SpeechRecognitionEvent> get onNoMatch => noMatchEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.result')
   Stream<SpeechRecognitionEvent> get onResult => resultEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.soundend')
   Stream<Event> get onSoundEnd => soundEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.soundstart')
   Stream<Event> get onSoundStart => soundStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.speechend')
   Stream<Event> get onSpeechEnd => speechEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.speechstart')
   Stream<Event> get onSpeechStart => speechStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('SpeechRecognition.start')
   Stream<Event> get onStart => startEvent.forTarget(this);
 
 }
@@ -22753,6 +23511,8 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 class TextTrack extends EventTarget {
   TextTrack.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('TextTrack.cuechange')
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
 
   @DocsEditable
@@ -22808,6 +23568,8 @@ class TextTrack extends EventTarget {
   @DomName('TextTrack.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_removeEventListener_Callback";
 
+  @DocsEditable
+  @DomName('TextTrack.cuechange')
   Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
 
 }
@@ -22832,8 +23594,12 @@ class TextTrackEvents extends Events {
 class TextTrackCue extends EventTarget {
   TextTrackCue.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('TextTrackCue.enter')
   static const EventStreamProvider<Event> enterEvent = const EventStreamProvider<Event>('enter');
 
+  @DocsEditable
+  @DomName('TextTrackCue.exit')
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
   @DocsEditable
@@ -22953,8 +23719,12 @@ class TextTrackCue extends EventTarget {
   @DomName('TextTrackCue.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_removeEventListener_Callback";
 
+  @DocsEditable
+  @DomName('TextTrackCue.enter')
   Stream<Event> get onEnter => enterEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('TextTrackCue.exit')
   Stream<Event> get onExit => exitEvent.forTarget(this);
 
 }
@@ -23175,6 +23945,8 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 class TextTrackList extends EventTarget implements List<TextTrack> {
   TextTrackList.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('TextTrackList.addtrack')
   static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
 
   @DocsEditable
@@ -23370,6 +24142,8 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   @DomName('TextTrackList.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_removeEventListener_Callback";
 
+  @DocsEditable
+  @DomName('TextTrackList.addtrack')
   Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
 
 }
@@ -26771,12 +27545,20 @@ class WebKitNamedFlow extends EventTarget {
 class WebSocket extends EventTarget {
   WebSocket.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('WebSocket.close')
   static const EventStreamProvider<CloseEvent> closeEvent = const EventStreamProvider<CloseEvent>('close');
 
+  @DocsEditable
+  @DomName('WebSocket.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DocsEditable
+  @DomName('WebSocket.message')
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  @DocsEditable
+  @DomName('WebSocket.open')
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
@@ -26871,12 +27653,20 @@ class WebSocket extends EventTarget {
   @DomName('WebSocket.send')
   void send(data) native "WebSocket_send_Callback";
 
+  @DocsEditable
+  @DomName('WebSocket.close')
   Stream<CloseEvent> get onClose => closeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('WebSocket.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('WebSocket.message')
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('WebSocket.open')
   Stream<Event> get onOpen => openEvent.forTarget(this);
 
 }
@@ -26997,38 +27787,72 @@ class Window extends EventTarget implements WindowBase {
 
   Window.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('DOMWindow.DOMContentLoaded')
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
+  @DocsEditable
+  @DomName('DOMWindow.beforeunload')
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
 
+  @DocsEditable
+  @DomName('DOMWindow.devicemotion')
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
+  @DocsEditable
+  @DomName('DOMWindow.deviceorientation')
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
+  @DocsEditable
+  @DomName('DOMWindow.hashchange')
   static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
 
+  @DocsEditable
+  @DomName('DOMWindow.message')
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  @DocsEditable
+  @DomName('DOMWindow.offline')
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
+  @DocsEditable
+  @DomName('DOMWindow.online')
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
+  @DocsEditable
+  @DomName('DOMWindow.pagehide')
   static const EventStreamProvider<Event> pageHideEvent = const EventStreamProvider<Event>('pagehide');
 
+  @DocsEditable
+  @DomName('DOMWindow.pageshow')
   static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
 
+  @DocsEditable
+  @DomName('DOMWindow.popstate')
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
+  @DocsEditable
+  @DomName('DOMWindow.resize')
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
+  @DocsEditable
+  @DomName('DOMWindow.storage')
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
+  @DocsEditable
+  @DomName('DOMWindow.unload')
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
+  @DocsEditable
+  @DomName('DOMWindow.webkitAnimationEnd')
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
+  @DocsEditable
+  @DomName('DOMWindow.webkitAnimationIteration')
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
+  @DocsEditable
+  @DomName('DOMWindow.webkitAnimationStart')
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
   @DocsEditable
@@ -27422,112 +28246,220 @@ class Window extends EventTarget implements WindowBase {
   @Experimental()
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
+  @DocsEditable
+  @DomName('DOMWindow.DOMContentLoaded')
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.abort')
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.beforeunload')
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.blur')
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.change')
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.click')
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.contextmenu')
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.dblclick')
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.devicemotion')
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.deviceorientation')
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.drag')
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.dragend')
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.dragenter')
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.dragleave')
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.dragover')
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.dragstart')
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.drop')
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.error')
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.focus')
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.hashchange')
   Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.input')
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.invalid')
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.keydown')
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.keypress')
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.keyup')
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.load')
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.message')
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.mousedown')
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.mousemove')
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.mouseout')
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.mouseover')
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.mouseup')
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.mousewheel')
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.offline')
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.online')
   Stream<Event> get onOnline => onlineEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.pagehide')
   Stream<Event> get onPageHide => pageHideEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.pageshow')
   Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.popstate')
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.reset')
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.resize')
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.scroll')
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.search')
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.select')
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.storage')
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.submit')
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.touchcancel')
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.touchend')
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.touchmove')
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.touchstart')
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.unload')
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.webkitAnimationEnd')
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.webkitAnimationIteration')
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.webkitAnimationStart')
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
+  @DocsEditable
+  @DomName('DOMWindow.webkitTransitionEnd')
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 }
@@ -27771,6 +28703,8 @@ class WindowEvents extends Events {
 class Worker extends AbstractWorker {
   Worker.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('Worker.message')
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
   @DocsEditable
@@ -27790,6 +28724,8 @@ class Worker extends AbstractWorker {
   @DomName('Worker.terminate')
   void terminate() native "Worker_terminate_Callback";
 
+  @DocsEditable
+  @DomName('Worker.message')
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
 }
@@ -27814,6 +28750,8 @@ class WorkerEvents extends AbstractWorkerEvents {
 class WorkerContext extends EventTarget {
   WorkerContext.internal() : super.internal();
 
+  @DocsEditable
+  @DomName('WorkerContext.error')
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DocsEditable
@@ -27917,6 +28855,8 @@ class WorkerContext extends EventTarget {
   @Experimental()
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
 
+  @DocsEditable
+  @DomName('WorkerContext.error')
   Stream<Event> get onError => errorEvent.forTarget(this);
 
 }
