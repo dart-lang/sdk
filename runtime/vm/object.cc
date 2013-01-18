@@ -1466,7 +1466,7 @@ void Class::SetFunctions(const Array& value) const {
   Function& func = Function::Handle();
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
-    func ^= value.At(i);
+    func |= value.At(i);
     ASSERT(func.Owner() == raw());
   }
 #endif
@@ -1517,7 +1517,7 @@ RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
   }
   closure = Function::null();
   if (best_fit_index >= 0) {
-    closure ^= closures.At(best_fit_index);
+    closure |= closures.At(best_fit_index);
   }
   return closure.raw();
 }
@@ -1791,7 +1791,7 @@ void Class::SetFields(const Array& value) const {
   Field& field = Field::Handle();
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
-    field ^= value.At(i);
+    field |= value.At(i);
     ASSERT(field.owner() == raw());
   }
 #endif
@@ -2283,6 +2283,7 @@ RawFunction* Class::LookupFactory(const String& name) const {
 }
 
 
+// Returns true if 'prefix' and 'accessor_name' match 'name'.
 static bool MatchesAccessorName(const String& name,
                                 const char* prefix,
                                 intptr_t prefix_length,
@@ -3007,7 +3008,7 @@ static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
   // Last element of the array is the number of used elements.
   intptr_t table_size = table.Length() - 1;
   Smi& used = Smi::Handle(isolate);
-  used ^= table.At(table_size);
+  used |= table.At(table_size);
   intptr_t used_elements = used.Value() + 1;
   used = Smi::New(used_elements);
   table.SetAt(table_size, used);
@@ -3510,7 +3511,7 @@ void Function::set_parameter_types(const Array& value) const {
 RawString* Function::ParameterNameAt(intptr_t index) const {
   const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
   String& parameter_name = String::Handle();
-  parameter_name ^= parameter_names.At(index);
+  parameter_name |= parameter_names.At(index);
   return parameter_name.raw();
 }
 
@@ -3729,13 +3730,13 @@ bool Function::AreValidArguments(int num_arguments,
   String& argument_name = String::Handle();
   String& parameter_name = String::Handle();
   for (int i = 0; i < num_named_arguments; i++) {
-    argument_name ^= argument_names.At(i);
+    argument_name |= argument_names.At(i);
     ASSERT(argument_name.IsSymbol());
     bool found = false;
     const int num_positional_args = num_arguments - num_named_arguments;
     const int num_parameters = NumParameters();
     for (int j = num_positional_args; !found && (j < num_parameters); j++) {
-      parameter_name ^= ParameterNameAt(j);
+      parameter_name |= ParameterNameAt(j);
       ASSERT(argument_name.IsSymbol());
       if (argument_name.Equals(parameter_name)) {
         found = true;
@@ -4095,9 +4096,9 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // Set closure function's context scope.
   ContextScope& context_scope = ContextScope::Handle();
   if (is_static()) {
-    context_scope ^= ContextScope::New(0);
+    context_scope |= ContextScope::New(0);
   } else {
-    context_scope ^= LocalScope::CreateImplicitClosureScope(*this);
+    context_scope |= LocalScope::CreateImplicitClosureScope(*this);
   }
   closure_function.set_context_scope(context_scope);
 
@@ -5211,7 +5212,7 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
       const Array& symbols = Array::Handle(isolate,
                                            object_store->keyword_symbols());
       ASSERT(!symbols.IsNull());
-      str ^= symbols.At(kind - Token::kFirstKeyword);
+      str |= symbols.At(kind - Token::kFirstKeyword);
       ASSERT(!str.IsNull());
       return str.raw();
     }
@@ -5594,7 +5595,7 @@ void Library::AddObject(const Object& obj, const String& name) const {
   // Insert the object at the empty slot.
   dict.SetAt(index, obj);
   Smi& used = Smi::Handle();
-  used ^= dict.At(dict_size);
+  used |= dict.At(dict_size);
   intptr_t used_elements = used.Value() + 1;  // One more element added.
   used = Smi::New(used_elements);
   dict.SetAt(dict_size, used);  // Update used count.
@@ -5853,7 +5854,7 @@ RawField* Library::LookupLocalField(const String& name) const {
   }
   if (!obj.IsNull()) {
     if (obj.IsField()) {
-      field ^= obj.raw();
+      field |= obj.raw();
       return field.raw();
     }
   }
@@ -6007,7 +6008,7 @@ RawNamespace* Library::ImportAt(intptr_t index) const {
   }
   const Array& import_list = Array::Handle(imports());
   Namespace& import = Namespace::Handle();
-  import ^= import_list.At(index);
+  import |= import_list.At(index);
   return import.raw();
 }
 
@@ -6342,7 +6343,7 @@ RawString* Library::PrivateName(const String& name) const {
   ASSERT(IsPrivate(name));
   // ASSERT(strchr(name, '@') == NULL);
   String& str = String::Handle();
-  str ^= name.raw();
+  str |= name.raw();
   str = String::Concat(str, String::Handle(this->private_key()));
   str = Symbols::New(str);
   return str.raw();
@@ -6356,7 +6357,7 @@ RawLibrary* Library::GetLibrary(intptr_t index) {
   ASSERT(!libs.IsNull());
   if ((0 <= index) && (index < libs.Length())) {
     Library& lib = Library::Handle();
-    lib ^= libs.At(index);
+    lib |= libs.At(index);
     return lib.raw();
   }
   return Library::null();
@@ -6433,7 +6434,7 @@ RawLibrary* LibraryPrefix::GetLibrary(int index) const {
   if ((index >= 0) || (index < num_imports())) {
     const Array& imports = Array::Handle(this->imports());
     Namespace& import = Namespace::Handle();
-    import ^= imports.At(index);
+    import |= imports.At(index);
     return import.library();
   }
   return Library::null();
@@ -6967,7 +6968,7 @@ RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
   const Array& names = Array::Handle(raw_ptr()->names_);
   ASSERT(Length() == names.Length());
   String& name = String::Handle();
-  name ^= names.At(var_index);
+  name |= names.At(var_index);
   return name.raw();
 }
 
@@ -7300,7 +7301,7 @@ intptr_t Code::Comments::Length() const {
 
 intptr_t Code::Comments::PCOffsetAt(intptr_t idx) const {
   Smi& result = Smi::Handle();
-  result ^= comments_.At(idx * kNumberOfEntries + kPCOffsetEntry);
+  result |= comments_.At(idx * kNumberOfEntries + kPCOffsetEntry);
   return result.Value();
 }
 
@@ -7313,7 +7314,7 @@ void Code::Comments::SetPCOffsetAt(intptr_t idx, intptr_t pc)  {
 
 RawString* Code::Comments::CommentAt(intptr_t idx) const {
   String& result = String::Handle();
-  result ^= comments_.At(idx * kNumberOfEntries + kCommentEntry);
+  result |= comments_.At(idx * kNumberOfEntries + kCommentEntry);
   return result.raw();
 }
 
@@ -7665,7 +7666,7 @@ RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
   *maps = stackmaps();
   *map = Stackmap::null();
   for (intptr_t i = 0; i < maps->Length(); i++) {
-    *map ^= maps->At(i);
+    *map |= maps->At(i);
     ASSERT(!map->IsNull());
     if (map->PC() == pc) {
       return map->raw();  // We found a stack map for this frame.
@@ -7980,10 +7981,10 @@ void ICData::GetCheckAt(intptr_t index,
   intptr_t data_pos = index * TestEntryLength();
   Smi& smi = Smi::Handle();
   for (intptr_t i = 0; i < num_args_tested(); i++) {
-    smi ^= data.At(data_pos++);
+    smi |= data.At(data_pos++);
     class_ids->Add(smi.Value());
   }
-  (*target) ^= data.At(data_pos++);
+  (*target) |= data.At(data_pos++);
 }
 
 
@@ -7996,9 +7997,9 @@ void ICData::GetOneClassCheckAt(intptr_t index,
   const Array& data = Array::Handle(ic_data());
   intptr_t data_pos = index * TestEntryLength();
   Smi& smi = Smi::Handle();
-  smi ^= data.At(data_pos);
+  smi |= data.At(data_pos);
   *class_id = smi.Value();
-  *target ^= data.At(data_pos + 1);
+  *target |= data.At(data_pos + 1);
 }
 
 
@@ -8015,7 +8016,7 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength();
   Smi& smi = Smi::Handle();
-  smi ^= data.At(data_pos);
+  smi |= data.At(data_pos);
   return smi.Value();
 }
 
@@ -8033,7 +8034,7 @@ intptr_t ICData::GetCountAt(intptr_t index) const {
   const intptr_t data_pos = index * TestEntryLength() +
       CountIndexFor(num_args_tested());
   Smi& smi = Smi::Handle();
-  smi ^= data.At(data_pos);
+  smi |= data.At(data_pos);
   return smi.Value();
 }
 
@@ -8265,9 +8266,9 @@ void MegamorphicCache::EnsureCapacity() const {
 
     // Rehash the valid entries.
     for (intptr_t i = 0; i < old_capacity; ++i) {
-      class_id ^= GetClassId(old_buckets, i);
+      class_id |= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
-        target ^= GetTargetFunction(old_buckets, i);
+        target |= GetTargetFunction(old_buckets, i);
         Insert(class_id, target);
       }
     }
@@ -8285,7 +8286,7 @@ void MegamorphicCache::Insert(const Smi& class_id,
   Smi& probe = Smi::Handle();
   intptr_t i = index;
   do {
-    probe ^= GetClassId(backing_array, i);
+    probe |= GetClassId(backing_array, i);
     if (probe.Value() == kIllegalCid) {
       SetEntry(backing_array, i, class_id, target);
       set_filled_entry_count(filled_entry_count() + 1);
@@ -8360,12 +8361,12 @@ void SubtypeTestCache::GetCheck(
   Array& data = Array::Handle(cache());
   intptr_t data_pos = ix * kTestEntryLength;
   Smi& instance_class_id_handle = Smi::Handle();
-  instance_class_id_handle ^= data.At(data_pos + kInstanceClassId);
+  instance_class_id_handle |= data.At(data_pos + kInstanceClassId);
   *instance_class_id = instance_class_id_handle.Value();
   *instance_type_arguments ^= data.At(data_pos + kInstanceTypeArguments);
   *instantiator_type_arguments ^=
       data.At(data_pos + kInstantiatorTypeArguments);
-  *test_result ^= data.At(data_pos + kTestResult);
+  *test_result |= data.At(data_pos + kTestResult);
 }
 
 
@@ -9681,7 +9682,7 @@ RawInteger* Integer::AsValidInteger() const {
   if (IsSmi()) return raw();
   if (IsMint()) {
     Mint& mint = Mint::Handle();
-    mint ^= raw();
+    mint |= raw();
     if (Smi::IsValid64(mint.value())) {
       return Smi::New(mint.value());
     } else {
@@ -9690,7 +9691,7 @@ RawInteger* Integer::AsValidInteger() const {
   }
   ASSERT(IsBigint());
   Bigint& big_value = Bigint::Handle();
-  big_value ^= raw();
+  big_value |= raw();
   if (BigintOperations::FitsIntoSmi(big_value)) {
     return BigintOperations::ToSmi(big_value);
   } else if (BigintOperations::FitsIntoMint(big_value)) {
@@ -9711,8 +9712,8 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
   if (IsSmi() && other.IsSmi()) {
     Smi& left_smi = Smi::Handle();
     Smi& right_smi = Smi::Handle();
-    left_smi ^= raw();
-    right_smi ^= other.raw();
+    left_smi |= raw();
+    right_smi |= other.raw();
     const intptr_t left_value = left_smi.Value();
     const intptr_t right_value = right_smi.Value();
     switch (operation) {
@@ -9809,8 +9810,8 @@ RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
   if (IsSmi() && other.IsSmi()) {
     Smi& op1 = Smi::Handle();
     Smi& op2 = Smi::Handle();
-    op1 ^= raw();
-    op2 ^= other.raw();
+    op1 |= raw();
+    op2 |= other.raw();
     intptr_t result = 0;
     switch (kind) {
       case Token::kBIT_AND:
@@ -10004,7 +10005,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
   Mint& canonical_value = Mint::Handle();
   intptr_t index = 0;
   while (index < constants_len) {
-    canonical_value ^= constants.At(index);
+    canonical_value |= constants.At(index);
     if (canonical_value.IsNull()) {
       break;
     }
@@ -10158,7 +10159,7 @@ RawDouble* Double::NewCanonical(double value) {
   Double& canonical_value = Double::Handle();
   intptr_t index = 0;
   while (index < constants_len) {
-    canonical_value ^= constants.At(index);
+    canonical_value |= constants.At(index);
     if (canonical_value.IsNull()) {
       break;
     }
@@ -10204,16 +10205,16 @@ RawBigint* Integer::AsBigint() const {
   ASSERT(!IsNull());
   if (IsSmi()) {
     Smi& smi = Smi::Handle();
-    smi ^= raw();
+    smi |= raw();
     return BigintOperations::NewFromSmi(smi);
   } else if (IsMint()) {
     Mint& mint = Mint::Handle();
-    mint ^= raw();
+    mint |= raw();
     return BigintOperations::NewFromInt64(mint.value());
   } else {
     ASSERT(IsBigint());
     Bigint& big = Bigint::Handle();
-    big ^= raw();
+    big |= raw();
     ASSERT(!BigintOperations::FitsIntoSmi(big));
     return big.raw();
   }
@@ -10291,7 +10292,7 @@ RawBigint* Bigint::NewCanonical(const String& str) {
   Bigint& canonical_value = Bigint::Handle();
   intptr_t index = 0;
   while (index < constants_len) {
-    canonical_value ^= constants.At(index);
+    canonical_value |= constants.At(index);
     if (canonical_value.IsNull()) {
       break;
     }
@@ -10687,10 +10688,10 @@ RawString* String::New(const String& str, Heap::Space space) {
   String& result = String::Handle();
   intptr_t char_size = str.CharSize();
   if (char_size == kOneByteChar) {
-    result ^= OneByteString::New(len, space);
+    result |= OneByteString::New(len, space);
   } else {
     ASSERT(char_size == kTwoByteChar);
-    result ^= TwoByteString::New(len, space);
+    result |= TwoByteString::New(len, space);
   }
   String::Copy(result, 0, str, 0, len);
   return result.raw();
@@ -10859,7 +10860,7 @@ RawString* String::ConcatAll(const Array& strings,
   String& str = String::Handle();
   intptr_t char_size = kOneByteChar;
   for (intptr_t i = 0; i < strings_len; i++) {
-    str ^= strings.At(i);
+    str |= strings.At(i);
     result_len += str.Length();
     char_size = Utils::Maximum(char_size, str.CharSize());
   }
@@ -10907,9 +10908,9 @@ RawString* String::SubString(const String& str,
     }
   }
   if (is_one_byte_string) {
-    result ^= OneByteString::New(length, space);
+    result |= OneByteString::New(length, space);
   } else {
-    result ^= TwoByteString::New(length, space);
+    result |= TwoByteString::New(length, space);
   }
   String::Copy(result, 0, str, begin_index, length);
   return result.raw();
@@ -11271,7 +11272,7 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
   for (intptr_t i = 0; i < strings_len; i++) {
-    str ^= strings.At(i);
+    str |= strings.At(i);
     intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
     pos += str_len;
@@ -11440,7 +11441,7 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
   for (intptr_t i = 0; i < strings_len; i++) {
-    str ^= strings.At(i);
+    str |= strings.At(i);
     intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
     pos += str_len;
@@ -12624,7 +12625,7 @@ void* JSRegExp::GetDataStartAddress() const {
 RawJSRegExp* JSRegExp::FromDataStartAddress(void* data) {
   JSRegExp& regexp = JSRegExp::Handle();
   intptr_t addr = reinterpret_cast<intptr_t>(data) - sizeof(RawJSRegExp);
-  regexp ^= RawObject::FromAddr(addr);
+  regexp |= RawObject::FromAddr(addr);
   return regexp.raw();
 }
 
