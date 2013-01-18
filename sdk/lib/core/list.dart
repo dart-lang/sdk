@@ -304,6 +304,26 @@ abstract class NonExtensibleListMixin<E>
         "Cannot add to an unmodifiable list");
   }
 
+  void remove(E element) {
+    throw new UnsupportedError(
+        "Cannot remove from an unmodifiable list");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from an unmodifiable list");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from an unmodifiable list");
+  }
+
+  void removeMatching(bool test(E element)) {
+    throw new UnsupportedError(
+        "Cannot remove from an unmodifiable list");
+  }
+
   void sort([Comparator<E> compare]) {
     throw new UnsupportedError(
         "Cannot modify an unmodifiable list");
@@ -316,12 +336,12 @@ abstract class NonExtensibleListMixin<E>
 
   E removeAt(int index) {
     throw new UnsupportedError(
-        "Cannot remove in an unmodifiable list");
+        "Cannot remove from an unmodifiable list");
   }
 
   E removeLast() {
     throw new UnsupportedError(
-        "Cannot remove in an unmodifiable list");
+        "Cannot remove from an unmodifiable list");
   }
 
   void setRange(int start, int length, List<E> from, [int startFrom]) {
@@ -331,7 +351,7 @@ abstract class NonExtensibleListMixin<E>
 
   void removeRange(int start, int length) {
     throw new UnsupportedError(
-        "Cannot remove in an unmodifiable list");
+        "Cannot remove from an unmodifiable list");
   }
 
   void insertRange(int start, int length, [E initialValue]) {

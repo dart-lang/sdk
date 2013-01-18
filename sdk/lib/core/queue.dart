@@ -201,6 +201,44 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     return _sentinel._next.remove();
   }
 
+  void remove(Object o) {
+    DoubleLinkedQueueEntry<E> entry = firstEntry();
+    while (!identical(entry, _sentinel)) {
+      if (entry.element == o) {
+        entry.remove();
+        return;
+      }
+      entry = entry._next;
+    }
+  }
+
+  void removeAll(Iterable elements) {
+    // Use this method when remove is slow and removeMatching more efficient.
+    IterableMixinWorkaround.removeAllList(this, elements);
+  }
+
+  void removeMatching(bool test(E element)) {
+    DoubleLinkedQueueEntry<E> entry = firstEntry();
+    while (!identical(entry, _sentinel)) {
+      DoubleLinkedQueueEntry<E> next = entry._next;
+      if (test(entry.element)) {
+        entry.remove();
+      }
+      entry = next;
+    }
+  }
+
+  void retainMatching(bool test(E element)) {
+    DoubleLinkedQueueEntry<E> entry = firstEntry();
+    while (!identical(entry, _sentinel)) {
+      DoubleLinkedQueueEntry<E> next = entry._next;
+      if (!test(entry.element)) {
+        entry.remove();
+      }
+      entry = next;
+    }
+  }
+
   E get first {
     return _sentinel._next.element;
   }

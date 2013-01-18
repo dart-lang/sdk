@@ -90,6 +90,29 @@ $endif
     return result;
   }
 
+  void remove(Object object) {
+    if (object is! Node) return;
+    Node node = object;
+    if (!identical(this, node.parentNode)) return;
+    _this.$dom_removeChild(node);
+  }
+
+  void removeAll(Iterable elements) {
+    IterableMixinWorkaround.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    IterableMixinWorkaround.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(Node node)) {
+    IterableMixinWorkaround.removeMatching(this, test);
+  }
+
+  void retainMatching(bool test(Node node)) {
+    IterableMixinWorkaround.retainMatching(this, test);
+  }
+
   void clear() {
     _this.text = '';
   }

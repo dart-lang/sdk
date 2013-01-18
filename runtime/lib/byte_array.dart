@@ -307,6 +307,31 @@ abstract class _ByteArrayBase {
         "Cannot remove from a non-extendable array");
   }
 
+  void remove(Object element) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
   int get first {
     if (length > 0) return this[0];
     throw new StateError("No elements");
@@ -1982,6 +2007,36 @@ class _ByteArrayViewBase extends Collection<int> {
   }
 
   int removeLast() {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  int removeAt(int index) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void remove(Object element) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void retainMatching(bool test(int element)) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }

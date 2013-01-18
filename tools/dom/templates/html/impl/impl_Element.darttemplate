@@ -117,10 +117,10 @@ class _ChildrenElementList implements List {
     _element.$dom_replaceChild(value, _childElements[index]);
   }
 
-   void set length(int newLength) {
-     // TODO(jacobr): remove children when length is reduced.
-     throw new UnsupportedError('');
-   }
+  void set length(int newLength) {
+    // TODO(jacobr): remove children when length is reduced.
+    throw new UnsupportedError('');
+  }
 
   Element add(Element value) {
     _element.$dom_appendChild(value);
@@ -148,6 +148,31 @@ class _ChildrenElementList implements List {
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw new UnimplementedError();
+  }
+
+  void remove(Object object) {
+    if (object is Element) {
+      Element element = object;
+      if (identical(element.parentNode, this)) {
+        _element.$dom_removeChild(element);
+      }
+    }
+  }
+
+  void removeAll(Iterable elements) {
+    Collections.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    Collections.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(Element element)) {
+    Collections.removeMatching(this, test);
+  }
+
+  void retainMatching(bool test(Element element)) {
+    Collections.retainMatching(this, test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -373,6 +398,26 @@ class _FrozenElementList implements List {
   }
 
   Element removeLast() {
+    throw new UnsupportedError('');
+  }
+
+  void remove(Object element) {
+    throw new UnsupportedError('');
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError('');
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError('');
+  }
+
+  void removeMatching(bool test(Element element)) {
+    throw new UnsupportedError('');
+  }
+
+  void retainMatching(bool test(Element element)) {
     throw new UnsupportedError('');
   }
 

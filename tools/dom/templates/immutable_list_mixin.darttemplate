@@ -95,7 +95,7 @@ $if DEFINE_CLEAR
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 $else
-  // contains() defined by IDL.
+  // clear() defined by IDL.
 $endif
 
   void sort([int compare($E a, $E b)]) {
@@ -131,11 +131,31 @@ $endif
   $E max([int compare($E a, $E b)]) => IterableMixinWorkaround.max(this, compare);
 
   $E removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   $E removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test($E element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test($E element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<$E> from, [int startFrom]) {

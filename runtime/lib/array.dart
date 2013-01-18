@@ -29,6 +29,31 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove element of a non-extendable array");
   }
 
+  void remove(Object element) {
+    throw new UnsupportedError(
+        "Cannot remove element of a non-extendable array");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove element of a non-extendable array");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove element of a non-extendable array");
+  }
+
+  void removeMatching(bool test(E element)) {
+    throw new UnsupportedError(
+        "Cannot remove element of a non-extendable array");
+  }
+
+  void retainMatching(bool test(E element)) {
+    throw new UnsupportedError(
+        "Cannot remove element of a non-extendable array");
+  }
+
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     if (length < 0) {
       throw new ArgumentError("negative length $length");
@@ -230,6 +255,31 @@ class _ImmutableArray<E> implements List<E> {
   int get length native "ObjectArray_getLength";
 
   E removeAt(int index) {
+    throw new UnsupportedError(
+        "Cannot modify an immutable array");
+  }
+
+  void remove(Object element) {
+    throw new UnsupportedError(
+        "Cannot modify an immutable array");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot modify an immutable array");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot modify an immutable array");
+  }
+
+  void removeMatching(bool test(E element)) {
+    throw new UnsupportedError(
+        "Cannot modify an immutable array");
+  }
+
+  void retainMatching(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }

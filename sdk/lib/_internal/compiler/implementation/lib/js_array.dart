@@ -33,6 +33,33 @@ class JSArray<E> implements List<E> {
     return JS('var', r'#.pop()', this);
   }
 
+  void remove(Object element) {
+    checkGrowable(this, 'remove');
+    for (int i = 0; i < this.length; i++) {
+      if (this[i] == element) {
+        JS('var', r'#.splice(#, 1)', this, i);
+        return;
+      }
+    }
+  }
+
+  void removeAll(Iterable elements) {
+    Collections.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    Collections.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(E element)) {
+    // This could, and should, be optimized.
+    Collections.removeMatching(this, test);
+  }
+
+  void reatainMatching(bool test(E element)) {
+    Collections.reatainMatching(this, test);
+  }
+
   Iterable<E> where(bool f(E element)) {
     return IterableMixinWorkaround.where(this, f);
   }

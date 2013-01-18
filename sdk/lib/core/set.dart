@@ -9,12 +9,12 @@ part of dart.core;
  * without duplicates.
  */
 abstract class Set<E> extends Collection<E> {
-  factory Set() => new _HashSetImpl<E>();
+  factory Set() => new HashSet<E>();
 
   /**
    * Creates a [Set] that contains all elements of [other].
    */
-  factory Set.from(Iterable<E> other) => new _HashSetImpl<E>.from(other);
+  factory Set.from(Iterable<E> other) => new HashSet<E>.from(other);
 
   /**
    * Returns true if [value] is in the set.
@@ -32,17 +32,7 @@ abstract class Set<E> extends Collection<E> {
    * in the set. Returns false otherwise. The method has no effect
    * if [value] value was not in the set.
    */
-  bool remove(E value);
-
-  /**
-   * Adds all the elements of the given [iterable] to the set.
-   */
-  void addAll(Iterable<E> iterable);
-
-  /**
-   * Removes all the elements of the given collection from the set.
-   */
-  void removeAll(Iterable<E> iterable);
+  bool remove(Object value);
 
   /**
    * Returns true if [collection] contains all the elements of this
@@ -66,27 +56,22 @@ abstract class Set<E> extends Collection<E> {
    * Removes all elements in the set.
    */
   void clear();
-
 }
 
-abstract class HashSet<E> extends Set<E> {
-  factory HashSet() => new _HashSetImpl<E>();
+
+class HashSet<E> extends Collection<E> implements Set<E> {
+  // The map backing this set. The associations in this map are all
+  // of the form element -> element. If a value is not in the map,
+  // then it is not in the set.
+  final _HashMapImpl<E, E> _backingMap;
+
+  HashSet() : _backingMap = new _HashMapImpl<E, E>();
 
   /**
    * Creates a [Set] that contains all elements of [other].
    */
-  factory HashSet.from(Iterable<E> other) => new _HashSetImpl<E>.from(other);
-}
-
-
-class _HashSetImpl<E> extends Iterable<E> implements HashSet<E> {
-
-  _HashSetImpl() {
-    _backingMap = new _HashMapImpl<E, E>();
-  }
-
-  factory _HashSetImpl.from(Iterable<E> other) {
-    Set<E> set = new _HashSetImpl<E>();
+  factory HashSet.from(Iterable<E> other) {
+    Set<E> set = new HashSet<E>();
     for (final e in other) {
       set.add(e);
     }
@@ -101,20 +86,14 @@ class _HashSetImpl<E> extends Iterable<E> implements HashSet<E> {
     _backingMap[value] = value;
   }
 
-  bool contains(E value) {
-    return _backingMap.containsKey(value);
-  }
-
-  bool remove(E value) {
+  bool remove(Object value) {
     if (!_backingMap.containsKey(value)) return false;
     _backingMap.remove(value);
     return true;
   }
 
-  void addAll(Iterable<E> iterable) {
-    for (E element in iterable) {
-      add(element);
-    }
+  bool contains(E value) {
+    return _backingMap.containsKey(value);
   }
 
   Set<E> intersection(Collection<E> collection) {
@@ -127,12 +106,6 @@ class _HashSetImpl<E> extends Iterable<E> implements HashSet<E> {
 
   bool isSubsetOf(Collection<E> other) {
     return new Set<E>.from(other).containsAll(this);
-  }
-
-  void removeAll(Iterable<E> iterable) {
-    for (E value in iterable) {
-      remove(value);
-    }
   }
 
   bool containsAll(Collection<E> collection) {
@@ -160,16 +133,11 @@ class _HashSetImpl<E> extends Iterable<E> implements HashSet<E> {
   String toString() {
     return Collections.collectionToString(this);
   }
-
-  // The map backing this set. The associations in this map are all
-  // of the form element -> element. If a value is not in the map,
-  // then it is not in the set.
-  _HashMapImpl<E, E> _backingMap;
 }
 
 class _HashSetIterator<E> implements Iterator<E> {
 
-  _HashSetIterator(_HashSetImpl<E> set)
+  _HashSetIterator(HashSet<E> set)
     : _keysIterator = set._backingMap._keys.iterator;
 
   E get current {

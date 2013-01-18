@@ -46,6 +46,80 @@ class IterableMixinWorkaround {
     return initialValue;
   }
 
+  /**
+   * Simple implementation for [Collection.removeAll].
+   *
+   * This implementation assumes that [Collection.remove] on [collection]
+   * is efficient. The [:remove:] method on [List] objects is typically
+   * not efficient since it requires linear search to find an element.
+   */
+  static void removeAll(Collection collection, Iterable elementsToRemove) {
+    for (Object object in elementsToRemove) {
+      collection.remove(object);
+    }
+  }
+
+  /**
+   * Implementation of [Collection.removeAll] for lists.
+   *
+   * This implementation assumes that [Collection.remove] is not efficient
+   * (as it usually isn't on a [List]) and uses [Collection.removeMathcing]
+   * instead of just repeatedly calling remove.
+   */
+  static void removeAllList(Collection collection, Iterable elementsToRemove) {
+    Set setToRemove;
+    // Assume contains is efficient on a Set.
+    if (elementsToRemove is Set) {
+      setToRemove = elementsToRemove;
+    } else {
+      setToRemove = elementsToRemove.toSet();
+    }
+    collection.removeMatching(setToRemve.contains);
+  }
+
+  /**
+   * Simple implemenation for [Collection.retainAll].
+   *
+   * This implementation assumes that [Collecton.retainMatching] on [collection]
+   * is efficient.
+   */
+  static void retainAll(Collection collection, Iterable elementsToRetain) {
+    Set lookup;
+    if (elementsToRetain is Set) {
+      lookup = elementsToRetain;
+    } else {
+      lookup = elementsToRetain.toSet();
+    }
+    collection.retainMatching(lookup.contains);
+  }
+
+  /**
+   * Simple implemenation for [Collection.removeMatching].
+   *
+   * This implementation assumes that [Collecton.removeAll] on [collection] is
+   * efficient.
+   */
+  static void removeMatching(Collection collection, bool test(var element)) {
+    List elementsToRemove = [];
+    for (var element in collection) {
+      if (test(element)) elementsToRemove.add(element);
+    }
+    collection.removeAll(elementsToRemove);
+  }
+
+  /**
+   * Simple implemenation for [Collection.retainMatching].
+   *
+   * This implementation assumes that [Collecton.removeAll] on [collection] is
+   * efficient.
+   */
+  static void retainMatching(Collection collection, bool test(var element)) {
+    List elementsToRemove = [];
+    for (var element in collection) {
+      if (!test(element)) elementsToRemove.add(element);
+    }
+    collection.removeAll(elementsToRemove);
+  }
   static bool isEmpty(Iterable iterable) {
     return !iterable.iterator.moveNext();
   }
