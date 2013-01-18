@@ -7,11 +7,10 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("unlocks dependencies if necessary to ensure that a new dependency "
-      "is satisfied", () {
+  integration("unlocks dependencies if necessary to ensure that a new "
+      "dependency is satisfied", () {
     servePackages([
       package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
       package("bar", "1.0.0", [dependency("baz", "<2.0.0")]),
@@ -51,7 +50,5 @@ main() {
       "qux": "1.0.0",
       "newdep": "2.0.0"
     }).scheduleValidate();
-
-    run();
   });
 }

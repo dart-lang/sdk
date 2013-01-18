@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('resolves version constraints from a pub server', () {
+  integration('resolves version constraints from a pub server', () {
     servePackages([
       package("foo", "1.2.3", [dependency("baz", ">=2.0.0")]),
       package("bar", "2.3.4", [dependency("baz", "<3.0.0")]),
@@ -35,7 +34,5 @@ main() {
       "bar": "2.3.4",
       "baz": "2.0.4"
     }).scheduleValidate();
-
-    run();
   });
 }

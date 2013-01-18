@@ -7,10 +7,10 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("doesn't update dependencies whose constraints have been removed", () {
+  integration("doesn't update dependencies whose constraints have been "
+      "removed", () {
     servePackages([
       package("foo", "1.0.0", [dependency("shared-dep")]),
       package("bar", "1.0.0", [dependency("shared-dep", "<2.0.0")]),
@@ -39,7 +39,5 @@ main() {
       "bar": null,
       "shared-dep": "1.0.0"
     }).scheduleValidate();
-
-    run();
   });
 }

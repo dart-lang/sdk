@@ -7,10 +7,10 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('requires the dependency to have a pubspec with a name field', () {
+  integration('requires the dependency to have a pubspec with a name '
+      'field', () {
     ensureGit();
 
     git('foo.git', [
@@ -26,7 +26,5 @@ main() {
         error: new RegExp(r'^Package "foo"' "'" 's pubspec.yaml file is '
             r'missing the required "name" field \(e\.g\. "name: foo"\)\.'),
         exitCode: 1);
-
-    run();
   });
 }

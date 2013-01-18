@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:json' as json;
 
 import 'test_pub.dart';
+import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/utils.dart';
 import '../../pub/io.dart';
@@ -43,7 +44,7 @@ main() {
         output: USAGE_STRING, exitCode: 64));
   });
 
-  test('adds an uploader', () {
+  integration('adds an uploader', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
@@ -62,11 +63,9 @@ main() {
 
     expectLater(pub.nextLine(), equals('Good job!'));
     pub.shouldExit(0);
-
-    run();
   });
 
-  test('removes an uploader', () {
+  integration('removes an uploader', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubUploader(server, ['--package', 'pkg', 'remove', 'email']);
@@ -82,11 +81,9 @@ main() {
 
     expectLater(pub.nextLine(), equals('Good job!'));
     pub.shouldExit(0);
-
-    run();
   });
 
-  test('defaults to the current package', () {
+  integration('defaults to the current package', () {
     normalPackage.scheduleCreate();
 
     var server = new ScheduledServer();
@@ -104,11 +101,9 @@ main() {
 
     expectLater(pub.nextLine(), equals('Good job!'));
     pub.shouldExit(0);
-
-    run();
   });
 
-  test('add provides an error', () {
+  integration('add provides an error', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
@@ -124,11 +119,9 @@ main() {
 
     expectLater(pub.nextErrLine(), equals('Bad job!'));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('remove provides an error', () {
+  integration('remove provides an error', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubUploader(server,
@@ -146,11 +139,9 @@ main() {
 
     expectLater(pub.nextErrLine(), equals('Bad job!'));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('add provides invalid JSON', () {
+  integration('add provides invalid JSON', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
@@ -163,11 +154,9 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals('{not json'));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('remove provides invalid JSON', () {
+  integration('remove provides invalid JSON', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubUploader(server, ['--package', 'pkg', 'remove', 'email']);
@@ -181,7 +170,5 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals('{not json'));
     pub.shouldExit(1);
-
-    run();
   });
 }

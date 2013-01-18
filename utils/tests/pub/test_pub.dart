@@ -443,9 +443,18 @@ bool _abortScheduled = false;
 /// complete.
 final _TIMEOUT = 30000;
 
+/// Defines an integration test. The [body] should schedule a series of
+/// operations which will be run asynchronously.
+integration(String description, body()) {
+  test(description, () {
+    body();
+    _run();
+  });
+}
+
 /// Runs all the scheduled events for a test case. This should only be called
 /// once per test case.
-void run() {
+void _run() {
   var createdSandboxDir;
 
   var asyncDone = expectAsync0(() {});
@@ -525,7 +534,7 @@ void schedulePub({List args, Pattern output, Pattern error,
 /// Any futures in [args] will be resolved before the process is started.
 void runPub({List args, Pattern output, Pattern error, int exitCode: 0}) {
   schedulePub(args: args, output: output, error: error, exitCode: exitCode);
-  run();
+  _run();
 }
 
 /// Starts a Pub process and returns a [ScheduledProcess] that supports

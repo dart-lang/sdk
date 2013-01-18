@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("updates one locked Git package but no others", () {
+  integration("updates one locked Git package but no others", () {
     ensureGit();
 
     git('foo.git', [
@@ -58,7 +57,5 @@ main() {
         file('bar.dart', 'main() => "bar";')
       ])
     ]).scheduleValidate();
-
-    run();
   });
 }

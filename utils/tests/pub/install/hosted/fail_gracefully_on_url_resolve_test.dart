@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('fails gracefully if the url does not resolve', () {
+  integration('fails gracefully if the url does not resolve', () {
     dir(appPath, [
       pubspec({
         "name": "myapp",
@@ -28,7 +27,5 @@ main() {
     schedulePub(args: ['install'],
         error: new RegExp('Could not resolve URL "http://pub.invalid".'),
         exitCode: 1);
-
-    run();
   });
 }

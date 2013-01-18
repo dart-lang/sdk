@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("removes a dependency that's been removed from the pubspec", () {
+  integration("removes a dependency that's been removed from the pubspec", () {
     servePackages([
       package("foo", "1.0.0"),
       package("bar", "1.0.0")
@@ -35,7 +34,5 @@ main() {
       "foo": "1.0.0",
       "bar": null
     }).scheduleValidate();
-
-    run();
   });
 }

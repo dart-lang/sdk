@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("updates a locked package's dependers in order to get it to max "
+  integration("updates a locked package's dependers in order to get it to max "
       "version", () {
     servePackages([
       package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
@@ -39,7 +38,5 @@ main() {
       "foo": "2.0.0",
       "bar": "2.0.0"
     }).scheduleValidate();
-
-    run();
   });
 }

@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('checks out packages transitively from Git', () {
+  integration('checks out packages transitively from Git', () {
     ensureGit();
 
     git('foo.git', [
@@ -47,7 +46,5 @@ main() {
         file('bar.dart', 'main() => "bar";')
       ])
     ]).scheduleValidate();
-
-    run();
   });
 }

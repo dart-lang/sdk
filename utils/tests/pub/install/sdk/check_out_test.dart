@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('checks out a package from the SDK', () {
+  integration('checks out a package from the SDK', () {
     dir(sdkPath, [
       file('revision', '1234'),
       dir('pkg', [
@@ -29,7 +28,5 @@ main() {
         output: new RegExp(r"Dependencies installed!$"));
 
     packagesDir({"foo": "0.0.1234"}).scheduleValidate();
-
-    run();
   });
 }

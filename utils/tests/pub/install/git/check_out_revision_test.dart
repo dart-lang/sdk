@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('checks out a package at a specific revision from Git', () {
+  integration('checks out a package at a specific revision from Git', () {
     ensureGit();
 
     var repo = git('foo.git', [
@@ -35,7 +34,5 @@ main() {
         file('foo.dart', 'main() => "foo 1";')
       ])
     ]).scheduleValidate();
-
-    run();
   });
 }

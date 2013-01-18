@@ -6,22 +6,20 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../test_pub.dart';
 import '../../../../pkg/unittest/lib/unittest.dart';
+import '../test_pub.dart';
 
 main() {
   group('requires', () {
-    test('a pubspec', () {
+    integration('a pubspec', () {
       dir(appPath, []).scheduleCreate();
 
       schedulePub(args: ['install'],
           error: new RegExp(r'^Could not find a file named "pubspec\.yaml"'),
           exitCode: 1);
-
-      run();
     });
 
-    test('a pubspec with a "name" key', () {
+    integration('a pubspec with a "name" key', () {
       dir(appPath, [
         pubspec({"dependencies": {"foo": null}})
       ]).scheduleCreate();
@@ -30,12 +28,10 @@ main() {
           error: new RegExp(r'^pubspec.yaml is missing the required "name" '
               r'field \(e\.g\. "name: myapp"\)\.'),
           exitCode: 1);
-
-      run();
     });
   });
 
-  test('adds itself to the packages', () {
+  integration('adds itself to the packages', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
     dir(appPath, [
@@ -51,11 +47,9 @@ main() {
         file('foo.dart', 'main() => "foo";')
       ])
     ]).scheduleValidate();
-
-    run();
   });
 
-  test('does not adds itself to the packages if it has no "lib" directory', () {
+  integration('does not adds itself to the packages if it has no "lib" directory', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
     dir(appPath, [
@@ -68,11 +62,9 @@ main() {
     dir(packagesPath, [
       nothing("myapp_name")
     ]).scheduleValidate();
-
-    run();
   });
 
-  test('does not add a package if it does not have a "lib" directory', () {
+  integration('does not add a package if it does not have a "lib" directory', () {
     // Using an SDK source, but this should be true of all sources.
     dir(sdkPath, [
       file('revision', '1234'),
@@ -92,11 +84,9 @@ main() {
             'directory so you will not be able to import any libraries from '
             'it.'),
         output: new RegExp(r"Dependencies installed!$"));
-
-    run();
   });
 
-  test('does not warn if the root package lacks a "lib" directory', () {
+  integration('does not warn if the root package lacks a "lib" directory', () {
     dir(appPath, [
       appPubspec([])
     ]).scheduleCreate();
@@ -104,11 +94,9 @@ main() {
     schedulePub(args: ['install'],
         error: '',
         output: new RegExp(r"Dependencies installed!$"));
-
-    run();
   });
 
-  test('overwrites the existing packages directory', () {
+  integration('overwrites the existing packages directory', () {
     dir(appPath, [
       appPubspec([]),
       dir('packages', [
@@ -125,12 +113,10 @@ main() {
       nothing('foo'),
       dir('myapp', [file('myapp.dart', 'main() => "myapp";')])
     ]).scheduleValidate();
-
-    run();
   });
 
   group('creates a packages directory in', () {
-    test('"test/" and its subdirectories', () {
+    integration('"test/" and its subdirectories', () {
       dir(appPath, [
         appPubspec([]),
         libDir('foo'),
@@ -156,11 +142,9 @@ main() {
           ])
         ])
       ]).scheduleValidate();
-
-      run();
     });
 
-    test('"example/" and its subdirectories', () {
+    integration('"example/" and its subdirectories', () {
       dir(appPath, [
         appPubspec([]),
         libDir('foo'),
@@ -186,11 +170,9 @@ main() {
           ])
         ])
       ]).scheduleValidate();
-
-      run();
     });
 
-    test('"tool/" and its subdirectories', () {
+    integration('"tool/" and its subdirectories', () {
       dir(appPath, [
         appPubspec([]),
         libDir('foo'),
@@ -216,11 +198,9 @@ main() {
           ])
         ])
       ]).scheduleValidate();
-
-      run();
     });
 
-    test('"web/" and its subdirectories', () {
+    integration('"web/" and its subdirectories', () {
       dir(appPath, [
         appPubspec([]),
         libDir('foo'),
@@ -246,11 +226,9 @@ main() {
           ])
         ])
       ]).scheduleValidate();
-
-      run();
     });
 
-    test('"bin/"', () {
+    integration('"bin/"', () {
       dir(appPath, [
         appPubspec([]),
         libDir('foo'),
@@ -269,8 +247,6 @@ main() {
           ])
         ])
       ]).scheduleValidate();
-
-      run();
     });
   });
 }
