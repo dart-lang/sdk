@@ -9,4 +9,5 @@ import 'dart:collection-dev';
 part 'arrays.dart';
 part 'collections.dart';
 part 'maps.dart';
+part 'sort.dart';
 part 'splay_tree.dart';

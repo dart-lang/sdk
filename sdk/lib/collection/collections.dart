@@ -305,6 +305,11 @@ class IterableMixinWorkaround {
     // The generic type is currently lost. It will be fixed with mixins.
     return new SkipWhileIterable(iterable, test);
   }
+
+  static void sortList(List l, int compare(a, b)) {
+    if (compare == null) compare = Comparable.compare;
+    _Sort.sort(l, compare);
+  }
 }
 
 /**

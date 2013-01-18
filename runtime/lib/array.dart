@@ -155,8 +155,7 @@ class _ObjectArray<E> implements List<E> {
   }
 
   void sort([int compare(E a, E b)]) {
-    if (compare == null) compare = Comparable.compare;
-    _Sort.sort(this, compare);
+    IterableMixinWorkaround.sortList(this, compare);
   }
 
   int indexOf(E element, [int start = 0]) {

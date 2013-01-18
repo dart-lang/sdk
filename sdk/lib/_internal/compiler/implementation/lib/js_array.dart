@@ -223,8 +223,7 @@ class JSArray<E> implements List<E> {
 
   void sort([int compare(E a, E b)]) {
     checkMutable(this, 'sort');
-    if (compare == null) compare = Comparable.compare;
-    coreSort(this, compare);
+    IterableMixinWorkaround.sortList(this, compare);
   }
 
   int indexOf(E element, [int start = 0]) {

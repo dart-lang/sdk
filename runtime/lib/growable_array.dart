@@ -292,8 +292,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   void sort([int compare(T a, T b)]) {
-    if (compare == null) compare = Comparable.compare;
-    _Sort.sort(this, compare);
+    IterableMixinWorkaround.sortList(this, compare);
   }
 
   String toString() {

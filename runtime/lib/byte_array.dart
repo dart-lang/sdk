@@ -284,8 +284,7 @@ abstract class _ByteArrayBase {
   }
 
   void sort([int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
-    coreSort(this, compare);
+    return IterableMixinWorkaround.sortList(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
@@ -1988,8 +1987,7 @@ class _ByteArrayViewBase extends Collection<int> {
   }
 
   void sort([int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
-    coreSort(this, compare);
+    return IterableMixinWorkaround.sortList(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
