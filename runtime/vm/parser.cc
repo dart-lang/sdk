@@ -364,14 +364,14 @@ Token::Kind Parser::LookaheadToken(int num_tokens) {
 
 String* Parser::CurrentLiteral() const {
   String& result = String::ZoneHandle();
-  result ^= tokens_iterator_.CurrentLiteral();
+  result |= tokens_iterator_.CurrentLiteral();
   return &result;
 }
 
 
 RawDouble* Parser::CurrentDoubleLiteral() const {
   LiteralToken& token = LiteralToken::Handle();
-  token ^= tokens_iterator_.CurrentToken();
+  token |= tokens_iterator_.CurrentToken();
   ASSERT(token.kind() == Token::kDOUBLE);
   return reinterpret_cast<RawDouble*>(token.value());
 }
@@ -379,7 +379,7 @@ RawDouble* Parser::CurrentDoubleLiteral() const {
 
 RawInteger* Parser::CurrentIntegerLiteral() const {
   LiteralToken& token = LiteralToken::Handle();
-  token ^= tokens_iterator_.CurrentToken();
+  token |= tokens_iterator_.CurrentToken();
   ASSERT(token.kind() == Token::kINTEGER);
   return reinterpret_cast<RawInteger*>(token.value());
 }
@@ -3138,7 +3138,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       ErrorMsg(classname_pos, "'%s' is already defined",
                class_name.ToCString());
     }
-    cls ^= obj.raw();
+    cls |= obj.raw();
     if (is_patch) {
       String& patch = String::Handle(
           String::Concat(Symbols::PatchSpace(), class_name));
@@ -7402,7 +7402,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (primary_node->primary().IsClass()) {
             // If the primary node referred to a class we are loading a
             // qualified static field.
-            cls ^= primary_node->primary().raw();
+            cls |= primary_node->primary().raw();
           }
         }
         if (cls.IsNull()) {
@@ -9138,7 +9138,7 @@ String& Parser::Interpolate(ArrayNode* values) {
 
   // Call interpolation function.
   String& concatenated = String::ZoneHandle();
-  concatenated ^= DartEntry::InvokeStatic(func, interpolate_arg);
+  concatenated |= DartEntry::InvokeStatic(func, interpolate_arg);
   if (concatenated.IsUnhandledException()) {
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }
