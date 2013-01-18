@@ -931,54 +931,6 @@ static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
 }
 
 
-LocationSummary* StringCharCodeAtInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  // The smi index is either untagged and tagged again at the end of the
-  // operation (element size == 1), or it is left smi tagged (for all element
-  // sizes > 1).
-  locs->set_in(1, CanBeImmediateIndex(index(), class_id())
-                    ? Location::RegisterOrSmiConstant(index())
-                    : Location::RequiresRegister());
-  locs->set_out(Location::RequiresRegister());
-  return locs;
-}
-
-
-void StringCharCodeAtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register str = locs()->in(0).reg();
-  Location index = locs()->in(1);
-  Register result = locs()->out().reg();
-
-  ASSERT((class_id() == kOneByteStringCid) ||
-         (class_id() == kTwoByteStringCid));
-
-  FieldAddress element_address = index.IsRegister() ?
-      FlowGraphCompiler::ElementAddressForRegIndex(
-          class_id(), str, index.reg()) :
-      FlowGraphCompiler::ElementAddressForIntIndex(
-          class_id(), str, Smi::Cast(index.constant()).Value());
-
-  if (class_id() == kOneByteStringCid) {
-    if (index.IsRegister()) {
-      __ SmiUntag(index.reg());
-    }
-    __ movzxb(result, element_address);
-    if (index.IsRegister()) {
-      __ SmiTag(index.reg());  // Retag index.
-    }
-    __ SmiTag(result);
-  } else {
-    // Don't untag smi-index and use TIMES_1 for two byte strings.
-    __ movzxw(result, element_address);
-    __ SmiTag(result);
-  }
-}
-
-
 LocationSummary* StringFromCharCodeInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -1075,6 +1027,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
+    case kOneByteStringCid:
       if (index.IsRegister()) {
         __ SmiUntag(index.reg());
       }
@@ -1093,6 +1046,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     case kUint16ArrayCid:
+    case kTwoByteStringCid:
       __ movzxw(result, element_address);
       __ SmiTag(result);
       break;

@@ -156,13 +156,6 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
 }
 
 
-bool StringCharCodeAtInstr::AttributesEqual(Instruction* other) const {
-  StringCharCodeAtInstr* other_load = other->AsStringCharCodeAt();
-  ASSERT(other_load != NULL);
-  return class_id() == other_load->class_id();
-}
-
-
 bool LoadIndexedInstr::AttributesEqual(Instruction* other) const {
   LoadIndexedInstr* other_load = other->AsLoadIndexed();
   ASSERT(other_load != NULL);
@@ -1108,16 +1101,6 @@ RawAbstractType* NativeCallInstr::CompileType() const {
 }
 
 
-RawAbstractType* StringCharCodeAtInstr::CompileType() const {
-  return Type::IntType();
-}
-
-
-intptr_t StringCharCodeAtInstr::ResultCid() const {
-  return kSmiCid;
-}
-
-
 RawAbstractType* StringFromCharCodeInstr::CompileType() const {
   return Type::StringType();
 }
@@ -1137,6 +1120,8 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
     case kExternalUint8ArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
       return Type::IntType();
     default:
       UNIMPLEMENTED();
@@ -1159,6 +1144,8 @@ intptr_t LoadIndexedInstr::ResultCid() const {
     case kExternalUint8ArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
       return kSmiCid;
     default:
       UNIMPLEMENTED();
@@ -1177,6 +1164,8 @@ Representation LoadIndexedInstr::representation() const {
     case kExternalUint8ArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -2389,22 +2378,6 @@ void LoadFieldInstr::InferRange() {
 
 
 
-void StringCharCodeAtInstr::InferRange() {
-  switch (class_id_) {
-    case kOneByteStringCid:
-      range_ = new Range(RangeBoundary::FromConstant(0),
-                         RangeBoundary::FromConstant(0xFF));
-      break;
-    case kTwoByteStringCid:
-      range_ = new Range(RangeBoundary::FromConstant(0),
-                         RangeBoundary::FromConstant(0xFFFF));
-      break;
-    default:
-      UNIMPLEMENTED();
-  }
-}
-
-
 void LoadIndexedInstr::InferRange() {
   switch (class_id()) {
     case kInt8ArrayCid:
@@ -2424,6 +2397,14 @@ void LoadIndexedInstr::InferRange() {
     case kUint16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(65535));
+      break;
+    case kOneByteStringCid:
+      range_ = new Range(RangeBoundary::FromConstant(0),
+                         RangeBoundary::FromConstant(0xFF));
+      break;
+    case kTwoByteStringCid:
+      range_ = new Range(RangeBoundary::FromConstant(0),
+                         RangeBoundary::FromConstant(0xFFFF));
       break;
     default:
       Definition::InferRange();

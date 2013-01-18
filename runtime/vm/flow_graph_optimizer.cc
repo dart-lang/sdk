@@ -1237,7 +1237,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-StringCharCodeAtInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
+LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
     InstanceCallInstr* call,
     intptr_t cid) {
   Value* str = call->ArgumentAt(0)->value();
@@ -1270,7 +1270,7 @@ StringCharCodeAtInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
                  call->env(),
                  Definition::kEffect);
   }
-  return new StringCharCodeAtInstr(str, index, cid);
+  return new LoadIndexedInstr(str, index, cid);
 }
 
 
@@ -1291,7 +1291,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (ic_data.NumberOfChecks() == 1) &&
       ((class_ids[0] == kOneByteStringCid) ||
        (class_ids[0] == kTwoByteStringCid))) {
-    StringCharCodeAtInstr* instr = BuildStringCharCodeAt(call, class_ids[0]);
+    LoadIndexedInstr* instr = BuildStringCharCodeAt(call, class_ids[0]);
     call->ReplaceWith(instr, current_iterator());
     RemovePushArguments(call);
     return true;
@@ -1300,7 +1300,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (ic_data.NumberOfChecks() == 1) &&
       (class_ids[0] == kOneByteStringCid)) {
     // TODO(fschneider): Handle TwoByteString.
-    StringCharCodeAtInstr* load_char_code =
+    LoadIndexedInstr* load_char_code =
         BuildStringCharCodeAt(call, class_ids[0]);
     InsertBefore(call, load_char_code, NULL, Definition::kValue);
     StringFromCharCodeInstr* char_at =
@@ -4071,11 +4071,6 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
 
 
 void ConstantPropagator::VisitNativeCall(NativeCallInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitStringCharCodeAt(StringCharCodeAtInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

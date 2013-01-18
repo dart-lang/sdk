@@ -161,17 +161,6 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StringCharCodeAtInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void StringCharCodeAtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
 LocationSummary* StringFromCharCodeInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;

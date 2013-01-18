@@ -272,7 +272,6 @@ class EmbeddedArray<T, 0> {
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
-  M(StringCharCodeAt)                                                          \
   M(StringFromCharCode)
 
 
@@ -511,7 +510,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class CheckSmiInstr;
   friend class CheckArrayBoundInstr;
   friend class CheckEitherNonSmiInstr;
-  friend class StringCharCodeAtInstr;
   friend class LICM;
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
@@ -2690,77 +2688,6 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
 };
 
 
-class StringCharCodeAtInstr : public TemplateDefinition<2> {
- public:
-  StringCharCodeAtInstr(Value* receiver,
-                        Value* index,
-                        intptr_t class_id)
-      : class_id_(class_id) {
-    ASSERT(receiver != NULL);
-    ASSERT(index != NULL);
-    inputs_[0] = receiver;
-    inputs_[1] = index;
-  }
-
-  DECLARE_INSTRUCTION(StringCharCodeAt)
-  virtual RawAbstractType* CompileType() const;
-
-  Value* receiver() const { return inputs_[0]; }
-  Value* index() const { return inputs_[1]; }
-  intptr_t class_id() const { return class_id_; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const;
-
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool AffectedBySideEffect() const { return true; }
-
-  virtual void InferRange();
-
- private:
-  const intptr_t class_id_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringCharCodeAtInstr);
-};
-
-
-class StringFromCharCodeInstr : public TemplateDefinition<1> {
- public:
-  explicit StringFromCharCodeInstr(Value* char_code,
-                                   intptr_t cid) : cid_(cid) {
-    ASSERT(char_code != NULL);
-    ASSERT(char_code->definition()->IsStringCharCodeAt() &&
-           (char_code->definition()->AsStringCharCodeAt()->class_id() ==
-            kOneByteStringCid));
-    inputs_[0] = char_code;
-  }
-
-  DECLARE_INSTRUCTION(StringFromCharCode)
-  virtual RawAbstractType* CompileType() const;
-
-  Value* char_code() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const {  return cid_; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
- private:
-  const intptr_t cid_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
-};
-
-
 class LoadIndexedInstr : public TemplateDefinition<2> {
  public:
   LoadIndexedInstr(Value* array, Value* index, intptr_t class_id)
@@ -2796,6 +2723,39 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   const intptr_t class_id_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
+};
+
+
+class StringFromCharCodeInstr : public TemplateDefinition<1> {
+ public:
+  explicit StringFromCharCodeInstr(Value* char_code,
+                                   intptr_t cid) : cid_(cid) {
+    ASSERT(char_code != NULL);
+    ASSERT(char_code->definition()->IsLoadIndexed() &&
+           (char_code->definition()->AsLoadIndexed()->class_id() ==
+            kOneByteStringCid));
+    inputs_[0] = char_code;
+  }
+
+  DECLARE_INSTRUCTION(StringFromCharCode)
+  virtual RawAbstractType* CompileType() const;
+
+  Value* char_code() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const {  return cid_; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+ private:
+  const intptr_t cid_;
+
+  DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
 };
 
 
