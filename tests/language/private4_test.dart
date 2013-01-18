@@ -4,6 +4,8 @@
 
 // Test that inlining in the compiler works with privacy.
 
+library private4_test;
+
 import 'other_library.dart';
 
 main() {
