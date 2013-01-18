@@ -29,8 +29,6 @@ DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 DEFINE_FLAG(bool, warn_legacy_map_literal, false,
             "Warning on legacy map literal syntax (single type argument)");
-DEFINE_FLAG(bool, strict_function_literals, false,
-            "enforce new function literal rules");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -4728,25 +4726,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   result_type = Type::DynamicType();
 
   intptr_t ident_pos = TokenPos();
-  if (FLAG_strict_function_literals) {
-    if (is_literal) {
-      ASSERT(CurrentToken() == Token::kLPAREN);
-      function_name = &Symbols::AnonymousClosure();
-    } else {
-      if (CurrentToken() == Token::kVOID) {
-        ConsumeToken();
-        result_type = Type::VoidType();
-      } else if ((CurrentToken() == Token::kIDENT) &&
-                 (LookaheadToken(1) != Token::kLPAREN)) {
-        result_type = ParseType(ClassFinalizer::kCanonicalize);
-      }
-      ident_pos = TokenPos();
-      variable_name = ExpectIdentifier("function name expected");
-      function_name = variable_name;
-    }
+  if (is_literal) {
+    ASSERT(CurrentToken() == Token::kLPAREN);
+    function_name = &Symbols::AnonymousClosure();
   } else {
-    // TODO(hausner) remove this block once support for old-style function
-    // literals is gone.
     if (CurrentToken() == Token::kVOID) {
       ConsumeToken();
       result_type = Type::VoidType();
@@ -4755,16 +4738,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       result_type = ParseType(ClassFinalizer::kCanonicalize);
     }
     ident_pos = TokenPos();
-    if (IsIdentifier()) {
-      variable_name = CurrentLiteral();
-      function_name = variable_name;
-      ConsumeToken();
-    } else {
-      if (!is_literal) {
-        ErrorMsg("function name expected");
-      }
-      function_name = &Symbols::AnonymousClosure();
-    }
+    variable_name = ExpectIdentifier("function name expected");
+    function_name = variable_name;
   }
 
   if (CurrentToken() != Token::kLPAREN) {
@@ -5171,46 +5146,18 @@ bool Parser::IsTopLevelAccessor() {
 
 
 bool Parser::IsFunctionLiteral() {
-  // TODO(hausner): Remove code block that supports old-style function
-  // literals.
-  if (FLAG_strict_function_literals) {
-    if (CurrentToken() != Token::kLPAREN || !allow_function_literals_) {
-      return false;
-    }
-    const intptr_t saved_pos = TokenPos();
-    bool is_function_literal = false;
-    SkipToMatchingParenthesis();
-    if ((CurrentToken() == Token::kLBRACE) ||
-        (CurrentToken() == Token::kARROW)) {
-      is_function_literal = true;
-    }
-    SetPosition(saved_pos);
-    return is_function_literal;
-  } else {
-    if (!allow_function_literals_) {
-      return false;
-    }
-    const intptr_t saved_pos = TokenPos();
-    bool is_function_literal = false;
-    if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
-      ConsumeToken();  // Consume function identifier.
-    } else if (TryParseReturnType()) {
-      if (!IsIdentifier()) {
-        SetPosition(saved_pos);
-        return false;
-      }
-      ConsumeToken();  // Comsume function identifier.
-    }
-    if (CurrentToken() == Token::kLPAREN) {
-      SkipToMatchingParenthesis();
-      if ((CurrentToken() == Token::kLBRACE) ||
-          (CurrentToken() == Token::kARROW)) {
-        is_function_literal = true;
-      }
-    }
-    SetPosition(saved_pos);
-    return is_function_literal;
+  if (CurrentToken() != Token::kLPAREN || !allow_function_literals_) {
+    return false;
   }
+  const intptr_t saved_pos = TokenPos();
+  bool is_function_literal = false;
+  SkipToMatchingParenthesis();
+  if ((CurrentToken() == Token::kLBRACE) ||
+      (CurrentToken() == Token::kARROW)) {
+    is_function_literal = true;
+  }
+  SetPosition(saved_pos);
+  return is_function_literal;
 }
 
 
