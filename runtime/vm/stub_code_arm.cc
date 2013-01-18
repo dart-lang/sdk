@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,13 +11,13 @@
 
 namespace dart {
 
-void StubCode::GenerateDartCallToRuntimeStub(Assembler* assembler) {
-  __ Unimplemented("DartCallToRuntime stub");
+void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
+  __ Unimplemented("CallToRuntime stub");
 }
 
 
-void StubCode::GenerateStubCallToRuntimeStub(Assembler* assembler) {
-  __ Unimplemented("StubCallToRuntime stub");
+void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
+  __ Unimplemented("PrintStopMessage stub");
 }
 
 
@@ -36,13 +36,23 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  __ Unimplemented("MegamorphicLookup stub");
+void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
+  __ Unimplemented("InstanceFunctionLookup stub");
+}
+
+
+void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
+  __ Unimplemented("DeoptimizeLazy stub");
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ Unimplemented("Deoptimize stub");
+}
+
+
+void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
+  __ Unimplemented("MegamorphicMiss stub");
 }
 
 
@@ -66,6 +76,11 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
+  __ Unimplemented("UpdateStoreBuffer stub");
+}
+
+
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   __ Unimplemented("AllocateObject stub");
@@ -83,6 +98,23 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
+  __ Unimplemented("OptimizedUsageCounterIncrement stub");
+}
+
+
+void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
+                                             Register temp_reg) {
+  __ Unimplemented("UsageCounterIncrement stub");
+}
+
+
+void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
+                                                 intptr_t num_args) {
+  __ Unimplemented("NArgsCheckInlineCache stub");
+}
+
+
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   __ Unimplemented("GenerateOneArgCheckInlineCacheStub stub");
 }
@@ -93,25 +125,66 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
+  __ Unimplemented("GenerateThreeArgsCheckInlineCacheStub stub");
+}
+
+
+void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
+    Assembler* assembler) {
+  GenerateOptimizedUsageCounterIncrement(assembler);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1);
+}
+
+
+void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
+    Assembler* assembler) {
+  GenerateOptimizedUsageCounterIncrement(assembler);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2);
+}
+
+
+void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
+    Assembler* assembler) {
+  GenerateOptimizedUsageCounterIncrement(assembler);
+  GenerateNArgsCheckInlineCacheStub(assembler, 3);
+}
+
+
+void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
+  GenerateNArgsCheckInlineCacheStub(assembler, 1);
+}
+
+
+void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
+  GenerateNArgsCheckInlineCacheStub(assembler, 1);
+}
+
+
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ Unimplemented("BreakpointStatic stub");
 }
+
 
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
   __ Unimplemented("BreakpointReturn stub");
 }
 
+
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ Unimplemented("BreakpointDynamic stub");
 }
+
 
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   __ Unimplemented("Subtype1TestCache Stub");
 }
 
+
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   __ Unimplemented("Subtype2TestCache Stub");
 }
+
 
 void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
   __ Unimplemented("Subtype3TestCache Stub");
@@ -136,6 +209,21 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 // No Result.
 void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
   __ Unimplemented("JumpToErrorHandler Stub");
+}
+
+
+void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
+  __ Unimplemented("EqualityWithNullArg stub");
+}
+
+
+void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
+  __ Unimplemented("OptimizeFunction stub");
+}
+
+
+void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
+  __ Unimplemented("IdenticalWithNumberCheck stub");
 }
 
 }  // namespace dart

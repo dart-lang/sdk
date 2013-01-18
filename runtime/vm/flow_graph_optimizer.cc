@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1323,7 +1323,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
     if ((recognized_kind == MethodRecognizer::kDoubleTruncate) ||
         (recognized_kind == MethodRecognizer::kDoubleRound)) {
-      if (!CPUFeatures::sse4_1_supported()) {
+      if (!CPUFeatures::double_truncate_round_supported()) {
         return false;
       }
       AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
@@ -2017,6 +2017,17 @@ class RangeAnalysis : public ValueObject {
    public:
     ArrayLengthData(Definition* array, Definition* array_length)
         : array_(array), array_length_(array_length) { }
+
+    ArrayLengthData(const ArrayLengthData& other)
+        : ValueObject(),
+          array_(other.array_),
+          array_length_(other.array_length_) { }
+
+    ArrayLengthData& operator=(const ArrayLengthData& other) {
+      array_ = other.array_;
+      array_length_ = other.array_length_;
+      return *this;
+    }
 
     Definition* array() const { return array_; }
     Definition* array_length() const { return array_length_; }

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -300,12 +300,12 @@ class Isolate : public BaseIsolate {
     ASSERT((value == NULL) || (deopt_cpu_registers_copy_ == NULL));
     deopt_cpu_registers_copy_ = value;
   }
-  double* deopt_xmm_registers_copy() const {
-    return deopt_xmm_registers_copy_;
+  double* deopt_fpu_registers_copy() const {
+    return deopt_fpu_registers_copy_;
   }
-  void set_deopt_xmm_registers_copy(double* value) {
-    ASSERT((value == NULL) || (deopt_xmm_registers_copy_ == NULL));
-    deopt_xmm_registers_copy_ = value;
+  void set_deopt_fpu_registers_copy(double* value) {
+    ASSERT((value == NULL) || (deopt_fpu_registers_copy_ == NULL));
+    deopt_fpu_registers_copy_ = value;
   }
   intptr_t* deopt_frame_copy() const { return deopt_frame_copy_; }
   void SetDeoptFrameCopy(intptr_t* value, intptr_t size) {
@@ -378,7 +378,7 @@ class Isolate : public BaseIsolate {
 
   // Deoptimization support.
   intptr_t* deopt_cpu_registers_copy_;
-  double* deopt_xmm_registers_copy_;
+  double* deopt_fpu_registers_copy_;
   intptr_t* deopt_frame_copy_;
   intptr_t deopt_frame_copy_size_;
   DeferredDouble* deferred_doubles_;

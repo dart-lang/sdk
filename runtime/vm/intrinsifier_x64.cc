@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -45,7 +45,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   __ cmpq(RDI, Immediate(0));
   __ j(LESS, &fall_through);
   // Check for maximum allowed length.
-  const Immediate max_len =
+  const Immediate& max_len =
       Immediate(reinterpret_cast<int64_t>(Smi::New(Array::kMaxElements)));
   __ cmpq(RDI, max_len);
   __ j(GREATER, &fall_through);
@@ -117,7 +117,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // RCX: new object end address.
   // RDI: iterator which initially points to the start of the variable
   // data area to be initialized.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
   Label done;
@@ -394,7 +394,8 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // Compare length with capacity.
   __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Must grow data.
-  const Immediate value_one = Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
+  const Immediate& value_one =
+      Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
   // len = len + 1;
   __ addq(FieldAddress(RAX, GrowableObjectArray::length_offset()), value_one);
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Value
@@ -402,7 +403,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ StoreIntoObject(RDX,
                      FieldAddress(RDX, RCX, TIMES_4, Array::data_offset()),
                      RAX);
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<int64_t>(Object::null()));
   __ movq(RAX, raw_null);
   __ ret();
@@ -1133,7 +1134,7 @@ bool Intrinsifier::Integer_equal(Assembler* assembler) {
 bool Intrinsifier::Integer_sar(Assembler* assembler) {
   Label fall_through, shift_count_ok;
   TestBothArgumentsSmis(assembler, &fall_through);
-  Immediate count_limit = Immediate(0x3F);
+  const Immediate& count_limit = Immediate(0x3F);
   // Check that the count is not larger than what the hardware can handle.
   // For shifting right a Smi the result is the same for all numbers
   // >= count_limit.

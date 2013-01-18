@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,6 +13,51 @@
 #include "vm/constants_arm.h"
 
 namespace dart {
+
+class Operand : public ValueObject {
+ public:
+  Operand(const Operand& other) : ValueObject() {
+    UNIMPLEMENTED();
+  }
+
+  Operand& operator=(const Operand& other) {
+    UNIMPLEMENTED();
+    return *this;
+  }
+
+ protected:
+  Operand() { }  // Needed by subclass Address.
+};
+
+
+class Address : public Operand {
+ public:
+  Address(Register base, int32_t disp) {
+    UNIMPLEMENTED();
+  }
+
+  Address(const Address& other) : Operand(other) { }
+
+  Address& operator=(const Address& other) {
+    Operand::operator=(other);
+    return *this;
+  }
+};
+
+
+class FieldAddress : public Address {
+ public:
+  FieldAddress(Register base, int32_t disp)
+      : Address(base, disp - kHeapObjectTag) { }
+
+  FieldAddress(const FieldAddress& other) : Address(other) { }
+
+  FieldAddress& operator=(const FieldAddress& other) {
+    Address::operator=(other);
+    return *this;
+  }
+};
+
 
 class Label : public ValueObject {
  public:
@@ -58,13 +103,26 @@ class Label : public ValueObject {
 };
 
 
-class Assembler {
+class CPUFeatures : public AllStatic {
  public:
-  Assembler() { }
+  static void InitOnce() { }
+  static bool double_truncate_round_supported() {
+    UNIMPLEMENTED();
+    return false;
+  }
+};
+
+
+class Assembler : public ValueObject {
+ public:
+  Assembler() { UNIMPLEMENTED(); }
   ~Assembler() { }
 
-  // Macros for High-level operations.
-  void AddConstant(Register reg, int value, Condition cond = AL) {
+  void PopRegister(Register r) {
+    UNIMPLEMENTED();
+  }
+
+  void Bind(Label* label) {
     UNIMPLEMENTED();
   }
 
@@ -93,6 +151,25 @@ class Assembler {
 
   static void InitializeMemoryWithBreakpoints(uword data, int length) {
     UNIMPLEMENTED();
+  }
+
+  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
+    UNIMPLEMENTED();
+  }
+
+  const Code::Comments& GetCodeComments() const {
+    UNIMPLEMENTED();
+    return Code::Comments::New(0);
+  }
+
+  static const char* RegisterName(Register reg) {
+    UNIMPLEMENTED();
+    return NULL;
+  }
+
+  static const char* FpuRegisterName(FpuRegister reg) {
+    UNIMPLEMENTED();
+    return NULL;
   }
 
  private:

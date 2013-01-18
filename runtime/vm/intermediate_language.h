@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1613,6 +1613,19 @@ class RangeBoundary : public ValueObject {
   enum Kind { kUnknown, kSymbol, kConstant };
 
   RangeBoundary() : kind_(kUnknown), value_(0), offset_(0) { }
+
+  RangeBoundary(const RangeBoundary& other)
+      : ValueObject(),
+        kind_(other.kind_),
+        value_(other.value_),
+        offset_(other.offset_) { }
+
+  RangeBoundary& operator=(const RangeBoundary& other) {
+    kind_ = other.kind_;
+    value_ = other.value_;
+    offset_ = other.offset_;
+    return *this;
+  }
 
   static RangeBoundary FromConstant(intptr_t val) {
     return RangeBoundary(kConstant, val, 0);
@@ -4198,6 +4211,17 @@ class Environment : public ZoneAllocated {
    public:
     explicit ShallowIterator(Environment* environment)
         : environment_(environment), index_(0) { }
+
+    ShallowIterator(const ShallowIterator& other)
+        : ValueObject(),
+          environment_(other.environment_),
+          index_(other.index_) { }
+
+    ShallowIterator& operator=(const ShallowIterator& other) {
+      environment_ = other.environment_;
+      index_ = other.index_;
+      return *this;
+    }
 
     Environment* environment() const { return environment_; }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -82,7 +82,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movq(RBX, Address(CTX, Isolate::top_context_offset()));
 
   // Reset Context pointer in Isolate structure.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movq(Address(CTX, Isolate::top_context_offset()), raw_null);
 
@@ -170,7 +170,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movq(R8, Address(CTX, Isolate::top_context_offset()));
 
   // Reset Context pointer in Isolate structure.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movq(Address(CTX, Isolate::top_context_offset()), raw_null);
 
@@ -185,7 +185,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 // Input parameters:
 //   R10: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R10);  // Preserve arguments descriptor array.
@@ -206,7 +206,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // (invalid because its function was optimized or deoptimized).
 // R10: arguments descriptor array.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R10);  // Preserve arguments descriptor array.
@@ -225,7 +225,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 // Input parameters:
 //   R10: smi-tagged argument count, may be zero.
 static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
   // Allocate array to store arguments of caller.
@@ -259,7 +259,7 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   AssemblerMacros::EnterStubFrame(assembler);
 
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushq(raw_null);  // Space for the return value.
 
@@ -430,7 +430,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushq(RBX);
   __ pushq(R10);
 
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Instructions::null()));
   __ pushq(raw_null);  // Space for the result of the runtime call.
   __ pushq(RAX);  // Receiver.
@@ -465,7 +465,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 // The newly allocated object is returned in RAX.
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
   if (FLAG_inline_alloc) {
@@ -596,7 +596,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 //       called, the stub accesses the closure from this location directly
 //       when trying to resolve the call.
 void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
   // Load num_args.
@@ -823,7 +823,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Output:
 // RAX: new allocated RawContext object.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (FLAG_inline_alloc) {
     const Class& context_class = Class::ZoneHandle(Object::context_class());
@@ -899,7 +899,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R13: Isolate, not an object.
     __ movq(FieldAddress(RAX, Context::isolate_offset()), R13);
 
-    const Immediate raw_null =
+    const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     // Setup the parent field.
     // RAX: new object.
@@ -1002,7 +1002,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   const intptr_t kObjectTypeArgumentsOffset = 2 * kWordSize;
   const intptr_t kInstantiatorTypeArgumentsOffset = 1 * kWordSize;
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized =
@@ -1098,7 +1098,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ movq(Address(RAX, Instance::tags_offset()), Immediate(tags));
 
     // Initialize the remaining words of the object.
-    const Immediate raw_null =
+    const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
     // RAX: new object start.
@@ -1177,7 +1177,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 //   RSP : points to return address.
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   ASSERT(func.IsClosureFunction());
   const bool is_implicit_static_closure =
@@ -1336,7 +1336,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // The target function was not found, so invoke method
   // "dynamic noSuchMethod(InvocationMirror invocation)".
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(RBP, R13, TIMES_4, kWordSize));  // Get receiver.
@@ -1517,7 +1517,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
 
   // IC miss.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
@@ -1669,7 +1669,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 //  R10: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R10);  // Preserve arguments descriptor.
@@ -1740,7 +1740,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 // Result in RCX: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   ASSERT((1 <= n) && (n <= 3));
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   const intptr_t kInstantiatorTypeArgumentsInBytes = 1 * kWordSize;
   const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
@@ -1987,7 +1987,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 // RDI: function to be reoptimized.
 // R10: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushq(R10);

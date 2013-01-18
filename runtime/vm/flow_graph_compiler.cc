@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -154,16 +154,6 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           Isolate::Current()->object_store()->double_class())),
       parallel_move_resolver_(this) {
   ASSERT(assembler != NULL);
-}
-
-
-FlowGraphCompiler::~FlowGraphCompiler() {
-  // BlockInfos are zone-allocated, so their destructors are not called.
-  // Verify the labels explicitly here.
-  for (int i = 0; i < block_info_.length(); ++i) {
-    ASSERT(!block_info_[i]->label.IsLinked());
-    ASSERT(!block_info_[i]->label.HasNear());
-  }
 }
 
 
@@ -355,17 +345,17 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
     // Slow path code can have registers at the safepoint.
     if (!locs->always_calls()) {
       RegisterSet* regs = locs->live_registers();
-      if (regs->xmm_regs_count() > 0) {
-        // Denote XMM registers with 0 bits in the stackmap.  Based on the
-        // assumption that there are normally few live XMM registers, this
+      if (regs->fpu_regs_count() > 0) {
+        // Denote FPU registers with 0 bits in the stackmap.  Based on the
+        // assumption that there are normally few live FPU registers, this
         // encoding is simpler and roughly as compact as storing a separate
-        // count of XMM registers.
+        // count of FPU registers.
         //
-        // XMM registers have the highest register number at the highest
+        // FPU registers have the highest register number at the highest
         // address (i.e., first in the stackmap).
-        for (intptr_t i = kNumberOfXmmRegisters - 1; i >= 0; --i) {
-          XmmRegister reg = static_cast<XmmRegister>(i);
-          if (regs->ContainsXmmRegister(reg)) {
+        for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+          FpuRegister reg = static_cast<FpuRegister>(i);
+          if (regs->ContainsFpuRegister(reg)) {
             for (intptr_t j = 0;
                  j < FlowGraphAllocator::kDoubleSpillSlotFactor;
                  ++j) {
@@ -660,115 +650,6 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 }
 
 
-struct CidTarget {
-  intptr_t cid;
-  Function* target;
-  intptr_t count;
-  CidTarget(intptr_t cid_arg,
-            Function* target_arg,
-            intptr_t count_arg)
-      : cid(cid_arg), target(target_arg), count(count_arg) {}
-};
-
-
-// Returns 'sorted' array in decreasing count order.
-// The expected number of elements to sort is less than 10.
-static void SortICDataByCount(const ICData& ic_data,
-                              GrowableArray<CidTarget>* sorted) {
-  ASSERT(ic_data.num_args_tested() == 1);
-  const intptr_t len = ic_data.NumberOfChecks();
-  sorted->Clear();
-
-  for (int i = 0; i < len; i++) {
-    sorted->Add(CidTarget(ic_data.GetReceiverClassIdAt(i),
-                          &Function::ZoneHandle(ic_data.GetTargetAt(i)),
-                          ic_data.GetCountAt(i)));
-  }
-  for (int i = 0; i < len; i++) {
-    intptr_t largest_ix = i;
-    for (int k = i + 1; k < len; k++) {
-      if ((*sorted)[largest_ix].count < (*sorted)[k].count) {
-        largest_ix = k;
-      }
-    }
-    if (i != largest_ix) {
-      // Swap.
-      CidTarget temp = (*sorted)[i];
-      (*sorted)[i] = (*sorted)[largest_ix];
-      (*sorted)[largest_ix] = temp;
-    }
-  }
-}
-
-
-void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
-                                        Register class_id_reg,
-                                        intptr_t arg_count,
-                                        const Array& arg_names,
-                                        Label* deopt,
-                                        intptr_t deopt_id,
-                                        intptr_t token_index,
-                                        LocationSummary* locs) {
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
-  Label match_found;
-  const intptr_t len = ic_data.NumberOfChecks();
-  GrowableArray<CidTarget> sorted(len);
-  SortICDataByCount(ic_data, &sorted);
-  for (intptr_t i = 0; i < len; i++) {
-    const bool is_last_check = (i == (len - 1));
-    Label next_test;
-    assembler()->cmpl(class_id_reg, Immediate(sorted[i].cid));
-    if (is_last_check) {
-      assembler()->j(NOT_EQUAL, deopt);
-    } else {
-      assembler()->j(NOT_EQUAL, &next_test);
-    }
-    GenerateStaticCall(deopt_id,
-                       token_index,
-                       *sorted[i].target,
-                       arg_count,
-                       arg_names,
-                       locs);
-    if (!is_last_check) {
-      assembler()->jmp(&match_found);
-    }
-    assembler()->Bind(&next_test);
-  }
-  assembler()->Bind(&match_found);
-}
-
-
-void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
-                                                XmmRegister left,
-                                                XmmRegister right,
-                                                BranchInstr* branch) {
-  ASSERT(branch != NULL);
-  assembler()->comisd(left, right);
-  BlockEntryInstr* nan_result = (true_condition == NOT_EQUAL) ?
-      branch->true_successor() : branch->false_successor();
-  assembler()->j(PARITY_EVEN, GetBlockLabel(nan_result));
-  branch->EmitBranchOnCondition(this, true_condition);
-}
-
-
-
-void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
-                                              XmmRegister left,
-                                              XmmRegister right,
-                                              Register result) {
-  assembler()->comisd(left, right);
-  Label is_false, is_true, done;
-  assembler()->j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN false;
-  assembler()->j(true_condition, &is_true, Assembler::kNearJump);
-  assembler()->Bind(&is_false);
-  assembler()->LoadObject(result, Bool::False());
-  assembler()->jmp(&done);
-  assembler()->Bind(&is_true);
-  assembler()->LoadObject(result, Bool::True());
-  assembler()->Bind(&done);
-}
-
-
 // Allocate a register that is not explicitly blocked.
 static Register AllocateFreeRegister(bool* blocked_registers) {
   for (intptr_t regno = 0; regno < kNumberOfCpuRegisters; regno++) {
@@ -873,7 +754,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       case Location::kSameAsFirstInput:
         result_location = locs->in(0);
         break;
-      case Location::kRequiresXmmRegister:
+      case Location::kRequiresFpuRegister:
         UNREACHABLE();
         break;
     }
@@ -990,48 +871,6 @@ void ParallelMoveResolver::PerformMove(int index) {
 }
 
 
-Condition FlowGraphCompiler::FlipCondition(Condition condition) {
-  switch (condition) {
-    case EQUAL:         return EQUAL;
-    case NOT_EQUAL:     return NOT_EQUAL;
-    case LESS:          return GREATER;
-    case LESS_EQUAL:    return GREATER_EQUAL;
-    case GREATER:       return LESS;
-    case GREATER_EQUAL: return LESS_EQUAL;
-    case BELOW:         return ABOVE;
-    case BELOW_EQUAL:   return ABOVE_EQUAL;
-    case ABOVE:         return BELOW;
-    case ABOVE_EQUAL:   return BELOW_EQUAL;
-    default:
-      UNIMPLEMENTED();
-      return EQUAL;
-  }
-}
-
-
-bool FlowGraphCompiler::EvaluateCondition(Condition condition,
-                                          intptr_t left,
-                                          intptr_t right) {
-  const uintptr_t unsigned_left = static_cast<uintptr_t>(left);
-  const uintptr_t unsigned_right = static_cast<uintptr_t>(right);
-  switch (condition) {
-    case EQUAL:         return left == right;
-    case NOT_EQUAL:     return left != right;
-    case LESS:          return left < right;
-    case LESS_EQUAL:    return left <= right;
-    case GREATER:       return left > right;
-    case GREATER_EQUAL: return left >= right;
-    case BELOW:         return unsigned_left < unsigned_right;
-    case BELOW_EQUAL:   return unsigned_left <= unsigned_right;
-    case ABOVE:         return unsigned_left > unsigned_right;
-    case ABOVE_EQUAL:   return unsigned_left >= unsigned_right;
-    default:
-      UNIMPLEMENTED();
-      return false;
-  }
-}
-
-
 intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
@@ -1094,74 +933,6 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
 }
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
-                                                          Register array,
-                                                          intptr_t index) {
-  const int64_t disp =
-      static_cast<int64_t>(index) * ElementSizeFor(cid) + DataOffsetFor(cid);
-  ASSERT(Utils::IsInt(32, disp));
-  return FieldAddress(array, static_cast<int32_t>(disp));
-}
-
-
-FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                          Register array,
-                                                          Register index) {
-  // Note that index is smi-tagged, (i.e, times 2) for all arrays with element
-  // size > 1. For Uint8Array and OneByteString the index is expected to be
-  // untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return FieldAddress(
-          array, index, TIMES_HALF_WORD_SIZE, Array::data_offset());
-    case kFloat32ArrayCid:
-      return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
-    case kFloat64ArrayCid:
-      return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
-    case kInt8ArrayCid:
-      return FieldAddress(array, index, TIMES_1, Int8Array::data_offset());
-    case kUint8ArrayCid:
-      return FieldAddress(array, index, TIMES_1, Uint8Array::data_offset());
-    case kUint8ClampedArrayCid:
-      return
-          FieldAddress(array, index, TIMES_1, Uint8ClampedArray::data_offset());
-    case kInt16ArrayCid:
-      return FieldAddress(array, index, TIMES_1, Int16Array::data_offset());
-    case kUint16ArrayCid:
-      return FieldAddress(array, index, TIMES_1, Uint16Array::data_offset());
-    case kOneByteStringCid:
-      return FieldAddress(array, index, TIMES_1, OneByteString::data_offset());
-    case kTwoByteStringCid:
-      return FieldAddress(array, index, TIMES_1, TwoByteString::data_offset());
-    default:
-      UNIMPLEMENTED();
-      return FieldAddress(SPREG, 0);
-  }
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForIntIndex(intptr_t cid,
-                                                             Register array,
-                                                             intptr_t index) {
-  return Address(array, index * ElementSizeFor(cid));
-}
-
-
-Address FlowGraphCompiler::ExternalElementAddressForRegIndex(intptr_t cid,
-                                                             Register array,
-                                                             Register index) {
-  switch (cid) {
-    case kExternalUint8ArrayCid:
-      return Address(array, index, TIMES_1, 0);
-    default:
-      UNIMPLEMENTED();
-      return Address(SPREG, 0);
-  }
-}
-
-
 // Returns true if checking against this type is a direct class id comparison.
 bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
@@ -1185,6 +956,36 @@ bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
     return is_raw_type;
   }
   return true;
+}
+
+
+// Returns 'sorted' array in decreasing count order.
+// The expected number of elements to sort is less than 10.
+void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
+                                          GrowableArray<CidTarget>* sorted) {
+  ASSERT(ic_data.num_args_tested() == 1);
+  const intptr_t len = ic_data.NumberOfChecks();
+  sorted->Clear();
+
+  for (int i = 0; i < len; i++) {
+    sorted->Add(CidTarget(ic_data.GetReceiverClassIdAt(i),
+                          &Function::ZoneHandle(ic_data.GetTargetAt(i)),
+                          ic_data.GetCountAt(i)));
+  }
+  for (int i = 0; i < len; i++) {
+    intptr_t largest_ix = i;
+    for (int k = i + 1; k < len; k++) {
+      if ((*sorted)[largest_ix].count < (*sorted)[k].count) {
+        largest_ix = k;
+      }
+    }
+    if (i != largest_ix) {
+      // Swap.
+      CidTarget temp = (*sorted)[i];
+      (*sorted)[i] = (*sorted)[largest_ix];
+      (*sorted)[largest_ix] = temp;
+    }
+  }
 }
 
 }  // namespace dart

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -81,7 +81,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(ECX, Address(CTX, Isolate::top_context_offset()));
 
   // Reset Context pointer in Isolate structure.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(Address(CTX, Isolate::top_context_offset()), raw_null);
 
@@ -171,7 +171,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movl(EDI, Address(CTX, Isolate::top_context_offset()));
 
   // Reset Context pointer in Isolate structure.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(Address(CTX, Isolate::top_context_offset()), raw_null);
 
@@ -186,7 +186,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 // Input parameters:
 //   EDX: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EDX);  // Preserve arguments descriptor array.
@@ -207,7 +207,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // (invalid because its function was optimized or deoptimized).
 // EDX: arguments descriptor array.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
@@ -229,7 +229,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 //   EDX: smi-tagged argument count, may be zero.
 // Uses EAX, EBX, ECX, EDX.
 static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
   // Allocate array to store arguments of caller.
@@ -264,7 +264,7 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   AssemblerMacros::EnterStubFrame(assembler);
 
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushl(raw_null);  // Space for the return value.
 
@@ -434,7 +434,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushl(ECX);
   __ pushl(EDX);
 
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Instructions::null()));
   __ pushl(raw_null);  // Space for the result of the runtime call.
   __ pushl(EAX);  // Pass receiver.
@@ -470,7 +470,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 // The newly allocated object is returned in EAX.
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
   if (FLAG_inline_alloc) {
@@ -607,7 +607,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 //       when trying to resolve the call.
 // Uses EDI.
 void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
   // Load num_args.
@@ -835,7 +835,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // EAX: new allocated RawContext object.
 // EBX and EDX are destroyed.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (FLAG_inline_alloc) {
     const Class& context_class = Class::ZoneHandle(Object::context_class());
@@ -908,7 +908,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EBX: Isolate, not an object.
     __ movl(FieldAddress(EAX, Context::isolate_offset()), EBX);
 
-    const Immediate raw_null =
+    const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     // Setup the parent field.
     // EAX: new object.
@@ -1019,7 +1019,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
   const intptr_t kObjectTypeArgumentsOffset = 2 * kWordSize;
   const intptr_t kInstantiatorTypeArgumentsOffset = 1 * kWordSize;
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized =
@@ -1112,7 +1112,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
 
     // Initialize the remaining words of the object.
-    const Immediate raw_null =
+    const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
     // EAX: new object start.
@@ -1193,7 +1193,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 // Uses EAX, EBX, ECX, EDX as temporary registers.
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   ASSERT(func.IsClosureFunction());
   const bool is_implicit_static_closure =
@@ -1350,7 +1350,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // The target function was not found, so invoke method
   // "dynamic noSuchMethod(InvocationMirror invocation)".
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ movl(EAX, Address(EBP, EDI, TIMES_2, kWordSize));  // Get receiver.
@@ -1534,7 +1534,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
 
   // IC miss.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
@@ -1696,7 +1696,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // calling into the runtime.
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EDX);  // Preserve arguments descriptor.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushl(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
@@ -1775,7 +1775,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const intptr_t kInstantiatorTypeArgumentsInBytes = 1 * kWordSize;
   const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
   const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
   if (n > 1) {
@@ -2023,7 +2023,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 // EDI: function to be reoptimized.
 // EDX: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   AssemblerMacros::EnterStubFrame(assembler);
   __ pushl(EDX);

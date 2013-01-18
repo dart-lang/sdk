@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -282,7 +282,7 @@ Isolate::Isolate()
       gc_prologue_callbacks_(),
       gc_epilogue_callbacks_(),
       deopt_cpu_registers_copy_(NULL),
-      deopt_xmm_registers_copy_(NULL),
+      deopt_fpu_registers_copy_(NULL),
       deopt_frame_copy_(NULL),
       deopt_frame_copy_size_(0),
       deferred_doubles_(NULL),

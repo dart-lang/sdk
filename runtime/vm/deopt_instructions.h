@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -52,12 +52,12 @@ class DeoptimizationContext : public ValueObject {
     return registers_copy_[reg];
   }
 
-  double XmmRegisterValue(XmmRegister reg) const {
-    return xmm_registers_copy_[reg];
+  double FpuRegisterValue(FpuRegister reg) const {
+    return fpu_registers_copy_[reg];
   }
 
-  int64_t XmmRegisterValueAsInt64(XmmRegister reg) const {
-    return (reinterpret_cast<int64_t*>(xmm_registers_copy_))[reg];
+  int64_t FpuRegisterValueAsInt64(FpuRegister reg) const {
+    return (reinterpret_cast<int64_t*>(fpu_registers_copy_))[reg];
   }
 
   Isolate* isolate() const { return isolate_; }
@@ -73,7 +73,7 @@ class DeoptimizationContext : public ValueObject {
   intptr_t* from_frame_;
   intptr_t from_frame_size_;
   intptr_t* registers_copy_;
-  double* xmm_registers_copy_;
+  double* fpu_registers_copy_;
   const intptr_t num_args_;
   const DeoptReasonId deopt_reason_;
   intptr_t caller_fp_;
@@ -94,8 +94,8 @@ class DeoptInstr : public ZoneAllocated {
     kRetBeforeAddress,
     kConstant,
     kRegister,
-    kXmmRegister,
-    kInt64XmmRegister,
+    kFpuRegister,
+    kInt64FpuRegister,
     kStackSlot,
     kDoubleStackSlot,
     kInt64StackSlot,

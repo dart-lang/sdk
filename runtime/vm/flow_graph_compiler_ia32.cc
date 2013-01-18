@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,6 +24,16 @@ DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
+
+
+FlowGraphCompiler::~FlowGraphCompiler() {
+  // BlockInfos are zone-allocated, so their destructors are not called.
+  // Verify the labels explicitly here.
+  for (int i = 0; i < block_info_.length(); ++i) {
+    ASSERT(!block_info_[i]->label.IsLinked());
+    ASSERT(!block_info_[i]->label.HasNear());
+  }
+}
 
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
@@ -57,7 +67,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
                                            Label* is_false) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label fall_through;
   __ cmpl(bool_register, raw_null);
@@ -79,7 +89,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     Label* is_not_instance_lbl) {
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ LoadObject(temp_reg, type_test_cache);
   __ pushl(temp_reg);  // Subtype test cache.
@@ -227,7 +237,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   if (type.IsFunctionType()) {
     // Check if instance is a closure.
-    const Immediate raw_null =
+    const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ LoadClassById(EDI, kClassIdReg);
     __ movl(EDI, FieldAddress(EDI, Class::signature_function_offset()));
@@ -294,7 +304,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   __ Comment("UninstantiatedTypeTest");
   ASSERT(!type.IsInstantiated());
   // Skip check if destination is a dynamic type.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
@@ -454,7 +464,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
 
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label is_instance, is_not_instance;
   __ pushl(ECX);  // Store instantiator on stack.
@@ -543,7 +553,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ pushl(ECX);  // Store instantiator.
   __ pushl(EDX);  // Store instantiator type arguments.
   // A null object is always assignable and is returned as result.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label is_assignable, runtime_call;
   __ cmpl(EAX, raw_null);
@@ -675,7 +685,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ j(POSITIVE, &loop, Assembler::kNearJump);
 
   // Copy or initialize optional named arguments.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label all_arguments_processed;
   if (num_opt_named_params > 0) {
@@ -857,7 +867,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ movl(EAX, Address(ESP, 2 * kWordSize));  // Receiver.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Value.
   __ StoreIntoObject(EAX, FieldAddress(EAX, offset), EBX);
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, raw_null);
   __ ret();
@@ -1012,7 +1022,7 @@ void FlowGraphCompiler::CompileGraph() {
   if (!is_optimizing() && (num_locals > 0)) {
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
-    const Immediate raw_null =
+    const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ movl(EAX, raw_null);
     for (intptr_t i = 0; i < num_locals; ++i) {
@@ -1267,7 +1277,7 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 // Fallthrough calls super equality.
 void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
                                                       Label* skip_call) {
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label check_identity, fall_through;
   __ cmpl(Address(ESP, 0 * kWordSize), raw_null);
@@ -1291,7 +1301,7 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
 }
 
 
-void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
+void FlowGraphCompiler::LoadDoubleOrSmiToFpu(FpuRegister result,
                                              Register reg,
                                              Register temp,
                                              Label* not_double_or_smi) {
@@ -1312,7 +1322,7 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
 
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
+  const intptr_t xmm_regs_count = locs->live_registers()->fpu_regs_count();
   if (xmm_regs_count > 0) {
     __ subl(ESP, Immediate(xmm_regs_count * kDoubleSize));
     // Store XMM registers with the lowest register number at the lowest
@@ -1320,7 +1330,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-      if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
+      if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
         __ movsd(Address(ESP, offset), xmm_reg);
         offset += kDoubleSize;
       }
@@ -1349,19 +1359,197 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     }
   }
 
-  const intptr_t xmm_regs_count = locs->live_registers()->xmm_regs_count();
+  const intptr_t xmm_regs_count = locs->live_registers()->fpu_regs_count();
   if (xmm_regs_count > 0) {
     // XMM registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-      if (locs->live_registers()->ContainsXmmRegister(xmm_reg)) {
+      if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
         __ movsd(xmm_reg, Address(ESP, offset));
         offset += kDoubleSize;
       }
     }
     ASSERT(offset == (xmm_regs_count * kDoubleSize));
     __ addl(ESP, Immediate(offset));
+  }
+}
+
+
+void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
+                                        Register class_id_reg,
+                                        intptr_t arg_count,
+                                        const Array& arg_names,
+                                        Label* deopt,
+                                        intptr_t deopt_id,
+                                        intptr_t token_index,
+                                        LocationSummary* locs) {
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
+  Label match_found;
+  const intptr_t len = ic_data.NumberOfChecks();
+  GrowableArray<CidTarget> sorted(len);
+  SortICDataByCount(ic_data, &sorted);
+  for (intptr_t i = 0; i < len; i++) {
+    const bool is_last_check = (i == (len - 1));
+    Label next_test;
+    assembler()->cmpl(class_id_reg, Immediate(sorted[i].cid));
+    if (is_last_check) {
+      assembler()->j(NOT_EQUAL, deopt);
+    } else {
+      assembler()->j(NOT_EQUAL, &next_test);
+    }
+    GenerateStaticCall(deopt_id,
+                       token_index,
+                       *sorted[i].target,
+                       arg_count,
+                       arg_names,
+                       locs);
+    if (!is_last_check) {
+      assembler()->jmp(&match_found);
+    }
+    assembler()->Bind(&next_test);
+  }
+  assembler()->Bind(&match_found);
+}
+
+
+void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
+                                                FpuRegister left,
+                                                FpuRegister right,
+                                                BranchInstr* branch) {
+  ASSERT(branch != NULL);
+  assembler()->comisd(left, right);
+  BlockEntryInstr* nan_result = (true_condition == NOT_EQUAL) ?
+      branch->true_successor() : branch->false_successor();
+  assembler()->j(PARITY_EVEN, GetBlockLabel(nan_result));
+  branch->EmitBranchOnCondition(this, true_condition);
+}
+
+
+
+void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
+                                              FpuRegister left,
+                                              FpuRegister right,
+                                              Register result) {
+  assembler()->comisd(left, right);
+  Label is_false, is_true, done;
+  assembler()->j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN false;
+  assembler()->j(true_condition, &is_true, Assembler::kNearJump);
+  assembler()->Bind(&is_false);
+  assembler()->LoadObject(result, Bool::False());
+  assembler()->jmp(&done);
+  assembler()->Bind(&is_true);
+  assembler()->LoadObject(result, Bool::True());
+  assembler()->Bind(&done);
+}
+
+
+Condition FlowGraphCompiler::FlipCondition(Condition condition) {
+  switch (condition) {
+    case EQUAL:         return EQUAL;
+    case NOT_EQUAL:     return NOT_EQUAL;
+    case LESS:          return GREATER;
+    case LESS_EQUAL:    return GREATER_EQUAL;
+    case GREATER:       return LESS;
+    case GREATER_EQUAL: return LESS_EQUAL;
+    case BELOW:         return ABOVE;
+    case BELOW_EQUAL:   return ABOVE_EQUAL;
+    case ABOVE:         return BELOW;
+    case ABOVE_EQUAL:   return BELOW_EQUAL;
+    default:
+      UNIMPLEMENTED();
+      return EQUAL;
+  }
+}
+
+
+bool FlowGraphCompiler::EvaluateCondition(Condition condition,
+                                          intptr_t left,
+                                          intptr_t right) {
+  const uintptr_t unsigned_left = static_cast<uintptr_t>(left);
+  const uintptr_t unsigned_right = static_cast<uintptr_t>(right);
+  switch (condition) {
+    case EQUAL:         return left == right;
+    case NOT_EQUAL:     return left != right;
+    case LESS:          return left < right;
+    case LESS_EQUAL:    return left <= right;
+    case GREATER:       return left > right;
+    case GREATER_EQUAL: return left >= right;
+    case BELOW:         return unsigned_left < unsigned_right;
+    case BELOW_EQUAL:   return unsigned_left <= unsigned_right;
+    case ABOVE:         return unsigned_left > unsigned_right;
+    case ABOVE_EQUAL:   return unsigned_left >= unsigned_right;
+    default:
+      UNIMPLEMENTED();
+      return false;
+  }
+}
+
+
+FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                          Register array,
+                                                          intptr_t index) {
+  const int64_t disp =
+      static_cast<int64_t>(index) * ElementSizeFor(cid) + DataOffsetFor(cid);
+  ASSERT(Utils::IsInt(32, disp));
+  return FieldAddress(array, static_cast<int32_t>(disp));
+}
+
+
+FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
+                                                          Register array,
+                                                          Register index) {
+  // Note that index is smi-tagged, (i.e, times 2) for all arrays with element
+  // size > 1. For Uint8Array and OneByteString the index is expected to be
+  // untagged before accessing.
+  ASSERT(kSmiTagShift == 1);
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return FieldAddress(
+          array, index, TIMES_HALF_WORD_SIZE, Array::data_offset());
+    case kFloat32ArrayCid:
+      return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
+    case kFloat64ArrayCid:
+      return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
+    case kInt8ArrayCid:
+      return FieldAddress(array, index, TIMES_1, Int8Array::data_offset());
+    case kUint8ArrayCid:
+      return FieldAddress(array, index, TIMES_1, Uint8Array::data_offset());
+    case kUint8ClampedArrayCid:
+      return
+          FieldAddress(array, index, TIMES_1, Uint8ClampedArray::data_offset());
+    case kInt16ArrayCid:
+      return FieldAddress(array, index, TIMES_1, Int16Array::data_offset());
+    case kUint16ArrayCid:
+      return FieldAddress(array, index, TIMES_1, Uint16Array::data_offset());
+    case kOneByteStringCid:
+      return FieldAddress(array, index, TIMES_1, OneByteString::data_offset());
+    case kTwoByteStringCid:
+      return FieldAddress(array, index, TIMES_1, TwoByteString::data_offset());
+    default:
+      UNIMPLEMENTED();
+      return FieldAddress(SPREG, 0);
+  }
+}
+
+
+Address FlowGraphCompiler::ExternalElementAddressForIntIndex(intptr_t cid,
+                                                             Register array,
+                                                             intptr_t index) {
+  return Address(array, index * ElementSizeFor(cid));
+}
+
+
+Address FlowGraphCompiler::ExternalElementAddressForRegIndex(intptr_t cid,
+                                                             Register array,
+                                                             Register index) {
+  switch (cid) {
+    case kExternalUint8ArrayCid:
+      return Address(array, index, TIMES_1, 0);
+    default:
+      UNIMPLEMENTED();
+      return Address(SPREG, 0);
   }
 }
 
@@ -1390,18 +1578,18 @@ void ParallelMoveResolver::EmitMove(int index) {
       MoveMemoryToMemory(destination.ToStackSlotAddress(),
                          source.ToStackSlotAddress());
     }
-  } else if (source.IsXmmRegister()) {
-    if (destination.IsXmmRegister()) {
+  } else if (source.IsFpuRegister()) {
+    if (destination.IsFpuRegister()) {
       // Optimization manual recommends using MOVAPS for register
       // to register moves.
-      __ movaps(destination.xmm_reg(), source.xmm_reg());
+      __ movaps(destination.fpu_reg(), source.fpu_reg());
     } else {
       ASSERT(destination.IsDoubleStackSlot());
-      __ movsd(destination.ToStackSlotAddress(), source.xmm_reg());
+      __ movsd(destination.ToStackSlotAddress(), source.fpu_reg());
     }
   } else if (source.IsDoubleStackSlot()) {
-    if (destination.IsXmmRegister()) {
-      __ movsd(destination.xmm_reg(), source.ToStackSlotAddress());
+    if (destination.IsFpuRegister()) {
+      __ movsd(destination.fpu_reg(), source.ToStackSlotAddress());
     } else {
       ASSERT(destination.IsDoubleStackSlot());
       __ movsd(XMM0, source.ToStackSlotAddress());
@@ -1439,15 +1627,15 @@ void ParallelMoveResolver::EmitSwap(int index) {
     Exchange(destination.reg(), source.ToStackSlotAddress());
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
     Exchange(destination.ToStackSlotAddress(), source.ToStackSlotAddress());
-  } else if (source.IsXmmRegister() && destination.IsXmmRegister()) {
-    __ movaps(XMM0, source.xmm_reg());
-    __ movaps(source.xmm_reg(), destination.xmm_reg());
-    __ movaps(destination.xmm_reg(), XMM0);
-  } else if (source.IsXmmRegister() || destination.IsXmmRegister()) {
+  } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
+    __ movaps(XMM0, source.fpu_reg());
+    __ movaps(source.fpu_reg(), destination.fpu_reg());
+    __ movaps(destination.fpu_reg(), XMM0);
+  } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() || source.IsDoubleStackSlot());
-    XmmRegister reg = source.IsXmmRegister() ? source.xmm_reg()
-                                             : destination.xmm_reg();
-    Address slot_address = source.IsXmmRegister()
+    XmmRegister reg = source.IsFpuRegister() ? source.fpu_reg()
+                                             : destination.fpu_reg();
+    const Address& slot_address = source.IsFpuRegister()
         ? destination.ToStackSlotAddress()
         : source.ToStackSlotAddress();
 

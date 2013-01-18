@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,6 +22,8 @@ class Immediate : public ValueObject {
  public:
   explicit Immediate(int64_t value) : value_(value) { }
 
+  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) { }
+
   int64_t value() const { return value_; }
 
   bool is_int8() const { return Utils::IsInt(8, value_); }
@@ -34,6 +36,7 @@ class Immediate : public ValueObject {
 
   // TODO(5411081): Add DISALLOW_COPY_AND_ASSIGN(Immediate) once the mac
   // build issue is resolved.
+  // And remove the unnecessary copy constructor.
 };
 
 
@@ -76,8 +79,20 @@ class Operand : public ValueObject {
     return bit_copy<int32_t>(encoding_[length_ - 4]);
   }
 
+  Operand(const Operand& other)
+      : ValueObject(), length_(other.length_), rex_(other.rex_) {
+    memmove(&encoding_[0], &other.encoding_[0], other.length_);
+  }
+
+  Operand& operator=(const Operand& other) {
+    length_ = other.length_;
+    rex_ = other.rex_;
+    memmove(&encoding_[0], &other.encoding_[0], other.length_);
+    return *this;
+  }
+
  protected:
-  Operand() : length_(0), rex_(REX_NONE) { }
+  Operand() : length_(0), rex_(REX_NONE) { }  // Needed by subclass Address.
 
   void SetModRM(int mod, Register rm) {
     ASSERT((mod & ~3) == 0);
@@ -132,11 +147,7 @@ class Operand : public ValueObject {
         && ((encoding_at(0) & 0x07) == reg);  // Register codes match.
   }
 
-
   friend class Assembler;
-
-  // TODO(5411081): Add DISALLOW_COPY_AND_ASSIGN(Operand) once the mac
-  // build issue is resolved.
 };
 
 
@@ -186,20 +197,29 @@ class Address : public Operand {
     }
   }
 
- private:
-  Address() {}
+  Address(const Address& other) : Operand(other) { }
 
-  // TODO(5411081): Add DISALLOW_COPY_AND_ASSIGN(Address) once the mac
-  // build issue is resolved.
+  Address& operator=(const Address& other) {
+    Operand::operator=(other);
+    return *this;
+  }
 };
 
 
 class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp)
-      : Address(base, disp - kHeapObjectTag) {}
+      : Address(base, disp - kHeapObjectTag) { }
+
   FieldAddress(Register base, Register index, ScaleFactor scale, int32_t disp)
-      : Address(base, index, scale, disp - kHeapObjectTag) {}
+      : Address(base, index, scale, disp - kHeapObjectTag) { }
+
+  FieldAddress(const FieldAddress& other) : Address(other) { }
+
+  FieldAddress& operator=(const FieldAddress& other) {
+    Address::operator=(other);
+    return *this;
+  }
 };
 
 
@@ -278,6 +298,7 @@ class CPUFeatures : public AllStatic {
   // x64 always has at least SSE2.
   static bool sse2_supported() { return true; }
   static bool sse4_1_supported();
+  static bool double_truncate_round_supported() { return sse4_1_supported(); }
 
  private:
   static const uint64_t kSSE4_1BitMask = static_cast<uint64_t>(1) << 51;
@@ -656,7 +677,7 @@ class Assembler : public ValueObject {
 
   static const char* RegisterName(Register reg);
 
-  static const char* XmmRegisterName(XmmRegister reg);
+  static const char* FpuRegisterName(FpuRegister reg);
 
  private:
   AssemblerBuffer buffer_;

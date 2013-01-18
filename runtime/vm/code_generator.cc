@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1488,13 +1488,13 @@ void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes) {
 
 // Copy saved registers into the isolate buffer.
 static void CopySavedRegisters(uword saved_registers_address) {
-  double* xmm_registers_copy = new double[kNumberOfXmmRegisters];
-  ASSERT(xmm_registers_copy != NULL);
-  for (intptr_t i = 0; i < kNumberOfXmmRegisters; i++) {
-    xmm_registers_copy[i] = *reinterpret_cast<double*>(saved_registers_address);
+  double* fpu_registers_copy = new double[kNumberOfFpuRegisters];
+  ASSERT(fpu_registers_copy != NULL);
+  for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+    fpu_registers_copy[i] = *reinterpret_cast<double*>(saved_registers_address);
     saved_registers_address += kDoubleSize;
   }
-  Isolate::Current()->set_deopt_xmm_registers_copy(xmm_registers_copy);
+  Isolate::Current()->set_deopt_fpu_registers_copy(fpu_registers_copy);
 
   intptr_t* cpu_registers_copy = new intptr_t[kNumberOfCpuRegisters];
   ASSERT(cpu_registers_copy != NULL);
@@ -1544,7 +1544,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
   // All registers have been saved below last-fp.
   const uword last_fp = saved_registers_address +
-      kNumberOfCpuRegisters * kWordSize + kNumberOfXmmRegisters * kDoubleSize;
+      kNumberOfCpuRegisters * kWordSize + kNumberOfFpuRegisters * kDoubleSize;
   CopySavedRegisters(saved_registers_address);
 
   // Get optimized code and frame that need to be deoptimized.
@@ -1646,7 +1646,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
 
   intptr_t* frame_copy = isolate->deopt_frame_copy();
   intptr_t* cpu_registers_copy = isolate->deopt_cpu_registers_copy();
-  double* xmm_registers_copy = isolate->deopt_xmm_registers_copy();
+  double* fpu_registers_copy = isolate->deopt_fpu_registers_copy();
 
   intptr_t deopt_reason = kDeoptUnknown;
   const DeoptInfo& deopt_info = DeoptInfo::Handle(
@@ -1660,10 +1660,10 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
 
   isolate->SetDeoptFrameCopy(NULL, 0);
   isolate->set_deopt_cpu_registers_copy(NULL);
-  isolate->set_deopt_xmm_registers_copy(NULL);
+  isolate->set_deopt_fpu_registers_copy(NULL);
   delete[] frame_copy;
   delete[] cpu_registers_copy;
-  delete[] xmm_registers_copy;
+  delete[] fpu_registers_copy;
 
   return caller_fp;
 }

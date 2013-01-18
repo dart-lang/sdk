@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,6 +38,8 @@ static void RemoveOptimizedCode(
     const GrowableArray<intptr_t>& added_subclasses_to_cids) {
   ASSERT(FLAG_use_cha);
   if (added_subclasses_to_cids.is_empty()) return;
+  // TODO(regis): Reenable this code for arm and mips when possible.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   // Deoptimize all live frames.
   DeoptimizeIfOwner(added_subclasses_to_cids);
   // Switch all functions' code to unoptimized.
@@ -59,6 +61,7 @@ static void RemoveOptimizedCode(
       }
     }
   }
+#endif
 }
 
 

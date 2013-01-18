@@ -1,4 +1,4 @@
-# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -12,11 +12,14 @@
     'assembler.cc',
     'assembler.h',
     'assembler_test.cc',
+    'assembler_arm.cc',
     'assembler_arm.h',
     'assembler_ia32.cc',
     'assembler_ia32.h',
     'assembler_ia32_test.cc',
     'assembler_macros.h',
+    'assembler_macros_arm.cc',
+    'assembler_macros_arm.h',
     'assembler_macros_ia32.cc',
     'assembler_macros_ia32.h',
     'assembler_macros_x64.cc',
@@ -132,11 +135,8 @@
     'flow_graph_compiler.cc',
     'flow_graph_compiler.h',
     'flow_graph_compiler_arm.cc',
-    'flow_graph_compiler_arm.h',
     'flow_graph_compiler_ia32.cc',
-    'flow_graph_compiler_ia32.h',
     'flow_graph_compiler_x64.cc',
-    'flow_graph_compiler_x64.h',
     'flow_graph_inliner.cc',
     'flow_graph_inliner.h',
     'flow_graph_optimizer.cc',
@@ -174,6 +174,8 @@
     'il_printer.cc',
     'il_printer.h',
     'instructions.h',
+    'instructions_arm.cc',
+    'instructions_arm.h',
     'instructions_ia32.cc',
     'instructions_ia32.h',
     'instructions_ia32_test.cc',
@@ -182,6 +184,7 @@
     'instructions_x64_test.cc',
     'intermediate_language.cc',
     'intermediate_language.h',
+    'intermediate_language_arm.cc',
     'intermediate_language_ia32.cc',
     'intermediate_language_x64.cc',
     'intermediate_language_test.cc',

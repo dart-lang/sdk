@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,6 +9,8 @@
 #include "vm/virtual_memory.h"
 
 namespace dart {
+
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 ASSEMBLER_TEST_EXTERN(StoreIntoObject);
 
@@ -74,5 +76,7 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, entry) {
       reinterpret_cast<uword>(grow_new_array.raw()) +
       GrowableObjectArray::data_offset() - kHeapObjectTag));
 }
+
+#endif
 
 }  // namespace dart

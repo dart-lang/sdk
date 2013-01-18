@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -214,7 +214,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
 
   StubCode::Init(isolate);
+  // TODO(regis): Reenable this code for arm and mips when possible.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   isolate->megamorphic_cache_table()->InitMissHandler();
+#endif
   if (FLAG_heap_trace) {
     isolate->heap()->trace()->Init(isolate);
   }

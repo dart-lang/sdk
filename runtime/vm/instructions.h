@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,7 +12,7 @@
 #elif defined(TARGET_ARCH_X64)
 #include "vm/instructions_x64.h"
 #elif defined(TARGET_ARCH_ARM)
-// No instruction patterns implemented.
+#include "vm/instructions_arm.h"
 #else
 #error Unknown architecture.
 #endif

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -72,9 +72,9 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
     vreg_count_(flow_graph.max_virtual_register_number()),
     live_ranges_(flow_graph.max_virtual_register_number()),
     cpu_regs_(),
-    xmm_regs_(),
+    fpu_regs_(),
     blocked_cpu_registers_(),
-    blocked_xmm_registers_(),
+    blocked_fpu_registers_(),
     cpu_spill_slot_count_(0) {
   for (intptr_t i = 0; i < vreg_count_; i++) live_ranges_.Add(NULL);
 
@@ -85,8 +85,8 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
   blocked_cpu_registers_[SPREG] = true;
   blocked_cpu_registers_[FPREG] = true;
 
-  // XMM0 is used as scratch by optimized code and parallel move resolver.
-  blocked_xmm_registers_[XMM0] = true;
+  // FpuTMP is used as scratch by optimized code and parallel move resolver.
+  blocked_fpu_registers_[FpuTMP] = true;
 }
 
 
@@ -449,8 +449,8 @@ void FlowGraphAllocator::BlockLocation(Location loc,
                                        intptr_t to) {
   if (loc.IsRegister()) {
     BlockRegisterLocation(loc, from, to, blocked_cpu_registers_, cpu_regs_);
-  } else if (loc.IsXmmRegister()) {
-    BlockRegisterLocation(loc, from, to, blocked_xmm_registers_, xmm_regs_);
+  } else if (loc.IsFpuRegister()) {
+    BlockRegisterLocation(loc, from, to, blocked_fpu_registers_, fpu_regs_);
   } else {
     UNREACHABLE();
   }
@@ -629,8 +629,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
 
 static Location::Kind RegisterKindFromPolicy(Location loc) {
-  if (loc.policy() == Location::kRequiresXmmRegister) {
-    return Location::kXmmRegister;
+  if (loc.policy() == Location::kRequiresFpuRegister) {
+    return Location::kFpuRegister;
   } else {
     return Location::kRegister;
   }
@@ -640,7 +640,7 @@ static Location::Kind RegisterKindFromPolicy(Location loc) {
 static Location::Kind RegisterKindForResult(Instruction* instr) {
   if ((instr->representation() == kUnboxedDouble) ||
       (instr->representation() == kUnboxedMint)) {
-    return Location::kXmmRegister;
+    return Location::kFpuRegister;
   } else {
     return Location::kRegister;
   }
@@ -978,10 +978,10 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
                     pos + 1);
     }
 
-    for (intptr_t reg = 0; reg < kNumberOfXmmRegisters; reg++) {
+    for (intptr_t reg = 0; reg < kNumberOfFpuRegisters; reg++) {
       Location::Representation ignored = Location::kDouble;
       BlockLocation(
-          Location::XmmRegisterLocation(static_cast<XmmRegister>(reg), ignored),
+          Location::FpuRegisterLocation(static_cast<FpuRegister>(reg), ignored),
           pos,
           pos + 1);
     }
@@ -1069,7 +1069,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     //    output       [----
     //
     ASSERT(locs->in(0).Equals(Location::RequiresRegister()) ||
-           locs->in(0).Equals(Location::RequiresXmmRegister()));
+           locs->in(0).Equals(Location::RequiresFpuRegister()));
 
     // Create move that will copy value between input and output.
     locs->set_out(Location::RequiresRegister());
@@ -1104,7 +1104,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     //    output          [-------
     //
     ASSERT(locs->out().Equals(Location::RequiresRegister()) ||
-           locs->out().Equals(Location::RequiresXmmRegister()));
+           locs->out().Equals(Location::RequiresFpuRegister()));
 
     // Shorten live range to the point of definition and add use to be filled by
     // allocator.
@@ -1315,7 +1315,7 @@ UsePosition* AllocationFinger::FirstRegisterUse(intptr_t after) {
     Location* loc = use->location_slot();
     if (loc->IsUnallocated() &&
         ((loc->policy() == Location::kRequiresRegister) ||
-        (loc->policy() == Location::kRequiresXmmRegister))) {
+        (loc->policy() == Location::kRequiresFpuRegister))) {
       first_register_use_ = use;
       return use;
     }
@@ -1748,7 +1748,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
       (loop_header != NULL) &&
       (free_until >= loop_header->last_block()->end_pos()) &&
       loop_header->backedge_interference()->Contains(unallocated->vreg())) {
-    ASSERT(static_cast<intptr_t>(kNumberOfXmmRegisters) <=
+    ASSERT(static_cast<intptr_t>(kNumberOfFpuRegisters) <=
            kNumberOfCpuRegisters);
     bool used_on_backedge[kNumberOfCpuRegisters] = { false };
 
@@ -2199,7 +2199,7 @@ void FlowGraphAllocator::CompleteRange(LiveRange* range, Location::Kind kind) {
       AddToSortedListOfRanges(&unallocated_cpu_, range);
       break;
 
-    case Location::kXmmRegister:
+    case Location::kFpuRegister:
       AddToSortedListOfRanges(&unallocated_xmm_, range);
       break;
 
@@ -2483,11 +2483,11 @@ void FlowGraphAllocator::AllocateRegisters() {
   cpu_spill_slot_count_ = spill_slots_.length();
   spill_slots_.Clear();
 
-  PrepareForAllocation(Location::kXmmRegister,
-                       kNumberOfXmmRegisters,
+  PrepareForAllocation(Location::kFpuRegister,
+                       kNumberOfFpuRegisters,
                        unallocated_xmm_,
-                       xmm_regs_,
-                       blocked_xmm_registers_);
+                       fpu_regs_,
+                       blocked_fpu_registers_);
   AllocateUnallocatedRanges();
 
   ResolveControlFlow();

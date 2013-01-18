@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,14 +27,14 @@ DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
       from_frame_(NULL),
       from_frame_size_(0),
       registers_copy_(NULL),
-      xmm_registers_copy_(NULL),
+      fpu_registers_copy_(NULL),
       num_args_(num_args),
       deopt_reason_(deopt_reason),
       isolate_(Isolate::Current()) {
   from_frame_ = isolate_->deopt_frame_copy();
   from_frame_size_ = isolate_->deopt_frame_copy_size();
   registers_copy_ = isolate_->deopt_cpu_registers_copy();
-  xmm_registers_copy_ = isolate_->deopt_xmm_registers_copy();
+  fpu_registers_copy_ = isolate_->deopt_fpu_registers_copy();
   caller_fp_ = GetFromFp();
 }
 
@@ -353,20 +353,20 @@ class DeoptRegisterInstr: public DeoptInstr {
 
 
 // Deoptimization instruction moving an XMM register.
-class DeoptXmmRegisterInstr: public DeoptInstr {
+class DeoptFpuRegisterInstr: public DeoptInstr {
  public:
-  explicit DeoptXmmRegisterInstr(intptr_t reg_as_int)
-      : reg_(static_cast<XmmRegister>(reg_as_int)) {}
+  explicit DeoptFpuRegisterInstr(intptr_t reg_as_int)
+      : reg_(static_cast<FpuRegister>(reg_as_int)) {}
 
   virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kXmmRegister; }
+  virtual DeoptInstr::Kind kind() const { return kFpuRegister; }
 
   virtual const char* ToCString() const {
-    return Assembler::XmmRegisterName(reg_);
+    return Assembler::FpuRegisterName(reg_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
-    double value = deopt_context->XmmRegisterValue(reg_);
+    double value = deopt_context->FpuRegisterValue(reg_);
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
     Isolate::Current()->DeferDoubleMaterialization(
@@ -374,31 +374,31 @@ class DeoptXmmRegisterInstr: public DeoptInstr {
   }
 
  private:
-  const XmmRegister reg_;
+  const FpuRegister reg_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptXmmRegisterInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptFpuRegisterInstr);
 };
 
 
-class DeoptInt64XmmRegisterInstr: public DeoptInstr {
+class DeoptInt64FpuRegisterInstr: public DeoptInstr {
  public:
-  explicit DeoptInt64XmmRegisterInstr(intptr_t reg_as_int)
-      : reg_(static_cast<XmmRegister>(reg_as_int)) {}
+  explicit DeoptInt64FpuRegisterInstr(intptr_t reg_as_int)
+      : reg_(static_cast<FpuRegister>(reg_as_int)) {}
 
   virtual intptr_t from_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kInt64XmmRegister; }
+  virtual DeoptInstr::Kind kind() const { return kInt64FpuRegister; }
 
   virtual const char* ToCString() const {
     const char* format = "%s(m)";
     intptr_t len =
-        OS::SNPrint(NULL, 0, format, Assembler::XmmRegisterName(reg_));
+        OS::SNPrint(NULL, 0, format, Assembler::FpuRegisterName(reg_));
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, format, Assembler::XmmRegisterName(reg_));
+    OS::SNPrint(chars, len + 1, format, Assembler::FpuRegisterName(reg_));
     return chars;
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
-    int64_t value = deopt_context->XmmRegisterValueAsInt64(reg_);
+    int64_t value = deopt_context->FpuRegisterValueAsInt64(reg_);
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *reinterpret_cast<RawSmi**>(to_addr) = Smi::New(0);
     if (Smi::IsValid64(value)) {
@@ -411,9 +411,9 @@ class DeoptInt64XmmRegisterInstr: public DeoptInstr {
   }
 
  private:
-  const XmmRegister reg_;
+  const FpuRegister reg_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptInt64XmmRegisterInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptInt64FpuRegisterInstr);
 };
 
 
@@ -601,8 +601,8 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t from_index) {
     case kRetBeforeAddress: return new DeoptRetBeforeAddressInstr(from_index);
     case kConstant: return new DeoptConstantInstr(from_index);
     case kRegister: return new DeoptRegisterInstr(from_index);
-    case kXmmRegister: return new DeoptXmmRegisterInstr(from_index);
-    case kInt64XmmRegister: return new DeoptInt64XmmRegisterInstr(from_index);
+    case kFpuRegister: return new DeoptFpuRegisterInstr(from_index);
+    case kInt64FpuRegister: return new DeoptInt64FpuRegisterInstr(from_index);
     case kPcMarker: return new DeoptPcMarkerInstr(from_index);
     case kCallerFp: return new DeoptCallerFpInstr();
     case kCallerPc: return new DeoptCallerPcInstr();
@@ -705,12 +705,12 @@ void DeoptInfoBuilder::AddCopy(const Location& from_loc,
     deopt_instr = new DeoptConstantInstr(object_table_index);
   } else if (from_loc.IsRegister()) {
     deopt_instr = new DeoptRegisterInstr(from_loc.reg());
-  } else if (from_loc.IsXmmRegister()) {
+  } else if (from_loc.IsFpuRegister()) {
     if (from_loc.representation() == Location::kDouble) {
-      deopt_instr = new DeoptXmmRegisterInstr(from_loc.xmm_reg());
+      deopt_instr = new DeoptFpuRegisterInstr(from_loc.fpu_reg());
     } else {
       ASSERT(from_loc.representation() == Location::kMint);
-      deopt_instr = new DeoptInt64XmmRegisterInstr(from_loc.xmm_reg());
+      deopt_instr = new DeoptInt64FpuRegisterInstr(from_loc.fpu_reg());
     }
   } else if (from_loc.IsStackSlot()) {
     intptr_t from_index = (from_loc.stack_index() < 0) ?
