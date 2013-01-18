@@ -29,7 +29,7 @@ import utils
 
 _logger = logging.getLogger('dartdomgenerator')
 
-_libraries = ['html', 'indexed_db', 'svg', 'web_audio']
+_libraries = ['chrome', 'html', 'indexed_db', 'svg', 'web_audio']
 
 class GeneratorOptions(object):
   def __init__(self, templates, database, type_registry, renamer):

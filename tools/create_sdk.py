@@ -200,13 +200,15 @@ def Main(argv):
 
   os.makedirs(join(LIB, 'html'))
   for library in ['_internal', 'async', 'collection', 'collection_dev', 'core',
-                  'crypto', 'io', 'isolate', join('html', 'dart2js'),
-                  join('html', 'dartium'),
-                  join('html', 'html_common'), join('indexed_db', 'dart2js'),
-                  join('indexed_db', 'dartium'), 'json', 'math', 'mirrors',
-                  'scalarlist', join('svg', 'dart2js'), join('svg', 'dartium'),
-                  'uri', 'utf', join('web_audio', 'dart2js'),
-                  join('web_audio', 'dartium')]:
+                  'crypto', 'io', 'isolate',
+                  join('chrome', 'dart2js'), join('chrome', 'dartium'),
+                  join('html', 'dart2js'), join('html', 'dartium'),
+                  join('html', 'html_common'),
+                  join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
+                  'json', 'math', 'mirrors', 'scalarlist',
+                  join('svg', 'dart2js'), join('svg', 'dartium'),
+                  'uri', 'utf',
+                  join('web_audio', 'dart2js'), join('web_audio', 'dartium')]:
     copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 

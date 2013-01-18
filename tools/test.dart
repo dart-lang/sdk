@@ -49,6 +49,7 @@ final TEST_SUITE_DIRECTORIES = [
     new Path('runtime/tests/vm'),
     new Path('samples/tests/samples'),
     new Path('tests/benchmark_smoke'),
+    new Path('tests/chrome'),
     new Path('tests/compiler/dart2js'),
     new Path('tests/compiler/dart2js_extra'),
     new Path('tests/compiler/dart2js_foreign'),
