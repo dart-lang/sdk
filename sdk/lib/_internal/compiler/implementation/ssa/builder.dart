@@ -2888,25 +2888,43 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     Element element = elements[node];
+    bool isClosureCall = false;
     if (element != null && compiler.world.hasNoOverridingMember(element)) {
       if (tryInlineMethod(element, selector, node.arguments)) {
-        return;
+        if (element.isGetter()) {
+          // If the element is a getter, we are doing a closure call
+          // on what this getter returns.
+          assert(selector.isCall());
+          isClosureCall = true;
+        } else {
+          return;
+        }
       }
     }
 
+    List<HInstruction> inputs = <HInstruction>[];
+    if (isClosureCall) inputs.add(pop());
+
     HInstruction receiver;
-    if (node.receiver == null) {
-      receiver = localsHandler.readThis();
-    } else {
-      visit(node.receiver);
-      receiver = pop();
+    if (!isClosureCall) {
+      if (node.receiver == null) {
+        receiver = localsHandler.readThis();
+      } else {
+        visit(node.receiver);
+        receiver = pop();
+      }
     }
 
-    List<HInstruction> inputs = <HInstruction>[];
     addDynamicSendArgumentsToList(node, inputs);
 
-    HInvokeDynamicMethod invoke = buildInvokeDynamic(
-        node, selector, receiver, inputs);
+    HInstruction invoke;
+    if (isClosureCall) {
+      Selector closureSelector = new Selector.callClosureFrom(selector);
+      invoke = new HInvokeClosure(closureSelector, inputs);
+    } else {
+      invoke = buildInvokeDynamic(node, selector, receiver, inputs);
+    }
+
     pushWithPosition(invoke, node);
 
     if (isNotEquals) {
@@ -2930,7 +2948,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     var inputs = <HInstruction>[];
     inputs.add(closureTarget);
     addDynamicSendArgumentsToList(node, inputs);
-    pushWithPosition(new HInvokeClosure(selector, inputs), node);
+    Selector closureSelector = new Selector.callClosureFrom(selector);
+    pushWithPosition(new HInvokeClosure(closureSelector, inputs), node);
   }
 
   void registerForeignTypes(String specString) {
@@ -3248,7 +3267,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(target);
       inputs = <HInstruction>[target];
       addDynamicSendArgumentsToList(node, inputs);
-      push(new HInvokeClosure(selector, inputs));
+      Selector closureSelector = new Selector.callClosureFrom(selector);
+      push(new HInvokeClosure(closureSelector, inputs));
     }
   }
 
@@ -3475,7 +3495,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       generateGetter(node, element);
       List<HInstruction> inputs = <HInstruction>[pop()];
       addDynamicSendArgumentsToList(node, inputs);
-      pushWithPosition(new HInvokeClosure(selector, inputs), node);
+      Selector closureSelector = new Selector.callClosureFrom(selector);
+      pushWithPosition(new HInvokeClosure(closureSelector, inputs), node);
     }
   }
 
@@ -3507,7 +3528,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Selector selector = elements.getSelector(node);
       List<HInstruction> inputs = <HInstruction>[target];
       addDynamicSendArgumentsToList(node, inputs);
-      push(new HInvokeClosure(selector, inputs));
+      Selector closureSelector = new Selector.callClosureFrom(selector);
+      push(new HInvokeClosure(closureSelector, inputs));
     }
   }
 
@@ -4527,7 +4549,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (!isAborted()) endTryBlock = close(new HGoto());
     SubGraph bodyGraph = new SubGraph(startTryBlock, lastOpenedBlock);
     SubGraph catchGraph = null;
-    HParameterValue exception = null;
+    HLocalValue exception = null;
 
     if (!node.catchBlocks.isEmpty) {
       localsHandler = new LocalsHandler.from(savedLocals);

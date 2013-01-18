@@ -1307,7 +1307,9 @@ abstract class HInvokeDynamic extends HInvoke {
 
 class HInvokeClosure extends HInvokeDynamic {
   HInvokeClosure(Selector selector, List<HInstruction> inputs)
-    : super(selector, null, inputs);
+    : super(selector, null, inputs) {
+    assert(selector.isClosureCall());
+  }
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
 
@@ -1765,7 +1767,7 @@ class HContinue extends HJump {
 }
 
 class HTry extends HControlFlow {
-  HParameterValue exception;
+  HLocalValue exception;
   HBasicBlock catchBlock;
   HBasicBlock finallyBlock;
   HTry() : super(const <HInstruction>[]);
@@ -2712,7 +2714,7 @@ class HAndOrBlockInformation implements HExpressionInformation {
 
 class HTryBlockInformation implements HStatementInformation {
   final HStatementInformation body;
-  final HParameterValue catchVariable;
+  final HLocalValue catchVariable;
   final HStatementInformation catchBlock;
   final HStatementInformation finallyBlock;
   HTryBlockInformation(this.body,

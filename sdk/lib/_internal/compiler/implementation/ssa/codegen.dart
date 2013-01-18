@@ -799,7 +799,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Catch catchPart = null;
     js.Block finallyPart = null;
     if (info.catchBlock != null) {
-      HParameterValue exception = info.catchVariable;
+      HLocalValue exception = info.catchVariable;
       String name = variableNames.getName(exception);
       js.VariableDeclaration decl = new js.VariableDeclaration(name);
       js.Block catchBlock = generateStatementsInNewBlock(info.catchBlock);
