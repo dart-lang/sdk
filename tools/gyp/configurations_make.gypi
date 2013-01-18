@@ -55,6 +55,19 @@
         ],
       },
 
+      'Dart_simmips_Base': {
+        'cflags': [ '-O3', '-m32', ],
+        'ldflags': [ '-m32', ],
+      },
+
+      'Dart_mips_Base': {
+        'cflags': [
+          '-march=mips32r2',
+          '-mhard-float',
+          '-fno-strict-overflow',
+        ],
+      },
+
       'Dart_Debug': {
         'cflags': [ '-O<(dart_debug_optimization_level)' ],
       },

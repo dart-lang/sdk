@@ -108,7 +108,7 @@ is 'dart file.dart' and you specify special command
               'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'simarm'],
+              ['all', 'ia32', 'x64', 'simarm', 'simmips'],
               'ia32'),
           new _TestOptionSpecification(
               'system',
