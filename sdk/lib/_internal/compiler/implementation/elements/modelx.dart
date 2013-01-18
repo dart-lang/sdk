@@ -1370,10 +1370,14 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   InterfaceType computeType(compiler) {
     if (thisType == null) {
       if (origin == null) {
-        ClassNode node = parseNode(compiler);
-        Link<DartType> parameters =
-            TypeDeclarationElementX.createTypeVariables(this,
-                                                        node.typeParameters);
+        Link<DartType> parameters = const Link<DartType>();
+        // TODO(kasperl): Figure out how to get the type parameters
+        // for a mixin application.
+        if (!isMixinApplication) {
+          ClassNode node = parseNode(compiler);
+          parameters = TypeDeclarationElementX.createTypeVariables(
+              this, node.typeParameters);
+        }
         thisType = new InterfaceType(this, parameters);
         if (parameters.isEmpty) {
           rawType = thisType;
@@ -1400,6 +1404,22 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
       identical(declaration, compiler.objectClass);
 
   Link<DartType> get typeVariables => thisType.typeArguments;
+
+  ClassElement ensureResolved(Compiler compiler) {
+    if (resolutionState == STATE_NOT_STARTED) {
+      compiler.resolver.resolveClass(this);
+    }
+    return this;
+  }
+
+  void addDefaultConstructorIfNeeded(Compiler compiler) {
+    if (hasConstructor) return;
+    FunctionElement constructor =
+        new SynthesizedConstructorElementX.forDefault(this, compiler);
+    setDefaultConstructor(constructor, compiler);
+  }
+
+  void setDefaultConstructor(FunctionElement constructor, Compiler compiler);
 
   void addBackendMember(Element member) {
     backendMembers = backendMembers.prepend(member);
@@ -1693,7 +1713,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   }
 }
 
-
 abstract class ClassElementX extends BaseClassElementX {
   // Lazily applied patch of class members.
   ClassElement patch = null;
@@ -1707,6 +1726,7 @@ abstract class ClassElementX extends BaseClassElementX {
 
   ClassNode parseNode(Compiler compiler);
 
+  bool get isMixinApplication => false;
   bool get isPatched => patch != null;
   bool get isPatch => origin != null;
   bool get hasLocalScopeMembers => !localScope.isEmpty;
@@ -1740,11 +1760,8 @@ abstract class ClassElementX extends BaseClassElementX {
     return false;
   }
 
-  ClassElement ensureResolved(Compiler compiler) {
-    if (resolutionState == STATE_NOT_STARTED) {
-      compiler.resolver.resolveClass(this);
-    }
-    return this;
+  void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
+    addToScope(constructor, compiler);
   }
 
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
@@ -1763,6 +1780,9 @@ abstract class ClassElementX extends BaseClassElementX {
 class MixinApplicationElementX extends BaseClassElementX {
   final MixinApplication cachedNode;
 
+  FunctionElement constructor;
+  ClassElement mixin;
+
   // TODO(kasperl): The analyzer complains when I don't have these two
   // fields. This is pretty weird. I cannot replace them with getters.
   final ClassElement patch = null;
@@ -1772,27 +1792,21 @@ class MixinApplicationElementX extends BaseClassElementX {
                            this.cachedNode)
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
-  bool get hasConstructor => false;
+  bool get isMixinApplication => true;
+  bool get hasConstructor => constructor != null;
   bool get hasLocalScopeMembers => false;
 
   Token position() => cachedNode.getBeginToken();
 
   Node parseNode(DiagnosticListener listener) => cachedNode;
 
-  ClassElement ensureResolved(Compiler compiler) {
-    if (resolutionState == STATE_NOT_STARTED) {
-      compiler.resolver.resolveMixinApplication(this);
-    }
-    return this;
-  }
-
   Element localLookup(SourceString name) {
-    // TODO(kasperl): Unimplemented for now.
-    return null;
+    if (this.name == name) return constructor;
+    if (mixin != null) return mixin.localLookup(name);
   }
 
   void forEachLocalMember(void f(Element member)) {
-    // TODO(kasperl): Unimplemented for now.
+    if (mixin != null) mixin.forEachLocalMember(f);
   }
 
   void addMember(Element element, DiagnosticListener listener) {
@@ -1801,6 +1815,11 @@ class MixinApplicationElementX extends BaseClassElementX {
 
   void addToScope(Element element, DiagnosticListener listener) {
     throw new UnsupportedError("cannot add to scope of $this");
+  }
+
+  void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
+    assert(!hasConstructor);
+    this.constructor = constructor;
   }
 }
 
