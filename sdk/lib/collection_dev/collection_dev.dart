@@ -5,3 +5,4 @@
 library dart.collection.dev;
 
 part 'iterable.dart';
+part 'list.dart';

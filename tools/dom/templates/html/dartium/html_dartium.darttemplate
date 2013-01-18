@@ -9,6 +9,7 @@ library html;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:collection-dev';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';

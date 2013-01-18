@@ -6,5 +6,6 @@
 {
   'sources': [
     'iterable.dart',
+    'list.dart',
   ],
 }
