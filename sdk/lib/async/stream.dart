@@ -8,11 +8,56 @@ part of dart.async;
 // Core Stream types
 // -------------------------------------------------------------------
 
+/**
+ * A source of asynchronous data events.
+ *
+ * A Stream provides a sequence of events. Each event is either a data event or
+ * an error event, representing the result of a single computation. When the
+ * Stream is exhausted, it may send a single "done" event.
+ *
+ * You can [listen] on a stream to receive the events it sends. When you listen,
+ * you receive a [StreamSubscription] object that can be used to stop listening,
+ * or to temporarily pause events from the stream.
+ *
+ * When an event is fired, all listeners at that time are informed.
+ * If a listener is added or removed while an event is being fired, the change
+ * will only take effect after the event is completely fired.
+ *
+ * Streams always respect "pause" requests. If necessary they need to buffer
+ * their input, but often, and preferably, they can simply request their input
+ * to pause too.
+ *
+ * There are two kinds of streams: Single-subscription streams and
+ * multi-subscription streams.
+ *
+ * A single-subscription stream allows only a single listener in its entire
+ * life-cycle. It holds back events until it gets a listener, and it exhausts
+ * itself when the listener is unsubscribed, even if the stream wasn't done.
+ *
+ * Single-subscription streams are generally used for streaming parts of
+ * contiguous data like file I/O.
+ *
+ * A multi-subscription stream allows any number of listeners, and it fires
+ * its events when they are ready, whether there are listeners or not.
+ *
+ * Multi-subscription streams are used for independent events/observers.
+ *
+ * The default implementation of [isSingleSubscription] and
+ * [asMultiSubscriptionStream] are assuming this is a single-subscription stream
+ * and a multi-subscription stream inheriting from [Stream] must override these
+ * to return [:false:] and [:this:] respectively.
+ */
 abstract class Stream<T> {
   Stream();
 
+  /**
+   * Creates a new single-subscription stream from the future.
+   *
+   * When the future completes, the stream will fire one event, either
+   * data or error, and then close with a done-event.
+   */
   factory Stream.fromFuture(Future<T> future) {
-    _StreamImpl<T> stream = new _MultiStreamImpl<T>();
+    _StreamImpl<T> stream = new _SingleStreamImpl<T>();
     future.then((value) {
         stream._add(value);
         stream._close();
@@ -28,11 +73,14 @@ abstract class Stream<T> {
    * Creates a single-subscription stream that gets its data from [data].
    */
   factory Stream.fromIterable(Iterable<T> data) {
-    return new _IterableSingleStreamImpl<T>(data);
+    _PendingEvents iterableEvents = new _IterablePendingEvents<T>(data);
+    return new _GeneratedSingleStreamImpl<T>(iterableEvents);
   }
 
-  /** Whether the stream is a single-subscription stream. */
-  bool get isSingleSubscription;
+  /**
+   * Whether the stream is a single-subscription stream.
+   */
+  bool get isSingleSubscription => true;
 
   /**
    * Returns a multi-subscription stream that produces the same events as this.
@@ -44,7 +92,9 @@ abstract class Stream<T> {
    *
    * If this stream is already multi-subscriber, it is returned unmodified.
    */
-  Stream<T> asMultiSubscriberStream();
+  Stream<T> asMultiSubscriberStream() {
+    return new _SingleStreamMultiplexer<T>(this);
+  }
 
   /**
    * Stream that outputs events from the [sources] in cyclic order.
@@ -99,7 +149,7 @@ abstract class Stream<T> {
    * but it only sends the data events that satisfy the [test].
    */
   Stream<T> where(bool test(T event)) {
-    return this.transform(new WhereTransformer<T>(test));
+    return new WhereStream<T>(this, test);
   }
 
   /**
@@ -107,7 +157,7 @@ abstract class Stream<T> {
    * to a new value using the [convert] function.
    */
   Stream mappedBy(convert(T event)) {
-    return this.transform(new MapTransformer<T, dynamic>(convert));
+    return new MapStream<T, dynamic>(this, convert);
   }
 
   /**
@@ -125,7 +175,7 @@ abstract class Stream<T> {
    */
    // TODO(lrn): Say what to do if you want to convert the error to a value.
   Stream<T> handleError(void handle(AsyncError error), { bool test(error) }) {
-    return this.transform(new HandleErrorTransformer<T>(handle, test));
+    return new HandleErrorStream<T>(this, handle, test);
   }
 
   /**
@@ -137,8 +187,7 @@ abstract class Stream<T> {
    * in order.
    */
   Stream expand(Iterable convert(T value)) {
-    return this.transform(
-        new ExpandTransformer<T, dynamic>(convert));
+    return new ExpandStream<T, dynamic>(this, convert);
   }
 
   /**
@@ -343,10 +392,10 @@ abstract class Stream<T> {
   }
 
   /**
-   * Finds the least element in the stream.
+   * Finds the largest element in the stream.
    *
    * If the stream is empty, the result is [:null:].
-   * Otherwise the result is an value from the stream that is not greater
+   * Otherwise the result is an value from the stream that is not smaller
    * than any other value from the stream (according to [compare], which must
    * be a [Comparator]).
    *
@@ -440,7 +489,7 @@ abstract class Stream<T> {
    * so will the returned stream.
    */
   Stream<T> take(int count) {
-    return this.transform(new TakeTransformer<T>(count));
+    return new TakeStream(this, count);
   }
 
   /**
@@ -452,14 +501,14 @@ abstract class Stream<T> {
    * a value that [test] doesn't accept.
    */
   Stream<T> takeWhile(bool test(T value)) {
-    return this.transform(new TakeWhileTransformer<T>(test));
+    return new TakeWhileStream(this, test);
   }
 
   /**
    * Skips the first [count] data events from this stream.
    */
   Stream<T> skip(int count) {
-    return this.transform(new SkipTransformer<T>(count));
+    return new SkipStream(this, count);
   }
 
   /**
@@ -471,7 +520,7 @@ abstract class Stream<T> {
    * event data, the returned stream will have the same events as this stream.
    */
   Stream<T> skipWhile(bool test(T value)) {
-    return this.transform(new SkipWhileTransformer<T>(test));
+    return new SkipWhileStream(this, test);
   }
 
   /**
@@ -484,7 +533,7 @@ abstract class Stream<T> {
    * omitted, the '==' operator on the last provided data element is used.
    */
   Stream<T> distinct([bool equals(T previous, T next)]) {
-    return this.transform(new DistinctTransformer<T>(equals));
+    return new DistinctStream(this, equals);
   }
 
   /**
@@ -733,7 +782,7 @@ abstract class Stream<T> {
 /**
  * A control object for the subscription on a [Stream].
  *
- * When you subscribe on a [Stream] using [Stream.subscribe],
+ * When you subscribe on a [Stream] using [Stream.listen],
  * a [StreamSubscription] object is returned. This object
  * is used to later unsubscribe again, or to temporarily pause
  * the stream's events.
@@ -760,7 +809,9 @@ abstract class StreamSubscription<T> {
    * Request that the stream pauses events until further notice.
    *
    * If [resumeSignal] is provided, the stream will undo the pause
-   * when the future completes in any way.
+   * when the future completes. If the future completes with an error,
+   * it will not be handled!
+   *
    * A call to [resume] will also undo a pause.
    *
    * If the subscription is paused more than once, an equal number
@@ -840,7 +891,7 @@ abstract class StreamTransformer<S, T> {
    * If a parameter is omitted, a default handler is used that forwards the
    * event directly to the sink.
    *
-   * Pauses on the are forwarded to the input stream as well.
+   * Pauses on the returned stream are forwarded to the input stream as well.
    */
   factory StreamTransformer.from({
       void onData(S data, StreamSink<T> sink),

@@ -535,6 +535,43 @@ ASSEMBLER_TEST_RUN(MoveExtendMemory, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(MoveWord, assembler) {
+  __ xorq(RAX, RAX);
+  __ pushq(Immediate(0));
+  __ movq(RAX, RSP);
+  __ movq(RCX, Immediate(-1));
+  __ movw(Address(RAX, 0), RCX);
+  __ movzxw(RAX, Address(RAX, 0));  // RAX = 0xffff
+  __ addq(RSP, Immediate(kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(MoveWord, entry) {
+  typedef int (*MoveWord)();
+  EXPECT_EQ(0xffff, reinterpret_cast<MoveWord>(entry)());
+}
+
+
+ASSEMBLER_TEST_GENERATE(MoveWordRex, assembler) {
+  __ pushq(Immediate(0));
+  __ movq(R8, RSP);
+  __ movq(R9, Immediate(-1));
+  __ movw(Address(R8, 0), R9);
+  __ movzxw(R8, Address(R8, 0));  // 0xffff
+  __ xorq(RAX, RAX);
+  __ addq(RAX, R8);  // RAX = 0xffff
+  __ addq(RSP, Immediate(kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(MoveWordRex, entry) {
+  typedef int (*MoveWordRex)();
+  EXPECT_EQ(0xffff, reinterpret_cast<MoveWordRex>(entry)());
+}
+
+
 ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
   __ movl(RCX, Immediate(42));
   __ xorl(RCX, RCX);

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -46,7 +46,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   __ cmpl(EDI, Immediate(0));
   __ j(LESS, &fall_through);
   // Check for maximum allowed length.
-  const Immediate max_len =
+  const Immediate& max_len =
       Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
   __ cmpl(EDI, max_len);
   __ j(GREATER, &fall_through);
@@ -117,7 +117,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // EBX: new object end address.
   // EDI: iterator which initially points to the start of the variable
   // data area to be initialized.
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ leal(EDI, FieldAddress(EAX, sizeof(RawArray)));
   Label done;
@@ -194,7 +194,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
     const intptr_t type_args_field_offset =
         ComputeObjectArrayTypeArgumentsOffset();
     // Inline simple tests (Smi, null), fallthrough if not positive.
-    const Immediate raw_null =
+    const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     Label checked_ok;
     __ movl(EDI, Address(ESP, + 1 * kWordSize));  // Value.
@@ -441,7 +441,8 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // Compare length with capacity.
   __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Must grow data.
-  const Immediate value_one = Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
+  const Immediate& value_one =
+      Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
   // len = len + 1;
   __ addl(FieldAddress(EAX, GrowableObjectArray::length_offset()), value_one);
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value
@@ -449,7 +450,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ StoreIntoObject(EDI,
                      FieldAddress(EDI, EBX, TIMES_2, Array::data_offset()),
                      EAX);
-  const Immediate raw_null =
+  const Immediate& raw_null =
       Immediate(reinterpret_cast<int32_t>(Object::null()));
   __ movl(EAX, raw_null);
   __ ret();
@@ -1255,7 +1256,7 @@ bool Intrinsifier::Integer_sar(Assembler* assembler) {
   Label fall_through, shift_count_ok;
   TestBothArgumentsSmis(assembler, &fall_through);
   // Can destroy ECX since we are not falling through.
-  Immediate count_limit = Immediate(0x1F);
+  const Immediate& count_limit = Immediate(0x1F);
   // Check that the count is not larger than what the hardware can handle.
   // For shifting right a Smi the result is the same for all numbers
   // >= count_limit.

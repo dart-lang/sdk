@@ -39,7 +39,7 @@ class Maps {
   }
 
   static clear(Map map) {
-    for (final k in map.keys) {
+    for (final k in map.keys.toList()) {
       map.remove(k);
     }
   }
@@ -50,17 +50,13 @@ class Maps {
     }
   }
 
-  static Collection getValues(Map map) {
-    final result = [];
-    for (final k in map.keys) {
-      result.add(map[k]);
-    }
-    return result;
+  static Iterable getValues(Map map) {
+    return map.keys.mappedBy((key) => map[key]);
   }
 
   static int length(Map map) => map.keys.length;
 
-  static bool isEmpty(Map map) => length(map) == 0;
+  static bool isEmpty(Map map) => map.keys.isEmpty;
 
   /**
    * Returns a string representing the specified map. The returned string

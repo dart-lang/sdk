@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -74,12 +74,97 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
   return false;
 }
 
 
-bool Intrinsifier::ByteArrayBase_getIndexed(Assembler* assembler) {
+bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Int8Array_setIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::UintClamped8Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Int32Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
@@ -102,7 +187,6 @@ bool Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
 bool Intrinsifier::Integer_sub(Assembler* assembler) {
   return false;
 }
-
 
 
 bool Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
@@ -165,12 +249,12 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
+bool Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
   return false;
 }
 
 
-bool Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
+bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
   return false;
 }
 
@@ -271,6 +355,11 @@ bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
 
 
 bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Double_toInt(Assembler* assembler) {
   return false;
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -295,18 +295,14 @@ void Assembler::movsxw(Register dst, const Address& src) {
 
 
 void Assembler::movw(Register dst, const Address& src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitOperandREX(dst, src, REX_NONE);
-  EmitOperandSizeOverride();
-  EmitUint8(0x8B);
-  EmitOperand(dst & 7, src);
+  FATAL("Use movzxw or movsxw instead.");
 }
 
 
 void Assembler::movw(const Address& dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitOperandREX(src, dst, REX_NONE);
   EmitOperandSizeOverride();
+  EmitOperandREX(src, dst, REX_NONE);
   EmitUint8(0x89);
   EmitOperand(src & 7, dst);
 }
@@ -2188,7 +2184,7 @@ static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
 };
 
 
-const char* Assembler::XmmRegisterName(XmmRegister reg) {
+const char* Assembler::FpuRegisterName(FpuRegister reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfXmmRegisters));
   return xmm_reg_names[reg];
 }

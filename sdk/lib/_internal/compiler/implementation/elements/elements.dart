@@ -28,7 +28,6 @@ import '../scanner/scannerlib.dart' show Token,
                                          isUserDefinableOperator,
                                          isMinusOperator;
 
-
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;
 const int STATE_DONE = 2;
@@ -169,7 +168,6 @@ abstract class Element implements Spannable {
   bool impliesType();
 
   Token position();
-  Token findMyName(Token token);
 
   CompilationUnitElement getCompilationUnit();
   LibraryElement getLibrary();
@@ -641,6 +639,7 @@ abstract class ClassElement extends TypeDeclarationElement
   int get resolutionState;
   SourceString get nativeTagInfo;
 
+  bool get isMixinApplication;
   bool get hasBackendMembers;
   bool get hasLocalScopeMembers;
 
@@ -672,6 +671,12 @@ abstract class ClassElement extends TypeDeclarationElement
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);
 
+  /**
+   * Add a synthetic nullary constructor if there are no other
+   * constructors.
+   */
+  void addDefaultConstructorIfNeeded(Compiler compiler);
+
   void addBackendMember(Element element);
   void reverseBackendMembers();
 
@@ -687,7 +692,6 @@ abstract class ClassElement extends TypeDeclarationElement
 
   Element lookupSuperInterfaceMember(SourceString memberName,
                                      LibraryElement fromLibrary);
-
 
   Element validateConstructorLookupResults(Selector selector,
                                            Element result,
@@ -707,6 +711,11 @@ abstract class ClassElement extends TypeDeclarationElement
 
   void forEachLocalMember(void f(Element member));
   void forEachBackendMember(void f(Element member));
+}
+
+abstract class MixinApplicationElement extends ClassElement {
+  ClassElement get mixin;
+  void set mixin(ClassElement value);
 }
 
 abstract class LabelElement extends Element {

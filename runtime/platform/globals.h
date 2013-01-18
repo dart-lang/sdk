@@ -85,15 +85,21 @@
 #elif defined(__ARMEL__)
 #define HOST_ARCH_ARM 1
 #define ARCH_IS_32_BIT 1
+#elif defined(__MIPSEL__)
+#define HOST_ARCH_MIPS 1
+#define ARCH_IS_32_BIT 1
 #else
 #error Architecture was not detected as supported by Dart.
 #endif
 
+#if !defined(TARGET_ARCH_MIPS)
 #if !defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_ARCH_X64)
 #if !defined(TARGET_ARCH_IA32)
 // No target architecture specified pick the one matching the host architecture.
-#if defined(HOST_ARCH_ARM)
+#if defined(HOST_ARCH_MIPS)
+#define TARGET_ARCH_MIPS 1
+#elif defined(HOST_ARCH_ARM)
 #define TARGET_ARCH_ARM 1
 #elif defined(HOST_ARCH_X64)
 #define TARGET_ARCH_X64 1
@@ -105,6 +111,7 @@
 #endif
 #endif
 #endif
+#endif
 
 // Verify that host and target architectures match, we cannot
 // have a 64 bit Dart VM generating 32 bit code or vice-versa.
@@ -112,7 +119,9 @@
 #if !defined(ARCH_IS_64_BIT)
 #error Mismatched Host/Target architectures.
 #endif
-#elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+#elif defined(TARGET_ARCH_IA32) ||                                             \
+      defined(TARGET_ARCH_ARM) ||                                              \
+      defined(TARGET_ARCH_MIPS)
 #if !defined(ARCH_IS_32_BIT)
 #error Mismatched Host/Target architectures.
 #endif

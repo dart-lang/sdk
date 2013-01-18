@@ -154,6 +154,7 @@ class ActivationFrame : public ZoneAllocated {
 
  private:
   intptr_t PcDescIndex();
+  intptr_t TryIndex();
   void GetPcDescriptors();
   void GetVarDescriptors();
   void GetDescIndices();
@@ -180,6 +181,7 @@ class ActivationFrame : public ZoneAllocated {
   PcDescriptors& pc_desc_;
 
   friend class Debugger;
+  friend class DebuggerStackTrace;
   DISALLOW_COPY_AND_ASSIGN(ActivationFrame);
 };
 
@@ -196,6 +198,7 @@ class DebuggerStackTrace : public ZoneAllocated {
     ASSERT(i < trace_.length());
     return trace_[i];
   }
+  ActivationFrame* GetHandlerFrame(const Instance& exc_obj) const;
  private:
   void AddActivation(ActivationFrame* frame);
   ZoneGrowableArray<ActivationFrame*> trace_;
@@ -293,7 +296,7 @@ class Debugger {
                             const String& field_name);
 
   void SignalBpReached();
-  void SignalExceptionThrown(const Object& exc);
+  void SignalExceptionThrown(const Instance& exc);
   static void SignalIsolateEvent(EventType type);
 
  private:
@@ -332,7 +335,7 @@ class Debugger {
   intptr_t nextId() { return next_id_++; }
 
   bool ShouldPauseOnException(DebuggerStackTrace* stack_trace,
-                              const Object& exc);
+                              const Instance& exc);
 
   void CollectLibraryFields(const GrowableObjectArray& field_list,
                             const Library& lib,

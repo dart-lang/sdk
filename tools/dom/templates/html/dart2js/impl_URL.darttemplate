@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of html;
-
-/// @domName $DOMNAME
+$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   static String createObjectUrl(blob_OR_source_OR_stream) =>

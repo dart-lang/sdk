@@ -462,6 +462,13 @@ class CompileTimeConstantEvaluator extends Visitor {
         if (result != null) return result;
       } else if (Elements.isClass(element) || Elements.isTypedef(element)) {
         return makeTypeConstant(element);
+      } else if (send.receiver != null) {
+        // Fall through to error handling.
+      } else if (!Elements.isUnresolved(element)
+                 && element.isVariable()
+                 && element.modifiers.isConst()) {
+        Constant result = handler.compileConstant(element);
+        if (result != null) return result; 
       }
       return signalNotCompileTimeConstant(send);
     } else if (send.isCall) {

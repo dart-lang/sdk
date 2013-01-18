@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("updates Git packages to an incompatible pubspec", () {
+  integration("updates Git packages to an incompatible pubspec", () {
     ensureGit();
 
     git('foo.git', [
@@ -44,7 +43,5 @@ main() {
         file('foo.dart', 'main() => "foo";')
       ])
     ]).scheduleValidate();
-
-    run();
   });
 }

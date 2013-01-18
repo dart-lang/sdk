@@ -13,7 +13,7 @@ void test() {
   HttpsServer server = new HttpsServer();
   var client = new HttpClient();
 
-  // Create a web socket handler and set is as the HTTP server default
+  // Create a web socket handler and set it as the HTTP server default
   // handler.
   WebSocketHandler wsHandler = new WebSocketHandler();
   wsHandler.onOpen = (WebSocketConnection conn) {

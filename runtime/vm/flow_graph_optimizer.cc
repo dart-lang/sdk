@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -56,6 +56,9 @@ void FlowGraphOptimizer::ApplyClassIds() {
             VisitInstanceCall(call);
           }
         }
+      } else if (it.Current()->IsPolymorphicInstanceCall()) {
+        SpecializePolymorphicInstanceCall(
+            it.Current()->AsPolymorphicInstanceCall());
       } else if (it.Current()->IsStrictCompare()) {
         VisitStrictCompare(it.Current()->AsStrictCompare());
       } else if (it.Current()->IsBranch()) {
@@ -114,6 +117,52 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return true;
   }
   return false;
+}
+
+
+static const ICData& SpecializeICData(const ICData& ic_data, intptr_t cid) {
+  ASSERT(ic_data.num_args_tested() == 1);
+
+  if ((ic_data.NumberOfChecks() == 1) &&
+      (ic_data.GetReceiverClassIdAt(0) == cid)) {
+    return ic_data;  // Nothing to do
+  }
+
+  const ICData& new_ic_data = ICData::ZoneHandle(ICData::New(
+      Function::Handle(ic_data.function()),
+      String::Handle(ic_data.target_name()),
+      ic_data.deopt_id(),
+      ic_data.num_args_tested()));
+
+  const Function& function =
+      Function::Handle(ic_data.GetTargetForReceiverClassId(cid));
+  if (!function.IsNull()) {
+    new_ic_data.AddReceiverCheck(cid, function);
+  }
+
+  return new_ic_data;
+}
+
+
+void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
+    PolymorphicInstanceCallInstr* call) {
+  if (!call->with_checks()) {
+    return;  // Already specialized.
+  }
+
+  const intptr_t receiver_cid  = call->ArgumentAt(0)->value()->ResultCid();
+  if (receiver_cid == kDynamicCid) {
+    return;  // No information about receiver was infered.
+  }
+
+  const ICData& ic_data = SpecializeICData(call->ic_data(), receiver_cid);
+
+  const bool with_checks = false;
+  PolymorphicInstanceCallInstr* specialized =
+      new PolymorphicInstanceCallInstr(call->instance_call(),
+                                       ic_data,
+                                       with_checks);
+  call->ReplaceWith(specialized, current_iterator());
 }
 
 
@@ -298,19 +347,6 @@ void FlowGraphOptimizer::SelectRepresentations() {
 }
 
 
-static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
-  ASSERT(ic_data.num_args_tested() > 0);
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    const intptr_t test_class_id = ic_data.GetReceiverClassIdAt(i);
-    if (test_class_id == class_id) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
                                               intptr_t receiver_class_id,
                                               intptr_t argument_class_id) {
@@ -368,18 +404,18 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
 
 static bool HasOnlyOneSmi(const ICData& ic_data) {
   return (ic_data.NumberOfChecks() == 1)
-      && ICDataHasReceiverClassId(ic_data, kSmiCid);
+      && ic_data.HasReceiverClassId(kSmiCid);
 }
 
 
 static bool HasOnlySmiOrMint(const ICData& ic_data) {
   if (ic_data.NumberOfChecks() == 1) {
-    return ICDataHasReceiverClassId(ic_data, kSmiCid)
-        || ICDataHasReceiverClassId(ic_data, kMintCid);
+    return ic_data.HasReceiverClassId(kSmiCid)
+        || ic_data.HasReceiverClassId(kMintCid);
   }
   return (ic_data.NumberOfChecks() == 2)
-      && ICDataHasReceiverClassId(ic_data, kSmiCid)
-      && ICDataHasReceiverClassId(ic_data, kMintCid);
+      && ic_data.HasReceiverClassId(kSmiCid)
+      && ic_data.HasReceiverClassId(kMintCid);
 }
 
 
@@ -401,7 +437,7 @@ static bool HasTwoMintOrSmi(const ICData& ic_data) {
 
 static bool HasOnlyOneDouble(const ICData& ic_data) {
   return (ic_data.NumberOfChecks() == 1)
-      && ICDataHasReceiverClassId(ic_data, kDoubleCid);
+      && ic_data.HasReceiverClassId(kDoubleCid);
 }
 
 
@@ -549,7 +585,11 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       }
       break;
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
       // Check that value is always smi.
       value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
       if ((value_check.NumberOfChecks() != 1) ||
@@ -600,14 +640,17 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         type_args = new Value(load_type_args);
         break;
       }
+      case kInt8ArrayCid:
       case kUint8ArrayCid:
+      case kUint8ClampedArrayCid:
+      case kInt16ArrayCid:
+      case kUint16ArrayCid:
+        ASSERT(value_type.IsIntType());
+        // Fall through.
       case kFloat32ArrayCid:
       case kFloat64ArrayCid: {
-        ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
-        InsertBefore(call, null_constant, NULL, Definition::kValue);
-        instantiator = new Value(null_constant);
-        type_args = new Value(null_constant);
-        ASSERT((class_id != kUint8ArrayCid) || value_type.IsIntType());
+        instantiator = new Value(flow_graph_->constant_null());
+        type_args = new Value(flow_graph_->constant_null());
         ASSERT((class_id != kFloat32ArrayCid && class_id != kFloat64ArrayCid) ||
                value_type.IsDoubleType());
         ASSERT(value_type.IsInstantiated());
@@ -671,9 +714,12 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kGrowableObjectArrayCid:
     case kFloat32ArrayCid:
     case kFloat64ArrayCid:
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
       // Acceptable load index classes.
       break;
     default:
@@ -964,6 +1010,23 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
 }
 
 
+bool FlowGraphOptimizer::MethodExtractorNeedsClassCheck(
+    InstanceCallInstr* call) const {
+  if (!FLAG_use_cha) return true;
+  Definition* callee_receiver = call->ArgumentAt(0)->value()->definition();
+  ASSERT(callee_receiver != NULL);
+  const Function& function = flow_graph_->parsed_function().function();
+  if (function.IsDynamicFunction() &&
+      callee_receiver->IsParameter() &&
+      (callee_receiver->AsParameter()->index() == 0)) {
+    const String& field_name =
+      String::Handle(Field::NameFromGetter(call->function_name()));
+    return CHA::HasOverride(Class::Handle(function.Owner()), field_name);
+  }
+  return true;
+}
+
+
 void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1111,6 +1174,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     }
     InlineImplicitInstanceGetter(call);
     return true;
+  } else if (target.kind() == RawFunction::kMethodExtractor) {
+    return false;
   }
 
   // Not an implicit getter.
@@ -1159,7 +1224,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-StringCharCodeAtInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
+LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
     InstanceCallInstr* call,
     intptr_t cid) {
   Value* str = call->ArgumentAt(0)->value();
@@ -1192,7 +1257,7 @@ StringCharCodeAtInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
                  call->env(),
                  Definition::kEffect);
   }
-  return new StringCharCodeAtInstr(str, index, cid);
+  return new LoadIndexedInstr(str, index, cid);
 }
 
 
@@ -1213,7 +1278,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (ic_data.NumberOfChecks() == 1) &&
       ((class_ids[0] == kOneByteStringCid) ||
        (class_ids[0] == kTwoByteStringCid))) {
-    StringCharCodeAtInstr* instr = BuildStringCharCodeAt(call, class_ids[0]);
+    LoadIndexedInstr* instr = BuildStringCharCodeAt(call, class_ids[0]);
     call->ReplaceWith(instr, current_iterator());
     RemovePushArguments(call);
     return true;
@@ -1222,7 +1287,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       (ic_data.NumberOfChecks() == 1) &&
       (class_ids[0] == kOneByteStringCid)) {
     // TODO(fschneider): Handle TwoByteString.
-    StringCharCodeAtInstr* load_char_code =
+    LoadIndexedInstr* load_char_code =
         BuildStringCharCodeAt(call, class_ids[0]);
     InsertBefore(call, load_char_code, NULL, Definition::kValue);
     StringFromCharCodeInstr* char_at =
@@ -1261,8 +1326,10 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       return true;
     }
     if ((recognized_kind == MethodRecognizer::kDoubleTruncate) ||
-        (recognized_kind == MethodRecognizer::kDoubleRound)) {
-      if (!CPUFeatures::sse4_1_supported()) {
+        (recognized_kind == MethodRecognizer::kDoubleRound) ||
+        (recognized_kind == MethodRecognizer::kDoubleFloor) ||
+        (recognized_kind == MethodRecognizer::kDoubleCeil)) {
+      if (!CPUFeatures::double_truncate_round_supported()) {
         return false;
       }
       AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
@@ -1363,6 +1430,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   const ICData& unary_checks =
       ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
+
   if ((unary_checks.NumberOfChecks() > FLAG_max_polymorphic_checks) &&
       InstanceCallNeedsClassCheck(instr)) {
     // Too many checks, it will be megamorphic which needs unary checks.
@@ -1395,17 +1463,27 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (TryInlineInstanceMethod(instr)) {
     return;
   }
-  if (!InstanceCallNeedsClassCheck(instr)) {
-    const bool call_with_checks = false;
-    PolymorphicInstanceCallInstr* call =
-        new PolymorphicInstanceCallInstr(instr, unary_checks,
-                                         call_with_checks);
-    instr->ReplaceWith(call, current_iterator());
-    return;
+
+  const bool has_one_target = unary_checks.HasOneTarget();
+
+  if (has_one_target) {
+    const bool is_method_extraction =
+        Function::Handle(unary_checks.GetTargetAt(0)).IsMethodExtractor();
+
+    if ((is_method_extraction && !MethodExtractorNeedsClassCheck(instr)) ||
+        (!is_method_extraction && !InstanceCallNeedsClassCheck(instr))) {
+      const bool call_with_checks = false;
+      PolymorphicInstanceCallInstr* call =
+          new PolymorphicInstanceCallInstr(instr, unary_checks,
+                                           call_with_checks);
+      instr->ReplaceWith(call, current_iterator());
+      return;
+    }
   }
+
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
     bool call_with_checks;
-    if (unary_checks.HasOneTarget()) {
+    if (has_one_target) {
       // Type propagation has not run yet, we cannot eliminate the check.
       AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
       // Call can still deoptimize, do not detach environment from instr.
@@ -1956,6 +2034,17 @@ class RangeAnalysis : public ValueObject {
    public:
     ArrayLengthData(Definition* array, Definition* array_length)
         : array_(array), array_length_(array_length) { }
+
+    ArrayLengthData(const ArrayLengthData& other)
+        : ValueObject(),
+          array_(other.array_),
+          array_length_(other.array_length_) { }
+
+    ArrayLengthData& operator=(const ArrayLengthData& other) {
+      array_ = other.array_;
+      array_length_ = other.array_length_;
+      return *this;
+    }
 
     Definition* array() const { return array_; }
     Definition* array_length() const { return array_length_; }
@@ -3178,13 +3267,21 @@ class LoadOptimizer : public ValueObject {
             // will ever be used.
             gen->RemoveAll(kill_by_offset_[offset_in_words]);
 
-            Definition* load = map_->Lookup(instr->AsDefinition());
-            if (load != NULL) {
-              // Store has a corresponding numbered load. Try forwarding
-              // stored value to it.
-              gen->Add(load->expr_id());
-              if (out_values == NULL) out_values = CreateBlockOutValues();
-              (*out_values)[load->expr_id()] = GetStoredValue(instr);
+            // Only forward stores to normal arrays and float64 arrays
+            // to loads because other array stores (intXX/uintXX/float32)
+            // may implicitly convert the value stored.
+            StoreIndexedInstr* array_store = instr->AsStoreIndexed();
+            if (array_store == NULL ||
+                array_store->class_id() == kArrayCid ||
+                array_store->class_id() == kFloat64ArrayCid) {
+              Definition* load = map_->Lookup(instr->AsDefinition());
+              if (load != NULL) {
+                // Store has a corresponding numbered load. Try forwarding
+                // stored value to it.
+                gen->Add(load->expr_id());
+                if (out_values == NULL) out_values = CreateBlockOutValues();
+                (*out_values)[load->expr_id()] = GetStoredValue(instr);
+              }
             }
           }
           ASSERT(instr->IsDefinition() &&
@@ -3963,11 +4060,6 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
 
 
 void ConstantPropagator::VisitNativeCall(NativeCallInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitStringCharCodeAt(StringCharCodeAtInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

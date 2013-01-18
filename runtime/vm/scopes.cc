@@ -294,9 +294,11 @@ SourceLabel* LocalScope::LocalLookupLabel(const String& name) const {
 
 
 LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
+  ASSERT(name.IsSymbol());
   for (intptr_t i = 0; i < variables_.length(); i++) {
     LocalVariable* var = variables_[i];
-    if (var->name().Equals(name) && !var->is_invisible_) {
+    ASSERT(var->name().IsSymbol());
+    if ((var->name().raw() == name.raw()) && !var->is_invisible_) {
       return var;
     }
   }

@@ -34,7 +34,6 @@ import '../../libraries.dart';
 
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-part 'src/dartdoc/comment_map.dart';
 part 'src/dartdoc/nav.dart';
 part 'src/dartdoc/utils.dart';
 
@@ -1836,20 +1835,7 @@ class Dartdoc {
       if (filename.endsWith('appcache.manifest')) {
         return;
       }
-      // TODO(johnniwinther): If [outputDir] has trailing slashes, [filename]
-      // contains double (back)slashes for files in the immediate [toCache]
-      // directory. These are not handled by [relativeTo] thus
-      // wrongfully producing the path `/foo.html` for a file `foo.html` in
-      // [toCache].
-      //
-      // This can be handled in two ways. 1) By ensuring that
-      // [Directory.fromPath] does not receive a path with a trailing slash, or
-      // better, by making [Directory.fromPath] handle such trailing slashes.
-      // 2) By ensuring that [filePath] does not have double slashes before
-      // calling [relativeTo], or better, by making [relativeTo] handle double
-      // slashes correctly.
-      Path filePath = new Path(filename).canonicalize();
-      Path relativeFilePath = filePath.relativeTo(outputDir);
+      Path relativeFilePath = new Path(filename).relativeTo(outputDir);
       write("$relativeFilePath\n");
     };
     toCacheLister.onDone = (done) => endFile();

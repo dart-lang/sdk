@@ -8,6 +8,7 @@
     'arrays.dart',
     'collections.dart',
     'maps.dart',
+    'sort.dart',
     'splay_tree.dart',
   ],
 }

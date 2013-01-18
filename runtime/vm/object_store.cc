@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -115,6 +115,8 @@ bool ObjectStore::PreallocateObjects() {
   }
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
+  // TODO(regis): Reenable this code for arm and mips when possible.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
   Object& result = Object::Handle();
 
   result = Exceptions::Create(Exceptions::kStackOverflow,
@@ -129,6 +131,7 @@ bool ObjectStore::PreallocateObjects() {
     return false;
   }
   set_out_of_memory(Instance::Cast(result));
+#endif
   return true;
 }
 

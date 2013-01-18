@@ -52,24 +52,6 @@ class debugger$C$C {
   debugger$C$C.C$I(x) : this.x = x + 12 { }
 }
 
-class with extends debugger$C {
-  int y;
-
-  factory with.F() {
-    return new with(1, 2);
-  }
-  with(x, y) : super(x), this.y = y + 1 { }
-  with.I(x, y) : super.C(x), this.y = y + 2 { }
-  with.C(x, y) : super.C$C(x), this.y = y + 3 { }
-  with.I$C(x, y) : super.C$I(x), this.y = y + 4 { }
-  with.C$C(x, y) : super(x), this.y = y + 5 { }
-  with.C$C$C(x, y) : super.C(x), this.y = y + 6 { }
-  with.$C$I(x, y) : super.C$C(x), this.y = y + 7 { }
-  with.$$I$C(x, y) : super.C$I(x), this.y = y + 8 { }
-  with.$(x, y) : super(x), this.y = y + 9 { }
-  with.$$(x, y) : super.C(x), this.y = y + 10 { }
-}
-
 class with$I extends debugger$C {
   int y;
 
@@ -267,36 +249,6 @@ class NamingTest {
     Expect.equals(11, x.x);
     x = new debugger$C$C.C$I(0);
     Expect.equals(12, x.x);
-    x = new with(0, 0);
-    Expect.equals(5, x.x);
-    Expect.equals(1, x.y);
-    x = new with.I(0, 0);
-    Expect.equals(6, x.x);
-    Expect.equals(2, x.y);
-    x = new with.C(0, 0);
-    Expect.equals(7, x.x);
-    Expect.equals(3, x.y);
-    x = new with.I$C(0, 0);
-    Expect.equals(8, x.x);
-    Expect.equals(4, x.y);
-    x = new with.C$C(0, 0);
-    Expect.equals(5, x.x);
-    Expect.equals(5, x.y);
-    x = new with.C$C$C(0, 0);
-    Expect.equals(6, x.x);
-    Expect.equals(6, x.y);
-    x = new with.$C$I(0, 0);
-    Expect.equals(7, x.x);
-    Expect.equals(7, x.y);
-    x = new with.$$I$C(0, 0);
-    Expect.equals(8, x.x);
-    Expect.equals(8, x.y);
-    x = new with.$(0, 0);
-    Expect.equals(5, x.x);
-    Expect.equals(9, x.y);
-    x = new with.$$(0, 0);
-    Expect.equals(6, x.x);
-    Expect.equals(10, x.y);
     x = new with$I(0, 0);
     Expect.equals(5, x.x);
     Expect.equals(11, x.y);
@@ -387,14 +339,6 @@ class NamingTest {
     x = new with$I$C.$$(0, 0);
     Expect.equals(10, x.x);
     Expect.equals(40, x.y);
-    var wasCaught = false;
-    try {
-      throw new with(0, 0);
-    } on with catch (e) {
-      wasCaught = true;
-      Expect.equals(5, e.x);
-    }
-    Expect.equals(true, wasCaught);
   }
 
   static void testMemberMangling() {
@@ -409,9 +353,6 @@ class NamingTest {
     Expect.equals(6, o.x);
     o = new debugger$C$C.F();
     Expect.equals(10, o.x);
-    o = new with.F();
-    Expect.equals(6, o.x);
-    Expect.equals(3, o.y);
     o = new with$I.F();
     Expect.equals(6, o.x);
     Expect.equals(13, o.y);
@@ -424,21 +365,16 @@ class NamingTest {
   }
 
   static testFunctionParameters() {
-    a(with) {
-      return with;
-    }
-
-    b(eval) {
+    a(eval) {
       return eval;
     }
 
-    c(arguments) {
+    b(arguments) {
       return arguments;
     }
 
     Expect.equals(10, a(10));
     Expect.equals(10, b(10));
-    Expect.equals(10, c(10));
   }
 
   static testPseudoTokens() {

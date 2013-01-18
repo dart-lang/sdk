@@ -277,8 +277,18 @@ bool Heap::Verify() const {
 void Heap::PrintSizes() const {
   OS::PrintErr("New space (%"Pd"k of %"Pd"k) "
                "Old space (%"Pd"k of %"Pd"k)\n",
-               (new_space_->in_use() / KB), (new_space_->capacity() / KB),
-               (old_space_->in_use() / KB), (old_space_->capacity() / KB));
+               (Used(kNew) / KB), (Capacity(kNew) / KB),
+               (Used(kOld) / KB), (Capacity(kOld) / KB));
+}
+
+
+intptr_t Heap::Used(Space space) const {
+  return space == kNew ? new_space_->in_use() : old_space_->in_use();
+}
+
+
+intptr_t Heap::Capacity(Space space) const {
+  return space == kNew ? new_space_->capacity() : old_space_->capacity();
 }
 
 

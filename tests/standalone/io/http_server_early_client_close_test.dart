@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -60,7 +60,7 @@ class EarlyCloseTest {
   final bool expectRequest;
 }
 
-void testEarlyClose() {
+void testEarlyClose1() {
   List<EarlyCloseTest> tests = new List<EarlyCloseTest>();
   void add(Object data, String exception, {bool expectRequest: false}) {
     tests.add(new EarlyCloseTest(data, exception, expectRequest));
@@ -95,6 +95,35 @@ void testEarlyClose() {
   runTest(tests.iterator);
 }
 
+testEarlyClose2() {
+  var server = new HttpServer();
+  server.listen("127.0.0.1", 0);
+  server.onError = (e) { /* ignore */ };
+  server.defaultRequestHandler = (request, response) {
+    String name = new Options().script;
+    new File(name).openInputStream().pipe(response.outputStream);
+  };
+
+  var count = 0;
+  var makeRequest;
+  makeRequest = () {
+    Socket socket = new Socket("127.0.0.1", server.port);
+    socket.onConnect = () {
+      var data = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n".charCodes;
+      socket.writeList(data, 0, data.length);
+      socket.close();
+      if (++count < 10) {
+        makeRequest();
+      } else {
+        server.close();
+      }
+    };
+  };
+
+  makeRequest();
+}
+
 void main() {
-  testEarlyClose();
+  testEarlyClose1();
+  testEarlyClose2();
 }

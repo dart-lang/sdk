@@ -767,7 +767,7 @@ class _WebSocketClientConnection
 class _WebSocket implements WebSocket {
   _WebSocket(String url, [protocols]) {
     Uri uri = new Uri.fromString(url);
-    if (uri.scheme != "ws") {
+    if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme ${uri.scheme}");
     }
     if (uri.userInfo != "") {
@@ -785,7 +785,12 @@ class _WebSocket implements WebSocket {
     }
 
     HttpClient client = new HttpClient();
-    HttpClientConnection conn = client.open("GET", uri.domain, port, path);
+    bool secure = (uri.scheme == 'wss');
+    HttpClientConnection conn = client.openUrl("GET",
+        new Uri.fromComponents(scheme: secure ? "https" : "http",
+                               domain: uri.domain,
+                               port: port,
+                               path: path));
     if (protocols is String) protocols = [protocols];
     _wsconn = new WebSocketClientConnection(conn, protocols);
     _wsconn.onOpen = () {

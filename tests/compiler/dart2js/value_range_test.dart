@@ -231,6 +231,16 @@ const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
     var length;
   }
   class JSNumber {
+    operator +(other) {}
+    operator -(other) {}
+    operator ~/(other) {}
+    operator /(other) {}
+    operator *(other) {}
+    operator <<(other) {}
+    operator >>(other) {}
+    operator |(other) {}
+    operator &(other) {}
+    operator ^(other) {}
   }
   class JSInt {
   }

@@ -428,18 +428,16 @@ class DartiumBackend(HtmlDartGenerator):
       info: An OperationInfo object.
     """
 
-    operation = info.operations[0]
-
-    is_custom = 'Custom' in operation.ext_attrs
-    has_optional_arguments = any(self._IsArgumentOptionalInWebCore(operation, argument) for argument in operation.arguments)
-    needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
-
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
         self.SecureOutputType(info.type_name),
         html_name,
-        info.ParametersDeclaration(
-            (lambda x: 'dynamic') if needs_dispatcher else self._DartType))
+        info.ParametersDeclaration(self._DartType))
+
+    operation = info.operations[0]
+    is_custom = 'Custom' in operation.ext_attrs
+    has_optional_arguments = any(self._IsArgumentOptionalInWebCore(operation, argument) for argument in operation.arguments)
+    needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
 
     if not needs_dispatcher:
       # Bind directly to native implementation
@@ -759,12 +757,9 @@ class DartiumBackend(HtmlDartGenerator):
 
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
     self._members_emitter.Emit(
-        '\n'
-        '\n  /** @domName $DOMINTERFACE.$DOMNAME */'
         '$ANNOTATIONS'
         '\n  $DART_DECLARATION native "$NATIVE_BINDING";\n',
         DOMINTERFACE=self._interface.id,
-        DOMNAME=idl_name,
         ANNOTATIONS=annotation_str,
         DART_DECLARATION=dart_declaration,
         NATIVE_BINDING=native_binding)

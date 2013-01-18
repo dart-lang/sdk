@@ -7,10 +7,10 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("removes a transitive dependency that's no longer depended on", () {
+  integration("removes a transitive dependency that's no longer depended "
+      "on", () {
     servePackages([
       package("foo", "1.0.0", [dependency("shared-dep")]),
       package("bar", "1.0.0", [
@@ -44,7 +44,5 @@ main() {
       "shared-dep": "1.0.0",
       "bar-dep": null,
     }).scheduleValidate();
-
-    run();
   });
 }

@@ -6,8 +6,9 @@
 // connection port.
 
 import "dart:io";
-import "dart:json";
+import "dart:json" as json;
 import "dart:utf";
+import "dart:async";
 
 
 Map<int, Completer> outstandingCommands;
@@ -66,9 +67,9 @@ Future sendCmd(Map<String, dynamic> cmd) {
   int id = cmd["id"];
   outstandingCommands[id] = completer;
   if (verbose) {
-    print("sending: '${jsonStringify(cmd)}'");
+    print("sending: '${json.stringify(cmd)}'");
   }
-  vmStream.writeString(jsonStringify(cmd));
+  vmStream.writeString(json.stringify(cmd));
   return completer.future;
 }
 
@@ -410,8 +411,8 @@ void handlePausedEvent(msg) {
 }
 
 
-void processVmMessage(String json) {
-  var msg = parseJson(json);
+void processVmMessage(String jsonString) {
+  var msg = json.parse(jsonString);
   if (msg == null) {
     return;
   }

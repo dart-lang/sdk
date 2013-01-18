@@ -41,6 +41,12 @@ class JsonUnsupportedObjectError implements Error {
  * [List]s of parsed JSON values or [Map]s from [String] to parsed
  * JSON values.
  *
+ * The optional [revivier] function, if provided, is called once for each
+ * object or list property parsed. The arguments are the property name
+ * ([String]) or list index ([int]), and the value is the parsed value.
+ * The return value of the revivier will be used as the value of that property
+ * instead the parsed value.
+ *
  * Throws [FormatException] if the input is not valid JSON text.
  */
 parse(String json, [reviver(var key, var value)]) {

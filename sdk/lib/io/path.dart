@@ -7,7 +7,8 @@ part of dart.io;
 /**
  * A Path is an immutable wrapper of a String, with additional member functions
  * for useful path manipulations and queries.
- * On the Windows platform, Path also converts from and to native paths.
+ * On the Windows platform, Path also converts from native paths to paths using
+ * '/' as a path separator, and vice versa.
  *
  * Joining of paths and path normalization handle '.' and '..' in the usual way.
  */
@@ -23,7 +24,7 @@ abstract class Path {
    *
    *     new Path(r'c:\a\b').toString() == '/c:/a/b'
    *
-   * A path starting with '/c:/' (or any other character instead of 'c') is
+   * A path starting with a drive letter is
    * treated specially.  Backwards links ('..') cannot cancel the drive letter.
    *
    * If the path is a share path this is recorded in the Path object and
@@ -50,7 +51,9 @@ abstract class Path {
   bool get isEmpty;
 
   /**
-   * Is this path an absolute path, beginning with a path separator?
+   * Is this path an absolute path, beginning with a '/'?  Note that
+   * Windows paths beginning with '\' or with a drive letter are absolute,
+   * and a leading '/' is added when they are converted to a Path.
    */
   bool get isAbsolute;
 
@@ -60,12 +63,12 @@ abstract class Path {
   bool get isWindowsShare;
 
   /**
-   * Does this path end with a path separator?
+   * Does this path end with a '/'?
    */
   bool get hasTrailingSeparator;
 
   /**
-   * Does this path contain no consecutive path separators, no segments that
+   * Does this path contain no consecutive '/'s, no segments that
    * are '.' unless the path is exactly '.', and segments that are '..' only
    * as the leading segments on a relative path?
    */
@@ -74,7 +77,7 @@ abstract class Path {
   /**
    * Make a path canonical by dropping segments that are '.', cancelling
    * segments that are '..' with preceding segments, if possible,
-   * and combining consecutive path separators.  Leading '..' segments
+   * and combining consecutive '/'s.  Leading '..' segments
    * are kept on relative paths, and dropped from absolute paths.
    */
   Path canonicalize();
@@ -83,7 +86,7 @@ abstract class Path {
    * Joins the relative path [further] to this path.  Canonicalizes the
    * resulting joined path using [canonicalize],
    * interpreting '.' and '..' as directory traversal commands, and removing
-   * consecutive path separators.
+   * consecutive '/'s.
    *
    * If [further] is an absolute path, an IllegalArgument exception is thrown.
    *
@@ -98,8 +101,9 @@ abstract class Path {
    *   containing `'a/b/e'`.
    *
    * Note that the join operation does not drop the last segment of the
-   * base path, the way URL joining does.  That would be accomplished with
-   * basepath.directoryPath.join(further).
+   * base path, the way URL joining does.  To join basepath to further using
+   * URL semantics, use
+   *    [:basepath.directoryPath.join(further):].
    *
    * If you want to avoid joins that traverse
    * parent directories in the base, you can check whether
@@ -114,16 +118,21 @@ abstract class Path {
    * Throws an exception if such a path is impossible.
    * For example, if [base] is '../../a/b' and [this] is '.'.
    * The computation is independent of the file system and current directory.
+   *
+   * To compute a relative path using URL semantics, where the final
+   * path component of the base is dropped unless it ends with a slash,
+   * call [: a.relativeTo(b.directoryPath) :] instead of [: a.relativeTo(b) :].
    */
   Path relativeTo(Path base);
 
   /**
    * Converts a path to a string using the native filesystem's conventions.
    *
-   * On Windows, converts path separators to backwards slashes, and removes
-   * the leading path separator if the path starts with a drive specification.
+   * On Windows, converts '/'s to backwards slashes, and removes
+   * the leading '/' if the path starts with a drive specification.
    * For most valid Windows paths, this should be the inverse of the
-   * constructor Path.fromNative.
+   * conversion that the constructor new Path() performs.  If the path is
+   * a Windows share, restores the '\\' at the start of the path.
    */
   String toNativePath();
 
@@ -135,10 +144,10 @@ abstract class Path {
   String toString();
 
   /**
-   * Gets the segments of a Path.  Paths beginning or ending with the
-   * path separator do not have leading or terminating empty segments.
-   * Other than that, the segments are just the result of splitting the
-   * path on the path separator.
+   * Gets the segments of a Path. The segments are just the result of
+   * splitting the path on any '/' characters, except that a '/' at the
+   * beginning does not create an empty segment before it, and a '/' at
+   * the end does not create an empty segment after it.
    *
    *     new Path('/a/b/c/d').segments() == ['a', 'b', 'c', d'];
    *     new Path(' foo bar //../') == [' foo bar ', '', '..'];
@@ -146,18 +155,18 @@ abstract class Path {
   List<String> segments();
 
   /**
-   * Appends [finalSegment] to a path as a new segment.  Adds a path separator
+   * Appends [finalSegment] to a path as a new segment.  Adds a '/'
    * between the path and [finalSegment] if the path does not already end in
-   * a path separator.  The path is not canonicalized, and [finalSegment] may
-   * contain path separators.
+   * a '/'.  The path is not canonicalized, and [finalSegment] may
+   * contain '/'s.
    */
   Path append(String finalSegment);
 
   /**
-   * Drops the final path separator and whatever follows it from this Path,
-   * and returns the resulting Path object.  If the only path separator in
+   * Drops the final '/' and whatever follows it from this Path,
+   * and returns the resulting Path object.  If the only '/' in
    * this Path is the first character, returns '/' instead of the empty string.
-   * If there is no path separator in the Path, returns the empty string.
+   * If there is no '/' in the Path, returns the empty string.
    *
    *     new Path('../images/dot.gif').directoryPath == '../images'
    *     new Path('/usr/geoffrey/www/').directoryPath == '/usr/geoffrey/www'
@@ -168,8 +177,8 @@ abstract class Path {
   Path get directoryPath;
 
   /**
-   * The part of the path after the last path separator, or the entire path if
-   * it contains no path separator.
+   * The part of the path after the last '/', or the entire path if
+   * it contains no '/'.
    *
    *     new Path('images/DSC_0027.jpg).filename == 'DSC_0027.jpg'
    *     new Path('users/fred/').filename == ''

@@ -11,9 +11,9 @@ import 'event_helper.dart';
 
 testSupercedeStream() {
   { // Simple case of superceding lower priority streams.
-    StreamController s1 = new StreamController();
-    StreamController s2 = new StreamController();
-    StreamController s3 = new StreamController();
+    StreamController s1 = new StreamController.multiSubscription();
+    StreamController s2 = new StreamController.multiSubscription();
+    StreamController s3 = new StreamController.multiSubscription();
     Stream merge = new Stream.superceding([s1.stream, s2.stream, s3.stream]);
     Events expected = new Events()..add(1)..add(2)..add(3)..add(4)..close();
     Events actual = new Events.capture(merge);
@@ -28,9 +28,9 @@ testSupercedeStream() {
   }
 
   { // Superceding more than one stream at a time.
-    StreamController s1 = new StreamController();
-    StreamController s2 = new StreamController();
-    StreamController s3 = new StreamController();
+    StreamController s1 = new StreamController.multiSubscription();
+    StreamController s2 = new StreamController.multiSubscription();
+    StreamController s3 = new StreamController.multiSubscription();
     Stream merge = new Stream.superceding([s1.stream, s2.stream, s3.stream]);
     Events expected = new Events()..add(1)..add(2)..close();
     Events actual = new Events.capture(merge);
@@ -43,9 +43,9 @@ testSupercedeStream() {
   }
 
   { // Closing a stream before superceding it.
-    StreamController s1 = new StreamController();
-    StreamController s2 = new StreamController();
-    StreamController s3 = new StreamController();
+    StreamController s1 = new StreamController.multiSubscription();
+    StreamController s2 = new StreamController.multiSubscription();
+    StreamController s3 = new StreamController.multiSubscription();
     Stream merge = new Stream.superceding([s1.stream, s2.stream, s3.stream]);
     Events expected = new Events()..add(1)..add(2)..add(3)..close();
     Events actual = new Events.capture(merge);
@@ -59,9 +59,9 @@ testSupercedeStream() {
   }
 
   { // Errors from all non-superceded streams are forwarded.
-    StreamController s1 = new StreamController();
-    StreamController s2 = new StreamController();
-    StreamController s3 = new StreamController();
+    StreamController s1 = new StreamController.multiSubscription();
+    StreamController s2 = new StreamController.multiSubscription();
+    StreamController s3 = new StreamController.multiSubscription();
     Stream merge = new Stream.superceding([s1.stream, s2.stream, s3.stream]);
     Events expected =
         new Events()..add(1)..error("1")..error("2")..error("3")
@@ -83,9 +83,9 @@ testSupercedeStream() {
   }
 
   test("Pausing on a superceding stream", () {
-    StreamController s1 = new StreamController();
-    StreamController s2 = new StreamController();
-    StreamController s3 = new StreamController();
+    StreamController s1 = new StreamController.multiSubscription();
+    StreamController s2 = new StreamController.multiSubscription();
+    StreamController s3 = new StreamController.multiSubscription();
     Stream merge = new Stream.superceding([s1.stream, s2.stream, s3.stream]);
     Events expected = new Events()..add(1)..add(2)..add(3);
     Events actual = new Events.capture(merge);
@@ -114,9 +114,9 @@ testSupercedeStream() {
 
 void testCyclicStream() {
   test("Simple case of superceding lower priority streams", () {
-    StreamController s1 = new StreamController();
-    StreamController s2 = new StreamController();
-    StreamController s3 = new StreamController();
+    StreamController s1 = new StreamController.multiSubscription();
+    StreamController s2 = new StreamController.multiSubscription();
+    StreamController s3 = new StreamController.multiSubscription();
     Stream merge = new Stream.cyclic([s1.stream, s2.stream, s3.stream]);
     Events expected =
         new Events()..add(1)..add(2)..add(3)..add(4)..add(5)..add(6)..close();
@@ -139,9 +139,9 @@ void testCyclicStream() {
   });
 
   test("Cyclic merge with errors", () {
-    StreamController s1 = new StreamController();
-    StreamController s2 = new StreamController();
-    StreamController s3 = new StreamController();
+    StreamController s1 = new StreamController.multiSubscription();
+    StreamController s2 = new StreamController.multiSubscription();
+    StreamController s3 = new StreamController.multiSubscription();
     Stream merge = new Stream.cyclic([s1.stream, s2.stream, s3.stream]);
     Events expected =
         new Events()..add(1)..error("1")..add(2)..add(3)..error("2")

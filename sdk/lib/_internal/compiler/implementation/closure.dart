@@ -71,6 +71,8 @@ class ClosureFieldElement extends ElementX {
   bool hasFixedBackendName() => true;
   String fixedBackendName() => name.slowToString();
 
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+
   String toString() => "ClosureFieldElement($name)";
 }
 

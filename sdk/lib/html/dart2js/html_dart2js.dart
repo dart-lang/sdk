@@ -2,6 +2,7 @@ library html;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:collection-dev';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -54,36 +55,39 @@ spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName AbstractWorker; @docsEditable true
+
+@DocsEditable
+@DomName('AbstractWorker')
 class AbstractWorker extends EventTarget native "*AbstractWorker" {
 
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   AbstractWorkerEvents get on =>
     new AbstractWorkerEvents(this);
 
-  /// @domName AbstractWorker.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('AbstractWorker.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName AbstractWorker.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('AbstractWorker.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName AbstractWorker.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('AbstractWorker.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onError => errorEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class AbstractWorkerEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   AbstractWorkerEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -91,65 +95,67 @@ class AbstractWorkerEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAnchorElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLAnchorElement')
 class AnchorElement extends Element native "*HTMLAnchorElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
     if (href != null) e.href = href;
     return e;
   }
 
-  /// @domName HTMLAnchorElement.download; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.download')
   String download;
 
-  /// @domName HTMLAnchorElement.hash; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.hash')
   String hash;
 
-  /// @domName HTMLAnchorElement.host; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.host')
   String host;
 
-  /// @domName HTMLAnchorElement.hostname; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.hostname')
   String hostname;
 
-  /// @domName HTMLAnchorElement.href; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.href')
   String href;
 
-  /// @domName HTMLAnchorElement.hreflang; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.hreflang')
   String hreflang;
 
-  /// @domName HTMLAnchorElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.name')
   String name;
 
-  /// @domName HTMLAnchorElement.origin; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.origin')
   final String origin;
 
-  /// @domName HTMLAnchorElement.pathname; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.pathname')
   String pathname;
 
-  /// @domName HTMLAnchorElement.ping; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.ping')
   String ping;
 
-  /// @domName HTMLAnchorElement.port; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.port')
   String port;
 
-  /// @domName HTMLAnchorElement.protocol; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.protocol')
   String protocol;
 
-  /// @domName HTMLAnchorElement.rel; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.rel')
   String rel;
 
-  /// @domName HTMLAnchorElement.search; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.search')
   String search;
 
-  /// @domName HTMLAnchorElement.target; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.target')
   String target;
 
-  /// @domName HTMLAnchorElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.type')
   String type;
 
-  /// @domName HTMLAnchorElement.toString; @docsEditable true
+  @DocsEditable @DomName('HTMLAnchorElement.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -157,13 +163,15 @@ class AnchorElement extends Element native "*HTMLAnchorElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitAnimationEvent; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitAnimationEvent')
 class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 
-  /// @domName WebKitAnimationEvent.animationName; @docsEditable true
+  @DocsEditable @DomName('WebKitAnimationEvent.animationName')
   final String animationName;
 
-  /// @domName WebKitAnimationEvent.elapsedTime; @docsEditable true
+  @DocsEditable @DomName('WebKitAnimationEvent.elapsedTime')
   final num elapsedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -171,48 +179,14 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAppletElement; @docsEditable true
-class AppletElement extends Element native "*HTMLAppletElement" {
 
-  /// @domName HTMLAppletElement.align; @docsEditable true
-  String align;
-
-  /// @domName HTMLAppletElement.alt; @docsEditable true
-  String alt;
-
-  /// @domName HTMLAppletElement.archive; @docsEditable true
-  String archive;
-
-  /// @domName HTMLAppletElement.code; @docsEditable true
-  String code;
-
-  /// @domName HTMLAppletElement.codeBase; @docsEditable true
-  String codeBase;
-
-  /// @domName HTMLAppletElement.height; @docsEditable true
-  String height;
-
-  /// @domName HTMLAppletElement.hspace; @docsEditable true
-  String hspace;
-
-  /// @domName HTMLAppletElement.name; @docsEditable true
-  String name;
-
-  /// @domName HTMLAppletElement.object; @docsEditable true
-  String object;
-
-  /// @domName HTMLAppletElement.vspace; @docsEditable true
-  String vspace;
-
-  /// @domName HTMLAppletElement.width; @docsEditable true
-  String width;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DOMApplicationCache; @docsEditable true
+@DocsEditable
+@DomName('DOMApplicationCache')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.OPERA)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
   static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
@@ -231,7 +205,11 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.applicationCache)');
+
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ApplicationCacheEvents get on =>
     new ApplicationCacheEvents(this);
 
@@ -247,28 +225,28 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
   static const int UPDATEREADY = 4;
 
-  /// @domName DOMApplicationCache.status; @docsEditable true
+  @DocsEditable @DomName('DOMApplicationCache.status')
   final int status;
 
-  /// @domName DOMApplicationCache.abort; @docsEditable true
+  @DocsEditable @DomName('DOMApplicationCache.abort')
   void abort() native;
 
-  /// @domName DOMApplicationCache.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('DOMApplicationCache.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName DOMApplicationCache.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('DOMApplicationCache.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName DOMApplicationCache.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('DOMApplicationCache.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName DOMApplicationCache.swapCache; @docsEditable true
+  @DocsEditable @DomName('DOMApplicationCache.swapCache')
   void swapCache() native;
 
-  /// @domName DOMApplicationCache.update; @docsEditable true
+  @DocsEditable @DomName('DOMApplicationCache.update')
   void update() native;
 
   Stream<Event> get onCached => cachedEvent.forTarget(this);
@@ -288,33 +266,33 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
   Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class ApplicationCacheEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   ApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get cached => this['cached'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get checking => this['checking'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get downloading => this['downloading'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get noUpdate => this['noupdate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get obsolete => this['obsolete'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get updateReady => this['updateready'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -322,49 +300,51 @@ class ApplicationCacheEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAreaElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLAreaElement')
 class AreaElement extends Element native "*HTMLAreaElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory AreaElement() => document.$dom_createElement("area");
 
-  /// @domName HTMLAreaElement.alt; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.alt')
   String alt;
 
-  /// @domName HTMLAreaElement.coords; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.coords')
   String coords;
 
-  /// @domName HTMLAreaElement.hash; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.hash')
   final String hash;
 
-  /// @domName HTMLAreaElement.host; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.host')
   final String host;
 
-  /// @domName HTMLAreaElement.hostname; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.hostname')
   final String hostname;
 
-  /// @domName HTMLAreaElement.href; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.href')
   String href;
 
-  /// @domName HTMLAreaElement.pathname; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.pathname')
   final String pathname;
 
-  /// @domName HTMLAreaElement.ping; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.ping')
   String ping;
 
-  /// @domName HTMLAreaElement.port; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.port')
   final String port;
 
-  /// @domName HTMLAreaElement.protocol; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.protocol')
   final String protocol;
 
-  /// @domName HTMLAreaElement.search; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.search')
   final String search;
 
-  /// @domName HTMLAreaElement.shape; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.shape')
   String shape;
 
-  /// @domName HTMLAreaElement.target; @docsEditable true
+  @DocsEditable @DomName('HTMLAreaElement.target')
   String target;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -372,24 +352,25 @@ class AreaElement extends Element native "*HTMLAreaElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ArrayBuffer
+@DocsEditable
+@DomName('ArrayBuffer')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBuffer native "*ArrayBuffer" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
   static ArrayBuffer _create(int length) => JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.ArrayBuffer != "undefined"');
 
-  /// @domName ArrayBuffer.byteLength; @docsEditable true
+  @DocsEditable @DomName('ArrayBuffer.byteLength')
   final int byteLength;
 
-  /// @domName ArrayBuffer.slice;
+  @DomName('ArrayBuffer.slice')
   ArrayBuffer slice(int begin, [int end]) {
     // IE10 supports ArrayBuffers but does not have the slice method.
     if (JS('bool', '!!#.slice', this)) {
@@ -423,20 +404,22 @@ class ArrayBuffer native "*ArrayBuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ArrayBufferView; @docsEditable true
+
+@DocsEditable
+@DomName('ArrayBufferView')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBufferView native "*ArrayBufferView" {
 
-  /// @domName ArrayBufferView.buffer; @docsEditable true
+  @DocsEditable @DomName('ArrayBufferView.buffer')
   final ArrayBuffer buffer;
 
-  /// @domName ArrayBufferView.byteLength; @docsEditable true
+  @DocsEditable @DomName('ArrayBufferView.byteLength')
   final int byteLength;
 
-  /// @domName ArrayBufferView.byteOffset; @docsEditable true
+  @DocsEditable @DomName('ArrayBufferView.byteOffset')
   final int byteOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -444,33 +427,22 @@ class ArrayBufferView native "*ArrayBufferView" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Attr; @docsEditable true
+
+@DocsEditable
+@DomName('Attr')
 class Attr extends Node native "*Attr" {
-
-  /// @domName Attr.isId; @docsEditable true
-  final bool isId;
-
-  /// @domName Attr.name; @docsEditable true
-  final String name;
-
-  /// @domName Attr.ownerElement; @docsEditable true
-  final Element ownerElement;
-
-  /// @domName Attr.specified; @docsEditable true
-  final bool specified;
-
-  /// @domName Attr.value; @docsEditable true
-  String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAudioElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLAudioElement')
 class AudioElement extends MediaElement native "*HTMLAudioElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory AudioElement([String src]) {
     if (!?src) {
       return AudioElement._create();
@@ -489,10 +461,12 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLBRElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLBRElement')
 class BRElement extends Element native "*HTMLBRElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory BRElement() => document.$dom_createElement("br");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -500,10 +474,12 @@ class BRElement extends Element native "*HTMLBRElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName BarInfo; @docsEditable true
+
+@DocsEditable
+@DomName('BarInfo')
 class BarInfo native "*BarInfo" {
 
-  /// @domName BarInfo.visible; @docsEditable true
+  @DocsEditable @DomName('BarInfo.visible')
   final bool visible;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -511,16 +487,18 @@ class BarInfo native "*BarInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLBaseElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLBaseElement')
 class BaseElement extends Element native "*HTMLBaseElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory BaseElement() => document.$dom_createElement("base");
 
-  /// @domName HTMLBaseElement.href; @docsEditable true
+  @DocsEditable @DomName('HTMLBaseElement.href')
   String href;
 
-  /// @domName HTMLBaseElement.target; @docsEditable true
+  @DocsEditable @DomName('HTMLBaseElement.target')
   String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -528,24 +506,9 @@ class BaseElement extends Element native "*HTMLBaseElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLBaseFontElement; @docsEditable true
-class BaseFontElement extends Element native "*HTMLBaseFontElement" {
 
-  /// @domName HTMLBaseFontElement.color; @docsEditable true
-  String color;
-
-  /// @domName HTMLBaseFontElement.face; @docsEditable true
-  String face;
-
-  /// @domName HTMLBaseFontElement.size; @docsEditable true
-  int size;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName BatteryManager; @docsEditable true
+@DocsEditable
+@DomName('BatteryManager')
 class BatteryManager extends EventTarget native "*BatteryManager" {
 
   static const EventStreamProvider<Event> chargingChangeEvent = const EventStreamProvider<Event>('chargingchange');
@@ -556,32 +519,33 @@ class BatteryManager extends EventTarget native "*BatteryManager" {
 
   static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
 
-  /// @domName BatteryManager.charging; @docsEditable true
+  @DocsEditable @DomName('BatteryManager.charging')
   final bool charging;
 
-  /// @domName BatteryManager.chargingTime; @docsEditable true
+  @DocsEditable @DomName('BatteryManager.chargingTime')
   final num chargingTime;
 
-  /// @domName BatteryManager.dischargingTime; @docsEditable true
+  @DocsEditable @DomName('BatteryManager.dischargingTime')
   final num dischargingTime;
 
-  /// @domName BatteryManager.level; @docsEditable true
+  @DocsEditable @DomName('BatteryManager.level')
   final num level;
 
-  /// @domName BatteryManager.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('BatteryManager.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName BatteryManager.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('BatteryManager.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName BatteryManager.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('BatteryManager.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onChargingChange => chargingChangeEvent.forTarget(this);
@@ -593,21 +557,21 @@ class BatteryManager extends EventTarget native "*BatteryManager" {
   Stream<Event> get onLevelChange => levelChangeEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class BatteryManagerEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   BatteryManagerEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get chargingChange => this['chargingchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get chargingTimeChange => this['chargingtimechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get levelChange => this['levelchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -615,10 +579,12 @@ class BatteryManagerEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName BeforeLoadEvent; @docsEditable true
+
+@DocsEditable
+@DomName('BeforeLoadEvent')
 class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 
-  /// @domName BeforeLoadEvent.url; @docsEditable true
+  @DocsEditable @DomName('BeforeLoadEvent.url')
   final String url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -626,10 +592,11 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Blob
+@DocsEditable
+@DomName('Blob')
 class Blob native "*Blob" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
       return Blob._create(blobParts);
@@ -640,13 +607,13 @@ class Blob native "*Blob" {
     return Blob._create(blobParts, type, endings);
   }
 
-  /// @domName Blob.size; @docsEditable true
+  @DocsEditable @DomName('Blob.size')
   final int size;
 
-  /// @domName Blob.type; @docsEditable true
+  @DocsEditable @DomName('Blob.type')
   final String type;
 
-  /// @domName Blob.slice; @docsEditable true
+  @DocsEditable @DomName('Blob.slice')
   Blob slice([int start, int end, String contentType]) native;
 
   static Blob _create([List blobParts = null, String type, String endings]) {
@@ -674,7 +641,9 @@ class Blob native "*Blob" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLBodyElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLBodyElement')
 class BodyElement extends Element native "*HTMLBodyElement" {
 
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
@@ -703,15 +672,13 @@ class BodyElement extends Element native "*HTMLBodyElement" {
 
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  ///@docsEditable true
+  @DocsEditable
   factory BodyElement() => document.$dom_createElement("body");
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   BodyElementEvents get on =>
     new BodyElementEvents(this);
-
-  /// @domName HTMLBodyElement.vLink; @docsEditable true
-  String vLink;
 
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
@@ -740,48 +707,48 @@ class BodyElement extends Element native "*HTMLBodyElement" {
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class BodyElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   BodyElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeUnload => this['beforeunload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get hashChange => this['hashchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get offline => this['offline'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get online => this['online'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get popState => this['popstate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get resize => this['resize'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get storage => this['storage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -789,62 +756,64 @@ class BodyElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLButtonElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLButtonElement')
 class ButtonElement extends Element native "*HTMLButtonElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory ButtonElement() => document.$dom_createElement("button");
 
-  /// @domName HTMLButtonElement.autofocus; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.autofocus')
   bool autofocus;
 
-  /// @domName HTMLButtonElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.disabled')
   bool disabled;
 
-  /// @domName HTMLButtonElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.form')
   final FormElement form;
 
-  /// @domName HTMLButtonElement.formAction; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.formAction')
   String formAction;
 
-  /// @domName HTMLButtonElement.formEnctype; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.formEnctype')
   String formEnctype;
 
-  /// @domName HTMLButtonElement.formMethod; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.formMethod')
   String formMethod;
 
-  /// @domName HTMLButtonElement.formNoValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.formNoValidate')
   bool formNoValidate;
 
-  /// @domName HTMLButtonElement.formTarget; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.formTarget')
   String formTarget;
 
-  /// @domName HTMLButtonElement.labels; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.labels')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
-  /// @domName HTMLButtonElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.name')
   String name;
 
-  /// @domName HTMLButtonElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.type')
   String type;
 
-  /// @domName HTMLButtonElement.validationMessage; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.validationMessage')
   final String validationMessage;
 
-  /// @domName HTMLButtonElement.validity; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.validity')
   final ValidityState validity;
 
-  /// @domName HTMLButtonElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.value')
   String value;
 
-  /// @domName HTMLButtonElement.willValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.willValidate')
   final bool willValidate;
 
-  /// @domName HTMLButtonElement.checkValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.checkValidity')
   bool checkValidity() native;
 
-  /// @domName HTMLButtonElement.setCustomValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLButtonElement.setCustomValidity')
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -852,7 +821,9 @@ class ButtonElement extends Element native "*HTMLButtonElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CDATASection; @docsEditable true
+
+@DocsEditable
+@DomName('CDATASection')
 class CDataSection extends Text native "*CDATASection" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -860,10 +831,11 @@ class CDataSection extends Text native "*CDATASection" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLCanvasElement
+@DocsEditable
+@DomName('HTMLCanvasElement')
 class CanvasElement extends Element native "*HTMLCanvasElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory CanvasElement({int width, int height}) {
     var e = document.$dom_createElement("canvas");
     if (width != null) e.width = width;
@@ -871,56 +843,14 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
     return e;
   }
 
-  /// The height of this canvas element in CSS pixels.
-  /// @domName HTMLCanvasElement.height; @docsEditable true
+  @DocsEditable @DomName('HTMLCanvasElement.height')
   int height;
 
-  /// The width of this canvas element in CSS pixels.
-  /// @domName HTMLCanvasElement.width; @docsEditable true
+  @DocsEditable @DomName('HTMLCanvasElement.width')
   int width;
 
-  /**
-   * Returns a data URI containing a representation of the image in the
-   * format specified by type (defaults to 'image/png').
-   *
-   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
-   *
-   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
-   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
-   * value is used. Note: the default value varies by browser.
-   *
-   * If the height or width of this canvas element is 0, then 'data:' is returned,
-   * representing no data.
-   *
-   * If the type requested is not 'image/png', and the returned value is
-   * 'data:image/png', then the requested type is not supported.
-   *
-   * Example usage:
-   *
-   *     CanvasElement canvas = new CanvasElement();
-   *     var ctx = canvas.context2d
-   *     ..fillStyle = "rgb(200,0,0)"
-   *     ..fillRect(10, 10, 55, 50);
-   *     var dataUrl = canvas.toDataURL("image/jpeg", 0.95);
-   *     // The Data Uri would look similar to
-   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
-   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
-   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
-   *     //Create a new image element from the data URI.
-   *     var img = new ImageElement();
-   *     img.src = dataUrl;
-   *     document.body.children.add(img);
-   *
-   * See also:
-   *
-   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
-   *
-   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
-   *
-   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
-   */
-  /// @domName HTMLCanvasElement.toDataURL; @docsEditable true
   @JSName('toDataURL')
+  @DocsEditable @DomName('HTMLCanvasElement.toDataURL')
   String toDataUrl(String type, [num quality]) native;
 
 
@@ -932,48 +862,12 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An opaque canvas object representing a gradient.
- *
- * Created by calling [createLinearGradient] or [createRadialGradient] on a
- * [CanvasRenderingContext2D] object.
- *
- * Example usage:
- *
- *     var canvas = new CanvasElement(width: 600, height: 600);
- *     var ctx = canvas.context2d;
- *     ctx.clearRect(0, 0, 600, 600);
- *     ctx.save();
- *     // Create radial gradient.
- *     CanvasGradient gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);
- *     gradient.addColorStop(0, '#000');
- *     gradient.addColorStop(1, 'rgb(255, 255, 255)');
- *     // Assign gradients to fill.
- *     ctx.fillStyle = gradient;
- *     // Draw a rectangle with a gradient fill.
- *     ctx.fillRect(0, 0, 600, 600);
- *     ctx.save();
- *     document.body.children.add(canvas);
- *
- * See also:
- *
- * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
- * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
- * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
- */
-/// @domName CanvasGradient; @docsEditable true
+
+@DocsEditable
+@DomName('CanvasGradient')
 class CanvasGradient native "*CanvasGradient" {
 
-  /**
-   * Adds a color stop to this gradient at the offset.
-   *
-   * The [offset] can range between 0.0 and 1.0.
-   *
-   * See also:
-   *
-   * * [Multiple Color Stops](https://developer.mozilla.org/en-US/docs/CSS/linear-gradient#Gradient_with_multiple_color_stops) from MDN.
-   */
-  /// @domName CanvasGradient.addColorStop; @docsEditable true
+  @DocsEditable @DomName('CanvasGradient.addColorStop')
   void addColorStop(num offset, String color) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -981,34 +875,9 @@ class CanvasGradient native "*CanvasGradient" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An opaque object representing a pattern of image, canvas, or video.
- *
- * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.
- *
- * Example usage:
- *
- *     var canvas = new CanvasElement(width: 600, height: 600);
- *     var ctx = canvas.context2d;
- *     var img = new ImageElement();
- *     // Image src needs to be loaded before pattern is applied.
- *     img.on.load.add((event) {
- *       // When the image is loaded, create a pattern
- *       // from the ImageElement.
- *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');
- *       ctx.rect(0, 0, canvas.width, canvas.height);
- *       ctx.fillStyle = pattern;
- *       ctx.fill();
- *     });
- *     img.src = "images/foo.jpg";
- *     document.body.children.add(canvas);
- *
- * See also:
- * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
- * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
- * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
- */
-/// @domName CanvasPattern; @docsEditable true
+
+@DocsEditable
+@DomName('CanvasPattern')
 class CanvasPattern native "*CanvasPattern" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1016,17 +885,12 @@ class CanvasPattern native "*CanvasPattern" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * A rendering context for a canvas element.
- *
- * This context is extended by [CanvasRenderingContext2D] and
- * [WebGLRenderingContext].
- */
-/// @domName CanvasRenderingContext; @docsEditable true
+
+@DocsEditable
+@DomName('CanvasRenderingContext')
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  /// Reference to the canvas element to which this context belongs.
-  /// @domName CanvasRenderingContext.canvas; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext.canvas')
   final CanvasElement canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1034,93 +898,91 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CanvasRenderingContext2D
+@DocsEditable
+@DomName('CanvasRenderingContext2D')
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
-  /// @domName CanvasRenderingContext2D.fillStyle; @docsEditable true
-  @Creates('String|CanvasGradient|CanvasPattern') @Returns('String|CanvasGradient|CanvasPattern')
+  @DocsEditable @DomName('CanvasRenderingContext2D.fillStyle') @Creates('String|CanvasGradient|CanvasPattern') @Returns('String|CanvasGradient|CanvasPattern')
   dynamic fillStyle;
 
-  /// @domName CanvasRenderingContext2D.font; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.font')
   String font;
 
-  /// @domName CanvasRenderingContext2D.globalAlpha; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.globalAlpha')
   num globalAlpha;
 
-  /// @domName CanvasRenderingContext2D.globalCompositeOperation; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   String globalCompositeOperation;
 
-  /// @domName CanvasRenderingContext2D.lineCap; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.lineCap')
   String lineCap;
 
-  /// @domName CanvasRenderingContext2D.lineDashOffset; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.lineDashOffset')
   num lineDashOffset;
 
-  /// @domName CanvasRenderingContext2D.lineJoin; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.lineJoin')
   String lineJoin;
 
-  /// @domName CanvasRenderingContext2D.lineWidth; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.lineWidth')
   num lineWidth;
 
-  /// @domName CanvasRenderingContext2D.miterLimit; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.miterLimit')
   num miterLimit;
 
-  /// @domName CanvasRenderingContext2D.shadowBlur; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.shadowBlur')
   num shadowBlur;
 
-  /// @domName CanvasRenderingContext2D.shadowColor; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.shadowColor')
   String shadowColor;
 
-  /// @domName CanvasRenderingContext2D.shadowOffsetX; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.shadowOffsetX')
   num shadowOffsetX;
 
-  /// @domName CanvasRenderingContext2D.shadowOffsetY; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.shadowOffsetY')
   num shadowOffsetY;
 
-  /// @domName CanvasRenderingContext2D.strokeStyle; @docsEditable true
-  @Creates('String|CanvasGradient|CanvasPattern') @Returns('String|CanvasGradient|CanvasPattern')
+  @DocsEditable @DomName('CanvasRenderingContext2D.strokeStyle') @Creates('String|CanvasGradient|CanvasPattern') @Returns('String|CanvasGradient|CanvasPattern')
   dynamic strokeStyle;
 
-  /// @domName CanvasRenderingContext2D.textAlign; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.textAlign')
   String textAlign;
 
-  /// @domName CanvasRenderingContext2D.textBaseline; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.textBaseline')
   String textBaseline;
 
-  /// @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
   final num webkitBackingStorePixelRatio;
 
-  /// @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
   bool webkitImageSmoothingEnabled;
 
-  /// @domName CanvasRenderingContext2D.webkitLineDash; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.webkitLineDash')
   List webkitLineDash;
 
-  /// @domName CanvasRenderingContext2D.webkitLineDashOffset; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
   num webkitLineDashOffset;
 
-  /// @domName CanvasRenderingContext2D.arc; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.arc')
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
-  /// @domName CanvasRenderingContext2D.arcTo; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.arcTo')
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
-  /// @domName CanvasRenderingContext2D.beginPath; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.beginPath')
   void beginPath() native;
 
-  /// @domName CanvasRenderingContext2D.bezierCurveTo; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.bezierCurveTo')
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
 
-  /// @domName CanvasRenderingContext2D.clearRect; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.clearRect')
   void clearRect(num x, num y, num width, num height) native;
 
-  /// @domName CanvasRenderingContext2D.clip; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.clip')
   void clip() native;
 
-  /// @domName CanvasRenderingContext2D.closePath; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.closePath')
   void closePath() native;
 
-  /// @domName CanvasRenderingContext2D.createImageData; @docsEditable true
   ImageData createImageData(imagedata_OR_sw, [num sh]) {
     if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) &&
         !?sh) {
@@ -1133,57 +995,55 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createImageData')
-  @Creates('ImageData|=Object')
+  @DocsEditable @DomName('CanvasRenderingContext2D.createImageData') @Creates('ImageData|=Object')
   _createImageData_1(imagedata) native;
   @JSName('createImageData')
-  @Creates('ImageData|=Object')
+  @DocsEditable @DomName('CanvasRenderingContext2D.createImageData') @Creates('ImageData|=Object')
   _createImageData_2(num sw, sh) native;
 
-  /// @domName CanvasRenderingContext2D.createLinearGradient; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.createLinearGradient')
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  /// @domName CanvasRenderingContext2D.createPattern; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.createPattern')
   CanvasPattern createPattern(canvas_OR_image, String repetitionType) native;
 
-  /// @domName CanvasRenderingContext2D.createRadialGradient; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.createRadialGradient')
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  /// @domName CanvasRenderingContext2D.drawImage; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.drawImage')
   void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
 
-  /// @domName CanvasRenderingContext2D.fill; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.fill')
   void fill() native;
 
-  /// @domName CanvasRenderingContext2D.fillRect; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.fillRect')
   void fillRect(num x, num y, num width, num height) native;
 
-  /// @domName CanvasRenderingContext2D.fillText; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.fillText')
   void fillText(String text, num x, num y, [num maxWidth]) native;
 
-  /// @domName CanvasRenderingContext2D.getImageData; @docsEditable true
   ImageData getImageData(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
   }
   @JSName('getImageData')
-  @Creates('ImageData|=Object')
+  @DocsEditable @DomName('CanvasRenderingContext2D.getImageData') @Creates('ImageData|=Object')
   _getImageData_1(sx, sy, sw, sh) native;
 
-  /// @domName CanvasRenderingContext2D.getLineDash; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.getLineDash')
   List<num> getLineDash() native;
 
-  /// @domName CanvasRenderingContext2D.isPointInPath; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.isPointInPath')
   bool isPointInPath(num x, num y) native;
 
-  /// @domName CanvasRenderingContext2D.lineTo; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.lineTo')
   void lineTo(num x, num y) native;
 
-  /// @domName CanvasRenderingContext2D.measureText; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.measureText')
   TextMetrics measureText(String text) native;
 
-  /// @domName CanvasRenderingContext2D.moveTo; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.moveTo')
   void moveTo(num x, num y) native;
 
-  /// @domName CanvasRenderingContext2D.putImageData; @docsEditable true
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
@@ -1199,58 +1059,58 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('putImageData')
+  @DocsEditable @DomName('CanvasRenderingContext2D.putImageData')
   void _putImageData_1(imagedata, dx, dy) native;
   @JSName('putImageData')
+  @DocsEditable @DomName('CanvasRenderingContext2D.putImageData')
   void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
-  /// @domName CanvasRenderingContext2D.quadraticCurveTo; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.quadraticCurveTo')
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
-  /// @domName CanvasRenderingContext2D.rect; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.rect')
   void rect(num x, num y, num width, num height) native;
 
-  /// @domName CanvasRenderingContext2D.restore; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.restore')
   void restore() native;
 
-  /// @domName CanvasRenderingContext2D.rotate; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.rotate')
   void rotate(num angle) native;
 
-  /// @domName CanvasRenderingContext2D.save; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.save')
   void save() native;
 
-  /// @domName CanvasRenderingContext2D.scale; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.scale')
   void scale(num sx, num sy) native;
 
-  /// @domName CanvasRenderingContext2D.setLineDash; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.setLineDash')
   void setLineDash(List<num> dash) native;
 
-  /// @domName CanvasRenderingContext2D.setTransform; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.setTransform')
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
-  /// @domName CanvasRenderingContext2D.stroke; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.stroke')
   void stroke() native;
 
-  /// @domName CanvasRenderingContext2D.strokeRect; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.strokeRect')
   void strokeRect(num x, num y, num width, num height, [num lineWidth]) native;
 
-  /// @domName CanvasRenderingContext2D.strokeText; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.strokeText')
   void strokeText(String text, num x, num y, [num maxWidth]) native;
 
-  /// @domName CanvasRenderingContext2D.transform; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.transform')
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
-  /// @domName CanvasRenderingContext2D.translate; @docsEditable true
+  @DocsEditable @DomName('CanvasRenderingContext2D.translate')
   void translate(num tx, num ty) native;
 
-  /// @domName CanvasRenderingContext2D.webkitGetImageDataHD; @docsEditable true
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
   }
   @JSName('webkitGetImageDataHD')
-  @Creates('ImageData|=Object')
+  @DocsEditable @DomName('CanvasRenderingContext2D.webkitGetImageDataHD') @Creates('ImageData|=Object')
   _webkitGetImageDataHD_1(sx, sy, sw, sh) native;
 
-  /// @domName CanvasRenderingContext2D.webkitPutImageDataHD; @docsEditable true
   void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX &&
         !?dirtyY &&
@@ -1266,8 +1126,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('webkitPutImageDataHD')
+  @DocsEditable @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native;
   @JSName('webkitPutImageDataHD')
+  @DocsEditable @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
   void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
 
@@ -1312,31 +1174,33 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CharacterData; @docsEditable true
+
+@DocsEditable
+@DomName('CharacterData')
 class CharacterData extends Node native "*CharacterData" {
 
-  /// @domName CharacterData.data; @docsEditable true
+  @DocsEditable @DomName('CharacterData.data')
   String data;
 
-  /// @domName CharacterData.length; @docsEditable true
+  @DocsEditable @DomName('CharacterData.length')
   final int length;
 
-  /// @domName CharacterData.appendData; @docsEditable true
+  @DocsEditable @DomName('CharacterData.appendData')
   void appendData(String data) native;
 
-  /// @domName CharacterData.deleteData; @docsEditable true
+  @DocsEditable @DomName('CharacterData.deleteData')
   void deleteData(int offset, int length) native;
 
-  /// @domName CharacterData.insertData; @docsEditable true
+  @DocsEditable @DomName('CharacterData.insertData')
   void insertData(int offset, String data) native;
 
-  /// @domName CharacterData.remove; @docsEditable true
+  @DocsEditable @DomName('CharacterData.remove')
   void remove() native;
 
-  /// @domName CharacterData.replaceData; @docsEditable true
+  @DocsEditable @DomName('CharacterData.replaceData')
   void replaceData(int offset, int length, String data) native;
 
-  /// @domName CharacterData.substringData; @docsEditable true
+  @DocsEditable @DomName('CharacterData.substringData')
   String substringData(int offset, int length) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1344,25 +1208,27 @@ class CharacterData extends Node native "*CharacterData" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ClientRect; @docsEditable true
+
+@DocsEditable
+@DomName('ClientRect')
 class ClientRect native "*ClientRect" {
 
-  /// @domName ClientRect.bottom; @docsEditable true
+  @DocsEditable @DomName('ClientRect.bottom')
   final num bottom;
 
-  /// @domName ClientRect.height; @docsEditable true
+  @DocsEditable @DomName('ClientRect.height')
   final num height;
 
-  /// @domName ClientRect.left; @docsEditable true
+  @DocsEditable @DomName('ClientRect.left')
   final num left;
 
-  /// @domName ClientRect.right; @docsEditable true
+  @DocsEditable @DomName('ClientRect.right')
   final num right;
 
-  /// @domName ClientRect.top; @docsEditable true
+  @DocsEditable @DomName('ClientRect.top')
   final num top;
 
-  /// @domName ClientRect.width; @docsEditable true
+  @DocsEditable @DomName('ClientRect.width')
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1370,35 +1236,37 @@ class ClientRect native "*ClientRect" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Clipboard; @docsEditable true
+
+@DocsEditable
+@DomName('Clipboard')
 class Clipboard native "*Clipboard" {
 
-  /// @domName Clipboard.dropEffect; @docsEditable true
+  @DocsEditable @DomName('Clipboard.dropEffect')
   String dropEffect;
 
-  /// @domName Clipboard.effectAllowed; @docsEditable true
+  @DocsEditable @DomName('Clipboard.effectAllowed')
   String effectAllowed;
 
-  /// @domName Clipboard.files; @docsEditable true
+  @DocsEditable @DomName('Clipboard.files')
   @Returns('FileList') @Creates('FileList')
   final List<File> files;
 
-  /// @domName Clipboard.items; @docsEditable true
+  @DocsEditable @DomName('Clipboard.items')
   final DataTransferItemList items;
 
-  /// @domName Clipboard.types; @docsEditable true
+  @DocsEditable @DomName('Clipboard.types')
   final List types;
 
-  /// @domName Clipboard.clearData; @docsEditable true
+  @DocsEditable @DomName('Clipboard.clearData')
   void clearData([String type]) native;
 
-  /// @domName Clipboard.getData; @docsEditable true
+  @DocsEditable @DomName('Clipboard.getData')
   String getData(String type) native;
 
-  /// @domName Clipboard.setData; @docsEditable true
+  @DocsEditable @DomName('Clipboard.setData')
   bool setData(String type, String data) native;
 
-  /// @domName Clipboard.setDragImage; @docsEditable true
+  @DocsEditable @DomName('Clipboard.setDragImage')
   void setDragImage(ImageElement image, int x, int y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1406,16 +1274,18 @@ class Clipboard native "*Clipboard" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CloseEvent; @docsEditable true
+
+@DocsEditable
+@DomName('CloseEvent')
 class CloseEvent extends Event native "*CloseEvent" {
 
-  /// @domName CloseEvent.code; @docsEditable true
+  @DocsEditable @DomName('CloseEvent.code')
   final int code;
 
-  /// @domName CloseEvent.reason; @docsEditable true
+  @DocsEditable @DomName('CloseEvent.reason')
   final String reason;
 
-  /// @domName CloseEvent.wasClean; @docsEditable true
+  @DocsEditable @DomName('CloseEvent.wasClean')
   final bool wasClean;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1423,7 +1293,9 @@ class CloseEvent extends Event native "*CloseEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Comment; @docsEditable true
+
+@DocsEditable
+@DomName('Comment')
 class Comment extends CharacterData native "*Comment" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1431,13 +1303,15 @@ class Comment extends CharacterData native "*Comment" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CompositionEvent; @docsEditable true
+
+@DocsEditable
+@DomName('CompositionEvent')
 class CompositionEvent extends UIEvent native "*CompositionEvent" {
 
-  /// @domName CompositionEvent.data; @docsEditable true
+  @DocsEditable @DomName('CompositionEvent.data')
   final String data;
 
-  /// @domName CompositionEvent.initCompositionEvent; @docsEditable true
+  @DocsEditable @DomName('CompositionEvent.initCompositionEvent')
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1445,98 +1319,99 @@ class CompositionEvent extends UIEvent native "*CompositionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Console
+@DocsEditable
+@DomName('Console')
 class Console {
 
   static Console safeConsole = new Console();
 
   bool get _isConsoleDefined => JS('bool', "typeof console != 'undefined'");
 
-  /// @domName Console.memory; @docsEditable true
+  @DomName('Console.memory')
   MemoryInfo get memory => _isConsoleDefined ?
       JS('MemoryInfo', 'console.memory') : null;
 
-  /// @domName Console.profiles; @docsEditable true
+  @DomName('Console.profiles')
   List<ScriptProfile> get profiles => _isConsoleDefined ?
       JS('List<ScriptProfile>', 'console.profiles') : null;
 
-  /// @domName Console.assertCondition; @docsEditable true
+  @DomName('Console.assertCondition')
   void assertCondition(bool condition, Object arg) => _isConsoleDefined ?
       JS('void', 'console.assertCondition(#, #)', condition, arg) : null;
 
-  /// @domName Console.count; @docsEditable true
+  @DomName('Console.count')
   void count(Object arg) => _isConsoleDefined ?
       JS('void', 'console.count(#)', arg) : null;
 
-  /// @domName Console.debug; @docsEditable true
+  @DomName('Console.debug')
   void debug(Object arg) => _isConsoleDefined ?
       JS('void', 'console.debug(#)', arg) : null;
 
-  /// @domName Console.dir; @docsEditable true
+  @DomName('Console.dir')
   void dir(Object arg) => _isConsoleDefined ?
       JS('void', 'console.debug(#)', arg) : null;
 
-  /// @domName Console.dirxml; @docsEditable true
+  @DomName('Console.dirxml')
   void dirxml(Object arg) => _isConsoleDefined ?
       JS('void', 'console.dirxml(#)', arg) : null;
 
-  /// @domName Console.error; @docsEditable true
+  @DomName('Console.error')
   void error(Object arg) => _isConsoleDefined ?
       JS('void', 'console.error(#)', arg) : null;
 
-  /// @domName Console.group; @docsEditable true
+  @DomName('Console.group')
   void group(Object arg) => _isConsoleDefined ?
       JS('void', 'console.group(#)', arg) : null;
 
-  /// @domName Console.groupCollapsed; @docsEditable true
+  @DomName('Console.groupCollapsed')
   void groupCollapsed(Object arg) => _isConsoleDefined ?
       JS('void', 'console.groupCollapsed(#)', arg) : null;
 
-  /// @domName Console.groupEnd; @docsEditable true
+  @DomName('Console.groupEnd')
   void groupEnd() => _isConsoleDefined ?
       JS('void', 'console.groupEnd()') : null;
 
-  /// @domName Console.info; @docsEditable true
+  @DomName('Console.info')
   void info(Object arg) => _isConsoleDefined ?
       JS('void', 'console.info(#)', arg) : null;
 
-  /// @domName Console.log; @docsEditable true
+  @DomName('Console.log')
   void log(Object arg) => _isConsoleDefined ?
       JS('void', 'console.log(#)', arg) : null;
 
-  /// @domName Console.markTimeline; @docsEditable true
+  @DomName('Console.markTimeline')
   void markTimeline(Object arg) => _isConsoleDefined ?
       JS('void', 'console.markTimeline(#)', arg) : null;
 
-  /// @domName Console.profile; @docsEditable true
+  @DomName('Console.profile')
   void profile(String title) => _isConsoleDefined ?
       JS('void', 'console.profile(#)', title) : null;
 
-  /// @domName Console.profileEnd; @docsEditable true
+  @DomName('Console.profileEnd')
   void profileEnd(String title) => _isConsoleDefined ?
       JS('void', 'console.profileEnd(#)', title) : null;
 
-  /// @domName Console.time; @docsEditable true
+  @DomName('Console.time')
   void time(String title) => _isConsoleDefined ?
       JS('void', 'console.time(#)', title) : null;
 
-  /// @domName Console.timeEnd; @docsEditable true
+  @DomName('Console.timeEnd')
   void timeEnd(String title, Object arg) => _isConsoleDefined ?
       JS('void', 'console.timeEnd(#, #)', title, arg) : null;
 
-  /// @domName Console.timeStamp; @docsEditable true
+  @DomName('Console.timeStamp')
   void timeStamp(Object arg) => _isConsoleDefined ?
       JS('void', 'console.timeStamp(#)', arg) : null;
 
-  /// @domName Console.trace; @docsEditable true
+  @DomName('Console.trace')
   void trace(Object arg) => _isConsoleDefined ?
       JS('void', 'console.trace(#)', arg) : null;
 
-  /// @domName Console.warn; @docsEditable true
+  @DomName('Console.warn')
   void warn(Object arg) => _isConsoleDefined ?
       JS('void', 'console.warn(#)', arg) : null;
 
-  /// @domName Console.clear; @docsEditable true
+  @DocsEditable @DomName('Console.clear')
   void clear(Object arg) native;
 
 }
@@ -1545,24 +1420,26 @@ class Console {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLContentElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLContentElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class ContentElement extends Element native "*HTMLContentElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory ContentElement() => document.$dom_createElement("content");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('content');
 
-  /// @domName HTMLContentElement.resetStyleInheritance; @docsEditable true
+  @DocsEditable @DomName('HTMLContentElement.resetStyleInheritance')
   bool resetStyleInheritance;
 
-  /// @domName HTMLContentElement.select; @docsEditable true
+  @DocsEditable @DomName('HTMLContentElement.select')
   String select;
 
-  /// @domName HTMLContentElement.getDistributedNodes; @docsEditable true
+  @DocsEditable @DomName('HTMLContentElement.getDistributedNodes')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> getDistributedNodes() native;
 }
@@ -1571,28 +1448,30 @@ class ContentElement extends Element native "*HTMLContentElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Coordinates; @docsEditable true
+
+@DocsEditable
+@DomName('Coordinates')
 class Coordinates native "*Coordinates" {
 
-  /// @domName Coordinates.accuracy; @docsEditable true
+  @DocsEditable @DomName('Coordinates.accuracy')
   final num accuracy;
 
-  /// @domName Coordinates.altitude; @docsEditable true
+  @DocsEditable @DomName('Coordinates.altitude')
   final num altitude;
 
-  /// @domName Coordinates.altitudeAccuracy; @docsEditable true
+  @DocsEditable @DomName('Coordinates.altitudeAccuracy')
   final num altitudeAccuracy;
 
-  /// @domName Coordinates.heading; @docsEditable true
+  @DocsEditable @DomName('Coordinates.heading')
   final num heading;
 
-  /// @domName Coordinates.latitude; @docsEditable true
+  @DocsEditable @DomName('Coordinates.latitude')
   final num latitude;
 
-  /// @domName Coordinates.longitude; @docsEditable true
+  @DocsEditable @DomName('Coordinates.longitude')
   final num longitude;
 
-  /// @domName Coordinates.speed; @docsEditable true
+  @DocsEditable @DomName('Coordinates.speed')
   final num speed;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1600,16 +1479,18 @@ class Coordinates native "*Coordinates" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Counter; @docsEditable true
+
+@DocsEditable
+@DomName('Counter')
 class Counter native "*Counter" {
 
-  /// @domName Counter.identifier; @docsEditable true
+  @DocsEditable @DomName('Counter.identifier')
   final String identifier;
 
-  /// @domName Counter.listStyle; @docsEditable true
+  @DocsEditable @DomName('Counter.listStyle')
   final String listStyle;
 
-  /// @domName Counter.separator; @docsEditable true
+  @DocsEditable @DomName('Counter.separator')
   final String separator;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1617,21 +1498,25 @@ class Counter native "*Counter" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Crypto; @docsEditable true
+
+@DocsEditable
+@DomName('Crypto')
 class Crypto native "*Crypto" {
 
-  /// @domName Crypto.getRandomValues; @docsEditable true
-  void getRandomValues(ArrayBufferView array) native;
+  @DocsEditable @DomName('Crypto.getRandomValues')
+  ArrayBufferView getRandomValues(ArrayBufferView array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSCharsetRule; @docsEditable true
+
+@DocsEditable
+@DomName('CSSCharsetRule')
 class CssCharsetRule extends CssRule native "*CSSCharsetRule" {
 
-  /// @domName CSSCharsetRule.encoding; @docsEditable true
+  @DocsEditable @DomName('CSSCharsetRule.encoding')
   String encoding;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1639,10 +1524,12 @@ class CssCharsetRule extends CssRule native "*CSSCharsetRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSFontFaceRule; @docsEditable true
+
+@DocsEditable
+@DomName('CSSFontFaceRule')
 class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
 
-  /// @domName CSSFontFaceRule.style; @docsEditable true
+  @DocsEditable @DomName('CSSFontFaceRule.style')
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1650,16 +1537,18 @@ class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSImportRule; @docsEditable true
+
+@DocsEditable
+@DomName('CSSImportRule')
 class CssImportRule extends CssRule native "*CSSImportRule" {
 
-  /// @domName CSSImportRule.href; @docsEditable true
+  @DocsEditable @DomName('CSSImportRule.href')
   final String href;
 
-  /// @domName CSSImportRule.media; @docsEditable true
+  @DocsEditable @DomName('CSSImportRule.media')
   final MediaList media;
 
-  /// @domName CSSImportRule.styleSheet; @docsEditable true
+  @DocsEditable @DomName('CSSImportRule.styleSheet')
   final CssStyleSheet styleSheet;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1667,13 +1556,15 @@ class CssImportRule extends CssRule native "*CSSImportRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSKeyframeRule; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitCSSKeyframeRule')
 class CssKeyframeRule extends CssRule native "*WebKitCSSKeyframeRule" {
 
-  /// @domName WebKitCSSKeyframeRule.keyText; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSKeyframeRule.keyText')
   String keyText;
 
-  /// @domName WebKitCSSKeyframeRule.style; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSKeyframeRule.style')
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1681,23 +1572,25 @@ class CssKeyframeRule extends CssRule native "*WebKitCSSKeyframeRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSKeyframesRule; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitCSSKeyframesRule')
 class CssKeyframesRule extends CssRule native "*WebKitCSSKeyframesRule" {
 
-  /// @domName WebKitCSSKeyframesRule.cssRules; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSKeyframesRule.cssRules')
   @Returns('_CssRuleList') @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
-  /// @domName WebKitCSSKeyframesRule.name; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSKeyframesRule.name')
   String name;
 
-  /// @domName WebKitCSSKeyframesRule.deleteRule; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSKeyframesRule.deleteRule')
   void deleteRule(String key) native;
 
-  /// @domName WebKitCSSKeyframesRule.findRule; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSKeyframesRule.findRule')
   CssKeyframeRule findRule(String key) native;
 
-  /// @domName WebKitCSSKeyframesRule.insertRule; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSKeyframesRule.insertRule')
   void insertRule(String rule) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1705,10 +1598,12 @@ class CssKeyframesRule extends CssRule native "*WebKitCSSKeyframesRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSMatrix; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitCSSMatrix')
 class CssMatrix native "*WebKitCSSMatrix" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
       return CssMatrix._create();
@@ -1722,100 +1617,100 @@ class CssMatrix native "*WebKitCSSMatrix" {
     return JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
   }
 
-  /// @domName WebKitCSSMatrix.a; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.a')
   num a;
 
-  /// @domName WebKitCSSMatrix.b; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.b')
   num b;
 
-  /// @domName WebKitCSSMatrix.c; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.c')
   num c;
 
-  /// @domName WebKitCSSMatrix.d; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.d')
   num d;
 
-  /// @domName WebKitCSSMatrix.e; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.e')
   num e;
 
-  /// @domName WebKitCSSMatrix.f; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.f')
   num f;
 
-  /// @domName WebKitCSSMatrix.m11; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m11')
   num m11;
 
-  /// @domName WebKitCSSMatrix.m12; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m12')
   num m12;
 
-  /// @domName WebKitCSSMatrix.m13; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m13')
   num m13;
 
-  /// @domName WebKitCSSMatrix.m14; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m14')
   num m14;
 
-  /// @domName WebKitCSSMatrix.m21; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m21')
   num m21;
 
-  /// @domName WebKitCSSMatrix.m22; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m22')
   num m22;
 
-  /// @domName WebKitCSSMatrix.m23; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m23')
   num m23;
 
-  /// @domName WebKitCSSMatrix.m24; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m24')
   num m24;
 
-  /// @domName WebKitCSSMatrix.m31; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m31')
   num m31;
 
-  /// @domName WebKitCSSMatrix.m32; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m32')
   num m32;
 
-  /// @domName WebKitCSSMatrix.m33; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m33')
   num m33;
 
-  /// @domName WebKitCSSMatrix.m34; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m34')
   num m34;
 
-  /// @domName WebKitCSSMatrix.m41; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m41')
   num m41;
 
-  /// @domName WebKitCSSMatrix.m42; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m42')
   num m42;
 
-  /// @domName WebKitCSSMatrix.m43; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m43')
   num m43;
 
-  /// @domName WebKitCSSMatrix.m44; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.m44')
   num m44;
 
-  /// @domName WebKitCSSMatrix.inverse; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.inverse')
   CssMatrix inverse() native;
 
-  /// @domName WebKitCSSMatrix.multiply; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.multiply')
   CssMatrix multiply(CssMatrix secondMatrix) native;
 
-  /// @domName WebKitCSSMatrix.rotate; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.rotate')
   CssMatrix rotate(num rotX, num rotY, num rotZ) native;
 
-  /// @domName WebKitCSSMatrix.rotateAxisAngle; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.rotateAxisAngle')
   CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native;
 
-  /// @domName WebKitCSSMatrix.scale; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.scale')
   CssMatrix scale(num scaleX, num scaleY, num scaleZ) native;
 
-  /// @domName WebKitCSSMatrix.setMatrixValue; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.setMatrixValue')
   void setMatrixValue(String string) native;
 
-  /// @domName WebKitCSSMatrix.skewX; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.skewX')
   CssMatrix skewX(num angle) native;
 
-  /// @domName WebKitCSSMatrix.skewY; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.skewY')
   CssMatrix skewY(num angle) native;
 
-  /// @domName WebKitCSSMatrix.toString; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.toString')
   String toString() native;
 
-  /// @domName WebKitCSSMatrix.translate; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSMatrix.translate')
   CssMatrix translate(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1823,20 +1718,22 @@ class CssMatrix native "*WebKitCSSMatrix" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSMediaRule; @docsEditable true
+
+@DocsEditable
+@DomName('CSSMediaRule')
 class CssMediaRule extends CssRule native "*CSSMediaRule" {
 
-  /// @domName CSSMediaRule.cssRules; @docsEditable true
+  @DocsEditable @DomName('CSSMediaRule.cssRules')
   @Returns('_CssRuleList') @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
-  /// @domName CSSMediaRule.media; @docsEditable true
+  @DocsEditable @DomName('CSSMediaRule.media')
   final MediaList media;
 
-  /// @domName CSSMediaRule.deleteRule; @docsEditable true
+  @DocsEditable @DomName('CSSMediaRule.deleteRule')
   void deleteRule(int index) native;
 
-  /// @domName CSSMediaRule.insertRule; @docsEditable true
+  @DocsEditable @DomName('CSSMediaRule.insertRule')
   int insertRule(String rule, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1844,13 +1741,15 @@ class CssMediaRule extends CssRule native "*CSSMediaRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSPageRule; @docsEditable true
+
+@DocsEditable
+@DomName('CSSPageRule')
 class CssPageRule extends CssRule native "*CSSPageRule" {
 
-  /// @domName CSSPageRule.selectorText; @docsEditable true
+  @DocsEditable @DomName('CSSPageRule.selectorText')
   String selectorText;
 
-  /// @domName CSSPageRule.style; @docsEditable true
+  @DocsEditable @DomName('CSSPageRule.style')
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1858,7 +1757,9 @@ class CssPageRule extends CssRule native "*CSSPageRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSPrimitiveValue; @docsEditable true
+
+@DocsEditable
+@DomName('CSSPrimitiveValue')
 class CssPrimitiveValue extends CssValue native "*CSSPrimitiveValue" {
 
   static const int CSS_ATTR = 22;
@@ -1919,29 +1820,29 @@ class CssPrimitiveValue extends CssValue native "*CSSPrimitiveValue" {
 
   static const int CSS_VW = 26;
 
-  /// @domName CSSPrimitiveValue.primitiveType; @docsEditable true
+  @DocsEditable @DomName('CSSPrimitiveValue.primitiveType')
   final int primitiveType;
 
-  /// @domName CSSPrimitiveValue.getCounterValue; @docsEditable true
+  @DocsEditable @DomName('CSSPrimitiveValue.getCounterValue')
   Counter getCounterValue() native;
 
-  /// @domName CSSPrimitiveValue.getFloatValue; @docsEditable true
+  @DocsEditable @DomName('CSSPrimitiveValue.getFloatValue')
   num getFloatValue(int unitType) native;
 
-  /// @domName CSSPrimitiveValue.getRGBColorValue; @docsEditable true
   @JSName('getRGBColorValue')
+  @DocsEditable @DomName('CSSPrimitiveValue.getRGBColorValue')
   RgbColor getRgbColorValue() native;
 
-  /// @domName CSSPrimitiveValue.getRectValue; @docsEditable true
+  @DocsEditable @DomName('CSSPrimitiveValue.getRectValue')
   Rect getRectValue() native;
 
-  /// @domName CSSPrimitiveValue.getStringValue; @docsEditable true
+  @DocsEditable @DomName('CSSPrimitiveValue.getStringValue')
   String getStringValue() native;
 
-  /// @domName CSSPrimitiveValue.setFloatValue; @docsEditable true
+  @DocsEditable @DomName('CSSPrimitiveValue.setFloatValue')
   void setFloatValue(int unitType, num floatValue) native;
 
-  /// @domName CSSPrimitiveValue.setStringValue; @docsEditable true
+  @DocsEditable @DomName('CSSPrimitiveValue.setStringValue')
   void setStringValue(int stringType, String stringValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1949,7 +1850,9 @@ class CssPrimitiveValue extends CssValue native "*CSSPrimitiveValue" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSRule; @docsEditable true
+
+@DocsEditable
+@DomName('CSSRule')
 class CssRule native "*CSSRule" {
 
   static const int CHARSET_RULE = 2;
@@ -1970,16 +1873,16 @@ class CssRule native "*CSSRule" {
 
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
-  /// @domName CSSRule.cssText; @docsEditable true
+  @DocsEditable @DomName('CSSRule.cssText')
   String cssText;
 
-  /// @domName CSSRule.parentRule; @docsEditable true
+  @DocsEditable @DomName('CSSRule.parentRule')
   final CssRule parentRule;
 
-  /// @domName CSSRule.parentStyleSheet; @docsEditable true
+  @DocsEditable @DomName('CSSRule.parentStyleSheet')
   final CssStyleSheet parentStyleSheet;
 
-  /// @domName CSSRule.type; @docsEditable true
+  @DocsEditable @DomName('CSSRule.type')
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2004,43 +1907,44 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
-/// @domName CSSStyleDeclaration
+@DocsEditable
+@DomName('CSSStyleDeclaration')
 class CssStyleDeclaration native "*CSSStyleDeclaration" {
   factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
   factory CssStyleDeclaration.css(String css) =>
       _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration_css(css);
 
 
-  /// @domName CSSStyleDeclaration.cssText; @docsEditable true
+  @DocsEditable @DomName('CSSStyleDeclaration.cssText')
   String cssText;
 
-  /// @domName CSSStyleDeclaration.length; @docsEditable true
+  @DocsEditable @DomName('CSSStyleDeclaration.length')
   final int length;
 
-  /// @domName CSSStyleDeclaration.parentRule; @docsEditable true
+  @DocsEditable @DomName('CSSStyleDeclaration.parentRule')
   final CssRule parentRule;
 
-  /// @domName CSSStyleDeclaration.getPropertyCSSValue; @docsEditable true
   @JSName('getPropertyCSSValue')
+  @DocsEditable @DomName('CSSStyleDeclaration.getPropertyCSSValue')
   CssValue getPropertyCssValue(String propertyName) native;
 
-  /// @domName CSSStyleDeclaration.getPropertyPriority; @docsEditable true
+  @DocsEditable @DomName('CSSStyleDeclaration.getPropertyPriority')
   String getPropertyPriority(String propertyName) native;
 
-  /// @domName CSSStyleDeclaration.getPropertyShorthand; @docsEditable true
+  @DocsEditable @DomName('CSSStyleDeclaration.getPropertyShorthand')
   String getPropertyShorthand(String propertyName) native;
 
-  /// @domName CSSStyleDeclaration._getPropertyValue; @docsEditable true
   @JSName('getPropertyValue')
+  @DocsEditable @DomName('CSSStyleDeclaration.getPropertyValue')
   String _getPropertyValue(String propertyName) native;
 
-  /// @domName CSSStyleDeclaration.isPropertyImplicit; @docsEditable true
+  @DocsEditable @DomName('CSSStyleDeclaration.isPropertyImplicit')
   bool isPropertyImplicit(String propertyName) native;
 
-  /// @domName CSSStyleDeclaration.item; @docsEditable true
+  @DocsEditable @DomName('CSSStyleDeclaration.item')
   String item(int index) native;
 
-  /// @domName CSSStyleDeclaration.removeProperty; @docsEditable true
+  @DocsEditable @DomName('CSSStyleDeclaration.removeProperty')
   String removeProperty(String propertyName) native;
 
 
@@ -5213,13 +5117,15 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSStyleRule; @docsEditable true
+
+@DocsEditable
+@DomName('CSSStyleRule')
 class CssStyleRule extends CssRule native "*CSSStyleRule" {
 
-  /// @domName CSSStyleRule.selectorText; @docsEditable true
+  @DocsEditable @DomName('CSSStyleRule.selectorText')
   String selectorText;
 
-  /// @domName CSSStyleRule.style; @docsEditable true
+  @DocsEditable @DomName('CSSStyleRule.style')
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5227,30 +5133,32 @@ class CssStyleRule extends CssRule native "*CSSStyleRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSStyleSheet; @docsEditable true
+
+@DocsEditable
+@DomName('CSSStyleSheet')
 class CssStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
-  /// @domName CSSStyleSheet.cssRules; @docsEditable true
+  @DocsEditable @DomName('CSSStyleSheet.cssRules')
   @Returns('_CssRuleList') @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
-  /// @domName CSSStyleSheet.ownerRule; @docsEditable true
+  @DocsEditable @DomName('CSSStyleSheet.ownerRule')
   final CssRule ownerRule;
 
-  /// @domName CSSStyleSheet.rules; @docsEditable true
+  @DocsEditable @DomName('CSSStyleSheet.rules')
   @Returns('_CssRuleList') @Creates('_CssRuleList')
   final List<CssRule> rules;
 
-  /// @domName CSSStyleSheet.addRule; @docsEditable true
+  @DocsEditable @DomName('CSSStyleSheet.addRule')
   int addRule(String selector, String style, [int index]) native;
 
-  /// @domName CSSStyleSheet.deleteRule; @docsEditable true
+  @DocsEditable @DomName('CSSStyleSheet.deleteRule')
   void deleteRule(int index) native;
 
-  /// @domName CSSStyleSheet.insertRule; @docsEditable true
+  @DocsEditable @DomName('CSSStyleSheet.insertRule')
   int insertRule(String rule, int index) native;
 
-  /// @domName CSSStyleSheet.removeRule; @docsEditable true
+  @DocsEditable @DomName('CSSStyleSheet.removeRule')
   void removeRule(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5258,7 +5166,9 @@ class CssStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSTransformValue; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitCSSTransformValue')
 class CssTransformValue extends _CssValueList native "*WebKitCSSTransformValue" {
 
   static const int CSS_MATRIX = 11;
@@ -5303,7 +5213,7 @@ class CssTransformValue extends _CssValueList native "*WebKitCSSTransformValue" 
 
   static const int CSS_TRANSLATEZ = 12;
 
-  /// @domName WebKitCSSTransformValue.operationType; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSTransformValue.operationType')
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5311,7 +5221,9 @@ class CssTransformValue extends _CssValueList native "*WebKitCSSTransformValue" 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSUnknownRule; @docsEditable true
+
+@DocsEditable
+@DomName('CSSUnknownRule')
 class CssUnknownRule extends CssRule native "*CSSUnknownRule" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5319,7 +5231,9 @@ class CssUnknownRule extends CssRule native "*CSSUnknownRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSValue; @docsEditable true
+
+@DocsEditable
+@DomName('CSSValue')
 class CssValue native "*CSSValue" {
 
   static const int CSS_CUSTOM = 3;
@@ -5330,10 +5244,10 @@ class CssValue native "*CSSValue" {
 
   static const int CSS_VALUE_LIST = 2;
 
-  /// @domName CSSValue.cssText; @docsEditable true
+  @DocsEditable @DomName('CSSValue.cssText')
   String cssText;
 
-  /// @domName CSSValue.cssValueType; @docsEditable true
+  @DocsEditable @DomName('CSSValue.cssValueType')
   final int cssValueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5343,17 +5257,18 @@ class CssValue native "*CSSValue" {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CustomEvent
+@DocsEditable
+@DomName('CustomEvent')
 class CustomEvent extends Event native "*CustomEvent" {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
       type, canBubble, cancelable, detail);
 
-  /// @domName CustomEvent.detail; @docsEditable true
+  @DocsEditable @DomName('CustomEvent.detail')
   final Object detail;
 
-  /// @domName CustomEvent.initCustomEvent; @docsEditable true
   @JSName('initCustomEvent')
+  @DocsEditable @DomName('CustomEvent.initCustomEvent')
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
 
 }
@@ -5362,10 +5277,12 @@ class CustomEvent extends Event native "*CustomEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDListElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLDListElement')
 class DListElement extends Element native "*HTMLDListElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory DListElement() => document.$dom_createElement("dl");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5373,20 +5290,22 @@ class DListElement extends Element native "*HTMLDListElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDataListElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLDataListElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class DataListElement extends Element native "*HTMLDataListElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory DataListElement() => document.$dom_createElement("datalist");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('datalist');
 
-  /// @domName HTMLDataListElement.options; @docsEditable true
+  @DocsEditable @DomName('HTMLDataListElement.options')
   final HtmlCollection options;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5394,22 +5313,24 @@ class DataListElement extends Element native "*HTMLDataListElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DataTransferItem; @docsEditable true
+
+@DocsEditable
+@DomName('DataTransferItem')
 class DataTransferItem native "*DataTransferItem" {
 
-  /// @domName DataTransferItem.kind; @docsEditable true
+  @DocsEditable @DomName('DataTransferItem.kind')
   final String kind;
 
-  /// @domName DataTransferItem.type; @docsEditable true
+  @DocsEditable @DomName('DataTransferItem.type')
   final String type;
 
-  /// @domName DataTransferItem.getAsFile; @docsEditable true
+  @DocsEditable @DomName('DataTransferItem.getAsFile')
   Blob getAsFile() native;
 
-  /// @domName DataTransferItem.getAsString; @docsEditable true
+  @DocsEditable @DomName('DataTransferItem.getAsString')
   void getAsString([StringCallback callback]) native;
 
-  /// @domName DataTransferItem.webkitGetAsEntry; @docsEditable true
+  @DocsEditable @DomName('DataTransferItem.webkitGetAsEntry')
   Entry webkitGetAsEntry() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5417,19 +5338,21 @@ class DataTransferItem native "*DataTransferItem" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DataTransferItemList; @docsEditable true
+
+@DocsEditable
+@DomName('DataTransferItemList')
 class DataTransferItemList native "*DataTransferItemList" {
 
-  /// @domName DataTransferItemList.length; @docsEditable true
+  @DocsEditable @DomName('DataTransferItemList.length')
   final int length;
 
-  /// @domName DataTransferItemList.add; @docsEditable true
+  @DocsEditable @DomName('DataTransferItemList.add')
   void add(data_OR_file, [String type]) native;
 
-  /// @domName DataTransferItemList.clear; @docsEditable true
+  @DocsEditable @DomName('DataTransferItemList.clear')
   void clear() native;
 
-  /// @domName DataTransferItemList.item; @docsEditable true
+  @DocsEditable @DomName('DataTransferItemList.item')
   DataTransferItem item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5437,10 +5360,12 @@ class DataTransferItemList native "*DataTransferItemList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DataView; @docsEditable true
+
+@DocsEditable
+@DomName('DataView')
 class DataView extends ArrayBufferView native "*DataView" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
       return DataView._create(buffer);
@@ -5460,52 +5385,52 @@ class DataView extends ArrayBufferView native "*DataView" {
     return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
   }
 
-  /// @domName DataView.getFloat32; @docsEditable true
+  @DocsEditable @DomName('DataView.getFloat32')
   num getFloat32(int byteOffset, {bool littleEndian}) native;
 
-  /// @domName DataView.getFloat64; @docsEditable true
+  @DocsEditable @DomName('DataView.getFloat64')
   num getFloat64(int byteOffset, {bool littleEndian}) native;
 
-  /// @domName DataView.getInt16; @docsEditable true
+  @DocsEditable @DomName('DataView.getInt16')
   int getInt16(int byteOffset, {bool littleEndian}) native;
 
-  /// @domName DataView.getInt32; @docsEditable true
+  @DocsEditable @DomName('DataView.getInt32')
   int getInt32(int byteOffset, {bool littleEndian}) native;
 
-  /// @domName DataView.getInt8; @docsEditable true
+  @DocsEditable @DomName('DataView.getInt8')
   int getInt8(int byteOffset) native;
 
-  /// @domName DataView.getUint16; @docsEditable true
+  @DocsEditable @DomName('DataView.getUint16')
   int getUint16(int byteOffset, {bool littleEndian}) native;
 
-  /// @domName DataView.getUint32; @docsEditable true
+  @DocsEditable @DomName('DataView.getUint32')
   int getUint32(int byteOffset, {bool littleEndian}) native;
 
-  /// @domName DataView.getUint8; @docsEditable true
+  @DocsEditable @DomName('DataView.getUint8')
   int getUint8(int byteOffset) native;
 
-  /// @domName DataView.setFloat32; @docsEditable true
+  @DocsEditable @DomName('DataView.setFloat32')
   void setFloat32(int byteOffset, num value, {bool littleEndian}) native;
 
-  /// @domName DataView.setFloat64; @docsEditable true
+  @DocsEditable @DomName('DataView.setFloat64')
   void setFloat64(int byteOffset, num value, {bool littleEndian}) native;
 
-  /// @domName DataView.setInt16; @docsEditable true
+  @DocsEditable @DomName('DataView.setInt16')
   void setInt16(int byteOffset, int value, {bool littleEndian}) native;
 
-  /// @domName DataView.setInt32; @docsEditable true
+  @DocsEditable @DomName('DataView.setInt32')
   void setInt32(int byteOffset, int value, {bool littleEndian}) native;
 
-  /// @domName DataView.setInt8; @docsEditable true
+  @DocsEditable @DomName('DataView.setInt8')
   void setInt8(int byteOffset, int value) native;
 
-  /// @domName DataView.setUint16; @docsEditable true
+  @DocsEditable @DomName('DataView.setUint16')
   void setUint16(int byteOffset, int value, {bool littleEndian}) native;
 
-  /// @domName DataView.setUint32; @docsEditable true
+  @DocsEditable @DomName('DataView.setUint32')
   void setUint32(int byteOffset, int value, {bool littleEndian}) native;
 
-  /// @domName DataView.setUint8; @docsEditable true
+  @DocsEditable @DomName('DataView.setUint8')
   void setUint8(int byteOffset, int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5513,19 +5438,21 @@ class DataView extends ArrayBufferView native "*DataView" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Database; @docsEditable true
+
+@DocsEditable
+@DomName('Database')
 class Database native "*Database" {
 
-  /// @domName Database.version; @docsEditable true
+  @DocsEditable @DomName('Database.version')
   final String version;
 
-  /// @domName Database.changeVersion; @docsEditable true
+  @DocsEditable @DomName('Database.changeVersion')
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  /// @domName Database.readTransaction; @docsEditable true
+  @DocsEditable @DomName('Database.readTransaction')
   void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  /// @domName Database.transaction; @docsEditable true
+  @DocsEditable @DomName('Database.transaction')
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5541,22 +5468,24 @@ typedef void DatabaseCallback(database);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DatabaseSync; @docsEditable true
+
+@DocsEditable
+@DomName('DatabaseSync')
 class DatabaseSync native "*DatabaseSync" {
 
-  /// @domName DatabaseSync.lastErrorMessage; @docsEditable true
+  @DocsEditable @DomName('DatabaseSync.lastErrorMessage')
   final String lastErrorMessage;
 
-  /// @domName DatabaseSync.version; @docsEditable true
+  @DocsEditable @DomName('DatabaseSync.version')
   final String version;
 
-  /// @domName DatabaseSync.changeVersion; @docsEditable true
+  @DocsEditable @DomName('DatabaseSync.changeVersion')
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native;
 
-  /// @domName DatabaseSync.readTransaction; @docsEditable true
+  @DocsEditable @DomName('DatabaseSync.readTransaction')
   void readTransaction(SqlTransactionSyncCallback callback) native;
 
-  /// @domName DatabaseSync.transaction; @docsEditable true
+  @DocsEditable @DomName('DatabaseSync.transaction')
   void transaction(SqlTransactionSyncCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5564,16 +5493,18 @@ class DatabaseSync native "*DatabaseSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DedicatedWorkerContext; @docsEditable true
+
+@DocsEditable
+@DomName('DedicatedWorkerContext')
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
-  /// @domName DedicatedWorkerContext.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -5585,19 +5516,21 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
     return;
   }
   @JSName('postMessage')
+  @DocsEditable @DomName('DedicatedWorkerContext.postMessage')
   void _postMessage_1(message, List messagePorts) native;
   @JSName('postMessage')
+  @DocsEditable @DomName('DedicatedWorkerContext.postMessage')
   void _postMessage_2(message) native;
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class DedicatedWorkerContextEvents extends WorkerContextEvents {
-  /// @docsEditable true
+  @DocsEditable
   DedicatedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5605,19 +5538,21 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDetailsElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 class DetailsElement extends Element native "*HTMLDetailsElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory DetailsElement() => document.$dom_createElement("details");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('details');
 
-  /// @domName HTMLDetailsElement.open; @docsEditable true
+  @DocsEditable @DomName('HTMLDetailsElement.open')
   bool open;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5625,10 +5560,12 @@ class DetailsElement extends Element native "*HTMLDetailsElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DeviceMotionEvent; @docsEditable true
+
+@DocsEditable
+@DomName('DeviceMotionEvent')
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 
-  /// @domName DeviceMotionEvent.interval; @docsEditable true
+  @DocsEditable @DomName('DeviceMotionEvent.interval')
   final num interval;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5636,22 +5573,24 @@ class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DeviceOrientationEvent; @docsEditable true
+
+@DocsEditable
+@DomName('DeviceOrientationEvent')
 class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
-  /// @domName DeviceOrientationEvent.absolute; @docsEditable true
+  @DocsEditable @DomName('DeviceOrientationEvent.absolute')
   final bool absolute;
 
-  /// @domName DeviceOrientationEvent.alpha; @docsEditable true
+  @DocsEditable @DomName('DeviceOrientationEvent.alpha')
   final num alpha;
 
-  /// @domName DeviceOrientationEvent.beta; @docsEditable true
+  @DocsEditable @DomName('DeviceOrientationEvent.beta')
   final num beta;
 
-  /// @domName DeviceOrientationEvent.gamma; @docsEditable true
+  @DocsEditable @DomName('DeviceOrientationEvent.gamma')
   final num gamma;
 
-  /// @domName DeviceOrientationEvent.initDeviceOrientationEvent; @docsEditable true
+  @DocsEditable @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5659,24 +5598,14 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLDirectoryElement; @docsEditable true
-class DirectoryElement extends Element native "*HTMLDirectoryElement" {
 
-  /// @domName HTMLDirectoryElement.compact; @docsEditable true
-  bool compact;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName DirectoryEntry; @docsEditable true
+@DocsEditable
+@DomName('DirectoryEntry')
 class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
-  /// @domName DirectoryEntry.createReader; @docsEditable true
+  @DocsEditable @DomName('DirectoryEntry.createReader')
   DirectoryReader createReader() native;
 
-  /// @domName DirectoryEntry.getDirectory; @docsEditable true
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -5697,15 +5626,18 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
     return;
   }
   @JSName('getDirectory')
+  @DocsEditable @DomName('DirectoryEntry.getDirectory')
   void _getDirectory_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native;
   @JSName('getDirectory')
+  @DocsEditable @DomName('DirectoryEntry.getDirectory')
   void _getDirectory_2(path, options, EntryCallback successCallback) native;
   @JSName('getDirectory')
+  @DocsEditable @DomName('DirectoryEntry.getDirectory')
   void _getDirectory_3(path, options) native;
   @JSName('getDirectory')
+  @DocsEditable @DomName('DirectoryEntry.getDirectory')
   void _getDirectory_4(path) native;
 
-  /// @domName DirectoryEntry.getFile; @docsEditable true
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -5726,15 +5658,19 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
     return;
   }
   @JSName('getFile')
+  @DocsEditable @DomName('DirectoryEntry.getFile')
   void _getFile_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native;
   @JSName('getFile')
+  @DocsEditable @DomName('DirectoryEntry.getFile')
   void _getFile_2(path, options, EntryCallback successCallback) native;
   @JSName('getFile')
+  @DocsEditable @DomName('DirectoryEntry.getFile')
   void _getFile_3(path, options) native;
   @JSName('getFile')
+  @DocsEditable @DomName('DirectoryEntry.getFile')
   void _getFile_4(path) native;
 
-  /// @domName DirectoryEntry.removeRecursively; @docsEditable true
+  @DocsEditable @DomName('DirectoryEntry.removeRecursively')
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5742,29 +5678,31 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DirectoryEntrySync; @docsEditable true
+
+@DocsEditable
+@DomName('DirectoryEntrySync')
 class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
-  /// @domName DirectoryEntrySync.createReader; @docsEditable true
+  @DocsEditable @DomName('DirectoryEntrySync.createReader')
   DirectoryReaderSync createReader() native;
 
-  /// @domName DirectoryEntrySync.getDirectory; @docsEditable true
   DirectoryEntrySync getDirectory(String path, Map flags) {
     var flags_1 = convertDartToNative_Dictionary(flags);
     return _getDirectory_1(path, flags_1);
   }
   @JSName('getDirectory')
+  @DocsEditable @DomName('DirectoryEntrySync.getDirectory')
   DirectoryEntrySync _getDirectory_1(path, flags) native;
 
-  /// @domName DirectoryEntrySync.getFile; @docsEditable true
   FileEntrySync getFile(String path, Map flags) {
     var flags_1 = convertDartToNative_Dictionary(flags);
     return _getFile_1(path, flags_1);
   }
   @JSName('getFile')
+  @DocsEditable @DomName('DirectoryEntrySync.getFile')
   FileEntrySync _getFile_1(path, flags) native;
 
-  /// @domName DirectoryEntrySync.removeRecursively; @docsEditable true
+  @DocsEditable @DomName('DirectoryEntrySync.removeRecursively')
   void removeRecursively() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5772,10 +5710,12 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DirectoryReader; @docsEditable true
+
+@DocsEditable
+@DomName('DirectoryReader')
 class DirectoryReader native "*DirectoryReader" {
 
-  /// @domName DirectoryReader.readEntries; @docsEditable true
+  @DocsEditable @DomName('DirectoryReader.readEntries')
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5783,10 +5723,12 @@ class DirectoryReader native "*DirectoryReader" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DirectoryReaderSync; @docsEditable true
+
+@DocsEditable
+@DomName('DirectoryReaderSync')
 class DirectoryReaderSync native "*DirectoryReaderSync" {
 
-  /// @domName DirectoryReaderSync.readEntries; @docsEditable true
+  @DocsEditable @DomName('DirectoryReaderSync.readEntries')
   @Returns('_EntryArraySync') @Creates('_EntryArraySync')
   List<EntrySync> readEntries() native;
 }
@@ -5795,31 +5737,12 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * Represents an HTML <div> element.
- *
- * The [DivElement] is a generic container for content and does not have any
- * special significance. It is functionally similar to [SpanElement].
- *
- * The [DivElement] is a block-level element, as opposed to [SpanElement],
- * which is an inline-level element.
- *
- * Example usage:
- *
- *     DivElement div = new DivElement();
- *     div.text = 'Here's my new DivElem
- *     document.body.elements.add(elem);
- *
- * See also:
- *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
- * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
- * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
- */
-/// @domName HTMLDivElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLDivElement')
 class DivElement extends Element native "*HTMLDivElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory DivElement() => document.$dom_createElement("div");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5827,7 +5750,8 @@ class DivElement extends Element native "*HTMLDivElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Document
+@DocsEditable
+@DomName('Document')
 /**
  * The base class for all documents.
  *
@@ -5841,413 +5765,301 @@ class Document extends Node  native "*Document"
 {
 
 
-  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
-
-  static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
-
-  static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
-
-  static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
-
-  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
-
-  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
-
-  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
-
-  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
-
-  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
-
-  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
-
-  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
-
-  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
-
-  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
-
-  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
-
-  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
-
-  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
-  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
-
-  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
-
-  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
-
-  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
-
-  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
-
-  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
-
-  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
-
-  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
-
-  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
-
-  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
-
-  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
-
   static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
 
-  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
-
-  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
-
-  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
-
-  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
-
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
-
-  static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
-
-  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
-
-  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
-
-  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
-
-  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
-
-  static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
-
-  static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   DocumentEvents get on =>
     new DocumentEvents(this);
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.body; @docsEditable true
   @JSName('body')
+  @DocsEditable @DomName('Document.body')
   Element $dom_body;
 
-  /// @domName Document.charset; @docsEditable true
+  @DocsEditable @DomName('Document.charset')
   String charset;
 
-  /// @domName Document.cookie; @docsEditable true
+  @DocsEditable @DomName('Document.cookie')
   String cookie;
 
-  /// @domName Document.defaultView; @docsEditable true
   WindowBase get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
-  @Creates('Window|=Object') @Returns('Window|=Object')
+  @DocsEditable @DomName('Document.window') @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _window;
 
-  /// @domName Document.documentElement; @docsEditable true
+  @DocsEditable @DomName('Document.documentElement')
   final Element documentElement;
 
-  /// @domName Document.domain; @docsEditable true
+  @DocsEditable @DomName('Document.domain')
   final String domain;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.head; @docsEditable true
   @JSName('head')
+  @DocsEditable @DomName('Document.head')
   final HeadElement $dom_head;
 
-  /// @domName Document.implementation; @docsEditable true
+  @DocsEditable @DomName('Document.implementation')
   final DomImplementation implementation;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.lastModified; @docsEditable true
   @JSName('lastModified')
+  @DocsEditable @DomName('Document.lastModified')
   final String $dom_lastModified;
 
-  /// @domName Document.preferredStylesheetSet; @docsEditable true
   @JSName('preferredStylesheetSet')
+  @DocsEditable @DomName('Document.preferredStylesheetSet')
   final String $dom_preferredStylesheetSet;
 
-  /// @domName Document.readyState; @docsEditable true
+  @DocsEditable @DomName('Document.readyState')
   final String readyState;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.referrer; @docsEditable true
   @JSName('referrer')
+  @DocsEditable @DomName('Document.referrer')
   final String $dom_referrer;
 
-  /// @domName Document.selectedStylesheetSet; @docsEditable true
   @JSName('selectedStylesheetSet')
+  @DocsEditable @DomName('Document.selectedStylesheetSet')
   String $dom_selectedStylesheetSet;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.styleSheets; @docsEditable true
   @JSName('styleSheets')
+  @DocsEditable @DomName('Document.styleSheets')
   @Returns('_StyleSheetList') @Creates('_StyleSheetList')
   final List<StyleSheet> $dom_styleSheets;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.title; @docsEditable true
   @JSName('title')
+  @DocsEditable @DomName('Document.title')
   String $dom_title;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.webkitFullscreenElement; @docsEditable true
   @JSName('webkitFullscreenElement')
+  @DocsEditable @DomName('Document.webkitFullscreenElement')
   final Element $dom_webkitFullscreenElement;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.webkitFullscreenEnabled; @docsEditable true
   @JSName('webkitFullscreenEnabled')
+  @DocsEditable @DomName('Document.webkitFullscreenEnabled')
   final bool $dom_webkitFullscreenEnabled;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.webkitHidden; @docsEditable true
   @JSName('webkitHidden')
+  @DocsEditable @DomName('Document.webkitHidden')
   final bool $dom_webkitHidden;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.webkitIsFullScreen; @docsEditable true
   @JSName('webkitIsFullScreen')
+  @DocsEditable @DomName('Document.webkitIsFullScreen')
   final bool $dom_webkitIsFullScreen;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.webkitPointerLockElement; @docsEditable true
   @JSName('webkitPointerLockElement')
+  @DocsEditable @DomName('Document.webkitPointerLockElement')
   final Element $dom_webkitPointerLockElement;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.webkitVisibilityState; @docsEditable true
   @JSName('webkitVisibilityState')
+  @DocsEditable @DomName('Document.webkitVisibilityState')
   final String $dom_webkitVisibilityState;
 
-  /// Use the [Range] constructor instead.
-  /// @domName Document.caretRangeFromPoint; @docsEditable true
   @JSName('caretRangeFromPoint')
+  @DocsEditable @DomName('Document.caretRangeFromPoint')
   Range $dom_caretRangeFromPoint(int x, int y) native;
 
-  /// @domName Document.createCDATASection; @docsEditable true
   @JSName('createCDATASection')
+  @DocsEditable @DomName('Document.createCDATASection')
   CDataSection createCDataSection(String data) native;
 
-  /// @domName Document.createDocumentFragment; @docsEditable true
+  @DocsEditable @DomName('Document.createDocumentFragment')
   DocumentFragment createDocumentFragment() native;
 
-  /// Deprecated: use new Element.tag(tagName) instead.
-  /// @domName Document.createElement; @docsEditable true
   @JSName('createElement')
+  @DocsEditable @DomName('Document.createElement')
   Element $dom_createElement(String tagName) native;
 
-  /// @domName Document.createElementNS; @docsEditable true
   @JSName('createElementNS')
+  @DocsEditable @DomName('Document.createElementNS')
   Element $dom_createElementNS(String namespaceURI, String qualifiedName) native;
 
-  /// @domName Document.createEvent; @docsEditable true
   @JSName('createEvent')
+  @DocsEditable @DomName('Document.createEvent')
   Event $dom_createEvent(String eventType) native;
 
-  /// @domName Document.createRange; @docsEditable true
   @JSName('createRange')
+  @DocsEditable @DomName('Document.createRange')
   Range $dom_createRange() native;
 
-  /// @domName Document.createTextNode; @docsEditable true
   @JSName('createTextNode')
+  @DocsEditable @DomName('Document.createTextNode')
   Text $dom_createTextNode(String data) native;
 
-  /// @domName Document.createTouch; @docsEditable true
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
     var target_1 = _convertDartToNative_EventTarget(target);
     return _$dom_createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
   @JSName('createTouch')
+  @DocsEditable @DomName('Document.createTouch')
   Touch _$dom_createTouch_1(Window window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
-  /// Use the [TouchList] constructor isntead.
-  /// @domName Document.createTouchList; @docsEditable true
   @JSName('createTouchList')
+  @DocsEditable @DomName('Document.createTouchList')
   TouchList $dom_createTouchList() native;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.elementFromPoint; @docsEditable true
   @JSName('elementFromPoint')
+  @DocsEditable @DomName('Document.elementFromPoint')
   Element $dom_elementFromPoint(int x, int y) native;
 
-  /// @domName Document.execCommand; @docsEditable true
+  @DocsEditable @DomName('Document.execCommand')
   bool execCommand(String command, bool userInterface, String value) native;
 
-  /// @domName Document.getCSSCanvasContext; @docsEditable true
   @JSName('getCSSCanvasContext')
+  @DocsEditable @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native;
 
-  /// Deprecated: use query("#$elementId") instead.
-  /// @domName Document.getElementById; @docsEditable true
   @JSName('getElementById')
+  @DocsEditable @DomName('Document.getElementById')
   Element $dom_getElementById(String elementId) native;
 
-  /// @domName Document.getElementsByClassName; @docsEditable true
   @JSName('getElementsByClassName')
+  @DocsEditable @DomName('Document.getElementsByClassName')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_getElementsByClassName(String tagname) native;
 
-  /// @domName Document.getElementsByName; @docsEditable true
   @JSName('getElementsByName')
+  @DocsEditable @DomName('Document.getElementsByName')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_getElementsByName(String elementName) native;
 
-  /// @domName Document.getElementsByTagName; @docsEditable true
   @JSName('getElementsByTagName')
+  @DocsEditable @DomName('Document.getElementsByTagName')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_getElementsByTagName(String tagname) native;
 
-  /// @domName Document.queryCommandEnabled; @docsEditable true
+  @DocsEditable @DomName('Document.queryCommandEnabled')
   bool queryCommandEnabled(String command) native;
 
-  /// @domName Document.queryCommandIndeterm; @docsEditable true
+  @DocsEditable @DomName('Document.queryCommandIndeterm')
   bool queryCommandIndeterm(String command) native;
 
-  /// @domName Document.queryCommandState; @docsEditable true
+  @DocsEditable @DomName('Document.queryCommandState')
   bool queryCommandState(String command) native;
 
-  /// @domName Document.queryCommandSupported; @docsEditable true
+  @DocsEditable @DomName('Document.queryCommandSupported')
   bool queryCommandSupported(String command) native;
 
-  /// @domName Document.queryCommandValue; @docsEditable true
+  @DocsEditable @DomName('Document.queryCommandValue')
   String queryCommandValue(String command) native;
 
-  /// Deprecated: renamed to the shorter name [query].
-  /// @domName Document.querySelector; @docsEditable true
   @JSName('querySelector')
+  @DocsEditable @DomName('Document.querySelector')
   Element $dom_querySelector(String selectors) native;
 
-  /// Deprecated: use query("#$elementId") instead.
-  /// @domName Document.querySelectorAll; @docsEditable true
   @JSName('querySelectorAll')
+  @DocsEditable @DomName('Document.querySelectorAll')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.webkitCancelFullScreen; @docsEditable true
   @JSName('webkitCancelFullScreen')
+  @DocsEditable @DomName('Document.webkitCancelFullScreen')
   void $dom_webkitCancelFullScreen() native;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.webkitExitFullscreen; @docsEditable true
   @JSName('webkitExitFullscreen')
+  @DocsEditable @DomName('Document.webkitExitFullscreen')
   void $dom_webkitExitFullscreen() native;
 
-  /// Moved to [HtmlDocument].
-  /// @domName Document.webkitExitPointerLock; @docsEditable true
   @JSName('webkitExitPointerLock')
+  @DocsEditable @DomName('Document.webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native;
 
-  Stream<Event> get onAbort => abortEvent.forTarget(this);
+  Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+  Stream<Event> get onBeforeCopy => Element.beforeCopyEvent.forTarget(this);
 
-  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+  Stream<Event> get onBeforeCut => Element.beforeCutEvent.forTarget(this);
 
-  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+  Stream<Event> get onBeforePaste => Element.beforePasteEvent.forTarget(this);
 
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  Stream<Event> get onChange => changeEvent.forTarget(this);
+  Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+  Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+  Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  Stream<Event> get onCopy => copyEvent.forTarget(this);
+  Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
 
-  Stream<Event> get onCut => cutEvent.forTarget(this);
+  Stream<Event> get onCut => Element.cutEvent.forTarget(this);
 
-  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+  Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+  Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+  Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+  Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+  Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+  Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
-  Stream<Event> get onInput => inputEvent.forTarget(this);
+  Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+  Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
+  Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+  Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
-  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+  Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
 
   Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
-  Stream<Event> get onReset => resetEvent.forTarget(this);
+  Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
-  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+  Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  Stream<Event> get onSearch => searchEvent.forTarget(this);
+  Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  Stream<Event> get onSelect => selectEvent.forTarget(this);
+  Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
   Stream<Event> get onSelectionChange => selectionChangeEvent.forTarget(this);
 
-  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+  Stream<Event> get onSelectStart => Element.selectStartEvent.forTarget(this);
 
-  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+  Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
-  Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
+  Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
-  Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
+  Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
@@ -6316,21 +6128,21 @@ class Document extends Node  native "*Document"
   }
 }
 
-/// @docsEditable true
+@DocsEditable
 class DocumentEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   DocumentEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get readyStateChange => this['readystatechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get selectionChange => this['selectionchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -6353,7 +6165,8 @@ class _FrozenCssClassSet extends CssClassSet {
   bool get frozen => true;
 }
 
-/// @domName DocumentFragment
+@DocsEditable
+@DomName('DocumentFragment')
 class DocumentFragment extends Node native "*DocumentFragment" {
   factory DocumentFragment() => _DocumentFragmentFactoryProvider.createDocumentFragment();
 
@@ -6601,16 +6414,17 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   }
 
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /// @domName DocumentFragment.querySelector; @docsEditable true
   @JSName('querySelector')
+  @DocsEditable @DomName('DocumentFragment.querySelector')
   Element $dom_querySelector(String selectors) native;
 
-  /// @domName DocumentFragment.querySelectorAll; @docsEditable true
   @JSName('querySelectorAll')
+  @DocsEditable @DomName('DocumentFragment.querySelectorAll')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native;
 
@@ -6620,134 +6434,97 @@ class DocumentFragment extends Node native "*DocumentFragment" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DocumentType; @docsEditable true
+
+@DocsEditable
+@DomName('DocumentType')
 class DocumentType extends Node native "*DocumentType" {
-
-  /// @domName DocumentType.entities; @docsEditable true
-  final NamedNodeMap entities;
-
-  /// @domName DocumentType.internalSubset; @docsEditable true
-  final String internalSubset;
-
-  /// @domName DocumentType.name; @docsEditable true
-  final String name;
-
-  /// @domName DocumentType.notations; @docsEditable true
-  final NamedNodeMap notations;
-
-  /// @domName DocumentType.publicId; @docsEditable true
-  final String publicId;
-
-  /// @domName DocumentType.systemId; @docsEditable true
-  final String systemId;
-
-  /// @domName DocumentType.remove; @docsEditable true
-  void remove() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMError; @docsEditable true
+
+@DocsEditable
+@DomName('DOMError')
 class DomError native "*DOMError" {
 
-  /// @domName DOMError.name; @docsEditable true
+  @DocsEditable @DomName('DOMError.name')
   final String name;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMException; @docsEditable true
+/// @domName DOMException
 class DomException native "*DOMException" {
 
-  static const int ABORT_ERR = 20;
+  static const String INDEX_SIZE = 'IndexSizeError';
+  static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
+  static const String WRONG_DOCUMENT = 'WrongDocumentError';
+  static const String INVALID_CHARACTER = 'InvalidCharacterError';
+  static const String NO_MODIFICATION_ALLOWED = 'NoModificationAllowedError';
+  static const String NOT_FOUND = 'NotFoundError';
+  static const String NOT_SUPPORTED = 'NotSupportedError';
+  static const String INVALID_STATE = 'InvalidStateError';
+  static const String SYNTAX = 'SyntaxError';
+  static const String INVALID_MODIFICATION = 'InvalidModificationError';
+  static const String NAMESPACE = 'NamespaceError';
+  static const String INVALID_ACCESS = 'InvalidAccessError';
+  static const String TYPE_MISMATCH = 'TypeMismatchError';
+  static const String SECURITY = 'SecurityError';
+  static const String NETWORK = 'NetworkError';
+  static const String ABORT = 'AbortError';
+  static const String URL_MISMATCH = 'URLMismatchError';
+  static const String QUOTA_EXCEEDED = 'QuotaExceededError';
+  static const String TIMEOUT = 'TimeoutError';
+  static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
+  static const String DATA_CLONE = 'DataCloneError';
 
-  static const int DATA_CLONE_ERR = 25;
+  String get name {
+    var errorName = JS('String', '#.name', this);
+    // Although Safari nightly has updated the name to SecurityError, Safari 5
+    // and 6 still return SECURITY_ERR.
+    if (_Device.isWebKit && errorName == 'SECURITY_ERR') return 'SecurityError';
+    // Chrome release still uses old string, remove this line when Chrome stable
+    // also prints out SyntaxError.
+    if (_Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
+    return errorName;
+  }
 
-  static const int DOMSTRING_SIZE_ERR = 2;
-
-  static const int HIERARCHY_REQUEST_ERR = 3;
-
-  static const int INDEX_SIZE_ERR = 1;
-
-  static const int INUSE_ATTRIBUTE_ERR = 10;
-
-  static const int INVALID_ACCESS_ERR = 15;
-
-  static const int INVALID_CHARACTER_ERR = 5;
-
-  static const int INVALID_MODIFICATION_ERR = 13;
-
-  static const int INVALID_NODE_TYPE_ERR = 24;
-
-  static const int INVALID_STATE_ERR = 11;
-
-  static const int NAMESPACE_ERR = 14;
-
-  static const int NETWORK_ERR = 19;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NOT_SUPPORTED_ERR = 9;
-
-  static const int NO_DATA_ALLOWED_ERR = 6;
-
-  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
-
-  static const int QUOTA_EXCEEDED_ERR = 22;
-
-  static const int SECURITY_ERR = 18;
-
-  static const int SYNTAX_ERR = 12;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TYPE_MISMATCH_ERR = 17;
-
-  static const int URL_MISMATCH_ERR = 21;
-
-  static const int VALIDATION_ERR = 16;
-
-  static const int WRONG_DOCUMENT_ERR = 4;
-
-  /// @domName DOMException.code; @docsEditable true
-  final int code;
-
-  /// @domName DOMException.message; @docsEditable true
+  @DocsEditable @DomName('DOMCoreException.message')
   final String message;
 
-  /// @domName DOMException.name; @docsEditable true
-  final String name;
-
-  /// @domName DOMException.toString; @docsEditable true
+  @DocsEditable @DomName('DOMCoreException.toString')
   String toString() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMImplementation; @docsEditable true
+
+@DocsEditable
+@DomName('DOMImplementation')
 class DomImplementation native "*DOMImplementation" {
 
-  /// @domName DOMImplementation.createCSSStyleSheet; @docsEditable true
   @JSName('createCSSStyleSheet')
+  @DocsEditable @DomName('DOMImplementation.createCSSStyleSheet')
   CssStyleSheet createCssStyleSheet(String title, String media) native;
 
-  /// @domName DOMImplementation.createDocument; @docsEditable true
+  @DocsEditable @DomName('DOMImplementation.createDocument')
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native;
 
-  /// @domName DOMImplementation.createDocumentType; @docsEditable true
+  @DocsEditable @DomName('DOMImplementation.createDocumentType')
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
-  /// @domName DOMImplementation.createHTMLDocument; @docsEditable true
   @JSName('createHTMLDocument')
+  @DocsEditable @DomName('DOMImplementation.createHTMLDocument')
   HtmlDocument createHtmlDocument(String title) native;
 
-  /// @domName DOMImplementation.hasFeature; @docsEditable true
+  @DocsEditable @DomName('DOMImplementation.hasFeature')
   bool hasFeature(String feature, String version) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6755,19 +6532,21 @@ class DomImplementation native "*DOMImplementation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MimeType; @docsEditable true
+
+@DocsEditable
+@DomName('MimeType')
 class DomMimeType native "*MimeType" {
 
-  /// @domName MimeType.description; @docsEditable true
+  @DocsEditable @DomName('DOMMimeType.description')
   final String description;
 
-  /// @domName MimeType.enabledPlugin; @docsEditable true
+  @DocsEditable @DomName('DOMMimeType.enabledPlugin')
   final DomPlugin enabledPlugin;
 
-  /// @domName MimeType.suffixes; @docsEditable true
+  @DocsEditable @DomName('DOMMimeType.suffixes')
   final String suffixes;
 
-  /// @domName MimeType.type; @docsEditable true
+  @DocsEditable @DomName('DOMMimeType.type')
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6775,10 +6554,12 @@ class DomMimeType native "*MimeType" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MimeTypeArray; @docsEditable true
+
+@DocsEditable
+@DomName('MimeTypeArray')
 class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> native "*MimeTypeArray" {
 
-  /// @domName MimeTypeArray.length; @docsEditable true
+  @DocsEditable @DomName('DOMMimeTypeArray.length')
   int get length => JS("int", "#.length", this);
 
   DomMimeType operator[](int index) => JS("DomMimeType", "#[#]", this, index);
@@ -6799,50 +6580,50 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(DomMimeType element) => Collections.contains(this, element);
+  bool contains(DomMimeType element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(DomMimeType element)) => Collections.forEach(this, f);
+  void forEach(void f(DomMimeType element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomMimeType element)) => new MappedList<DomMimeType, dynamic>(this, f);
+  List mappedBy(f(DomMimeType element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<DomMimeType> where(bool f(DomMimeType element)) => new WhereIterable<DomMimeType>(this, f);
+  Iterable<DomMimeType> where(bool f(DomMimeType element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(DomMimeType element)) => Collections.every(this, f);
+  bool every(bool f(DomMimeType element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(DomMimeType element)) => Collections.any(this, f);
+  bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
 
   List<DomMimeType> toList() => new List<DomMimeType>.from(this);
   Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<DomMimeType> take(int n) => new ListView<DomMimeType>(this, 0, n);
+  List<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
-    return new TakeWhileIterable<DomMimeType>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomMimeType> skip(int n) => new ListView<DomMimeType>(this, n, null);
+  List<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
-    return new SkipWhileIterable<DomMimeType>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   DomMimeType firstMatching(bool test(DomMimeType value), { DomMimeType orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   DomMimeType lastMatching(bool test(DomMimeType value), {DomMimeType orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   DomMimeType singleMatching(bool test(DomMimeType value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   DomMimeType elementAt(int index) {
@@ -6900,16 +6681,36 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new StateError("More than one element");
   }
 
-  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => Collections.min(this, compare);
+  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => IterableMixinWorkaround.min(this, compare);
 
-  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => Collections.max(this, compare);
+  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => IterableMixinWorkaround.max(this, compare);
 
   DomMimeType removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   DomMimeType removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(DomMimeType element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(DomMimeType element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DomMimeType> from, [int startFrom]) {
@@ -6929,10 +6730,10 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
   // -- end List<DomMimeType> mixins.
 
-  /// @domName MimeTypeArray.item; @docsEditable true
+  @DocsEditable @DomName('DOMMimeTypeArray.item')
   DomMimeType item(int index) native;
 
-  /// @domName MimeTypeArray.namedItem; @docsEditable true
+  @DocsEditable @DomName('DOMMimeTypeArray.namedItem')
   DomMimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6940,14 +6741,16 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMParser; @docsEditable true
+
+@DocsEditable
+@DomName('DOMParser')
 class DomParser native "*DOMParser" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory DomParser() => DomParser._create();
   static DomParser _create() => JS('DomParser', 'new DOMParser()');
 
-  /// @domName DOMParser.parseFromString; @docsEditable true
+  @DocsEditable @DomName('DOMParser.parseFromString')
   Document parseFromString(String str, String contentType) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6955,25 +6758,27 @@ class DomParser native "*DOMParser" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Plugin; @docsEditable true
+
+@DocsEditable
+@DomName('Plugin')
 class DomPlugin native "*Plugin" {
 
-  /// @domName Plugin.description; @docsEditable true
+  @DocsEditable @DomName('DOMPlugin.description')
   final String description;
 
-  /// @domName Plugin.filename; @docsEditable true
+  @DocsEditable @DomName('DOMPlugin.filename')
   final String filename;
 
-  /// @domName Plugin.length; @docsEditable true
+  @DocsEditable @DomName('DOMPlugin.length')
   final int length;
 
-  /// @domName Plugin.name; @docsEditable true
+  @DocsEditable @DomName('DOMPlugin.name')
   final String name;
 
-  /// @domName Plugin.item; @docsEditable true
+  @DocsEditable @DomName('DOMPlugin.item')
   DomMimeType item(int index) native;
 
-  /// @domName Plugin.namedItem; @docsEditable true
+  @DocsEditable @DomName('DOMPlugin.namedItem')
   DomMimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6981,10 +6786,12 @@ class DomPlugin native "*Plugin" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PluginArray; @docsEditable true
+
+@DocsEditable
+@DomName('PluginArray')
 class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> native "*PluginArray" {
 
-  /// @domName PluginArray.length; @docsEditable true
+  @DocsEditable @DomName('DOMPluginArray.length')
   int get length => JS("int", "#.length", this);
 
   DomPlugin operator[](int index) => JS("DomPlugin", "#[#]", this, index);
@@ -7005,50 +6812,50 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(DomPlugin element) => Collections.contains(this, element);
+  bool contains(DomPlugin element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(DomPlugin element)) => Collections.forEach(this, f);
+  void forEach(void f(DomPlugin element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomPlugin element)) => new MappedList<DomPlugin, dynamic>(this, f);
+  List mappedBy(f(DomPlugin element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<DomPlugin> where(bool f(DomPlugin element)) => new WhereIterable<DomPlugin>(this, f);
+  Iterable<DomPlugin> where(bool f(DomPlugin element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(DomPlugin element)) => Collections.every(this, f);
+  bool every(bool f(DomPlugin element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(DomPlugin element)) => Collections.any(this, f);
+  bool any(bool f(DomPlugin element)) => IterableMixinWorkaround.any(this, f);
 
   List<DomPlugin> toList() => new List<DomPlugin>.from(this);
   Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<DomPlugin> take(int n) => new ListView<DomPlugin>(this, 0, n);
+  List<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
-    return new TakeWhileIterable<DomPlugin>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomPlugin> skip(int n) => new ListView<DomPlugin>(this, n, null);
+  List<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
-    return new SkipWhileIterable<DomPlugin>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   DomPlugin firstMatching(bool test(DomPlugin value), { DomPlugin orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   DomPlugin lastMatching(bool test(DomPlugin value), {DomPlugin orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   DomPlugin singleMatching(bool test(DomPlugin value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   DomPlugin elementAt(int index) {
@@ -7106,16 +6913,36 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new StateError("More than one element");
   }
 
-  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => Collections.min(this, compare);
+  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => IterableMixinWorkaround.min(this, compare);
 
-  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => Collections.max(this, compare);
+  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => IterableMixinWorkaround.max(this, compare);
 
   DomPlugin removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   DomPlugin removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(DomPlugin element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(DomPlugin element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DomPlugin> from, [int startFrom]) {
@@ -7135,13 +6962,13 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   // -- end List<DomPlugin> mixins.
 
-  /// @domName PluginArray.item; @docsEditable true
+  @DocsEditable @DomName('DOMPluginArray.item')
   DomPlugin item(int index) native;
 
-  /// @domName PluginArray.namedItem; @docsEditable true
+  @DocsEditable @DomName('DOMPluginArray.namedItem')
   DomPlugin namedItem(String name) native;
 
-  /// @domName PluginArray.refresh; @docsEditable true
+  @DocsEditable @DomName('DOMPluginArray.refresh')
   void refresh(bool reload) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7149,85 +6976,87 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Selection; @docsEditable true
+
+@DocsEditable
+@DomName('Selection')
 class DomSelection native "*Selection" {
 
-  /// @domName Selection.anchorNode; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.anchorNode')
   final Node anchorNode;
 
-  /// @domName Selection.anchorOffset; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.anchorOffset')
   final int anchorOffset;
 
-  /// @domName Selection.baseNode; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.baseNode')
   final Node baseNode;
 
-  /// @domName Selection.baseOffset; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.baseOffset')
   final int baseOffset;
 
-  /// @domName Selection.extentNode; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.extentNode')
   final Node extentNode;
 
-  /// @domName Selection.extentOffset; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.extentOffset')
   final int extentOffset;
 
-  /// @domName Selection.focusNode; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.focusNode')
   final Node focusNode;
 
-  /// @domName Selection.focusOffset; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.focusOffset')
   final int focusOffset;
 
-  /// @domName Selection.isCollapsed; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.isCollapsed')
   final bool isCollapsed;
 
-  /// @domName Selection.rangeCount; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.rangeCount')
   final int rangeCount;
 
-  /// @domName Selection.type; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.type')
   final String type;
 
-  /// @domName Selection.addRange; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.addRange')
   void addRange(Range range) native;
 
-  /// @domName Selection.collapse; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.collapse')
   void collapse(Node node, int index) native;
 
-  /// @domName Selection.collapseToEnd; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.collapseToEnd')
   void collapseToEnd() native;
 
-  /// @domName Selection.collapseToStart; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.collapseToStart')
   void collapseToStart() native;
 
-  /// @domName Selection.containsNode; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.containsNode')
   bool containsNode(Node node, bool allowPartial) native;
 
-  /// @domName Selection.deleteFromDocument; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.deleteFromDocument')
   void deleteFromDocument() native;
 
-  /// @domName Selection.empty; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.empty')
   void empty() native;
 
-  /// @domName Selection.extend; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.extend')
   void extend(Node node, int offset) native;
 
-  /// @domName Selection.getRangeAt; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.getRangeAt')
   Range getRangeAt(int index) native;
 
-  /// @domName Selection.modify; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.modify')
   void modify(String alter, String direction, String granularity) native;
 
-  /// @domName Selection.removeAllRanges; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.removeAllRanges')
   void removeAllRanges() native;
 
-  /// @domName Selection.selectAllChildren; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.selectAllChildren')
   void selectAllChildren(Node node) native;
 
-  /// @domName Selection.setBaseAndExtent; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.setBaseAndExtent')
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
 
-  /// @domName Selection.setPosition; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.setPosition')
   void setPosition(Node node, int offset) native;
 
-  /// @domName Selection.toString; @docsEditable true
+  @DocsEditable @DomName('DOMSelection.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7235,10 +7064,12 @@ class DomSelection native "*Selection" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMSettableTokenList; @docsEditable true
+
+@DocsEditable
+@DomName('DOMSettableTokenList')
 class DomSettableTokenList extends DomTokenList native "*DOMSettableTokenList" {
 
-  /// @domName DOMSettableTokenList.value; @docsEditable true
+  @DocsEditable @DomName('DOMSettableTokenList.value')
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7246,10 +7077,12 @@ class DomSettableTokenList extends DomTokenList native "*DOMSettableTokenList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMStringList; @docsEditable true
+
+@DocsEditable
+@DomName('DOMStringList')
 class DomStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
 
-  /// @domName DOMStringList.length; @docsEditable true
+  @DocsEditable @DomName('DOMStringList.length')
   int get length => JS("int", "#.length", this);
 
   String operator[](int index) => JS("String", "#[#]", this, index);
@@ -7270,50 +7103,50 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   // contains() defined by IDL.
 
-  void forEach(void f(String element)) => Collections.forEach(this, f);
+  void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(String element)) => new MappedList<String, dynamic>(this, f);
+  List mappedBy(f(String element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<String> where(bool f(String element)) => new WhereIterable<String>(this, f);
+  Iterable<String> where(bool f(String element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(String element)) => Collections.every(this, f);
+  bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(String element)) => Collections.any(this, f);
+  bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
 
   List<String> toList() => new List<String>.from(this);
   Set<String> toSet() => new Set<String>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<String> take(int n) => new ListView<String>(this, 0, n);
+  List<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<String> takeWhile(bool test(String value)) {
-    return new TakeWhileIterable<String>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<String> skip(int n) => new ListView<String>(this, n, null);
+  List<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<String> skipWhile(bool test(String value)) {
-    return new SkipWhileIterable<String>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   String firstMatching(bool test(String value), { String orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   String lastMatching(bool test(String value), {String orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   String singleMatching(bool test(String value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   String elementAt(int index) {
@@ -7371,16 +7204,36 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new StateError("More than one element");
   }
 
-  String min([int compare(String a, String b)]) => Collections.min(this, compare);
+  String min([int compare(String a, String b)]) => IterableMixinWorkaround.min(this, compare);
 
-  String max([int compare(String a, String b)]) => Collections.max(this, compare);
+  String max([int compare(String a, String b)]) => IterableMixinWorkaround.max(this, compare);
 
   String removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   String removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(String element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(String element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
@@ -7400,10 +7253,10 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 
   // -- end List<String> mixins.
 
-  /// @domName DOMStringList.contains; @docsEditable true
+  @DocsEditable @DomName('DOMStringList.contains')
   bool contains(String string) native;
 
-  /// @domName DOMStringList.item; @docsEditable true
+  @DocsEditable @DomName('DOMStringList.item')
   String item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7411,7 +7264,8 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMStringMap
+@DocsEditable
+@DomName('DOMStringMap')
 abstract class DomStringMap {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7419,22 +7273,24 @@ abstract class DomStringMap {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMTokenList; @docsEditable true
+
+@DocsEditable
+@DomName('DOMTokenList')
 class DomTokenList native "*DOMTokenList" {
 
-  /// @domName DOMTokenList.length; @docsEditable true
+  @DocsEditable @DomName('DOMTokenList.length')
   final int length;
 
-  /// @domName DOMTokenList.contains; @docsEditable true
+  @DocsEditable @DomName('DOMTokenList.contains')
   bool contains(String token) native;
 
-  /// @domName DOMTokenList.item; @docsEditable true
+  @DocsEditable @DomName('DOMTokenList.item')
   String item(int index) native;
 
-  /// @domName DOMTokenList.toString; @docsEditable true
+  @DocsEditable @DomName('DOMTokenList.toString')
   String toString() native;
 
-  /// @domName DOMTokenList.toggle; @docsEditable true
+  @DocsEditable @DomName('DOMTokenList.toggle')
   bool toggle(String token, [bool force]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7496,46 +7352,47 @@ class _ChildrenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -7554,10 +7411,10 @@ class _ChildrenElementList implements List {
     _element.$dom_replaceChild(value, _childElements[index]);
   }
 
-   void set length(int newLength) {
-     // TODO(jacobr): remove children when length is reduced.
-     throw new UnsupportedError('');
-   }
+  void set length(int newLength) {
+    // TODO(jacobr): remove children when length is reduced.
+    throw new UnsupportedError('');
+  }
 
   Element add(Element value) {
     _element.$dom_appendChild(value);
@@ -7580,11 +7437,36 @@ class _ChildrenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw new UnimplementedError();
+  }
+
+  void remove(Object object) {
+    if (object is Element) {
+      Element element = object;
+      if (identical(element.parentNode, this)) {
+        _element.$dom_removeChild(element);
+      }
+    }
+  }
+
+  void removeAll(Iterable elements) {
+    Collections.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    Collections.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(Element element)) {
+    Collections.removeMatching(this, test);
+  }
+
+  void retainMatching(bool test(Element element)) {
+    Collections.retainMatching(this, test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -7648,11 +7530,11 @@ class _ChildrenElementList implements List {
   }
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 
@@ -7679,15 +7561,16 @@ class _FrozenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -7711,31 +7594,31 @@ class _FrozenElementList implements List {
   Set<Element> toSet() => new Set<Element>.from(this);
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -7776,7 +7659,7 @@ class _FrozenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -7812,6 +7695,26 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  void remove(Object element) {
+    throw new UnsupportedError('');
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError('');
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError('');
+  }
+
+  void removeMatching(bool test(Element element)) {
+    throw new UnsupportedError('');
+  }
+
+  void retainMatching(bool test(Element element)) {
+    throw new UnsupportedError('');
+  }
+
   Element get first => _nodeList.first;
 
   Element get last => _nodeList.last;
@@ -7819,11 +7722,11 @@ class _FrozenElementList implements List {
   Element get single => _nodeList.single;
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 
@@ -8162,6 +8065,23 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   var xtag;
 
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent =
+      const _CustomEventStreamProvider<WheelEvent>(
+        Element._determineMouseWheelEventType);
+
+  static String _determineMouseWheelEventType(EventTarget e) {
+    if (JS('bool', '#.onwheel !== undefined', e)) {
+      // W3C spec, and should be IE9+, but IE has a bug exposing onwheel.
+      return 'wheel';
+    } else if (JS('bool', '#.onmousewheel !== undefined', e)) {
+      // Chrome & IE
+      return 'mousewheel';
+    } else {
+      // Firefox
+      return 'DOMMouseScroll';
+    }
+  }
+
   /**
    * Creates a text node and inserts it into the DOM at the specified location.
    *
@@ -8369,225 +8289,225 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /// @domName HTMLElement.children; @docsEditable true
   @JSName('children')
+  @DocsEditable @DomName('Element.children')
   final HtmlCollection $dom_children;
 
-  /// @domName HTMLElement.contentEditable; @docsEditable true
+  @DocsEditable @DomName('Element.contentEditable')
   String contentEditable;
 
-  /// @domName HTMLElement.dir; @docsEditable true
+  @DocsEditable @DomName('Element.dir')
   String dir;
 
-  /// @domName HTMLElement.draggable; @docsEditable true
+  @DocsEditable @DomName('Element.draggable')
   bool draggable;
 
-  /// @domName HTMLElement.hidden; @docsEditable true
+  @DocsEditable @DomName('Element.hidden')
   bool hidden;
 
-  /// @domName HTMLElement.id; @docsEditable true
+  @DocsEditable @DomName('Element.id')
   String id;
 
-  /// @domName HTMLElement.innerHTML; @docsEditable true
   @JSName('innerHTML')
+  @DocsEditable @DomName('Element.innerHTML')
   String innerHtml;
 
-  /// @domName HTMLElement.isContentEditable; @docsEditable true
+  @DocsEditable @DomName('Element.isContentEditable')
   final bool isContentEditable;
 
-  /// @domName HTMLElement.lang; @docsEditable true
+  @DocsEditable @DomName('Element.lang')
   String lang;
 
-  /// @domName HTMLElement.outerHTML; @docsEditable true
   @JSName('outerHTML')
+  @DocsEditable @DomName('Element.outerHTML')
   final String outerHtml;
 
-  /// @domName HTMLElement.spellcheck; @docsEditable true
+  @DocsEditable @DomName('Element.spellcheck')
   bool spellcheck;
 
-  /// @domName HTMLElement.tabIndex; @docsEditable true
+  @DocsEditable @DomName('Element.tabIndex')
   int tabIndex;
 
-  /// @domName HTMLElement.title; @docsEditable true
+  @DocsEditable @DomName('Element.title')
   String title;
 
-  /// @domName HTMLElement.translate; @docsEditable true
+  @DocsEditable @DomName('Element.translate')
   bool translate;
 
-  /// @domName HTMLElement.webkitdropzone; @docsEditable true
+  @DocsEditable @DomName('Element.webkitdropzone')
   String webkitdropzone;
 
-  /// @domName HTMLElement.click; @docsEditable true
+  @DocsEditable @DomName('Element.click')
   void click() native;
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
-  /// @domName Element.childElementCount; @docsEditable true
   @JSName('childElementCount')
+  @DocsEditable @DomName('Element.childElementCount')
   final int $dom_childElementCount;
 
-  /// @domName Element.className; @docsEditable true
   @JSName('className')
+  @DocsEditable @DomName('Element.className')
   String $dom_className;
 
-  /// @domName Element.clientHeight; @docsEditable true
+  @DocsEditable @DomName('Element.clientHeight')
   final int clientHeight;
 
-  /// @domName Element.clientLeft; @docsEditable true
+  @DocsEditable @DomName('Element.clientLeft')
   final int clientLeft;
 
-  /// @domName Element.clientTop; @docsEditable true
+  @DocsEditable @DomName('Element.clientTop')
   final int clientTop;
 
-  /// @domName Element.clientWidth; @docsEditable true
+  @DocsEditable @DomName('Element.clientWidth')
   final int clientWidth;
 
-  /// @domName Element.dataset; @docsEditable true
+  @DocsEditable @DomName('Element.dataset')
   final Map<String, String> dataset;
 
-  /// @domName Element.firstElementChild; @docsEditable true
   @JSName('firstElementChild')
+  @DocsEditable @DomName('Element.firstElementChild')
   final Element $dom_firstElementChild;
 
-  /// @domName Element.lastElementChild; @docsEditable true
   @JSName('lastElementChild')
+  @DocsEditable @DomName('Element.lastElementChild')
   final Element $dom_lastElementChild;
 
-  /// @domName Element.nextElementSibling; @docsEditable true
+  @DocsEditable @DomName('Element.nextElementSibling')
   final Element nextElementSibling;
 
-  /// @domName Element.offsetHeight; @docsEditable true
+  @DocsEditable @DomName('Element.offsetHeight')
   final int offsetHeight;
 
-  /// @domName Element.offsetLeft; @docsEditable true
+  @DocsEditable @DomName('Element.offsetLeft')
   final int offsetLeft;
 
-  /// @domName Element.offsetParent; @docsEditable true
+  @DocsEditable @DomName('Element.offsetParent')
   final Element offsetParent;
 
-  /// @domName Element.offsetTop; @docsEditable true
+  @DocsEditable @DomName('Element.offsetTop')
   final int offsetTop;
 
-  /// @domName Element.offsetWidth; @docsEditable true
+  @DocsEditable @DomName('Element.offsetWidth')
   final int offsetWidth;
 
-  /// @domName Element.previousElementSibling; @docsEditable true
+  @DocsEditable @DomName('Element.previousElementSibling')
   final Element previousElementSibling;
 
-  /// @domName Element.scrollHeight; @docsEditable true
+  @DocsEditable @DomName('Element.scrollHeight')
   final int scrollHeight;
 
-  /// @domName Element.scrollLeft; @docsEditable true
+  @DocsEditable @DomName('Element.scrollLeft')
   int scrollLeft;
 
-  /// @domName Element.scrollTop; @docsEditable true
+  @DocsEditable @DomName('Element.scrollTop')
   int scrollTop;
 
-  /// @domName Element.scrollWidth; @docsEditable true
+  @DocsEditable @DomName('Element.scrollWidth')
   final int scrollWidth;
 
-  /// @domName Element.style; @docsEditable true
+  @DocsEditable @DomName('Element.style')
   final CssStyleDeclaration style;
 
-  /// @domName Element.tagName; @docsEditable true
+  @DocsEditable @DomName('Element.tagName')
   final String tagName;
 
-  /// @domName Element.webkitPseudo; @docsEditable true
+  @DocsEditable @DomName('Element.webkitPseudo')
   String webkitPseudo;
 
-  /// @domName Element.webkitShadowRoot; @docsEditable true
+  @DocsEditable @DomName('Element.webkitShadowRoot')
   final ShadowRoot webkitShadowRoot;
 
-  /// @domName Element.blur; @docsEditable true
+  @DocsEditable @DomName('Element.blur')
   void blur() native;
 
-  /// @domName Element.focus; @docsEditable true
+  @DocsEditable @DomName('Element.focus')
   void focus() native;
 
-  /// @domName Element.getAttribute; @docsEditable true
   @JSName('getAttribute')
+  @DocsEditable @DomName('Element.getAttribute')
   String $dom_getAttribute(String name) native;
 
-  /// @domName Element.getAttributeNS; @docsEditable true
   @JSName('getAttributeNS')
+  @DocsEditable @DomName('Element.getAttributeNS')
   String $dom_getAttributeNS(String namespaceURI, String localName) native;
 
-  /// @domName Element.getBoundingClientRect; @docsEditable true
+  @DocsEditable @DomName('Element.getBoundingClientRect')
   ClientRect getBoundingClientRect() native;
 
-  /// @domName Element.getClientRects; @docsEditable true
+  @DocsEditable @DomName('Element.getClientRects')
   @Returns('_ClientRectList') @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
-  /// @domName Element.getElementsByClassName; @docsEditable true
   @JSName('getElementsByClassName')
+  @DocsEditable @DomName('Element.getElementsByClassName')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_getElementsByClassName(String name) native;
 
-  /// @domName Element.getElementsByTagName; @docsEditable true
   @JSName('getElementsByTagName')
+  @DocsEditable @DomName('Element.getElementsByTagName')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_getElementsByTagName(String name) native;
 
-  /// @domName Element.hasAttribute; @docsEditable true
   @JSName('hasAttribute')
+  @DocsEditable @DomName('Element.hasAttribute')
   bool $dom_hasAttribute(String name) native;
 
-  /// @domName Element.hasAttributeNS; @docsEditable true
   @JSName('hasAttributeNS')
+  @DocsEditable @DomName('Element.hasAttributeNS')
   bool $dom_hasAttributeNS(String namespaceURI, String localName) native;
 
-  /// @domName Element.querySelector; @docsEditable true
   @JSName('querySelector')
+  @DocsEditable @DomName('Element.querySelector')
   Element $dom_querySelector(String selectors) native;
 
-  /// @domName Element.querySelectorAll; @docsEditable true
   @JSName('querySelectorAll')
+  @DocsEditable @DomName('Element.querySelectorAll')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native;
 
-  /// @domName Element.removeAttribute; @docsEditable true
   @JSName('removeAttribute')
+  @DocsEditable @DomName('Element.removeAttribute')
   void $dom_removeAttribute(String name) native;
 
-  /// @domName Element.removeAttributeNS; @docsEditable true
   @JSName('removeAttributeNS')
+  @DocsEditable @DomName('Element.removeAttributeNS')
   void $dom_removeAttributeNS(String namespaceURI, String localName) native;
 
-  /// @domName Element.scrollByLines; @docsEditable true
+  @DocsEditable @DomName('Element.scrollByLines')
   void scrollByLines(int lines) native;
 
-  /// @domName Element.scrollByPages; @docsEditable true
+  @DocsEditable @DomName('Element.scrollByPages')
   void scrollByPages(int pages) native;
 
-  /// @domName Element.scrollIntoViewIfNeeded; @docsEditable true
   @JSName('scrollIntoViewIfNeeded')
+  @DocsEditable @DomName('Element.scrollIntoViewIfNeeded')
   void scrollIntoView([bool centerIfNeeded]) native;
 
-  /// @domName Element.setAttribute; @docsEditable true
   @JSName('setAttribute')
+  @DocsEditable @DomName('Element.setAttribute')
   void $dom_setAttribute(String name, String value) native;
 
-  /// @domName Element.setAttributeNS; @docsEditable true
   @JSName('setAttributeNS')
+  @DocsEditable @DomName('Element.setAttributeNS')
   void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
 
-  /// @domName Element.webkitCreateShadowRoot; @docsEditable true
   @JSName('webkitCreateShadowRoot')
-  @SupportedBrowser(SupportedBrowser.CHROME, '25') @Experimental()
+  @DocsEditable @DomName('Element.webkitCreateShadowRoot') @SupportedBrowser(SupportedBrowser.CHROME, '25') @Experimental()
   ShadowRoot createShadowRoot() native;
 
-  /// @domName Element.webkitRequestFullScreen; @docsEditable true
+  @DocsEditable @DomName('Element.webkitRequestFullScreen')
   void webkitRequestFullScreen(int flags) native;
 
-  /// @domName Element.webkitRequestFullscreen; @docsEditable true
+  @DocsEditable @DomName('Element.webkitRequestFullscreen')
   void webkitRequestFullscreen() native;
 
-  /// @domName Element.webkitRequestPointerLock; @docsEditable true
+  @DocsEditable @DomName('Element.webkitRequestPointerLock')
   void webkitRequestPointerLock() native;
 
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -8652,6 +8572,8 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
 
+  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+
   Stream<Event> get onPaste => pasteEvent.forTarget(this);
 
   Stream<Event> get onReset => resetEvent.forTarget(this);
@@ -8688,11 +8610,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
-  static final _CUSTOM_PARENT_TAG_MAP = const {
+  static const _CUSTOM_PARENT_TAG_MAP = const {
     'body' : 'html',
     'head' : 'html',
     'caption' : 'table',
     'td': 'tr',
+    'th': 'tr',
     'colgroup': 'table',
     'col' : 'colgroup',
     'tr' : 'tbody',
@@ -8702,7 +8625,20 @@ class _ElementFactoryProvider {
     'track' : 'audio',
   };
 
-  /** @domName Document.createElement */
+  // TODO(jmesserly): const set would be better
+  static const _TABLE_TAGS = const {
+    'caption': null,
+    'col': null,
+    'colgroup': null,
+    'tbody': null,
+    'td': null,
+    'tfoot': null,
+    'th': null,
+    'thead': null,
+    'tr': null,
+  };
+
+  @DomName('Document.createElement')
   static Element createElement_html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
     // 1) Cache the dummy parent elements required to use innerHTML rather than
@@ -8715,30 +8651,90 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
-        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      if (_Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+        return _createTableForIE(html, tag);
       }
+      parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      if (parentTag == null) parentTag = 'div';
     }
-    final Element temp = new Element.tag(parentTag);
+
+    final temp = new Element.tag(parentTag);
     temp.innerHtml = html;
 
     Element element;
     if (temp.children.length == 1) {
       element = temp.children[0];
     } else if (parentTag == 'html' && temp.children.length == 2) {
-      // Work around for edge case in WebKit and possibly other browsers where
-      // both body and head elements are created even though the inner html
-      // only contains a head or body element.
+      // In html5 the root <html> tag will always have a <body> and a <head>,
+      // even though the inner html only contains one of them.
       element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      throw new ArgumentError('HTML had ${temp.children.length} '
-          'top level elements but 1 expected');
+      _singleNode(temp.children);
     }
     element.remove();
     return element;
   }
 
-  /** @domName Document.createElement */
+  /**
+   * IE table elements don't support innerHTML (even in standards mode).
+   * Instead we use a div and inject the table element in the innerHtml string.
+   * This technique works on other browsers too, but it's probably slower,
+   * so we only use it when running on IE.
+   *
+   * See also innerHTML:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms533897(v=vs.85).aspx>
+   * and Building Tables Dynamically:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms532998(v=vs.85).aspx>.
+   */
+  static Element _createTableForIE(String html, String tag) {
+    var div = new Element.tag('div');
+    div.innerHtml = '<table>$html</table>';
+    var table = _singleNode(div.children);
+    Element element;
+    switch (tag) {
+      case 'td':
+      case 'th':
+        element = _singleNode(_singleNode(table.rows).cells);
+        break;
+      case 'tr':
+        element = _singleNode(table.rows);
+        break;
+      case 'tbody':
+        element = _singleNode(table.tBodies);
+        break;
+      case 'thead':
+        element = table.tHead;
+        break;
+      case 'tfoot':
+        element = table.tFoot;
+        break;
+      case 'caption':
+        element = table.caption;
+        break;
+      case 'colgroup':
+        element = _getColgroup(table);
+        break;
+      case 'col':
+        element = _singleNode(_getColgroup(table).children);
+        break;
+    }
+    element.remove();
+    return element;
+  }
+
+  static TableColElement _getColgroup(TableElement table) {
+    // TODO(jmesserly): is there a better way to do this?
+    return _singleNode(table.children.where((n) => n.tagName == 'COLGROUP')
+        .toList());
+  }
+
+  static Node _singleNode(List<Node> list) {
+    if (list.length == 1) return list[0];
+    throw new ArgumentError('HTML had ${list.length} '
+        'top level elements but 1 expected');
+  }
+
+  @DomName('Document.createElement')
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   static dynamic createElement_tag(String tag) =>
@@ -8752,145 +8748,145 @@ class _ElementFactoryProvider {
 class ElementEvents extends Events {
   ElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeCopy => this['beforecopy'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeCut => this['beforecut'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforePaste => this['beforepaste'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get change => this['change'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get click => this['click'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get contextMenu => this['contextmenu'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get copy => this['copy'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get cut => this['cut'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get doubleClick => this['dblclick'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drag => this['drag'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnd => this['dragend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnter => this['dragenter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragLeave => this['dragleave'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragOver => this['dragover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragStart => this['dragstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drop => this['drop'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get input => this['input'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get invalid => this['invalid'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyDown => this['keydown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyPress => this['keypress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyUp => this['keyup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseDown => this['mousedown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseMove => this['mousemove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOut => this['mouseout'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOver => this['mouseover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseUp => this['mouseup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get paste => this['paste'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get reset => this['reset'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get scroll => this['scroll'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get search => this['search'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get select => this['select'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get selectStart => this['selectstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get submit => this['submit'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchCancel => this['touchcancel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchEnd => this['touchend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchEnter => this['touchenter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchLeave => this['touchleave'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchMove => this['touchmove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchStart => this['touchstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 
   EventListenerList get mouseWheel {
@@ -8911,7 +8907,8 @@ class ElementEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ElementTraversal
+@DocsEditable
+@DomName('ElementTraversal')
 abstract class ElementTraversal {
 
   int $dom_childElementCount;
@@ -8929,34 +8926,36 @@ abstract class ElementTraversal {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLEmbedElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLEmbedElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class EmbedElement extends Element native "*HTMLEmbedElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory EmbedElement() => document.$dom_createElement("embed");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('embed');
 
-  /// @domName HTMLEmbedElement.align; @docsEditable true
+  @DocsEditable @DomName('HTMLEmbedElement.align')
   String align;
 
-  /// @domName HTMLEmbedElement.height; @docsEditable true
+  @DocsEditable @DomName('HTMLEmbedElement.height')
   String height;
 
-  /// @domName HTMLEmbedElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLEmbedElement.name')
   String name;
 
-  /// @domName HTMLEmbedElement.src; @docsEditable true
+  @DocsEditable @DomName('HTMLEmbedElement.src')
   String src;
 
-  /// @domName HTMLEmbedElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLEmbedElement.type')
   String type;
 
-  /// @domName HTMLEmbedElement.width; @docsEditable true
+  @DocsEditable @DomName('HTMLEmbedElement.width')
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8964,7 +8963,9 @@ class EmbedElement extends Element native "*HTMLEmbedElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EntityReference; @docsEditable true
+
+@DocsEditable
+@DomName('EntityReference')
 class EntityReference extends Node native "*EntityReference" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8980,41 +8981,43 @@ typedef void EntriesCallback(List<Entry> entries);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Entry; @docsEditable true
+
+@DocsEditable
+@DomName('Entry')
 class Entry native "*Entry" {
 
-  /// @domName Entry.filesystem; @docsEditable true
+  @DocsEditable @DomName('Entry.filesystem')
   final FileSystem filesystem;
 
-  /// @domName Entry.fullPath; @docsEditable true
+  @DocsEditable @DomName('Entry.fullPath')
   final String fullPath;
 
-  /// @domName Entry.isDirectory; @docsEditable true
+  @DocsEditable @DomName('Entry.isDirectory')
   final bool isDirectory;
 
-  /// @domName Entry.isFile; @docsEditable true
+  @DocsEditable @DomName('Entry.isFile')
   final bool isFile;
 
-  /// @domName Entry.name; @docsEditable true
+  @DocsEditable @DomName('Entry.name')
   final String name;
 
-  /// @domName Entry.copyTo; @docsEditable true
+  @DocsEditable @DomName('Entry.copyTo')
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /// @domName Entry.getMetadata; @docsEditable true
+  @DocsEditable @DomName('Entry.getMetadata')
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /// @domName Entry.getParent; @docsEditable true
+  @DocsEditable @DomName('Entry.getParent')
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /// @domName Entry.moveTo; @docsEditable true
+  @DocsEditable @DomName('Entry.moveTo')
   void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /// @domName Entry.remove; @docsEditable true
+  @DocsEditable @DomName('Entry.remove')
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /// @domName Entry.toURL; @docsEditable true
   @JSName('toURL')
+  @DocsEditable @DomName('Entry.toURL')
   String toUrl() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9030,41 +9033,43 @@ typedef void EntryCallback(Entry entry);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EntrySync; @docsEditable true
+
+@DocsEditable
+@DomName('EntrySync')
 class EntrySync native "*EntrySync" {
 
-  /// @domName EntrySync.filesystem; @docsEditable true
+  @DocsEditable @DomName('EntrySync.filesystem')
   final FileSystemSync filesystem;
 
-  /// @domName EntrySync.fullPath; @docsEditable true
+  @DocsEditable @DomName('EntrySync.fullPath')
   final String fullPath;
 
-  /// @domName EntrySync.isDirectory; @docsEditable true
+  @DocsEditable @DomName('EntrySync.isDirectory')
   final bool isDirectory;
 
-  /// @domName EntrySync.isFile; @docsEditable true
+  @DocsEditable @DomName('EntrySync.isFile')
   final bool isFile;
 
-  /// @domName EntrySync.name; @docsEditable true
+  @DocsEditable @DomName('EntrySync.name')
   final String name;
 
-  /// @domName EntrySync.copyTo; @docsEditable true
+  @DocsEditable @DomName('EntrySync.copyTo')
   EntrySync copyTo(DirectoryEntrySync parent, String name) native;
 
-  /// @domName EntrySync.getMetadata; @docsEditable true
+  @DocsEditable @DomName('EntrySync.getMetadata')
   Metadata getMetadata() native;
 
-  /// @domName EntrySync.getParent; @docsEditable true
+  @DocsEditable @DomName('EntrySync.getParent')
   EntrySync getParent() native;
 
-  /// @domName EntrySync.moveTo; @docsEditable true
+  @DocsEditable @DomName('EntrySync.moveTo')
   EntrySync moveTo(DirectoryEntrySync parent, String name) native;
 
-  /// @domName EntrySync.remove; @docsEditable true
+  @DocsEditable @DomName('EntrySync.remove')
   void remove() native;
 
-  /// @domName EntrySync.toURL; @docsEditable true
   @JSName('toURL')
+  @DocsEditable @DomName('EntrySync.toURL')
   String toUrl() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9080,16 +9085,18 @@ typedef void ErrorCallback(FileError error);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ErrorEvent; @docsEditable true
+
+@DocsEditable
+@DomName('ErrorEvent')
 class ErrorEvent extends Event native "*ErrorEvent" {
 
-  /// @domName ErrorEvent.filename; @docsEditable true
+  @DocsEditable @DomName('ErrorEvent.filename')
   final String filename;
 
-  /// @domName ErrorEvent.lineno; @docsEditable true
+  @DocsEditable @DomName('ErrorEvent.lineno')
   final int lineno;
 
-  /// @domName ErrorEvent.message; @docsEditable true
+  @DocsEditable @DomName('ErrorEvent.message')
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9099,7 +9106,8 @@ class ErrorEvent extends Event native "*ErrorEvent" {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Event
+@DocsEditable
+@DomName('Event')
 class Event native "*Event" {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -9150,56 +9158,54 @@ class Event native "*Event" {
 
   static const int SELECT = 16384;
 
-  /// @domName Event.bubbles; @docsEditable true
+  @DocsEditable @DomName('Event.bubbles')
   final bool bubbles;
 
-  /// @domName Event.cancelBubble; @docsEditable true
+  @DocsEditable @DomName('Event.cancelBubble')
   bool cancelBubble;
 
-  /// @domName Event.cancelable; @docsEditable true
+  @DocsEditable @DomName('Event.cancelable')
   final bool cancelable;
 
-  /// @domName Event.clipboardData; @docsEditable true
+  @DocsEditable @DomName('Event.clipboardData')
   final Clipboard clipboardData;
 
-  /// @domName Event.currentTarget; @docsEditable true
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
   @JSName('currentTarget')
-  @Creates('Null') @Returns('EventTarget|=Object')
+  @DocsEditable @DomName('Event.currentTarget') @Creates('Null') @Returns('EventTarget|=Object')
   final dynamic _currentTarget;
 
-  /// @domName Event.defaultPrevented; @docsEditable true
+  @DocsEditable @DomName('Event.defaultPrevented')
   final bool defaultPrevented;
 
-  /// @domName Event.eventPhase; @docsEditable true
+  @DocsEditable @DomName('Event.eventPhase')
   final int eventPhase;
 
-  /// @domName Event.returnValue; @docsEditable true
+  @DocsEditable @DomName('Event.returnValue')
   bool returnValue;
 
-  /// @domName Event.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
-  @Creates('Node') @Returns('EventTarget|=Object')
+  @DocsEditable @DomName('Event.target') @Creates('Node') @Returns('EventTarget|=Object')
   final dynamic _target;
 
-  /// @domName Event.timeStamp; @docsEditable true
+  @DocsEditable @DomName('Event.timeStamp')
   final int timeStamp;
 
-  /// @domName Event.type; @docsEditable true
+  @DocsEditable @DomName('Event.type')
   final String type;
 
-  /// @domName Event.initEvent; @docsEditable true
   @JSName('initEvent')
+  @DocsEditable @DomName('Event.initEvent')
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native;
 
-  /// @domName Event.preventDefault; @docsEditable true
+  @DocsEditable @DomName('Event.preventDefault')
   void preventDefault() native;
 
-  /// @domName Event.stopImmediatePropagation; @docsEditable true
+  @DocsEditable @DomName('Event.stopImmediatePropagation')
   void stopImmediatePropagation() native;
 
-  /// @domName Event.stopPropagation; @docsEditable true
+  @DocsEditable @DomName('Event.stopPropagation')
   void stopPropagation() native;
 
 }
@@ -9208,23 +9214,25 @@ class Event native "*Event" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EventException; @docsEditable true
+
+@DocsEditable
+@DomName('EventException')
 class EventException native "*EventException" {
 
   static const int DISPATCH_REQUEST_ERR = 1;
 
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
-  /// @domName EventException.code; @docsEditable true
+  @DocsEditable @DomName('EventException.code')
   final int code;
 
-  /// @domName EventException.message; @docsEditable true
+  @DocsEditable @DomName('EventException.message')
   final String message;
 
-  /// @domName EventException.name; @docsEditable true
+  @DocsEditable @DomName('EventException.name')
   final String name;
 
-  /// @domName EventException.toString; @docsEditable true
+  @DocsEditable @DomName('EventException.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9232,7 +9240,9 @@ class EventException native "*EventException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EventSource; @docsEditable true
+
+@DocsEditable
+@DomName('EventSource')
 class EventSource extends EventTarget native "*EventSource" {
 
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
@@ -9241,11 +9251,22 @@ class EventSource extends EventTarget native "*EventSource" {
 
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  ///@docsEditable true
-  factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
-  static EventSource _create(String scriptUrl) => JS('EventSource', 'new EventSource(#)', scriptUrl);
+  @DocsEditable
+  factory EventSource(String url, [Map eventSourceInit]) {
+    if (!?eventSourceInit) {
+      return EventSource._create(url);
+    }
+    return EventSource._create(url, eventSourceInit);
+  }
+  static EventSource _create(String url, [Map eventSourceInit]) {
+    if (!?eventSourceInit) {
+      return JS('EventSource', 'new EventSource(#)', url);
+    }
+    return JS('EventSource', 'new EventSource(#,#)', url, eventSourceInit);
+  }
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   EventSourceEvents get on =>
     new EventSourceEvents(this);
 
@@ -9255,25 +9276,28 @@ class EventSource extends EventTarget native "*EventSource" {
 
   static const int OPEN = 1;
 
-  /// @domName EventSource.readyState; @docsEditable true
+  @DocsEditable @DomName('EventSource.readyState')
   final int readyState;
 
-  /// @domName EventSource.url; @docsEditable true
+  @DocsEditable @DomName('EventSource.url')
   final String url;
 
-  /// @domName EventSource.addEventListener; @docsEditable true
+  @DocsEditable @DomName('EventSource.withCredentials')
+  final bool withCredentials;
+
   @JSName('addEventListener')
+  @DocsEditable @DomName('EventSource.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName EventSource.close; @docsEditable true
+  @DocsEditable @DomName('EventSource.close')
   void close() native;
 
-  /// @domName EventSource.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('EventSource.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName EventSource.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('EventSource.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -9283,18 +9307,18 @@ class EventSource extends EventTarget native "*EventSource" {
   Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class EventSourceEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   EventSourceEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9308,7 +9332,7 @@ class EventSourceEvents extends Events {
  * Events can either be accessed by string name (using the indexed getter) or by
  * getters exposed by subclasses. Use the getters exposed by subclasses when
  * possible for better compile-time type checks.
- *
+ * 
  * Using an indexed getter:
  *     events['mouseover'].add((e) => print("Mouse over!"));
  *
@@ -9363,7 +9387,8 @@ class EventListenerList {
   }
 }
 
-/// @domName EventTarget
+@DocsEditable
+@DomName('EventTarget')
 /**
  * Base class for all browser objects that support events.
  *
@@ -9371,22 +9396,22 @@ class EventListenerList {
  * [$dom_addEventListener], [$dom_dispatchEvent], and
  * [$dom_removeEventListener]) for compile-time type checks and a more concise
  * API.
- */
+ */ 
 class EventTarget native "*EventTarget" {
 
-  /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   Events get on => new Events(this);
 
-  /// @domName EventTarget.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('EventTarget.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName EventTarget.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('EventTarget.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName EventTarget.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('EventTarget.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
 }
@@ -9395,7 +9420,9 @@ class EventTarget native "*EventTarget" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EXTTextureFilterAnisotropic; @docsEditable true
+
+@DocsEditable
+@DomName('EXTTextureFilterAnisotropic')
 class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 
   static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
@@ -9407,40 +9434,42 @@ class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFieldSetElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLFieldSetElement')
 class FieldSetElement extends Element native "*HTMLFieldSetElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
-  /// @domName HTMLFieldSetElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.disabled')
   bool disabled;
 
-  /// @domName HTMLFieldSetElement.elements; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.elements')
   final HtmlCollection elements;
 
-  /// @domName HTMLFieldSetElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.form')
   final FormElement form;
 
-  /// @domName HTMLFieldSetElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.name')
   String name;
 
-  /// @domName HTMLFieldSetElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.type')
   final String type;
 
-  /// @domName HTMLFieldSetElement.validationMessage; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.validationMessage')
   final String validationMessage;
 
-  /// @domName HTMLFieldSetElement.validity; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.validity')
   final ValidityState validity;
 
-  /// @domName HTMLFieldSetElement.willValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.willValidate')
   final bool willValidate;
 
-  /// @domName HTMLFieldSetElement.checkValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.checkValidity')
   bool checkValidity() native;
 
-  /// @domName HTMLFieldSetElement.setCustomValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLFieldSetElement.setCustomValidity')
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9448,16 +9477,18 @@ class FieldSetElement extends Element native "*HTMLFieldSetElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName File; @docsEditable true
+
+@DocsEditable
+@DomName('File')
 class File extends Blob native "*File" {
 
-  /// @domName File.lastModifiedDate; @docsEditable true
+  @DocsEditable @DomName('File.lastModifiedDate')
   final Date lastModifiedDate;
 
-  /// @domName File.name; @docsEditable true
+  @DocsEditable @DomName('File.name')
   final String name;
 
-  /// @domName File.webkitRelativePath; @docsEditable true
+  @DocsEditable @DomName('File.webkitRelativePath')
   final String webkitRelativePath;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9473,13 +9504,15 @@ typedef void FileCallback(File file);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileEntry; @docsEditable true
+
+@DocsEditable
+@DomName('FileEntry')
 class FileEntry extends Entry native "*FileEntry" {
 
-  /// @domName FileEntry.createWriter; @docsEditable true
+  @DocsEditable @DomName('FileEntry.createWriter')
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /// @domName FileEntry.file; @docsEditable true
+  @DocsEditable @DomName('FileEntry.file')
   void file(FileCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9487,13 +9520,15 @@ class FileEntry extends Entry native "*FileEntry" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileEntrySync; @docsEditable true
+
+@DocsEditable
+@DomName('FileEntrySync')
 class FileEntrySync extends EntrySync native "*FileEntrySync" {
 
-  /// @domName FileEntrySync.createWriter; @docsEditable true
+  @DocsEditable @DomName('FileEntrySync.createWriter')
   FileWriterSync createWriter() native;
 
-  /// @domName FileEntrySync.file; @docsEditable true
+  @DocsEditable @DomName('FileEntrySync.file')
   File file() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9501,7 +9536,9 @@ class FileEntrySync extends EntrySync native "*FileEntrySync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileError; @docsEditable true
+
+@DocsEditable
+@DomName('FileError')
 class FileError native "*FileError" {
 
   static const int ABORT_ERR = 3;
@@ -9528,7 +9565,7 @@ class FileError native "*FileError" {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-  /// @domName FileError.code; @docsEditable true
+  @DocsEditable @DomName('FileError.code')
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9536,7 +9573,9 @@ class FileError native "*FileError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileException; @docsEditable true
+
+@DocsEditable
+@DomName('FileException')
 class FileException native "*FileException" {
 
   static const int ABORT_ERR = 3;
@@ -9563,16 +9602,16 @@ class FileException native "*FileException" {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-  /// @domName FileException.code; @docsEditable true
+  @DocsEditable @DomName('FileException.code')
   final int code;
 
-  /// @domName FileException.message; @docsEditable true
+  @DocsEditable @DomName('FileException.message')
   final String message;
 
-  /// @domName FileException.name; @docsEditable true
+  @DocsEditable @DomName('FileException.name')
   final String name;
 
-  /// @domName FileException.toString; @docsEditable true
+  @DocsEditable @DomName('FileException.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9580,10 +9619,12 @@ class FileException native "*FileException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileList; @docsEditable true
+
+@DocsEditable
+@DomName('FileList')
 class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
 
-  /// @domName FileList.length; @docsEditable true
+  @DocsEditable @DomName('FileList.length')
   int get length => JS("int", "#.length", this);
 
   File operator[](int index) => JS("File", "#[#]", this, index);
@@ -9604,50 +9645,50 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(File element) => Collections.contains(this, element);
+  bool contains(File element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(File element)) => Collections.forEach(this, f);
+  void forEach(void f(File element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(File element)) => new MappedList<File, dynamic>(this, f);
+  List mappedBy(f(File element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<File> where(bool f(File element)) => new WhereIterable<File>(this, f);
+  Iterable<File> where(bool f(File element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(File element)) => Collections.every(this, f);
+  bool every(bool f(File element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(File element)) => Collections.any(this, f);
+  bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
 
   List<File> toList() => new List<File>.from(this);
   Set<File> toSet() => new Set<File>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<File> take(int n) => new ListView<File>(this, 0, n);
+  List<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<File> takeWhile(bool test(File value)) {
-    return new TakeWhileIterable<File>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<File> skip(int n) => new ListView<File>(this, n, null);
+  List<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<File> skipWhile(bool test(File value)) {
-    return new SkipWhileIterable<File>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   File firstMatching(bool test(File value), { File orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   File lastMatching(bool test(File value), {File orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   File singleMatching(bool test(File value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   File elementAt(int index) {
@@ -9705,16 +9746,36 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new StateError("More than one element");
   }
 
-  File min([int compare(File a, File b)]) => Collections.min(this, compare);
+  File min([int compare(File a, File b)]) => IterableMixinWorkaround.min(this, compare);
 
-  File max([int compare(File a, File b)]) => Collections.max(this, compare);
+  File max([int compare(File a, File b)]) => IterableMixinWorkaround.max(this, compare);
 
   File removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   File removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(File element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(File element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
@@ -9734,7 +9795,7 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
   // -- end List<File> mixins.
 
-  /// @domName FileList.item; @docsEditable true
+  @DocsEditable @DomName('FileList.item')
   File item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9742,7 +9803,9 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileReader; @docsEditable true
+
+@DocsEditable
+@DomName('FileReader')
 class FileReader extends EventTarget native "*FileReader" {
 
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
@@ -9757,11 +9820,12 @@ class FileReader extends EventTarget native "*FileReader" {
 
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  ///@docsEditable true
+  @DocsEditable
   factory FileReader() => FileReader._create();
   static FileReader _create() => JS('FileReader', 'new FileReader()');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   FileReaderEvents get on =>
     new FileReaderEvents(this);
 
@@ -9771,42 +9835,41 @@ class FileReader extends EventTarget native "*FileReader" {
 
   static const int LOADING = 1;
 
-  /// @domName FileReader.error; @docsEditable true
+  @DocsEditable @DomName('FileReader.error')
   final FileError error;
 
-  /// @domName FileReader.readyState; @docsEditable true
+  @DocsEditable @DomName('FileReader.readyState')
   final int readyState;
 
-  /// @domName FileReader.result; @docsEditable true
-  @Creates('String|ArrayBuffer|Null')
+  @DocsEditable @DomName('FileReader.result') @Creates('String|ArrayBuffer|Null')
   final Object result;
 
-  /// @domName FileReader.abort; @docsEditable true
+  @DocsEditable @DomName('FileReader.abort')
   void abort() native;
 
-  /// @domName FileReader.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('FileReader.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName FileReader.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('FileReader.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName FileReader.readAsArrayBuffer; @docsEditable true
+  @DocsEditable @DomName('FileReader.readAsArrayBuffer')
   void readAsArrayBuffer(Blob blob) native;
 
-  /// @domName FileReader.readAsBinaryString; @docsEditable true
+  @DocsEditable @DomName('FileReader.readAsBinaryString')
   void readAsBinaryString(Blob blob) native;
 
-  /// @domName FileReader.readAsDataURL; @docsEditable true
   @JSName('readAsDataURL')
+  @DocsEditable @DomName('FileReader.readAsDataURL')
   void readAsDataUrl(Blob blob) native;
 
-  /// @domName FileReader.readAsText; @docsEditable true
+  @DocsEditable @DomName('FileReader.readAsText')
   void readAsText(Blob blob, [String encoding]) native;
 
-  /// @domName FileReader.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('FileReader.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -9822,27 +9885,27 @@ class FileReader extends EventTarget native "*FileReader" {
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class FileReaderEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   FileReaderEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadEnd => this['loadend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9850,24 +9913,26 @@ class FileReaderEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileReaderSync; @docsEditable true
+
+@DocsEditable
+@DomName('FileReaderSync')
 class FileReaderSync native "*FileReaderSync" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory FileReaderSync() => FileReaderSync._create();
   static FileReaderSync _create() => JS('FileReaderSync', 'new FileReaderSync()');
 
-  /// @domName FileReaderSync.readAsArrayBuffer; @docsEditable true
+  @DocsEditable @DomName('FileReaderSync.readAsArrayBuffer')
   ArrayBuffer readAsArrayBuffer(Blob blob) native;
 
-  /// @domName FileReaderSync.readAsBinaryString; @docsEditable true
+  @DocsEditable @DomName('FileReaderSync.readAsBinaryString')
   String readAsBinaryString(Blob blob) native;
 
-  /// @domName FileReaderSync.readAsDataURL; @docsEditable true
   @JSName('readAsDataURL')
+  @DocsEditable @DomName('FileReaderSync.readAsDataURL')
   String readAsDataUrl(Blob blob) native;
 
-  /// @domName FileReaderSync.readAsText; @docsEditable true
+  @DocsEditable @DomName('FileReaderSync.readAsText')
   String readAsText(Blob blob, [String encoding]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9875,16 +9940,18 @@ class FileReaderSync native "*FileReaderSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMFileSystem; @docsEditable true
+
+@DocsEditable
+@DomName('DOMFileSystem')
 class FileSystem native "*DOMFileSystem" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.webkitRequestFileSystem)');
 
-  /// @domName DOMFileSystem.name; @docsEditable true
+  @DocsEditable @DomName('DOMFileSystem.name')
   final String name;
 
-  /// @domName DOMFileSystem.root; @docsEditable true
+  @DocsEditable @DomName('DOMFileSystem.root')
   final DirectoryEntry root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9900,13 +9967,15 @@ typedef void FileSystemCallback(FileSystem fileSystem);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMFileSystemSync; @docsEditable true
+
+@DocsEditable
+@DomName('DOMFileSystemSync')
 class FileSystemSync native "*DOMFileSystemSync" {
 
-  /// @domName DOMFileSystemSync.name; @docsEditable true
+  @DocsEditable @DomName('DOMFileSystemSync.name')
   final String name;
 
-  /// @domName DOMFileSystemSync.root; @docsEditable true
+  @DocsEditable @DomName('DOMFileSystemSync.root')
   final DirectoryEntrySync root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9914,7 +9983,9 @@ class FileSystemSync native "*DOMFileSystemSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileWriter; @docsEditable true
+
+@DocsEditable
+@DomName('FileWriter')
 class FileWriter extends EventTarget native "*FileWriter" {
 
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
@@ -9929,7 +10000,8 @@ class FileWriter extends EventTarget native "*FileWriter" {
 
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   FileWriterEvents get on =>
     new FileWriterEvents(this);
 
@@ -9939,40 +10011,40 @@ class FileWriter extends EventTarget native "*FileWriter" {
 
   static const int WRITING = 1;
 
-  /// @domName FileWriter.error; @docsEditable true
+  @DocsEditable @DomName('FileWriter.error')
   final FileError error;
 
-  /// @domName FileWriter.length; @docsEditable true
+  @DocsEditable @DomName('FileWriter.length')
   final int length;
 
-  /// @domName FileWriter.position; @docsEditable true
+  @DocsEditable @DomName('FileWriter.position')
   final int position;
 
-  /// @domName FileWriter.readyState; @docsEditable true
+  @DocsEditable @DomName('FileWriter.readyState')
   final int readyState;
 
-  /// @domName FileWriter.abort; @docsEditable true
+  @DocsEditable @DomName('FileWriter.abort')
   void abort() native;
 
-  /// @domName FileWriter.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('FileWriter.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName FileWriter.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('FileWriter.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName FileWriter.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('FileWriter.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName FileWriter.seek; @docsEditable true
+  @DocsEditable @DomName('FileWriter.seek')
   void seek(int position) native;
 
-  /// @domName FileWriter.truncate; @docsEditable true
+  @DocsEditable @DomName('FileWriter.truncate')
   void truncate(int size) native;
 
-  /// @domName FileWriter.write; @docsEditable true
+  @DocsEditable @DomName('FileWriter.write')
   void write(Blob data) native;
 
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -9988,27 +10060,27 @@ class FileWriter extends EventTarget native "*FileWriter" {
   Stream<ProgressEvent> get onWriteStart => writeStartEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class FileWriterEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   FileWriterEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get write => this['write'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get writeEnd => this['writeend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get writeStart => this['writestart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10024,22 +10096,24 @@ typedef void FileWriterCallback(FileWriter fileWriter);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName FileWriterSync; @docsEditable true
+
+@DocsEditable
+@DomName('FileWriterSync')
 class FileWriterSync native "*FileWriterSync" {
 
-  /// @domName FileWriterSync.length; @docsEditable true
+  @DocsEditable @DomName('FileWriterSync.length')
   final int length;
 
-  /// @domName FileWriterSync.position; @docsEditable true
+  @DocsEditable @DomName('FileWriterSync.position')
   final int position;
 
-  /// @domName FileWriterSync.seek; @docsEditable true
+  @DocsEditable @DomName('FileWriterSync.seek')
   void seek(int position) native;
 
-  /// @domName FileWriterSync.truncate; @docsEditable true
+  @DocsEditable @DomName('FileWriterSync.truncate')
   void truncate(int size) native;
 
-  /// @domName FileWriterSync.write; @docsEditable true
+  @DocsEditable @DomName('FileWriterSync.write')
   void write(Blob data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10047,7 +10121,9 @@ class FileWriterSync native "*FileWriterSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Float32Array; @docsEditable true
+
+@DocsEditable
+@DomName('Float32Array')
 class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float32Array" {
 
   factory Float32Array(int length) =>
@@ -10056,12 +10132,12 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   factory Float32Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromList(list);
 
-  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  /// @domName Float32Array.length; @docsEditable true
+  @DocsEditable @DomName('Float32Array.length')
   int get length => JS("int", "#.length", this);
 
   num operator[](int index) => JS("num", "#[#]", this, index);
@@ -10079,50 +10155,50 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(num element) => Collections.contains(this, element);
+  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(num element)) => Collections.forEach(this, f);
+  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+  Iterable<num> where(bool f(num element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(num element)) => Collections.every(this, f);
+  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(num element)) => Collections.any(this, f);
+  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
   List<num> toList() => new List<num>.from(this);
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => new ListView<num>(this, 0, n);
+  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
-    return new TakeWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => new ListView<num>(this, n, null);
+  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
-    return new SkipWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   num firstMatching(bool test(num value), { num orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   num lastMatching(bool test(num value), {num orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   num singleMatching(bool test(num value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   num elementAt(int index) {
@@ -10180,16 +10256,36 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => Collections.min(this, compare);
+  num min([int compare(num a, num b)]) => IterableMixinWorkaround.min(this, compare);
 
-  num max([int compare(num a, num b)]) => Collections.max(this, compare);
+  num max([int compare(num a, num b)]) => IterableMixinWorkaround.max(this, compare);
 
   num removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   num removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
@@ -10209,11 +10305,11 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   // -- end List<num> mixins.
 
-  /// @domName Float32Array.setElements; @docsEditable true
   @JSName('set')
+  @DocsEditable @DomName('Float32Array.set')
   void setElements(Object array, [int offset]) native;
 
-  /// @domName Float32Array.subarray; @docsEditable true
+  @DocsEditable @DomName('Float32Array.subarray')
   Float32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10221,7 +10317,9 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Float64Array; @docsEditable true
+
+@DocsEditable
+@DomName('Float64Array')
 class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float64Array" {
 
   factory Float64Array(int length) =>
@@ -10230,12 +10328,12 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   factory Float64Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromList(list);
 
-  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 8;
 
-  /// @domName Float64Array.length; @docsEditable true
+  @DocsEditable @DomName('Float64Array.length')
   int get length => JS("int", "#.length", this);
 
   num operator[](int index) => JS("num", "#[#]", this, index);
@@ -10253,50 +10351,50 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(num element) => Collections.contains(this, element);
+  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(num element)) => Collections.forEach(this, f);
+  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+  Iterable<num> where(bool f(num element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(num element)) => Collections.every(this, f);
+  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(num element)) => Collections.any(this, f);
+  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
   List<num> toList() => new List<num>.from(this);
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => new ListView<num>(this, 0, n);
+  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
-    return new TakeWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => new ListView<num>(this, n, null);
+  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
-    return new SkipWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   num firstMatching(bool test(num value), { num orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   num lastMatching(bool test(num value), {num orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   num singleMatching(bool test(num value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   num elementAt(int index) {
@@ -10354,16 +10452,36 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => Collections.min(this, compare);
+  num min([int compare(num a, num b)]) => IterableMixinWorkaround.min(this, compare);
 
-  num max([int compare(num a, num b)]) => Collections.max(this, compare);
+  num max([int compare(num a, num b)]) => IterableMixinWorkaround.max(this, compare);
 
   num removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   num removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
@@ -10383,11 +10501,11 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   // -- end List<num> mixins.
 
-  /// @domName Float64Array.setElements; @docsEditable true
   @JSName('set')
+  @DocsEditable @DomName('Float64Array.set')
   void setElements(Object array, [int offset]) native;
 
-  /// @domName Float64Array.subarray; @docsEditable true
+  @DocsEditable @DomName('Float64Array.subarray')
   Float64Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10395,27 +10513,12 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFontElement; @docsEditable true
-class FontElement extends Element native "*HTMLFontElement" {
 
-  /// @domName HTMLFontElement.color; @docsEditable true
-  String color;
-
-  /// @domName HTMLFontElement.face; @docsEditable true
-  String face;
-
-  /// @domName HTMLFontElement.size; @docsEditable true
-  String size;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName FormData; @docsEditable true
+@DocsEditable
+@DomName('FormData')
 class FormData native "*FormData" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory FormData([FormElement form]) {
     if (!?form) {
       return FormData._create();
@@ -10429,7 +10532,7 @@ class FormData native "*FormData" {
     return JS('FormData', 'new FormData(#)', form);
   }
 
-  /// @domName DOMFormData.append; @docsEditable true
+  @DocsEditable @DomName('DOMFormData.append')
   void append(String name, value, [String filename]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10437,49 +10540,51 @@ class FormData native "*FormData" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFormElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLFormElement')
 class FormElement extends Element native "*HTMLFormElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory FormElement() => document.$dom_createElement("form");
 
-  /// @domName HTMLFormElement.acceptCharset; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.acceptCharset')
   String acceptCharset;
 
-  /// @domName HTMLFormElement.action; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.action')
   String action;
 
-  /// @domName HTMLFormElement.autocomplete; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.autocomplete')
   String autocomplete;
 
-  /// @domName HTMLFormElement.encoding; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.encoding')
   String encoding;
 
-  /// @domName HTMLFormElement.enctype; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.enctype')
   String enctype;
 
-  /// @domName HTMLFormElement.length; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.length')
   final int length;
 
-  /// @domName HTMLFormElement.method; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.method')
   String method;
 
-  /// @domName HTMLFormElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.name')
   String name;
 
-  /// @domName HTMLFormElement.noValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.noValidate')
   bool noValidate;
 
-  /// @domName HTMLFormElement.target; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.target')
   String target;
 
-  /// @domName HTMLFormElement.checkValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.checkValidity')
   bool checkValidity() native;
 
-  /// @domName HTMLFormElement.reset; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.reset')
   void reset() native;
 
-  /// @domName HTMLFormElement.submit; @docsEditable true
+  @DocsEditable @DomName('HTMLFormElement.submit')
   void submit() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10487,184 +10592,24 @@ class FormElement extends Element native "*HTMLFormElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFrameElement; @docsEditable true
-class FrameElement extends Element native "*HTMLFrameElement" {
 
-  /// @domName HTMLFrameElement.contentWindow; @docsEditable true
-  WindowBase get contentWindow => _convertNativeToDart_Window(this._contentWindow);
-  @JSName('contentWindow')
-  @Creates('Window|=Object') @Returns('Window|=Object')
-  final dynamic _contentWindow;
-
-  /// @domName HTMLFrameElement.frameBorder; @docsEditable true
-  String frameBorder;
-
-  /// @domName HTMLFrameElement.height; @docsEditable true
-  final int height;
-
-  /// @domName HTMLFrameElement.location; @docsEditable true
-  String location;
-
-  /// @domName HTMLFrameElement.longDesc; @docsEditable true
-  String longDesc;
-
-  /// @domName HTMLFrameElement.marginHeight; @docsEditable true
-  String marginHeight;
-
-  /// @domName HTMLFrameElement.marginWidth; @docsEditable true
-  String marginWidth;
-
-  /// @domName HTMLFrameElement.name; @docsEditable true
-  String name;
-
-  /// @domName HTMLFrameElement.noResize; @docsEditable true
-  bool noResize;
-
-  /// @domName HTMLFrameElement.scrolling; @docsEditable true
-  String scrolling;
-
-  /// @domName HTMLFrameElement.src; @docsEditable true
-  String src;
-
-  /// @domName HTMLFrameElement.width; @docsEditable true
-  final int width;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName HTMLFrameSetElement; @docsEditable true
-class FrameSetElement extends Element native "*HTMLFrameSetElement" {
-
-  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
-  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
-
-  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
-
-  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
-
-  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
-
-  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
-
-  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  FrameSetElementEvents get on =>
-    new FrameSetElementEvents(this);
-
-  /// @domName HTMLFrameSetElement.cols; @docsEditable true
-  String cols;
-
-  /// @domName HTMLFrameSetElement.rows; @docsEditable true
-  String rows;
-
-  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
-
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
-
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
-
-  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
-
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
-
-  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
-
-  Stream<Event> get onOffline => offlineEvent.forTarget(this);
-
-  Stream<Event> get onOnline => onlineEvent.forTarget(this);
-
-  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
-
-  Stream<Event> get onResize => resizeEvent.forTarget(this);
-
-  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
-
-  Stream<Event> get onUnload => unloadEvent.forTarget(this);
-}
-
-/// @docsEditable true
-class FrameSetElementEvents extends ElementEvents {
-  /// @docsEditable true
-  FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  /// @docsEditable true
-  EventListenerList get blur => this['blur'];
-
-  /// @docsEditable true
-  EventListenerList get error => this['error'];
-
-  /// @docsEditable true
-  EventListenerList get focus => this['focus'];
-
-  /// @docsEditable true
-  EventListenerList get hashChange => this['hashchange'];
-
-  /// @docsEditable true
-  EventListenerList get load => this['load'];
-
-  /// @docsEditable true
-  EventListenerList get message => this['message'];
-
-  /// @docsEditable true
-  EventListenerList get offline => this['offline'];
-
-  /// @docsEditable true
-  EventListenerList get online => this['online'];
-
-  /// @docsEditable true
-  EventListenerList get popState => this['popstate'];
-
-  /// @docsEditable true
-  EventListenerList get resize => this['resize'];
-
-  /// @docsEditable true
-  EventListenerList get storage => this['storage'];
-
-  /// @docsEditable true
-  EventListenerList get unload => this['unload'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName Gamepad; @docsEditable true
+@DocsEditable
+@DomName('Gamepad')
 class Gamepad native "*Gamepad" {
 
-  /// @domName Gamepad.axes; @docsEditable true
+  @DocsEditable @DomName('Gamepad.axes')
   final List<num> axes;
 
-  /// @domName Gamepad.buttons; @docsEditable true
+  @DocsEditable @DomName('Gamepad.buttons')
   final List<num> buttons;
 
-  /// @domName Gamepad.id; @docsEditable true
+  @DocsEditable @DomName('Gamepad.id')
   final String id;
 
-  /// @domName Gamepad.index; @docsEditable true
+  @DocsEditable @DomName('Gamepad.index')
   final int index;
 
-  /// @domName Gamepad.timestamp; @docsEditable true
+  @DocsEditable @DomName('Gamepad.timestamp')
   final int timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10672,16 +10617,18 @@ class Gamepad native "*Gamepad" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Geolocation; @docsEditable true
+
+@DocsEditable
+@DomName('Geolocation')
 class Geolocation native "*Geolocation" {
 
-  /// @domName Geolocation.clearWatch; @docsEditable true
+  @DocsEditable @DomName('Geolocation.clearWatch')
   void clearWatch(int watchId) native;
 
-  /// @domName Geolocation.getCurrentPosition; @docsEditable true
+  @DocsEditable @DomName('Geolocation.getCurrentPosition')
   void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 
-  /// @domName Geolocation.watchPosition; @docsEditable true
+  @DocsEditable @DomName('Geolocation.watchPosition')
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10689,13 +10636,15 @@ class Geolocation native "*Geolocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Geoposition; @docsEditable true
+
+@DocsEditable
+@DomName('Geoposition')
 class Geoposition native "*Geoposition" {
 
-  /// @domName Geoposition.coords; @docsEditable true
+  @DocsEditable @DomName('Geoposition.coords')
   final Coordinates coords;
 
-  /// @domName Geoposition.timestamp; @docsEditable true
+  @DocsEditable @DomName('Geoposition.timestamp')
   final int timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10703,10 +10652,12 @@ class Geoposition native "*Geoposition" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLHRElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLHRElement')
 class HRElement extends Element native "*HTMLHRElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory HRElement() => document.$dom_createElement("hr");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10714,18 +10665,20 @@ class HRElement extends Element native "*HTMLHRElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HashChangeEvent; @docsEditable true
+
+@DocsEditable
+@DomName('HashChangeEvent')
 class HashChangeEvent extends Event native "*HashChangeEvent" {
 
-  /// @domName HashChangeEvent.newURL; @docsEditable true
   @JSName('newURL')
+  @DocsEditable @DomName('HashChangeEvent.newURL')
   final String newUrl;
 
-  /// @domName HashChangeEvent.oldURL; @docsEditable true
   @JSName('oldURL')
+  @DocsEditable @DomName('HashChangeEvent.oldURL')
   final String oldUrl;
 
-  /// @domName HashChangeEvent.initHashChangeEvent; @docsEditable true
+  @DocsEditable @DomName('HashChangeEvent.initHashChangeEvent')
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10733,10 +10686,12 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLHeadElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLHeadElement')
 class HeadElement extends Element native "*HTMLHeadElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadElement() => document.$dom_createElement("head");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10744,25 +10699,27 @@ class HeadElement extends Element native "*HTMLHeadElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLHeadingElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLHeadingElement')
 class HeadingElement extends Element native "*HTMLHeadingElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h1() => document.$dom_createElement("h1");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h2() => document.$dom_createElement("h2");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h3() => document.$dom_createElement("h3");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h4() => document.$dom_createElement("h4");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h5() => document.$dom_createElement("h5");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h6() => document.$dom_createElement("h6");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10770,7 +10727,9 @@ class HeadingElement extends Element native "*HTMLHeadingElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName History; @docsEditable true
+
+@DocsEditable
+@DomName('History')
 class History implements HistoryBase native "*History" {
 
   /**
@@ -10784,30 +10743,27 @@ class History implements HistoryBase native "*History" {
    */
   static bool get supportsState => JS('bool', '!!window.history.pushState');
 
-  /// @domName History.length; @docsEditable true
+  @DocsEditable @DomName('History.length')
   final int length;
 
-  /// @domName History.state; @docsEditable true
   dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
-  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
+  @DocsEditable @DomName('History.state') @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final dynamic _state;
 
-  /// @domName History.back; @docsEditable true
+  @DocsEditable @DomName('History.back')
   void back() native;
 
-  /// @domName History.forward; @docsEditable true
+  @DocsEditable @DomName('History.forward')
   void forward() native;
 
-  /// @domName History.go; @docsEditable true
+  @DocsEditable @DomName('History.go')
   void go(int distance) native;
 
-  /// @domName History.pushState; @docsEditable true
-  @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE, '10') @SupportedBrowser(SupportedBrowser.SAFARI)
+  @DocsEditable @DomName('History.pushState') @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE, '10') @SupportedBrowser(SupportedBrowser.SAFARI)
   void pushState(Object data, String title, [String url]) native;
 
-  /// @domName History.replaceState; @docsEditable true
-  @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE, '10') @SupportedBrowser(SupportedBrowser.SAFARI)
+  @DocsEditable @DomName('History.replaceState') @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE, '10') @SupportedBrowser(SupportedBrowser.SAFARI)
   void replaceState(Object data, String title, [String url]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10815,10 +10771,12 @@ class History implements HistoryBase native "*History" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLAllCollection; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLAllCollection')
 class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
 
-  /// @domName HTMLAllCollection.length; @docsEditable true
+  @DocsEditable @DomName('HTMLAllCollection.length')
   int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -10839,50 +10797,50 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -10940,16 +10898,36 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -10969,13 +10947,13 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   // -- end List<Node> mixins.
 
-  /// @domName HTMLAllCollection.item; @docsEditable true
+  @DocsEditable @DomName('HTMLAllCollection.item')
   Node item(int index) native;
 
-  /// @domName HTMLAllCollection.namedItem; @docsEditable true
+  @DocsEditable @DomName('HTMLAllCollection.namedItem')
   Node namedItem(String name) native;
 
-  /// @domName HTMLAllCollection.tags; @docsEditable true
+  @DocsEditable @DomName('HTMLAllCollection.tags')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> tags(String name) native;
 }
@@ -10984,10 +10962,12 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLCollection; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLCollection')
 class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
 
-  /// @domName HTMLCollection.length; @docsEditable true
+  @DocsEditable @DomName('HTMLCollection.length')
   int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -11008,50 +10988,50 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -11109,16 +11089,36 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -11138,10 +11138,10 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   // -- end List<Node> mixins.
 
-  /// @domName HTMLCollection.item; @docsEditable true
+  @DocsEditable @DomName('HTMLCollection.item')
   Node item(int index) native;
 
-  /// @domName HTMLCollection.namedItem; @docsEditable true
+  @DocsEditable @DomName('HTMLCollection.namedItem')
   Node namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11151,26 +11151,27 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLDocument
+@DocsEditable
+@DomName('HTMLDocument')
 class HtmlDocument extends Document native "*HTMLDocument" {
 
-  /// @domName HTMLDocument.activeElement; @docsEditable true
+  @DocsEditable @DomName('HTMLDocument.activeElement')
   final Element activeElement;
 
-  /** @domName Document.body */
+  @DomName('Document.body')
   BodyElement get body => document.$dom_body;
 
-  /** @domName Document.body */
+  @DomName('Document.body')
   void set body(BodyElement value) {
     document.$dom_body = value;
   }
 
-  /** @domName Document.caretRangeFromPoint */
+  @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {
     return document.$dom_caretRangeFromPoint(x, y);
   }
 
-  /** @domName Document.elementFromPoint */
+  @DomName('Document.elementFromPoint')
   Element elementFromPoint(int x, int y) {
     return document.$dom_elementFromPoint(x, y);
   }
@@ -11209,72 +11210,73 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
+  @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
     return document.$dom_getCssCanvasContext(contextId, name, width, height);
   }
 
-  /** @domName Document.head */
+  @DomName('Document.head')
   HeadElement get head => document.$dom_head;
 
-  /** @domName Document.lastModified */
+  @DomName('Document.lastModified')
   String get lastModified => document.$dom_lastModified;
 
-  /** @domName Document.preferredStylesheetSet */
+  @DomName('Document.preferredStylesheetSet')
   String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
 
-  /** @domName Document.referrer */
+  @DomName('Document.referrer')
   String get referrer => document.$dom_referrer;
 
-  /** @domName Document.selectedStylesheetSet */
+  @DomName('Document.selectedStylesheetSet')
   String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
   void set selectedStylesheetSet(String value) {
     document.$dom_selectedStylesheetSet = value;
   }
 
-  /** @domName Document.styleSheets */
+  @DomName('Document.styleSheets')
   List<StyleSheet> get styleSheets => document.$dom_styleSheets;
 
-  /** @domName Document.title */
+  @DomName('Document.title')
   String get title => document.$dom_title;
 
-  /** @domName Document.title */
+  @DomName('Document.title')
   void set title(String value) {
     document.$dom_title = value;
   }
 
-  /** @domName Document.webkitCancelFullScreen */
+  @DomName('Document.webkitCancelFullScreen')
   void webkitCancelFullScreen() {
     document.$dom_webkitCancelFullScreen();
   }
 
-  /** @domName Document.webkitExitFullscreen */
+  @DomName('Document.webkitExitFullscreen')
   void webkitExitFullscreen() {
     document.$dom_webkitExitFullscreen();
   }
 
-  /** @domName Document.webkitExitPointerLock */
+  @DomName('Document.webkitExitPointerLock')
   void webkitExitPointerLock() {
     document.$dom_webkitExitPointerLock();
   }
 
-  /** @domName Document.webkitFullscreenElement */
+  @DomName('Document.webkitFullscreenElement')
   Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
 
-  /** @domName Document.webkitFullscreenEnabled */
+  @DomName('Document.webkitFullscreenEnabled')
   bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
 
-  /** @domName Document.webkitHidden */
+  @DomName('Document.webkitHidden')
   bool get webkitHidden => document.$dom_webkitHidden;
 
-  /** @domName Document.webkitIsFullScreen */
+  @DomName('Document.webkitIsFullScreen')
   bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
 
-  /** @domName Document.webkitPointerLockElement */
+  @DomName('Document.webkitPointerLockElement')
   Element get webkitPointerLockElement =>
       document.$dom_webkitPointerLockElement;
 
-  /** @domName Document.webkitVisibilityState */
+  @DomName('Document.webkitVisibilityState')
   String get webkitVisibilityState => document.$dom_webkitVisibilityState;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11282,10 +11284,12 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLHtmlElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLHtmlElement')
 class HtmlElement extends Element native "*HTMLHtmlElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory HtmlElement() => document.$dom_createElement("html");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11293,10 +11297,12 @@ class HtmlElement extends Element native "*HTMLHtmlElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLFormControlsCollection; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLFormControlsCollection')
 class HtmlFormControlsCollection extends HtmlCollection native "*HTMLFormControlsCollection" {
 
-  /// @domName HTMLFormControlsCollection.namedItem; @docsEditable true
+  @DocsEditable @DomName('HTMLFormControlsCollection.namedItem')
   Node namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11304,26 +11310,10 @@ class HtmlFormControlsCollection extends HtmlCollection native "*HTMLFormControl
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOptionsCollection; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLOptionsCollection')
 class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollection" {
-
-  // Shadowing definition.
-  /// @domName HTMLOptionsCollection.length; @docsEditable true
-  int get length => JS("int", "#.length", this);
-
-  /// @domName HTMLOptionsCollection.length; @docsEditable true
-  void set length(int value) {
-    JS("void", "#.length = #", this, value);
-  }
-
-  /// @domName HTMLOptionsCollection.selectedIndex; @docsEditable true
-  int selectedIndex;
-
-  /// @domName HTMLOptionsCollection.namedItem; @docsEditable true
-  Node namedItem(String name) native;
-
-  /// @domName HTMLOptionsCollection.remove; @docsEditable true
-  void remove(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11332,34 +11322,34 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
 
 /**
  * A utility for retrieving data from a URL.
- *
+ * 
  * HttpRequest can be used to obtain data from http, ftp, and file
- * protocols.
- *
+ * protocols. 
+ * 
  * For example, suppose we're developing these API docs, and we
  * wish to retrieve the HTML of the top-level page and print it out.
  * The easiest way to do that would be:
- *
+ * 
  *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
  *         (request) => print(request.responseText));
- *
+ * 
  * **Important**: With the default behavior of this class, your
  * code making the request should be served from the same origin (domain name,
  * port, and application layer protocol) as the URL you are trying to access
- * with HttpRequest. However, there are ways to
+ * with HttpRequest. However, there are ways to 
  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#note-on-jsonp).
- *
+ * 
  * See also:
  *
  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
  * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
-/// @domName XMLHttpRequest
+@DomName('XMLHttpRequest')
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
    * Creates a URL get request for the specified `url`.
-   *
+   * 
    * After completing the request, the object will call the user-provided
    * [onComplete] callback.
    */
@@ -11371,8 +11361,8 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * Creates a URL GET request for the specified `url` with
    * credentials such a cookie (already) set in the header or
    * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
-   *
-   * After completing the request, the object will call the user-provided
+   * 
+   * After completing the request, the object will call the user-provided 
    * [onComplete] callback.
    *
    * A few other details to keep in mind when using credentials:
@@ -11381,7 +11371,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
-   *
+   * 
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   factory HttpRequest.getWithCredentials(String url,
@@ -11403,16 +11393,12 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
-  ///@docsEditable true
+  @DocsEditable
   factory HttpRequest() => HttpRequest._create();
   static HttpRequest _create() => JS('HttpRequest', 'new XMLHttpRequest()');
 
-  /**
-   * Get the set of [HttpRequestEvents] that this request can respond to.
-   * Usually used when adding an EventListener, such as in
-   * `document.window.on.keyDown.add((e) => print('keydown happened'))`.
-   */
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
 
@@ -11426,191 +11412,65 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
-  /**
-   * Indicator of the current state of the request:
-   *
-   * <table>
-   *   <tr>
-   *     <td>Value</td>
-   *     <td>State</td>
-   *     <td>Meaning</td>
-   *   </tr>
-   *   <tr>
-   *     <td>0</td>
-   *     <td>unsent</td>
-   *     <td><code>open()</code> has not yet been called</td>
-   *   </tr>
-   *   <tr>
-   *     <td>1</td>
-   *     <td>opened</td>
-   *     <td><code>send()</code> has not yet been called</td>
-   *   </tr>
-   *   <tr>
-   *     <td>2</td>
-   *     <td>headers received</td>
-   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>
-   *   </tr>
-   *   <tr>
-   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>
-   *   </tr>
-   *   <tr>
-   *     <td>4</td> <td>done</td> <td>request is complete</td>
-   *   </tr>
-   * </table>
-   */
-  /// @domName XMLHttpRequest.readyState; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.readyState')
   final int readyState;
 
-  /**
-   * The data received as a reponse from the request.
-   *
-   * The data could be in the
-   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a
-   * [String]). `null` indicates request failure.
-   */
-  /// @domName XMLHttpRequest.response; @docsEditable true
-  @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
+  @DocsEditable @DomName('XMLHttpRequest.response') @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
-  /**
-   * The response in string form or null on failure.
-   */
-  /// @domName XMLHttpRequest.responseText; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.responseText')
   final String responseText;
 
-  /**
-   * [String] telling the server the desired response format.
-   *
-   * Default is `String`.
-   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
-   * 'text'. Some newer browsers will throw `NS_ERROR_DOM_INVALID_ACCESS_ERR` if
-   * `responseType` is set while performing a synchronous request.
-   *
-   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
-   */
-  /// @domName XMLHttpRequest.responseType; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.responseType')
   String responseType;
 
-  /**
-   * The request response, or null on failure.
-   *
-   * The response is processed as
-   * `text/xml` stream, unless responseType = 'document' and the request is
-   * synchronous.
-   */
-  /// @domName XMLHttpRequest.responseXML; @docsEditable true
   @JSName('responseXML')
+  @DocsEditable @DomName('XMLHttpRequest.responseXML')
   final Document responseXml;
 
-  /**
-   * The http result code from the request (200, 404, etc).
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-   */
-  /// @domName XMLHttpRequest.status; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.status')
   final int status;
 
-  /**
-   * The request response string (such as "200 OK").
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
-   */
-  /// @domName XMLHttpRequest.statusText; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.statusText')
   final String statusText;
 
-  /**
-   * [EventTarget] that can hold listeners to track the progress of the request.
-   * The events fired will be members of [HttpRequestUploadEvents].
-   */
-  /// @domName XMLHttpRequest.upload; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.upload')
   final HttpRequestUpload upload;
 
-  /**
-   * True if cross-site requests should use credentials such as cookies
-   * or authorization headers; false otherwise.
-   *
-   * This value is ignored for same-site requests.
-   */
-  /// @domName XMLHttpRequest.withCredentials; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.withCredentials')
   bool withCredentials;
 
-  /**
-   * Stop the current request.
-   *
-   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
-   * `LOADING`. If this method is not in the process of being sent, the method
-   * has no effect.
-   */
-  /// @domName XMLHttpRequest.abort; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.abort')
   void abort() native;
 
-  /// @domName XMLHttpRequest.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('XMLHttpRequest.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName XMLHttpRequest.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('XMLHttpRequest.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /**
-   * Retrieve all the response headers from a request.
-   *
-   * `null` if no headers have been received. For multipart requests,
-   * `getAllResponseHeaders` will return the response headers for the current
-   * part of the request.
-   *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
-   * for a list of common response headers.
-   */
-  /// @domName XMLHttpRequest.getAllResponseHeaders; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.getAllResponseHeaders')
   String getAllResponseHeaders() native;
 
-  /**
-   * Return the response header named `header`, or `null` if not found.
-   *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
-   * for a list of common response headers.
-   */
-  /// @domName XMLHttpRequest.getResponseHeader; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.getResponseHeader')
   String getResponseHeader(String header) native;
 
-  /**
-   * Specify the desired `url`, and `method` to use in making the request.
-   *
-   * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
-   * synchronously.
-   *
-   * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
-   */
-  /// @domName XMLHttpRequest.open; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.open')
   void open(String method, String url, [bool async, String user, String password]) native;
 
-  /**
-   * Specify a particular MIME type (such as `text/xml`) desired for the
-   * response.
-   *
-   * This value must be set before the request has been sent. See also the list
-   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
-   */
-  /// @domName XMLHttpRequest.overrideMimeType; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.overrideMimeType')
   void overrideMimeType(String override) native;
 
-  /// @domName XMLHttpRequest.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('XMLHttpRequest.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /**
-   * Send the request with any given `data`.
-   *
-   * See also:
-   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
-   * from MDN.
-   */
-  /// @domName XMLHttpRequest.send; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.send')
   void send([data]) native;
 
-  /** Sets HTTP `header` to `value`. */
-  /// @domName XMLHttpRequest.setRequestHeader; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequest.setRequestHeader')
   void setRequestHeader(String header, String value) native;
 
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -11629,74 +11489,30 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
 }
 
-/**
- * A class that supports listening for and dispatching events that can fire when
- * making an HTTP request.
- *
- * Here's an example of adding an event handler that executes once an HTTP
- * request has fully loaded:
- *
- *     httpRequest.on.loadEnd.add((e) => myCustomLoadEndHandler(e));
- *
- * Each property of this class is a read-only pointer to an [EventListenerList].
- * That list holds all of the [EventListener]s that have registered for that
- * particular type of event that fires from an HttpRequest.
- */
-/// @docsEditable true
+@DocsEditable
 class HttpRequestEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   HttpRequestEvents(EventTarget _ptr) : super(_ptr);
 
-  /**
-   * Event listeners to be notified when request has been aborted,
-   * generally due to calling `httpRequest.abort()`.
-   */
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /**
-   * Event listeners to be notified when a request has failed, such as when a
-   * cross-domain error occurred or the file wasn't found on the server.
-   */
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /**
-   * Event listeners to be notified once the request has completed
-   * *successfully*.
-   */
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /**
-   * Event listeners to be notified once the request has completed (on
-   * either success or failure).
-   */
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadEnd => this['loadend'];
 
-  /**
-   * Event listeners to be notified when the request starts, once
-   * `httpRequest.send()` has been called.
-   */
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /**
-   * Event listeners to be notified when data for the request
-   * is being sent or loaded.
-   *
-   * Progress events are fired every 50ms or for every byte transmitted,
-   * whichever is less frequent.
-   */
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /**
-   * Event listeners to be notified every time the [HttpRequest]
-   * object's `readyState` changes values.
-   */
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get readyStateChange => this['readystatechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11704,23 +11520,25 @@ class HttpRequestEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XMLHttpRequestException; @docsEditable true
+
+@DocsEditable
+@DomName('XMLHttpRequestException')
 class HttpRequestException native "*XMLHttpRequestException" {
 
   static const int ABORT_ERR = 102;
 
   static const int NETWORK_ERR = 101;
 
-  /// @domName XMLHttpRequestException.code; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequestException.code')
   final int code;
 
-  /// @domName XMLHttpRequestException.message; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequestException.message')
   final String message;
 
-  /// @domName XMLHttpRequestException.name; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequestException.name')
   final String name;
 
-  /// @domName XMLHttpRequestException.toString; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequestException.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11728,13 +11546,15 @@ class HttpRequestException native "*XMLHttpRequestException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XMLHttpRequestProgressEvent; @docsEditable true
+
+@DocsEditable
+@DomName('XMLHttpRequestProgressEvent')
 class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
 
-  /// @domName XMLHttpRequestProgressEvent.position; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequestProgressEvent.position')
   final int position;
 
-  /// @domName XMLHttpRequestProgressEvent.totalSize; @docsEditable true
+  @DocsEditable @DomName('XMLHttpRequestProgressEvent.totalSize')
   final int totalSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11742,7 +11562,9 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XMLHttpRequestUpload; @docsEditable true
+
+@DocsEditable
+@DomName('XMLHttpRequestUpload')
 class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
 
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
@@ -11757,20 +11579,21 @@ class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
 
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
 
-  /// @domName XMLHttpRequestUpload.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('XMLHttpRequestUpload.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName XMLHttpRequestUpload.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('XMLHttpRequestUpload.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName XMLHttpRequestUpload.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('XMLHttpRequestUpload.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -11786,27 +11609,27 @@ class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class HttpRequestUploadEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   HttpRequestUploadEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadEnd => this['loadend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11814,34 +11637,35 @@ class HttpRequestUploadEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLIFrameElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLIFrameElement')
 class IFrameElement extends Element native "*HTMLIFrameElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory IFrameElement() => document.$dom_createElement("iframe");
 
-  /// @domName HTMLIFrameElement.contentWindow; @docsEditable true
   WindowBase get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   @JSName('contentWindow')
-  @Creates('Window|=Object') @Returns('Window|=Object')
+  @DocsEditable @DomName('HTMLIFrameElement.contentWindow') @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _contentWindow;
 
-  /// @domName HTMLIFrameElement.height; @docsEditable true
+  @DocsEditable @DomName('HTMLIFrameElement.height')
   String height;
 
-  /// @domName HTMLIFrameElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLIFrameElement.name')
   String name;
 
-  /// @domName HTMLIFrameElement.sandbox; @docsEditable true
+  @DocsEditable @DomName('HTMLIFrameElement.sandbox')
   String sandbox;
 
-  /// @domName HTMLIFrameElement.src; @docsEditable true
+  @DocsEditable @DomName('HTMLIFrameElement.src')
   String src;
 
-  /// @domName HTMLIFrameElement.srcdoc; @docsEditable true
+  @DocsEditable @DomName('HTMLIFrameElement.srcdoc')
   String srcdoc;
 
-  /// @domName HTMLIFrameElement.width; @docsEditable true
+  @DocsEditable @DomName('HTMLIFrameElement.width')
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11849,16 +11673,18 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ImageData; @docsEditable true
+
+@DocsEditable
+@DomName('ImageData')
 class ImageData native "*ImageData" {
 
-  /// @domName ImageData.data; @docsEditable true
+  @DocsEditable @DomName('ImageData.data')
   final Uint8ClampedArray data;
 
-  /// @domName ImageData.height; @docsEditable true
+  @DocsEditable @DomName('ImageData.height')
   final int height;
 
-  /// @domName ImageData.width; @docsEditable true
+  @DocsEditable @DomName('ImageData.width')
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11866,10 +11692,12 @@ class ImageData native "*ImageData" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLImageElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLImageElement')
 class ImageElement extends Element native "*HTMLImageElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
     if (src != null) e.src = src;
@@ -11878,46 +11706,46 @@ class ImageElement extends Element native "*HTMLImageElement" {
     return e;
   }
 
-  /// @domName HTMLImageElement.alt; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.alt')
   String alt;
 
-  /// @domName HTMLImageElement.border; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.border')
   String border;
 
-  /// @domName HTMLImageElement.complete; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.complete')
   final bool complete;
 
-  /// @domName HTMLImageElement.crossOrigin; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.crossOrigin')
   String crossOrigin;
 
-  /// @domName HTMLImageElement.height; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.height')
   int height;
 
-  /// @domName HTMLImageElement.isMap; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.isMap')
   bool isMap;
 
-  /// @domName HTMLImageElement.lowsrc; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.lowsrc')
   String lowsrc;
 
-  /// @domName HTMLImageElement.naturalHeight; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.naturalHeight')
   final int naturalHeight;
 
-  /// @domName HTMLImageElement.naturalWidth; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.naturalWidth')
   final int naturalWidth;
 
-  /// @domName HTMLImageElement.src; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.src')
   String src;
 
-  /// @domName HTMLImageElement.useMap; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.useMap')
   String useMap;
 
-  /// @domName HTMLImageElement.width; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.width')
   int width;
 
-  /// @domName HTMLImageElement.x; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.x')
   final int x;
 
-  /// @domName HTMLImageElement.y; @docsEditable true
+  @DocsEditable @DomName('HTMLImageElement.y')
   final int y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11925,7 +11753,8 @@ class ImageElement extends Element native "*HTMLImageElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLInputElement
+@DocsEditable
+@DomName('HTMLInputElement')
 class InputElement extends Element implements
     HiddenInputElement,
     SearchInputElement,
@@ -11951,7 +11780,6 @@ class InputElement extends Element implements
     ButtonInputElement
      native "*HTMLInputElement" {
 
-  ///@docsEditable true
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) {
@@ -11965,179 +11793,180 @@ class InputElement extends Element implements
 
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   InputElementEvents get on =>
     new InputElementEvents(this);
 
-  /// @domName HTMLInputElement.accept; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.accept')
   String accept;
 
-  /// @domName HTMLInputElement.alt; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.alt')
   String alt;
 
-  /// @domName HTMLInputElement.autocomplete; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.autocomplete')
   String autocomplete;
 
-  /// @domName HTMLInputElement.autofocus; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.autofocus')
   bool autofocus;
 
-  /// @domName HTMLInputElement.checked; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.checked')
   bool checked;
 
-  /// @domName HTMLInputElement.defaultChecked; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.defaultChecked')
   bool defaultChecked;
 
-  /// @domName HTMLInputElement.defaultValue; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.defaultValue')
   String defaultValue;
 
-  /// @domName HTMLInputElement.dirName; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.dirName')
   String dirName;
 
-  /// @domName HTMLInputElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.disabled')
   bool disabled;
 
-  /// @domName HTMLInputElement.files; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.files')
   @Returns('FileList') @Creates('FileList')
   List<File> files;
 
-  /// @domName HTMLInputElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.form')
   final FormElement form;
 
-  /// @domName HTMLInputElement.formAction; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.formAction')
   String formAction;
 
-  /// @domName HTMLInputElement.formEnctype; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.formEnctype')
   String formEnctype;
 
-  /// @domName HTMLInputElement.formMethod; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.formMethod')
   String formMethod;
 
-  /// @domName HTMLInputElement.formNoValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.formNoValidate')
   bool formNoValidate;
 
-  /// @domName HTMLInputElement.formTarget; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.formTarget')
   String formTarget;
 
-  /// @domName HTMLInputElement.height; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.height')
   int height;
 
-  /// @domName HTMLInputElement.incremental; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.incremental')
   bool incremental;
 
-  /// @domName HTMLInputElement.indeterminate; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.indeterminate')
   bool indeterminate;
 
-  /// @domName HTMLInputElement.labels; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.labels')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
-  /// @domName HTMLInputElement.list; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.list')
   final Element list;
 
-  /// @domName HTMLInputElement.max; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.max')
   String max;
 
-  /// @domName HTMLInputElement.maxLength; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.maxLength')
   int maxLength;
 
-  /// @domName HTMLInputElement.min; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.min')
   String min;
 
-  /// @domName HTMLInputElement.multiple; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.multiple')
   bool multiple;
 
-  /// @domName HTMLInputElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.name')
   String name;
 
-  /// @domName HTMLInputElement.pattern; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.pattern')
   String pattern;
 
-  /// @domName HTMLInputElement.placeholder; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  /// @domName HTMLInputElement.readOnly; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.required')
   bool required;
 
-  /// @domName HTMLInputElement.selectionDirection; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.selectionDirection')
   String selectionDirection;
 
-  /// @domName HTMLInputElement.selectionEnd; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.selectionEnd')
   int selectionEnd;
 
-  /// @domName HTMLInputElement.selectionStart; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.selectionStart')
   int selectionStart;
 
-  /// @domName HTMLInputElement.size; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.size')
   int size;
 
-  /// @domName HTMLInputElement.src; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.src')
   String src;
 
-  /// @domName HTMLInputElement.step; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.step')
   String step;
 
-  /// @domName HTMLInputElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.type')
   String type;
 
-  /// @domName HTMLInputElement.useMap; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.useMap')
   String useMap;
 
-  /// @domName HTMLInputElement.validationMessage; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.validationMessage')
   final String validationMessage;
 
-  /// @domName HTMLInputElement.validity; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.validity')
   final ValidityState validity;
 
-  /// @domName HTMLInputElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.value')
   String value;
 
-  /// @domName HTMLInputElement.valueAsDate; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.valueAsNumber; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.valueAsNumber')
   num valueAsNumber;
 
-  /// @domName HTMLInputElement.webkitEntries; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.webkitEntries')
   @Returns('_EntryArray') @Creates('_EntryArray')
   final List<Entry> webkitEntries;
 
-  /// @domName HTMLInputElement.webkitGrammar; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.webkitGrammar')
   bool webkitGrammar;
 
-  /// @domName HTMLInputElement.webkitSpeech; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.webkitSpeech')
   bool webkitSpeech;
 
-  /// @domName HTMLInputElement.webkitdirectory; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.webkitdirectory')
   bool webkitdirectory;
 
-  /// @domName HTMLInputElement.width; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.width')
   int width;
 
-  /// @domName HTMLInputElement.willValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.willValidate')
   final bool willValidate;
 
-  /// @domName HTMLInputElement.checkValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.checkValidity')
   bool checkValidity() native;
 
-  /// @domName HTMLInputElement.select; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.select')
   void select() native;
 
-  /// @domName HTMLInputElement.setCustomValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.setCustomValidity')
   void setCustomValidity(String error) native;
 
-  /// @domName HTMLInputElement.setRangeText; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.setRangeText')
   void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
-  /// @domName HTMLInputElement.setSelectionRange; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.setSelectionRange')
   void setSelectionRange(int start, int end, [String direction]) native;
 
-  /// @domName HTMLInputElement.stepDown; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.stepDown')
   void stepDown([int n]) native;
 
-  /// @domName HTMLInputElement.stepUp; @docsEditable true
+  @DocsEditable @DomName('HTMLInputElement.stepUp')
   void stepUp([int n]) native;
 
   Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
@@ -12153,40 +11982,40 @@ class InputElement extends Element implements
  * Exposes the functionality common between all InputElement types.
  */
 abstract class InputElementBase implements Element {
-  /// @domName HTMLInputElement.autofocus
+  @DomName('HTMLInputElement.autofocus')
   bool autofocus;
 
-  /// @domName HTMLInputElement.disabled
+  @DomName('HTMLInputElement.disabled')
   bool disabled;
 
-  /// @domName HTMLInputElement.incremental
+  @DomName('HTMLInputElement.incremental')
   bool incremental;
 
-  /// @domName HTMLInputElement.indeterminate
+  @DomName('HTMLInputElement.indeterminate')
   bool indeterminate;
 
-  /// @domName HTMLInputElement.labels
+  @DomName('HTMLInputElement.labels')
   List<Node> get labels;
 
-  /// @domName HTMLInputElement.name
+  @DomName('HTMLInputElement.name')
   String name;
 
-  /// @domName HTMLInputElement.validationMessage
+  @DomName('HTMLInputElement.validationMessage')
   String get validationMessage;
 
-  /// @domName HTMLInputElement.validity
+  @DomName('HTMLInputElement.validity')
   ValidityState get validity;
 
-  /// @domName HTMLInputElement.value
+  @DomName('HTMLInputElement.value')
   String value;
 
-  /// @domName HTMLInputElement.willValidate
+  @DomName('HTMLInputElement.willValidate')
   bool get willValidate;
 
-  /// @domName HTMLInputElement.checkValidity
+  @DomName('HTMLInputElement.checkValidity')
   bool checkValidity();
 
-  /// @domName HTMLInputElement.setCustomValidity
+  @DomName('HTMLInputElement.setCustomValidity')
   void setCustomValidity(String error);
 }
 
@@ -12202,40 +12031,40 @@ abstract class HiddenInputElement implements Element {
  * Base interface for all inputs which involve text editing.
  */
 abstract class TextInputElementBase implements InputElementBase {
-  /// @domName HTMLInputElement.autocomplete
+  @DomName('HTMLInputElement.autocomplete')
   String autocomplete;
 
-  /// @domName HTMLInputElement.maxLength
+  @DomName('HTMLInputElement.maxLength')
   int maxLength;
 
-  /// @domName HTMLInputElement.pattern
+  @DomName('HTMLInputElement.pattern')
   String pattern;
 
-  /// @domName HTMLInputElement.placeholder
+  @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
-  /// @domName HTMLInputElement.size
+  @DomName('HTMLInputElement.size')
   int size;
 
-  /// @domName HTMLInputElement.select
+  @DomName('HTMLInputElement.select')
   void select();
 
-  /// @domName HTMLInputElement.selectionDirection
+  @DomName('HTMLInputElement.selectionDirection')
   String selectionDirection;
 
-  /// @domName HTMLInputElement.selectionEnd
+  @DomName('HTMLInputElement.selectionEnd')
   int selectionEnd;
 
-  /// @domName HTMLInputElement.selectionStart
+  @DomName('HTMLInputElement.selectionStart')
   int selectionStart;
 
-  /// @domName HTMLInputElement.setSelectionRange
+  @DomName('HTMLInputElement.setSelectionRange')
   void setSelectionRange(int start, int end, [String direction]);
 }
 
@@ -12252,10 +12081,10 @@ abstract class TextInputElementBase implements InputElementBase {
 abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
-  /// @domName HTMLInputElement.dirName;
+  @DomName('HTMLInputElement.dirName')
   String dirName;
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12270,10 +12099,10 @@ abstract class SearchInputElement implements TextInputElementBase {
 abstract class TextInputElement implements TextInputElementBase {
   factory TextInputElement() => new InputElement(type: 'text');
 
-  /// @domName HTMLInputElement.dirName;
+  @DomName('HTMLInputElement.dirName')
   String dirName;
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 }
 
@@ -12289,7 +12118,7 @@ abstract class TextInputElement implements TextInputElementBase {
 abstract class UrlInputElement implements TextInputElementBase {
   factory UrlInputElement() => new InputElement(type: 'url');
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12313,7 +12142,7 @@ abstract class UrlInputElement implements TextInputElementBase {
 abstract class TelephoneInputElement implements TextInputElementBase {
   factory TelephoneInputElement() => new InputElement(type: 'tel');
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12334,34 +12163,34 @@ abstract class TelephoneInputElement implements TextInputElementBase {
 abstract class EmailInputElement implements TextInputElementBase {
   factory EmailInputElement() => new InputElement(type: 'email');
 
-  /// @domName HTMLInputElement.autocomplete
+  @DomName('HTMLInputElement.autocomplete')
   String autocomplete;
 
-  /// @domName HTMLInputElement.autofocus
+  @DomName('HTMLInputElement.autofocus')
   bool autofocus;
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 
-  /// @domName HTMLInputElement.maxLength
+  @DomName('HTMLInputElement.maxLength')
   int maxLength;
 
-  /// @domName HTMLInputElement.multiple;
+  @DomName('HTMLInputElement.multiple')
   bool multiple;
 
-  /// @domName HTMLInputElement.pattern
+  @DomName('HTMLInputElement.pattern')
   String pattern;
 
-  /// @domName HTMLInputElement.placeholder
+  @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
-  /// @domName HTMLInputElement.size
+  @DomName('HTMLInputElement.size')
   int size;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12382,25 +12211,25 @@ abstract class PasswordInputElement implements TextInputElementBase {
  */
 abstract class RangeInputElementBase implements InputElementBase {
 
-  /// @domName HTMLInputElement.list
+  @DomName('HTMLInputElement.list')
   Element get list;
 
-  /// @domName HTMLInputElement.max
+  @DomName('HTMLInputElement.max')
   String max;
 
-  /// @domName HTMLInputElement.min
+  @DomName('HTMLInputElement.min')
   String min;
 
-  /// @domName HTMLInputElement.step
+  @DomName('HTMLInputElement.step')
   String step;
 
-  /// @domName HTMLInputElement.valueAsNumber
+  @DomName('HTMLInputElement.valueAsNumber')
   num valueAsNumber;
 
-  /// @domName HTMLInputElement.stepDown
+  @DomName('HTMLInputElement.stepDown')
   void stepDown([int n]);
 
-  /// @domName HTMLInputElement.stepUp
+  @DomName('HTMLInputElement.stepUp')
   void stepUp([int n]);
 }
 
@@ -12415,13 +12244,13 @@ abstract class RangeInputElementBase implements InputElementBase {
 abstract class DateTimeInputElement implements RangeInputElementBase {
   factory DateTimeInputElement() => new InputElement(type: 'datetime');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12440,13 +12269,13 @@ abstract class DateTimeInputElement implements RangeInputElementBase {
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12465,13 +12294,13 @@ abstract class DateInputElement implements RangeInputElementBase {
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12490,13 +12319,13 @@ abstract class MonthInputElement implements RangeInputElementBase {
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12515,13 +12344,13 @@ abstract class WeekInputElement implements RangeInputElementBase {
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12542,10 +12371,10 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12564,13 +12393,13 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
 abstract class NumberInputElement implements RangeInputElementBase {
   factory NumberInputElement() => new InputElement(type: 'number');
 
-  /// @domName HTMLInputElement.placeholder
+  @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -12606,10 +12435,10 @@ abstract class RangeInputElement implements RangeInputElementBase {
 abstract class CheckboxInputElement implements InputElementBase {
   factory CheckboxInputElement() => new InputElement(type: 'checkbox');
 
-  /// @domName HTMLInputElement.checked
+  @DomName('HTMLInputElement.checked')
   bool checked;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 }
 
@@ -12628,10 +12457,10 @@ abstract class CheckboxInputElement implements InputElementBase {
 abstract class RadioButtonInputElement implements InputElementBase {
   factory RadioButtonInputElement() => new InputElement(type: 'radio');
 
-  /// @domName HTMLInputElement.checked
+  @DomName('HTMLInputElement.checked')
   bool checked;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 }
 
@@ -12641,16 +12470,16 @@ abstract class RadioButtonInputElement implements InputElementBase {
 abstract class FileUploadInputElement implements InputElementBase {
   factory FileUploadInputElement() => new InputElement(type: 'file');
 
-  /// @domName HTMLInputElement.accept
+  @DomName('HTMLInputElement.accept')
   String accept;
 
-  /// @domName HTMLInputElement.multiple
+  @DomName('HTMLInputElement.multiple')
   bool multiple;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
-  /// @domName HTMLInputElement.files
+  @DomName('HTMLInputElement.files')
   List<File> files;
 }
 
@@ -12660,19 +12489,19 @@ abstract class FileUploadInputElement implements InputElementBase {
 abstract class SubmitButtonInputElement implements InputElementBase {
   factory SubmitButtonInputElement() => new InputElement(type: 'submit');
 
-  /// @domName HTMLInputElement.formAction
+  @DomName('HTMLInputElement.formAction')
   String formAction;
 
-  /// @domName HTMLInputElement.formEnctype
+  @DomName('HTMLInputElement.formEnctype')
   String formEnctype;
 
-  /// @domName HTMLInputElement.formMethod
+  @DomName('HTMLInputElement.formMethod')
   String formMethod;
 
-  /// @domName HTMLInputElement.formNoValidate
+  @DomName('HTMLInputElement.formNoValidate')
   bool formNoValidate;
 
-  /// @domName HTMLInputElement.formTarget
+  @DomName('HTMLInputElement.formTarget')
   String formTarget;
 }
 
@@ -12683,31 +12512,31 @@ abstract class SubmitButtonInputElement implements InputElementBase {
 abstract class ImageButtonInputElement implements InputElementBase {
   factory ImageButtonInputElement() => new InputElement(type: 'image');
 
-  /// @domName HTMLInputElement.alt
+  @DomName('HTMLInputElement.alt')
   String alt;
 
-  /// @domName HTMLInputElement.formAction
+  @DomName('HTMLInputElement.formAction')
   String formAction;
 
-  /// @domName HTMLInputElement.formEnctype
+  @DomName('HTMLInputElement.formEnctype')
   String formEnctype;
 
-  /// @domName HTMLInputElement.formMethod
+  @DomName('HTMLInputElement.formMethod')
   String formMethod;
 
-  /// @domName HTMLInputElement.formNoValidate
+  @DomName('HTMLInputElement.formNoValidate')
   bool formNoValidate;
 
-  /// @domName HTMLInputElement.formTarget
+  @DomName('HTMLInputElement.formTarget')
   String formTarget;
 
-  /// @domName HTMLInputElement.height
+  @DomName('HTMLInputElement.height')
   int height;
 
-  /// @domName HTMLInputElement.src
+  @DomName('HTMLInputElement.src')
   String src;
 
-  /// @domName HTMLInputElement.width
+  @DomName('HTMLInputElement.width')
   int width;
 }
 
@@ -12726,12 +12555,12 @@ abstract class ButtonInputElement implements InputElementBase {
 }
 
 
-/// @docsEditable true
+@DocsEditable
 class InputElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   InputElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get speechChange => this['webkitSpeechChange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12739,7 +12568,9 @@ class InputElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Int16Array; @docsEditable true
+
+@DocsEditable
+@DomName('Int16Array')
 class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int16Array" {
 
   factory Int16Array(int length) =>
@@ -12748,12 +12579,12 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Int16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt16Array_fromList(list);
 
-  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  /// @domName Int16Array.length; @docsEditable true
+  @DocsEditable @DomName('Int16Array.length')
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -12771,50 +12602,50 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -12872,16 +12703,36 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -12901,11 +12752,11 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // -- end List<int> mixins.
 
-  /// @domName Int16Array.setElements; @docsEditable true
   @JSName('set')
+  @DocsEditable @DomName('Int16Array.set')
   void setElements(Object array, [int offset]) native;
 
-  /// @domName Int16Array.subarray; @docsEditable true
+  @DocsEditable @DomName('Int16Array.subarray')
   Int16Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12913,7 +12764,9 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Int32Array; @docsEditable true
+
+@DocsEditable
+@DomName('Int32Array')
 class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int32Array" {
 
   factory Int32Array(int length) =>
@@ -12922,12 +12775,12 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Int32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt32Array_fromList(list);
 
-  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  /// @domName Int32Array.length; @docsEditable true
+  @DocsEditable @DomName('Int32Array.length')
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -12945,50 +12798,50 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -13046,16 +12899,36 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -13075,11 +12948,11 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // -- end List<int> mixins.
 
-  /// @domName Int32Array.setElements; @docsEditable true
   @JSName('set')
+  @DocsEditable @DomName('Int32Array.set')
   void setElements(Object array, [int offset]) native;
 
-  /// @domName Int32Array.subarray; @docsEditable true
+  @DocsEditable @DomName('Int32Array.subarray')
   Int32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13087,7 +12960,9 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Int8Array; @docsEditable true
+
+@DocsEditable
+@DomName('Int8Array')
 class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int8Array" {
 
   factory Int8Array(int length) =>
@@ -13096,12 +12971,12 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   factory Int8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt8Array_fromList(list);
 
-  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  /// @domName Int8Array.length; @docsEditable true
+  @DocsEditable @DomName('Int8Array.length')
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -13119,50 +12994,50 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -13220,16 +13095,36 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -13249,11 +13144,11 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   // -- end List<int> mixins.
 
-  /// @domName Int8Array.setElements; @docsEditable true
   @JSName('set')
+  @DocsEditable @DomName('Int8Array.set')
   void setElements(Object array, [int offset]) native;
 
-  /// @domName Int8Array.subarray; @docsEditable true
+  @DocsEditable @DomName('Int8Array.subarray')
   Int8Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13261,7 +13156,9 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName JavaScriptCallFrame; @docsEditable true
+
+@DocsEditable
+@DomName('JavaScriptCallFrame')
 class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static const int CATCH_SCOPE = 4;
@@ -13274,37 +13171,37 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static const int WITH_SCOPE = 2;
 
-  /// @domName JavaScriptCallFrame.caller; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.caller')
   final JavaScriptCallFrame caller;
 
-  /// @domName JavaScriptCallFrame.column; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.column')
   final int column;
 
-  /// @domName JavaScriptCallFrame.functionName; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.functionName')
   final String functionName;
 
-  /// @domName JavaScriptCallFrame.line; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.line')
   final int line;
 
-  /// @domName JavaScriptCallFrame.scopeChain; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.scopeChain')
   final List scopeChain;
 
-  /// @domName JavaScriptCallFrame.sourceID; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.sourceID')
   final int sourceID;
 
-  /// @domName JavaScriptCallFrame.thisObject; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.thisObject')
   final Object thisObject;
 
-  /// @domName JavaScriptCallFrame.type; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.type')
   final String type;
 
-  /// @domName JavaScriptCallFrame.evaluate; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.evaluate')
   void evaluate(String script) native;
 
-  /// @domName JavaScriptCallFrame.restart; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.restart')
   Object restart() native;
 
-  /// @domName JavaScriptCallFrame.scopeType; @docsEditable true
+  @DocsEditable @DomName('JavaScriptCallFrame.scopeType')
   int scopeType(int scopeIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13312,7 +13209,7 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName KeyboardEvent; @docsEditable true
+@DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
   factory KeyboardEvent(String type, Window view,
@@ -13326,7 +13223,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
     return e;
   }
 
-  /** @domName KeyboardEvent.initKeyboardEvent */
+  @DomName('KeyboardEvent.initKeyboardEvent')
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable,
       Window view, String keyIdentifier, int keyLocation, bool ctrlKey,
       bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) {
@@ -13346,32 +13243,32 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
     }
   }
 
-  /** @domName KeyboardEvent.keyCode */
+  @DomName('KeyboardEvent.keyCode')
   int get keyCode => $dom_keyCode;
 
-  /** @domName KeyboardEvent.charCode */
+  @DomName('KeyboardEvent.charCode')
   int get charCode => $dom_charCode;
 
-  /// @domName KeyboardEvent.altGraphKey; @docsEditable true
+  @DocsEditable @DomName('KeyboardEvent.altGraphKey')
   final bool altGraphKey;
 
-  /// @domName KeyboardEvent.altKey; @docsEditable true
+  @DocsEditable @DomName('KeyboardEvent.altKey')
   final bool altKey;
 
-  /// @domName KeyboardEvent.ctrlKey; @docsEditable true
+  @DocsEditable @DomName('KeyboardEvent.ctrlKey')
   final bool ctrlKey;
 
-  /// @domName KeyboardEvent.keyIdentifier; @docsEditable true
   @JSName('keyIdentifier')
+  @DocsEditable @DomName('KeyboardEvent.keyIdentifier')
   final String $dom_keyIdentifier;
 
-  /// @domName KeyboardEvent.keyLocation; @docsEditable true
+  @DocsEditable @DomName('KeyboardEvent.keyLocation')
   final int keyLocation;
 
-  /// @domName KeyboardEvent.metaKey; @docsEditable true
+  @DocsEditable @DomName('KeyboardEvent.metaKey')
   final bool metaKey;
 
-  /// @domName KeyboardEvent.shiftKey; @docsEditable true
+  @DocsEditable @DomName('KeyboardEvent.shiftKey')
   final bool shiftKey;
 
 }
@@ -13380,56 +13277,58 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLKeygenElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLKeygenElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 class KeygenElement extends Element native "*HTMLKeygenElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory KeygenElement() => document.$dom_createElement("keygen");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('keygen') && (new Element.tag('keygen') is KeygenElement);
 
-  /// @domName HTMLKeygenElement.autofocus; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.autofocus')
   bool autofocus;
 
-  /// @domName HTMLKeygenElement.challenge; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.challenge')
   String challenge;
 
-  /// @domName HTMLKeygenElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.disabled')
   bool disabled;
 
-  /// @domName HTMLKeygenElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.form')
   final FormElement form;
 
-  /// @domName HTMLKeygenElement.keytype; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.keytype')
   String keytype;
 
-  /// @domName HTMLKeygenElement.labels; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.labels')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
-  /// @domName HTMLKeygenElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.name')
   String name;
 
-  /// @domName HTMLKeygenElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.type')
   final String type;
 
-  /// @domName HTMLKeygenElement.validationMessage; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.validationMessage')
   final String validationMessage;
 
-  /// @domName HTMLKeygenElement.validity; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.validity')
   final ValidityState validity;
 
-  /// @domName HTMLKeygenElement.willValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.willValidate')
   final bool willValidate;
 
-  /// @domName HTMLKeygenElement.checkValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.checkValidity')
   bool checkValidity() native;
 
-  /// @domName HTMLKeygenElement.setCustomValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLKeygenElement.setCustomValidity')
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13437,16 +13336,18 @@ class KeygenElement extends Element native "*HTMLKeygenElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLLIElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLLIElement')
 class LIElement extends Element native "*HTMLLIElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory LIElement() => document.$dom_createElement("li");
 
-  /// @domName HTMLLIElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLLIElement.type')
   String type;
 
-  /// @domName HTMLLIElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLLIElement.value')
   int value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13454,19 +13355,21 @@ class LIElement extends Element native "*HTMLLIElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLLabelElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLLabelElement')
 class LabelElement extends Element native "*HTMLLabelElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory LabelElement() => document.$dom_createElement("label");
 
-  /// @domName HTMLLabelElement.control; @docsEditable true
+  @DocsEditable @DomName('HTMLLabelElement.control')
   final Element control;
 
-  /// @domName HTMLLabelElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLLabelElement.form')
   final FormElement form;
 
-  /// @domName HTMLLabelElement.htmlFor; @docsEditable true
+  @DocsEditable @DomName('HTMLLabelElement.htmlFor')
   String htmlFor;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13474,16 +13377,15 @@ class LabelElement extends Element native "*HTMLLabelElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLLegendElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLLegendElement')
 class LegendElement extends Element native "*HTMLLegendElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory LegendElement() => document.$dom_createElement("legend");
 
-  /// @domName HTMLLegendElement.align; @docsEditable true
-  String align;
-
-  /// @domName HTMLLegendElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLLegendElement.form')
   final FormElement form;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13491,34 +13393,36 @@ class LegendElement extends Element native "*HTMLLegendElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLLinkElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLLinkElement')
 class LinkElement extends Element native "*HTMLLinkElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory LinkElement() => document.$dom_createElement("link");
 
-  /// @domName HTMLLinkElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLLinkElement.disabled')
   bool disabled;
 
-  /// @domName HTMLLinkElement.href; @docsEditable true
+  @DocsEditable @DomName('HTMLLinkElement.href')
   String href;
 
-  /// @domName HTMLLinkElement.hreflang; @docsEditable true
+  @DocsEditable @DomName('HTMLLinkElement.hreflang')
   String hreflang;
 
-  /// @domName HTMLLinkElement.media; @docsEditable true
+  @DocsEditable @DomName('HTMLLinkElement.media')
   String media;
 
-  /// @domName HTMLLinkElement.rel; @docsEditable true
+  @DocsEditable @DomName('HTMLLinkElement.rel')
   String rel;
 
-  /// @domName HTMLLinkElement.sheet; @docsEditable true
+  @DocsEditable @DomName('HTMLLinkElement.sheet')
   final StyleSheet sheet;
 
-  /// @domName HTMLLinkElement.sizes; @docsEditable true
+  @DocsEditable @DomName('HTMLLinkElement.sizes')
   DomSettableTokenList sizes;
 
-  /// @domName HTMLLinkElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLLinkElement.type')
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13526,10 +13430,12 @@ class LinkElement extends Element native "*HTMLLinkElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName LocalMediaStream; @docsEditable true
+
+@DocsEditable
+@DomName('LocalMediaStream')
 class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
 
-  /// @domName LocalMediaStream.stop; @docsEditable true
+  @DocsEditable @DomName('LocalMediaStream.stop')
   void stop() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13537,50 +13443,52 @@ class LocalMediaStream extends MediaStream implements EventTarget native "*Local
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Location; @docsEditable true
+
+@DocsEditable
+@DomName('Location')
 class Location implements LocationBase native "*Location" {
 
-  /// @domName Location.ancestorOrigins; @docsEditable true
+  @DocsEditable @DomName('Location.ancestorOrigins')
   @Returns('DomStringList') @Creates('DomStringList')
   final List<String> ancestorOrigins;
 
-  /// @domName Location.hash; @docsEditable true
+  @DocsEditable @DomName('Location.hash')
   String hash;
 
-  /// @domName Location.host; @docsEditable true
+  @DocsEditable @DomName('Location.host')
   String host;
 
-  /// @domName Location.hostname; @docsEditable true
+  @DocsEditable @DomName('Location.hostname')
   String hostname;
 
-  /// @domName Location.href; @docsEditable true
+  @DocsEditable @DomName('Location.href')
   String href;
 
-  /// @domName Location.origin; @docsEditable true
+  @DocsEditable @DomName('Location.origin')
   final String origin;
 
-  /// @domName Location.pathname; @docsEditable true
+  @DocsEditable @DomName('Location.pathname')
   String pathname;
 
-  /// @domName Location.port; @docsEditable true
+  @DocsEditable @DomName('Location.port')
   String port;
 
-  /// @domName Location.protocol; @docsEditable true
+  @DocsEditable @DomName('Location.protocol')
   String protocol;
 
-  /// @domName Location.search; @docsEditable true
+  @DocsEditable @DomName('Location.search')
   String search;
 
-  /// @domName Location.assign; @docsEditable true
+  @DocsEditable @DomName('Location.assign')
   void assign(String url) native;
 
-  /// @domName Location.reload; @docsEditable true
+  @DocsEditable @DomName('Location.reload')
   void reload() native;
 
-  /// @domName Location.replace; @docsEditable true
+  @DocsEditable @DomName('Location.replace')
   void replace(String url) native;
 
-  /// @domName Location.toString; @docsEditable true
+  @DocsEditable @DomName('Location.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13588,16 +13496,18 @@ class Location implements LocationBase native "*Location" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMapElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLMapElement')
 class MapElement extends Element native "*HTMLMapElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory MapElement() => document.$dom_createElement("map");
 
-  /// @domName HTMLMapElement.areas; @docsEditable true
+  @DocsEditable @DomName('HTMLMapElement.areas')
   final HtmlCollection areas;
 
-  /// @domName HTMLMapElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLMapElement.name')
   String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13605,115 +13515,67 @@ class MapElement extends Element native "*HTMLMapElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMarqueeElement; @docsEditable true
-class MarqueeElement extends Element native "*HTMLMarqueeElement" {
 
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => Element.isTagSupported('marquee')&& (new Element.tag('marquee') is MarqueeElement);
-
-  /// @domName HTMLMarqueeElement.behavior; @docsEditable true
-  String behavior;
-
-  /// @domName HTMLMarqueeElement.bgColor; @docsEditable true
-  String bgColor;
-
-  /// @domName HTMLMarqueeElement.direction; @docsEditable true
-  String direction;
-
-  /// @domName HTMLMarqueeElement.height; @docsEditable true
-  String height;
-
-  /// @domName HTMLMarqueeElement.hspace; @docsEditable true
-  int hspace;
-
-  /// @domName HTMLMarqueeElement.loop; @docsEditable true
-  int loop;
-
-  /// @domName HTMLMarqueeElement.scrollAmount; @docsEditable true
-  int scrollAmount;
-
-  /// @domName HTMLMarqueeElement.scrollDelay; @docsEditable true
-  int scrollDelay;
-
-  /// @domName HTMLMarqueeElement.trueSpeed; @docsEditable true
-  bool trueSpeed;
-
-  /// @domName HTMLMarqueeElement.vspace; @docsEditable true
-  int vspace;
-
-  /// @domName HTMLMarqueeElement.width; @docsEditable true
-  String width;
-
-  /// @domName HTMLMarqueeElement.start; @docsEditable true
-  void start() native;
-
-  /// @domName HTMLMarqueeElement.stop; @docsEditable true
-  void stop() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName MediaController; @docsEditable true
+@DocsEditable
+@DomName('MediaController')
 class MediaController extends EventTarget native "*MediaController" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory MediaController() => MediaController._create();
   static MediaController _create() => JS('MediaController', 'new MediaController()');
 
-  /// @domName MediaController.buffered; @docsEditable true
+  @DocsEditable @DomName('MediaController.buffered')
   final TimeRanges buffered;
 
-  /// @domName MediaController.currentTime; @docsEditable true
+  @DocsEditable @DomName('MediaController.currentTime')
   num currentTime;
 
-  /// @domName MediaController.defaultPlaybackRate; @docsEditable true
+  @DocsEditable @DomName('MediaController.defaultPlaybackRate')
   num defaultPlaybackRate;
 
-  /// @domName MediaController.duration; @docsEditable true
+  @DocsEditable @DomName('MediaController.duration')
   final num duration;
 
-  /// @domName MediaController.muted; @docsEditable true
+  @DocsEditable @DomName('MediaController.muted')
   bool muted;
 
-  /// @domName MediaController.paused; @docsEditable true
+  @DocsEditable @DomName('MediaController.paused')
   final bool paused;
 
-  /// @domName MediaController.playbackRate; @docsEditable true
+  @DocsEditable @DomName('MediaController.playbackRate')
   num playbackRate;
 
-  /// @domName MediaController.playbackState; @docsEditable true
+  @DocsEditable @DomName('MediaController.playbackState')
   final String playbackState;
 
-  /// @domName MediaController.played; @docsEditable true
+  @DocsEditable @DomName('MediaController.played')
   final TimeRanges played;
 
-  /// @domName MediaController.seekable; @docsEditable true
+  @DocsEditable @DomName('MediaController.seekable')
   final TimeRanges seekable;
 
-  /// @domName MediaController.volume; @docsEditable true
+  @DocsEditable @DomName('MediaController.volume')
   num volume;
 
-  /// @domName MediaController.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('MediaController.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName MediaController.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('MediaController.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName MediaController.pause; @docsEditable true
+  @DocsEditable @DomName('MediaController.pause')
   void pause() native;
 
-  /// @domName MediaController.play; @docsEditable true
+  @DocsEditable @DomName('MediaController.play')
   void play() native;
 
-  /// @domName MediaController.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('MediaController.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName MediaController.unpause; @docsEditable true
+  @DocsEditable @DomName('MediaController.unpause')
   void unpause() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13721,7 +13583,9 @@ class MediaController extends EventTarget native "*MediaController" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMediaElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLMediaElement')
 class MediaElement extends Element native "*HTMLMediaElement" {
 
   static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
@@ -13774,7 +13638,8 @@ class MediaElement extends Element native "*HTMLMediaElement" {
 
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaElementEvents get on =>
     new MediaElementEvents(this);
 
@@ -13796,124 +13661,124 @@ class MediaElement extends Element native "*HTMLMediaElement" {
 
   static const int NETWORK_NO_SOURCE = 3;
 
-  /// @domName HTMLMediaElement.autoplay; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.autoplay')
   bool autoplay;
 
-  /// @domName HTMLMediaElement.buffered; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.buffered')
   final TimeRanges buffered;
 
-  /// @domName HTMLMediaElement.controller; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.controller')
   MediaController controller;
 
-  /// @domName HTMLMediaElement.controls; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.controls')
   bool controls;
 
-  /// @domName HTMLMediaElement.currentSrc; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.currentSrc')
   final String currentSrc;
 
-  /// @domName HTMLMediaElement.currentTime; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.currentTime')
   num currentTime;
 
-  /// @domName HTMLMediaElement.defaultMuted; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.defaultMuted')
   bool defaultMuted;
 
-  /// @domName HTMLMediaElement.defaultPlaybackRate; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.defaultPlaybackRate')
   num defaultPlaybackRate;
 
-  /// @domName HTMLMediaElement.duration; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.duration')
   final num duration;
 
-  /// @domName HTMLMediaElement.ended; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.ended')
   final bool ended;
 
-  /// @domName HTMLMediaElement.error; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.error')
   final MediaError error;
 
-  /// @domName HTMLMediaElement.initialTime; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.initialTime')
   final num initialTime;
 
-  /// @domName HTMLMediaElement.loop; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.loop')
   bool loop;
 
-  /// @domName HTMLMediaElement.mediaGroup; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.mediaGroup')
   String mediaGroup;
 
-  /// @domName HTMLMediaElement.muted; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.muted')
   bool muted;
 
-  /// @domName HTMLMediaElement.networkState; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.networkState')
   final int networkState;
 
-  /// @domName HTMLMediaElement.paused; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.paused')
   final bool paused;
 
-  /// @domName HTMLMediaElement.playbackRate; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.playbackRate')
   num playbackRate;
 
-  /// @domName HTMLMediaElement.played; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.played')
   final TimeRanges played;
 
-  /// @domName HTMLMediaElement.preload; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.preload')
   String preload;
 
-  /// @domName HTMLMediaElement.readyState; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.readyState')
   final int readyState;
 
-  /// @domName HTMLMediaElement.seekable; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.seekable')
   final TimeRanges seekable;
 
-  /// @domName HTMLMediaElement.seeking; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.seeking')
   final bool seeking;
 
-  /// @domName HTMLMediaElement.src; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.src')
   String src;
 
-  /// @domName HTMLMediaElement.startTime; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.startTime')
   final num startTime;
 
-  /// @domName HTMLMediaElement.textTracks; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.textTracks')
   final TextTrackList textTracks;
 
-  /// @domName HTMLMediaElement.volume; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.volume')
   num volume;
 
-  /// @domName HTMLMediaElement.webkitAudioDecodedByteCount; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
   final int webkitAudioDecodedByteCount;
 
-  /// @domName HTMLMediaElement.webkitClosedCaptionsVisible; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
   bool webkitClosedCaptionsVisible;
 
-  /// @domName HTMLMediaElement.webkitHasClosedCaptions; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.webkitHasClosedCaptions')
   final bool webkitHasClosedCaptions;
 
-  /// @domName HTMLMediaElement.webkitPreservesPitch; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.webkitPreservesPitch')
   bool webkitPreservesPitch;
 
-  /// @domName HTMLMediaElement.webkitVideoDecodedByteCount; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.webkitVideoDecodedByteCount')
   final int webkitVideoDecodedByteCount;
 
-  /// @domName HTMLMediaElement.addTextTrack; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.addTextTrack')
   TextTrack addTextTrack(String kind, [String label, String language]) native;
 
-  /// @domName HTMLMediaElement.canPlayType; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.canPlayType')
   String canPlayType(String type, String keySystem) native;
 
-  /// @domName HTMLMediaElement.load; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.load')
   void load() native;
 
-  /// @domName HTMLMediaElement.pause; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.pause')
   void pause() native;
 
-  /// @domName HTMLMediaElement.play; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.play')
   void play() native;
 
-  /// @domName HTMLMediaElement.webkitAddKey; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.webkitAddKey')
   void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) native;
 
-  /// @domName HTMLMediaElement.webkitCancelKeyRequest; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   void webkitCancelKeyRequest(String keySystem, String sessionId) native;
 
-  /// @domName HTMLMediaElement.webkitGenerateKeyRequest; @docsEditable true
+  @DocsEditable @DomName('HTMLMediaElement.webkitGenerateKeyRequest')
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
 
   Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
@@ -13967,84 +13832,84 @@ class MediaElement extends Element native "*HTMLMediaElement" {
   Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   MediaElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlay => this['canplay'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get durationChange => this['durationchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get emptied => this['emptied'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedData => this['loadeddata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pause => this['pause'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get play => this['play'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get playing => this['playing'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get rateChange => this['ratechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeked => this['seeked'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeking => this['seeking'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get show => this['show'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get stalled => this['stalled'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get suspend => this['suspend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get timeUpdate => this['timeupdate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get volumeChange => this['volumechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get waiting => this['waiting'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyAdded => this['webkitkeyadded'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyError => this['webkitkeyerror'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyMessage => this['webkitkeymessage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get needKey => this['webkitneedkey'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14052,7 +13917,9 @@ class MediaElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaError; @docsEditable true
+
+@DocsEditable
+@DomName('MediaError')
 class MediaError native "*MediaError" {
 
   static const int MEDIA_ERR_ABORTED = 1;
@@ -14065,7 +13932,7 @@ class MediaError native "*MediaError" {
 
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  /// @domName MediaError.code; @docsEditable true
+  @DocsEditable @DomName('MediaError.code')
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14073,7 +13940,9 @@ class MediaError native "*MediaError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaKeyError; @docsEditable true
+
+@DocsEditable
+@DomName('MediaKeyError')
 class MediaKeyError native "*MediaKeyError" {
 
   static const int MEDIA_KEYERR_CLIENT = 2;
@@ -14088,7 +13957,7 @@ class MediaKeyError native "*MediaKeyError" {
 
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
-  /// @domName MediaKeyError.code; @docsEditable true
+  @DocsEditable @DomName('MediaKeyError.code')
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14096,29 +13965,31 @@ class MediaKeyError native "*MediaKeyError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaKeyEvent; @docsEditable true
+
+@DocsEditable
+@DomName('MediaKeyEvent')
 class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 
-  /// @domName MediaKeyEvent.defaultURL; @docsEditable true
   @JSName('defaultURL')
+  @DocsEditable @DomName('MediaKeyEvent.defaultURL')
   final String defaultUrl;
 
-  /// @domName MediaKeyEvent.errorCode; @docsEditable true
+  @DocsEditable @DomName('MediaKeyEvent.errorCode')
   final MediaKeyError errorCode;
 
-  /// @domName MediaKeyEvent.initData; @docsEditable true
+  @DocsEditable @DomName('MediaKeyEvent.initData')
   final Uint8Array initData;
 
-  /// @domName MediaKeyEvent.keySystem; @docsEditable true
+  @DocsEditable @DomName('MediaKeyEvent.keySystem')
   final String keySystem;
 
-  /// @domName MediaKeyEvent.message; @docsEditable true
+  @DocsEditable @DomName('MediaKeyEvent.message')
   final Uint8Array message;
 
-  /// @domName MediaKeyEvent.sessionId; @docsEditable true
+  @DocsEditable @DomName('MediaKeyEvent.sessionId')
   final String sessionId;
 
-  /// @domName MediaKeyEvent.systemCode; @docsEditable true
+  @DocsEditable @DomName('MediaKeyEvent.systemCode')
   final int systemCode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14126,22 +13997,24 @@ class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaList; @docsEditable true
+
+@DocsEditable
+@DomName('MediaList')
 class MediaList native "*MediaList" {
 
-  /// @domName MediaList.length; @docsEditable true
+  @DocsEditable @DomName('MediaList.length')
   final int length;
 
-  /// @domName MediaList.mediaText; @docsEditable true
+  @DocsEditable @DomName('MediaList.mediaText')
   String mediaText;
 
-  /// @domName MediaList.appendMedium; @docsEditable true
+  @DocsEditable @DomName('MediaList.appendMedium')
   void appendMedium(String newMedium) native;
 
-  /// @domName MediaList.deleteMedium; @docsEditable true
+  @DocsEditable @DomName('MediaList.deleteMedium')
   void deleteMedium(String oldMedium) native;
 
-  /// @domName MediaList.item; @docsEditable true
+  @DocsEditable @DomName('MediaList.item')
   String item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14149,19 +14022,21 @@ class MediaList native "*MediaList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaQueryList; @docsEditable true
+
+@DocsEditable
+@DomName('MediaQueryList')
 class MediaQueryList native "*MediaQueryList" {
 
-  /// @domName MediaQueryList.matches; @docsEditable true
+  @DocsEditable @DomName('MediaQueryList.matches')
   final bool matches;
 
-  /// @domName MediaQueryList.media; @docsEditable true
+  @DocsEditable @DomName('MediaQueryList.media')
   final String media;
 
-  /// @domName MediaQueryList.addListener; @docsEditable true
+  @DocsEditable @DomName('MediaQueryList.addListener')
   void addListener(MediaQueryListListener listener) native;
 
-  /// @domName MediaQueryList.removeListener; @docsEditable true
+  @DocsEditable @DomName('MediaQueryList.removeListener')
   void removeListener(MediaQueryListListener listener) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14169,10 +14044,10 @@ class MediaQueryList native "*MediaQueryList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaQueryListListener
+@DocsEditable
+@DomName('MediaQueryListListener')
 abstract class MediaQueryListListener {
 
-  /// @domName MediaQueryListListener.queryChanged; @docsEditable true
   void queryChanged(MediaQueryList list);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14180,112 +14055,149 @@ abstract class MediaQueryListListener {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaSource; @docsEditable true
+
+@DocsEditable
+@DomName('MediaSource')
 class MediaSource extends EventTarget native "*MediaSource" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory MediaSource() => MediaSource._create();
   static MediaSource _create() => JS('MediaSource', 'new MediaSource()');
 
-  /// @domName MediaSource.activeSourceBuffers; @docsEditable true
+  @DocsEditable @DomName('MediaSource.activeSourceBuffers')
   final SourceBufferList activeSourceBuffers;
 
-  /// @domName MediaSource.duration; @docsEditable true
+  @DocsEditable @DomName('MediaSource.duration')
   num duration;
 
-  /// @domName MediaSource.readyState; @docsEditable true
+  @DocsEditable @DomName('MediaSource.readyState')
   final String readyState;
 
-  /// @domName MediaSource.sourceBuffers; @docsEditable true
+  @DocsEditable @DomName('MediaSource.sourceBuffers')
   final SourceBufferList sourceBuffers;
 
-  /// @domName MediaSource.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('MediaSource.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName MediaSource.addSourceBuffer; @docsEditable true
+  @DocsEditable @DomName('MediaSource.addSourceBuffer')
   SourceBuffer addSourceBuffer(String type) native;
 
-  /// @domName MediaSource.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('MediaSource.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName MediaSource.endOfStream; @docsEditable true
+  @DocsEditable @DomName('MediaSource.endOfStream')
   void endOfStream(String error) native;
 
-  /// @domName MediaSource.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('MediaSource.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName MediaSource.removeSourceBuffer; @docsEditable true
+  @DocsEditable @DomName('MediaSource.removeSourceBuffer')
   void removeSourceBuffer(SourceBuffer buffer) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
 /// @domName MediaStream; @docsEditable true
+@DocsEditable
+@DomName('MediaStream')
 class MediaStream extends EventTarget native "*MediaStream" {
 
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  ///@docsEditable true
-  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
-  static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => JS('MediaStream', 'new MediaStream(#,#)', audioTracks, videoTracks);
+  @DocsEditable
+  factory MediaStream() => MediaStream._create();
+  static MediaStream _create() => JS('MediaStream', 'new MediaStream()');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
-  static const int ENDED = 2;
+  @DocsEditable @DomName('MediaStream.ended')
+  final bool ended;
 
-  static const int LIVE = 1;
+  @DocsEditable @DomName('MediaStream.id')
+  final String id;
 
-  /// @domName MediaStream.audioTracks; @docsEditable true
-  final MediaStreamTrackList audioTracks;
-
-  /// @domName MediaStream.label; @docsEditable true
+  @DocsEditable @DomName('MediaStream.label')
   final String label;
 
-  /// @domName MediaStream.readyState; @docsEditable true
-  final int readyState;
-
-  /// @domName MediaStream.videoTracks; @docsEditable true
-  final MediaStreamTrackList videoTracks;
-
-  /// @domName MediaStream.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('MediaStream.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName MediaStream.dispatchEvent; @docsEditable true
+  @DocsEditable @DomName('MediaStream.addTrack')
+  void addTrack(MediaStreamTrack track) native;
+
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('MediaStream.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName MediaStream.removeEventListener; @docsEditable true
+  @DocsEditable @DomName('MediaStream.getAudioTracks')
+  List<MediaStreamTrack> getAudioTracks() native;
+
+  @DocsEditable @DomName('MediaStream.getTrackById')
+  MediaStreamTrack getTrackById(String trackId) native;
+
+  @DocsEditable @DomName('MediaStream.getVideoTracks')
+  List<MediaStreamTrack> getVideoTracks() native;
+
   @JSName('removeEventListener')
+  @DocsEditable @DomName('MediaStream.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
+  @DocsEditable @DomName('MediaStream.removeTrack')
+  void removeTrack(MediaStreamTrack track) native;
+
   Stream<Event> get onEnded => endedEvent.forTarget(this);
+
+
+  /**
+   * Checks if the MediaStream APIs are supported on the current platform.
+   *
+   * See also:
+   *
+   * * [Navigator.getUserMedia]
+   */
+  static bool get supported =>
+    JS('bool', '''!!(#.getUserMedia || #.webkitGetUserMedia ||
+        #.mozGetUserMedia || #.msGetUserMedia)''',
+        window.navigator,
+        window.navigator,
+        window.navigator,
+        window.navigator);
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaStreamEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MediaStreamEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
+  EventListenerList get addTrack => this['addtrack'];
+
+  @DocsEditable
   EventListenerList get ended => this['ended'];
+
+  @DocsEditable
+  EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamEvent; @docsEditable true
+
+@DocsEditable
+@DomName('MediaStreamEvent')
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
-  /// @domName MediaStreamEvent.stream; @docsEditable true
+  @DocsEditable @DomName('MediaStreamEvent.stream')
   final MediaStream stream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14293,7 +14205,9 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamTrack; @docsEditable true
+
+@DocsEditable
+@DomName('MediaStreamTrack')
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
@@ -14302,7 +14216,8 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
 
@@ -14312,28 +14227,31 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   static const int MUTED = 1;
 
-  /// @domName MediaStreamTrack.enabled; @docsEditable true
+  @DocsEditable @DomName('MediaStreamTrack.enabled')
   bool enabled;
 
-  /// @domName MediaStreamTrack.kind; @docsEditable true
+  @DocsEditable @DomName('MediaStreamTrack.id')
+  final String id;
+
+  @DocsEditable @DomName('MediaStreamTrack.kind')
   final String kind;
 
-  /// @domName MediaStreamTrack.label; @docsEditable true
+  @DocsEditable @DomName('MediaStreamTrack.label')
   final String label;
 
-  /// @domName MediaStreamTrack.readyState; @docsEditable true
+  @DocsEditable @DomName('MediaStreamTrack.readyState')
   final int readyState;
 
-  /// @domName MediaStreamTrack.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('MediaStreamTrack.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName MediaStreamTrack.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('MediaStreamTrack.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName MediaStreamTrack.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('MediaStreamTrack.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onEnded => endedEvent.forTarget(this);
@@ -14343,18 +14261,18 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
   Stream<Event> get onUnmute => unmuteEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaStreamTrackEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MediaStreamTrackEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mute => this['mute'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unmute => this['unmute'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14362,10 +14280,12 @@ class MediaStreamTrackEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamTrackEvent; @docsEditable true
+
+@DocsEditable
+@DomName('MediaStreamTrackEvent')
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 
-  /// @domName MediaStreamTrackEvent.track; @docsEditable true
+  @DocsEditable @DomName('MediaStreamTrackEvent.track')
   final MediaStreamTrack track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14373,72 +14293,18 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamTrackList; @docsEditable true
-class MediaStreamTrackList extends EventTarget native "*MediaStreamTrackList" {
 
-  static const EventStreamProvider<MediaStreamTrackEvent> addTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('addtrack');
-
-  static const EventStreamProvider<MediaStreamTrackEvent> removeTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('removetrack');
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  MediaStreamTrackListEvents get on =>
-    new MediaStreamTrackListEvents(this);
-
-  /// @domName MediaStreamTrackList.length; @docsEditable true
-  final int length;
-
-  /// @domName MediaStreamTrackList.add; @docsEditable true
-  void add(MediaStreamTrack track) native;
-
-  /// @domName MediaStreamTrackList.addEventListener; @docsEditable true
-  @JSName('addEventListener')
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  /// @domName MediaStreamTrackList.dispatchEvent; @docsEditable true
-  @JSName('dispatchEvent')
-  bool $dom_dispatchEvent(Event event) native;
-
-  /// @domName MediaStreamTrackList.item; @docsEditable true
-  MediaStreamTrack item(int index) native;
-
-  /// @domName MediaStreamTrackList.remove; @docsEditable true
-  void remove(MediaStreamTrack track) native;
-
-  /// @domName MediaStreamTrackList.removeEventListener; @docsEditable true
-  @JSName('removeEventListener')
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  Stream<MediaStreamTrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
-
-  Stream<MediaStreamTrackEvent> get onRemoveTrack => removeTrackEvent.forTarget(this);
-}
-
-/// @docsEditable true
-class MediaStreamTrackListEvents extends Events {
-  /// @docsEditable true
-  MediaStreamTrackListEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get addTrack => this['addtrack'];
-
-  /// @docsEditable true
-  EventListenerList get removeTrack => this['removetrack'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/// @domName MemoryInfo; @docsEditable true
+@DocsEditable
+@DomName('MemoryInfo')
 class MemoryInfo native "*MemoryInfo" {
 
-  /// @domName MemoryInfo.jsHeapSizeLimit; @docsEditable true
+  @DocsEditable @DomName('MemoryInfo.jsHeapSizeLimit')
   final int jsHeapSizeLimit;
 
-  /// @domName MemoryInfo.totalJSHeapSize; @docsEditable true
+  @DocsEditable @DomName('MemoryInfo.totalJSHeapSize')
   final int totalJSHeapSize;
 
-  /// @domName MemoryInfo.usedJSHeapSize; @docsEditable true
+  @DocsEditable @DomName('MemoryInfo.usedJSHeapSize')
   final int usedJSHeapSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14446,20 +14312,12 @@ class MemoryInfo native "*MemoryInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/**
- * An HTML <menu> element.
- *
- * A <menu> element represents an unordered list of menu commands.
- *
- * See also:
- *
- *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
- *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
- */
-/// @domName HTMLMenuElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLMenuElement')
 class MenuElement extends Element native "*HTMLMenuElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory MenuElement() => document.$dom_createElement("menu");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14467,17 +14325,19 @@ class MenuElement extends Element native "*HTMLMenuElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MessageChannel; @docsEditable true
+
+@DocsEditable
+@DomName('MessageChannel')
 class MessageChannel native "*MessageChannel" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory MessageChannel() => MessageChannel._create();
   static MessageChannel _create() => JS('MessageChannel', 'new MessageChannel()');
 
-  /// @domName MessageChannel.port1; @docsEditable true
+  @DocsEditable @DomName('MessageChannel.port1')
   final MessagePort port1;
 
-  /// @domName MessageChannel.port2; @docsEditable true
+  @DocsEditable @DomName('MessageChannel.port2')
   final MessagePort port2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14485,35 +14345,34 @@ class MessageChannel native "*MessageChannel" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MessageEvent; @docsEditable true
+
+@DocsEditable
+@DomName('MessageEvent')
 class MessageEvent extends Event native "*MessageEvent" {
 
-  /// @domName MessageEvent.data; @docsEditable true
   dynamic get data => convertNativeToDart_SerializedScriptValue(this._data);
   @JSName('data')
-  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
+  @DocsEditable @DomName('MessageEvent.data') @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final dynamic _data;
 
-  /// @domName MessageEvent.lastEventId; @docsEditable true
+  @DocsEditable @DomName('MessageEvent.lastEventId')
   final String lastEventId;
 
-  /// @domName MessageEvent.origin; @docsEditable true
+  @DocsEditable @DomName('MessageEvent.origin')
   final String origin;
 
-  /// @domName MessageEvent.ports; @docsEditable true
-  @Creates('=List')
+  @DocsEditable @DomName('MessageEvent.ports') @Creates('=List')
   final List ports;
 
-  /// @domName MessageEvent.source; @docsEditable true
   WindowBase get source => _convertNativeToDart_Window(this._source);
   @JSName('source')
-  @Creates('Window|=Object') @Returns('Window|=Object')
+  @DocsEditable @DomName('MessageEvent.source') @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _source;
 
-  /// @domName MessageEvent.initMessageEvent; @docsEditable true
+  @DocsEditable @DomName('MessageEvent.initMessageEvent')
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native;
 
-  /// @domName MessageEvent.webkitInitMessageEvent; @docsEditable true
+  @DocsEditable @DomName('MessageEvent.webkitInitMessageEvent')
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14521,27 +14380,29 @@ class MessageEvent extends Event native "*MessageEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MessagePort; @docsEditable true
+
+@DocsEditable
+@DomName('MessagePort')
 class MessagePort extends EventTarget native "*MessagePort" {
 
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MessagePortEvents get on =>
     new MessagePortEvents(this);
 
-  /// @domName MessagePort.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('MessagePort.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName MessagePort.close; @docsEditable true
+  @DocsEditable @DomName('MessagePort.close')
   void close() native;
 
-  /// @domName MessagePort.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('MessagePort.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName MessagePort.postMessage; @docsEditable true
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -14553,26 +14414,28 @@ class MessagePort extends EventTarget native "*MessagePort" {
     return;
   }
   @JSName('postMessage')
+  @DocsEditable @DomName('MessagePort.postMessage')
   void _postMessage_1(message, List messagePorts) native;
   @JSName('postMessage')
+  @DocsEditable @DomName('MessagePort.postMessage')
   void _postMessage_2(message) native;
 
-  /// @domName MessagePort.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('MessagePort.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName MessagePort.start; @docsEditable true
+  @DocsEditable @DomName('MessagePort.start')
   void start() native;
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class MessagePortEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MessagePortEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14580,16 +14443,18 @@ class MessagePortEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMetaElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLMetaElement')
 class MetaElement extends Element native "*HTMLMetaElement" {
 
-  /// @domName HTMLMetaElement.content; @docsEditable true
+  @DocsEditable @DomName('HTMLMetaElement.content')
   String content;
 
-  /// @domName HTMLMetaElement.httpEquiv; @docsEditable true
+  @DocsEditable @DomName('HTMLMetaElement.httpEquiv')
   String httpEquiv;
 
-  /// @domName HTMLMetaElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLMetaElement.name')
   String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14597,13 +14462,15 @@ class MetaElement extends Element native "*HTMLMetaElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Metadata; @docsEditable true
+
+@DocsEditable
+@DomName('Metadata')
 class Metadata native "*Metadata" {
 
-  /// @domName Metadata.modificationTime; @docsEditable true
+  @DocsEditable @DomName('Metadata.modificationTime')
   final Date modificationTime;
 
-  /// @domName Metadata.size; @docsEditable true
+  @DocsEditable @DomName('Metadata.size')
   final int size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14619,38 +14486,40 @@ typedef void MetadataCallback(Metadata metadata);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLMeterElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLMeterElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class MeterElement extends Element native "*HTMLMeterElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory MeterElement() => document.$dom_createElement("meter");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
 
-  /// @domName HTMLMeterElement.high; @docsEditable true
+  @DocsEditable @DomName('HTMLMeterElement.high')
   num high;
 
-  /// @domName HTMLMeterElement.labels; @docsEditable true
+  @DocsEditable @DomName('HTMLMeterElement.labels')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
-  /// @domName HTMLMeterElement.low; @docsEditable true
+  @DocsEditable @DomName('HTMLMeterElement.low')
   num low;
 
-  /// @domName HTMLMeterElement.max; @docsEditable true
+  @DocsEditable @DomName('HTMLMeterElement.max')
   num max;
 
-  /// @domName HTMLMeterElement.min; @docsEditable true
+  @DocsEditable @DomName('HTMLMeterElement.min')
   num min;
 
-  /// @domName HTMLMeterElement.optimum; @docsEditable true
+  @DocsEditable @DomName('HTMLMeterElement.optimum')
   num optimum;
 
-  /// @domName HTMLMeterElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLMeterElement.value')
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14658,13 +14527,15 @@ class MeterElement extends Element native "*HTMLMeterElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLModElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLModElement')
 class ModElement extends Element native "*HTMLModElement" {
 
-  /// @domName HTMLModElement.cite; @docsEditable true
+  @DocsEditable @DomName('HTMLModElement.cite')
   String cite;
 
-  /// @domName HTMLModElement.dateTime; @docsEditable true
+  @DocsEditable @DomName('HTMLModElement.dateTime')
   String dateTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14672,7 +14543,8 @@ class ModElement extends Element native "*HTMLModElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MouseEvent
+@DocsEditable
+@DomName('MouseEvent')
 class MouseEvent extends UIEvent native "*MouseEvent" {
   factory MouseEvent(String type, Window view, int detail, int screenX,
       int screenY, int clientX, int clientY, int button, [bool canBubble = true,
@@ -14685,67 +14557,66 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
           ctrlKey, altKey, shiftKey, metaKey,
           relatedTarget);
 
-  /// @domName MouseEvent.altKey; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.altKey')
   final bool altKey;
 
-  /// @domName MouseEvent.button; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.button')
   final int button;
 
-  /// @domName MouseEvent.clientX; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.clientX')
   final int clientX;
 
-  /// @domName MouseEvent.clientY; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.clientY')
   final int clientY;
 
-  /// @domName MouseEvent.ctrlKey; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.ctrlKey')
   final bool ctrlKey;
 
-  /// @domName MouseEvent.dataTransfer; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.dataTransfer')
   final Clipboard dataTransfer;
 
-  /// @domName MouseEvent.fromElement; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.fromElement')
   final Node fromElement;
 
-  /// @domName MouseEvent.metaKey; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.metaKey')
   final bool metaKey;
 
-  /// @domName MouseEvent.relatedTarget; @docsEditable true
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
   @JSName('relatedTarget')
-  @Creates('Node') @Returns('EventTarget|=Object')
+  @DocsEditable @DomName('MouseEvent.relatedTarget') @Creates('Node') @Returns('EventTarget|=Object')
   final dynamic _relatedTarget;
 
-  /// @domName MouseEvent.screenX; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.screenX')
   final int screenX;
 
-  /// @domName MouseEvent.screenY; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.screenY')
   final int screenY;
 
-  /// @domName MouseEvent.shiftKey; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.shiftKey')
   final bool shiftKey;
 
-  /// @domName MouseEvent.toElement; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.toElement')
   final Node toElement;
 
-  /// @domName MouseEvent.webkitMovementX; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.webkitMovementX')
   final int webkitMovementX;
 
-  /// @domName MouseEvent.webkitMovementY; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.webkitMovementY')
   final int webkitMovementY;
 
-  /// @domName MouseEvent.x; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.x')
   final int x;
 
-  /// @domName MouseEvent.y; @docsEditable true
+  @DocsEditable @DomName('MouseEvent.y')
   final int y;
 
-  /// @domName MouseEvent.initMouseEvent; @docsEditable true
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
     return;
   }
   @JSName('initMouseEvent')
+  @DocsEditable @DomName('MouseEvent.initMouseEvent')
   void _$dom_initMouseEvent_1(type, canBubble, cancelable, Window view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
 
 
@@ -14790,7 +14661,9 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MutationEvent; @docsEditable true
+
+@DocsEditable
+@DomName('MutationEvent')
 class MutationEvent extends Event native "*MutationEvent" {
 
   static const int ADDITION = 2;
@@ -14799,22 +14672,22 @@ class MutationEvent extends Event native "*MutationEvent" {
 
   static const int REMOVAL = 3;
 
-  /// @domName MutationEvent.attrChange; @docsEditable true
+  @DocsEditable @DomName('MutationEvent.attrChange')
   final int attrChange;
 
-  /// @domName MutationEvent.attrName; @docsEditable true
+  @DocsEditable @DomName('MutationEvent.attrName')
   final String attrName;
 
-  /// @domName MutationEvent.newValue; @docsEditable true
+  @DocsEditable @DomName('MutationEvent.newValue')
   final String newValue;
 
-  /// @domName MutationEvent.prevValue; @docsEditable true
+  @DocsEditable @DomName('MutationEvent.prevValue')
   final String prevValue;
 
-  /// @domName MutationEvent.relatedNode; @docsEditable true
+  @DocsEditable @DomName('MutationEvent.relatedNode')
   final Node relatedNode;
 
-  /// @domName MutationEvent.initMutationEvent; @docsEditable true
+  @DocsEditable @DomName('MutationEvent.initMutationEvent')
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14822,29 +14695,30 @@ class MutationEvent extends Event native "*MutationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MutationObserver
+@DocsEditable
+@DomName('MutationObserver')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 class MutationObserver native "*MutationObserver" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
 
-  /// @domName MutationObserver.disconnect; @docsEditable true
+  @DocsEditable @DomName('MutationObserver.disconnect')
   void disconnect() native;
 
-  /// @domName MutationObserver._observe; @docsEditable true
   void _observe(Node target, Map options) {
     var options_1 = convertDartToNative_Dictionary(options);
     __observe_1(target, options_1);
     return;
   }
   @JSName('observe')
+  @DocsEditable @DomName('MutationObserver.observe')
   void __observe_1(Node target, options) native;
 
-  /// @domName MutationObserver.takeRecords; @docsEditable true
+  @DocsEditable @DomName('MutationObserver.takeRecords')
   List<MutationRecord> takeRecords() native;
 
   /**
@@ -14933,36 +14807,38 @@ class MutationObserver native "*MutationObserver" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MutationRecord; @docsEditable true
+
+@DocsEditable
+@DomName('MutationRecord')
 class MutationRecord native "*MutationRecord" {
 
-  /// @domName MutationRecord.addedNodes; @docsEditable true
+  @DocsEditable @DomName('MutationRecord.addedNodes')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> addedNodes;
 
-  /// @domName MutationRecord.attributeName; @docsEditable true
+  @DocsEditable @DomName('MutationRecord.attributeName')
   final String attributeName;
 
-  /// @domName MutationRecord.attributeNamespace; @docsEditable true
+  @DocsEditable @DomName('MutationRecord.attributeNamespace')
   final String attributeNamespace;
 
-  /// @domName MutationRecord.nextSibling; @docsEditable true
+  @DocsEditable @DomName('MutationRecord.nextSibling')
   final Node nextSibling;
 
-  /// @domName MutationRecord.oldValue; @docsEditable true
+  @DocsEditable @DomName('MutationRecord.oldValue')
   final String oldValue;
 
-  /// @domName MutationRecord.previousSibling; @docsEditable true
+  @DocsEditable @DomName('MutationRecord.previousSibling')
   final Node previousSibling;
 
-  /// @domName MutationRecord.removedNodes; @docsEditable true
+  @DocsEditable @DomName('MutationRecord.removedNodes')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> removedNodes;
 
-  /// @domName MutationRecord.target; @docsEditable true
+  @DocsEditable @DomName('MutationRecord.target')
   final Node target;
 
-  /// @domName MutationRecord.type; @docsEditable true
+  @DocsEditable @DomName('MutationRecord.type')
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14970,10 +14846,12 @@ class MutationRecord native "*MutationRecord" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NamedNodeMap; @docsEditable true
+
+@DocsEditable
+@DomName('NamedNodeMap')
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
 
-  /// @domName NamedNodeMap.length; @docsEditable true
+  @DocsEditable @DomName('NamedNodeMap.length')
   int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -14994,50 +14872,50 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -15095,16 +14973,36 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -15124,25 +15022,25 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 
   // -- end List<Node> mixins.
 
-  /// @domName NamedNodeMap.getNamedItem; @docsEditable true
+  @DocsEditable @DomName('NamedNodeMap.getNamedItem')
   Node getNamedItem(String name) native;
 
-  /// @domName NamedNodeMap.getNamedItemNS; @docsEditable true
+  @DocsEditable @DomName('NamedNodeMap.getNamedItemNS')
   Node getNamedItemNS(String namespaceURI, String localName) native;
 
-  /// @domName NamedNodeMap.item; @docsEditable true
+  @DocsEditable @DomName('NamedNodeMap.item')
   Node item(int index) native;
 
-  /// @domName NamedNodeMap.removeNamedItem; @docsEditable true
+  @DocsEditable @DomName('NamedNodeMap.removeNamedItem')
   Node removeNamedItem(String name) native;
 
-  /// @domName NamedNodeMap.removeNamedItemNS; @docsEditable true
+  @DocsEditable @DomName('NamedNodeMap.removeNamedItemNS')
   Node removeNamedItemNS(String namespaceURI, String localName) native;
 
-  /// @domName NamedNodeMap.setNamedItem; @docsEditable true
+  @DocsEditable @DomName('NamedNodeMap.setNamedItem')
   Node setNamedItem(Node node) native;
 
-  /// @domName NamedNodeMap.setNamedItemNS; @docsEditable true
+  @DocsEditable @DomName('NamedNodeMap.setNamedItemNS')
   Node setNamedItemNS(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15150,83 +15048,120 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Navigator; @docsEditable true
+@DocsEditable
+@DomName('Navigator')
 class Navigator native "*Navigator" {
 
-  /// @domName Navigator.language; @docsEditable true
+  @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);
 
-  /// @domName Navigator.appCodeName; @docsEditable true
+  /**
+   * Gets a stream (video and or audio) from the local computer.
+   *
+   * Use [MediaStream.supported] to check if this is supported by the current
+   * platform.
+   *
+   * Example use:
+   *
+   *     window.navigator.getUserMedia(audio:true, video: true).then((stream) {
+   *       var video = new VideoElement()
+   *         ..autoplay = true
+   *         ..src = Url.createObjectUrl(stream);
+   *       document.body.append(video);
+   *     });
+   *
+   * See also:
+   * * [MediaStream.supported]
+   */
+  @DomName('Navigator.webkitGetUserMedia')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental()
+  Future<LocalMediaStream> getUserMedia({bool audio: false,
+      bool video: false}) {
+    var completer = new Completer<LocalMediaStream>();
+    var options = {
+      'audio': audio,
+      'video': video
+    };
+    _ensureGetUserMedia();
+    this._getUserMedia(convertDartToNative_Dictionary(options),
+      (stream) {
+        completer.complete(stream);
+      },
+      (error) {
+        completer.completeError(error);
+      });
+    return completer.future;
+  }
+
+  _ensureGetUserMedia() {
+    if (JS('bool', '!(#.getUserMedia)', this)) {
+      JS('void', '#.getUserMedia = '
+          '(#.getUserMedia || #.webkitGetUserMedia || #.mozGetUserMedia ||'
+          '#.msGetUserMedia)', this, this, this, this, this);
+    }
+  }
+
+  @JSName('getUserMedia')
+  void _getUserMedia(options, _NavigatorUserMediaSuccessCallback success,
+      _NavigatorUserMediaErrorCallback error) native;
+
+
+  @DocsEditable @DomName('Navigator.appCodeName')
   final String appCodeName;
 
-  /// @domName Navigator.appName; @docsEditable true
+  @DocsEditable @DomName('Navigator.appName')
   final String appName;
 
-  /// @domName Navigator.appVersion; @docsEditable true
+  @DocsEditable @DomName('Navigator.appVersion')
   final String appVersion;
 
-  /// @domName Navigator.cookieEnabled; @docsEditable true
+  @DocsEditable @DomName('Navigator.cookieEnabled')
   final bool cookieEnabled;
 
-  /// @domName Navigator.geolocation; @docsEditable true
+  @DocsEditable @DomName('Navigator.geolocation')
   final Geolocation geolocation;
 
-  /// @domName Navigator.mimeTypes; @docsEditable true
+  @DocsEditable @DomName('Navigator.mimeTypes')
   final DomMimeTypeArray mimeTypes;
 
-  /// @domName Navigator.onLine; @docsEditable true
+  @DocsEditable @DomName('Navigator.onLine')
   final bool onLine;
 
-  /// @domName Navigator.platform; @docsEditable true
+  @DocsEditable @DomName('Navigator.platform')
   final String platform;
 
-  /// @domName Navigator.plugins; @docsEditable true
+  @DocsEditable @DomName('Navigator.plugins')
   final DomPluginArray plugins;
 
-  /// @domName Navigator.product; @docsEditable true
+  @DocsEditable @DomName('Navigator.product')
   final String product;
 
-  /// @domName Navigator.productSub; @docsEditable true
+  @DocsEditable @DomName('Navigator.productSub')
   final String productSub;
 
-  /// @domName Navigator.userAgent; @docsEditable true
+  @DocsEditable @DomName('Navigator.userAgent')
   final String userAgent;
 
-  /// @domName Navigator.vendor; @docsEditable true
+  @DocsEditable @DomName('Navigator.vendor')
   final String vendor;
 
-  /// @domName Navigator.vendorSub; @docsEditable true
+  @DocsEditable @DomName('Navigator.vendorSub')
   final String vendorSub;
 
-  /// @domName Navigator.webkitBattery; @docsEditable true
+  @DocsEditable @DomName('Navigator.webkitBattery')
   final BatteryManager webkitBattery;
 
-  /// @domName Navigator.getStorageUpdates; @docsEditable true
+  @DocsEditable @DomName('Navigator.getStorageUpdates')
   void getStorageUpdates() native;
 
-  /// @domName Navigator.javaEnabled; @docsEditable true
+  @DocsEditable @DomName('Navigator.javaEnabled')
   bool javaEnabled() native;
 
-  /// @domName Navigator.webkitGetGamepads; @docsEditable true
+  @DocsEditable @DomName('Navigator.webkitGetGamepads')
   @Returns('_GamepadList') @Creates('_GamepadList')
   List<Gamepad> webkitGetGamepads() native;
-
-  /// @domName Navigator.webkitGetUserMedia; @docsEditable true
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) {
-    if (?errorCallback) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      _webkitGetUserMedia_1(options_1, successCallback, errorCallback);
-      return;
-    }
-    var options_2 = convertDartToNative_Dictionary(options);
-    _webkitGetUserMedia_2(options_2, successCallback);
-    return;
-  }
-  @JSName('webkitGetUserMedia')
-  void _webkitGetUserMedia_1(options, NavigatorUserMediaSuccessCallback successCallback, NavigatorUserMediaErrorCallback errorCallback) native;
-  @JSName('webkitGetUserMedia')
-  void _webkitGetUserMedia_2(options, NavigatorUserMediaSuccessCallback successCallback) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15234,12 +15169,14 @@ class Navigator native "*Navigator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NavigatorUserMediaError; @docsEditable true
+
+@DocsEditable
+@DomName('NavigatorUserMediaError')
 class NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
   static const int PERMISSION_DENIED = 1;
 
-  /// @domName NavigatorUserMediaError.code; @docsEditable true
+  @DocsEditable @DomName('NavigatorUserMediaError.code')
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15249,7 +15186,7 @@ class NavigatorUserMediaError native "*NavigatorUserMediaError" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+typedef void _NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15257,7 +15194,7 @@ typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
+typedef void _NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15292,11 +15229,11 @@ class _ChildNodeListLazy implements List {
   }
 
   Node min([int compare(Node a, Node b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Node max([int compare(Node a, Node b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 
   void add(Node value) {
@@ -15330,6 +15267,29 @@ class _ChildNodeListLazy implements List {
     return result;
   }
 
+  void remove(Object object) {
+    if (object is! Node) return;
+    Node node = object;
+    if (!identical(this, node.parentNode)) return;
+    _this.$dom_removeChild(node);
+  }
+
+  void removeAll(Iterable elements) {
+    IterableMixinWorkaround.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    IterableMixinWorkaround.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(Node node)) {
+    IterableMixinWorkaround.removeMatching(this, test);
+  }
+
+  void retainMatching(bool test(Node node)) {
+    IterableMixinWorkaround.retainMatching(this, test);
+  }
+
   void clear() {
     _this.text = '';
   }
@@ -15342,28 +15302,30 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Node element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  List mappedBy(f(Node element)) =>
-      new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
+  }
 
-  Iterable<Node> where(bool f(Node element)) =>
-     new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
@@ -15373,31 +15335,31 @@ class _ChildNodeListLazy implements List {
   // From List<Node>:
 
   List<Node> take(int n) {
-    return new ListView<Node>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Node> skip(int n) {
-    return new ListView<Node>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -15446,7 +15408,8 @@ class _ChildNodeListLazy implements List {
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
-/// @domName Node
+@DocsEditable
+@DomName('Node')
 class Node extends EventTarget native "*Node" {
   List<Node> get nodes {
     return new _ChildNodeListLazy(this);
@@ -15464,8 +15427,8 @@ class Node extends EventTarget native "*Node" {
 
   /**
    * Removes this node from the DOM.
-   * @domName Node.removeChild
    */
+  @DomName('Node.removeChild')
   void remove() {
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
@@ -15477,8 +15440,8 @@ class Node extends EventTarget native "*Node" {
 
   /**
    * Replaces this node with another node.
-   * @domName Node.replaceChild
    */
+  @DomName('Node.replaceChild')
   Node replaceWith(Node otherNode) {
     try {
       final Node parent = this.parentNode;
@@ -15490,128 +15453,95 @@ class Node extends EventTarget native "*Node" {
   }
 
 
-  static const int ATTRIBUTE_NODE = 2;
-
-  static const int CDATA_SECTION_NODE = 4;
-
-  static const int COMMENT_NODE = 8;
-
-  static const int DOCUMENT_FRAGMENT_NODE = 11;
-
-  static const int DOCUMENT_NODE = 9;
-
-  static const int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
-
-  static const int DOCUMENT_POSITION_CONTAINS = 0x08;
-
-  static const int DOCUMENT_POSITION_DISCONNECTED = 0x01;
-
-  static const int DOCUMENT_POSITION_FOLLOWING = 0x04;
-
-  static const int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
-
-  static const int DOCUMENT_POSITION_PRECEDING = 0x02;
-
-  static const int DOCUMENT_TYPE_NODE = 10;
-
-  static const int ELEMENT_NODE = 1;
-
-  static const int ENTITY_NODE = 6;
-
-  static const int ENTITY_REFERENCE_NODE = 5;
-
-  static const int NOTATION_NODE = 12;
-
-  static const int PROCESSING_INSTRUCTION_NODE = 7;
-
-  static const int TEXT_NODE = 3;
-
-  /// @domName Node.attributes; @docsEditable true
   @JSName('attributes')
+  @DocsEditable @DomName('Node.attributes')
   final NamedNodeMap $dom_attributes;
 
-  /// @domName Node.childNodes; @docsEditable true
   @JSName('childNodes')
+  @DocsEditable @DomName('Node.childNodes')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> $dom_childNodes;
 
-  /// @domName Node.firstChild; @docsEditable true
   @JSName('firstChild')
+  @DocsEditable @DomName('Node.firstChild')
   final Node $dom_firstChild;
 
-  /// @domName Node.lastChild; @docsEditable true
   @JSName('lastChild')
+  @DocsEditable @DomName('Node.lastChild')
   final Node $dom_lastChild;
 
-  /// @domName Node.localName; @docsEditable true
   @JSName('localName')
+  @DocsEditable @DomName('Node.localName')
   final String $dom_localName;
 
-  /// @domName Node.namespaceURI; @docsEditable true
   @JSName('namespaceURI')
+  @DocsEditable @DomName('Node.namespaceURI')
   final String $dom_namespaceUri;
 
-  /// @domName Node.nextSibling; @docsEditable true
   @JSName('nextSibling')
+  @DocsEditable @DomName('Node.nextSibling')
   final Node nextNode;
 
-  /// @domName Node.nodeType; @docsEditable true
+  @DocsEditable @DomName('Node.nodeType')
   final int nodeType;
 
-  /// @domName Node.ownerDocument; @docsEditable true
+  @DocsEditable @DomName('Node.nodeValue')
+  final String nodeValue;
+
   @JSName('ownerDocument')
+  @DocsEditable @DomName('Node.ownerDocument')
   final Document document;
 
-  /// @domName Node.parentElement; @docsEditable true
   @JSName('parentElement')
+  @DocsEditable @DomName('Node.parentElement')
   final Element parent;
 
-  /// @domName Node.parentNode; @docsEditable true
+  @DocsEditable @DomName('Node.parentNode')
   final Node parentNode;
 
-  /// @domName Node.previousSibling; @docsEditable true
   @JSName('previousSibling')
+  @DocsEditable @DomName('Node.previousSibling')
   final Node previousNode;
 
-  /// @domName Node.textContent; @docsEditable true
   @JSName('textContent')
+  @DocsEditable @DomName('Node.textContent')
   String text;
 
-  /// @domName Node.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('Node.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName Node.appendChild; @docsEditable true
   @JSName('appendChild')
+  @DocsEditable @DomName('Node.appendChild')
   Node $dom_appendChild(Node newChild) native;
 
-  /// @domName Node.cloneNode; @docsEditable true
   @JSName('cloneNode')
+  @DocsEditable @DomName('Node.cloneNode')
   Node clone(bool deep) native;
 
-  /// @domName Node.contains; @docsEditable true
+  @DocsEditable @DomName('Node.contains')
   bool contains(Node other) native;
 
-  /// @domName Node.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('Node.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName Node.hasChildNodes; @docsEditable true
+  @DocsEditable @DomName('Node.hasChildNodes')
   bool hasChildNodes() native;
 
-  /// @domName Node.insertBefore; @docsEditable true
+  @DocsEditable @DomName('Node.insertBefore')
   Node insertBefore(Node newChild, Node refChild) native;
 
-  /// @domName Node.removeChild; @docsEditable true
   @JSName('removeChild')
+  @DocsEditable @DomName('Node.removeChild')
   Node $dom_removeChild(Node oldChild) native;
 
-  /// @domName Node.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('Node.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName Node.replaceChild; @docsEditable true
   @JSName('replaceChild')
+  @DocsEditable @DomName('Node.replaceChild')
   Node $dom_replaceChild(Node newChild, Node oldChild) native;
 
 }
@@ -15620,7 +15550,9 @@ class Node extends EventTarget native "*Node" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NodeFilter; @docsEditable true
+
+@DocsEditable
+@DomName('NodeFilter')
 class NodeFilter native "*NodeFilter" {
 
   static const int FILTER_ACCEPT = 1;
@@ -15655,7 +15587,7 @@ class NodeFilter native "*NodeFilter" {
 
   static const int SHOW_TEXT = 0x00000004;
 
-  /// @domName NodeFilter.acceptNode; @docsEditable true
+  @DocsEditable @DomName('NodeFilter.acceptNode')
   int acceptNode(Node n) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15663,34 +15595,36 @@ class NodeFilter native "*NodeFilter" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NodeIterator; @docsEditable true
+
+@DocsEditable
+@DomName('NodeIterator')
 class NodeIterator native "*NodeIterator" {
 
-  /// @domName NodeIterator.expandEntityReferences; @docsEditable true
+  @DocsEditable @DomName('NodeIterator.expandEntityReferences')
   final bool expandEntityReferences;
 
-  /// @domName NodeIterator.filter; @docsEditable true
+  @DocsEditable @DomName('NodeIterator.filter')
   final NodeFilter filter;
 
-  /// @domName NodeIterator.pointerBeforeReferenceNode; @docsEditable true
+  @DocsEditable @DomName('NodeIterator.pointerBeforeReferenceNode')
   final bool pointerBeforeReferenceNode;
 
-  /// @domName NodeIterator.referenceNode; @docsEditable true
+  @DocsEditable @DomName('NodeIterator.referenceNode')
   final Node referenceNode;
 
-  /// @domName NodeIterator.root; @docsEditable true
+  @DocsEditable @DomName('NodeIterator.root')
   final Node root;
 
-  /// @domName NodeIterator.whatToShow; @docsEditable true
+  @DocsEditable @DomName('NodeIterator.whatToShow')
   final int whatToShow;
 
-  /// @domName NodeIterator.detach; @docsEditable true
+  @DocsEditable @DomName('NodeIterator.detach')
   void detach() native;
 
-  /// @domName NodeIterator.nextNode; @docsEditable true
+  @DocsEditable @DomName('NodeIterator.nextNode')
   Node nextNode() native;
 
-  /// @domName NodeIterator.previousNode; @docsEditable true
+  @DocsEditable @DomName('NodeIterator.previousNode')
   Node previousNode() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15698,10 +15632,12 @@ class NodeIterator native "*NodeIterator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NodeList; @docsEditable true
+
+@DocsEditable
+@DomName('NodeList')
 class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
 
-  /// @domName NodeList.length; @docsEditable true
+  @DocsEditable @DomName('NodeList.length')
   int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -15722,50 +15658,50 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -15823,16 +15759,36 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -15852,8 +15808,8 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   // -- end List<Node> mixins.
 
-  /// @domName NodeList.item; @docsEditable true
   @JSName('item')
+  @DocsEditable @DomName('NodeList.item')
   Node _item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15861,13 +15817,15 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Notation; @docsEditable true
+
+@DocsEditable
+@DomName('Notation')
 class Notation extends Node native "*Notation" {
 
-  /// @domName Notation.publicId; @docsEditable true
+  @DocsEditable @DomName('Notation.publicId')
   final String publicId;
 
-  /// @domName Notation.systemId; @docsEditable true
+  @DocsEditable @DomName('Notation.systemId')
   final String systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15875,7 +15833,9 @@ class Notation extends Node native "*Notation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Notification; @docsEditable true
+
+@DocsEditable
+@DomName('Notification')
 class Notification extends EventTarget native "*Notification" {
 
   static const EventStreamProvider<Event> clickEvent = const EventStreamProvider<Event>('click');
@@ -15888,7 +15848,7 @@ class Notification extends EventTarget native "*Notification" {
 
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
-  ///@docsEditable true
+  @DocsEditable
   factory Notification(String title, [Map options]) {
     if (!?options) {
       return Notification._create(title);
@@ -15902,44 +15862,45 @@ class Notification extends EventTarget native "*Notification" {
     return JS('Notification', 'new Notification(#,#)', title, options);
   }
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   NotificationEvents get on =>
     new NotificationEvents(this);
 
-  /// @domName Notification.dir; @docsEditable true
+  @DocsEditable @DomName('Notification.dir')
   String dir;
 
-  /// @domName Notification.permission; @docsEditable true
+  @DocsEditable @DomName('Notification.permission')
   final String permission;
 
-  /// @domName Notification.replaceId; @docsEditable true
+  @DocsEditable @DomName('Notification.replaceId')
   String replaceId;
 
-  /// @domName Notification.tag; @docsEditable true
+  @DocsEditable @DomName('Notification.tag')
   String tag;
 
-  /// @domName Notification.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('Notification.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName Notification.cancel; @docsEditable true
+  @DocsEditable @DomName('Notification.cancel')
   void cancel() native;
 
-  /// @domName Notification.close; @docsEditable true
+  @DocsEditable @DomName('Notification.close')
   void close() native;
 
-  /// @domName Notification.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('Notification.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName Notification.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('Notification.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName Notification.requestPermission; @docsEditable true
+  @DocsEditable @DomName('Notification.requestPermission')
   static void requestPermission(NotificationPermissionCallback callback) native;
 
-  /// @domName Notification.show; @docsEditable true
+  @DocsEditable @DomName('Notification.show')
   void show() native;
 
   Stream<Event> get onClick => clickEvent.forTarget(this);
@@ -15953,24 +15914,24 @@ class Notification extends EventTarget native "*Notification" {
   Stream<Event> get onShow => showEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class NotificationEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   NotificationEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get click => this['click'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get close => this['close'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get display => this['display'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get show => this['show'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15978,20 +15939,28 @@ class NotificationEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName NotificationCenter; @docsEditable true
+
+@DocsEditable
+@DomName('NotificationCenter')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class NotificationCenter native "*NotificationCenter" {
 
-  /// @domName NotificationCenter.checkPermission; @docsEditable true
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.webkitNotifications)');
+
+  @DocsEditable @DomName('NotificationCenter.checkPermission')
   int checkPermission() native;
 
-  /// @domName NotificationCenter.createHTMLNotification; @docsEditable true
   @JSName('createHTMLNotification')
+  @DocsEditable @DomName('NotificationCenter.createHTMLNotification')
   Notification createHtmlNotification(String url) native;
 
-  /// @domName NotificationCenter.createNotification; @docsEditable true
+  @DocsEditable @DomName('NotificationCenter.createNotification')
   Notification createNotification(String iconUrl, String title, String body) native;
 
-  /// @domName NotificationCenter.requestPermission; @docsEditable true
+  @DocsEditable @DomName('NotificationCenter.requestPermission')
   void requestPermission(VoidCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16007,19 +15976,21 @@ typedef void NotificationPermissionCallback(String permission);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOListElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLOListElement')
 class OListElement extends Element native "*HTMLOListElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory OListElement() => document.$dom_createElement("ol");
 
-  /// @domName HTMLOListElement.reversed; @docsEditable true
+  @DocsEditable @DomName('HTMLOListElement.reversed')
   bool reversed;
 
-  /// @domName HTMLOListElement.start; @docsEditable true
+  @DocsEditable @DomName('HTMLOListElement.start')
   int start;
 
-  /// @domName HTMLOListElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLOListElement.type')
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16027,55 +15998,57 @@ class OListElement extends Element native "*HTMLOListElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLObjectElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends Element native "*HTMLObjectElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory ObjectElement() => document.$dom_createElement("object");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('object');
 
-  /// @domName HTMLObjectElement.code; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.code')
   String code;
 
-  /// @domName HTMLObjectElement.data; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.data')
   String data;
 
-  /// @domName HTMLObjectElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.form')
   final FormElement form;
 
-  /// @domName HTMLObjectElement.height; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.height')
   String height;
 
-  /// @domName HTMLObjectElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.name')
   String name;
 
-  /// @domName HTMLObjectElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.type')
   String type;
 
-  /// @domName HTMLObjectElement.useMap; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.useMap')
   String useMap;
 
-  /// @domName HTMLObjectElement.validationMessage; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.validationMessage')
   final String validationMessage;
 
-  /// @domName HTMLObjectElement.validity; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.validity')
   final ValidityState validity;
 
-  /// @domName HTMLObjectElement.width; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.width')
   String width;
 
-  /// @domName HTMLObjectElement.willValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.willValidate')
   final bool willValidate;
 
-  /// @domName HTMLObjectElement.checkValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.checkValidity')
   bool checkValidity() native;
 
-  /// @domName HTMLObjectElement.setCustomValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLObjectElement.setCustomValidity')
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16083,7 +16056,9 @@ class ObjectElement extends Element native "*HTMLObjectElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OESElementIndexUint; @docsEditable true
+
+@DocsEditable
+@DomName('OESElementIndexUint')
 class OesElementIndexUint native "*OESElementIndexUint" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16091,7 +16066,9 @@ class OesElementIndexUint native "*OESElementIndexUint" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OESStandardDerivatives; @docsEditable true
+
+@DocsEditable
+@DomName('OESStandardDerivatives')
 class OesStandardDerivatives native "*OESStandardDerivatives" {
 
   static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
@@ -16101,7 +16078,9 @@ class OesStandardDerivatives native "*OESStandardDerivatives" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OESTextureFloat; @docsEditable true
+
+@DocsEditable
+@DomName('OESTextureFloat')
 class OesTextureFloat native "*OESTextureFloat" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16109,25 +16088,27 @@ class OesTextureFloat native "*OESTextureFloat" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OESVertexArrayObject; @docsEditable true
+
+@DocsEditable
+@DomName('OESVertexArrayObject')
 class OesVertexArrayObject native "*OESVertexArrayObject" {
 
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
-  /// @domName OESVertexArrayObject.bindVertexArrayOES; @docsEditable true
   @JSName('bindVertexArrayOES')
+  @DocsEditable @DomName('OESVertexArrayObject.bindVertexArrayOES')
   void bindVertexArray(WebGLVertexArrayObject arrayObject) native;
 
-  /// @domName OESVertexArrayObject.createVertexArrayOES; @docsEditable true
   @JSName('createVertexArrayOES')
+  @DocsEditable @DomName('OESVertexArrayObject.createVertexArrayOES')
   WebGLVertexArrayObject createVertexArray() native;
 
-  /// @domName OESVertexArrayObject.deleteVertexArrayOES; @docsEditable true
   @JSName('deleteVertexArrayOES')
+  @DocsEditable @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   void deleteVertexArray(WebGLVertexArrayObject arrayObject) native;
 
-  /// @domName OESVertexArrayObject.isVertexArrayOES; @docsEditable true
   @JSName('isVertexArrayOES')
+  @DocsEditable @DomName('OESVertexArrayObject.isVertexArrayOES')
   bool isVertexArray(WebGLVertexArrayObject arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16135,16 +16116,18 @@ class OesVertexArrayObject native "*OESVertexArrayObject" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOptGroupElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLOptGroupElement')
 class OptGroupElement extends Element native "*HTMLOptGroupElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
-  /// @domName HTMLOptGroupElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLOptGroupElement.disabled')
   bool disabled;
 
-  /// @domName HTMLOptGroupElement.label; @docsEditable true
+  @DocsEditable @DomName('HTMLOptGroupElement.label')
   String label;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16152,10 +16135,12 @@ class OptGroupElement extends Element native "*HTMLOptGroupElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOptionElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLOptionElement')
 class OptionElement extends Element native "*HTMLOptionElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
       return OptionElement._create();
@@ -16187,25 +16172,25 @@ class OptionElement extends Element native "*HTMLOptionElement" {
     return JS('OptionElement', 'new Option(#,#,#,#)', data, value, defaultSelected, selected);
   }
 
-  /// @domName HTMLOptionElement.defaultSelected; @docsEditable true
+  @DocsEditable @DomName('HTMLOptionElement.defaultSelected')
   bool defaultSelected;
 
-  /// @domName HTMLOptionElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLOptionElement.disabled')
   bool disabled;
 
-  /// @domName HTMLOptionElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLOptionElement.form')
   final FormElement form;
 
-  /// @domName HTMLOptionElement.index; @docsEditable true
+  @DocsEditable @DomName('HTMLOptionElement.index')
   final int index;
 
-  /// @domName HTMLOptionElement.label; @docsEditable true
+  @DocsEditable @DomName('HTMLOptionElement.label')
   String label;
 
-  /// @domName HTMLOptionElement.selected; @docsEditable true
+  @DocsEditable @DomName('HTMLOptionElement.selected')
   bool selected;
 
-  /// @domName HTMLOptionElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLOptionElement.value')
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16213,53 +16198,55 @@ class OptionElement extends Element native "*HTMLOptionElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLOutputElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLOutputElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class OutputElement extends Element native "*HTMLOutputElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory OutputElement() => document.$dom_createElement("output");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('output');
 
-  /// @domName HTMLOutputElement.defaultValue; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.defaultValue')
   String defaultValue;
 
-  /// @domName HTMLOutputElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.form')
   final FormElement form;
 
-  /// @domName HTMLOutputElement.htmlFor; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.htmlFor')
   DomSettableTokenList htmlFor;
 
-  /// @domName HTMLOutputElement.labels; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.labels')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
-  /// @domName HTMLOutputElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.name')
   String name;
 
-  /// @domName HTMLOutputElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.type')
   final String type;
 
-  /// @domName HTMLOutputElement.validationMessage; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.validationMessage')
   final String validationMessage;
 
-  /// @domName HTMLOutputElement.validity; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.validity')
   final ValidityState validity;
 
-  /// @domName HTMLOutputElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.value')
   String value;
 
-  /// @domName HTMLOutputElement.willValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.willValidate')
   final bool willValidate;
 
-  /// @domName HTMLOutputElement.checkValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.checkValidity')
   bool checkValidity() native;
 
-  /// @domName HTMLOutputElement.setCustomValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLOutputElement.setCustomValidity')
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16267,7 +16254,9 @@ class OutputElement extends Element native "*HTMLOutputElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName OverflowEvent; @docsEditable true
+
+@DocsEditable
+@DomName('OverflowEvent')
 class OverflowEvent extends Event native "*OverflowEvent" {
 
   static const int BOTH = 2;
@@ -16276,13 +16265,13 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 
   static const int VERTICAL = 1;
 
-  /// @domName OverflowEvent.horizontalOverflow; @docsEditable true
+  @DocsEditable @DomName('OverflowEvent.horizontalOverflow')
   final bool horizontalOverflow;
 
-  /// @domName OverflowEvent.orient; @docsEditable true
+  @DocsEditable @DomName('OverflowEvent.orient')
   final int orient;
 
-  /// @domName OverflowEvent.verticalOverflow; @docsEditable true
+  @DocsEditable @DomName('OverflowEvent.verticalOverflow')
   final bool verticalOverflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16290,19 +16279,21 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PagePopupController; @docsEditable true
+
+@DocsEditable
+@DomName('PagePopupController')
 class PagePopupController native "*PagePopupController" {
 
-  /// @domName PagePopupController.formatMonth; @docsEditable true
+  @DocsEditable @DomName('PagePopupController.formatMonth')
   String formatMonth(int year, int zeroBaseMonth) native;
 
-  /// @domName PagePopupController.histogramEnumeration; @docsEditable true
+  @DocsEditable @DomName('PagePopupController.histogramEnumeration')
   void histogramEnumeration(String name, int sample, int boundaryValue) native;
 
-  /// @domName PagePopupController.localizeNumberString; @docsEditable true
+  @DocsEditable @DomName('PagePopupController.localizeNumberString')
   String localizeNumberString(String numberString) native;
 
-  /// @domName PagePopupController.setValueAndClosePopup; @docsEditable true
+  @DocsEditable @DomName('PagePopupController.setValueAndClosePopup')
   void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16310,10 +16301,12 @@ class PagePopupController native "*PagePopupController" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PageTransitionEvent; @docsEditable true
+
+@DocsEditable
+@DomName('PageTransitionEvent')
 class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
-  /// @domName PageTransitionEvent.persisted; @docsEditable true
+  @DocsEditable @DomName('PageTransitionEvent.persisted')
   final bool persisted;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16321,10 +16314,12 @@ class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLParagraphElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLParagraphElement')
 class ParagraphElement extends Element native "*HTMLParagraphElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory ParagraphElement() => document.$dom_createElement("p");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16332,16 +16327,18 @@ class ParagraphElement extends Element native "*HTMLParagraphElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLParamElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLParamElement')
 class ParamElement extends Element native "*HTMLParamElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory ParamElement() => document.$dom_createElement("param");
 
-  /// @domName HTMLParamElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLParamElement.name')
   String name;
 
-  /// @domName HTMLParamElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLParamElement.value')
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16349,7 +16346,9 @@ class ParamElement extends Element native "*HTMLParamElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Performance; @docsEditable true
+
+@DocsEditable
+@DomName('Performance')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE)
@@ -16358,16 +16357,16 @@ class Performance extends EventTarget native "*Performance" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
 
-  /// @domName Performance.memory; @docsEditable true
+  @DocsEditable @DomName('Performance.memory')
   final MemoryInfo memory;
 
-  /// @domName Performance.navigation; @docsEditable true
+  @DocsEditable @DomName('Performance.navigation')
   final PerformanceNavigation navigation;
 
-  /// @domName Performance.timing; @docsEditable true
+  @DocsEditable @DomName('Performance.timing')
   final PerformanceTiming timing;
 
-  /// @domName Performance.now; @docsEditable true
+  @DocsEditable @DomName('Performance.now')
   num now() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16375,7 +16374,9 @@ class Performance extends EventTarget native "*Performance" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PerformanceNavigation; @docsEditable true
+
+@DocsEditable
+@DomName('PerformanceNavigation')
 class PerformanceNavigation native "*PerformanceNavigation" {
 
   static const int TYPE_BACK_FORWARD = 2;
@@ -16386,10 +16387,10 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 
   static const int TYPE_RESERVED = 255;
 
-  /// @domName PerformanceNavigation.redirectCount; @docsEditable true
+  @DocsEditable @DomName('PerformanceNavigation.redirectCount')
   final int redirectCount;
 
-  /// @domName PerformanceNavigation.type; @docsEditable true
+  @DocsEditable @DomName('PerformanceNavigation.type')
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16397,70 +16398,72 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PerformanceTiming; @docsEditable true
+
+@DocsEditable
+@DomName('PerformanceTiming')
 class PerformanceTiming native "*PerformanceTiming" {
 
-  /// @domName PerformanceTiming.connectEnd; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.connectEnd')
   final int connectEnd;
 
-  /// @domName PerformanceTiming.connectStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.connectStart')
   final int connectStart;
 
-  /// @domName PerformanceTiming.domComplete; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.domComplete')
   final int domComplete;
 
-  /// @domName PerformanceTiming.domContentLoadedEventEnd; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.domContentLoadedEventEnd')
   final int domContentLoadedEventEnd;
 
-  /// @domName PerformanceTiming.domContentLoadedEventStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.domContentLoadedEventStart')
   final int domContentLoadedEventStart;
 
-  /// @domName PerformanceTiming.domInteractive; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.domInteractive')
   final int domInteractive;
 
-  /// @domName PerformanceTiming.domLoading; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.domLoading')
   final int domLoading;
 
-  /// @domName PerformanceTiming.domainLookupEnd; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.domainLookupEnd')
   final int domainLookupEnd;
 
-  /// @domName PerformanceTiming.domainLookupStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.domainLookupStart')
   final int domainLookupStart;
 
-  /// @domName PerformanceTiming.fetchStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.fetchStart')
   final int fetchStart;
 
-  /// @domName PerformanceTiming.loadEventEnd; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.loadEventEnd')
   final int loadEventEnd;
 
-  /// @domName PerformanceTiming.loadEventStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.loadEventStart')
   final int loadEventStart;
 
-  /// @domName PerformanceTiming.navigationStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.navigationStart')
   final int navigationStart;
 
-  /// @domName PerformanceTiming.redirectEnd; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.redirectEnd')
   final int redirectEnd;
 
-  /// @domName PerformanceTiming.redirectStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.redirectStart')
   final int redirectStart;
 
-  /// @domName PerformanceTiming.requestStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.requestStart')
   final int requestStart;
 
-  /// @domName PerformanceTiming.responseEnd; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.responseEnd')
   final int responseEnd;
 
-  /// @domName PerformanceTiming.responseStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.responseStart')
   final int responseStart;
 
-  /// @domName PerformanceTiming.secureConnectionStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.secureConnectionStart')
   final int secureConnectionStart;
 
-  /// @domName PerformanceTiming.unloadEventEnd; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.unloadEventEnd')
   final int unloadEventEnd;
 
-  /// @domName PerformanceTiming.unloadEventStart; @docsEditable true
+  @DocsEditable @DomName('PerformanceTiming.unloadEventStart')
   final int unloadEventStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16468,17 +16471,19 @@ class PerformanceTiming native "*PerformanceTiming" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitPoint; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitPoint')
 class Point native "*WebKitPoint" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory Point(num x, num y) => Point._create(x, y);
   static Point _create(num x, num y) => JS('Point', 'new WebKitPoint(#,#)', x, y);
 
-  /// @domName WebKitPoint.x; @docsEditable true
+  @DocsEditable @DomName('WebKitPoint.x')
   num x;
 
-  /// @domName WebKitPoint.y; @docsEditable true
+  @DocsEditable @DomName('WebKitPoint.y')
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16486,13 +16491,14 @@ class Point native "*WebKitPoint" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PopStateEvent; @docsEditable true
+
+@DocsEditable
+@DomName('PopStateEvent')
 class PopStateEvent extends Event native "*PopStateEvent" {
 
-  /// @domName PopStateEvent.state; @docsEditable true
   dynamic get state => convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
-  @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
+  @DocsEditable @DomName('PopStateEvent.state') @annotation_Creates_SerializedScriptValue @annotation_Returns_SerializedScriptValue
   final dynamic _state;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16508,7 +16514,9 @@ typedef void PositionCallback(Geoposition position);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName PositionError; @docsEditable true
+
+@DocsEditable
+@DomName('PositionError')
 class PositionError native "*PositionError" {
 
   static const int PERMISSION_DENIED = 1;
@@ -16517,10 +16525,10 @@ class PositionError native "*PositionError" {
 
   static const int TIMEOUT = 3;
 
-  /// @domName PositionError.code; @docsEditable true
+  @DocsEditable @DomName('PositionError.code')
   final int code;
 
-  /// @domName PositionError.message; @docsEditable true
+  @DocsEditable @DomName('PositionError.message')
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16536,13 +16544,15 @@ typedef void PositionErrorCallback(PositionError error);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLPreElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLPreElement')
 class PreElement extends Element native "*HTMLPreElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory PreElement() => document.$dom_createElement("pre");
 
-  /// @domName HTMLPreElement.wrap; @docsEditable true
+  @DocsEditable @DomName('HTMLPreElement.wrap')
   bool wrap;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16550,16 +16560,18 @@ class PreElement extends Element native "*HTMLPreElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ProcessingInstruction; @docsEditable true
+
+@DocsEditable
+@DomName('ProcessingInstruction')
 class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
-  /// @domName ProcessingInstruction.data; @docsEditable true
+  @DocsEditable @DomName('ProcessingInstruction.data')
   String data;
 
-  /// @domName ProcessingInstruction.sheet; @docsEditable true
+  @DocsEditable @DomName('ProcessingInstruction.sheet')
   final StyleSheet sheet;
 
-  /// @domName ProcessingInstruction.target; @docsEditable true
+  @DocsEditable @DomName('ProcessingInstruction.target')
   final String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16567,30 +16579,32 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLProgressElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLProgressElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ProgressElement extends Element native "*HTMLProgressElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory ProgressElement() => document.$dom_createElement("progress");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('progress');
 
-  /// @domName HTMLProgressElement.labels; @docsEditable true
+  @DocsEditable @DomName('HTMLProgressElement.labels')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
-  /// @domName HTMLProgressElement.max; @docsEditable true
+  @DocsEditable @DomName('HTMLProgressElement.max')
   num max;
 
-  /// @domName HTMLProgressElement.position; @docsEditable true
+  @DocsEditable @DomName('HTMLProgressElement.position')
   final num position;
 
-  /// @domName HTMLProgressElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLProgressElement.value')
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16598,16 +16612,18 @@ class ProgressElement extends Element native "*HTMLProgressElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ProgressEvent; @docsEditable true
+
+@DocsEditable
+@DomName('ProgressEvent')
 class ProgressEvent extends Event native "*ProgressEvent" {
 
-  /// @domName ProgressEvent.lengthComputable; @docsEditable true
+  @DocsEditable @DomName('ProgressEvent.lengthComputable')
   final bool lengthComputable;
 
-  /// @domName ProgressEvent.loaded; @docsEditable true
+  @DocsEditable @DomName('ProgressEvent.loaded')
   final int loaded;
 
-  /// @domName ProgressEvent.total; @docsEditable true
+  @DocsEditable @DomName('ProgressEvent.total')
   final int total;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16615,10 +16631,12 @@ class ProgressEvent extends Event native "*ProgressEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLQuoteElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLQuoteElement')
 class QuoteElement extends Element native "*HTMLQuoteElement" {
 
-  /// @domName HTMLQuoteElement.cite; @docsEditable true
+  @DocsEditable @DomName('HTMLQuoteElement.cite')
   String cite;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16650,10 +16668,12 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RadioNodeList; @docsEditable true
+
+@DocsEditable
+@DomName('RadioNodeList')
 class RadioNodeList extends NodeList native "*RadioNodeList" {
 
-  /// @domName RadioNodeList.value; @docsEditable true
+  @DocsEditable @DomName('RadioNodeList.value')
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16663,7 +16683,8 @@ class RadioNodeList extends NodeList native "*RadioNodeList" {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Range
+@DocsEditable
+@DomName('Range')
 class Range native "*Range" {
   factory Range() => document.$dom_createRange();
 
@@ -16684,98 +16705,98 @@ class Range native "*Range" {
 
   static const int START_TO_START = 0;
 
-  /// @domName Range.collapsed; @docsEditable true
+  @DocsEditable @DomName('Range.collapsed')
   final bool collapsed;
 
-  /// @domName Range.commonAncestorContainer; @docsEditable true
+  @DocsEditable @DomName('Range.commonAncestorContainer')
   final Node commonAncestorContainer;
 
-  /// @domName Range.endContainer; @docsEditable true
+  @DocsEditable @DomName('Range.endContainer')
   final Node endContainer;
 
-  /// @domName Range.endOffset; @docsEditable true
+  @DocsEditable @DomName('Range.endOffset')
   final int endOffset;
 
-  /// @domName Range.startContainer; @docsEditable true
+  @DocsEditable @DomName('Range.startContainer')
   final Node startContainer;
 
-  /// @domName Range.startOffset; @docsEditable true
+  @DocsEditable @DomName('Range.startOffset')
   final int startOffset;
 
-  /// @domName Range.cloneContents; @docsEditable true
+  @DocsEditable @DomName('Range.cloneContents')
   DocumentFragment cloneContents() native;
 
-  /// @domName Range.cloneRange; @docsEditable true
+  @DocsEditable @DomName('Range.cloneRange')
   Range cloneRange() native;
 
-  /// @domName Range.collapse; @docsEditable true
+  @DocsEditable @DomName('Range.collapse')
   void collapse(bool toStart) native;
 
-  /// @domName Range.compareNode; @docsEditable true
+  @DocsEditable @DomName('Range.compareNode')
   int compareNode(Node refNode) native;
 
-  /// @domName Range.comparePoint; @docsEditable true
+  @DocsEditable @DomName('Range.comparePoint')
   int comparePoint(Node refNode, int offset) native;
 
-  /// @domName Range.createContextualFragment; @docsEditable true
+  @DocsEditable @DomName('Range.createContextualFragment')
   DocumentFragment createContextualFragment(String html) native;
 
-  /// @domName Range.deleteContents; @docsEditable true
+  @DocsEditable @DomName('Range.deleteContents')
   void deleteContents() native;
 
-  /// @domName Range.detach; @docsEditable true
+  @DocsEditable @DomName('Range.detach')
   void detach() native;
 
-  /// @domName Range.expand; @docsEditable true
+  @DocsEditable @DomName('Range.expand')
   void expand(String unit) native;
 
-  /// @domName Range.extractContents; @docsEditable true
+  @DocsEditable @DomName('Range.extractContents')
   DocumentFragment extractContents() native;
 
-  /// @domName Range.getBoundingClientRect; @docsEditable true
+  @DocsEditable @DomName('Range.getBoundingClientRect')
   ClientRect getBoundingClientRect() native;
 
-  /// @domName Range.getClientRects; @docsEditable true
+  @DocsEditable @DomName('Range.getClientRects')
   @Returns('_ClientRectList') @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
-  /// @domName Range.insertNode; @docsEditable true
+  @DocsEditable @DomName('Range.insertNode')
   void insertNode(Node newNode) native;
 
-  /// @domName Range.intersectsNode; @docsEditable true
+  @DocsEditable @DomName('Range.intersectsNode')
   bool intersectsNode(Node refNode) native;
 
-  /// @domName Range.isPointInRange; @docsEditable true
+  @DocsEditable @DomName('Range.isPointInRange')
   bool isPointInRange(Node refNode, int offset) native;
 
-  /// @domName Range.selectNode; @docsEditable true
+  @DocsEditable @DomName('Range.selectNode')
   void selectNode(Node refNode) native;
 
-  /// @domName Range.selectNodeContents; @docsEditable true
+  @DocsEditable @DomName('Range.selectNodeContents')
   void selectNodeContents(Node refNode) native;
 
-  /// @domName Range.setEnd; @docsEditable true
+  @DocsEditable @DomName('Range.setEnd')
   void setEnd(Node refNode, int offset) native;
 
-  /// @domName Range.setEndAfter; @docsEditable true
+  @DocsEditable @DomName('Range.setEndAfter')
   void setEndAfter(Node refNode) native;
 
-  /// @domName Range.setEndBefore; @docsEditable true
+  @DocsEditable @DomName('Range.setEndBefore')
   void setEndBefore(Node refNode) native;
 
-  /// @domName Range.setStart; @docsEditable true
+  @DocsEditable @DomName('Range.setStart')
   void setStart(Node refNode, int offset) native;
 
-  /// @domName Range.setStartAfter; @docsEditable true
+  @DocsEditable @DomName('Range.setStartAfter')
   void setStartAfter(Node refNode) native;
 
-  /// @domName Range.setStartBefore; @docsEditable true
+  @DocsEditable @DomName('Range.setStartBefore')
   void setStartBefore(Node refNode) native;
 
-  /// @domName Range.surroundContents; @docsEditable true
+  @DocsEditable @DomName('Range.surroundContents')
   void surroundContents(Node newParent) native;
 
-  /// @domName Range.toString; @docsEditable true
+  @DocsEditable @DomName('Range.toString')
   String toString() native;
 
 }
@@ -16784,23 +16805,25 @@ class Range native "*Range" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RangeException; @docsEditable true
+
+@DocsEditable
+@DomName('RangeException')
 class RangeException native "*RangeException" {
 
   static const int BAD_BOUNDARYPOINTS_ERR = 1;
 
   static const int INVALID_NODE_TYPE_ERR = 2;
 
-  /// @domName RangeException.code; @docsEditable true
+  @DocsEditable @DomName('RangeException.code')
   final int code;
 
-  /// @domName RangeException.message; @docsEditable true
+  @DocsEditable @DomName('RangeException.message')
   final String message;
 
-  /// @domName RangeException.name; @docsEditable true
+  @DocsEditable @DomName('RangeException.name')
   final String name;
 
-  /// @domName RangeException.toString; @docsEditable true
+  @DocsEditable @DomName('RangeException.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16808,19 +16831,21 @@ class RangeException native "*RangeException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Rect; @docsEditable true
+
+@DocsEditable
+@DomName('Rect')
 class Rect native "*Rect" {
 
-  /// @domName Rect.bottom; @docsEditable true
+  @DocsEditable @DomName('Rect.bottom')
   final CssPrimitiveValue bottom;
 
-  /// @domName Rect.left; @docsEditable true
+  @DocsEditable @DomName('Rect.left')
   final CssPrimitiveValue left;
 
-  /// @domName Rect.right; @docsEditable true
+  @DocsEditable @DomName('Rect.right')
   final CssPrimitiveValue right;
 
-  /// @domName Rect.top; @docsEditable true
+  @DocsEditable @DomName('Rect.top')
   final CssPrimitiveValue top;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16836,16 +16861,18 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RGBColor; @docsEditable true
+
+@DocsEditable
+@DomName('RGBColor')
 class RgbColor native "*RGBColor" {
 
-  /// @domName RGBColor.blue; @docsEditable true
+  @DocsEditable @DomName('RGBColor.blue')
   final CssPrimitiveValue blue;
 
-  /// @domName RGBColor.green; @docsEditable true
+  @DocsEditable @DomName('RGBColor.green')
   final CssPrimitiveValue green;
 
-  /// @domName RGBColor.red; @docsEditable true
+  @DocsEditable @DomName('RGBColor.red')
   final CssPrimitiveValue red;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16853,7 +16880,9 @@ class RgbColor native "*RGBColor" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCDataChannel; @docsEditable true
+
+@DocsEditable
+@DomName('RTCDataChannel')
 class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
@@ -16864,41 +16893,42 @@ class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   RtcDataChannelEvents get on =>
     new RtcDataChannelEvents(this);
 
-  /// @domName RTCDataChannel.binaryType; @docsEditable true
+  @DocsEditable @DomName('RTCDataChannel.binaryType')
   String binaryType;
 
-  /// @domName RTCDataChannel.bufferedAmount; @docsEditable true
+  @DocsEditable @DomName('RTCDataChannel.bufferedAmount')
   final int bufferedAmount;
 
-  /// @domName RTCDataChannel.label; @docsEditable true
+  @DocsEditable @DomName('RTCDataChannel.label')
   final String label;
 
-  /// @domName RTCDataChannel.readyState; @docsEditable true
+  @DocsEditable @DomName('RTCDataChannel.readyState')
   final String readyState;
 
-  /// @domName RTCDataChannel.reliable; @docsEditable true
+  @DocsEditable @DomName('RTCDataChannel.reliable')
   final bool reliable;
 
-  /// @domName RTCDataChannel.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('RTCDataChannel.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName RTCDataChannel.close; @docsEditable true
+  @DocsEditable @DomName('RTCDataChannel.close')
   void close() native;
 
-  /// @domName RTCDataChannel.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('RTCDataChannel.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName RTCDataChannel.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('RTCDataChannel.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName RTCDataChannel.send; @docsEditable true
+  @DocsEditable @DomName('RTCDataChannel.send')
   void send(data) native;
 
   Stream<Event> get onClose => closeEvent.forTarget(this);
@@ -16910,21 +16940,21 @@ class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
   Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class RtcDataChannelEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   RtcDataChannelEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get close => this['close'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16932,10 +16962,12 @@ class RtcDataChannelEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCDataChannelEvent; @docsEditable true
+
+@DocsEditable
+@DomName('RTCDataChannelEvent')
 class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 
-  /// @domName RTCDataChannelEvent.channel; @docsEditable true
+  @DocsEditable @DomName('RTCDataChannelEvent.channel')
   final RtcDataChannel channel;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16943,20 +16975,22 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCIceCandidate; @docsEditable true
+
+@DocsEditable
+@DomName('RTCIceCandidate')
 class RtcIceCandidate native "*RTCIceCandidate" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
   static RtcIceCandidate _create(Map dictionary) => JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 
-  /// @domName RTCIceCandidate.candidate; @docsEditable true
+  @DocsEditable @DomName('RTCIceCandidate.candidate')
   final String candidate;
 
-  /// @domName RTCIceCandidate.sdpMLineIndex; @docsEditable true
+  @DocsEditable @DomName('RTCIceCandidate.sdpMLineIndex')
   final int sdpMLineIndex;
 
-  /// @domName RTCIceCandidate.sdpMid; @docsEditable true
+  @DocsEditable @DomName('RTCIceCandidate.sdpMid')
   final String sdpMid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16964,10 +16998,12 @@ class RtcIceCandidate native "*RTCIceCandidate" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCIceCandidateEvent; @docsEditable true
+
+@DocsEditable
+@DomName('RTCIceCandidateEvent')
 class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 
-  /// @domName RTCIceCandidateEvent.candidate; @docsEditable true
+  @DocsEditable @DomName('RTCIceCandidateEvent.candidate')
   final RtcIceCandidate candidate;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16975,7 +17011,9 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCPeerConnection; @docsEditable true
+
+@DocsEditable
+@DomName('RTCPeerConnection')
 class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
   static const EventStreamProvider<MediaStreamEvent> addStreamEvent = const EventStreamProvider<MediaStreamEvent>('addstream');
@@ -16994,7 +17032,7 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
-  ///@docsEditable true
+  @DocsEditable
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     if (!?mediaConstraints) {
       return RtcPeerConnection._create(rtcIceServers);
@@ -17008,41 +17046,41 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
   }
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   RtcPeerConnectionEvents get on =>
     new RtcPeerConnectionEvents(this);
 
-  /// @domName RTCPeerConnection.iceGatheringState; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.iceGatheringState')
   final String iceGatheringState;
 
-  /// @domName RTCPeerConnection.iceState; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.iceState')
   final String iceState;
 
-  /// @domName RTCPeerConnection.localDescription; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.localDescription')
   final RtcSessionDescription localDescription;
 
-  /// @domName RTCPeerConnection.localStreams; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.localStreams')
   @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> localStreams;
 
-  /// @domName RTCPeerConnection.readyState; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.readyState')
   final String readyState;
 
-  /// @domName RTCPeerConnection.remoteDescription; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.remoteDescription')
   final RtcSessionDescription remoteDescription;
 
-  /// @domName RTCPeerConnection.remoteStreams; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.remoteStreams')
   @Returns('_MediaStreamList') @Creates('_MediaStreamList')
   final List<MediaStream> remoteStreams;
 
-  /// @domName RTCPeerConnection.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('RTCPeerConnection.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName RTCPeerConnection.addIceCandidate; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.addIceCandidate')
   void addIceCandidate(RtcIceCandidate candidate) native;
 
-  /// @domName RTCPeerConnection.addStream; @docsEditable true
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
@@ -17053,14 +17091,15 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('addStream')
+  @DocsEditable @DomName('RTCPeerConnection.addStream')
   void _addStream_1(MediaStream stream, mediaConstraints) native;
   @JSName('addStream')
+  @DocsEditable @DomName('RTCPeerConnection.addStream')
   void _addStream_2(MediaStream stream) native;
 
-  /// @domName RTCPeerConnection.close; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.close')
   void close() native;
 
-  /// @domName RTCPeerConnection.createAnswer; @docsEditable true
   void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
@@ -17071,11 +17110,12 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('createAnswer')
+  @DocsEditable @DomName('RTCPeerConnection.createAnswer')
   void _createAnswer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createAnswer')
+  @DocsEditable @DomName('RTCPeerConnection.createAnswer')
   void _createAnswer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
-  /// @domName RTCPeerConnection.createDataChannel; @docsEditable true
   RtcDataChannel createDataChannel(String label, [Map options]) {
     if (?options) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -17084,11 +17124,12 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return _createDataChannel_2(label);
   }
   @JSName('createDataChannel')
+  @DocsEditable @DomName('RTCPeerConnection.createDataChannel')
   RtcDataChannel _createDataChannel_1(label, options) native;
   @JSName('createDataChannel')
+  @DocsEditable @DomName('RTCPeerConnection.createDataChannel')
   RtcDataChannel _createDataChannel_2(label) native;
 
-  /// @domName RTCPeerConnection.createOffer; @docsEditable true
   void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
@@ -17099,31 +17140,32 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('createOffer')
+  @DocsEditable @DomName('RTCPeerConnection.createOffer')
   void _createOffer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createOffer')
+  @DocsEditable @DomName('RTCPeerConnection.createOffer')
   void _createOffer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
-  /// @domName RTCPeerConnection.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('RTCPeerConnection.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName RTCPeerConnection.getStats; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.getStats')
   void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native;
 
-  /// @domName RTCPeerConnection.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('RTCPeerConnection.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName RTCPeerConnection.removeStream; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.removeStream')
   void removeStream(MediaStream stream) native;
 
-  /// @domName RTCPeerConnection.setLocalDescription; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.setLocalDescription')
   void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
-  /// @domName RTCPeerConnection.setRemoteDescription; @docsEditable true
+  @DocsEditable @DomName('RTCPeerConnection.setRemoteDescription')
   void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
-  /// @domName RTCPeerConnection.updateIce; @docsEditable true
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var configuration_1 = convertDartToNative_Dictionary(configuration);
@@ -17140,10 +17182,13 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('updateIce')
+  @DocsEditable @DomName('RTCPeerConnection.updateIce')
   void _updateIce_1(configuration, mediaConstraints) native;
   @JSName('updateIce')
+  @DocsEditable @DomName('RTCPeerConnection.updateIce')
   void _updateIce_2(configuration) native;
   @JSName('updateIce')
+  @DocsEditable @DomName('RTCPeerConnection.updateIce')
   void _updateIce_3() native;
 
   Stream<MediaStreamEvent> get onAddStream => addStreamEvent.forTarget(this);
@@ -17163,30 +17208,30 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class RtcPeerConnectionEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   RtcPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get addStream => this['addstream'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get iceCandidate => this['icecandidate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get iceChange => this['icechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get negotiationNeeded => this['negotiationneeded'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get removeStream => this['removestream'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17194,17 +17239,19 @@ class RtcPeerConnectionEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCSessionDescription; @docsEditable true
+
+@DocsEditable
+@DomName('RTCSessionDescription')
 class RtcSessionDescription native "*RTCSessionDescription" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
   static RtcSessionDescription _create(Map dictionary) => JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 
-  /// @domName RTCSessionDescription.sdp; @docsEditable true
+  @DocsEditable @DomName('RTCSessionDescription.sdp')
   String sdp;
 
-  /// @domName RTCSessionDescription.type; @docsEditable true
+  @DocsEditable @DomName('RTCSessionDescription.type')
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17212,16 +17259,18 @@ class RtcSessionDescription native "*RTCSessionDescription" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCStatsElement; @docsEditable true
+
+@DocsEditable
+@DomName('RTCStatsElement')
 class RtcStatsElement native "*RTCStatsElement" {
 
-  /// @domName RTCStatsElement.timestamp; @docsEditable true
+  @DocsEditable @DomName('RTCStatsElement.timestamp')
   final Date timestamp;
 
-  /// @domName RTCStatsElement.names; @docsEditable true
+  @DocsEditable @DomName('RTCStatsElement.names')
   List<String> names() native;
 
-  /// @domName RTCStatsElement.stat; @docsEditable true
+  @DocsEditable @DomName('RTCStatsElement.stat')
   String stat(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17229,13 +17278,15 @@ class RtcStatsElement native "*RTCStatsElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCStatsReport; @docsEditable true
+
+@DocsEditable
+@DomName('RTCStatsReport')
 class RtcStatsReport native "*RTCStatsReport" {
 
-  /// @domName RTCStatsReport.local; @docsEditable true
+  @DocsEditable @DomName('RTCStatsReport.local')
   final RtcStatsElement local;
 
-  /// @domName RTCStatsReport.remote; @docsEditable true
+  @DocsEditable @DomName('RTCStatsReport.remote')
   final RtcStatsElement remote;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17243,10 +17294,12 @@ class RtcStatsReport native "*RTCStatsReport" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName RTCStatsResponse; @docsEditable true
+
+@DocsEditable
+@DomName('RTCStatsResponse')
 class RtcStatsResponse native "*RTCStatsResponse" {
 
-  /// @domName RTCStatsResponse.result; @docsEditable true
+  @DocsEditable @DomName('RTCStatsResponse.result')
   List<RtcStatsReport> result() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17294,31 +17347,33 @@ typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Screen; @docsEditable true
+
+@DocsEditable
+@DomName('Screen')
 class Screen native "*Screen" {
 
-  /// @domName Screen.availHeight; @docsEditable true
+  @DocsEditable @DomName('Screen.availHeight')
   final int availHeight;
 
-  /// @domName Screen.availLeft; @docsEditable true
+  @DocsEditable @DomName('Screen.availLeft')
   final int availLeft;
 
-  /// @domName Screen.availTop; @docsEditable true
+  @DocsEditable @DomName('Screen.availTop')
   final int availTop;
 
-  /// @domName Screen.availWidth; @docsEditable true
+  @DocsEditable @DomName('Screen.availWidth')
   final int availWidth;
 
-  /// @domName Screen.colorDepth; @docsEditable true
+  @DocsEditable @DomName('Screen.colorDepth')
   final int colorDepth;
 
-  /// @domName Screen.height; @docsEditable true
+  @DocsEditable @DomName('Screen.height')
   final int height;
 
-  /// @domName Screen.pixelDepth; @docsEditable true
+  @DocsEditable @DomName('Screen.pixelDepth')
   final int pixelDepth;
 
-  /// @domName Screen.width; @docsEditable true
+  @DocsEditable @DomName('Screen.width')
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17326,34 +17381,36 @@ class Screen native "*Screen" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLScriptElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLScriptElement')
 class ScriptElement extends Element native "*HTMLScriptElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory ScriptElement() => document.$dom_createElement("script");
 
-  /// @domName HTMLScriptElement.async; @docsEditable true
+  @DocsEditable @DomName('HTMLScriptElement.async')
   bool async;
 
-  /// @domName HTMLScriptElement.charset; @docsEditable true
+  @DocsEditable @DomName('HTMLScriptElement.charset')
   String charset;
 
-  /// @domName HTMLScriptElement.crossOrigin; @docsEditable true
+  @DocsEditable @DomName('HTMLScriptElement.crossOrigin')
   String crossOrigin;
 
-  /// @domName HTMLScriptElement.defer; @docsEditable true
+  @DocsEditable @DomName('HTMLScriptElement.defer')
   bool defer;
 
-  /// @domName HTMLScriptElement.event; @docsEditable true
+  @DocsEditable @DomName('HTMLScriptElement.event')
   String event;
 
-  /// @domName HTMLScriptElement.htmlFor; @docsEditable true
+  @DocsEditable @DomName('HTMLScriptElement.htmlFor')
   String htmlFor;
 
-  /// @domName HTMLScriptElement.src; @docsEditable true
+  @DocsEditable @DomName('HTMLScriptElement.src')
   String src;
 
-  /// @domName HTMLScriptElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLScriptElement.type')
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17361,16 +17418,21 @@ class ScriptElement extends Element native "*HTMLScriptElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ScriptProfile; @docsEditable true
+
+@DocsEditable
+@DomName('ScriptProfile')
 class ScriptProfile native "*ScriptProfile" {
 
-  /// @domName ScriptProfile.head; @docsEditable true
+  @DocsEditable @DomName('ScriptProfile.head')
   final ScriptProfileNode head;
 
-  /// @domName ScriptProfile.title; @docsEditable true
+  @DocsEditable @DomName('ScriptProfile.idleTime')
+  final num idleTime;
+
+  @DocsEditable @DomName('ScriptProfile.title')
   final String title;
 
-  /// @domName ScriptProfile.uid; @docsEditable true
+  @DocsEditable @DomName('ScriptProfile.uid')
   final int uid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17378,35 +17440,37 @@ class ScriptProfile native "*ScriptProfile" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ScriptProfileNode; @docsEditable true
+
+@DocsEditable
+@DomName('ScriptProfileNode')
 class ScriptProfileNode native "*ScriptProfileNode" {
 
-  /// @domName ScriptProfileNode.callUID; @docsEditable true
   @JSName('callUID')
+  @DocsEditable @DomName('ScriptProfileNode.callUID')
   final int callUid;
 
-  /// @domName ScriptProfileNode.functionName; @docsEditable true
+  @DocsEditable @DomName('ScriptProfileNode.functionName')
   final String functionName;
 
-  /// @domName ScriptProfileNode.lineNumber; @docsEditable true
+  @DocsEditable @DomName('ScriptProfileNode.lineNumber')
   final int lineNumber;
 
-  /// @domName ScriptProfileNode.numberOfCalls; @docsEditable true
+  @DocsEditable @DomName('ScriptProfileNode.numberOfCalls')
   final int numberOfCalls;
 
-  /// @domName ScriptProfileNode.selfTime; @docsEditable true
+  @DocsEditable @DomName('ScriptProfileNode.selfTime')
   final num selfTime;
 
-  /// @domName ScriptProfileNode.totalTime; @docsEditable true
+  @DocsEditable @DomName('ScriptProfileNode.totalTime')
   final num totalTime;
 
-  /// @domName ScriptProfileNode.url; @docsEditable true
+  @DocsEditable @DomName('ScriptProfileNode.url')
   final String url;
 
-  /// @domName ScriptProfileNode.visible; @docsEditable true
+  @DocsEditable @DomName('ScriptProfileNode.visible')
   final bool visible;
 
-  /// @domName ScriptProfileNode.children; @docsEditable true
+  @DocsEditable @DomName('ScriptProfileNode.children')
   List<ScriptProfileNode> children() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17414,68 +17478,69 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLSelectElement
+@DocsEditable
+@DomName('HTMLSelectElement')
 class SelectElement extends Element native "*HTMLSelectElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory SelectElement() => document.$dom_createElement("select");
 
-  /// @domName HTMLSelectElement.autofocus; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.autofocus')
   bool autofocus;
 
-  /// @domName HTMLSelectElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.disabled')
   bool disabled;
 
-  /// @domName HTMLSelectElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.form')
   final FormElement form;
 
-  /// @domName HTMLSelectElement.labels; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.labels')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
-  /// @domName HTMLSelectElement.length; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.length')
   int length;
 
-  /// @domName HTMLSelectElement.multiple; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.multiple')
   bool multiple;
 
-  /// @domName HTMLSelectElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.name')
   String name;
 
-  /// @domName HTMLSelectElement.required; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.required')
   bool required;
 
-  /// @domName HTMLSelectElement.selectedIndex; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.selectedIndex')
   int selectedIndex;
 
-  /// @domName HTMLSelectElement.size; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.size')
   int size;
 
-  /// @domName HTMLSelectElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.type')
   final String type;
 
-  /// @domName HTMLSelectElement.validationMessage; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.validationMessage')
   final String validationMessage;
 
-  /// @domName HTMLSelectElement.validity; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.validity')
   final ValidityState validity;
 
-  /// @domName HTMLSelectElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.value')
   String value;
 
-  /// @domName HTMLSelectElement.willValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.willValidate')
   final bool willValidate;
 
-  /// @domName HTMLSelectElement.checkValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.checkValidity')
   bool checkValidity() native;
 
-  /// @domName HTMLSelectElement.item; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.item')
   Node item(int index) native;
 
-  /// @domName HTMLSelectElement.namedItem; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.namedItem')
   Node namedItem(String name) native;
 
-  /// @domName HTMLSelectElement.setCustomValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLSelectElement.setCustomValidity')
   void setCustomValidity(String error) native;
 
 
@@ -17501,7 +17566,9 @@ class SelectElement extends Element native "*HTMLSelectElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLShadowElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class ShadowElement extends Element native "*HTMLShadowElement" {
@@ -17509,10 +17576,10 @@ class ShadowElement extends Element native "*HTMLShadowElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('shadow');
 
-  /// @domName HTMLShadowElement.olderShadowRoot; @docsEditable true
+  @DocsEditable @DomName('HTMLShadowElement.olderShadowRoot')
   final ShadowRoot olderShadowRoot;
 
-  /// @domName HTMLShadowElement.resetStyleInheritance; @docsEditable true
+  @DocsEditable @DomName('HTMLShadowElement.resetStyleInheritance')
   bool resetStyleInheritance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17522,43 +17589,47 @@ class ShadowElement extends Element native "*HTMLShadowElement" {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ShadowRoot
+@DocsEditable
+@DomName('ShadowRoot')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
-  /// @domName ShadowRoot.activeElement; @docsEditable true
+  @DocsEditable @DomName('ShadowRoot.activeElement')
   final Element activeElement;
 
-  /// @domName ShadowRoot.applyAuthorStyles; @docsEditable true
+  @DocsEditable @DomName('ShadowRoot.applyAuthorStyles')
   bool applyAuthorStyles;
 
-  /// @domName ShadowRoot.innerHTML; @docsEditable true
   @JSName('innerHTML')
+  @DocsEditable @DomName('ShadowRoot.innerHTML')
   String innerHtml;
 
-  /// @domName ShadowRoot.resetStyleInheritance; @docsEditable true
+  @DocsEditable @DomName('ShadowRoot.resetStyleInheritance')
   bool resetStyleInheritance;
 
-  /// @domName ShadowRoot.cloneNode; @docsEditable true
   @JSName('cloneNode')
+  @DocsEditable @DomName('ShadowRoot.cloneNode')
   Node clone(bool deep) native;
 
-  /// @domName ShadowRoot.getElementById; @docsEditable true
+  @DocsEditable @DomName('ShadowRoot.elementFromPoint')
+  Element elementFromPoint(int x, int y) native;
+
   @JSName('getElementById')
+  @DocsEditable @DomName('ShadowRoot.getElementById')
   Element $dom_getElementById(String elementId) native;
 
-  /// @domName ShadowRoot.getElementsByClassName; @docsEditable true
   @JSName('getElementsByClassName')
+  @DocsEditable @DomName('ShadowRoot.getElementsByClassName')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_getElementsByClassName(String className) native;
 
-  /// @domName ShadowRoot.getElementsByTagName; @docsEditable true
   @JSName('getElementsByTagName')
+  @DocsEditable @DomName('ShadowRoot.getElementsByTagName')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> $dom_getElementsByTagName(String tagName) native;
 
-  /// @domName ShadowRoot.getSelection; @docsEditable true
+  @DocsEditable @DomName('ShadowRoot.getSelection')
   DomSelection getSelection() native;
 
   static bool get supported =>
@@ -17569,10 +17640,12 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SharedWorker; @docsEditable true
+
+@DocsEditable
+@DomName('SharedWorker')
 class SharedWorker extends AbstractWorker native "*SharedWorker" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
       return SharedWorker._create(scriptURL);
@@ -17586,7 +17659,7 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
     return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
   }
 
-  /// @domName SharedWorker.port; @docsEditable true
+  @DocsEditable @DomName('SharedWorker.port')
   final MessagePort port;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17594,27 +17667,30 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SharedWorkerContext; @docsEditable true
+
+@DocsEditable
+@DomName('SharedWorkerContext')
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
 
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
-  /// @domName SharedWorkerContext.name; @docsEditable true
+  @DocsEditable @DomName('SharedWorkerContext.name')
   final String name;
 
   Stream<Event> get onConnect => connectEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class SharedWorkerContextEvents extends WorkerContextEvents {
-  /// @docsEditable true
+  @DocsEditable
   SharedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get connect => this['connect'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17622,19 +17698,21 @@ class SharedWorkerContextEvents extends WorkerContextEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SourceBuffer; @docsEditable true
+
+@DocsEditable
+@DomName('SourceBuffer')
 class SourceBuffer native "*SourceBuffer" {
 
-  /// @domName SourceBuffer.buffered; @docsEditable true
+  @DocsEditable @DomName('SourceBuffer.buffered')
   final TimeRanges buffered;
 
-  /// @domName SourceBuffer.timestampOffset; @docsEditable true
+  @DocsEditable @DomName('SourceBuffer.timestampOffset')
   num timestampOffset;
 
-  /// @domName SourceBuffer.abort; @docsEditable true
+  @DocsEditable @DomName('SourceBuffer.abort')
   void abort() native;
 
-  /// @domName SourceBuffer.append; @docsEditable true
+  @DocsEditable @DomName('SourceBuffer.append')
   void append(Uint8Array data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17642,10 +17720,12 @@ class SourceBuffer native "*SourceBuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SourceBufferList; @docsEditable true
+
+@DocsEditable
+@DomName('SourceBufferList')
 class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "*SourceBufferList" {
 
-  /// @domName SourceBufferList.length; @docsEditable true
+  @DocsEditable @DomName('SourceBufferList.length')
   int get length => JS("int", "#.length", this);
 
   SourceBuffer operator[](int index) => JS("SourceBuffer", "#[#]", this, index);
@@ -17666,50 +17746,50 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SourceBuffer element) => Collections.contains(this, element);
+  bool contains(SourceBuffer element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
+  void forEach(void f(SourceBuffer element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SourceBuffer element)) => new MappedList<SourceBuffer, dynamic>(this, f);
+  List mappedBy(f(SourceBuffer element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) => new WhereIterable<SourceBuffer>(this, f);
+  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
+  bool every(bool f(SourceBuffer element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SourceBuffer element)) => Collections.any(this, f);
+  bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
 
   List<SourceBuffer> toList() => new List<SourceBuffer>.from(this);
   Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SourceBuffer> take(int n) => new ListView<SourceBuffer>(this, 0, n);
+  List<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SourceBuffer> takeWhile(bool test(SourceBuffer value)) {
-    return new TakeWhileIterable<SourceBuffer>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SourceBuffer> skip(int n) => new ListView<SourceBuffer>(this, n, null);
+  List<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SourceBuffer> skipWhile(bool test(SourceBuffer value)) {
-    return new SkipWhileIterable<SourceBuffer>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SourceBuffer firstMatching(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SourceBuffer lastMatching(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SourceBuffer singleMatching(bool test(SourceBuffer value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SourceBuffer elementAt(int index) {
@@ -17767,16 +17847,36 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.min(this, compare);
+  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.max(this, compare);
+  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => IterableMixinWorkaround.max(this, compare);
 
   SourceBuffer removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   SourceBuffer removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(SourceBuffer element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(SourceBuffer element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
@@ -17796,19 +17896,19 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
   // -- end List<SourceBuffer> mixins.
 
-  /// @domName SourceBufferList.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('SourceBufferList.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName SourceBufferList.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('SourceBufferList.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName SourceBufferList.item; @docsEditable true
+  @DocsEditable @DomName('SourceBufferList.item')
   SourceBuffer item(int index) native;
 
-  /// @domName SourceBufferList.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('SourceBufferList.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17816,19 +17916,21 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLSourceElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLSourceElement')
 class SourceElement extends Element native "*HTMLSourceElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory SourceElement() => document.$dom_createElement("source");
 
-  /// @domName HTMLSourceElement.media; @docsEditable true
+  @DocsEditable @DomName('HTMLSourceElement.media')
   String media;
 
-  /// @domName HTMLSourceElement.src; @docsEditable true
+  @DocsEditable @DomName('HTMLSourceElement.src')
   String src;
 
-  /// @domName HTMLSourceElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLSourceElement.type')
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17836,10 +17938,12 @@ class SourceElement extends Element native "*HTMLSourceElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLSpanElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLSpanElement')
 class SpanElement extends Element native "*HTMLSpanElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory SpanElement() => document.$dom_createElement("span");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17847,17 +17951,19 @@ class SpanElement extends Element native "*HTMLSpanElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechGrammar; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechGrammar')
 class SpeechGrammar native "*SpeechGrammar" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory SpeechGrammar() => SpeechGrammar._create();
   static SpeechGrammar _create() => JS('SpeechGrammar', 'new SpeechGrammar()');
 
-  /// @domName SpeechGrammar.src; @docsEditable true
+  @DocsEditable @DomName('SpeechGrammar.src')
   String src;
 
-  /// @domName SpeechGrammar.weight; @docsEditable true
+  @DocsEditable @DomName('SpeechGrammar.weight')
   num weight;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17865,14 +17971,16 @@ class SpeechGrammar native "*SpeechGrammar" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechGrammarList; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechGrammarList')
 class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory SpeechGrammarList() => SpeechGrammarList._create();
   static SpeechGrammarList _create() => JS('SpeechGrammarList', 'new SpeechGrammarList()');
 
-  /// @domName SpeechGrammarList.length; @docsEditable true
+  @DocsEditable @DomName('SpeechGrammarList.length')
   int get length => JS("int", "#.length", this);
 
   SpeechGrammar operator[](int index) => JS("SpeechGrammar", "#[#]", this, index);
@@ -17893,50 +18001,50 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SpeechGrammar element) => Collections.contains(this, element);
+  bool contains(SpeechGrammar element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
+  void forEach(void f(SpeechGrammar element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechGrammar element)) => new MappedList<SpeechGrammar, dynamic>(this, f);
+  List mappedBy(f(SpeechGrammar element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) => new WhereIterable<SpeechGrammar>(this, f);
+  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
+  bool every(bool f(SpeechGrammar element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SpeechGrammar element)) => Collections.any(this, f);
+  bool any(bool f(SpeechGrammar element)) => IterableMixinWorkaround.any(this, f);
 
   List<SpeechGrammar> toList() => new List<SpeechGrammar>.from(this);
   Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechGrammar> take(int n) => new ListView<SpeechGrammar>(this, 0, n);
+  List<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechGrammar> takeWhile(bool test(SpeechGrammar value)) {
-    return new TakeWhileIterable<SpeechGrammar>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechGrammar> skip(int n) => new ListView<SpeechGrammar>(this, n, null);
+  List<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechGrammar> skipWhile(bool test(SpeechGrammar value)) {
-    return new SkipWhileIterable<SpeechGrammar>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SpeechGrammar firstMatching(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SpeechGrammar lastMatching(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SpeechGrammar singleMatching(bool test(SpeechGrammar value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SpeechGrammar elementAt(int index) {
@@ -17994,16 +18102,36 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new StateError("More than one element");
   }
 
-  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.min(this, compare);
+  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.max(this, compare);
+  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => IterableMixinWorkaround.max(this, compare);
 
   SpeechGrammar removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   SpeechGrammar removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(SpeechGrammar element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(SpeechGrammar element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
@@ -18023,13 +18151,13 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   // -- end List<SpeechGrammar> mixins.
 
-  /// @domName SpeechGrammarList.addFromString; @docsEditable true
+  @DocsEditable @DomName('SpeechGrammarList.addFromString')
   void addFromString(String string, [num weight]) native;
 
-  /// @domName SpeechGrammarList.addFromUri; @docsEditable true
+  @DocsEditable @DomName('SpeechGrammarList.addFromUri')
   void addFromUri(String src, [num weight]) native;
 
-  /// @domName SpeechGrammarList.item; @docsEditable true
+  @DocsEditable @DomName('SpeechGrammarList.item')
   SpeechGrammar item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18037,10 +18165,12 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechInputEvent; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechInputEvent')
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
-  /// @domName SpeechInputEvent.results; @docsEditable true
+  @DocsEditable @DomName('SpeechInputEvent.results')
   @Returns('_SpeechInputResultList') @Creates('_SpeechInputResultList')
   final List<SpeechInputResult> results;
 }
@@ -18049,13 +18179,15 @@ class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechInputResult; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechInputResult')
 class SpeechInputResult native "*SpeechInputResult" {
 
-  /// @domName SpeechInputResult.confidence; @docsEditable true
+  @DocsEditable @DomName('SpeechInputResult.confidence')
   final num confidence;
 
-  /// @domName SpeechInputResult.utterance; @docsEditable true
+  @DocsEditable @DomName('SpeechInputResult.utterance')
   final String utterance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18063,7 +18195,9 @@ class SpeechInputResult native "*SpeechInputResult" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognition; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechRecognition')
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   static const EventStreamProvider<Event> audioEndEvent = const EventStreamProvider<Event>('audioend');
@@ -18088,48 +18222,49 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
-  ///@docsEditable true
+  @DocsEditable
   factory SpeechRecognition() => SpeechRecognition._create();
   static SpeechRecognition _create() => JS('SpeechRecognition', 'new SpeechRecognition()');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   SpeechRecognitionEvents get on =>
     new SpeechRecognitionEvents(this);
 
-  /// @domName SpeechRecognition.continuous; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognition.continuous')
   bool continuous;
 
-  /// @domName SpeechRecognition.grammars; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognition.grammars')
   SpeechGrammarList grammars;
 
-  /// @domName SpeechRecognition.interimResults; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognition.interimResults')
   bool interimResults;
 
-  /// @domName SpeechRecognition.lang; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognition.lang')
   String lang;
 
-  /// @domName SpeechRecognition.maxAlternatives; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognition.maxAlternatives')
   int maxAlternatives;
 
-  /// @domName SpeechRecognition.abort; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognition.abort')
   void abort() native;
 
-  /// @domName SpeechRecognition.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('SpeechRecognition.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName SpeechRecognition.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('SpeechRecognition.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName SpeechRecognition.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('SpeechRecognition.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName SpeechRecognition.start; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognition.start')
   void start() native;
 
-  /// @domName SpeechRecognition.stop; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognition.stop')
   void stop() native;
 
   Stream<Event> get onAudioEnd => audioEndEvent.forTarget(this);
@@ -18155,42 +18290,42 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
   Stream<Event> get onStart => startEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class SpeechRecognitionEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   SpeechRecognitionEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get audioEnd => this['audioend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get audioStart => this['audiostart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get end => this['end'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get noMatch => this['nomatch'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get result => this['result'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get soundEnd => this['soundend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get soundStart => this['soundstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get speechEnd => this['speechend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get speechStart => this['speechstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get start => this['start'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18198,13 +18333,15 @@ class SpeechRecognitionEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionAlternative; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechRecognitionAlternative')
 class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 
-  /// @domName SpeechRecognitionAlternative.confidence; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionAlternative.confidence')
   final num confidence;
 
-  /// @domName SpeechRecognitionAlternative.transcript; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionAlternative.transcript')
   final String transcript;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18212,13 +18349,15 @@ class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionError; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechRecognitionError')
 class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 
-  /// @domName SpeechRecognitionError.error; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionError.error')
   final String error;
 
-  /// @domName SpeechRecognitionError.message; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionError.message')
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18226,20 +18365,22 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionEvent; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechRecognitionEvent')
 class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 
-  /// @domName SpeechRecognitionEvent.result; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionEvent.result')
   final SpeechRecognitionResult result;
 
-  /// @domName SpeechRecognitionEvent.resultHistory; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionEvent.resultHistory')
   @Returns('_SpeechRecognitionResultList') @Creates('_SpeechRecognitionResultList')
   final List<SpeechRecognitionResult> resultHistory;
 
-  /// @domName SpeechRecognitionEvent.resultIndex; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionEvent.resultIndex')
   final int resultIndex;
 
-  /// @domName SpeechRecognitionEvent.results; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionEvent.results')
   @Returns('_SpeechRecognitionResultList') @Creates('_SpeechRecognitionResultList')
   final List<SpeechRecognitionResult> results;
 }
@@ -18248,16 +18389,18 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionResult; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechRecognitionResult')
 class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 
-  /// @domName SpeechRecognitionResult.isFinal; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionResult.isFinal')
   final bool isFinal;
 
-  /// @domName SpeechRecognitionResult.length; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionResult.length')
   final int length;
 
-  /// @domName SpeechRecognitionResult.item; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionResult.item')
   SpeechRecognitionAlternative item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18265,7 +18408,9 @@ class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLError; @docsEditable true
+
+@DocsEditable
+@DomName('SQLError')
 class SqlError native "*SQLError" {
 
   static const int CONSTRAINT_ERR = 6;
@@ -18284,10 +18429,10 @@ class SqlError native "*SQLError" {
 
   static const int VERSION_ERR = 2;
 
-  /// @domName SQLError.code; @docsEditable true
+  @DocsEditable @DomName('SQLError.code')
   final int code;
 
-  /// @domName SQLError.message; @docsEditable true
+  @DocsEditable @DomName('SQLError.message')
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18295,7 +18440,9 @@ class SqlError native "*SQLError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLException; @docsEditable true
+
+@DocsEditable
+@DomName('SQLException')
 class SqlException native "*SQLException" {
 
   static const int CONSTRAINT_ERR = 6;
@@ -18314,10 +18461,10 @@ class SqlException native "*SQLException" {
 
   static const int VERSION_ERR = 2;
 
-  /// @domName SQLException.code; @docsEditable true
+  @DocsEditable @DomName('SQLException.code')
   final int code;
 
-  /// @domName SQLException.message; @docsEditable true
+  @DocsEditable @DomName('SQLException.message')
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18325,16 +18472,18 @@ class SqlException native "*SQLException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLResultSet; @docsEditable true
+
+@DocsEditable
+@DomName('SQLResultSet')
 class SqlResultSet native "*SQLResultSet" {
 
-  /// @domName SQLResultSet.insertId; @docsEditable true
+  @DocsEditable @DomName('SQLResultSet.insertId')
   final int insertId;
 
-  /// @domName SQLResultSet.rows; @docsEditable true
+  @DocsEditable @DomName('SQLResultSet.rows')
   final SqlResultSetRowList rows;
 
-  /// @domName SQLResultSet.rowsAffected; @docsEditable true
+  @DocsEditable @DomName('SQLResultSet.rowsAffected')
   final int rowsAffected;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18342,10 +18491,12 @@ class SqlResultSet native "*SQLResultSet" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLResultSetRowList; @docsEditable true
+
+@DocsEditable
+@DomName('SQLResultSetRowList')
 class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
 
-  /// @domName SQLResultSetRowList.length; @docsEditable true
+  @DocsEditable @DomName('SQLResultSetRowList.length')
   int get length => JS("int", "#.length", this);
 
   Map operator[](int index) => JS("Map", "#[#]", this, index);
@@ -18366,50 +18517,50 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Map element) => Collections.contains(this, element);
+  bool contains(Map element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Map element)) => Collections.forEach(this, f);
+  void forEach(void f(Map element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Map element)) => new MappedList<Map, dynamic>(this, f);
+  List mappedBy(f(Map element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Map> where(bool f(Map element)) => new WhereIterable<Map>(this, f);
+  Iterable<Map> where(bool f(Map element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Map element)) => Collections.every(this, f);
+  bool every(bool f(Map element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Map element)) => Collections.any(this, f);
+  bool any(bool f(Map element)) => IterableMixinWorkaround.any(this, f);
 
   List<Map> toList() => new List<Map>.from(this);
   Set<Map> toSet() => new Set<Map>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Map> take(int n) => new ListView<Map>(this, 0, n);
+  List<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Map> takeWhile(bool test(Map value)) {
-    return new TakeWhileIterable<Map>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Map> skip(int n) => new ListView<Map>(this, n, null);
+  List<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Map> skipWhile(bool test(Map value)) {
-    return new SkipWhileIterable<Map>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Map firstMatching(bool test(Map value), { Map orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Map lastMatching(bool test(Map value), {Map orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Map singleMatching(bool test(Map value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Map elementAt(int index) {
@@ -18467,16 +18618,36 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new StateError("More than one element");
   }
 
-  Map min([int compare(Map a, Map b)]) => Collections.min(this, compare);
+  Map min([int compare(Map a, Map b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Map max([int compare(Map a, Map b)]) => Collections.max(this, compare);
+  Map max([int compare(Map a, Map b)]) => IterableMixinWorkaround.max(this, compare);
 
   Map removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Map removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Map element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Map element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
@@ -18496,12 +18667,11 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   // -- end List<Map> mixins.
 
-  /// @domName SQLResultSetRowList.item; @docsEditable true
   Map item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
   @JSName('item')
-  @Creates('=Object')
+  @DocsEditable @DomName('SQLResultSetRowList.item') @Creates('=Object')
   _item_1(index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18509,10 +18679,12 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLTransaction; @docsEditable true
+
+@DocsEditable
+@DomName('SQLTransaction')
 class SqlTransaction native "*SQLTransaction" {
 
-  /// @domName SQLTransaction.executeSql; @docsEditable true
+  @DocsEditable @DomName('SQLTransaction.executeSql')
   void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18520,10 +18692,12 @@ class SqlTransaction native "*SQLTransaction" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SQLTransactionSync; @docsEditable true
+
+@DocsEditable
+@DomName('SQLTransactionSync')
 class SqlTransactionSync native "*SQLTransactionSync" {
 
-  /// @domName SQLTransactionSync.executeSql; @docsEditable true
+  @DocsEditable @DomName('SQLTransactionSync.executeSql')
   SqlResultSet executeSql(String sqlStatement, List arguments) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18531,7 +18705,8 @@ class SqlTransactionSync native "*SQLTransactionSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Storage
+@DocsEditable
+@DomName('Storage')
 class Storage implements Map<String, String>  native "*Storage" {
 
   // TODO(nweiz): update this when maps support lazy iteration
@@ -18581,28 +18756,28 @@ class Storage implements Map<String, String>  native "*Storage" {
 
   bool get isEmpty => $dom_key(0) == null;
 
-  /// @domName Storage.length; @docsEditable true
   @JSName('length')
+  @DocsEditable @DomName('Storage.length')
   final int $dom_length;
 
-  /// @domName Storage.clear; @docsEditable true
   @JSName('clear')
+  @DocsEditable @DomName('Storage.clear')
   void $dom_clear() native;
 
-  /// @domName Storage.getItem; @docsEditable true
   @JSName('getItem')
+  @DocsEditable @DomName('Storage.getItem')
   String $dom_getItem(String key) native;
 
-  /// @domName Storage.key; @docsEditable true
   @JSName('key')
+  @DocsEditable @DomName('Storage.key')
   String $dom_key(int index) native;
 
-  /// @domName Storage.removeItem; @docsEditable true
   @JSName('removeItem')
+  @DocsEditable @DomName('Storage.removeItem')
   void $dom_removeItem(String key) native;
 
-  /// @domName Storage.setItem; @docsEditable true
   @JSName('setItem')
+  @DocsEditable @DomName('Storage.setItem')
   void $dom_setItem(String key, String data) native;
 
 }
@@ -18611,25 +18786,27 @@ class Storage implements Map<String, String>  native "*Storage" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StorageEvent; @docsEditable true
+
+@DocsEditable
+@DomName('StorageEvent')
 class StorageEvent extends Event native "*StorageEvent" {
 
-  /// @domName StorageEvent.key; @docsEditable true
+  @DocsEditable @DomName('StorageEvent.key')
   final String key;
 
-  /// @domName StorageEvent.newValue; @docsEditable true
+  @DocsEditable @DomName('StorageEvent.newValue')
   final String newValue;
 
-  /// @domName StorageEvent.oldValue; @docsEditable true
+  @DocsEditable @DomName('StorageEvent.oldValue')
   final String oldValue;
 
-  /// @domName StorageEvent.storageArea; @docsEditable true
+  @DocsEditable @DomName('StorageEvent.storageArea')
   final Storage storageArea;
 
-  /// @domName StorageEvent.url; @docsEditable true
+  @DocsEditable @DomName('StorageEvent.url')
   final String url;
 
-  /// @domName StorageEvent.initStorageEvent; @docsEditable true
+  @DocsEditable @DomName('StorageEvent.initStorageEvent')
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18637,17 +18814,19 @@ class StorageEvent extends Event native "*StorageEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StorageInfo; @docsEditable true
+
+@DocsEditable
+@DomName('StorageInfo')
 class StorageInfo native "*StorageInfo" {
 
   static const int PERSISTENT = 1;
 
   static const int TEMPORARY = 0;
 
-  /// @domName StorageInfo.queryUsageAndQuota; @docsEditable true
+  @DocsEditable @DomName('StorageInfo.queryUsageAndQuota')
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native;
 
-  /// @domName StorageInfo.requestQuota; @docsEditable true
+  @DocsEditable @DomName('StorageInfo.requestQuota')
   void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18687,25 +18866,27 @@ typedef void StringCallback(String data);
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLStyleElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLStyleElement')
 class StyleElement extends Element native "*HTMLStyleElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory StyleElement() => document.$dom_createElement("style");
 
-  /// @domName HTMLStyleElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLStyleElement.disabled')
   bool disabled;
 
-  /// @domName HTMLStyleElement.media; @docsEditable true
+  @DocsEditable @DomName('HTMLStyleElement.media')
   String media;
 
-  /// @domName HTMLStyleElement.scoped; @docsEditable true
+  @DocsEditable @DomName('HTMLStyleElement.scoped')
   bool scoped;
 
-  /// @domName HTMLStyleElement.sheet; @docsEditable true
+  @DocsEditable @DomName('HTMLStyleElement.sheet')
   final StyleSheet sheet;
 
-  /// @domName HTMLStyleElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLStyleElement.type')
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18713,13 +18894,15 @@ class StyleElement extends Element native "*HTMLStyleElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StyleMedia; @docsEditable true
+
+@DocsEditable
+@DomName('StyleMedia')
 class StyleMedia native "*StyleMedia" {
 
-  /// @domName StyleMedia.type; @docsEditable true
+  @DocsEditable @DomName('StyleMedia.type')
   final String type;
 
-  /// @domName StyleMedia.matchMedium; @docsEditable true
+  @DocsEditable @DomName('StyleMedia.matchMedium')
   bool matchMedium(String mediaquery) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18727,28 +18910,30 @@ class StyleMedia native "*StyleMedia" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StyleSheet; @docsEditable true
+
+@DocsEditable
+@DomName('StyleSheet')
 class StyleSheet native "*StyleSheet" {
 
-  /// @domName StyleSheet.disabled; @docsEditable true
+  @DocsEditable @DomName('StyleSheet.disabled')
   bool disabled;
 
-  /// @domName StyleSheet.href; @docsEditable true
+  @DocsEditable @DomName('StyleSheet.href')
   final String href;
 
-  /// @domName StyleSheet.media; @docsEditable true
+  @DocsEditable @DomName('StyleSheet.media')
   final MediaList media;
 
-  /// @domName StyleSheet.ownerNode; @docsEditable true
+  @DocsEditable @DomName('StyleSheet.ownerNode')
   final Node ownerNode;
 
-  /// @domName StyleSheet.parentStyleSheet; @docsEditable true
+  @DocsEditable @DomName('StyleSheet.parentStyleSheet')
   final StyleSheet parentStyleSheet;
 
-  /// @domName StyleSheet.title; @docsEditable true
+  @DocsEditable @DomName('StyleSheet.title')
   final String title;
 
-  /// @domName StyleSheet.type; @docsEditable true
+  @DocsEditable @DomName('StyleSheet.type')
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18756,10 +18941,12 @@ class StyleSheet native "*StyleSheet" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableCaptionElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLTableCaptionElement')
 class TableCaptionElement extends Element native "*HTMLTableCaptionElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableCaptionElement() => document.$dom_createElement("caption");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18767,22 +18954,24 @@ class TableCaptionElement extends Element native "*HTMLTableCaptionElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableCellElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLTableCellElement')
 class TableCellElement extends Element native "*HTMLTableCellElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableCellElement() => document.$dom_createElement("td");
 
-  /// @domName HTMLTableCellElement.cellIndex; @docsEditable true
+  @DocsEditable @DomName('HTMLTableCellElement.cellIndex')
   final int cellIndex;
 
-  /// @domName HTMLTableCellElement.colSpan; @docsEditable true
+  @DocsEditable @DomName('HTMLTableCellElement.colSpan')
   int colSpan;
 
-  /// @domName HTMLTableCellElement.headers; @docsEditable true
+  @DocsEditable @DomName('HTMLTableCellElement.headers')
   String headers;
 
-  /// @domName HTMLTableCellElement.rowSpan; @docsEditable true
+  @DocsEditable @DomName('HTMLTableCellElement.rowSpan')
   int rowSpan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18790,13 +18979,15 @@ class TableCellElement extends Element native "*HTMLTableCellElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableColElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLTableColElement')
 class TableColElement extends Element native "*HTMLTableColElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableColElement() => document.$dom_createElement("col");
 
-  /// @domName HTMLTableColElement.span; @docsEditable true
+  @DocsEditable @DomName('HTMLTableColElement.span')
   int span;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18804,52 +18995,53 @@ class TableColElement extends Element native "*HTMLTableColElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableElement
+@DocsEditable
+@DomName('HTMLTableElement')
 class TableElement extends Element native "*HTMLTableElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableElement() => document.$dom_createElement("table");
 
-  /// @domName HTMLTableElement.border; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.border')
   String border;
 
-  /// @domName HTMLTableElement.caption; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.caption')
   TableCaptionElement caption;
 
-  /// @domName HTMLTableElement.rows; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.rows')
   final HtmlCollection rows;
 
-  /// @domName HTMLTableElement.tBodies; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.tBodies')
   final HtmlCollection tBodies;
 
-  /// @domName HTMLTableElement.tFoot; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.tFoot')
   TableSectionElement tFoot;
 
-  /// @domName HTMLTableElement.tHead; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.tHead')
   TableSectionElement tHead;
 
-  /// @domName HTMLTableElement.createCaption; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.createCaption')
   Element createCaption() native;
 
-  /// @domName HTMLTableElement.createTFoot; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.createTFoot')
   Element createTFoot() native;
 
-  /// @domName HTMLTableElement.createTHead; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.createTHead')
   Element createTHead() native;
 
-  /// @domName HTMLTableElement.deleteCaption; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.deleteCaption')
   void deleteCaption() native;
 
-  /// @domName HTMLTableElement.deleteRow; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.deleteRow')
   void deleteRow(int index) native;
 
-  /// @domName HTMLTableElement.deleteTFoot; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.deleteTFoot')
   void deleteTFoot() native;
 
-  /// @domName HTMLTableElement.deleteTHead; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.deleteTHead')
   void deleteTHead() native;
 
-  /// @domName HTMLTableElement.insertRow; @docsEditable true
+  @DocsEditable @DomName('HTMLTableElement.insertRow')
   Element insertRow(int index) native;
 
 
@@ -18870,25 +19062,27 @@ class TableElement extends Element native "*HTMLTableElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableRowElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLTableRowElement')
 class TableRowElement extends Element native "*HTMLTableRowElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableRowElement() => document.$dom_createElement("tr");
 
-  /// @domName HTMLTableRowElement.cells; @docsEditable true
+  @DocsEditable @DomName('HTMLTableRowElement.cells')
   final HtmlCollection cells;
 
-  /// @domName HTMLTableRowElement.rowIndex; @docsEditable true
+  @DocsEditable @DomName('HTMLTableRowElement.rowIndex')
   final int rowIndex;
 
-  /// @domName HTMLTableRowElement.sectionRowIndex; @docsEditable true
+  @DocsEditable @DomName('HTMLTableRowElement.sectionRowIndex')
   final int sectionRowIndex;
 
-  /// @domName HTMLTableRowElement.deleteCell; @docsEditable true
+  @DocsEditable @DomName('HTMLTableRowElement.deleteCell')
   void deleteCell(int index) native;
 
-  /// @domName HTMLTableRowElement.insertCell; @docsEditable true
+  @DocsEditable @DomName('HTMLTableRowElement.insertCell')
   Element insertCell(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18896,19 +19090,18 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTableSectionElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLTableSectionElement')
 class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 
-  /// @domName HTMLTableSectionElement.chOff; @docsEditable true
-  String chOff;
-
-  /// @domName HTMLTableSectionElement.rows; @docsEditable true
+  @DocsEditable @DomName('HTMLTableSectionElement.rows')
   final HtmlCollection rows;
 
-  /// @domName HTMLTableSectionElement.deleteRow; @docsEditable true
+  @DocsEditable @DomName('HTMLTableSectionElement.deleteRow')
   void deleteRow(int index) native;
 
-  /// @domName HTMLTableSectionElement.insertRow; @docsEditable true
+  @DocsEditable @DomName('HTMLTableSectionElement.insertRow')
   Element insertRow(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18918,17 +19111,18 @@ class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Text
+@DocsEditable
+@DomName('Text')
 class Text extends CharacterData native "*Text" {
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
-  /// @domName Text.wholeText; @docsEditable true
+  @DocsEditable @DomName('Text.wholeText')
   final String wholeText;
 
-  /// @domName Text.replaceWholeText; @docsEditable true
+  @DocsEditable @DomName('Text.replaceWholeText')
   Text replaceWholeText(String content) native;
 
-  /// @domName Text.splitText; @docsEditable true
+  @DocsEditable @DomName('Text.splitText')
   Text splitText(int offset) native;
 
 }
@@ -18937,95 +19131,97 @@ class Text extends CharacterData native "*Text" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTextAreaElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLTextAreaElement')
 class TextAreaElement extends Element native "*HTMLTextAreaElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
-  /// @domName HTMLTextAreaElement.autofocus; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.autofocus')
   bool autofocus;
 
-  /// @domName HTMLTextAreaElement.cols; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.cols')
   int cols;
 
-  /// @domName HTMLTextAreaElement.defaultValue; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.defaultValue')
   String defaultValue;
 
-  /// @domName HTMLTextAreaElement.dirName; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.dirName')
   String dirName;
 
-  /// @domName HTMLTextAreaElement.disabled; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.disabled')
   bool disabled;
 
-  /// @domName HTMLTextAreaElement.form; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.form')
   final FormElement form;
 
-  /// @domName HTMLTextAreaElement.labels; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.labels')
   @Returns('NodeList') @Creates('NodeList')
   final List<Node> labels;
 
-  /// @domName HTMLTextAreaElement.maxLength; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.maxLength')
   int maxLength;
 
-  /// @domName HTMLTextAreaElement.name; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.name')
   String name;
 
-  /// @domName HTMLTextAreaElement.placeholder; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.placeholder')
   String placeholder;
 
-  /// @domName HTMLTextAreaElement.readOnly; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLTextAreaElement.required; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.required')
   bool required;
 
-  /// @domName HTMLTextAreaElement.rows; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.rows')
   int rows;
 
-  /// @domName HTMLTextAreaElement.selectionDirection; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.selectionDirection')
   String selectionDirection;
 
-  /// @domName HTMLTextAreaElement.selectionEnd; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.selectionEnd')
   int selectionEnd;
 
-  /// @domName HTMLTextAreaElement.selectionStart; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.selectionStart')
   int selectionStart;
 
-  /// @domName HTMLTextAreaElement.textLength; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.textLength')
   final int textLength;
 
-  /// @domName HTMLTextAreaElement.type; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.type')
   final String type;
 
-  /// @domName HTMLTextAreaElement.validationMessage; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.validationMessage')
   final String validationMessage;
 
-  /// @domName HTMLTextAreaElement.validity; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.validity')
   final ValidityState validity;
 
-  /// @domName HTMLTextAreaElement.value; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.value')
   String value;
 
-  /// @domName HTMLTextAreaElement.willValidate; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.willValidate')
   final bool willValidate;
 
-  /// @domName HTMLTextAreaElement.wrap; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.wrap')
   String wrap;
 
-  /// @domName HTMLTextAreaElement.checkValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.checkValidity')
   bool checkValidity() native;
 
-  /// @domName HTMLTextAreaElement.select; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.select')
   void select() native;
 
-  /// @domName HTMLTextAreaElement.setCustomValidity; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.setCustomValidity')
   void setCustomValidity(String error) native;
 
-  /// @domName HTMLTextAreaElement.setRangeText; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.setRangeText')
   void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
-  /// @domName HTMLTextAreaElement.setSelectionRange; @docsEditable true
+  @DocsEditable @DomName('HTMLTextAreaElement.setSelectionRange')
   void setSelectionRange(int start, int end, [String direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19033,13 +19229,15 @@ class TextAreaElement extends Element native "*HTMLTextAreaElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextEvent; @docsEditable true
+
+@DocsEditable
+@DomName('TextEvent')
 class TextEvent extends UIEvent native "*TextEvent" {
 
-  /// @domName TextEvent.data; @docsEditable true
+  @DocsEditable @DomName('TextEvent.data')
   final String data;
 
-  /// @domName TextEvent.initTextEvent; @docsEditable true
+  @DocsEditable @DomName('TextEvent.initTextEvent')
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19047,10 +19245,12 @@ class TextEvent extends UIEvent native "*TextEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextMetrics; @docsEditable true
+
+@DocsEditable
+@DomName('TextMetrics')
 class TextMetrics native "*TextMetrics" {
 
-  /// @domName TextMetrics.width; @docsEditable true
+  @DocsEditable @DomName('TextMetrics.width')
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19058,60 +19258,63 @@ class TextMetrics native "*TextMetrics" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextTrack; @docsEditable true
+
+@DocsEditable
+@DomName('TextTrack')
 class TextTrack extends EventTarget native "*TextTrack" {
 
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TextTrackEvents get on =>
     new TextTrackEvents(this);
 
-  /// @domName TextTrack.activeCues; @docsEditable true
+  @DocsEditable @DomName('TextTrack.activeCues')
   final TextTrackCueList activeCues;
 
-  /// @domName TextTrack.cues; @docsEditable true
+  @DocsEditable @DomName('TextTrack.cues')
   final TextTrackCueList cues;
 
-  /// @domName TextTrack.kind; @docsEditable true
+  @DocsEditable @DomName('TextTrack.kind')
   final String kind;
 
-  /// @domName TextTrack.label; @docsEditable true
+  @DocsEditable @DomName('TextTrack.label')
   final String label;
 
-  /// @domName TextTrack.language; @docsEditable true
+  @DocsEditable @DomName('TextTrack.language')
   final String language;
 
-  /// @domName TextTrack.mode; @docsEditable true
+  @DocsEditable @DomName('TextTrack.mode')
   String mode;
 
-  /// @domName TextTrack.addCue; @docsEditable true
+  @DocsEditable @DomName('TextTrack.addCue')
   void addCue(TextTrackCue cue) native;
 
-  /// @domName TextTrack.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('TextTrack.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName TextTrack.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('TextTrack.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName TextTrack.removeCue; @docsEditable true
+  @DocsEditable @DomName('TextTrack.removeCue')
   void removeCue(TextTrackCue cue) native;
 
-  /// @domName TextTrack.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('TextTrack.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class TextTrackEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   TextTrackEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get cueChange => this['cuechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19119,71 +19322,74 @@ class TextTrackEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextTrackCue; @docsEditable true
+
+@DocsEditable
+@DomName('TextTrackCue')
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
   static const EventStreamProvider<Event> enterEvent = const EventStreamProvider<Event>('enter');
 
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
-  ///@docsEditable true
+  @DocsEditable
   factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
   static TextTrackCue _create(num startTime, num endTime, String text) => JS('TextTrackCue', 'new TextTrackCue(#,#,#)', startTime, endTime, text);
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TextTrackCueEvents get on =>
     new TextTrackCueEvents(this);
 
-  /// @domName TextTrackCue.align; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.align')
   String align;
 
-  /// @domName TextTrackCue.endTime; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.endTime')
   num endTime;
 
-  /// @domName TextTrackCue.id; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.id')
   String id;
 
-  /// @domName TextTrackCue.line; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.line')
   int line;
 
-  /// @domName TextTrackCue.pauseOnExit; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.pauseOnExit')
   bool pauseOnExit;
 
-  /// @domName TextTrackCue.position; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.position')
   int position;
 
-  /// @domName TextTrackCue.size; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.size')
   int size;
 
-  /// @domName TextTrackCue.snapToLines; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.snapToLines')
   bool snapToLines;
 
-  /// @domName TextTrackCue.startTime; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.startTime')
   num startTime;
 
-  /// @domName TextTrackCue.text; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.text')
   String text;
 
-  /// @domName TextTrackCue.track; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.track')
   final TextTrack track;
 
-  /// @domName TextTrackCue.vertical; @docsEditable true
+  @DocsEditable @DomName('TextTrackCue.vertical')
   String vertical;
 
-  /// @domName TextTrackCue.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('TextTrackCue.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName TextTrackCue.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('TextTrackCue.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName TextTrackCue.getCueAsHTML; @docsEditable true
   @JSName('getCueAsHTML')
+  @DocsEditable @DomName('TextTrackCue.getCueAsHTML')
   DocumentFragment getCueAsHtml() native;
 
-  /// @domName TextTrackCue.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('TextTrackCue.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<Event> get onEnter => enterEvent.forTarget(this);
@@ -19191,15 +19397,15 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   Stream<Event> get onExit => exitEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class TextTrackCueEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   TextTrackCueEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get enter => this['enter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get exit => this['exit'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19207,10 +19413,12 @@ class TextTrackCueEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextTrackCueList; @docsEditable true
+
+@DocsEditable
+@DomName('TextTrackCueList')
 class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "*TextTrackCueList" {
 
-  /// @domName TextTrackCueList.length; @docsEditable true
+  @DocsEditable @DomName('TextTrackCueList.length')
   int get length => JS("int", "#.length", this);
 
   TextTrackCue operator[](int index) => JS("TextTrackCue", "#[#]", this, index);
@@ -19231,50 +19439,50 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(TextTrackCue element) => Collections.contains(this, element);
+  bool contains(TextTrackCue element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
+  void forEach(void f(TextTrackCue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrackCue element)) => new MappedList<TextTrackCue, dynamic>(this, f);
+  List mappedBy(f(TextTrackCue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) => new WhereIterable<TextTrackCue>(this, f);
+  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
+  bool every(bool f(TextTrackCue element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(TextTrackCue element)) => Collections.any(this, f);
+  bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
 
   List<TextTrackCue> toList() => new List<TextTrackCue>.from(this);
   Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrackCue> take(int n) => new ListView<TextTrackCue>(this, 0, n);
+  List<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrackCue> takeWhile(bool test(TextTrackCue value)) {
-    return new TakeWhileIterable<TextTrackCue>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrackCue> skip(int n) => new ListView<TextTrackCue>(this, n, null);
+  List<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrackCue> skipWhile(bool test(TextTrackCue value)) {
-    return new SkipWhileIterable<TextTrackCue>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   TextTrackCue firstMatching(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   TextTrackCue lastMatching(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   TextTrackCue singleMatching(bool test(TextTrackCue value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   TextTrackCue elementAt(int index) {
@@ -19332,16 +19540,36 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.min(this, compare);
+  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => IterableMixinWorkaround.min(this, compare);
 
-  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.max(this, compare);
+  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => IterableMixinWorkaround.max(this, compare);
 
   TextTrackCue removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   TextTrackCue removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(TextTrackCue element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(TextTrackCue element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
@@ -19361,10 +19589,10 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   // -- end List<TextTrackCue> mixins.
 
-  /// @domName TextTrackCueList.getCueById; @docsEditable true
+  @DocsEditable @DomName('TextTrackCueList.getCueById')
   TextTrackCue getCueById(String id) native;
 
-  /// @domName TextTrackCueList.item; @docsEditable true
+  @DocsEditable @DomName('TextTrackCueList.item')
   TextTrackCue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19372,16 +19600,19 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TextTrackList; @docsEditable true
+
+@DocsEditable
+@DomName('TextTrackList')
 class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
 
   static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
 
-  /// @domName TextTrackList.length; @docsEditable true
+  @DocsEditable @DomName('TextTrackList.length')
   int get length => JS("int", "#.length", this);
 
   TextTrack operator[](int index) => JS("TextTrack", "#[#]", this, index);
@@ -19402,50 +19633,50 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(TextTrack element) => Collections.contains(this, element);
+  bool contains(TextTrack element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
+  void forEach(void f(TextTrack element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrack element)) => new MappedList<TextTrack, dynamic>(this, f);
+  List mappedBy(f(TextTrack element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<TextTrack> where(bool f(TextTrack element)) => new WhereIterable<TextTrack>(this, f);
+  Iterable<TextTrack> where(bool f(TextTrack element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(TextTrack element)) => Collections.every(this, f);
+  bool every(bool f(TextTrack element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(TextTrack element)) => Collections.any(this, f);
+  bool any(bool f(TextTrack element)) => IterableMixinWorkaround.any(this, f);
 
   List<TextTrack> toList() => new List<TextTrack>.from(this);
   Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrack> take(int n) => new ListView<TextTrack>(this, 0, n);
+  List<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrack> takeWhile(bool test(TextTrack value)) {
-    return new TakeWhileIterable<TextTrack>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrack> skip(int n) => new ListView<TextTrack>(this, n, null);
+  List<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrack> skipWhile(bool test(TextTrack value)) {
-    return new SkipWhileIterable<TextTrack>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   TextTrack firstMatching(bool test(TextTrack value), { TextTrack orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   TextTrack lastMatching(bool test(TextTrack value), {TextTrack orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   TextTrack singleMatching(bool test(TextTrack value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   TextTrack elementAt(int index) {
@@ -19503,16 +19734,36 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new StateError("More than one element");
   }
 
-  TextTrack min([int compare(TextTrack a, TextTrack b)]) => Collections.min(this, compare);
+  TextTrack min([int compare(TextTrack a, TextTrack b)]) => IterableMixinWorkaround.min(this, compare);
 
-  TextTrack max([int compare(TextTrack a, TextTrack b)]) => Collections.max(this, compare);
+  TextTrack max([int compare(TextTrack a, TextTrack b)]) => IterableMixinWorkaround.max(this, compare);
 
   TextTrack removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   TextTrack removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(TextTrack element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(TextTrack element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
@@ -19532,30 +19783,30 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   // -- end List<TextTrack> mixins.
 
-  /// @domName TextTrackList.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('TextTrackList.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName TextTrackList.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('TextTrackList.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName TextTrackList.item; @docsEditable true
+  @DocsEditable @DomName('TextTrackList.item')
   TextTrack item(int index) native;
 
-  /// @domName TextTrackList.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('TextTrackList.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class TextTrackListEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   TextTrackListEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19563,16 +19814,18 @@ class TextTrackListEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TimeRanges; @docsEditable true
+
+@DocsEditable
+@DomName('TimeRanges')
 class TimeRanges native "*TimeRanges" {
 
-  /// @domName TimeRanges.length; @docsEditable true
+  @DocsEditable @DomName('TimeRanges.length')
   final int length;
 
-  /// @domName TimeRanges.end; @docsEditable true
+  @DocsEditable @DomName('TimeRanges.end')
   num end(int index) native;
 
-  /// @domName TimeRanges.start; @docsEditable true
+  @DocsEditable @DomName('TimeRanges.start')
   num start(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19588,10 +19841,12 @@ typedef void TimeoutHandler();
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTitleElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLTitleElement')
 class TitleElement extends Element native "*HTMLTitleElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory TitleElement() => document.$dom_createElement("title");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19599,46 +19854,47 @@ class TitleElement extends Element native "*HTMLTitleElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Touch; @docsEditable true
+
+@DocsEditable
+@DomName('Touch')
 class Touch native "*Touch" {
 
-  /// @domName Touch.clientX; @docsEditable true
+  @DocsEditable @DomName('Touch.clientX')
   final int clientX;
 
-  /// @domName Touch.clientY; @docsEditable true
+  @DocsEditable @DomName('Touch.clientY')
   final int clientY;
 
-  /// @domName Touch.identifier; @docsEditable true
+  @DocsEditable @DomName('Touch.identifier')
   final int identifier;
 
-  /// @domName Touch.pageX; @docsEditable true
+  @DocsEditable @DomName('Touch.pageX')
   final int pageX;
 
-  /// @domName Touch.pageY; @docsEditable true
+  @DocsEditable @DomName('Touch.pageY')
   final int pageY;
 
-  /// @domName Touch.screenX; @docsEditable true
+  @DocsEditable @DomName('Touch.screenX')
   final int screenX;
 
-  /// @domName Touch.screenY; @docsEditable true
+  @DocsEditable @DomName('Touch.screenY')
   final int screenY;
 
-  /// @domName Touch.target; @docsEditable true
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
-  @Creates('Element|Document') @Returns('Element|Document')
+  @DocsEditable @DomName('Touch.target') @Creates('Element|Document') @Returns('Element|Document')
   final dynamic _target;
 
-  /// @domName Touch.webkitForce; @docsEditable true
+  @DocsEditable @DomName('Touch.webkitForce')
   final num webkitForce;
 
-  /// @domName Touch.webkitRadiusX; @docsEditable true
+  @DocsEditable @DomName('Touch.webkitRadiusX')
   final int webkitRadiusX;
 
-  /// @domName Touch.webkitRadiusY; @docsEditable true
+  @DocsEditable @DomName('Touch.webkitRadiusY')
   final int webkitRadiusY;
 
-  /// @domName Touch.webkitRotationAngle; @docsEditable true
+  @DocsEditable @DomName('Touch.webkitRotationAngle')
   final num webkitRotationAngle;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19646,31 +19902,33 @@ class Touch native "*Touch" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TouchEvent; @docsEditable true
+
+@DocsEditable
+@DomName('TouchEvent')
 class TouchEvent extends UIEvent native "*TouchEvent" {
 
-  /// @domName TouchEvent.altKey; @docsEditable true
+  @DocsEditable @DomName('TouchEvent.altKey')
   final bool altKey;
 
-  /// @domName TouchEvent.changedTouches; @docsEditable true
+  @DocsEditable @DomName('TouchEvent.changedTouches')
   final TouchList changedTouches;
 
-  /// @domName TouchEvent.ctrlKey; @docsEditable true
+  @DocsEditable @DomName('TouchEvent.ctrlKey')
   final bool ctrlKey;
 
-  /// @domName TouchEvent.metaKey; @docsEditable true
+  @DocsEditable @DomName('TouchEvent.metaKey')
   final bool metaKey;
 
-  /// @domName TouchEvent.shiftKey; @docsEditable true
+  @DocsEditable @DomName('TouchEvent.shiftKey')
   final bool shiftKey;
 
-  /// @domName TouchEvent.targetTouches; @docsEditable true
+  @DocsEditable @DomName('TouchEvent.targetTouches')
   final TouchList targetTouches;
 
-  /// @domName TouchEvent.touches; @docsEditable true
+  @DocsEditable @DomName('TouchEvent.touches')
   final TouchList touches;
 
-  /// @domName TouchEvent.initTouchEvent; @docsEditable true
+  @DocsEditable @DomName('TouchEvent.initTouchEvent')
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19678,10 +19936,12 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TouchList; @docsEditable true
+
+@DocsEditable
+@DomName('TouchList')
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
 
-  /// @domName TouchList.length; @docsEditable true
+  @DocsEditable @DomName('TouchList.length')
   int get length => JS("int", "#.length", this);
 
   Touch operator[](int index) => JS("Touch", "#[#]", this, index);
@@ -19702,50 +19962,50 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Touch element) => Collections.contains(this, element);
+  bool contains(Touch element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Touch element)) => Collections.forEach(this, f);
+  void forEach(void f(Touch element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Touch element)) => new MappedList<Touch, dynamic>(this, f);
+  List mappedBy(f(Touch element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Touch> where(bool f(Touch element)) => new WhereIterable<Touch>(this, f);
+  Iterable<Touch> where(bool f(Touch element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Touch element)) => Collections.every(this, f);
+  bool every(bool f(Touch element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Touch element)) => Collections.any(this, f);
+  bool any(bool f(Touch element)) => IterableMixinWorkaround.any(this, f);
 
   List<Touch> toList() => new List<Touch>.from(this);
   Set<Touch> toSet() => new Set<Touch>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Touch> take(int n) => new ListView<Touch>(this, 0, n);
+  List<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Touch> takeWhile(bool test(Touch value)) {
-    return new TakeWhileIterable<Touch>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Touch> skip(int n) => new ListView<Touch>(this, n, null);
+  List<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Touch> skipWhile(bool test(Touch value)) {
-    return new SkipWhileIterable<Touch>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Touch firstMatching(bool test(Touch value), { Touch orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Touch lastMatching(bool test(Touch value), {Touch orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Touch singleMatching(bool test(Touch value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Touch elementAt(int index) {
@@ -19803,16 +20063,36 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new StateError("More than one element");
   }
 
-  Touch min([int compare(Touch a, Touch b)]) => Collections.min(this, compare);
+  Touch min([int compare(Touch a, Touch b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Touch max([int compare(Touch a, Touch b)]) => Collections.max(this, compare);
+  Touch max([int compare(Touch a, Touch b)]) => IterableMixinWorkaround.max(this, compare);
 
   Touch removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Touch removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Touch element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Touch element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
@@ -19832,7 +20112,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   // -- end List<Touch> mixins.
 
-  /// @domName TouchList.item; @docsEditable true
+  @DocsEditable @DomName('TouchList.item')
   Touch item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19840,13 +20120,15 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLTrackElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLTrackElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class TrackElement extends Element native "*HTMLTrackElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory TrackElement() => document.$dom_createElement("track");
 
   /// Checks if this type is supported on the current platform.
@@ -19860,26 +20142,26 @@ class TrackElement extends Element native "*HTMLTrackElement" {
 
   static const int NONE = 0;
 
-  /// @domName HTMLTrackElement.defaultValue; @docsEditable true
   @JSName('default')
+  @DocsEditable @DomName('HTMLTrackElement.default')
   bool defaultValue;
 
-  /// @domName HTMLTrackElement.kind; @docsEditable true
+  @DocsEditable @DomName('HTMLTrackElement.kind')
   String kind;
 
-  /// @domName HTMLTrackElement.label; @docsEditable true
+  @DocsEditable @DomName('HTMLTrackElement.label')
   String label;
 
-  /// @domName HTMLTrackElement.readyState; @docsEditable true
+  @DocsEditable @DomName('HTMLTrackElement.readyState')
   final int readyState;
 
-  /// @domName HTMLTrackElement.src; @docsEditable true
+  @DocsEditable @DomName('HTMLTrackElement.src')
   String src;
 
-  /// @domName HTMLTrackElement.srclang; @docsEditable true
+  @DocsEditable @DomName('HTMLTrackElement.srclang')
   String srclang;
 
-  /// @domName HTMLTrackElement.track; @docsEditable true
+  @DocsEditable @DomName('HTMLTrackElement.track')
   final TextTrack track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19887,10 +20169,12 @@ class TrackElement extends Element native "*HTMLTrackElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TrackEvent; @docsEditable true
+
+@DocsEditable
+@DomName('TrackEvent')
 class TrackEvent extends Event native "*TrackEvent" {
 
-  /// @domName TrackEvent.track; @docsEditable true
+  @DocsEditable @DomName('TrackEvent.track')
   final Object track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19898,13 +20182,15 @@ class TrackEvent extends Event native "*TrackEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitTransitionEvent; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitTransitionEvent')
 class TransitionEvent extends Event native "*WebKitTransitionEvent" {
 
-  /// @domName WebKitTransitionEvent.elapsedTime; @docsEditable true
+  @DocsEditable @DomName('WebKitTransitionEvent.elapsedTime')
   final num elapsedTime;
 
-  /// @domName WebKitTransitionEvent.propertyName; @docsEditable true
+  @DocsEditable @DomName('WebKitTransitionEvent.propertyName')
   final String propertyName;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19912,43 +20198,45 @@ class TransitionEvent extends Event native "*WebKitTransitionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName TreeWalker; @docsEditable true
+
+@DocsEditable
+@DomName('TreeWalker')
 class TreeWalker native "*TreeWalker" {
 
-  /// @domName TreeWalker.currentNode; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.currentNode')
   Node currentNode;
 
-  /// @domName TreeWalker.expandEntityReferences; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.expandEntityReferences')
   final bool expandEntityReferences;
 
-  /// @domName TreeWalker.filter; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.filter')
   final NodeFilter filter;
 
-  /// @domName TreeWalker.root; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.root')
   final Node root;
 
-  /// @domName TreeWalker.whatToShow; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.whatToShow')
   final int whatToShow;
 
-  /// @domName TreeWalker.firstChild; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.firstChild')
   Node firstChild() native;
 
-  /// @domName TreeWalker.lastChild; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.lastChild')
   Node lastChild() native;
 
-  /// @domName TreeWalker.nextNode; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.nextNode')
   Node nextNode() native;
 
-  /// @domName TreeWalker.nextSibling; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.nextSibling')
   Node nextSibling() native;
 
-  /// @domName TreeWalker.parentNode; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.parentNode')
   Node parentNode() native;
 
-  /// @domName TreeWalker.previousNode; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.previousNode')
   Node previousNode() native;
 
-  /// @domName TreeWalker.previousSibling; @docsEditable true
+  @DocsEditable @DomName('TreeWalker.previousSibling')
   Node previousSibling() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19958,7 +20246,8 @@ class TreeWalker native "*TreeWalker" {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName UIEvent; @docsEditable true
+@DocsEditable
+@DomName('UIEvent')
 class UIEvent extends Event native "*UIEvent" {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -19973,40 +20262,39 @@ class UIEvent extends Event native "*UIEvent" {
     return e;
   }
 
-  /// @domName UIEvent.charCode; @docsEditable true
   @JSName('charCode')
+  @DocsEditable @DomName('UIEvent.charCode')
   final int $dom_charCode;
 
-  /// @domName UIEvent.detail; @docsEditable true
+  @DocsEditable @DomName('UIEvent.detail')
   final int detail;
 
-  /// @domName UIEvent.keyCode; @docsEditable true
   @JSName('keyCode')
+  @DocsEditable @DomName('UIEvent.keyCode')
   final int $dom_keyCode;
 
-  /// @domName UIEvent.layerX; @docsEditable true
+  @DocsEditable @DomName('UIEvent.layerX')
   final int layerX;
 
-  /// @domName UIEvent.layerY; @docsEditable true
+  @DocsEditable @DomName('UIEvent.layerY')
   final int layerY;
 
-  /// @domName UIEvent.pageX; @docsEditable true
+  @DocsEditable @DomName('UIEvent.pageX')
   final int pageX;
 
-  /// @domName UIEvent.pageY; @docsEditable true
+  @DocsEditable @DomName('UIEvent.pageY')
   final int pageY;
 
-  /// @domName UIEvent.view; @docsEditable true
   WindowBase get view => _convertNativeToDart_Window(this._view);
   @JSName('view')
-  @Creates('Window|=Object') @Returns('Window|=Object')
+  @DocsEditable @DomName('UIEvent.view') @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _view;
 
-  /// @domName UIEvent.which; @docsEditable true
+  @DocsEditable @DomName('UIEvent.which')
   final int which;
 
-  /// @domName UIEvent.initUIEvent; @docsEditable true
   @JSName('initUIEvent')
+  @DocsEditable @DomName('UIEvent.initUIEvent')
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native;
 
 }
@@ -20015,10 +20303,12 @@ class UIEvent extends Event native "*UIEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLUListElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLUListElement')
 class UListElement extends Element native "*HTMLUListElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory UListElement() => document.$dom_createElement("ul");
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20026,7 +20316,9 @@ class UListElement extends Element native "*HTMLUListElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Uint16Array; @docsEditable true
+
+@DocsEditable
+@DomName('Uint16Array')
 class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint16Array" {
 
   factory Uint16Array(int length) =>
@@ -20035,12 +20327,12 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   factory Uint16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint16Array_fromList(list);
 
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  /// @domName Uint16Array.length; @docsEditable true
+  @DocsEditable @DomName('Uint16Array.length')
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -20058,50 +20350,50 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -20159,16 +20451,36 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -20188,11 +20500,11 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   // -- end List<int> mixins.
 
-  /// @domName Uint16Array.setElements; @docsEditable true
   @JSName('set')
+  @DocsEditable @DomName('Uint16Array.set')
   void setElements(Object array, [int offset]) native;
 
-  /// @domName Uint16Array.subarray; @docsEditable true
+  @DocsEditable @DomName('Uint16Array.subarray')
   Uint16Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20200,7 +20512,9 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Uint32Array; @docsEditable true
+
+@DocsEditable
+@DomName('Uint32Array')
 class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint32Array" {
 
   factory Uint32Array(int length) =>
@@ -20209,12 +20523,12 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   factory Uint32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint32Array_fromList(list);
 
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  /// @domName Uint32Array.length; @docsEditable true
+  @DocsEditable @DomName('Uint32Array.length')
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -20232,50 +20546,50 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -20333,16 +20647,36 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -20362,11 +20696,11 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   // -- end List<int> mixins.
 
-  /// @domName Uint32Array.setElements; @docsEditable true
   @JSName('set')
+  @DocsEditable @DomName('Uint32Array.set')
   void setElements(Object array, [int offset]) native;
 
-  /// @domName Uint32Array.subarray; @docsEditable true
+  @DocsEditable @DomName('Uint32Array.subarray')
   Uint32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20374,7 +20708,9 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Uint8Array; @docsEditable true
+
+@DocsEditable
+@DomName('Uint8Array')
 class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint8Array" {
 
   factory Uint8Array(int length) =>
@@ -20383,12 +20719,12 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   factory Uint8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8Array_fromList(list);
 
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  /// @domName Uint8Array.length; @docsEditable true
+  @DocsEditable @DomName('Uint8Array.length')
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -20406,50 +20742,50 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -20507,16 +20843,36 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -20536,11 +20892,11 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   // -- end List<int> mixins.
 
-  /// @domName Uint8Array.setElements; @docsEditable true
   @JSName('set')
+  @DocsEditable @DomName('Uint8Array.set')
   void setElements(Object array, [int offset]) native;
 
-  /// @domName Uint8Array.subarray; @docsEditable true
+  @DocsEditable @DomName('Uint8Array.subarray')
   Uint8Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20548,8 +20904,10 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Uint8ClampedArray; @docsEditable true
-class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
+
+@DocsEditable
+@DomName('Uint8ClampedArray')
+class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior, List<int> native "*Uint8ClampedArray" {
 
   factory Uint8ClampedArray(int length) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray(length);
@@ -20557,17 +20915,182 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
   factory Uint8ClampedArray.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromList(list);
 
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) =>
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
   // Use implementation from Uint8Array.
   // final int length;
 
-  /// @domName Uint8ClampedArray.setElements; @docsEditable true
+  int operator[](int index) => JS("int", "#[#]", this, index);
+
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
+
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
+
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return IterableMixinWorkaround.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <int>[]);
+
+  // -- end List<int> mixins.
+
   @JSName('set')
+  @DocsEditable @DomName('Uint8ClampedArray.set')
   void setElements(Object array, [int offset]) native;
 
-  /// @domName Uint8ClampedArray.subarray; @docsEditable true
+  @DocsEditable @DomName('Uint8ClampedArray.subarray')
   Uint8ClampedArray subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20575,7 +21098,9 @@ class Uint8ClampedArray extends Uint8Array native "*Uint8ClampedArray" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLUnknownElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLUnknownElement')
 class UnknownElement extends Element native "*HTMLUnknownElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20583,7 +21108,8 @@ class UnknownElement extends Element native "*HTMLUnknownElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName URL
+@DocsEditable
+@DomName('URL')
 class Url native "*URL" {
 
   static String createObjectUrl(blob_OR_source_OR_stream) =>
@@ -20601,37 +21127,39 @@ class Url native "*URL" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ValidityState; @docsEditable true
+
+@DocsEditable
+@DomName('ValidityState')
 class ValidityState native "*ValidityState" {
 
-  /// @domName ValidityState.badInput; @docsEditable true
+  @DocsEditable @DomName('ValidityState.badInput')
   final bool badInput;
 
-  /// @domName ValidityState.customError; @docsEditable true
+  @DocsEditable @DomName('ValidityState.customError')
   final bool customError;
 
-  /// @domName ValidityState.patternMismatch; @docsEditable true
+  @DocsEditable @DomName('ValidityState.patternMismatch')
   final bool patternMismatch;
 
-  /// @domName ValidityState.rangeOverflow; @docsEditable true
+  @DocsEditable @DomName('ValidityState.rangeOverflow')
   final bool rangeOverflow;
 
-  /// @domName ValidityState.rangeUnderflow; @docsEditable true
+  @DocsEditable @DomName('ValidityState.rangeUnderflow')
   final bool rangeUnderflow;
 
-  /// @domName ValidityState.stepMismatch; @docsEditable true
+  @DocsEditable @DomName('ValidityState.stepMismatch')
   final bool stepMismatch;
 
-  /// @domName ValidityState.tooLong; @docsEditable true
+  @DocsEditable @DomName('ValidityState.tooLong')
   final bool tooLong;
 
-  /// @domName ValidityState.typeMismatch; @docsEditable true
+  @DocsEditable @DomName('ValidityState.typeMismatch')
   final bool typeMismatch;
 
-  /// @domName ValidityState.valid; @docsEditable true
+  @DocsEditable @DomName('ValidityState.valid')
   final bool valid;
 
-  /// @domName ValidityState.valueMissing; @docsEditable true
+  @DocsEditable @DomName('ValidityState.valueMissing')
   final bool valueMissing;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20639,49 +21167,51 @@ class ValidityState native "*ValidityState" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLVideoElement; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLVideoElement')
 class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory VideoElement() => document.$dom_createElement("video");
 
-  /// @domName HTMLVideoElement.height; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.height')
   int height;
 
-  /// @domName HTMLVideoElement.poster; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.poster')
   String poster;
 
-  /// @domName HTMLVideoElement.videoHeight; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.videoHeight')
   final int videoHeight;
 
-  /// @domName HTMLVideoElement.videoWidth; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.videoWidth')
   final int videoWidth;
 
-  /// @domName HTMLVideoElement.webkitDecodedFrameCount; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.webkitDecodedFrameCount')
   final int webkitDecodedFrameCount;
 
-  /// @domName HTMLVideoElement.webkitDisplayingFullscreen; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.webkitDisplayingFullscreen')
   final bool webkitDisplayingFullscreen;
 
-  /// @domName HTMLVideoElement.webkitDroppedFrameCount; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.webkitDroppedFrameCount')
   final int webkitDroppedFrameCount;
 
-  /// @domName HTMLVideoElement.webkitSupportsFullscreen; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.webkitSupportsFullscreen')
   final bool webkitSupportsFullscreen;
 
-  /// @domName HTMLVideoElement.width; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.width')
   int width;
 
-  /// @domName HTMLVideoElement.webkitEnterFullScreen; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.webkitEnterFullScreen')
   void webkitEnterFullScreen() native;
 
-  /// @domName HTMLVideoElement.webkitEnterFullscreen; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.webkitEnterFullscreen')
   void webkitEnterFullscreen() native;
 
-  /// @domName HTMLVideoElement.webkitExitFullScreen; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.webkitExitFullScreen')
   void webkitExitFullScreen() native;
 
-  /// @domName HTMLVideoElement.webkitExitFullscreen; @docsEditable true
+  @DocsEditable @DomName('HTMLVideoElement.webkitExitFullscreen')
   void webkitExitFullscreen() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20697,16 +21227,18 @@ typedef void VoidCallback();
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLActiveInfo; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLActiveInfo')
 class WebGLActiveInfo native "*WebGLActiveInfo" {
 
-  /// @domName WebGLActiveInfo.name; @docsEditable true
+  @DocsEditable @DomName('WebGLActiveInfo.name')
   final String name;
 
-  /// @domName WebGLActiveInfo.size; @docsEditable true
+  @DocsEditable @DomName('WebGLActiveInfo.size')
   final int size;
 
-  /// @domName WebGLActiveInfo.type; @docsEditable true
+  @DocsEditable @DomName('WebGLActiveInfo.type')
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20714,7 +21246,9 @@ class WebGLActiveInfo native "*WebGLActiveInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLBuffer; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLBuffer')
 class WebGLBuffer native "*WebGLBuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20722,7 +21256,9 @@ class WebGLBuffer native "*WebGLBuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLCompressedTextureS3TC; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLCompressedTextureS3TC')
 class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
   static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
@@ -20738,25 +21274,27 @@ class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLContextAttributes; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLContextAttributes')
 class WebGLContextAttributes native "*WebGLContextAttributes" {
 
-  /// @domName WebGLContextAttributes.alpha; @docsEditable true
+  @DocsEditable @DomName('WebGLContextAttributes.alpha')
   bool alpha;
 
-  /// @domName WebGLContextAttributes.antialias; @docsEditable true
+  @DocsEditable @DomName('WebGLContextAttributes.antialias')
   bool antialias;
 
-  /// @domName WebGLContextAttributes.depth; @docsEditable true
+  @DocsEditable @DomName('WebGLContextAttributes.depth')
   bool depth;
 
-  /// @domName WebGLContextAttributes.premultipliedAlpha; @docsEditable true
+  @DocsEditable @DomName('WebGLContextAttributes.premultipliedAlpha')
   bool premultipliedAlpha;
 
-  /// @domName WebGLContextAttributes.preserveDrawingBuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   bool preserveDrawingBuffer;
 
-  /// @domName WebGLContextAttributes.stencil; @docsEditable true
+  @DocsEditable @DomName('WebGLContextAttributes.stencil')
   bool stencil;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20764,10 +21302,12 @@ class WebGLContextAttributes native "*WebGLContextAttributes" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLContextEvent; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLContextEvent')
 class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 
-  /// @domName WebGLContextEvent.statusMessage; @docsEditable true
+  @DocsEditable @DomName('WebGLContextEvent.statusMessage')
   final String statusMessage;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20775,7 +21315,9 @@ class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLDebugRendererInfo; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLDebugRendererInfo')
 class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   static const int UNMASKED_RENDERER_WEBGL = 0x9246;
@@ -20787,10 +21329,12 @@ class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLDebugShaders; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLDebugShaders')
 class WebGLDebugShaders native "*WebGLDebugShaders" {
 
-  /// @domName WebGLDebugShaders.getTranslatedShaderSource; @docsEditable true
+  @DocsEditable @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   String getTranslatedShaderSource(WebGLShader shader) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20798,7 +21342,9 @@ class WebGLDebugShaders native "*WebGLDebugShaders" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLDepthTexture; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLDepthTexture')
 class WebGLDepthTexture native "*WebGLDepthTexture" {
 
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
@@ -20808,7 +21354,9 @@ class WebGLDepthTexture native "*WebGLDepthTexture" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLFramebuffer; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLFramebuffer')
 class WebGLFramebuffer native "*WebGLFramebuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20816,13 +21364,15 @@ class WebGLFramebuffer native "*WebGLFramebuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLLoseContext; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLLoseContext')
 class WebGLLoseContext native "*WebGLLoseContext" {
 
-  /// @domName WebGLLoseContext.loseContext; @docsEditable true
+  @DocsEditable @DomName('WebGLLoseContext.loseContext')
   void loseContext() native;
 
-  /// @domName WebGLLoseContext.restoreContext; @docsEditable true
+  @DocsEditable @DomName('WebGLLoseContext.restoreContext')
   void restoreContext() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20830,7 +21380,9 @@ class WebGLLoseContext native "*WebGLLoseContext" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLProgram; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLProgram')
 class WebGLProgram native "*WebGLProgram" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20838,7 +21390,9 @@ class WebGLProgram native "*WebGLProgram" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLRenderbuffer; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLRenderbuffer')
 class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20846,7 +21400,9 @@ class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLRenderingContext; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLRenderingContext')
 class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
 
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
@@ -21439,319 +21995,318 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   static const int ZERO = 0;
 
-  /// @domName WebGLRenderingContext.drawingBufferHeight; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.drawingBufferHeight')
   final int drawingBufferHeight;
 
-  /// @domName WebGLRenderingContext.drawingBufferWidth; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.drawingBufferWidth')
   final int drawingBufferWidth;
 
-  /// @domName WebGLRenderingContext.activeTexture; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.activeTexture')
   void activeTexture(int texture) native;
 
-  /// @domName WebGLRenderingContext.attachShader; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.attachShader')
   void attachShader(WebGLProgram program, WebGLShader shader) native;
 
-  /// @domName WebGLRenderingContext.bindAttribLocation; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.bindAttribLocation')
   void bindAttribLocation(WebGLProgram program, int index, String name) native;
 
-  /// @domName WebGLRenderingContext.bindBuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.bindBuffer')
   void bindBuffer(int target, WebGLBuffer buffer) native;
 
-  /// @domName WebGLRenderingContext.bindFramebuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.bindFramebuffer')
   void bindFramebuffer(int target, WebGLFramebuffer framebuffer) native;
 
-  /// @domName WebGLRenderingContext.bindRenderbuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.bindRenderbuffer')
   void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer) native;
 
-  /// @domName WebGLRenderingContext.bindTexture; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.bindTexture')
   void bindTexture(int target, WebGLTexture texture) native;
 
-  /// @domName WebGLRenderingContext.blendColor; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.blendColor')
   void blendColor(num red, num green, num blue, num alpha) native;
 
-  /// @domName WebGLRenderingContext.blendEquation; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.blendEquation')
   void blendEquation(int mode) native;
 
-  /// @domName WebGLRenderingContext.blendEquationSeparate; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.blendEquationSeparate')
   void blendEquationSeparate(int modeRGB, int modeAlpha) native;
 
-  /// @domName WebGLRenderingContext.blendFunc; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.blendFunc')
   void blendFunc(int sfactor, int dfactor) native;
 
-  /// @domName WebGLRenderingContext.blendFuncSeparate; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.blendFuncSeparate')
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
-  /// @domName WebGLRenderingContext.bufferData; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.bufferData')
   void bufferData(int target, data_OR_size, int usage) native;
 
-  /// @domName WebGLRenderingContext.bufferSubData; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.bufferSubData')
   void bufferSubData(int target, int offset, data) native;
 
-  /// @domName WebGLRenderingContext.checkFramebufferStatus; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.checkFramebufferStatus')
   int checkFramebufferStatus(int target) native;
 
-  /// @domName WebGLRenderingContext.clear; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.clear')
   void clear(int mask) native;
 
-  /// @domName WebGLRenderingContext.clearColor; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.clearColor')
   void clearColor(num red, num green, num blue, num alpha) native;
 
-  /// @domName WebGLRenderingContext.clearDepth; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.clearDepth')
   void clearDepth(num depth) native;
 
-  /// @domName WebGLRenderingContext.clearStencil; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.clearStencil')
   void clearStencil(int s) native;
 
-  /// @domName WebGLRenderingContext.colorMask; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.colorMask')
   void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
-  /// @domName WebGLRenderingContext.compileShader; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.compileShader')
   void compileShader(WebGLShader shader) native;
 
-  /// @domName WebGLRenderingContext.compressedTexImage2D; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.compressedTexImage2D')
   void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native;
 
-  /// @domName WebGLRenderingContext.compressedTexSubImage2D; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native;
 
-  /// @domName WebGLRenderingContext.copyTexImage2D; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.copyTexImage2D')
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native;
 
-  /// @domName WebGLRenderingContext.copyTexSubImage2D; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.copyTexSubImage2D')
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native;
 
-  /// @domName WebGLRenderingContext.createBuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.createBuffer')
   WebGLBuffer createBuffer() native;
 
-  /// @domName WebGLRenderingContext.createFramebuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.createFramebuffer')
   WebGLFramebuffer createFramebuffer() native;
 
-  /// @domName WebGLRenderingContext.createProgram; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.createProgram')
   WebGLProgram createProgram() native;
 
-  /// @domName WebGLRenderingContext.createRenderbuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.createRenderbuffer')
   WebGLRenderbuffer createRenderbuffer() native;
 
-  /// @domName WebGLRenderingContext.createShader; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.createShader')
   WebGLShader createShader(int type) native;
 
-  /// @domName WebGLRenderingContext.createTexture; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.createTexture')
   WebGLTexture createTexture() native;
 
-  /// @domName WebGLRenderingContext.cullFace; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.cullFace')
   void cullFace(int mode) native;
 
-  /// @domName WebGLRenderingContext.deleteBuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.deleteBuffer')
   void deleteBuffer(WebGLBuffer buffer) native;
 
-  /// @domName WebGLRenderingContext.deleteFramebuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.deleteFramebuffer')
   void deleteFramebuffer(WebGLFramebuffer framebuffer) native;
 
-  /// @domName WebGLRenderingContext.deleteProgram; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.deleteProgram')
   void deleteProgram(WebGLProgram program) native;
 
-  /// @domName WebGLRenderingContext.deleteRenderbuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.deleteRenderbuffer')
   void deleteRenderbuffer(WebGLRenderbuffer renderbuffer) native;
 
-  /// @domName WebGLRenderingContext.deleteShader; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.deleteShader')
   void deleteShader(WebGLShader shader) native;
 
-  /// @domName WebGLRenderingContext.deleteTexture; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.deleteTexture')
   void deleteTexture(WebGLTexture texture) native;
 
-  /// @domName WebGLRenderingContext.depthFunc; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.depthFunc')
   void depthFunc(int func) native;
 
-  /// @domName WebGLRenderingContext.depthMask; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.depthMask')
   void depthMask(bool flag) native;
 
-  /// @domName WebGLRenderingContext.depthRange; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.depthRange')
   void depthRange(num zNear, num zFar) native;
 
-  /// @domName WebGLRenderingContext.detachShader; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.detachShader')
   void detachShader(WebGLProgram program, WebGLShader shader) native;
 
-  /// @domName WebGLRenderingContext.disable; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.disable')
   void disable(int cap) native;
 
-  /// @domName WebGLRenderingContext.disableVertexAttribArray; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.disableVertexAttribArray')
   void disableVertexAttribArray(int index) native;
 
-  /// @domName WebGLRenderingContext.drawArrays; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.drawArrays')
   void drawArrays(int mode, int first, int count) native;
 
-  /// @domName WebGLRenderingContext.drawElements; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.drawElements')
   void drawElements(int mode, int count, int type, int offset) native;
 
-  /// @domName WebGLRenderingContext.enable; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.enable')
   void enable(int cap) native;
 
-  /// @domName WebGLRenderingContext.enableVertexAttribArray; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.enableVertexAttribArray')
   void enableVertexAttribArray(int index) native;
 
-  /// @domName WebGLRenderingContext.finish; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.finish')
   void finish() native;
 
-  /// @domName WebGLRenderingContext.flush; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.flush')
   void flush() native;
 
-  /// @domName WebGLRenderingContext.framebufferRenderbuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.framebufferRenderbuffer')
   void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer) native;
 
-  /// @domName WebGLRenderingContext.framebufferTexture2D; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.framebufferTexture2D')
   void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level) native;
 
-  /// @domName WebGLRenderingContext.frontFace; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.frontFace')
   void frontFace(int mode) native;
 
-  /// @domName WebGLRenderingContext.generateMipmap; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.generateMipmap')
   void generateMipmap(int target) native;
 
-  /// @domName WebGLRenderingContext.getActiveAttrib; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getActiveAttrib')
   WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index) native;
 
-  /// @domName WebGLRenderingContext.getActiveUniform; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getActiveUniform')
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) native;
 
-  /// @domName WebGLRenderingContext.getAttachedShaders; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getAttachedShaders')
   void getAttachedShaders(WebGLProgram program) native;
 
-  /// @domName WebGLRenderingContext.getAttribLocation; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getAttribLocation')
   int getAttribLocation(WebGLProgram program, String name) native;
 
-  /// @domName WebGLRenderingContext.getBufferParameter; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getBufferParameter')
   Object getBufferParameter(int target, int pname) native;
 
-  /// @domName WebGLRenderingContext.getContextAttributes; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getContextAttributes')
   WebGLContextAttributes getContextAttributes() native;
 
-  /// @domName WebGLRenderingContext.getError; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getError')
   int getError() native;
 
-  /// @domName WebGLRenderingContext.getExtension; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getExtension')
   Object getExtension(String name) native;
 
-  /// @domName WebGLRenderingContext.getFramebufferAttachmentParameter; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
-  /// @domName WebGLRenderingContext.getParameter; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getParameter')
   Object getParameter(int pname) native;
 
-  /// @domName WebGLRenderingContext.getProgramInfoLog; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getProgramInfoLog')
   String getProgramInfoLog(WebGLProgram program) native;
 
-  /// @domName WebGLRenderingContext.getProgramParameter; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getProgramParameter')
   Object getProgramParameter(WebGLProgram program, int pname) native;
 
-  /// @domName WebGLRenderingContext.getRenderbufferParameter; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getRenderbufferParameter')
   Object getRenderbufferParameter(int target, int pname) native;
 
-  /// @domName WebGLRenderingContext.getShaderInfoLog; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getShaderInfoLog')
   String getShaderInfoLog(WebGLShader shader) native;
 
-  /// @domName WebGLRenderingContext.getShaderParameter; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getShaderParameter')
   Object getShaderParameter(WebGLShader shader, int pname) native;
 
-  /// @domName WebGLRenderingContext.getShaderPrecisionFormat; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) native;
 
-  /// @domName WebGLRenderingContext.getShaderSource; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getShaderSource')
   String getShaderSource(WebGLShader shader) native;
 
-  /// @domName WebGLRenderingContext.getSupportedExtensions; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getSupportedExtensions')
   List<String> getSupportedExtensions() native;
 
-  /// @domName WebGLRenderingContext.getTexParameter; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getTexParameter')
   Object getTexParameter(int target, int pname) native;
 
-  /// @domName WebGLRenderingContext.getUniform; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getUniform')
   Object getUniform(WebGLProgram program, WebGLUniformLocation location) native;
 
-  /// @domName WebGLRenderingContext.getUniformLocation; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getUniformLocation')
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) native;
 
-  /// @domName WebGLRenderingContext.getVertexAttrib; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getVertexAttrib')
   Object getVertexAttrib(int index, int pname) native;
 
-  /// @domName WebGLRenderingContext.getVertexAttribOffset; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.getVertexAttribOffset')
   int getVertexAttribOffset(int index, int pname) native;
 
-  /// @domName WebGLRenderingContext.hint; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.hint')
   void hint(int target, int mode) native;
 
-  /// @domName WebGLRenderingContext.isBuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.isBuffer')
   bool isBuffer(WebGLBuffer buffer) native;
 
-  /// @domName WebGLRenderingContext.isContextLost; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.isContextLost')
   bool isContextLost() native;
 
-  /// @domName WebGLRenderingContext.isEnabled; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.isEnabled')
   bool isEnabled(int cap) native;
 
-  /// @domName WebGLRenderingContext.isFramebuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.isFramebuffer')
   bool isFramebuffer(WebGLFramebuffer framebuffer) native;
 
-  /// @domName WebGLRenderingContext.isProgram; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.isProgram')
   bool isProgram(WebGLProgram program) native;
 
-  /// @domName WebGLRenderingContext.isRenderbuffer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.isRenderbuffer')
   bool isRenderbuffer(WebGLRenderbuffer renderbuffer) native;
 
-  /// @domName WebGLRenderingContext.isShader; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.isShader')
   bool isShader(WebGLShader shader) native;
 
-  /// @domName WebGLRenderingContext.isTexture; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.isTexture')
   bool isTexture(WebGLTexture texture) native;
 
-  /// @domName WebGLRenderingContext.lineWidth; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.lineWidth')
   void lineWidth(num width) native;
 
-  /// @domName WebGLRenderingContext.linkProgram; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.linkProgram')
   void linkProgram(WebGLProgram program) native;
 
-  /// @domName WebGLRenderingContext.pixelStorei; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.pixelStorei')
   void pixelStorei(int pname, int param) native;
 
-  /// @domName WebGLRenderingContext.polygonOffset; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.polygonOffset')
   void polygonOffset(num factor, num units) native;
 
-  /// @domName WebGLRenderingContext.readPixels; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.readPixels')
   void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) native;
 
-  /// @domName WebGLRenderingContext.releaseShaderCompiler; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.releaseShaderCompiler')
   void releaseShaderCompiler() native;
 
-  /// @domName WebGLRenderingContext.renderbufferStorage; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.renderbufferStorage')
   void renderbufferStorage(int target, int internalformat, int width, int height) native;
 
-  /// @domName WebGLRenderingContext.sampleCoverage; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.sampleCoverage')
   void sampleCoverage(num value, bool invert) native;
 
-  /// @domName WebGLRenderingContext.scissor; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.scissor')
   void scissor(int x, int y, int width, int height) native;
 
-  /// @domName WebGLRenderingContext.shaderSource; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.shaderSource')
   void shaderSource(WebGLShader shader, String string) native;
 
-  /// @domName WebGLRenderingContext.stencilFunc; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.stencilFunc')
   void stencilFunc(int func, int ref, int mask) native;
 
-  /// @domName WebGLRenderingContext.stencilFuncSeparate; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.stencilFuncSeparate')
   void stencilFuncSeparate(int face, int func, int ref, int mask) native;
 
-  /// @domName WebGLRenderingContext.stencilMask; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.stencilMask')
   void stencilMask(int mask) native;
 
-  /// @domName WebGLRenderingContext.stencilMaskSeparate; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.stencilMaskSeparate')
   void stencilMaskSeparate(int face, int mask) native;
 
-  /// @domName WebGLRenderingContext.stencilOp; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.stencilOp')
   void stencilOp(int fail, int zfail, int zpass) native;
 
-  /// @domName WebGLRenderingContext.stencilOpSeparate; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.stencilOpSeparate')
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  /// @domName WebGLRenderingContext.texImage2D; @docsEditable true
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
     if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
@@ -21789,23 +22344,27 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('texImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texImage2D')
   void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, ArrayBufferView pixels) native;
   @JSName('texImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texImage2D')
   void _texImage2D_2(target, level, internalformat, format, type, pixels) native;
   @JSName('texImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texImage2D')
   void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native;
   @JSName('texImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texImage2D')
   void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native;
   @JSName('texImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texImage2D')
   void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native;
 
-  /// @domName WebGLRenderingContext.texParameterf; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.texParameterf')
   void texParameterf(int target, int pname, num param) native;
 
-  /// @domName WebGLRenderingContext.texParameteri; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.texParameteri')
   void texParameteri(int target, int pname, int param) native;
 
-  /// @domName WebGLRenderingContext.texSubImage2D; @docsEditable true
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
     if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
@@ -21839,107 +22398,112 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('texSubImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texSubImage2D')
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, ArrayBufferView pixels) native;
   @JSName('texSubImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texSubImage2D')
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native;
   @JSName('texSubImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texSubImage2D')
   void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native;
   @JSName('texSubImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texSubImage2D')
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native;
   @JSName('texSubImage2D')
+  @DocsEditable @DomName('WebGLRenderingContext.texSubImage2D')
   void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native;
 
-  /// @domName WebGLRenderingContext.uniform1f; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform1f')
   void uniform1f(WebGLUniformLocation location, num x) native;
 
-  /// @domName WebGLRenderingContext.uniform1fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform1fv')
   void uniform1fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /// @domName WebGLRenderingContext.uniform1i; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform1i')
   void uniform1i(WebGLUniformLocation location, int x) native;
 
-  /// @domName WebGLRenderingContext.uniform1iv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform1iv')
   void uniform1iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /// @domName WebGLRenderingContext.uniform2f; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform2f')
   void uniform2f(WebGLUniformLocation location, num x, num y) native;
 
-  /// @domName WebGLRenderingContext.uniform2fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform2fv')
   void uniform2fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /// @domName WebGLRenderingContext.uniform2i; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform2i')
   void uniform2i(WebGLUniformLocation location, int x, int y) native;
 
-  /// @domName WebGLRenderingContext.uniform2iv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform2iv')
   void uniform2iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /// @domName WebGLRenderingContext.uniform3f; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform3f')
   void uniform3f(WebGLUniformLocation location, num x, num y, num z) native;
 
-  /// @domName WebGLRenderingContext.uniform3fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform3fv')
   void uniform3fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /// @domName WebGLRenderingContext.uniform3i; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform3i')
   void uniform3i(WebGLUniformLocation location, int x, int y, int z) native;
 
-  /// @domName WebGLRenderingContext.uniform3iv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform3iv')
   void uniform3iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /// @domName WebGLRenderingContext.uniform4f; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform4f')
   void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w) native;
 
-  /// @domName WebGLRenderingContext.uniform4fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform4fv')
   void uniform4fv(WebGLUniformLocation location, Float32Array v) native;
 
-  /// @domName WebGLRenderingContext.uniform4i; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform4i')
   void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w) native;
 
-  /// @domName WebGLRenderingContext.uniform4iv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniform4iv')
   void uniform4iv(WebGLUniformLocation location, Int32Array v) native;
 
-  /// @domName WebGLRenderingContext.uniformMatrix2fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniformMatrix2fv')
   void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  /// @domName WebGLRenderingContext.uniformMatrix3fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniformMatrix3fv')
   void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  /// @domName WebGLRenderingContext.uniformMatrix4fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.uniformMatrix4fv')
   void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  /// @domName WebGLRenderingContext.useProgram; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.useProgram')
   void useProgram(WebGLProgram program) native;
 
-  /// @domName WebGLRenderingContext.validateProgram; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.validateProgram')
   void validateProgram(WebGLProgram program) native;
 
-  /// @domName WebGLRenderingContext.vertexAttrib1f; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.vertexAttrib1f')
   void vertexAttrib1f(int indx, num x) native;
 
-  /// @domName WebGLRenderingContext.vertexAttrib1fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.vertexAttrib1fv')
   void vertexAttrib1fv(int indx, Float32Array values) native;
 
-  /// @domName WebGLRenderingContext.vertexAttrib2f; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.vertexAttrib2f')
   void vertexAttrib2f(int indx, num x, num y) native;
 
-  /// @domName WebGLRenderingContext.vertexAttrib2fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.vertexAttrib2fv')
   void vertexAttrib2fv(int indx, Float32Array values) native;
 
-  /// @domName WebGLRenderingContext.vertexAttrib3f; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.vertexAttrib3f')
   void vertexAttrib3f(int indx, num x, num y, num z) native;
 
-  /// @domName WebGLRenderingContext.vertexAttrib3fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.vertexAttrib3fv')
   void vertexAttrib3fv(int indx, Float32Array values) native;
 
-  /// @domName WebGLRenderingContext.vertexAttrib4f; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.vertexAttrib4f')
   void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
-  /// @domName WebGLRenderingContext.vertexAttrib4fv; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.vertexAttrib4fv')
   void vertexAttrib4fv(int indx, Float32Array values) native;
 
-  /// @domName WebGLRenderingContext.vertexAttribPointer; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.vertexAttribPointer')
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) native;
 
-  /// @domName WebGLRenderingContext.viewport; @docsEditable true
+  @DocsEditable @DomName('WebGLRenderingContext.viewport')
   void viewport(int x, int y, int width, int height) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21947,7 +22511,9 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLShader; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLShader')
 class WebGLShader native "*WebGLShader" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21955,16 +22521,18 @@ class WebGLShader native "*WebGLShader" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLShaderPrecisionFormat; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLShaderPrecisionFormat')
 class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
 
-  /// @domName WebGLShaderPrecisionFormat.precision; @docsEditable true
+  @DocsEditable @DomName('WebGLShaderPrecisionFormat.precision')
   final int precision;
 
-  /// @domName WebGLShaderPrecisionFormat.rangeMax; @docsEditable true
+  @DocsEditable @DomName('WebGLShaderPrecisionFormat.rangeMax')
   final int rangeMax;
 
-  /// @domName WebGLShaderPrecisionFormat.rangeMin; @docsEditable true
+  @DocsEditable @DomName('WebGLShaderPrecisionFormat.rangeMin')
   final int rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21972,7 +22540,9 @@ class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLTexture; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLTexture')
 class WebGLTexture native "*WebGLTexture" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21980,7 +22550,9 @@ class WebGLTexture native "*WebGLTexture" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLUniformLocation; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLUniformLocation')
 class WebGLUniformLocation native "*WebGLUniformLocation" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21988,7 +22560,9 @@ class WebGLUniformLocation native "*WebGLUniformLocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebGLVertexArrayObjectOES; @docsEditable true
+
+@DocsEditable
+@DomName('WebGLVertexArrayObjectOES')
 class WebGLVertexArrayObject native "*WebGLVertexArrayObjectOES" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21996,7 +22570,9 @@ class WebGLVertexArrayObject native "*WebGLVertexArrayObjectOES" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSFilterValue; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitCSSFilterValue')
 class WebKitCssFilterValue extends _CssValueList native "*WebKitCSSFilterValue" {
 
   static const int CSS_FILTER_BLUR = 10;
@@ -22023,7 +22599,7 @@ class WebKitCssFilterValue extends _CssValueList native "*WebKitCSSFilterValue" 
 
   static const int CSS_FILTER_SEPIA = 3;
 
-  /// @domName WebKitCSSFilterValue.operationType; @docsEditable true
+  @DocsEditable @DomName('WebKitCSSFilterValue.operationType')
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22031,7 +22607,9 @@ class WebKitCssFilterValue extends _CssValueList native "*WebKitCSSFilterValue" 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitCSSMixFunctionValue; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitCSSMixFunctionValue')
 class WebKitCssMixFunctionValue extends _CssValueList native "*WebKitCSSMixFunctionValue" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22039,40 +22617,42 @@ class WebKitCssMixFunctionValue extends _CssValueList native "*WebKitCSSMixFunct
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebKitNamedFlow; @docsEditable true
+
+@DocsEditable
+@DomName('WebKitNamedFlow')
 class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
-  /// @domName WebKitNamedFlow.firstEmptyRegionIndex; @docsEditable true
+  @DocsEditable @DomName('WebKitNamedFlow.firstEmptyRegionIndex')
   final int firstEmptyRegionIndex;
 
-  /// @domName WebKitNamedFlow.name; @docsEditable true
+  @DocsEditable @DomName('WebKitNamedFlow.name')
   final String name;
 
-  /// @domName WebKitNamedFlow.overset; @docsEditable true
+  @DocsEditable @DomName('WebKitNamedFlow.overset')
   final bool overset;
 
-  /// @domName WebKitNamedFlow.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('WebKitNamedFlow.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName WebKitNamedFlow.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('WebKitNamedFlow.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native;
 
-  /// @domName WebKitNamedFlow.getContent; @docsEditable true
+  @DocsEditable @DomName('WebKitNamedFlow.getContent')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> getContent() native;
 
-  /// @domName WebKitNamedFlow.getRegions; @docsEditable true
+  @DocsEditable @DomName('WebKitNamedFlow.getRegions')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> getRegions() native;
 
-  /// @domName WebKitNamedFlow.getRegionsByContent; @docsEditable true
+  @DocsEditable @DomName('WebKitNamedFlow.getRegionsByContent')
   @Returns('NodeList') @Creates('NodeList')
   List<Node> getRegionsByContent(Node contentNode) native;
 
-  /// @domName WebKitNamedFlow.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('WebKitNamedFlow.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22080,7 +22660,9 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WebSocket; @docsEditable true
+
+@DocsEditable
+@DomName('WebSocket')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -22095,14 +22677,15 @@ class WebSocket extends EventTarget native "*WebSocket" {
 
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  ///@docsEditable true
+  @DocsEditable
   factory WebSocket(String url) => WebSocket._create(url);
   static WebSocket _create(String url) => JS('WebSocket', 'new WebSocket(#)', url);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.WebSocket != "undefined"');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WebSocketEvents get on =>
     new WebSocketEvents(this);
 
@@ -22114,44 +22697,44 @@ class WebSocket extends EventTarget native "*WebSocket" {
 
   static const int OPEN = 1;
 
-  /// @domName WebSocket.URL; @docsEditable true
   @JSName('URL')
+  @DocsEditable @DomName('WebSocket.URL')
   final String Url;
 
-  /// @domName WebSocket.binaryType; @docsEditable true
+  @DocsEditable @DomName('WebSocket.binaryType')
   String binaryType;
 
-  /// @domName WebSocket.bufferedAmount; @docsEditable true
+  @DocsEditable @DomName('WebSocket.bufferedAmount')
   final int bufferedAmount;
 
-  /// @domName WebSocket.extensions; @docsEditable true
+  @DocsEditable @DomName('WebSocket.extensions')
   final String extensions;
 
-  /// @domName WebSocket.protocol; @docsEditable true
+  @DocsEditable @DomName('WebSocket.protocol')
   final String protocol;
 
-  /// @domName WebSocket.readyState; @docsEditable true
+  @DocsEditable @DomName('WebSocket.readyState')
   final int readyState;
 
-  /// @domName WebSocket.url; @docsEditable true
+  @DocsEditable @DomName('WebSocket.url')
   final String url;
 
-  /// @domName WebSocket.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('WebSocket.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName WebSocket.close; @docsEditable true
+  @DocsEditable @DomName('WebSocket.close')
   void close([int code, String reason]) native;
 
-  /// @domName WebSocket.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('WebSocket.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName WebSocket.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('WebSocket.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName WebSocket.send; @docsEditable true
+  @DocsEditable @DomName('WebSocket.send')
   void send(data) native;
 
   Stream<CloseEvent> get onClose => closeEvent.forTarget(this);
@@ -22163,21 +22746,21 @@ class WebSocket extends EventTarget native "*WebSocket" {
   Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class WebSocketEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   WebSocketEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get close => this['close'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22185,17 +22768,80 @@ class WebSocketEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WheelEvent
+@DocsEditable
+@DomName('WheelEvent')
 class WheelEvent extends MouseEvent native "*WheelEvent" {
 
-  /// @domName WheelEvent.webkitDirectionInvertedFromDevice; @docsEditable true
+  factory WheelEvent(String type, Window view, int wheelDeltaX, int wheelDeltaY,
+      int detail, int screenX, int screenY, int clientX, int clientY,
+      int button,
+      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) {
+
+    var eventType = 'WheelEvent';
+    if (_Device.isFirefox) {
+      eventType = 'MouseScrollEvents';
+    }
+    final event = document.$dom_createEvent(eventType);
+    if (event._hasInitWheelEvent) {
+      var modifiers = [];
+      if (ctrlKey) {
+        modifiers.push('Control');
+      }
+      if (altKey) {
+        modifiers.push('Alt');
+      }
+      if (shiftKey) {
+        modifiers.push('Shift');
+      }
+      if (metaKey) {
+        modifiers.push('Meta');
+      }
+      event._initWheelEvent(type, canBubble, cancelable, view, detail, screenX,
+          screenY, clientX, clientY, button, relatedTarget, modifiers.join(' '),
+          wheelDeltaX, wheelDeltaY, 0, 0);
+    } else if (event._hasInitMouseScrollEvent) {
+      var axis = 0;
+      var detail = 0;
+      if (wheelDeltaX != 0 && wheelDeltaY != 0) {
+        throw UnsupportedError(
+            'Cannot modify wheelDeltaX and wheelDeltaY simultaneously');
+      }
+      if (wheelDeltaY != 0) {
+        detail = wheelDeltaY;
+        axis = JS('int', 'MouseScrollEvent.VERTICAL_AXIS');
+      } else if (wheelDeltaX != 0) {
+        detail = wheelDeltaX;
+        axis = JS('int', 'MouseScrollEvent.HORIZONTAL_AXIS');
+      }
+      event._initMouseScrollEvent(type, canBubble, cancelable, view, detail,
+          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey, button, relatedTarget, axis);
+    } else {
+      // Fallthrough for Dartium.
+      event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey, button, relatedTarget);
+      event.$dom_initWebKitWheelEvent(wheelDeltaX,
+          wheelDeltaY ~/ 120, // Chrome does an auto-convert to pixels.
+          view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey);
+    }
+
+    return event;
+  }
+
+
+  @DocsEditable @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   final bool webkitDirectionInvertedFromDevice;
 
-  /// @domName WheelEvent.initWebKitWheelEvent; @docsEditable true
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  @JSName('initWebKitWheelEvent')
+  @DocsEditable @DomName('WheelEvent.initWebKitWheelEvent')
+  void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 
 
-  /** @domName WheelEvent.deltaY */
+  @DomName('WheelEvent.deltaY')
   num get deltaY {
     if (JS('bool', '#.deltaY !== undefined', this)) {
       // W3C WheelEvent
@@ -22223,7 +22869,7 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
         'deltaY is not supported');
   }
 
-  /** @domName WheelEvent.deltaX */
+  @DomName('WheelEvent.deltaX')
   num get deltaX {
     if (JS('bool', '#.deltaX !== undefined', this)) {
       // W3C WheelEvent
@@ -22237,7 +22883,8 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
 
       // Handle DOMMouseScroll case where it uses detail and the axis to
       // differentiate.
-      if (JS('bool', '#.axis !== undefined && #.axis == MouseScrollEvent.HORIZONTAL_AXIS', this, this)) {
+      if (JS('bool', '#.axis !== undefined && '
+        '#.axis == MouseScrollEvent.HORIZONTAL_AXIS', this, this)) {
         var detail = this._detail;
         // Firefox is normally the number of lines to scale (normally 3)
         // so multiply it by 40 to get pixels to move, matching IE & WebKit.
@@ -22267,13 +22914,57 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   num get _detail => JS('num', '#.detail', this);
   int get _deltaMode => JS('int', '#.deltaMode', this);
 
+  bool get _hasInitMouseScrollEvent =>
+      JS('bool', '!!(#.initMouseScrollEvent)', this);
+
+  @JSName('initMouseScrollEvent')
+  void _initMouseScrollEvent(
+      String type,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      int detail,
+      int screenX,
+      int screenY,
+      int clientX,
+      int clientY,
+      bool ctrlKey,
+      bool altKey,
+      bool shiftKey,
+      bool metaKey,
+      int button,
+      EventTarget relatedTarget,
+      int axis) native;
+
+  bool get _hasInitWheelEvent =>
+      JS('bool', '!!(#.initWheelEvent)', this);
+  @JSName('initWheelEvent')
+  void _initWheelEvent(
+      String eventType,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      int detail,
+      int screenX,
+      int screenY,
+      int clientX,
+      int clientY,
+      int button,
+      EventTarget relatedTarget,
+      String modifiersList,
+      int deltaX,
+      int deltaY,
+      int deltaZ,
+      int deltaMode) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Window
+@DocsEditable
+@DomName('Window')
 class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   Document get document => JS('Document', '#.document', this);
@@ -22349,7 +23040,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
     _addMeasurementFrameCallback(callback);
   }
 
-  /** @domName DOMWindow.requestAnimationFrame */
+  @DomName('DOMWindow.requestAnimationFrame')
   int requestAnimationFrame(RequestAnimationFrameCallback callback) {
     _ensureRequestAnimationFrame();
     return _requestAnimationFrame(callback);
@@ -22426,91 +23117,21 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
     document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
   }
 
-  /// @domName Window.console; @docsEditable true
+  @DomName('Window.console')
   Console get console => Console.safeConsole;
 
 
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
-  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
-
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
-
-  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
-
-  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
-
-  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
-
-  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
-
-  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
-  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
-
-  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
-
-  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
-
-  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
-
-  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
-
-  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
-
-  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
-
-  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
-
-  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
-
-  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
   static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
 
-  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
-
-  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
-
-  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
-
-  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
-
-  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
-
-  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
-
-  static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
-
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
-
-  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
-
-  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
-
-  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
-
-  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
-
-  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
 
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
@@ -22520,55 +23141,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
 
-  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
-
-  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
-
-  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
-
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
-
-  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
-
-  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
-
-  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
-
-  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
-
-  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
-
-  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
-
-  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
-
-  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
-
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
-  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
-
-  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
-
-  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
-
-  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
-
-  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
-
-  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
-
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
-
-  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
@@ -22576,9 +23155,8 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
-  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WindowEvents get on =>
     new WindowEvents(this);
 
@@ -22586,212 +23164,205 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   static const int TEMPORARY = 0;
 
-  /// @domName Window.applicationCache; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.applicationCache')
   final ApplicationCache applicationCache;
 
-  /// @domName Window.closed; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.closed')
   final bool closed;
 
-  /// @domName Window.crypto; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.crypto')
   final Crypto crypto;
 
-  /// @domName Window.defaultStatus; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.defaultStatus')
   String defaultStatus;
 
-  /// @domName Window.defaultstatus; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.defaultstatus')
   String defaultstatus;
 
-  /// @domName Window.devicePixelRatio; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.devicePixelRatio')
   final num devicePixelRatio;
 
-  /// @domName Window.event; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.event')
   final Event event;
 
-  /// @domName Window.history; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.history')
   final History history;
 
-  /// @domName Window.innerHeight; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.innerHeight')
   final int innerHeight;
 
-  /// @domName Window.innerWidth; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.innerWidth')
   final int innerWidth;
 
-  /// @domName Window.localStorage; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.localStorage')
   final Storage localStorage;
 
-  /// @domName Window.locationbar; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.locationbar')
   final BarInfo locationbar;
 
-  /// @domName Window.menubar; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.menubar')
   final BarInfo menubar;
 
-  /// @domName Window.name; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.name')
   String name;
 
-  /// @domName Window.navigator; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.navigator')
   final Navigator navigator;
 
-  /// @domName Window.offscreenBuffering; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.offscreenBuffering')
   final bool offscreenBuffering;
 
-  /// @domName Window.opener; @docsEditable true
   WindowBase get opener => _convertNativeToDart_Window(this._opener);
   @JSName('opener')
-  @Creates('Window|=Object') @Returns('Window|=Object')
+  @DocsEditable @DomName('DOMWindow.opener') @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _opener;
 
-  /// @domName Window.outerHeight; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.outerHeight')
   final int outerHeight;
 
-  /// @domName Window.outerWidth; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.outerWidth')
   final int outerWidth;
 
-  /// @domName DOMWindow.pagePopupController; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.pagePopupController')
   final PagePopupController pagePopupController;
 
-  /// @domName Window.pageXOffset; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.pageXOffset')
   final int pageXOffset;
 
-  /// @domName Window.pageYOffset; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.pageYOffset')
   final int pageYOffset;
 
-  /// @domName Window.parent; @docsEditable true
   WindowBase get parent => _convertNativeToDart_Window(this._parent);
   @JSName('parent')
-  @Creates('Window|=Object') @Returns('Window|=Object')
+  @DocsEditable @DomName('DOMWindow.parent') @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _parent;
 
-  /// @domName Window.performance; @docsEditable true
-  @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE)
+  @DocsEditable @DomName('DOMWindow.performance') @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.FIREFOX) @SupportedBrowser(SupportedBrowser.IE)
   final Performance performance;
 
-  /// @domName Window.personalbar; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.personalbar')
   final BarInfo personalbar;
 
-  /// @domName Window.screen; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.screen')
   final Screen screen;
 
-  /// @domName Window.screenLeft; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.screenLeft')
   final int screenLeft;
 
-  /// @domName Window.screenTop; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.screenTop')
   final int screenTop;
 
-  /// @domName Window.screenX; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.screenX')
   final int screenX;
 
-  /// @domName Window.screenY; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.screenY')
   final int screenY;
 
-  /// @domName Window.scrollX; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.scrollX')
   final int scrollX;
 
-  /// @domName Window.scrollY; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.scrollY')
   final int scrollY;
 
-  /// @domName Window.scrollbars; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.scrollbars')
   final BarInfo scrollbars;
 
-  /// @domName Window.self; @docsEditable true
   WindowBase get self => _convertNativeToDart_Window(this._self);
   @JSName('self')
-  @Creates('Window|=Object') @Returns('Window|=Object')
+  @DocsEditable @DomName('DOMWindow.self') @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _self;
 
-  /// @domName Window.sessionStorage; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.sessionStorage')
   final Storage sessionStorage;
 
-  /// @domName Window.status; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.status')
   String status;
 
-  /// @domName Window.statusbar; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.statusbar')
   final BarInfo statusbar;
 
-  /// @domName Window.styleMedia; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.styleMedia')
   final StyleMedia styleMedia;
 
-  /// @domName Window.toolbar; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.toolbar')
   final BarInfo toolbar;
 
-  /// @domName Window.top; @docsEditable true
   WindowBase get top => _convertNativeToDart_Window(this._top);
   @JSName('top')
-  @Creates('Window|=Object') @Returns('Window|=Object')
+  @DocsEditable @DomName('DOMWindow.top') @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _top;
 
-  /// @domName DOMWindow.webkitNotifications; @docsEditable true
-  final NotificationCenter webkitNotifications;
+  @JSName('webkitNotifications')
+  @DocsEditable @DomName('DOMWindow.webkitNotifications') @SupportedBrowser(SupportedBrowser.CHROME) @SupportedBrowser(SupportedBrowser.SAFARI) @Experimental()
+  final NotificationCenter notifications;
 
-  /// @domName DOMWindow.webkitStorageInfo; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.webkitStorageInfo')
   final StorageInfo webkitStorageInfo;
 
-  /// @domName Window.window; @docsEditable true
   WindowBase get window => _convertNativeToDart_Window(this._window);
   @JSName('window')
-  @Creates('Window|=Object') @Returns('Window|=Object')
+  @DocsEditable @DomName('DOMWindow.window') @Creates('Window|=Object') @Returns('Window|=Object')
   final dynamic _window;
 
-  /// @domName Window.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('DOMWindow.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName Window.alert; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.alert')
   void alert(String message) native;
 
-  /// @domName Window.atob; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.atob')
   String atob(String string) native;
 
-  /// @domName Window.btoa; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.btoa')
   String btoa(String string) native;
 
-  /// @domName Window.captureEvents; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.captureEvents')
   void captureEvents() native;
 
-  /// @domName Window.clearInterval; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.clearInterval')
   void clearInterval(int handle) native;
 
-  /// @domName Window.clearTimeout; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.clearTimeout')
   void clearTimeout(int handle) native;
 
-  /// @domName Window.close; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.close')
   void close() native;
 
-  /// @domName Window.confirm; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.confirm')
   bool confirm(String message) native;
 
-  /// @domName Window.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('DOMWindow.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName Window.find; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.find')
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
-  /// @domName Window.getComputedStyle; @docsEditable true
   @JSName('getComputedStyle')
+  @DocsEditable @DomName('DOMWindow.getComputedStyle')
   CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native;
 
-  /// @domName Window.getMatchedCSSRules; @docsEditable true
   @JSName('getMatchedCSSRules')
+  @DocsEditable @DomName('DOMWindow.getMatchedCSSRules')
   @Returns('_CssRuleList') @Creates('_CssRuleList')
   List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native;
 
-  /// @domName Window.getSelection; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.getSelection')
   DomSelection getSelection() native;
 
-  /// @domName Window.matchMedia; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.matchMedia')
   MediaQueryList matchMedia(String query) native;
 
-  /// @domName Window.moveBy; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.moveBy')
   void moveBy(num x, num y) native;
 
-  /// @domName Window.moveTo; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.moveTo')
   void moveTo(num x, num y) native;
 
-  /// @domName DOMWindow.openDatabase; @docsEditable true
-  @Creates('Database') @Creates('DatabaseSync')
+  @DocsEditable @DomName('DOMWindow.openDatabase') @Creates('Database') @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  /// @domName Window.postMessage; @docsEditable true
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?message &&
         !?messagePorts) {
@@ -22807,144 +23378,128 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('postMessage')
+  @DocsEditable @DomName('DOMWindow.postMessage')
   void _postMessage_1(message, targetOrigin) native;
   @JSName('postMessage')
+  @DocsEditable @DomName('DOMWindow.postMessage')
   void _postMessage_2(message, targetOrigin, List messagePorts) native;
 
-  /// @domName Window.print; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.print')
   void print() native;
 
-  /// @domName Window.releaseEvents; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.releaseEvents')
   void releaseEvents() native;
 
-  /// @domName Window.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('DOMWindow.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName Window.resizeBy; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.resizeBy')
   void resizeBy(num x, num y) native;
 
-  /// @domName Window.resizeTo; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.resizeTo')
   void resizeTo(num width, num height) native;
 
-  /// @domName Window.scroll; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.scroll')
   void scroll(int x, int y) native;
 
-  /// @domName Window.scrollBy; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.scrollBy')
   void scrollBy(int x, int y) native;
 
-  /// @domName Window.scrollTo; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.scrollTo')
   void scrollTo(int x, int y) native;
 
-  /// @domName Window.setInterval; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.setInterval')
   int setInterval(TimeoutHandler handler, int timeout) native;
 
-  /// @domName Window.setTimeout; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.setTimeout')
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  /// @domName Window.showModalDialog; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.showModalDialog')
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
 
-  /// @domName Window.stop; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.stop')
   void stop() native;
 
-  /// @domName Window.webkitConvertPointFromNodeToPage; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
 
-  /// @domName Window.webkitConvertPointFromPageToNode; @docsEditable true
+  @DocsEditable @DomName('DOMWindow.webkitConvertPointFromPageToNode')
   Point webkitConvertPointFromPageToNode(Node node, Point p) native;
 
-  /// @domName DOMWindow.webkitRequestFileSystem; @docsEditable true
   @JSName('webkitRequestFileSystem')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  @DocsEditable @DomName('DOMWindow.webkitRequestFileSystem') @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
   void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  /// @domName DOMWindow.webkitResolveLocalFileSystemURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemURL')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  @DocsEditable @DomName('DOMWindow.webkitResolveLocalFileSystemURL') @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
-  Stream<Event> get onAbort => abortEvent.forTarget(this);
+  Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
+  Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
+  Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  Stream<Event> get onChange => changeEvent.forTarget(this);
+  Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
-
-  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
-
-  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+  Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+  Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+  Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+  Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+  Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+  Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
+  Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
-
-  Stream<Event> get onEnded => endedEvent.forTarget(this);
-
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
   Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
 
-  Stream<Event> get onInput => inputEvent.forTarget(this);
+  Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+  Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
-
-  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
-
-  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
-
-  Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
+  Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+  Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
@@ -22954,55 +23509,31 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
 
-  Stream<Event> get onPause => pauseEvent.forTarget(this);
-
-  Stream<Event> get onPlay => playEvent.forTarget(this);
-
-  Stream<Event> get onPlaying => playingEvent.forTarget(this);
-
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
-  Stream<Event> get onProgress => progressEvent.forTarget(this);
-
-  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
-
-  Stream<Event> get onReset => resetEvent.forTarget(this);
+  Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+  Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  Stream<Event> get onSearch => searchEvent.forTarget(this);
+  Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
-
-  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
-
-  Stream<Event> get onSelect => selectEvent.forTarget(this);
-
-  Stream<Event> get onStalled => stalledEvent.forTarget(this);
+  Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
-  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+  Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
-
-  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
-
-  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
-
-  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
-
-  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
 
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
@@ -23010,235 +23541,235 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
-  Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
+  Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class WindowEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   WindowEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get contentLoaded => this['DOMContentLoaded'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeUnload => this['beforeunload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlay => this['canplay'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get change => this['change'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get click => this['click'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get contextMenu => this['contextmenu'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get doubleClick => this['dblclick'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get deviceMotion => this['devicemotion'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get deviceOrientation => this['deviceorientation'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drag => this['drag'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnd => this['dragend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnter => this['dragenter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragLeave => this['dragleave'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragOver => this['dragover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragStart => this['dragstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drop => this['drop'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get durationChange => this['durationchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get emptied => this['emptied'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get hashChange => this['hashchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get input => this['input'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get invalid => this['invalid'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyDown => this['keydown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyPress => this['keypress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyUp => this['keyup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedData => this['loadeddata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseDown => this['mousedown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseMove => this['mousemove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOut => this['mouseout'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOver => this['mouseover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseUp => this['mouseup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseWheel => this['mousewheel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get offline => this['offline'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get online => this['online'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pageHide => this['pagehide'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pageShow => this['pageshow'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pause => this['pause'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get play => this['play'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get playing => this['playing'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get popState => this['popstate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get rateChange => this['ratechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get reset => this['reset'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get resize => this['resize'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get scroll => this['scroll'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get search => this['search'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeked => this['seeked'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeking => this['seeking'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get select => this['select'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get stalled => this['stalled'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get storage => this['storage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get submit => this['submit'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get suspend => this['suspend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get timeUpdate => this['timeupdate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchCancel => this['touchcancel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchEnd => this['touchend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchMove => this['touchmove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchStart => this['touchstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unload => this['unload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get volumeChange => this['volumechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get waiting => this['waiting'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get animationEnd => this['webkitAnimationEnd'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get animationIteration => this['webkitAnimationIteration'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get animationStart => this['webkitAnimationStart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23246,20 +23777,22 @@ class WindowEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Worker; @docsEditable true
+
+@DocsEditable
+@DomName('Worker')
 class Worker extends AbstractWorker native "*Worker" {
 
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  ///@docsEditable true
+  @DocsEditable
   factory Worker(String scriptUrl) => Worker._create(scriptUrl);
   static Worker _create(String scriptUrl) => JS('Worker', 'new Worker(#)', scriptUrl);
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WorkerEvents get on =>
     new WorkerEvents(this);
 
-  /// @domName Worker.postMessage; @docsEditable true
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -23271,22 +23804,24 @@ class Worker extends AbstractWorker native "*Worker" {
     return;
   }
   @JSName('postMessage')
+  @DocsEditable @DomName('Worker.postMessage')
   void _postMessage_1(message, List messagePorts) native;
   @JSName('postMessage')
+  @DocsEditable @DomName('Worker.postMessage')
   void _postMessage_2(message) native;
 
-  /// @domName Worker.terminate; @docsEditable true
+  @DocsEditable @DomName('Worker.terminate')
   void terminate() native;
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class WorkerEvents extends AbstractWorkerEvents {
-  /// @docsEditable true
+  @DocsEditable
   WorkerEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23294,12 +23829,14 @@ class WorkerEvents extends AbstractWorkerEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WorkerContext
+@DocsEditable
+@DomName('WorkerContext')
 class WorkerContext extends EventTarget native "*WorkerContext" {
 
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WorkerContextEvents get on =>
     new WorkerContextEvents(this);
 
@@ -23307,72 +23844,68 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
 
   static const int TEMPORARY = 0;
 
-  /// @domName WorkerContext.location; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.location')
   final WorkerLocation location;
 
-  /// @domName WorkerContext.navigator; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.navigator')
   final WorkerNavigator navigator;
 
-  /// @domName WorkerContext.self; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.self')
   final WorkerContext self;
 
-  /// @domName WorkerContext.webkitNotifications; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.webkitNotifications')
   final NotificationCenter webkitNotifications;
 
-  /// @domName WorkerContext.addEventListener; @docsEditable true
   @JSName('addEventListener')
+  @DocsEditable @DomName('WorkerContext.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName WorkerContext.clearInterval; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.clearInterval')
   void clearInterval(int handle) native;
 
-  /// @domName WorkerContext.clearTimeout; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.clearTimeout')
   void clearTimeout(int handle) native;
 
-  /// @domName WorkerContext.close; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.close')
   void close() native;
 
-  /// @domName WorkerContext.dispatchEvent; @docsEditable true
   @JSName('dispatchEvent')
+  @DocsEditable @DomName('WorkerContext.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native;
 
-  /// @domName WorkerContext.importScripts; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.importScripts')
   void importScripts() native;
 
-  /// @domName WorkerContext.openDatabase; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.openDatabase')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  /// @domName WorkerContext.openDatabaseSync; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.openDatabaseSync')
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  /// @domName WorkerContext.removeEventListener; @docsEditable true
   @JSName('removeEventListener')
+  @DocsEditable @DomName('WorkerContext.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  /// @domName WorkerContext.setInterval; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.setInterval')
   int setInterval(TimeoutHandler handler, int timeout) native;
 
-  /// @domName WorkerContext.setTimeout; @docsEditable true
+  @DocsEditable @DomName('WorkerContext.setTimeout')
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  /// @domName WorkerContext.webkitRequestFileSystem; @docsEditable true
   @JSName('webkitRequestFileSystem')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  @DocsEditable @DomName('WorkerContext.webkitRequestFileSystem') @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
   void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
-  /// @domName WorkerContext.webkitRequestFileSystemSync; @docsEditable true
   @JSName('webkitRequestFileSystemSync')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  @DocsEditable @DomName('WorkerContext.webkitRequestFileSystemSync') @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
   FileSystemSync requestFileSystemSync(int type, int size) native;
 
-  /// @domName WorkerContext.webkitResolveLocalFileSystemSyncURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemSyncURL')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  @DocsEditable @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL') @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
   EntrySync resolveLocalFileSystemSyncUrl(String url) native;
 
-  /// @domName WorkerContext.webkitResolveLocalFileSystemURL; @docsEditable true
   @JSName('webkitResolveLocalFileSystemURL')
-  @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
+  @DocsEditable @DomName('WorkerContext.webkitResolveLocalFileSystemURL') @SupportedBrowser(SupportedBrowser.CHROME) @Experimental()
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -23394,12 +23927,12 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
          this, this, this);
 }
 
-/// @docsEditable true
+@DocsEditable
 class WorkerContextEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   WorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23407,34 +23940,36 @@ class WorkerContextEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WorkerLocation; @docsEditable true
+
+@DocsEditable
+@DomName('WorkerLocation')
 class WorkerLocation native "*WorkerLocation" {
 
-  /// @domName WorkerLocation.hash; @docsEditable true
+  @DocsEditable @DomName('WorkerLocation.hash')
   final String hash;
 
-  /// @domName WorkerLocation.host; @docsEditable true
+  @DocsEditable @DomName('WorkerLocation.host')
   final String host;
 
-  /// @domName WorkerLocation.hostname; @docsEditable true
+  @DocsEditable @DomName('WorkerLocation.hostname')
   final String hostname;
 
-  /// @domName WorkerLocation.href; @docsEditable true
+  @DocsEditable @DomName('WorkerLocation.href')
   final String href;
 
-  /// @domName WorkerLocation.pathname; @docsEditable true
+  @DocsEditable @DomName('WorkerLocation.pathname')
   final String pathname;
 
-  /// @domName WorkerLocation.port; @docsEditable true
+  @DocsEditable @DomName('WorkerLocation.port')
   final String port;
 
-  /// @domName WorkerLocation.protocol; @docsEditable true
+  @DocsEditable @DomName('WorkerLocation.protocol')
   final String protocol;
 
-  /// @domName WorkerLocation.search; @docsEditable true
+  @DocsEditable @DomName('WorkerLocation.search')
   final String search;
 
-  /// @domName WorkerLocation.toString; @docsEditable true
+  @DocsEditable @DomName('WorkerLocation.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23442,22 +23977,24 @@ class WorkerLocation native "*WorkerLocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WorkerNavigator; @docsEditable true
+
+@DocsEditable
+@DomName('WorkerNavigator')
 class WorkerNavigator native "*WorkerNavigator" {
 
-  /// @domName WorkerNavigator.appName; @docsEditable true
+  @DocsEditable @DomName('WorkerNavigator.appName')
   final String appName;
 
-  /// @domName WorkerNavigator.appVersion; @docsEditable true
+  @DocsEditable @DomName('WorkerNavigator.appVersion')
   final String appVersion;
 
-  /// @domName WorkerNavigator.onLine; @docsEditable true
+  @DocsEditable @DomName('WorkerNavigator.onLine')
   final bool onLine;
 
-  /// @domName WorkerNavigator.platform; @docsEditable true
+  @DocsEditable @DomName('WorkerNavigator.platform')
   final String platform;
 
-  /// @domName WorkerNavigator.userAgent; @docsEditable true
+  @DocsEditable @DomName('WorkerNavigator.userAgent')
   final String userAgent;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23465,20 +24002,22 @@ class WorkerNavigator native "*WorkerNavigator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathEvaluator; @docsEditable true
+
+@DocsEditable
+@DomName('XPathEvaluator')
 class XPathEvaluator native "*XPathEvaluator" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory XPathEvaluator() => XPathEvaluator._create();
   static XPathEvaluator _create() => JS('XPathEvaluator', 'new XPathEvaluator()');
 
-  /// @domName XPathEvaluator.createExpression; @docsEditable true
+  @DocsEditable @DomName('XPathEvaluator.createExpression')
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
 
-  /// @domName XPathEvaluator.createNSResolver; @docsEditable true
+  @DocsEditable @DomName('XPathEvaluator.createNSResolver')
   XPathNSResolver createNSResolver(Node nodeResolver) native;
 
-  /// @domName XPathEvaluator.evaluate; @docsEditable true
+  @DocsEditable @DomName('XPathEvaluator.evaluate')
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23486,23 +24025,25 @@ class XPathEvaluator native "*XPathEvaluator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathException; @docsEditable true
+
+@DocsEditable
+@DomName('XPathException')
 class XPathException native "*XPathException" {
 
   static const int INVALID_EXPRESSION_ERR = 51;
 
   static const int TYPE_ERR = 52;
 
-  /// @domName XPathException.code; @docsEditable true
+  @DocsEditable @DomName('XPathException.code')
   final int code;
 
-  /// @domName XPathException.message; @docsEditable true
+  @DocsEditable @DomName('XPathException.message')
   final String message;
 
-  /// @domName XPathException.name; @docsEditable true
+  @DocsEditable @DomName('XPathException.name')
   final String name;
 
-  /// @domName XPathException.toString; @docsEditable true
+  @DocsEditable @DomName('XPathException.toString')
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23510,10 +24051,12 @@ class XPathException native "*XPathException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathExpression; @docsEditable true
+
+@DocsEditable
+@DomName('XPathExpression')
 class XPathExpression native "*XPathExpression" {
 
-  /// @domName XPathExpression.evaluate; @docsEditable true
+  @DocsEditable @DomName('XPathExpression.evaluate')
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23521,11 +24064,13 @@ class XPathExpression native "*XPathExpression" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathNSResolver; @docsEditable true
+
+@DocsEditable
+@DomName('XPathNSResolver')
 class XPathNSResolver native "*XPathNSResolver" {
 
-  /// @domName XPathNSResolver.lookupNamespaceURI; @docsEditable true
   @JSName('lookupNamespaceURI')
+  @DocsEditable @DomName('XPathNSResolver.lookupNamespaceURI')
   String lookupNamespaceUri(String prefix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23533,7 +24078,9 @@ class XPathNSResolver native "*XPathNSResolver" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XPathResult; @docsEditable true
+
+@DocsEditable
+@DomName('XPathResult')
 class XPathResult native "*XPathResult" {
 
   static const int ANY_TYPE = 0;
@@ -23556,31 +24103,31 @@ class XPathResult native "*XPathResult" {
 
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  /// @domName XPathResult.booleanValue; @docsEditable true
+  @DocsEditable @DomName('XPathResult.booleanValue')
   final bool booleanValue;
 
-  /// @domName XPathResult.invalidIteratorState; @docsEditable true
+  @DocsEditable @DomName('XPathResult.invalidIteratorState')
   final bool invalidIteratorState;
 
-  /// @domName XPathResult.numberValue; @docsEditable true
+  @DocsEditable @DomName('XPathResult.numberValue')
   final num numberValue;
 
-  /// @domName XPathResult.resultType; @docsEditable true
+  @DocsEditable @DomName('XPathResult.resultType')
   final int resultType;
 
-  /// @domName XPathResult.singleNodeValue; @docsEditable true
+  @DocsEditable @DomName('XPathResult.singleNodeValue')
   final Node singleNodeValue;
 
-  /// @domName XPathResult.snapshotLength; @docsEditable true
+  @DocsEditable @DomName('XPathResult.snapshotLength')
   final int snapshotLength;
 
-  /// @domName XPathResult.stringValue; @docsEditable true
+  @DocsEditable @DomName('XPathResult.stringValue')
   final String stringValue;
 
-  /// @domName XPathResult.iterateNext; @docsEditable true
+  @DocsEditable @DomName('XPathResult.iterateNext')
   Node iterateNext() native;
 
-  /// @domName XPathResult.snapshotItem; @docsEditable true
+  @DocsEditable @DomName('XPathResult.snapshotItem')
   Node snapshotItem(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23588,14 +24135,16 @@ class XPathResult native "*XPathResult" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XMLSerializer; @docsEditable true
+
+@DocsEditable
+@DomName('XMLSerializer')
 class XmlSerializer native "*XMLSerializer" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory XmlSerializer() => XmlSerializer._create();
   static XmlSerializer _create() => JS('XmlSerializer', 'new XMLSerializer()');
 
-  /// @domName XMLSerializer.serializeToString; @docsEditable true
+  @DocsEditable @DomName('XMLSerializer.serializeToString')
   String serializeToString(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23603,35 +24152,37 @@ class XmlSerializer native "*XMLSerializer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName XSLTProcessor; @docsEditable true
+
+@DocsEditable
+@DomName('XSLTProcessor')
 class XsltProcessor native "*XSLTProcessor" {
 
-  ///@docsEditable true
+  @DocsEditable
   factory XsltProcessor() => XsltProcessor._create();
   static XsltProcessor _create() => JS('XsltProcessor', 'new XSLTProcessor()');
 
-  /// @domName XSLTProcessor.clearParameters; @docsEditable true
+  @DocsEditable @DomName('XSLTProcessor.clearParameters')
   void clearParameters() native;
 
-  /// @domName XSLTProcessor.getParameter; @docsEditable true
+  @DocsEditable @DomName('XSLTProcessor.getParameter')
   String getParameter(String namespaceURI, String localName) native;
 
-  /// @domName XSLTProcessor.importStylesheet; @docsEditable true
+  @DocsEditable @DomName('XSLTProcessor.importStylesheet')
   void importStylesheet(Node stylesheet) native;
 
-  /// @domName XSLTProcessor.removeParameter; @docsEditable true
+  @DocsEditable @DomName('XSLTProcessor.removeParameter')
   void removeParameter(String namespaceURI, String localName) native;
 
-  /// @domName XSLTProcessor.reset; @docsEditable true
+  @DocsEditable @DomName('XSLTProcessor.reset')
   void reset() native;
 
-  /// @domName XSLTProcessor.setParameter; @docsEditable true
+  @DocsEditable @DomName('XSLTProcessor.setParameter')
   void setParameter(String namespaceURI, String localName, String value) native;
 
-  /// @domName XSLTProcessor.transformToDocument; @docsEditable true
+  @DocsEditable @DomName('XSLTProcessor.transformToDocument')
   Document transformToDocument(Node source) native;
 
-  /// @domName XSLTProcessor.transformToFragment; @docsEditable true
+  @DocsEditable @DomName('XSLTProcessor.transformToFragment')
   DocumentFragment transformToFragment(Node source, Document docVal) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23639,10 +24190,32 @@ class XsltProcessor native "*XSLTProcessor" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName ClientRectList; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLAppletElement')
+class _AppletElement extends Element native "*HTMLAppletElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('HTMLBaseFontElement')
+class _BaseFontElement extends Element native "*HTMLBaseFontElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('ClientRectList')
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
 
-  /// @domName ClientRectList.length; @docsEditable true
+  @DocsEditable @DomName('ClientRectList.length')
   int get length => JS("int", "#.length", this);
 
   ClientRect operator[](int index) => JS("ClientRect", "#[#]", this, index);
@@ -23663,50 +24236,50 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(ClientRect element) => Collections.contains(this, element);
+  bool contains(ClientRect element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
+  void forEach(void f(ClientRect element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(ClientRect element)) => new MappedList<ClientRect, dynamic>(this, f);
+  List mappedBy(f(ClientRect element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<ClientRect> where(bool f(ClientRect element)) => new WhereIterable<ClientRect>(this, f);
+  Iterable<ClientRect> where(bool f(ClientRect element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(ClientRect element)) => Collections.every(this, f);
+  bool every(bool f(ClientRect element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(ClientRect element)) => Collections.any(this, f);
+  bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
 
   List<ClientRect> toList() => new List<ClientRect>.from(this);
   Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<ClientRect> take(int n) => new ListView<ClientRect>(this, 0, n);
+  List<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
-    return new TakeWhileIterable<ClientRect>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<ClientRect> skip(int n) => new ListView<ClientRect>(this, n, null);
+  List<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
-    return new SkipWhileIterable<ClientRect>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   ClientRect firstMatching(bool test(ClientRect value), { ClientRect orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   ClientRect lastMatching(bool test(ClientRect value), {ClientRect orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   ClientRect singleMatching(bool test(ClientRect value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   ClientRect elementAt(int index) {
@@ -23764,16 +24337,36 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     throw new StateError("More than one element");
   }
 
-  ClientRect min([int compare(ClientRect a, ClientRect b)]) => Collections.min(this, compare);
+  ClientRect min([int compare(ClientRect a, ClientRect b)]) => IterableMixinWorkaround.min(this, compare);
 
-  ClientRect max([int compare(ClientRect a, ClientRect b)]) => Collections.max(this, compare);
+  ClientRect max([int compare(ClientRect a, ClientRect b)]) => IterableMixinWorkaround.max(this, compare);
 
   ClientRect removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   ClientRect removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(ClientRect element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(ClientRect element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
@@ -23793,7 +24386,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   // -- end List<ClientRect> mixins.
 
-  /// @domName ClientRectList.item; @docsEditable true
+  @DocsEditable @DomName('ClientRectList.item')
   ClientRect item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23801,10 +24394,12 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSRuleList; @docsEditable true
+
+@DocsEditable
+@DomName('CSSRuleList')
 class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "*CSSRuleList" {
 
-  /// @domName CSSRuleList.length; @docsEditable true
+  @DocsEditable @DomName('CSSRuleList.length')
   int get length => JS("int", "#.length", this);
 
   CssRule operator[](int index) => JS("CssRule", "#[#]", this, index);
@@ -23825,50 +24420,50 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(CssRule element) => Collections.contains(this, element);
+  bool contains(CssRule element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(CssRule element)) => Collections.forEach(this, f);
+  void forEach(void f(CssRule element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssRule element)) => new MappedList<CssRule, dynamic>(this, f);
+  List mappedBy(f(CssRule element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<CssRule> where(bool f(CssRule element)) => new WhereIterable<CssRule>(this, f);
+  Iterable<CssRule> where(bool f(CssRule element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(CssRule element)) => Collections.every(this, f);
+  bool every(bool f(CssRule element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(CssRule element)) => Collections.any(this, f);
+  bool any(bool f(CssRule element)) => IterableMixinWorkaround.any(this, f);
 
   List<CssRule> toList() => new List<CssRule>.from(this);
   Set<CssRule> toSet() => new Set<CssRule>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<CssRule> take(int n) => new ListView<CssRule>(this, 0, n);
+  List<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssRule> takeWhile(bool test(CssRule value)) {
-    return new TakeWhileIterable<CssRule>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssRule> skip(int n) => new ListView<CssRule>(this, n, null);
+  List<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssRule> skipWhile(bool test(CssRule value)) {
-    return new SkipWhileIterable<CssRule>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   CssRule firstMatching(bool test(CssRule value), { CssRule orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   CssRule lastMatching(bool test(CssRule value), {CssRule orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   CssRule singleMatching(bool test(CssRule value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   CssRule elementAt(int index) {
@@ -23926,16 +24521,36 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new StateError("More than one element");
   }
 
-  CssRule min([int compare(CssRule a, CssRule b)]) => Collections.min(this, compare);
+  CssRule min([int compare(CssRule a, CssRule b)]) => IterableMixinWorkaround.min(this, compare);
 
-  CssRule max([int compare(CssRule a, CssRule b)]) => Collections.max(this, compare);
+  CssRule max([int compare(CssRule a, CssRule b)]) => IterableMixinWorkaround.max(this, compare);
 
   CssRule removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   CssRule removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(CssRule element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(CssRule element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CssRule> from, [int startFrom]) {
@@ -23955,7 +24570,7 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   // -- end List<CssRule> mixins.
 
-  /// @domName CSSRuleList.item; @docsEditable true
+  @DocsEditable @DomName('CSSRuleList.item')
   CssRule item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23963,10 +24578,12 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CSSValueList; @docsEditable true
+
+@DocsEditable
+@DomName('CSSValueList')
 class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexingBehavior native "*CSSValueList" {
 
-  /// @domName CSSValueList.length; @docsEditable true
+  @DocsEditable @DomName('CSSValueList.length')
   int get length => JS("int", "#.length", this);
 
   CssValue operator[](int index) => JS("CssValue", "#[#]", this, index);
@@ -23987,50 +24604,50 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(CssValue element) => Collections.contains(this, element);
+  bool contains(CssValue element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(CssValue element)) => Collections.forEach(this, f);
+  void forEach(void f(CssValue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssValue element)) => new MappedList<CssValue, dynamic>(this, f);
+  List mappedBy(f(CssValue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<CssValue> where(bool f(CssValue element)) => new WhereIterable<CssValue>(this, f);
+  Iterable<CssValue> where(bool f(CssValue element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(CssValue element)) => Collections.every(this, f);
+  bool every(bool f(CssValue element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(CssValue element)) => Collections.any(this, f);
+  bool any(bool f(CssValue element)) => IterableMixinWorkaround.any(this, f);
 
   List<CssValue> toList() => new List<CssValue>.from(this);
   Set<CssValue> toSet() => new Set<CssValue>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<CssValue> take(int n) => new ListView<CssValue>(this, 0, n);
+  List<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssValue> takeWhile(bool test(CssValue value)) {
-    return new TakeWhileIterable<CssValue>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssValue> skip(int n) => new ListView<CssValue>(this, n, null);
+  List<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssValue> skipWhile(bool test(CssValue value)) {
-    return new SkipWhileIterable<CssValue>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   CssValue firstMatching(bool test(CssValue value), { CssValue orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   CssValue lastMatching(bool test(CssValue value), {CssValue orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   CssValue singleMatching(bool test(CssValue value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   CssValue elementAt(int index) {
@@ -24088,16 +24705,36 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
     throw new StateError("More than one element");
   }
 
-  CssValue min([int compare(CssValue a, CssValue b)]) => Collections.min(this, compare);
+  CssValue min([int compare(CssValue a, CssValue b)]) => IterableMixinWorkaround.min(this, compare);
 
-  CssValue max([int compare(CssValue a, CssValue b)]) => Collections.max(this, compare);
+  CssValue max([int compare(CssValue a, CssValue b)]) => IterableMixinWorkaround.max(this, compare);
 
   CssValue removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   CssValue removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(CssValue element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(CssValue element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CssValue> from, [int startFrom]) {
@@ -24117,7 +24754,7 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
   // -- end List<CssValue> mixins.
 
-  /// @domName CSSValueList.item; @docsEditable true
+  @DocsEditable @DomName('CSSValueList.item')
   CssValue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24125,10 +24762,22 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EntryArray; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLDirectoryElement')
+class _DirectoryElement extends Element native "*HTMLDirectoryElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('EntryArray')
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
-  /// @domName EntryArray.length; @docsEditable true
+  @DocsEditable @DomName('EntryArray.length')
   int get length => JS("int", "#.length", this);
 
   Entry operator[](int index) => JS("Entry", "#[#]", this, index);
@@ -24149,50 +24798,50 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Entry element) => Collections.contains(this, element);
+  bool contains(Entry element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Entry element)) => Collections.forEach(this, f);
+  void forEach(void f(Entry element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Entry element)) => new MappedList<Entry, dynamic>(this, f);
+  List mappedBy(f(Entry element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Entry> where(bool f(Entry element)) => new WhereIterable<Entry>(this, f);
+  Iterable<Entry> where(bool f(Entry element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Entry element)) => Collections.every(this, f);
+  bool every(bool f(Entry element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Entry element)) => Collections.any(this, f);
+  bool any(bool f(Entry element)) => IterableMixinWorkaround.any(this, f);
 
   List<Entry> toList() => new List<Entry>.from(this);
   Set<Entry> toSet() => new Set<Entry>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Entry> take(int n) => new ListView<Entry>(this, 0, n);
+  List<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Entry> takeWhile(bool test(Entry value)) {
-    return new TakeWhileIterable<Entry>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Entry> skip(int n) => new ListView<Entry>(this, n, null);
+  List<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Entry> skipWhile(bool test(Entry value)) {
-    return new SkipWhileIterable<Entry>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Entry firstMatching(bool test(Entry value), { Entry orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Entry lastMatching(bool test(Entry value), {Entry orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Entry singleMatching(bool test(Entry value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Entry elementAt(int index) {
@@ -24250,16 +24899,36 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new StateError("More than one element");
   }
 
-  Entry min([int compare(Entry a, Entry b)]) => Collections.min(this, compare);
+  Entry min([int compare(Entry a, Entry b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Entry max([int compare(Entry a, Entry b)]) => Collections.max(this, compare);
+  Entry max([int compare(Entry a, Entry b)]) => IterableMixinWorkaround.max(this, compare);
 
   Entry removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Entry removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Entry element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Entry element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
@@ -24279,7 +24948,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   // -- end List<Entry> mixins.
 
-  /// @domName EntryArray.item; @docsEditable true
+  @DocsEditable @DomName('EntryArray.item')
   Entry item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24287,10 +24956,12 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName EntryArraySync; @docsEditable true
+
+@DocsEditable
+@DomName('EntryArraySync')
 class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> native "*EntryArraySync" {
 
-  /// @domName EntryArraySync.length; @docsEditable true
+  @DocsEditable @DomName('EntryArraySync.length')
   int get length => JS("int", "#.length", this);
 
   EntrySync operator[](int index) => JS("EntrySync", "#[#]", this, index);
@@ -24311,50 +24982,50 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(EntrySync element) => Collections.contains(this, element);
+  bool contains(EntrySync element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
+  void forEach(void f(EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(EntrySync element)) => new MappedList<EntrySync, dynamic>(this, f);
+  List mappedBy(f(EntrySync element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<EntrySync> where(bool f(EntrySync element)) => new WhereIterable<EntrySync>(this, f);
+  Iterable<EntrySync> where(bool f(EntrySync element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(EntrySync element)) => Collections.every(this, f);
+  bool every(bool f(EntrySync element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(EntrySync element)) => Collections.any(this, f);
+  bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
 
   List<EntrySync> toList() => new List<EntrySync>.from(this);
   Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<EntrySync> take(int n) => new ListView<EntrySync>(this, 0, n);
+  List<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
-    return new TakeWhileIterable<EntrySync>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<EntrySync> skip(int n) => new ListView<EntrySync>(this, n, null);
+  List<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
-    return new SkipWhileIterable<EntrySync>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   EntrySync firstMatching(bool test(EntrySync value), { EntrySync orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   EntrySync lastMatching(bool test(EntrySync value), {EntrySync orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   EntrySync singleMatching(bool test(EntrySync value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   EntrySync elementAt(int index) {
@@ -24412,16 +25083,36 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new StateError("More than one element");
   }
 
-  EntrySync min([int compare(EntrySync a, EntrySync b)]) => Collections.min(this, compare);
+  EntrySync min([int compare(EntrySync a, EntrySync b)]) => IterableMixinWorkaround.min(this, compare);
 
-  EntrySync max([int compare(EntrySync a, EntrySync b)]) => Collections.max(this, compare);
+  EntrySync max([int compare(EntrySync a, EntrySync b)]) => IterableMixinWorkaround.max(this, compare);
 
   EntrySync removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   EntrySync removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(EntrySync element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(EntrySync element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
@@ -24441,7 +25132,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
   // -- end List<EntrySync> mixins.
 
-  /// @domName EntryArraySync.item; @docsEditable true
+  @DocsEditable @DomName('EntryArraySync.item')
   EntrySync item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24449,10 +25140,92 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName GamepadList; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLFontElement')
+class _FontElement extends Element native "*HTMLFontElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('HTMLFrameElement')
+class _FrameElement extends Element native "*HTMLFrameElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('HTMLFrameSetElement')
+class _FrameSetElement extends Element native "*HTMLFrameSetElement" {
+
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  _FrameSetElementEvents get on =>
+    new _FrameSetElementEvents(this);
+}
+
+@DocsEditable
+class _FrameSetElementEvents extends ElementEvents {
+  @DocsEditable
+  _FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
+
+  @DocsEditable
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  @DocsEditable
+  EventListenerList get blur => this['blur'];
+
+  @DocsEditable
+  EventListenerList get error => this['error'];
+
+  @DocsEditable
+  EventListenerList get focus => this['focus'];
+
+  @DocsEditable
+  EventListenerList get hashChange => this['hashchange'];
+
+  @DocsEditable
+  EventListenerList get load => this['load'];
+
+  @DocsEditable
+  EventListenerList get message => this['message'];
+
+  @DocsEditable
+  EventListenerList get offline => this['offline'];
+
+  @DocsEditable
+  EventListenerList get online => this['online'];
+
+  @DocsEditable
+  EventListenerList get popState => this['popstate'];
+
+  @DocsEditable
+  EventListenerList get resize => this['resize'];
+
+  @DocsEditable
+  EventListenerList get storage => this['storage'];
+
+  @DocsEditable
+  EventListenerList get unload => this['unload'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('GamepadList')
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
 
-  /// @domName GamepadList.length; @docsEditable true
+  @DocsEditable @DomName('GamepadList.length')
   int get length => JS("int", "#.length", this);
 
   Gamepad operator[](int index) => JS("Gamepad", "#[#]", this, index);
@@ -24473,50 +25246,50 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Gamepad element) => Collections.contains(this, element);
+  bool contains(Gamepad element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
+  void forEach(void f(Gamepad element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Gamepad element)) => new MappedList<Gamepad, dynamic>(this, f);
+  List mappedBy(f(Gamepad element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Gamepad> where(bool f(Gamepad element)) => new WhereIterable<Gamepad>(this, f);
+  Iterable<Gamepad> where(bool f(Gamepad element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Gamepad element)) => Collections.every(this, f);
+  bool every(bool f(Gamepad element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Gamepad element)) => Collections.any(this, f);
+  bool any(bool f(Gamepad element)) => IterableMixinWorkaround.any(this, f);
 
   List<Gamepad> toList() => new List<Gamepad>.from(this);
   Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Gamepad> take(int n) => new ListView<Gamepad>(this, 0, n);
+  List<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Gamepad> takeWhile(bool test(Gamepad value)) {
-    return new TakeWhileIterable<Gamepad>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Gamepad> skip(int n) => new ListView<Gamepad>(this, n, null);
+  List<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Gamepad> skipWhile(bool test(Gamepad value)) {
-    return new SkipWhileIterable<Gamepad>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Gamepad firstMatching(bool test(Gamepad value), { Gamepad orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Gamepad lastMatching(bool test(Gamepad value), {Gamepad orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Gamepad singleMatching(bool test(Gamepad value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Gamepad elementAt(int index) {
@@ -24574,16 +25347,36 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new StateError("More than one element");
   }
 
-  Gamepad min([int compare(Gamepad a, Gamepad b)]) => Collections.min(this, compare);
+  Gamepad min([int compare(Gamepad a, Gamepad b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Gamepad max([int compare(Gamepad a, Gamepad b)]) => Collections.max(this, compare);
+  Gamepad max([int compare(Gamepad a, Gamepad b)]) => IterableMixinWorkaround.max(this, compare);
 
   Gamepad removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Gamepad removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Gamepad element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Gamepad element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
@@ -24603,7 +25396,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   // -- end List<Gamepad> mixins.
 
-  /// @domName GamepadList.item; @docsEditable true
+  @DocsEditable @DomName('GamepadList.item')
   Gamepad item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24611,10 +25404,22 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStreamList; @docsEditable true
+
+@DocsEditable
+@DomName('HTMLMarqueeElement')
+class _MarqueeElement extends Element native "*HTMLMarqueeElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+
+@DocsEditable
+@DomName('MediaStreamList')
 class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
 
-  /// @domName MediaStreamList.length; @docsEditable true
+  @DocsEditable @DomName('MediaStreamList.length')
   int get length => JS("int", "#.length", this);
 
   MediaStream operator[](int index) => JS("MediaStream", "#[#]", this, index);
@@ -24635,50 +25440,50 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(MediaStream element) => Collections.contains(this, element);
+  bool contains(MediaStream element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
+  void forEach(void f(MediaStream element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(MediaStream element)) => new MappedList<MediaStream, dynamic>(this, f);
+  List mappedBy(f(MediaStream element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<MediaStream> where(bool f(MediaStream element)) => new WhereIterable<MediaStream>(this, f);
+  Iterable<MediaStream> where(bool f(MediaStream element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(MediaStream element)) => Collections.every(this, f);
+  bool every(bool f(MediaStream element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(MediaStream element)) => Collections.any(this, f);
+  bool any(bool f(MediaStream element)) => IterableMixinWorkaround.any(this, f);
 
   List<MediaStream> toList() => new List<MediaStream>.from(this);
   Set<MediaStream> toSet() => new Set<MediaStream>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<MediaStream> take(int n) => new ListView<MediaStream>(this, 0, n);
+  List<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
-    return new TakeWhileIterable<MediaStream>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<MediaStream> skip(int n) => new ListView<MediaStream>(this, n, null);
+  List<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
-    return new SkipWhileIterable<MediaStream>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   MediaStream firstMatching(bool test(MediaStream value), { MediaStream orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   MediaStream lastMatching(bool test(MediaStream value), {MediaStream orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   MediaStream singleMatching(bool test(MediaStream value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   MediaStream elementAt(int index) {
@@ -24736,16 +25541,36 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     throw new StateError("More than one element");
   }
 
-  MediaStream min([int compare(MediaStream a, MediaStream b)]) => Collections.min(this, compare);
+  MediaStream min([int compare(MediaStream a, MediaStream b)]) => IterableMixinWorkaround.min(this, compare);
 
-  MediaStream max([int compare(MediaStream a, MediaStream b)]) => Collections.max(this, compare);
+  MediaStream max([int compare(MediaStream a, MediaStream b)]) => IterableMixinWorkaround.max(this, compare);
 
   MediaStream removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   MediaStream removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(MediaStream element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(MediaStream element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
@@ -24765,7 +25590,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 
   // -- end List<MediaStream> mixins.
 
-  /// @domName MediaStreamList.item; @docsEditable true
+  @DocsEditable @DomName('MediaStreamList.item')
   MediaStream item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24773,10 +25598,12 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechInputResultList; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechInputResultList')
 class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
 
-  /// @domName SpeechInputResultList.length; @docsEditable true
+  @DocsEditable @DomName('SpeechInputResultList.length')
   int get length => JS("int", "#.length", this);
 
   SpeechInputResult operator[](int index) => JS("SpeechInputResult", "#[#]", this, index);
@@ -24797,50 +25624,50 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SpeechInputResult element) => Collections.contains(this, element);
+  bool contains(SpeechInputResult element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
+  void forEach(void f(SpeechInputResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechInputResult element)) => new MappedList<SpeechInputResult, dynamic>(this, f);
+  List mappedBy(f(SpeechInputResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) => new WhereIterable<SpeechInputResult>(this, f);
+  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
+  bool every(bool f(SpeechInputResult element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SpeechInputResult element)) => Collections.any(this, f);
+  bool any(bool f(SpeechInputResult element)) => IterableMixinWorkaround.any(this, f);
 
   List<SpeechInputResult> toList() => new List<SpeechInputResult>.from(this);
   Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechInputResult> take(int n) => new ListView<SpeechInputResult>(this, 0, n);
+  List<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechInputResult> takeWhile(bool test(SpeechInputResult value)) {
-    return new TakeWhileIterable<SpeechInputResult>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechInputResult> skip(int n) => new ListView<SpeechInputResult>(this, n, null);
+  List<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechInputResult> skipWhile(bool test(SpeechInputResult value)) {
-    return new SkipWhileIterable<SpeechInputResult>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SpeechInputResult firstMatching(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SpeechInputResult lastMatching(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SpeechInputResult singleMatching(bool test(SpeechInputResult value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SpeechInputResult elementAt(int index) {
@@ -24898,16 +25725,36 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new StateError("More than one element");
   }
 
-  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.min(this, compare);
+  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.max(this, compare);
+  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => IterableMixinWorkaround.max(this, compare);
 
   SpeechInputResult removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   SpeechInputResult removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(SpeechInputResult element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(SpeechInputResult element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
@@ -24927,7 +25774,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   // -- end List<SpeechInputResult> mixins.
 
-  /// @domName SpeechInputResultList.item; @docsEditable true
+  @DocsEditable @DomName('SpeechInputResultList.item')
   SpeechInputResult item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24935,10 +25782,12 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName SpeechRecognitionResultList; @docsEditable true
+
+@DocsEditable
+@DomName('SpeechRecognitionResultList')
 class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "*SpeechRecognitionResultList" {
 
-  /// @domName SpeechRecognitionResultList.length; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionResultList.length')
   int get length => JS("int", "#.length", this);
 
   SpeechRecognitionResult operator[](int index) => JS("SpeechRecognitionResult", "#[#]", this, index);
@@ -24959,50 +25808,50 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
+  bool contains(SpeechRecognitionResult element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
+  void forEach(void f(SpeechRecognitionResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechRecognitionResult element)) => new MappedList<SpeechRecognitionResult, dynamic>(this, f);
+  List mappedBy(f(SpeechRecognitionResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) => new WhereIterable<SpeechRecognitionResult>(this, f);
+  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
+  bool every(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SpeechRecognitionResult element)) => Collections.any(this, f);
+  bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
 
   List<SpeechRecognitionResult> toList() => new List<SpeechRecognitionResult>.from(this);
   Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechRecognitionResult> take(int n) => new ListView<SpeechRecognitionResult>(this, 0, n);
+  List<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechRecognitionResult> takeWhile(bool test(SpeechRecognitionResult value)) {
-    return new TakeWhileIterable<SpeechRecognitionResult>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechRecognitionResult> skip(int n) => new ListView<SpeechRecognitionResult>(this, n, null);
+  List<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechRecognitionResult> skipWhile(bool test(SpeechRecognitionResult value)) {
-    return new SkipWhileIterable<SpeechRecognitionResult>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SpeechRecognitionResult firstMatching(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SpeechRecognitionResult lastMatching(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SpeechRecognitionResult singleMatching(bool test(SpeechRecognitionResult value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SpeechRecognitionResult elementAt(int index) {
@@ -25060,16 +25909,36 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new StateError("More than one element");
   }
 
-  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.min(this, compare);
+  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.max(this, compare);
+  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => IterableMixinWorkaround.max(this, compare);
 
   SpeechRecognitionResult removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   SpeechRecognitionResult removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(SpeechRecognitionResult element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(SpeechRecognitionResult element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
@@ -25089,7 +25958,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   // -- end List<SpeechRecognitionResult> mixins.
 
-  /// @domName SpeechRecognitionResultList.item; @docsEditable true
+  @DocsEditable @DomName('SpeechRecognitionResultList.item')
   SpeechRecognitionResult item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25097,10 +25966,12 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName StyleSheetList; @docsEditable true
+
+@DocsEditable
+@DomName('StyleSheetList')
 class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "*StyleSheetList" {
 
-  /// @domName StyleSheetList.length; @docsEditable true
+  @DocsEditable @DomName('StyleSheetList.length')
   int get length => JS("int", "#.length", this);
 
   StyleSheet operator[](int index) => JS("StyleSheet", "#[#]", this, index);
@@ -25121,50 +25992,50 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(StyleSheet element) => Collections.contains(this, element);
+  bool contains(StyleSheet element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
+  void forEach(void f(StyleSheet element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(StyleSheet element)) => new MappedList<StyleSheet, dynamic>(this, f);
+  List mappedBy(f(StyleSheet element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<StyleSheet> where(bool f(StyleSheet element)) => new WhereIterable<StyleSheet>(this, f);
+  Iterable<StyleSheet> where(bool f(StyleSheet element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
+  bool every(bool f(StyleSheet element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(StyleSheet element)) => Collections.any(this, f);
+  bool any(bool f(StyleSheet element)) => IterableMixinWorkaround.any(this, f);
 
   List<StyleSheet> toList() => new List<StyleSheet>.from(this);
   Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<StyleSheet> take(int n) => new ListView<StyleSheet>(this, 0, n);
+  List<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<StyleSheet> takeWhile(bool test(StyleSheet value)) {
-    return new TakeWhileIterable<StyleSheet>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<StyleSheet> skip(int n) => new ListView<StyleSheet>(this, n, null);
+  List<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<StyleSheet> skipWhile(bool test(StyleSheet value)) {
-    return new SkipWhileIterable<StyleSheet>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   StyleSheet firstMatching(bool test(StyleSheet value), { StyleSheet orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   StyleSheet lastMatching(bool test(StyleSheet value), {StyleSheet orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   StyleSheet singleMatching(bool test(StyleSheet value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   StyleSheet elementAt(int index) {
@@ -25222,16 +26093,36 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new StateError("More than one element");
   }
 
-  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => Collections.min(this, compare);
+  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => IterableMixinWorkaround.min(this, compare);
 
-  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => Collections.max(this, compare);
+  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => IterableMixinWorkaround.max(this, compare);
 
   StyleSheet removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   StyleSheet removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(StyleSheet element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(StyleSheet element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
@@ -25251,7 +26142,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   // -- end List<StyleSheet> mixins.
 
-  /// @domName StyleSheetList.item; @docsEditable true
+  @DocsEditable @DomName('StyleSheetList.item')
   StyleSheet item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25672,11 +26563,12 @@ abstract class CssClassSet implements Set<String> {
 
   void add(String value) {
     // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough
+    // or if the browser natively does enough.
     _modify((s) => s.add(value));
   }
 
-  bool remove(String value) {
+  bool remove(Object value) {
+    if (value is! String) return false;
     Set<String> s = readClasses();
     bool result = s.remove(value);
     writeClasses(s);
@@ -25684,12 +26576,24 @@ abstract class CssClassSet implements Set<String> {
   }
 
   void addAll(Iterable<String> iterable) {
-    // TODO - see comment above about validation
+    // TODO - see comment above about validation.
     _modify((s) => s.addAll(iterable));
   }
 
   void removeAll(Iterable<String> iterable) {
     _modify((s) => s.removeAll(iterable));
+  }
+
+  void retainAll(Iterable<String> iterable) {
+    _modify((s) => s.retainAll(iterable));
+  }
+
+  void removeMatching(bool test(String name)) {
+    _modify((s) => s.removeMatching(test));
+  }
+
+  void retainMatching(bool test(String name)) {
+    _modify((s) => s.retainMatching(test));
   }
 
   bool isSubsetOf(Collection<String> collection) =>
@@ -25934,6 +26838,21 @@ class EventStreamProvider<T extends Event> {
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventType, useCapture);
+  }
+}
+
+/**
+ * A factory to expose DOM events as streams, where the DOM event name has to
+ * be determined on the fly (for example, mouse wheel events).
+ */
+class _CustomEventStreamProvider<T extends Event>
+    implements EventStreamProvider<T> {
+
+  final _eventTypeGetter;
+  const _CustomEventStreamProvider(this._eventTypeGetter);
+
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+    return new _EventStream(e, _eventTypeGetter(e), useCapture);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27840,7 +28759,7 @@ class _CssStyleDeclarationFactoryProvider {
 }
 
 class _DocumentFragmentFactoryProvider {
-  /** @domName Document.createDocumentFragment */
+  @DomName('Document.createDocumentFragment')
   static DocumentFragment createDocumentFragment() =>
       document.createDocumentFragment();
 

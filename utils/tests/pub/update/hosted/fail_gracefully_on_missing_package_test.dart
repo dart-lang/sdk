@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('fails gracefully if the package does not exist', () {
+  integration('fails gracefully if the package does not exist', () {
     servePackages([]);
 
     appDir([dependency("foo", "1.2.3")]).scheduleCreate();
@@ -19,7 +18,5 @@ main() {
         error: new RegExp('Could not find package "foo" at '
                             'http://localhost:'),
         exitCode: 1);
-
-    run();
   });
 }

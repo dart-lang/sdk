@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test the basic StreamController and StreamController.singleSubscription.
+// Test the Stream.single method.
 library stream_single_test;
 
 import 'dart:async';

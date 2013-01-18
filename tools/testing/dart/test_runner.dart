@@ -17,10 +17,11 @@ import "dart:async";
 import "dart:io" as io;
 import "dart:isolate";
 import "dart:uri";
+import "http_server.dart" as http_server;
 import "status_file_parser.dart";
 import "test_progress.dart";
 import "test_suite.dart";
-import "http_server.dart" as http_server;
+import "utils.dart";
 
 const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
@@ -625,7 +626,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // and the virtual framebuffer X server didn't hook up, or DRT crashed with
     // a core dump. Sometimes DRT crashes after it has set the stdout to PASS,
     // so we have to do this check first.
-    var stderrLines = new String.fromCharCodes(super.stderr).split("\n");
+    var stderrLines = decodeUtf8(super.stderr).split("\n");
     for (String line in stderrLines) {
       // TODO(kustermann,ricow): Issue: 7564
       // This seems to happen quite frequently, we need to figure out why.
@@ -700,7 +701,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain' followed by 'PASS'.
     bool has_content_type = false;
-    var stdoutLines = new String.fromCharCodes(super.stdout).split("\n");
+    var stdoutLines = decodeUtf8(super.stdout).split("\n");
     for (String line in stdoutLines) {
       switch (line) {
         case 'Content-Type: text/plain':
@@ -773,7 +774,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     List<String> staticWarnings = [];
 
     // Read the returned list of errors and stuff them away.
-    var stderrLines = new String.fromCharCodes(super.stderr).split("\n");
+    var stderrLines = decodeUtf8(super.stderr).split("\n");
     for (String line in stderrLines) {
       if (line.length == 0) continue;
       List<String> fields = splitMachineError(line);
@@ -949,9 +950,9 @@ class RunningProcess {
         && testCase.configuration['verbose']) {
       print(testCase.displayName);
 
-      print(new String.fromCharCodes(lastCommandOutput.stderr));
+      print(decodeUtf8(lastCommandOutput.stderr));
       if (!lastCommandOutput.command.isPixelTest) {
-        print(new String.fromCharCodes(lastCommandOutput.stdout));
+        print(decodeUtf8(lastCommandOutput.stdout));
       } else {
         print("DRT pixel test failed! stdout is not printed because it "
               "contains binary data!");
@@ -1319,7 +1320,8 @@ class BatchRunnerProcess {
         } else if (line.startsWith('>>> ')) {
           throw new Exception('Unexpected command from dartc batch runner.');
         } else {
-          buffer.addAll("$line\n".charCodes);
+          buffer.addAll(encodeUtf8(line));
+          buffer.addAll("\n".charCodes);
         }
         line = stream.readLine();
       }
@@ -1346,7 +1348,8 @@ class BatchRunnerProcess {
         if (line.startsWith('>>> EOF STDERR')) {
           _stderrDone();
         } else {
-          buffer.addAll("$line\n".charCodes);
+          buffer.addAll(encodeUtf8(line));
+          buffer.addAll("\n".charCodes);
         }
         line = stream.readLine();
       }
@@ -1423,15 +1426,14 @@ class BatchRunnerProcess {
  */
 class ProcessQueue {
   int _numProcesses = 0;
-  int _activeTestListers = 0;
   int _maxProcesses;
+  bool _allTestsWereEnqueued = false;
 
   /** The number of tests we allow to actually fail before we stop retrying. */
   int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
   bool _listTests;
   Function _allDone;
-  EnqueueMoreWork _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
 
@@ -1465,7 +1467,7 @@ class ProcessQueue {
                String progress,
                Date startTime,
                bool printTiming,
-               this._enqueueMoreWork,
+               testSuites,
                this._allDone,
                [bool verbose = false,
                 bool listTests = false])
@@ -1477,20 +1479,7 @@ class ProcessQueue {
                                                    printTiming),
         _batchProcesses = new Map<String, List<BatchRunnerProcess>>(),
         _testCache = new Map<String, List<TestInformation>>() {
-    _checkDone();
-  }
-
-  /**
-   * Registers a TestSuite so that all of its tests will be run.
-   */
-  void addTestSuite(TestSuite testSuite) {
-    _activeTestListers++;
-    testSuite.forEachTest(_runTest, _testCache, _testListerDone);
-  }
-
-  void _testListerDone() {
-    _activeTestListers--;
-    _checkDone();
+    _runTests(testSuites);
   }
 
   /**
@@ -1501,24 +1490,33 @@ class ProcessQueue {
     _allDone();
     if (browserUsed != '' && _seleniumServer != null) {
       _seleniumServer.kill();
-    } else {
-      _progress.allDone();
     }
+    _progress.allDone();
   }
 
   void _checkDone() {
-    // When there are no more active test listers ask for more work
-    // from process queue users.
-    if (_activeTestListers == 0) {
-     _enqueueMoreWork(this);
+    if (_allTestsWereEnqueued && _tests.isEmpty && _numProcesses == 0) {
+      _terminateBatchRunners().then((_) => _cleanupAndMarkDone());
     }
-    // If there is still no work, we are done.
-    if (_activeTestListers == 0) {
-      _progress.allTestsKnown();
-      if (_tests.isEmpty && _numProcesses == 0) {
-        _terminateBatchRunners().then((_) => _cleanupAndMarkDone());
+  }
+
+  void _runTests(List<TestSuite> testSuites) {
+    // FIXME: For some reason we cannot call this method on all test suites
+    // in parallel.
+    // If we do, not all tests get enqueued (if --arch=all was specified,
+    // we don't get twice the number of tests [tested on -rvm -cnone])
+    // Issue: 7927
+    Iterator<TestSuite> iterator = testSuites.iterator;
+    void enqueueNextSuite() {
+      if (!iterator.moveNext()) {
+        _allTestsWereEnqueued = true;
+        _progress.allTestsKnown();
+        _checkDone();
+      } else {
+        iterator.current.forEachTest(_runTest, _testCache, enqueueNextSuite);
       }
     }
+    enqueueNextSuite();
   }
 
   /**

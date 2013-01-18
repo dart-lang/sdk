@@ -168,7 +168,7 @@ class _Parse extends BaseMatcher {
   }
 }
 
-// TODO(nweiz): remove this once it's built in to unittest
+// TODO(nweiz): remove this once it's built in to unittest (issue 7922).
 /// A matcher for StateErrors.
 const isStateError = const _StateError();
 

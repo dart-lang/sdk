@@ -148,12 +148,16 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   ASSERT(receiver.raw() == arguments.At(0));
   // Allocate an InvocationMirror object.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
+
   Class& invocation_mirror_class = Class::Handle(
-      core_lib.LookupClassAllowPrivate(Symbols::InvocationMirror()));
+      core_lib.LookupClass(
+          String::Handle(core_lib.PrivateName(Symbols::InvocationMirror()))));
   ASSERT(!invocation_mirror_class.IsNull());
+  const String& function_name =
+      String::Handle(core_lib.PrivateName(Symbols::AllocateInvocationMirror()));
   const Function& allocation_function = Function::Handle(
       Resolver::ResolveStaticByName(invocation_mirror_class,
-                                    Symbols::AllocateInvocationMirror(),
+                                    function_name,
                                     Resolver::kIsQualified));
   ASSERT(!allocation_function.IsNull());
   const int kNumAllocationArgs = 3;
@@ -243,7 +247,7 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
   String& name = String::Handle();
   Smi& pos = Smi::Handle();
   for (intptr_t i = 0; i < num_named_args; i++) {
-    name ^= optional_arguments_names.At(i);
+    name |= optional_arguments_names.At(i);
     pos = Smi::New(num_pos_args + i);
     intptr_t insert_index = kFirstNamedEntryIndex + (kNamedEntrySize * i);
     // Shift already inserted pairs with "larger" names.
@@ -251,11 +255,11 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
     Smi& previous_pos = Smi::Handle();
     while (insert_index > kFirstNamedEntryIndex) {
       intptr_t previous_index = insert_index - kNamedEntrySize;
-      previous_name ^= descriptor.At(previous_index + kNameOffset);
+      previous_name |= descriptor.At(previous_index + kNameOffset);
       intptr_t result = name.CompareTo(previous_name);
       ASSERT(result != 0);  // Duplicate argument names checked in parser.
       if (result > 0) break;
-      previous_pos ^= descriptor.At(previous_index + kPositionOffset);
+      previous_pos |= descriptor.At(previous_index + kPositionOffset);
       descriptor.SetAt(insert_index + kNameOffset, previous_name);
       descriptor.SetAt(insert_index + kPositionOffset, previous_pos);
       insert_index = previous_index;
@@ -401,9 +405,11 @@ RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
     ASSERT(!isolate_lib.IsNull());
     const String& class_name =
         String::Handle(isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+    const String& function_name =
+        String::Handle(isolate_lib.PrivateName(Symbols::_lookupReceivePort()));
     function = Resolver::ResolveStatic(isolate_lib,
                                        class_name,
-                                       Symbols::_lookupReceivePort(),
+                                       function_name,
                                        kNumArguments,
                                        Object::empty_array(),
                                        Resolver::kIsQualified);
@@ -430,9 +436,11 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
     ASSERT(!isolate_lib.IsNull());
     const String& class_name =
         String::Handle(isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+    const String& function_name =
+        String::Handle(isolate_lib.PrivateName(Symbols::_handleMessage()));
     function = Resolver::ResolveStatic(isolate_lib,
                                        class_name,
-                                       Symbols::_handleMessage(),
+                                       function_name,
                                        kNumArguments,
                                        Object::empty_array(),
                                        Resolver::kIsQualified);
@@ -455,10 +463,12 @@ RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
   const String& class_name =
       String::Handle(isolate_lib.PrivateName(Symbols::_SendPortImpl()));
   const int kNumArguments = 1;
+  const String& function_name =
+      String::Handle(isolate_lib.PrivateName(Symbols::_create()));
   const Function& function = Function::Handle(
       Resolver::ResolveStatic(isolate_lib,
                               class_name,
-                              Symbols::_create(),
+                              function_name,
                               kNumArguments,
                               Object::empty_array(),
                               Resolver::kIsQualified));
@@ -490,7 +500,10 @@ RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
 
 RawObject* DartLibraryCalls::PortGetId(const Instance& port) {
   const Class& cls = Class::Handle(port.clazz());
-  const String& func_name = String::Handle(Field::GetterName(Symbols::_id()));
+  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  const String& func_name =
+      String::Handle(isolate_lib.PrivateName(
+          String::Handle(Field::GetterName(Symbols::_id()))));
   const Function& func = Function::Handle(cls.LookupDynamicFunction(func_name));
   ASSERT(!func.IsNull());
   const Array& args = Array::Handle(Array::New(1));

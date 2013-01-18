@@ -45,6 +45,7 @@ _js_custom_members = set([
     'Element.webkitMatchesSelector',
     'Element.remove',
     'ElementEvents.mouseWheel',
+    'DOMException.name',
     'HTMLCanvasElement.getContext',
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
@@ -52,6 +53,7 @@ _js_custom_members = set([
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
     'Navigator.language',
+    'Navigator.webkitGetUserMedia',
     'URL.createObjectURL',
     'URL.revokeObjectURL',
     'WheelEvent.wheelDeltaX',
@@ -70,6 +72,7 @@ _js_custom_members = set([
 
 js_support_checks = {
   'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
+  'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
   'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
   'HTMLContentElement': "Element.isTagSupported('content')",
   'HTMLDataListElement': "Element.isTagSupported('datalist')",
@@ -78,14 +81,13 @@ js_support_checks = {
   # IE creates keygen as Block elements
   'HTMLKeygenElement': "Element.isTagSupported('keygen') "
       "&& (new Element.tag('keygen') is KeygenElement)",
-  'HTMLMarqueeElement': "Element.isTagSupported('marquee')"
-      "&& (new Element.tag('marquee') is MarqueeElement)",
   'HTMLMeterElement': "Element.isTagSupported('meter')",
   'HTMLObjectElement': "Element.isTagSupported('object')",
   'HTMLOutputElement': "Element.isTagSupported('output')",
   'HTMLProgressElement': "Element.isTagSupported('progress')",
   'HTMLShadowElement': "Element.isTagSupported('shadow')",
   'HTMLTrackElement': "Element.isTagSupported('track')",
+  'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
   'Performance': "JS('bool', '!!(window.performance)')",
   'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
 }
@@ -411,7 +413,6 @@ class HtmlDartInterfaceGenerator(object):
     self._backend.EmitHelpers(base_class)
     self._event_generator.EmitStreamProviders(
         self._interface,
-        self._interface.doc_js_name,
         self._backend.CustomJSMembers(),
         self._implementation_members_emitter)
     self._backend.AddConstructors(
@@ -435,8 +436,7 @@ class HtmlDartInterfaceGenerator(object):
     self._backend.AddSecondaryMembers(self._interface)
     self._event_generator.EmitStreamGetters(
         self._interface,
-        self._interface.doc_js_name,
-        self._backend.CustomJSMembers(),
+        [],
         self._implementation_members_emitter)
     self._backend.FinishInterface()
 
@@ -648,7 +648,6 @@ class Dart2JSBackend(HtmlDartGenerator):
     input_type = self._NarrowInputType(attribute.type.id)
     annotations = self._Annotations(attribute.type.id, attribute.id)
     rename = self._RenamingAnnotation(attribute.id, html_name)
-    self.EmitAttributeDocumentation(attribute)
     if not read_only:
       self._members_emitter.Emit(
           '\n  $RENAME$ANNOTATIONS$TYPE $NAME;'
@@ -684,7 +683,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         TYPE=self.SecureOutputType(attribute.type.id))
 
   def _AddRenamingGetter(self, attr, html_name):
-    self.EmitAttributeDocumentation(attr)
 
     conversion = self._OutputConversion(attr.type.id, attr.id)
     if conversion:
@@ -701,7 +699,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         NATIVE_TYPE=native_type)
 
   def _AddRenamingSetter(self, attr, html_name):
-    self.EmitAttributeDocumentation(attr)
 
     conversion = self._InputConversion(attr.type.id, attr.id)
     if conversion:
@@ -755,8 +752,6 @@ class Dart2JSBackend(HtmlDartGenerator):
     """
     if self._HasCustomImplementation(info.name):
       return
-
-    self.EmitOperationDocumentation(info)
 
     if IsPureInterface(self._interface.id):
       self._AddInterfaceOperation(info, html_name)
@@ -929,16 +924,18 @@ class Dart2JSBackend(HtmlDartGenerator):
     return ''
 
   def _Annotations(self, idl_type, idl_member_name):
+    out = ''
     annotations = FindDart2JSAnnotations(idl_type, self._interface.id,
         idl_member_name)
     if annotations:
-      return '%s\n  ' % annotations
-    return_type = self.SecureOutputType(idl_type)
-    native_type = self._NarrowToImplementationType(idl_type)
-    if native_type != return_type:
-      return "@Returns('%s') @Creates('%s')\n  " % (native_type, native_type)
-    else:
-      return ''
+      out = '%s\n  ' % annotations
+    if not AnyConversionAnnotations(idl_type, self._interface.id,
+                                  idl_member_name):
+      return_type = self.SecureOutputType(idl_type)
+      native_type = self._NarrowToImplementationType(idl_type)
+      if native_type != return_type:
+        out += "@Returns('%s') @Creates('%s')\n  " % (native_type, native_type)
+    return out
 
   def CustomJSMembers(self):
     return _js_custom_members

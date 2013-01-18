@@ -20,10 +20,10 @@ input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_week: Fail
 shadow_dom_test/supported: Fail
+css_test: Pass, Fail # Issue 7978
 
 [ $runtime == chrome || $runtime == drt]
 audiobuffersourcenode_test: Pass, Fail  # AudiobufferSourceNode is flaky on Chrome and Dartium.
-audiocontext_test: Skip # Need to adjust to new API.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
@@ -54,7 +54,6 @@ element_types_test/supported_meter: Fail
 element_types_test/supported_object: Fail
 element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
-exceptions_test: Fail
 form_data_test: Fail # TODO(efortuna): Issue 7875.
 fileapi_test/supported: Fail
 inner_frame_test: Skip
@@ -66,13 +65,14 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 isolates_test: Skip
 measurement_test: Fail, Pass
+media_stream_test/supported: Fail
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
+notifications_test/supported: Fail
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 storage_test: Fail, Pass
-streams_test: Fail # Bug 7888
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 svg_3_test: Fail
@@ -107,11 +107,10 @@ websql_test: Fail # IE does not support web SQL
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
-cache_test: fail              # IE9 does not support ApplicationCache, but IE 10 does (and should work).
+cache_test/supported: Fail
 css_test: Fail
 dom_constructors_test: Fail
 element_test/matches: Fail # IE9 does not support matches
-exceptions_test: Fail
 fileapi_test/supported: Fail
 history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
@@ -127,12 +126,13 @@ input_element_test/supported_tel: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail
+media_stream_test/supported: Fail
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
+notifications_test/supported: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
-streams_test: Fail # Bug 7888
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -162,6 +162,7 @@ input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please tria
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_week: Fail, Crash
 fileapi_test/supported: Fail
+media_stream_test/supported: Fail
 node_test: Skip # Issue 6457
 shadow_dom_test/supported: Fail
 
@@ -173,7 +174,6 @@ keyboard_event_test: Fail # Issue: 7413
 element_test/eventListening: Fail # Issue: 7413
 element_test/children: Fail # Issue: 7413
 audiobuffersourcenode_test: Fail
-cache_test: Fail
 canvas_test: Pass,Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
@@ -188,10 +188,10 @@ element_test/elements: Fail
 element_test/eventListening: Crash
 element_test/queryAll: Fail
 element_webkit_test: Fail
-exceptions_test: Fail
 htmlelement_test: Fail
 indexeddb_1_test/supported: Fail
 mutationobserver_test/supported: Fail
+notifications_test/supported: Fail
 performance_api_test/supported: Fail
 serialized_script_value_test: Fail
 svg_3_test: Fail
@@ -218,7 +218,6 @@ element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Fail
-exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 fileapi_test/supported: Fail
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
@@ -230,14 +229,15 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
+notifications_test/supported: Fail
 shadow_dom_test/supported: Fail
-streams_test: Fail # Bug 7888
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
 websql_test: Fail # FF does not support web SQL
+wheelevent_test: Skip # Times out on FF 16. Issue 7943
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip

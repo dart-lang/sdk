@@ -7,6 +7,7 @@ library multitest;
 import "dart:async";
 import "dart:io";
 import "test_suite.dart";
+import "utils.dart";
 
 // Multitests are Dart test scripts containing lines of the form
 // " [some dart code] /// [key]: [error type]"
@@ -58,15 +59,8 @@ void ExtractTestsFromMultitest(Path filePath,
   // Read the entire file into a byte buffer and transform it to a
   // String. This will treat the file as ascii but the only parts
   // we are interested in will be ascii in any case.
-  RandomAccessFile file = new File.fromPath(filePath).openSync(FileMode.READ);
-  List chars = new List(file.lengthSync());
-  int offset = 0;
-  while (offset != chars.length) {
-    offset += file.readListSync(chars, offset, chars.length - offset);
-  }
-  file.closeSync();
-  String contents = new String.fromCharCodes(chars);
-  chars = null;
+  List bytes = new File.fromPath(filePath).readAsBytesSync();
+  String contents = decodeUtf8(bytes);
   int first_newline = contents.indexOf('\n');
   final String line_separator =
       (first_newline == 0 || contents[first_newline - 1] != '\r')
@@ -74,6 +68,7 @@ void ExtractTestsFromMultitest(Path filePath,
       : '\r\n';
   List<String> lines = contents.split(line_separator);
   if (lines.last == '') lines.removeLast();
+  bytes = null;
   contents = null;
   Set<String> validMultitestOutcomes = new Set<String>.from(
       ['compile-time error', 'runtime error',

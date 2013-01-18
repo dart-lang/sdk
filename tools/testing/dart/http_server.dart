@@ -7,7 +7,10 @@ library http_server;
 import 'dart:io';
 import 'dart:isolate';
 import 'test_suite.dart';  // For TestUtils.
-import '../../../pkg/args/lib/args.dart';
+// TODO(efortuna): Rewrite to not use the args library and simply take an
+// expected number of arguments, so test.dart doesn't rely on the args library?
+// See discussion on https://codereview.chromium.org/11931025/.
+import 'vendored_pkg/args/args.dart';
 
 main() {
   /** Convenience method for local testing. */
@@ -73,11 +76,8 @@ class TestingServerRunner {
     var httpServer = new HttpServer();
     var packagesDirName = 'packages';
     httpServer.onError = (e) {
-      // Consider errors in the builtin http server fatal.
-      // Intead of just throwing the exception we print
-      // a message that makes it clearer what happened.
+      // TODO(ricow): Once we have a debug log we should write this out there.
       print('Test http server error: $e');
-      exit(1);
     };
     httpServer.defaultRequestHandler = (request, resp) {
       var requestPath = new Path(request.path.substring(1)).canonicalize();

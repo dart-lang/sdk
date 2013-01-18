@@ -36,7 +36,7 @@ ARCH_CONFIG = {
 }
 
 def AntPath():
-  parent = join('third_party', 'apache_ant', 'v1_7_1', 'bin')
+  parent = join('third_party', 'apache_ant', '1.8.4', 'bin')
   if utils.IsWindows():
     return join(parent, 'ant.bat')
   else:
@@ -85,7 +85,7 @@ def GetOutputParent():
 
 
 def BuildOptions():
-  options = optparse.OptionParser()
+  options = optparse.OptionParser(usage='usage: %prog [options] <output>')
   options.add_option("-m", "--mode",
       help='Build variant',
       metavar='[debug,release]')
@@ -102,9 +102,8 @@ def Main():
   (options, args) = parser.parse_args()
   
   if len(args) > 1:
-    print 'usage: tools/create_editor.py [options] <output>'
     parser.print_help()
-    return 0
+    return 1
   
   osName = utils.GuessOS()
   mode = 'debug'
@@ -123,7 +122,7 @@ def Main():
   if options.mode:
     mode = options.mode
   if options.arch:
-    mode = options.arch
+    arch = options.arch
 
   # If an output dir was not given, create one from os, mode, and arch.
   if not OUTPUT:

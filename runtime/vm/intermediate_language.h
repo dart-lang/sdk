@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -46,6 +46,8 @@ class FlowGraphOptimizer;
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
   V(_Double, truncate, DoubleTruncate, 620870996)                              \
   V(_Double, round, DoubleRound, 620870996)                                    \
+  V(_Double, floor, DoubleFloor, 620870996)                                    \
+  V(_Double, ceil, DoubleCeil, 620870996)                                      \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
 
 // Class that recognizes the name and owner of a function and returns the
@@ -272,7 +274,6 @@ class EmbeddedArray<T, 0> {
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
-  M(StringCharCodeAt)                                                          \
   M(StringFromCharCode)
 
 
@@ -511,7 +512,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class CheckSmiInstr;
   friend class CheckArrayBoundInstr;
   friend class CheckEitherNonSmiInstr;
-  friend class StringCharCodeAtInstr;
   friend class LICM;
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
@@ -978,7 +978,8 @@ class TargetEntryInstr : public BlockEntryInstr {
   TargetEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t loop_depth)
       : BlockEntryInstr(block_id, try_index, loop_depth),
         predecessor_(NULL),
-        catch_try_index_(CatchClauseNode::kInvalidTryIndex) { }
+        catch_try_index_(CatchClauseNode::kInvalidTryIndex),
+        catch_handler_types_(Array::ZoneHandle()) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
 
@@ -1002,6 +1003,9 @@ class TargetEntryInstr : public BlockEntryInstr {
     return catch_try_index_;
   }
   void set_catch_try_index(intptr_t index) { catch_try_index_ = index; }
+  void set_catch_handler_types(const Array& handler_types) {
+    catch_handler_types_ = handler_types.raw();
+  }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
@@ -1017,6 +1021,7 @@ class TargetEntryInstr : public BlockEntryInstr {
 
   BlockEntryInstr* predecessor_;
   intptr_t catch_try_index_;
+  Array& catch_handler_types_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
@@ -1608,6 +1613,19 @@ class RangeBoundary : public ValueObject {
   enum Kind { kUnknown, kSymbol, kConstant };
 
   RangeBoundary() : kind_(kUnknown), value_(0), offset_(0) { }
+
+  RangeBoundary(const RangeBoundary& other)
+      : ValueObject(),
+        kind_(other.kind_),
+        value_(other.value_),
+        offset_(other.offset_) { }
+
+  RangeBoundary& operator=(const RangeBoundary& other) {
+    kind_ = other.kind_;
+    value_ = other.value_;
+    offset_ = other.offset_;
+    return *this;
+  }
 
   static RangeBoundary FromConstant(intptr_t val) {
     return RangeBoundary(kConstant, val, 0);
@@ -2279,9 +2297,10 @@ class EqualityCompareInstr : public ComparisonInstr {
                        Value* left,
                        Value* right)
       : ComparisonInstr(kind, left, right),
-        ic_data_(Isolate::Current()->GetICDataForDeoptId(deopt_id())),
         token_pos_(token_pos),
         receiver_class_id_(kIllegalCid) {
+    // deopt_id() checks receiver_class_id_ value.
+    ic_data_ = Isolate::Current()->GetICDataForDeoptId(deopt_id());
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
 
@@ -2346,9 +2365,10 @@ class RelationalOpInstr : public ComparisonInstr {
                     Value* left,
                     Value* right)
       : ComparisonInstr(kind, left, right),
-        ic_data_(Isolate::Current()->GetICDataForDeoptId(deopt_id())),
         token_pos_(token_pos),
         operands_class_id_(kIllegalCid) {
+    // deopt_id() checks operands_class_id_ value.
+    ic_data_ = Isolate::Current()->GetICDataForDeoptId(deopt_id());
     ASSERT(Token::IsRelationalOperator(kind));
   }
 
@@ -2670,77 +2690,6 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
 };
 
 
-class StringCharCodeAtInstr : public TemplateDefinition<2> {
- public:
-  StringCharCodeAtInstr(Value* receiver,
-                        Value* index,
-                        intptr_t class_id)
-      : class_id_(class_id) {
-    ASSERT(receiver != NULL);
-    ASSERT(index != NULL);
-    inputs_[0] = receiver;
-    inputs_[1] = index;
-  }
-
-  DECLARE_INSTRUCTION(StringCharCodeAt)
-  virtual RawAbstractType* CompileType() const;
-
-  Value* receiver() const { return inputs_[0]; }
-  Value* index() const { return inputs_[1]; }
-  intptr_t class_id() const { return class_id_; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const;
-
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool AffectedBySideEffect() const { return true; }
-
-  virtual void InferRange();
-
- private:
-  const intptr_t class_id_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringCharCodeAtInstr);
-};
-
-
-class StringFromCharCodeInstr : public TemplateDefinition<1> {
- public:
-  explicit StringFromCharCodeInstr(Value* char_code,
-                                   intptr_t cid) : cid_(cid) {
-    ASSERT(char_code != NULL);
-    ASSERT(char_code->definition()->IsStringCharCodeAt() &&
-           (char_code->definition()->AsStringCharCodeAt()->class_id() ==
-            kOneByteStringCid));
-    inputs_[0] = char_code;
-  }
-
-  DECLARE_INSTRUCTION(StringFromCharCode)
-  virtual RawAbstractType* CompileType() const;
-
-  Value* char_code() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const {  return cid_; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
- private:
-  const intptr_t cid_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
-};
-
-
 class LoadIndexedInstr : public TemplateDefinition<2> {
  public:
   LoadIndexedInstr(Value* array, Value* index, intptr_t class_id)
@@ -2776,6 +2725,39 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   const intptr_t class_id_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
+};
+
+
+class StringFromCharCodeInstr : public TemplateDefinition<1> {
+ public:
+  explicit StringFromCharCodeInstr(Value* char_code,
+                                   intptr_t cid) : cid_(cid) {
+    ASSERT(char_code != NULL);
+    ASSERT(char_code->definition()->IsLoadIndexed() &&
+           (char_code->definition()->AsLoadIndexed()->class_id() ==
+            kOneByteStringCid));
+    inputs_[0] = char_code;
+  }
+
+  DECLARE_INSTRUCTION(StringFromCharCode)
+  virtual RawAbstractType* CompileType() const;
+
+  Value* char_code() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const {  return cid_; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+ private:
+  const intptr_t cid_;
+
+  DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
 };
 
 
@@ -2912,7 +2894,9 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
  public:
   AllocateObjectInstr(ConstructorCallNode* node,
                       ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : ast_node_(*node), arguments_(arguments) {
+      : ast_node_(*node),
+        arguments_(arguments),
+        cid_(Class::Handle(node->constructor().Owner()).id()) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 2));
   }
@@ -2934,11 +2918,12 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 
   virtual bool HasSideEffect() const { return true; }
 
-  virtual intptr_t ResultCid() const { return kDynamicCid; }
+  virtual intptr_t ResultCid() const { return cid_; }
 
  private:
   const ConstructorCallNode& ast_node_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
+  const intptr_t cid_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
@@ -3027,16 +3012,18 @@ class CreateArrayInstr : public TemplateDefinition<1> {
 
 class CreateClosureInstr : public TemplateDefinition<0> {
  public:
-  CreateClosureInstr(ClosureNode* node,
-                     ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : ast_node_(*node),
-        arguments_(arguments) { }
+  CreateClosureInstr(const Function& function,
+                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                     intptr_t token_pos)
+      : function_(function),
+        arguments_(arguments),
+        token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(CreateClosure)
   virtual RawAbstractType* CompileType() const;
 
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
-  const Function& function() const { return ast_node_.function(); }
+  intptr_t token_pos() const { return token_pos_; }
+  const Function& function() const { return function_; }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
@@ -3052,8 +3039,9 @@ class CreateClosureInstr : public TemplateDefinition<0> {
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
-  const ClosureNode& ast_node_;
+  const Function& function_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
+  intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureInstr);
 };
@@ -4085,7 +4073,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   virtual bool AttributesEqual(Instruction* other) const;
 
-  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const;
 
   Value* value() const { return inputs_[0]; }
 
@@ -4188,6 +4176,17 @@ class Environment : public ZoneAllocated {
    public:
     explicit ShallowIterator(Environment* environment)
         : environment_(environment), index_(0) { }
+
+    ShallowIterator(const ShallowIterator& other)
+        : ValueObject(),
+          environment_(other.environment_),
+          index_(other.index_) { }
+
+    ShallowIterator& operator=(const ShallowIterator& other) {
+      environment_ = other.environment_;
+      index_ = other.index_;
+      return *this;
+    }
 
     Environment* environment() const { return environment_; }
 

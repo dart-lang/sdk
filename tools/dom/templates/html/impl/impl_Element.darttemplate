@@ -58,46 +58,47 @@ class _ChildrenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -116,10 +117,10 @@ class _ChildrenElementList implements List {
     _element.$dom_replaceChild(value, _childElements[index]);
   }
 
-   void set length(int newLength) {
-     // TODO(jacobr): remove children when length is reduced.
-     throw new UnsupportedError('');
-   }
+  void set length(int newLength) {
+    // TODO(jacobr): remove children when length is reduced.
+    throw new UnsupportedError('');
+  }
 
   Element add(Element value) {
     _element.$dom_appendChild(value);
@@ -142,11 +143,36 @@ class _ChildrenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw new UnimplementedError();
+  }
+
+  void remove(Object object) {
+    if (object is Element) {
+      Element element = object;
+      if (identical(element.parentNode, this)) {
+        _element.$dom_removeChild(element);
+      }
+    }
+  }
+
+  void removeAll(Iterable elements) {
+    Collections.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    Collections.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(Element element)) {
+    Collections.removeMatching(this, test);
+  }
+
+  void retainMatching(bool test(Element element)) {
+    Collections.retainMatching(this, test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -210,11 +236,11 @@ class _ChildrenElementList implements List {
   }
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 
@@ -241,15 +267,16 @@ class _FrozenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -273,31 +300,31 @@ class _FrozenElementList implements List {
   Set<Element> toSet() => new Set<Element>.from(this);
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -338,7 +365,7 @@ class _FrozenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -374,6 +401,26 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  void remove(Object element) {
+    throw new UnsupportedError('');
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError('');
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError('');
+  }
+
+  void removeMatching(bool test(Element element)) {
+    throw new UnsupportedError('');
+  }
+
+  void retainMatching(bool test(Element element)) {
+    throw new UnsupportedError('');
+  }
+
   Element get first => _nodeList.first;
 
   Element get last => _nodeList.last;
@@ -381,11 +428,11 @@ class _FrozenElementList implements List {
   Element get single => _nodeList.single;
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 
@@ -727,6 +774,23 @@ $endif
   var xtag;
 
 $if DART2JS
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent =
+      const _CustomEventStreamProvider<WheelEvent>(
+        Element._determineMouseWheelEventType);
+
+  static String _determineMouseWheelEventType(EventTarget e) {
+    if (JS('bool', '#.onwheel !== undefined', e)) {
+      // W3C spec, and should be IE9+, but IE has a bug exposing onwheel.
+      return 'wheel';
+    } else if (JS('bool', '#.onmousewheel !== undefined', e)) {
+      // Chrome & IE
+      return 'mousewheel';
+    } else {
+      // Firefox
+      return 'DOMMouseScroll';
+    }
+  }
+
   /**
    * Creates a text node and inserts it into the DOM at the specified location.
    *
@@ -846,11 +910,12 @@ $!MEMBERS
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
-  static final _CUSTOM_PARENT_TAG_MAP = const {
+  static const _CUSTOM_PARENT_TAG_MAP = const {
     'body' : 'html',
     'head' : 'html',
     'caption' : 'table',
     'td': 'tr',
+    'th': 'tr',
     'colgroup': 'table',
     'col' : 'colgroup',
     'tr' : 'tbody',
@@ -860,7 +925,20 @@ class _ElementFactoryProvider {
     'track' : 'audio',
   };
 
-  /** @domName Document.createElement */
+  // TODO(jmesserly): const set would be better
+  static const _TABLE_TAGS = const {
+    'caption': null,
+    'col': null,
+    'colgroup': null,
+    'tbody': null,
+    'td': null,
+    'tfoot': null,
+    'th': null,
+    'thead': null,
+    'tr': null,
+  };
+
+  @DomName('Document.createElement')
   static Element createElement_html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
     // 1) Cache the dummy parent elements required to use innerHTML rather than
@@ -873,30 +951,90 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
-        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      if (_Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+        return _createTableForIE(html, tag);
       }
+      parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      if (parentTag == null) parentTag = 'div';
     }
-    final Element temp = new Element.tag(parentTag);
+
+    final temp = new Element.tag(parentTag);
     temp.innerHtml = html;
 
     Element element;
     if (temp.children.length == 1) {
       element = temp.children[0];
     } else if (parentTag == 'html' && temp.children.length == 2) {
-      // Work around for edge case in WebKit and possibly other browsers where
-      // both body and head elements are created even though the inner html
-      // only contains a head or body element.
+      // In html5 the root <html> tag will always have a <body> and a <head>,
+      // even though the inner html only contains one of them.
       element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      throw new ArgumentError('HTML had ${temp.children.length} '
-          'top level elements but 1 expected');
+      _singleNode(temp.children);
     }
     element.remove();
     return element;
   }
 
-  /** @domName Document.createElement */
+  /**
+   * IE table elements don't support innerHTML (even in standards mode).
+   * Instead we use a div and inject the table element in the innerHtml string.
+   * This technique works on other browsers too, but it's probably slower,
+   * so we only use it when running on IE.
+   *
+   * See also innerHTML:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms533897(v=vs.85).aspx>
+   * and Building Tables Dynamically:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms532998(v=vs.85).aspx>.
+   */
+  static Element _createTableForIE(String html, String tag) {
+    var div = new Element.tag('div');
+    div.innerHtml = '<table>$html</table>';
+    var table = _singleNode(div.children);
+    Element element;
+    switch (tag) {
+      case 'td':
+      case 'th':
+        element = _singleNode(_singleNode(table.rows).cells);
+        break;
+      case 'tr':
+        element = _singleNode(table.rows);
+        break;
+      case 'tbody':
+        element = _singleNode(table.tBodies);
+        break;
+      case 'thead':
+        element = table.tHead;
+        break;
+      case 'tfoot':
+        element = table.tFoot;
+        break;
+      case 'caption':
+        element = table.caption;
+        break;
+      case 'colgroup':
+        element = _getColgroup(table);
+        break;
+      case 'col':
+        element = _singleNode(_getColgroup(table).children);
+        break;
+    }
+    element.remove();
+    return element;
+  }
+
+  static TableColElement _getColgroup(TableElement table) {
+    // TODO(jmesserly): is there a better way to do this?
+    return _singleNode(table.children.where((n) => n.tagName == 'COLGROUP')
+        .toList());
+  }
+
+  static Node _singleNode(List<Node> list) {
+    if (list.length == 1) return list[0];
+    throw new ArgumentError('HTML had ${list.length} '
+        'top level elements but 1 expected');
+  }
+
+  @DomName('Document.createElement')
 $if DART2JS
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.

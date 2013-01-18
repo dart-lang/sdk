@@ -17,12 +17,15 @@ library test_suite;
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+import "dart:uri";
+import "drt_updater.dart";
+import "multitest.dart";
 import "status_file_parser.dart";
 import "test_runner.dart";
-import "multitest.dart";
-import "drt_updater.dart";
-import "dart:uri";
-import '../../../pkg/path/lib/path.dart' as pathLib;
+import "utils.dart";
+
+// TODO(efortuna,whess): Remove this import.
+import 'vendored_pkg/path/path.dart' as pathLib;
 
 part "browser_test.dart";
 
@@ -414,6 +417,8 @@ class StandardTestSuite extends TestSuite {
    * none).
    */
   List serverList;
+
+  static final RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
 
   StandardTestSuite(Map configuration,
                     String suiteName,
@@ -1287,11 +1292,13 @@ class StandardTestSuite extends TestSuite {
    * configurations, so it may not use [configuration].
    */
   static Map readOptionsFromFile(Path filePath) {
+    if (filePath.segments().contains('co19')) {
+      return readOptionsFromCo19File(filePath);
+    }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
-    RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
     RegExp multiHtmlTestRegExp =
         new RegExp(r"useHtmlIndividualConfiguration()");
     RegExp staticTypeRegExp =
@@ -1309,25 +1316,14 @@ class StandardTestSuite extends TestSuite {
     RegExp sourceOrImportRegExp =
         new RegExp("^(#source|#import|part)[ \t]+[\('\"]", multiLine: true);
 
-    // Read the entire file into a byte buffer and transform it to a
-    // String. This will treat the file as ascii but the only parts
-    // we are interested in will be ascii in any case.
-    RandomAccessFile file = new File.fromPath(filePath).openSync(FileMode.READ);
-    List chars = new List(file.lengthSync());
-    var offset = 0;
-    while (offset != chars.length) {
-      offset += file.readListSync(chars, offset, chars.length - offset);
-    }
-    file.closeSync();
-    String contents = new String.fromCharCodes(chars);
-    chars = null;
+    var bytes = new File.fromPath(filePath).readAsBytesSync();
+    String contents = decodeUtf8(bytes);
+    bytes = null;
 
     // Find the options in the file.
     List<List> result = new List<List>();
     List<String> dartOptions;
     String packageRoot;
-    bool hasCompileError = contents.contains("@compile-error");
-    bool hasRuntimeError = contents.contains("@runtime-error");
     bool isStaticClean = false;
 
     Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
@@ -1407,8 +1403,8 @@ class StandardTestSuite extends TestSuite {
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "packageRoot": packageRoot,
-             "hasCompileError": hasCompileError,
-             "hasRuntimeError": hasRuntimeError,
+             "hasCompileError": false,
+             "hasRuntimeError": false,
              "isStaticClean" : isStaticClean,
              "otherScripts": otherScripts,
              "isMultitest": isMultitest,
@@ -1435,6 +1431,64 @@ class StandardTestSuite extends TestSuite {
     // vm options are still compiled into the same output file which
     // may lead to reads from empty files.
     return [vmOptions[0]];
+  }
+
+  /**
+   * Read options from a co19 test file.
+   *
+   * The reason this is different from [readOptionsFromFile] is that
+   * co19 is developed based on a contract which defines certain test
+   * tags. These tags may appear unused, but should not be removed
+   * without consulting with the co19 team.
+   *
+   * Also, [readOptionsFromFile] recognizes a number of additional
+   * tags that are not appropriate for use in general tests of
+   * conformance to the Dart language. Any Dart implementation must
+   * pass the co19 test suite as is, and not require extra flags,
+   * environment variables, configuration files, etc.
+   */
+  static Map readOptionsFromCo19File(Path filePath) {
+    String contents = decodeUtf8(new File.fromPath(filePath).readAsBytesSync());
+
+    bool hasCompileError = contents.contains("@compile-error");
+    bool hasRuntimeError = contents.contains("@runtime-error");
+    bool hasDynamicTypeError = contents.contains("@dynamic-type-error");
+    bool hasStaticWarning = contents.contains("@static-warning");
+    bool isMultitest = multiTestRegExp.hasMatch(contents);
+
+    if (hasDynamicTypeError) {
+      // TODO(ahe): Remove this warning when co19 no longer uses this tag.
+
+      // @dynamic-type-error has been replaced by tests that use
+      // tests/co19/src/Utils/dynamic_check.dart to dynamically detect
+      // if a test is running in checked mode or not and change its
+      // expectations accordingly.
+
+      // Using stderr.writeString to avoid breaking dartc/junit_tests
+      // which parses the output of the --list option.
+      stderr.writeString(
+          "Warning: deprecated @dynamic-type-error tag used in $filePath\n");
+    }
+
+    return {
+      "vmOptions": <List>[[]],
+      "dartOptions": null,
+      "packageRoot": null,
+      "hasCompileError": hasCompileError,
+      "hasRuntimeError": hasRuntimeError,
+      "isStaticClean" : !hasStaticWarning,
+      "otherScripts": <String>[],
+      "isMultitest": isMultitest,
+      "isMultiHtmlTest": false,
+      "subtestNames": <String>[],
+      "containsLeadingHash": false,
+      "isolateStubs": '',
+      "containsDomImport": false,
+      "isLibraryDefinition": false,
+      "containsSourceOrImport": false,
+      "numStaticTypeAnnotations": 0,
+      "numCompileTimeAnnotations": 0,
+    };
   }
 }
 
@@ -1658,6 +1712,10 @@ class TestUtils {
     var completer = new Completer();
     output.onClosed = (){ completer.complete(null); };
     return completer.future;
+  }
+
+  static Path debugLogfile() {
+    return new Path(".debug.log");
   }
 
   static String flakyFileName() {

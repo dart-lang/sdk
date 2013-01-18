@@ -1559,16 +1559,19 @@ class CatchClauseNode : public AstNode {
 
   CatchClauseNode(intptr_t token_pos,
                   SequenceNode* catch_block,
+                  const Array& handler_types,
                   const LocalVariable* context_var,
                   const LocalVariable* exception_var,
                   const LocalVariable* stacktrace_var)
       : AstNode(token_pos),
         try_index_(kInvalidTryIndex),
         catch_block_(catch_block),
+        handler_types_(handler_types),
         context_var_(*context_var),
         exception_var_(*exception_var),
         stacktrace_var_(*stacktrace_var) {
     ASSERT(catch_block_ != NULL);
+    ASSERT(handler_types.IsZoneHandle());
     ASSERT(context_var != NULL);
     ASSERT(exception_var != NULL);
     ASSERT(stacktrace_var != NULL);
@@ -1580,6 +1583,7 @@ class CatchClauseNode : public AstNode {
   }
   void set_try_index(int value) { try_index_ = value; }
 
+  const Array& handler_types() const { return handler_types_; }
   const LocalVariable& context_var() const { return context_var_; }
   const LocalVariable& exception_var() const { return exception_var_; }
   const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
@@ -1593,6 +1597,7 @@ class CatchClauseNode : public AstNode {
  private:
   int try_index_;  // Running index of the try blocks seen in a function.
   SequenceNode* catch_block_;
+  const Array& handler_types_;
   const LocalVariable& context_var_;
   const LocalVariable& exception_var_;
   const LocalVariable& stacktrace_var_;

@@ -55,46 +55,41 @@ main() {
   group('should consider a package valid if it', () {
     setUp(scheduleNormalPackage);
 
-    test('looks normal', () {
+    integration('looks normal', () {
       dir(appPath, [libPubspec("test_pkg", "1.0.0")]).scheduleCreate();
       expectNoValidationError(dependency);
       expectNoValidationError(lib);
       expectNoValidationError(license);
       expectNoValidationError(name);
       expectNoValidationError(pubspecField);
-      run();
     });
 
-    test('has a COPYING file', () {
+    integration('has a COPYING file', () {
       file(join(appPath, 'LICENSE'), '').scheduleDelete();
       file(join(appPath, 'COPYING'), '').scheduleCreate();
       expectNoValidationError(license);
-      run();
     });
 
-    test('has a prefixed LICENSE file', () {
+    integration('has a prefixed LICENSE file', () {
       file(join(appPath, 'LICENSE'), '').scheduleDelete();
       file(join(appPath, 'MIT_LICENSE'), '').scheduleCreate();
       expectNoValidationError(license);
-      run();
     });
 
-    test('has a suffixed LICENSE file', () {
+    integration('has a suffixed LICENSE file', () {
       file(join(appPath, 'LICENSE'), '').scheduleDelete();
       file(join(appPath, 'LICENSE.md'), '').scheduleCreate();
       expectNoValidationError(license);
-      run();
     });
 
-    test('has "authors" instead of "author"', () {
+    integration('has "authors" instead of "author"', () {
       var package = package("test_pkg", "1.0.0");
       package["authors"] = [package.remove("author")];
       dir(appPath, [pubspec(package)]).scheduleCreate();
       expectNoValidationError(pubspecField);
-      run();
     });
 
-    test('has a badly-named library in lib/src', () {
+    integration('has a badly-named library in lib/src', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [
@@ -103,10 +98,9 @@ main() {
         ])
       ]).scheduleCreate();
       expectNoValidationError(name);
-      run();
     });
 
-    test('has a non-Dart file in lib', () {
+    integration('has a non-Dart file in lib', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [
@@ -114,68 +108,61 @@ main() {
         ])
       ]).scheduleCreate();
       expectNoValidationError(lib);
-      run();
     });
 
-    test('has an unconstrained dependency on "unittest"', () {
+    integration('has an unconstrained dependency on "unittest"', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0", [
           {'hosted': 'unittest'}
         ])
       ]).scheduleCreate();
       expectNoValidationError(dependency);
-      run();
     });
 
-    test('has a nested directory named "tools"', () {
+    integration('has a nested directory named "tools"', () {
       dir(appPath, [
         dir("foo", [dir("tools")])
       ]).scheduleCreate();
       expectNoValidationError(directory);
-      run();
     });
   });
 
   group('should consider a package invalid if it', () {
     setUp(scheduleNormalPackage);
 
-    test('is missing the "homepage" field', () {
+    integration('is missing the "homepage" field', () {
       var package = package("test_pkg", "1.0.0");
       package.remove("homepage");
       dir(appPath, [pubspec(package)]).scheduleCreate();
 
       expectValidationError(pubspecField);
-      run();
     });
 
-    test('is missing the "description" field', () {
+    integration('is missing the "description" field', () {
       var package = package("test_pkg", "1.0.0");
       package.remove("description");
       dir(appPath, [pubspec(package)]).scheduleCreate();
 
       expectValidationError(pubspecField);
-      run();
     });
 
-    test('is missing the "author" field', () {
+    integration('is missing the "author" field', () {
       var package = package("test_pkg", "1.0.0");
       package.remove("author");
       dir(appPath, [pubspec(package)]).scheduleCreate();
 
       expectValidationError(pubspecField);
-      run();
     });
 
-    test('has a single author without an email', () {
+    integration('has a single author without an email', () {
       var package = package("test_pkg", "1.0.0");
       package["author"] = "Nathan Weizenbaum";
       dir(appPath, [pubspec(package)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
-      run();
     });
 
-    test('has one of several authors without an email', () {
+    integration('has one of several authors without an email', () {
       var package = package("test_pkg", "1.0.0");
       package.remove("author");
       package["authors"] = [
@@ -186,19 +173,17 @@ main() {
       dir(appPath, [pubspec(package)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
-      run();
     });
 
-    test('has a single author without a name', () {
+    integration('has a single author without a name', () {
       var package = package("test_pkg", "1.0.0");
       package["author"] = "<nweiz@google.com>";
       dir(appPath, [pubspec(package)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
-      run();
     });
 
-    test('has one of several authors without a name', () {
+    integration('has one of several authors without a name', () {
       var package = package("test_pkg", "1.0.0");
       package.remove("author");
       package["authors"] = [
@@ -209,103 +194,89 @@ main() {
       dir(appPath, [pubspec(package)]).scheduleCreate();
 
       expectValidationWarning(pubspecField);
-      run();
     });
 
-    test('has no LICENSE file', () {
+    integration('has no LICENSE file', () {
       file(join(appPath, 'LICENSE'), '').scheduleDelete();
       expectValidationError(license);
-      run();
     });
 
-    test('has an empty package name', () {
+    integration('has an empty package name', () {
       dir(appPath, [libPubspec("", "1.0.0")]).scheduleCreate();
       expectValidationError(name);
-      run();
     });
 
-    test('has a package name with an invalid character', () {
+    integration('has a package name with an invalid character', () {
       dir(appPath, [libPubspec("test-pkg", "1.0.0")]).scheduleCreate();
       expectValidationError(name);
-      run();
     });
 
-    test('has a package name that begins with a number', () {
+    integration('has a package name that begins with a number', () {
       dir(appPath, [libPubspec("8ball", "1.0.0")]).scheduleCreate();
       expectValidationError(name);
-      run();
     });
 
-    test('has a package name that contains upper-case letters', () {
+    integration('has a package name that contains upper-case letters', () {
       dir(appPath, [libPubspec("TestPkg", "1.0.0")]).scheduleCreate();
       expectValidationWarning(name);
-      run();
     });
 
-    test('has a package name that is a Dart reserved word', () {
+    integration('has a package name that is a Dart reserved word', () {
       dir(appPath, [libPubspec("operator", "1.0.0")]).scheduleCreate();
       expectValidationError(name);
-      run();
     });
 
-    test('has a library name with an invalid character', () {
+    integration('has a library name with an invalid character', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("test-pkg.dart", "int i = 0;")])
       ]).scheduleCreate();
       expectValidationError(name);
-      run();
     });
 
-    test('has a library name that begins with a number', () {
+    integration('has a library name that begins with a number', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("8ball.dart", "int i = 0;")])
       ]).scheduleCreate();
       expectValidationError(name);
-      run();
     });
 
-    test('has a library name that contains upper-case letters', () {
+    integration('has a library name that contains upper-case letters', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("TestPkg.dart", "int i = 0;")])
       ]).scheduleCreate();
       expectValidationWarning(name);
-      run();
     });
 
-    test('has a library name that is a Dart reserved word', () {
+    integration('has a library name that is a Dart reserved word', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0"),
         dir("lib", [file("operator.dart", "int i = 0;")])
       ]).scheduleCreate();
       expectValidationError(name);
-      run();
     });
 
-    test('has a single library named differently than the package', () {
+    integration('has a single library named differently than the package', () {
       file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
       dir(appPath, [
         dir("lib", [file("best_pkg.dart", "int i = 0;")])
       ]).scheduleCreate();
       expectValidationWarning(name);
-      run();
     });
 
-    test('has no lib directory', () {
+    integration('has no lib directory', () {
       dir(join(appPath, "lib")).scheduleDelete();
       expectValidationError(lib);
-      run();
     });
 
-    test('has an empty lib directory', () {
+    integration('has an empty lib directory', () {
       file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
       expectValidationError(lib);
-      run();
     });
 
-    test('has a lib directory containing only src', () {
+    integration('has a lib directory containing only src', () {
       file(join(appPath, "lib", "test_pkg.dart"), '').scheduleDelete();
       dir(appPath, [
         dir("lib", [
@@ -313,12 +284,12 @@ main() {
         ])
       ]).scheduleCreate();
       expectValidationError(lib);
-      run();
     });
 
     group('has a dependency with a non-hosted source', () {
       group('where a hosted version of that dependency exists', () {
-        test("and should suggest the hosted package's primary version", () {
+        integration("and should suggest the hosted package's primary "
+            "version", () {
           useMockClient(new MockClient((request) {
             expect(request.method, equals("GET"));
             expect(request.url.path, equals("/packages/foo.json"));
@@ -339,12 +310,10 @@ main() {
           expectLater(schedulePackageValidation(dependency),
               pairOf(isEmpty, someElement(contains(
                   '  foo: ">=2.0.0 <3.0.0"'))));
-
-          run();
         });
 
-        test("and should suggest the hosted package's prerelease version if "
-            "it's the only version available", () {
+        integration("and should suggest the hosted package's prerelease "
+            "version if it's the only version available", () {
           useMockClient(new MockClient((request) {
             expect(request.method, equals("GET"));
             expect(request.url.path, equals("/packages/foo.json"));
@@ -365,12 +334,10 @@ main() {
           expectLater(schedulePackageValidation(dependency),
               pairOf(isEmpty, someElement(contains(
                   '  foo: ">=3.0.0-pre <4.0.0"'))));
-
-          run();
         });
 
-        test("and should suggest a tighter constraint if the primary version "
-            "is pre-1.0.0", () {
+        integration("and should suggest a tighter constraint if the primary "
+            "version is pre-1.0.0", () {
           useMockClient(new MockClient((request) {
             expect(request.method, equals("GET"));
             expect(request.url.path, equals("/packages/foo.json"));
@@ -391,13 +358,11 @@ main() {
           expectLater(schedulePackageValidation(dependency),
               pairOf(isEmpty, someElement(contains(
                   '  foo: ">=0.0.2 <0.0.3"'))));
-
-          run();
         });
       });
 
       group('where no hosted version of that dependency exists', () {
-        test("and should use the other source's version", () {
+        integration("and should use the other source's version", () {
           useMockClient(new MockClient((request) {
             expect(request.method, equals("GET"));
             expect(request.url.path, equals("/packages/foo.json"));
@@ -417,12 +382,10 @@ main() {
           expectLater(schedulePackageValidation(dependency),
               pairOf(isEmpty, someElement(contains(
                   '  foo: ">=1.0.0 <2.0.0"'))));
-
-          run();
         });
 
-        test("and should use the other source's unquoted version if it's "
-            "concrete", () {
+        integration("and should use the other source's unquoted version if "
+            "it's concrete", () {
           useMockClient(new MockClient((request) {
             expect(request.method, equals("GET"));
             expect(request.url.path, equals("/packages/foo.json"));
@@ -441,15 +404,13 @@ main() {
 
           expectLater(schedulePackageValidation(dependency),
               pairOf(isEmpty, someElement(contains('  foo: 0.2.3'))));
-
-          run();
         });
       });
     });
 
     group('has an unconstrained dependency', () {
       group('and it should not suggest a version', () {
-        test("if there's no lockfile", () {
+        integration("if there's no lockfile", () {
           dir(appPath, [
             libPubspec("test_pkg", "1.0.0", [
               {'hosted': 'foo'}
@@ -458,11 +419,10 @@ main() {
 
           expectLater(schedulePackageValidation(dependency),
               pairOf(isEmpty, everyElement(isNot(contains("\n  foo:")))));
-
-          run();
         });
 
-        test("if the lockfile doesn't have an entry for the dependency", () {
+        integration("if the lockfile doesn't have an entry for the "
+            "dependency", () {
           dir(appPath, [
             libPubspec("test_pkg", "1.0.0", [
               {'hosted': 'foo'}
@@ -483,13 +443,11 @@ main() {
 
           expectLater(schedulePackageValidation(dependency),
               pairOf(isEmpty, everyElement(isNot(contains("\n  foo:")))));
-
-          run();
         });
       });
 
       group('with a lockfile', () {
-        test('and it should suggest a constraint based on the locked '
+        integration('and it should suggest a constraint based on the locked '
             'version', () {
           dir(appPath, [
             libPubspec("test_pkg", "1.0.0", [
@@ -512,11 +470,9 @@ main() {
           expectLater(schedulePackageValidation(dependency),
               pairOf(isEmpty, someElement(contains(
                   '  foo: ">=1.2.3 <2.0.0"'))));
-
-          run();
         });
 
-        test('and it should suggest a concrete constraint if the locked '
+        integration('and it should suggest a concrete constraint if the locked '
             'version is pre-1.0.0', () {
           dir(appPath, [
             libPubspec("test_pkg", "1.0.0", [
@@ -539,13 +495,11 @@ main() {
           expectLater(schedulePackageValidation(dependency),
               pairOf(isEmpty, someElement(contains(
                   '  foo: ">=0.1.2 <0.1.3"'))));
-
-          run();
         });
       });
     });
 
-    test('has a hosted dependency on itself', () {
+    integration('has a hosted dependency on itself', () {
       dir(appPath, [
         libPubspec("test_pkg", "1.0.0", [
           {'hosted': {'name': 'test_pkg', 'version': '>=1.0.0'}}
@@ -553,8 +507,6 @@ main() {
       ]).scheduleCreate();
 
       expectValidationWarning(dependency);
-
-      run();
     });
 
     group('has a top-level directory named', () {
@@ -562,10 +514,9 @@ main() {
 
       var names = ["tools", "tests", "docs", "examples", "sample", "samples"];
       for (var name in names) {
-        test('"$name"', () {
+        integration('"$name"', () {
           dir(appPath, [dir(name)]).scheduleCreate();
           expectValidationWarning(directory);
-          run();
         });
       }
     });

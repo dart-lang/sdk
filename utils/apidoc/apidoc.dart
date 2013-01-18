@@ -95,14 +95,6 @@ void main() {
   _diff = new HtmlDiff(printWarnings:false);
   _diff.run();
 
-  // Process handwritten HTML documentation.
-  print('Processing handwritten HTML documentation...');
-  final htmldoc = new Htmldoc();
-  htmldoc.includeApi = true;
-  htmldoc.documentLibraries(
-    <Path>[doc.scriptDir.append('../../tools/dom/doc/html.dartdoc')],
-    libPath, pkgPath);
-
   // Process libraries.
 
   // TODO(johnniwinther): Libraries for the compilation seem to be more like
@@ -138,7 +130,7 @@ void main() {
 
   lister.onDone = (success) {
     print('Generating docs...');
-    final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache,
+    final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
         excludedLibraries);
     apidoc.dartdocPath =
         doc.scriptDir.append('../../sdk/lib/_internal/dartdoc/');
@@ -158,99 +150,10 @@ void main() {
   };
 }
 
-/**
- * This class is purely here to scrape handwritten HTML documentation.
- * This scraped documentation will later be merged with the generated
- * HTML library.
- */
-class Htmldoc extends doc.Dartdoc {
-  doc.DocComment libraryComment;
-
-  /**
-   * Map from qualified type names to comments.
-   */
-  Map<String, doc.DocComment> typeComments;
-
-  /**
-   * Map from qualified member names to comments.
-   */
-  Map<String, doc.DocComment> memberComments;
-
-  Htmldoc() {
-    typeComments = new Map<String, doc.DocComment>();
-    memberComments = new Map<String, doc.DocComment>();
-  }
-
-  // Suppress any actual writing to file.  This is only for analysis.
-  void endFile() {
-  }
-
-  void write(String s) {
-  }
-
-  doc.DocComment getRecordedLibraryComment(LibraryMirror library) {
-    if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {
-      return libraryComment;
-    }
-    return null;
-  }
-
-  doc.DocComment getRecordedTypeComment(TypeMirror type) {
-    if (typeComments.containsKey(type.qualifiedName)) {
-      return typeComments[type.qualifiedName];
-    }
-    return null;
-  }
-
-  doc.DocComment getRecordedMemberComment(MemberMirror member) {
-    if (memberComments.containsKey(member.qualifiedName)) {
-      return memberComments[member.qualifiedName];
-    }
-    return null;
-  }
-
-  // These methods are subclassed and used for internal processing.
-  // Do not invoke outside of this class.
-  doc.DocComment getLibraryComment(LibraryMirror library) {
-    doc.DocComment comment = super.getLibraryComment(library);
-    libraryComment = comment;
-    return comment;
-  }
-
-  doc.DocComment getTypeComment(TypeMirror type) {
-    doc.DocComment comment = super.getTypeComment(type);
-    recordTypeComment(type, comment);
-    return comment;
-  }
-
-  doc.DocComment getMemberComment(MemberMirror member) {
-    doc.DocComment comment = super.getMemberComment(member);
-    recordMemberComment(member, comment);
-    return comment;
-  }
-
-  void recordTypeComment(TypeMirror type, doc.DocComment comment) {
-    if (comment != null && comment.text.contains('@domName')) {
-      // This is not a handwritten comment.
-      return;
-    }
-    typeComments[type.qualifiedName] = comment;
-  }
-
-  void recordMemberComment(MemberMirror member, doc.DocComment comment) {
-    if (comment != null && comment.text.contains('@domName')) {
-      // This is not a handwritten comment.
-      return;
-    }
-    memberComments[member.qualifiedName] = comment;
-  }
-}
-
 class Apidoc extends doc.Dartdoc {
   /** Big ball of JSON containing the scraped MDN documentation. */
   final Map mdn;
 
-  final Htmldoc htmldoc;
 
   static const disqusShortname = 'dartapidocs';
 
@@ -267,7 +170,7 @@ class Apidoc extends doc.Dartdoc {
    */
   String mdnUrl = null;
 
-  Apidoc(this.mdn, this.htmldoc, Path outputDir, int mode,
+  Apidoc(this.mdn, Path outputDir, int mode,
          bool generateAppCache, [excludedLibraries]) {
     if (?excludedLibraries) {
       this.excludedLibraries = excludedLibraries;
@@ -394,30 +297,21 @@ class Apidoc extends doc.Dartdoc {
   }
 
   doc.DocComment getLibraryComment(LibraryMirror library) {
-    if (HTML_LIBRARY_NAMES.contains(doc.displayName(library))) {
-      return htmldoc.libraryComment;
-    }
     return super.getLibraryComment(library);
   }
 
   doc.DocComment getTypeComment(TypeMirror type) {
     return _mergeDocs(
-        includeMdnTypeComment(type), super.getTypeComment(type),
-        htmldoc.getRecordedTypeComment(type));
+        includeMdnTypeComment(type), super.getTypeComment(type));
   }
 
   doc.DocComment getMemberComment(MemberMirror member) {
     return _mergeDocs(
-        includeMdnMemberComment(member), super.getMemberComment(member),
-        htmldoc.getRecordedMemberComment(member));
+        includeMdnMemberComment(member), super.getMemberComment(member));
   }
 
   doc.DocComment _mergeDocs(MdnComment mdnComment,
-                            doc.DocComment fileComment,
-                            doc.DocComment handWrittenComment) {
-    // Prefer the hand-written comment first.
-    if (handWrittenComment != null) return handWrittenComment;
-
+                            doc.DocComment fileComment) {
     // Otherwise, prefer comment from the (possibly generated) Dart file.
     if (fileComment != null) return fileComment;
 

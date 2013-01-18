@@ -386,7 +386,7 @@ class ResolverTask extends CompilerTask {
    * Warning: do not call this method directly. It should only be
    * called by [resolveClass] and [ClassSupertypeResolver].
    */
-  void loadSupertypes(ClassElement cls, Node from) {
+  void loadSupertypes(ClassElement cls, Spannable from) {
     compiler.withCurrentElement(cls, () => measure(() {
       if (cls.supertypeLoadState == STATE_DONE) return;
       if (cls.supertypeLoadState == STATE_STARTED) {
@@ -404,8 +404,8 @@ class ResolverTask extends CompilerTask {
       cls.supertypeLoadState = STATE_STARTED;
       compiler.withCurrentElement(cls, () {
         // TODO(ahe): Cache the node in cls.
-        cls.parseNode(compiler).accept(new ClassSupertypeResolver(compiler,
-                                                                  cls));
+        cls.parseNode(compiler).accept(
+            new ClassSupertypeResolver(compiler, cls));
         if (cls.supertypeLoadState != STATE_DONE) {
           cls.supertypeLoadState = STATE_DONE;
         }
@@ -454,7 +454,7 @@ class ResolverTask extends CompilerTask {
       compiler.withCurrentElement(element, () => measure(() {
         assert(element.resolutionState == STATE_NOT_STARTED);
         element.resolutionState = STATE_STARTED;
-        ClassNode tree = element.parseNode(compiler);
+        Node tree = element.parseNode(compiler);
         loadSupertypes(element, tree);
 
         ClassResolverVisitor visitor =
@@ -2737,24 +2737,24 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // resolve this class again.
     resolveTypeVariableBounds(node.typeParameters);
 
-    // Find super type.
-    DartType supertype = null;
+    // Setup the supertype for the element.
+    assert(element.supertype == null);
     if (node.superclass != null) {
-      supertype = typeResolver.resolveTypeAnnotation(node.superclass, scope,
-          element, onFailure: error);
-    }
-    if (supertype != null) {
-      if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
-        // Error has already been reported.
-      } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
-        // TODO(johnniwinther): Handle dynamic.
-        error(node.superclass.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
-      } else if (isBlackListed(supertype)) {
-        error(node.superclass, MessageKind.CANNOT_EXTEND, [supertype]);
-      } else {
+      MixinApplication superMixin = node.superclass.asMixinApplication();
+      if (superMixin != null) {
+        DartType supertype = resolveSupertype(element, superMixin.superclass);
+        Link<Node> link = superMixin.mixins.nodes;
+        while (!link.isEmpty) {
+          supertype = applyMixin(supertype, visit(link.head));
+          link = link.tail;
+        }
         element.supertype = supertype;
+      } else {
+        element.supertype = resolveSupertype(element, node.superclass);
       }
     }
+
+    // If the super type isn't specified, we make it Object.
     final objectElement = compiler.objectClass;
     if (!identical(element, objectElement) && element.supertype == null) {
       if (objectElement == null) {
@@ -2765,6 +2765,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       }
       element.supertype = objectElement.computeType(compiler);
     }
+
     assert(element.interfaces == null);
     Link<DartType> interfaces = const Link<DartType>();
     for (Link<Node> link = node.interfaces.nodes;
@@ -2809,9 +2810,60 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (node.defaultClause != null) {
       element.defaultClass = visit(node.defaultClause);
     }
-    addDefaultConstructorIfNeeded(element);
+    element.addDefaultConstructorIfNeeded(compiler);
     return element.computeType(compiler);
   }
+
+  DartType visitMixinApplication(MixinApplication node) {
+    compiler.ensure(element != null);
+    compiler.ensure(element.resolutionState == STATE_STARTED);
+
+    // Generate anonymous mixin application elements for the
+    // intermediate mixin applications (excluding the last).
+    DartType supertype = resolveSupertype(element, node.superclass);
+    Link<Node> link = node.mixins.nodes;
+    while (!link.tail.isEmpty) {
+      supertype = applyMixin(supertype, visit(link.head));
+      link = link.tail;
+    }
+    doApplyMixinTo(element, supertype, visit(link.head));
+    return element.computeType(compiler);
+  }
+
+  DartType applyMixin(DartType supertype, DartType mixinType) {
+    String superName = supertype.name.slowToString();
+    String mixinName = mixinType.name.slowToString();
+    ClassElement mixinApplication = new MixinApplicationElementX(
+        new SourceString("${superName}_${mixinName}"),
+        element.getCompilationUnit(),
+        compiler.getNextFreeClassId(),
+        element.parseNode(compiler));
+    doApplyMixinTo(mixinApplication, supertype, mixinType);
+    mixinApplication.resolutionState = STATE_DONE;
+    mixinApplication.supertypeLoadState = STATE_DONE;
+    return mixinApplication.computeType(compiler);
+  }
+
+  void doApplyMixinTo(MixinApplicationElement mixinApplication,
+                      DartType supertype,
+                      DartType mixinType) {
+    assert(mixinApplication.supertype == null);
+    mixinApplication.supertype = supertype;
+
+    // The class that is the result of a mixin application implements
+    // the interface of the class that was mixed in.
+    Link<DartType> interfaces = const Link<DartType>();
+    interfaces = interfaces.prepend(mixinType);
+    assert(mixinApplication.interfaces == null);
+    mixinApplication.interfaces = interfaces;
+
+    assert(mixinApplication.mixin == null);
+    mixinApplication.mixin = mixinType.element;
+    mixinApplication.mixin.ensureResolved(compiler);
+    mixinApplication.addDefaultConstructorIfNeeded(compiler);
+    calculateAllSupertypes(mixinApplication);
+  }
+
 
   // TODO(johnniwinther): Remove when default class is no longer supported.
   DartType visitTypeAnnotation(TypeAnnotation node) {
@@ -2863,9 +2915,28 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return e.computeType(compiler);
   }
 
+  DartType resolveSupertype(ClassElement cls, TypeAnnotation superclass) {
+    DartType supertype = typeResolver.resolveTypeAnnotation(
+        superclass, scope, cls, onFailure: error);
+    if (supertype != null) {
+      if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
+        // Error has already been reported.
+        return null;
+      } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
+        // TODO(johnniwinther): Handle dynamic.
+        error(superclass.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
+        return null;
+      } else if (isBlackListed(supertype)) {
+        error(superclass, MessageKind.CANNOT_EXTEND, [supertype]);
+        return null;
+      }
+    }
+    return supertype;
+  }
+
   void calculateAllSupertypes(ClassElement cls) {
-    // TODO(karlklose): check if type arguments match, if a classelement occurs
-    //                  more than once in the supertypes.
+    // TODO(karlklose): Check if type arguments match, if a class
+    // element occurs more than once in the supertypes.
     if (cls.allSupertypes != null) return;
     final DartType supertype = cls.supertype;
     if (supertype != null) {
@@ -2903,17 +2974,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     }
   }
 
-  /**
-   * Add a synthetic nullary constructor if there are no other
-   * constructors.
-   */
-  void addDefaultConstructorIfNeeded(ClassElement element) {
-    if (element.hasConstructor) return;
-    FunctionElement constructor =
-        new SynthesizedConstructorElementX.forDefault(element, compiler);
-    element.addToScope(constructor, compiler);
-  }
-
   isBlackListed(DartType type) {
     LibraryElement lib = element.getLibrary();
     return
@@ -2945,6 +3005,12 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
     element.ensureResolved(compiler);
   }
 
+  void visitNodeList(NodeList node) {
+    for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
+      link.head.accept(this);
+    }
+  }
+
   void visitClassNode(ClassNode node) {
     if (node.superclass == null) {
       if (!identical(classElement, compiler.objectClass)) {
@@ -2953,11 +3019,12 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
     } else {
       node.superclass.accept(this);
     }
-    for (Link<Node> link = node.interfaces.nodes;
-         !link.isEmpty;
-         link = link.tail) {
-      link.head.accept(this);
-    }
+    visitNodeList(node.interfaces);
+  }
+
+  void visitMixinApplication(MixinApplication node) {
+    node.superclass.accept(this);
+    visitNodeList(node.mixins);
   }
 
   void visitTypeAnnotation(TypeAnnotation node) {
@@ -3224,6 +3291,12 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                MessageKind.ILLEGAL_SETTER_FORMALS.error([]),
                                Diagnostic.ERROR);
       }
+    }
+    if (element.isGetter() && (requiredParameterCount != 0
+                               || visitor.optionalParameterCount != 0)) {
+      compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
+                             MessageKind.EXTRA_FORMALS.error([]),
+                             Diagnostic.ERROR);
     }
     return new FunctionSignatureX(parameters,
                                   visitor.optionalParameters,

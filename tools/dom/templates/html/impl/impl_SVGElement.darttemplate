@@ -30,8 +30,7 @@ class _AttributeClassSet extends CssClassSet {
     _element.attributes['class'] = Strings.join(list, ' ');
   }
 }
-
-/// @domName $DOMNAME
+$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME.tag(String tag) =>
       _$(CLASSNAME)FactoryProvider.create$(CLASSNAME)_tag(tag);
@@ -88,17 +87,17 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   // Unsupported methods inherited from Element.
 
-  /** @domName Element.insertAdjacentText */
+  @DomName('Element.insertAdjacentText')
   void insertAdjacentText(String where, String text) {
     throw new UnsupportedError("Cannot invoke insertAdjacentText on SVG.");
   }
 
-  /** @domName Element.insertAdjacentHTML */
+  @DomName('Element.insertAdjacentHTML')
   void insertAdjacentHtml(String where, String text) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
-  /** @domName Element.insertAdjacentHTML */
+  @DomName('Element.insertAdjacentHTML')
   Element insertAdjacentElement(String where, Element element) {
     throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
   }

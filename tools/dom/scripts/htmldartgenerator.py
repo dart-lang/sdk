@@ -8,7 +8,7 @@ dart:html APIs from the IDL database."""
 
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
-    IsPureInterface, TypeOrNothing
+    IsPureInterface, TypeOrNothing, FindCommonAnnotations
 
 # Types that are accessible cross-frame in a limited fashion.
 # In these cases, the base type (e.g., WindowBase) provides restricted access
@@ -37,29 +37,12 @@ class HtmlDartGenerator(object):
           '  static bool get supported => $SUPPORT_CHECK;\n',
           SUPPORT_CHECK=support_check)
 
-  def EmitAttributeDocumentation(self, attribute):
-    """ Emits the MDN dartdoc comment for an attribute.
-    """
-    dom_name = DartDomNameOfAttribute(attribute)
-    self._members_emitter.Emit('\n  /// @domName $DOMINTERFACE.$DOMNAME;'
-                               ' @docsEditable true',
-        DOMINTERFACE=attribute.doc_js_interface_name,
-        DOMNAME=dom_name)
-
-  def EmitOperationDocumentation(self, operation):
-    """ Emits the MDN dartdoc comment for an operation.
-    """
-    self._members_emitter.Emit('\n  /// @domName $DOMINTERFACE.$DOMNAME;'
-                               ' @docsEditable true',
-        DOMINTERFACE=operation.overloads[0].doc_js_interface_name,
-        DOMNAME=operation.name)
-
   def EmitEventGetter(self, events_class_name):
     self._members_emitter.Emit(
-        '\n  /// @domName EventTarget.addEventListener, '
-        'EventTarget.removeEventListener, EventTarget.dispatchEvent;'
-        ' @docsEditable true'
-        '\n  $TYPE get on =>\n    new $TYPE(this);\n',
+        "\n  @DocsEditable"
+        "\n  @DomName('EventTarget.addEventListener, "
+        "EventTarget.removeEventListener, EventTarget.dispatchEvent')"
+        "\n  $TYPE get on =>\n    new $TYPE(this);\n",
         TYPE=events_class_name)
 
   def AddMembers(self, interface, declare_only=False):
@@ -129,7 +112,7 @@ class HtmlDartGenerator(object):
 
   def AddConstant(self, constant):
     const_name = self._renamer.RenameMember(
-        self._interface.id, constant, constant.id, dartify_name=False)
+        self._interface.id, constant, constant.id, 'get:', dartify_name=False)
     if not const_name:
       return
     type = TypeOrNothing(self._DartType(constant.type.id), constant.type.id)
@@ -178,7 +161,8 @@ class HtmlDartGenerator(object):
     # merging the relevant data into info itself.
     method_name = self._renamer.RenameMember(self._interface.id,
                                              info.operations[0],
-                                             info.name)
+                                             info.name,
+                                             'call:')
     if not method_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.
@@ -293,7 +277,7 @@ class HtmlDartGenerator(object):
 
   def _AddConstructor(self,
       constructor_info, factory_name, factory_constructor_name):
-    self._members_emitter.Emit('\n  ///@docsEditable true');
+    self._members_emitter.Emit('\n  @DocsEditable');
 
     if not factory_constructor_name:
       factory_constructor_name = '_create'
@@ -365,7 +349,6 @@ class HtmlDartGenerator(object):
   def DeclareAttribute(self, attribute, type_name, attr_name, read_only):
     """ Declares an attribute but does not include the code to invoke it.
     """
-    self.EmitAttributeDocumentation(attribute)
     if read_only:
       template = '\n  $TYPE get $NAME;\n'
     else:
@@ -382,7 +365,6 @@ class HtmlDartGenerator(object):
       return_type_name - The name of the return type.
       method_name - The name of the method.
     """
-    self.EmitOperationDocumentation(operation)
     self._members_emitter.Emit(
              '\n'
              '  $TYPE $NAME($PARAMS);\n',

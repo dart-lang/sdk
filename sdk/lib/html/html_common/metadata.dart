@@ -15,6 +15,7 @@ class SupportedBrowser {
   static const String CHROME = "Chrome";
   static const String FIREFOX = "Firefox";
   static const String IE = "Internet Explorer";
+  static const String OPERA = "Opera";
   static const String SAFARI = "Safari";
 
   /// The name of the browser.
@@ -39,4 +40,24 @@ class SupportedBrowser {
  */
 class Experimental {
   const Experimental();
+}
+
+
+/**
+ * Metadata that specifies the DOM name associated with the element.
+ *
+ * This is used for API generation.
+ *
+ * [name] should be formatted as `interface.member`.
+ */
+class DomName {
+  final String name;
+  const DomName(this.name);
+}
+
+
+/// Metadata that specifies that that member is editable through generated
+/// files.
+class DocsEditable {
+  const DocsEditable();
 }

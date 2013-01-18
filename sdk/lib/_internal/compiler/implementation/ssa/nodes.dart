@@ -48,7 +48,6 @@ abstract class HVisitor<R> {
   R visitLocalSet(HLocalSet node);
   R visitLocalValue(HLocalValue node);
   R visitLoopBranch(HLoopBranch node);
-  R visitModulo(HModulo node);
   R visitMultiply(HMultiply node);
   R visitNegate(HNegate node);
   R visitNot(HNot node);
@@ -57,7 +56,6 @@ abstract class HVisitor<R> {
   R visitRangeConversion(HRangeConversion node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
-  R visitShiftRight(HShiftRight node);
   R visitStatic(HStatic node);
   R visitStaticStore(HStaticStore node);
   R visitStringConcat(HStringConcat node);
@@ -65,7 +63,6 @@ abstract class HVisitor<R> {
   R visitSwitch(HSwitch node);
   R visitThis(HThis node);
   R visitThrow(HThrow node);
-  R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitTypeGuard(HTypeGuard node);
   R visitTypeConversion(HTypeConversion node);
@@ -122,6 +119,7 @@ abstract class HInstructionVisitor extends HGraphVisitor {
 class HGraph {
   HBasicBlock entry;
   HBasicBlock exit;
+  HThis thisInstruction;
   bool isRecursiveMethod = false;
   bool calledInLoop = false;
   final List<HBasicBlock> blocks;
@@ -258,14 +256,14 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBinaryArithmetic(HBinaryArithmetic node) => visitInvokeBinary(node);
   visitBinaryBitOp(HBinaryBitOp node) => visitBinaryArithmetic(node);
   visitInvoke(HInvoke node) => visitInstruction(node);
-  visitInvokeBinary(HInvokeBinary node) => visitInvokeStatic(node);
+  visitInvokeBinary(HInvokeBinary node) => visitInstruction(node);
   visitInvokeDynamic(HInvokeDynamic node) => visitInvoke(node);
   visitInvokeDynamicField(HInvokeDynamicField node) => visitInvokeDynamic(node);
-  visitInvokeUnary(HInvokeUnary node) => visitInvokeStatic(node);
+  visitInvokeUnary(HInvokeUnary node) => visitInstruction(node);
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
   visitFieldAccess(HFieldAccess node) => visitInstruction(node);
-  visitRelational(HRelational node) => visitInvokeBinary(node);
+  visitRelational(HRelational node) => visitInvokeStatic(node);
 
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
   visitBailoutTarget(HBailoutTarget node) => visitInstruction(node);
@@ -293,7 +291,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIdentity(HIdentity node) => visitRelational(node);
   visitIf(HIf node) => visitConditionalBranch(node);
   visitIndex(HIndex node) => visitInstruction(node);
-  visitIndexAssign(HIndexAssign node) => visitInvokeStatic(node);
+  visitIndexAssign(HIndexAssign node) => visitInstruction(node);
   visitIntegerCheck(HIntegerCheck node) => visitCheck(node);
   visitInterceptor(HInterceptor node) => visitInstruction(node);
   visitInvokeClosure(HInvokeClosure node)
@@ -315,7 +313,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLocalSet(HLocalSet node) => visitFieldSet(node);
   visitLocalValue(HLocalValue node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
-  visitModulo(HModulo node) => visitBinaryArithmetic(node);
   visitNegate(HNegate node) => visitInvokeUnary(node);
   visitNot(HNot node) => visitInstruction(node);
   visitPhi(HPhi node) => visitInstruction(node);
@@ -323,7 +320,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitParameterValue(HParameterValue node) => visitLocalValue(node);
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
   visitReturn(HReturn node) => visitControlFlow(node);
-  visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
   visitSwitch(HSwitch node) => visitControlFlow(node);
@@ -333,7 +329,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTry(HTry node) => visitControlFlow(node);
-  visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTypeGuard(HTypeGuard node) => visitCheck(node);
   visitIs(HIs node) => visitInstruction(node);
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
@@ -777,12 +772,9 @@ abstract class HInstruction implements Spannable {
   static const int INTERCEPTOR_TYPECODE = 4;
   static const int ADD_TYPECODE = 5;
   static const int DIVIDE_TYPECODE = 6;
-  static const int MODULO_TYPECODE = 7;
   static const int MULTIPLY_TYPECODE = 8;
   static const int SUBTRACT_TYPECODE = 9;
-  static const int TRUNCATING_DIVIDE_TYPECODE = 10;
   static const int SHIFT_LEFT_TYPECODE = 11;
-  static const int SHIFT_RIGHT_TYPECODE = 12;
   static const int BIT_OR_TYPECODE = 13;
   static const int BIT_AND_TYPECODE = 14;
   static const int BIT_XOR_TYPECODE = 15;
@@ -1175,14 +1167,14 @@ abstract class HCheck extends HInstruction {
 
 class HBailoutTarget extends HInstruction {
   final int state;
-  bool isEnabled = false;
+  bool isEnabled = true;
   HBailoutTarget(this.state) : super(<HInstruction>[]);
   void prepareGvn(HTypeMap types) {
     assert(!hasSideEffects(types));
     setUseGvn();
   }
 
-  bool isControlFlow() => true;
+  bool isControlFlow() => isEnabled;
   bool isJsStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
@@ -1210,7 +1202,6 @@ class HTypeGuard extends HCheck {
   HType get guaranteedType => isEnabled ? guardedType : HType.UNKNOWN;
 
   bool isControlFlow() => true;
-
   bool isJsStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
@@ -1316,40 +1307,39 @@ abstract class HInvokeDynamic extends HInvoke {
 
 class HInvokeClosure extends HInvokeDynamic {
   HInvokeClosure(Selector selector, List<HInstruction> inputs)
-    : super(selector, null, inputs);
+    : super(selector, null, inputs) {
+    assert(selector.isClosureCall());
+  }
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
-  HInvokeDynamicMethod(Selector selector, List<HInstruction> inputs)
-    : super(selector, null, inputs);
+  final InvokeDynamicSpecializer specializer;
+  HInvokeDynamicMethod(Selector selector,
+                       List<HInstruction> inputs,
+                       [bool isIntercepted = false])
+    : super(selector, null, inputs),
+      specializer = isIntercepted
+          ? InvokeDynamicSpecializer.lookupSpecializer(selector)
+          : const InvokeDynamicSpecializer();
   String toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 
   bool isIndexOperatorOnIndexablePrimitive(HTypeMap types) {
     return isInterceptorCall
         && selector.kind == SelectorKind.INDEX
+        && selector.name == const SourceString('[]')
         && inputs[1].isIndexablePrimitive(types);
   }
 
   HType computeDesiredTypeForInput(HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
-    // TODO(ngeoffray): Move this logic into a different class that
-    // will know what type it wants for a given selector.
-    if (selector.kind != SelectorKind.INDEX) return HType.UNKNOWN;
-    if (!isInterceptorCall) return HType.UNKNOWN;
+    return specializer.computeDesiredTypeForInput(this, input, types, compiler);
+  }
 
-    HInstruction index = inputs[2];
-    if (input == inputs[1] &&
-        (index.isTypeUnknown(types) || index.isNumber(types))) {
-      return HType.INDEXABLE_PRIMITIVE;
-    }
-    // The index should be an int when the receiver is a string or array.
-    // However it turns out that inserting an integer check in the optimized
-    // version is cheaper than having another bailout case. This is true,
-    // because the integer check will simply throw if it fails.
-    return HType.UNKNOWN;
+  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
+    return specializer.computeTypeFromInputTypes(this, types, compiler);
   }
 }
 
@@ -1555,80 +1545,35 @@ class HForeignNew extends HForeign {
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
 }
 
-abstract class HInvokeBinary extends HInvokeStatic {
-  HInvokeBinary(HStatic target, HInstruction left, HInstruction right)
-      : super(<HInstruction>[target, left, right]);
+abstract class HInvokeBinary extends HInstruction {
+  HInvokeBinary(HInstruction left, HInstruction right)
+      : super(<HInstruction>[left, right]);
 
-  HInstruction get left => inputs[1];
-  HInstruction get right => inputs[2];
+  HInstruction get left => inputs[0];
+  HInstruction get right => inputs[1];
 
   BinaryOperation operation(ConstantSystem constantSystem);
-  isBuiltin(HTypeMap types);
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
-  HBinaryArithmetic(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HBinaryArithmetic(HInstruction left, HInstruction right) : super(left, right);
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
-    // An arithmetic expression can take part in global value
-    // numbering and do not have any side-effects if we know that all
-    // inputs are numbers.
-    if (isBuiltin(types)) {
-      setUseGvn();
-    } else {
-      setAllSideEffects();
-    }
+    setUseGvn();
   }
-
-  bool isBuiltin(HTypeMap types)
-      => left.isNumber(types) && right.isNumber(types);
 
   HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
     if (left.isInteger(types) && right.isInteger(types)) return HType.INTEGER;
-    if (left.isNumber(types)) {
-      if (left.isDouble(types) || right.isDouble(types)) return HType.DOUBLE;
-      return HType.NUMBER;
-    }
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    HType propagatedType = types[this];
-    // If the desired output type should be an integer we want to get two
-    // integers as arguments.
-    if (propagatedType.isInteger()) return HType.INTEGER;
-    // If the outgoing type should be a number we can get that if both inputs
-    // are numbers. If we don't know the outgoing type we try to make it a
-    // number.
-    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
-      return HType.NUMBER;
-    }
-    // Even if the desired outgoing type is not a number we still want the
-    // second argument to be a number if the first one is a number. This will
-    // not help for the outgoing type, but at least the binary arithmetic
-    // operation will not have type problems.
-    // TODO(floitsch): normally we shouldn't request a number, but simply
-    // throw an ArgumentError if it isn't. This would be similar
-    // to the array case.
-    if (input == right && left.isNumber(types)) return HType.NUMBER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeLikelyType(HTypeMap types, Compiler compiler) {
-    if (left.isTypeUnknown(types)) return HType.NUMBER;
-    return HType.UNKNOWN;
+    if (left.isDouble(types)) return HType.DOUBLE;
+    return HType.NUMBER;
   }
 
   BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HAdd extends HBinaryArithmetic {
-  HAdd(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HAdd(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1639,22 +1584,10 @@ class HAdd extends HBinaryArithmetic {
 }
 
 class HDivide extends HBinaryArithmetic {
-  HDivide(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HDivide(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    if (left.isNumber(types)) return HType.DOUBLE;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    // A division can never return an integer. So don't ask for integer inputs.
-    if (isInteger(types)) return HType.UNKNOWN;
-    return super.computeDesiredTypeForNonTargetInput(input, types, compiler);
-  }
+  HType get guaranteedType => HType.DOUBLE;
 
   BinaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.divide;
@@ -1663,21 +1596,8 @@ class HDivide extends HBinaryArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HModulo extends HBinaryArithmetic {
-  HModulo(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
-  accept(HVisitor visitor) => visitor.visitModulo(this);
-
-  BinaryOperation operation(ConstantSystem constantSystem)
-      => constantSystem.modulo;
-  int typeCode() => HInstruction.MODULO_TYPECODE;
-  bool typeEquals(other) => other is HModulo;
-  bool dataEquals(HInstruction other) => true;
-}
-
 class HMultiply extends HBinaryArithmetic {
-  HMultiply(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HMultiply(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
   BinaryOperation operation(ConstantSystem operations)
@@ -1688,8 +1608,7 @@ class HMultiply extends HBinaryArithmetic {
 }
 
 class HSubtract extends HBinaryArithmetic {
-  HSubtract(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HSubtract(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1722,65 +1641,16 @@ class HSwitch extends HControlFlow {
   String toString() => "HSwitch cases = $inputs";
 }
 
-class HTruncatingDivide extends HBinaryArithmetic {
-  HTruncatingDivide(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
-  accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
-
-  BinaryOperation operation(ConstantSystem constantSystem)
-      => constantSystem.truncatingDivide;
-  int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
-  bool typeEquals(other) => other is HTruncatingDivide;
-  bool dataEquals(HInstruction other) => true;
-}
-
-
 // TODO(floitsch): Should HBinaryArithmetic really be the super class of
 // HBinaryBitOp?
 abstract class HBinaryBitOp extends HBinaryArithmetic {
-  HBinaryBitOp(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    // All bitwise operations on primitive types either produce an
-    // integer or throw an error.
-    if (left.isPrimitive(types)) return HType.INTEGER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    HType propagatedType = types[this];
-    // If the outgoing type should be a number we can get that only if both
-    // inputs are integers. If we don't know the outgoing type we try to make
-    // it an integer.
-    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
-      return HType.INTEGER;
-    }
-    return HType.UNKNOWN;
-  }
-
-  HType computeLikelyType(HTypeMap types, Compiler compiler) {
-    if (left.isTypeUnknown(types)) return HType.INTEGER;
-    return HType.UNKNOWN;
-  }
+  HBinaryBitOp(HInstruction left, HInstruction right) : super(left, right);
+  HType get guaranteedType => HType.INTEGER;
 }
 
 class HShiftLeft extends HBinaryBitOp {
-  HShiftLeft(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HShiftLeft(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
-
-  // Shift left cannot be mapped to the native operator unless the
-  // shift count is guaranteed to be an integer in the [0,31] range.
-  bool isBuiltin(HTypeMap types) {
-    if (!left.isNumber(types) || !right.isConstantInteger()) return false;
-    HConstant rightConstant = right;
-    IntConstant intConstant = rightConstant.constant;
-    int count = intConstant.value;
-    return count >= 0 && count <= 31;
-  }
 
   BinaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.shiftLeft;
@@ -1789,24 +1659,8 @@ class HShiftLeft extends HBinaryBitOp {
   bool dataEquals(HInstruction other) => true;
 }
 
-class HShiftRight extends HBinaryBitOp {
-  HShiftRight(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
-  accept(HVisitor visitor) => visitor.visitShiftRight(this);
-
-  // Shift right cannot be mapped to the native operator easily.
-  bool isBuiltin(HTypeMap types) => false;
-
-  BinaryOperation operation(ConstantSystem constantSystem)
-      => constantSystem.shiftRight;
-  int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
-  bool typeEquals(other) => other is HShiftRight;
-  bool dataEquals(HInstruction other) => true;
-}
-
 class HBitOr extends HBinaryBitOp {
-  HBitOr(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HBitOr(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1817,8 +1671,7 @@ class HBitOr extends HBinaryBitOp {
 }
 
 class HBitAnd extends HBinaryBitOp {
-  HBitAnd(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HBitAnd(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1829,8 +1682,7 @@ class HBitAnd extends HBinaryBitOp {
 }
 
 class HBitXor extends HBinaryBitOp {
-  HBitXor(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HBitXor(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1840,52 +1692,26 @@ class HBitXor extends HBinaryBitOp {
   bool dataEquals(HInstruction other) => true;
 }
 
-abstract class HInvokeUnary extends HInvokeStatic {
-  HInvokeUnary(HStatic target, HInstruction input)
-      : super(<HInstruction>[target, input]);
+abstract class HInvokeUnary extends HInstruction {
+  HInvokeUnary(HInstruction input) : super(<HInstruction>[input]);
 
-  HInstruction get operand => inputs[1];
+  HInstruction get operand => inputs[0];
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
-    // A unary arithmetic expression can take part in global value
-    // numbering and does not have any side-effects if its input is a
-    // number.
-    if (isBuiltin(types)) {
-      setUseGvn();
-    } else {
-      setAllSideEffects();
-    }
+    setUseGvn();
   }
-
-  bool isBuiltin(HTypeMap types) => operand.isNumber(types);
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    HType operandType = types[operand];
-    if (operandType.isNumber()) return operandType;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    HType propagatedType = types[this];
-    // If the outgoing type should be a number (integer, double or both) we
-    // want the outgoing type to be the input too.
-    // If we don't know the outgoing type we try to make it a number.
-    if (propagatedType.isNumber()) return propagatedType;
-    if (propagatedType.isUnknown()) return HType.NUMBER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeLikelyType(HTypeMap types, Compiler compiler) => HType.NUMBER;
 
   UnaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HNegate extends HInvokeUnary {
-  HNegate(HStatic target, HInstruction input) : super(target, input);
+  HNegate(HInstruction input) : super(input);
   accept(HVisitor visitor) => visitor.visitNegate(this);
+
+  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
+    return types[operand];
+  }
 
   UnaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.negate;
@@ -1895,28 +1721,10 @@ class HNegate extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
-  HBitNot(HStatic target, HInstruction input) : super(target, input);
+  HBitNot(HInstruction input) : super(input);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    // All bitwise operations on primitive types either produce an
-    // integer or throw an error.
-    if (operand.isPrimitive(types)) return HType.INTEGER;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    HType propagatedType = types[this];
-    // Bit operations only work on integers. If there is no desired output
-    // type or if it as a number we want to get an integer as input.
-    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
-      return HType.INTEGER;
-    }
-    return HType.UNKNOWN;
-  }
-
+  
+  HType get guaranteedType => HType.INTEGER;
   UnaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.bitNot;
   int typeCode() => HInstruction.BIT_NOT_TYPECODE;
@@ -1959,7 +1767,7 @@ class HContinue extends HJump {
 }
 
 class HTry extends HControlFlow {
-  HParameterValue exception;
+  HLocalValue exception;
   HBasicBlock catchBlock;
   HBasicBlock finallyBlock;
   HTry() : super(const <HInstruction>[]);
@@ -2082,7 +1890,6 @@ class HLocalValue extends HInstruction {
   }
   toString() => 'local ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitLocalValue(this);
-  bool isCodeMotionInvariant() => true;
 }
 
 class HParameterValue extends HLocalValue {
@@ -2098,6 +1905,7 @@ class HThis extends HParameterValue {
   }
   toString() => 'this';
   accept(HVisitor visitor) => visitor.visitThis(this);
+  bool isCodeMotionInvariant() => true;
 }
 
 class HPhi extends HInstruction {
@@ -2190,10 +1998,10 @@ class HPhi extends HInstruction {
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }
 
-abstract class HRelational extends HInvokeBinary {
+abstract class HRelational extends HInvokeStatic {
   bool usesBoolifiedInterceptor = false;
   HRelational(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+      : super(<HInstruction>[target, left, right]);
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
@@ -2221,7 +2029,7 @@ abstract class HRelational extends HInvokeBinary {
                                             HTypeMap types,
                                             Compiler compiler) {
     HType propagatedType = types[this];
-    // For all relational operations exept HEquals, we expect to get numbers
+    // For all relational operations except HEquals, we expect to get numbers
     // only. With numbers the outgoing type is a boolean. If something else
     // is desired, then numbers are incorrect, though.
     if (propagatedType.isUnknown() || propagatedType.isBoolean()) {
@@ -2236,6 +2044,11 @@ abstract class HRelational extends HInvokeBinary {
 
   bool isBuiltin(HTypeMap types)
       => left.isNumber(types) && right.isNumber(types);
+
+  HInstruction get left => inputs[1];
+  HInstruction get right => inputs[2];      
+
+  BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HEquals extends HRelational {
@@ -2409,6 +2222,24 @@ class HInterceptor extends HInstruction {
     setUseGvn();
   }
 
+  HType computeDesiredTypeForInput(HInstruction input,
+                                   HTypeMap types,
+                                   Compiler compiler) {
+    if (interceptedClasses.length != 1) return HType.UNKNOWN;
+    // If the only class being intercepted is of type number, we
+    // make this interceptor call say it wants that class as input.
+    Element interceptor = interceptedClasses.toList()[0];
+    JavaScriptBackend backend = compiler.backend;
+    if (interceptor == backend.jsNumberClass) {
+      return HType.NUMBER;
+    } else if (interceptor == backend.jsIntClass) {
+      return HType.INTEGER;
+    } else if (interceptor == backend.jsDoubleClass) {
+      return HType.DOUBLE;
+    }
+    return HType.UNKNOWN;
+  }
+
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInterceptor;
   bool dataEquals(HInterceptor other) {
@@ -2485,48 +2316,22 @@ class HIndex extends HInstruction {
   bool dataEquals(HIndex other) => true;
 }
 
-class HIndexAssign extends HInvokeStatic {
-  HIndexAssign(HStatic target,
-               HInstruction receiver,
+class HIndexAssign extends HInstruction {
+  HIndexAssign(HInstruction receiver,
                HInstruction index,
                HInstruction value)
-      : super(<HInstruction>[target, receiver, index, value]);
-  toString() => 'index assign operator';
+      : super(<HInstruction>[receiver, index, value]);
+  String toString() => 'index assign operator';
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
 
-  HInstruction get receiver => inputs[1];
-  HInstruction get index => inputs[2];
-  HInstruction get value => inputs[3];
+  HInstruction get receiver => inputs[0];
+  HInstruction get index => inputs[1];
+  HInstruction get value => inputs[2];
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
-    if (isBuiltin(types)) {
-      setChangesIndex();
-    } else {
-      setAllSideEffects();
-    }
+    setChangesIndex();
   }
-
-  // Note, that we don't have a computeTypeFromInputTypes, since [HIndexAssign]
-  // is never used as input.
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    if (input == receiver &&
-        (index.isTypeUnknown(types) || index.isNumber(types))) {
-      return HType.MUTABLE_ARRAY;
-    }
-    // The index should be an int when the receiver is a string or array.
-    // However it turns out that inserting an integer check in the optimized
-    // version is cheaper than having another bailout case. This is true,
-    // because the integer check will simply throw if it fails.
-    return HType.UNKNOWN;
-  }
-
-  bool isBuiltin(HTypeMap types)
-      => receiver.isMutableArray(types) && index.isInteger(types);
-  bool isJsStatement(HTypeMap types) => !isBuiltin(types);
 }
 
 class HIs extends HInstruction {
@@ -2909,7 +2714,7 @@ class HAndOrBlockInformation implements HExpressionInformation {
 
 class HTryBlockInformation implements HStatementInformation {
   final HStatementInformation body;
-  final HParameterValue catchVariable;
+  final HLocalValue catchVariable;
   final HStatementInformation catchBlock;
   final HStatementInformation finallyBlock;
   HTryBlockInformation(this.body,

@@ -6,22 +6,20 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../test_pub.dart';
 import '../../../../pkg/unittest/lib/unittest.dart';
+import '../test_pub.dart';
 
 main() {
   group('requires', () {
-    test('a pubspec', () {
+    integration('a pubspec', () {
       dir(appPath, []).scheduleCreate();
 
       schedulePub(args: ['update'],
           error: new RegExp(r'^Could not find a file named "pubspec.yaml"'),
           exitCode: 1);
-
-      run();
     });
 
-    test('a pubspec with a "name" key', () {
+    integration('a pubspec with a "name" key', () {
       dir(appPath, [
         pubspec({"dependencies": {"foo": null}})
       ]).scheduleCreate();
@@ -30,12 +28,10 @@ main() {
           error: new RegExp(r'^pubspec.yaml is missing the required "name" '
               r'field \(e\.g\. "name: myapp"\)\.'),
           exitCode: 1);
-
-      run();
     });
   });
 
-  test('adds itself to the packages', () {
+  integration('adds itself to the packages', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
     dir(appPath, [
@@ -51,11 +47,10 @@ main() {
         file('myapp_name.dart', 'main() => "myapp_name";')
       ])
     ]).scheduleValidate();
-
-    run();
   });
 
-  test('does not adds itself to the packages if it has no "lib" directory', () {
+  integration('does not adds itself to the packages if it has no "lib" '
+      'directory', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
     dir(appPath, [
@@ -68,11 +63,10 @@ main() {
     dir(packagesPath, [
       nothing("myapp_name")
     ]).scheduleValidate();
-
-    run();
   });
 
-  test('does not add a package if it does not have a "lib" directory', () {
+  integration('does not add a package if it does not have a "lib" '
+      'directory', () {
     // Using an SDK source, but this should be true of all sources.
     dir(sdkPath, [
       file('revision', '1234'),
@@ -91,7 +85,5 @@ main() {
         output: new RegExp(r"Dependencies updated!$"));
 
     packagesDir({"foo": null}).scheduleValidate();
-
-    run();
   });
 }

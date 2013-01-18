@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -103,6 +103,14 @@ bool CheckClassInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool CheckClassInstr::AffectedBySideEffect() const {
+  // The class-id of string objects is not invariant: Externalization of strings
+  // via the API can change the class-id.
+  return unary_checks().HasReceiverClassId(kOneByteStringCid)
+      || unary_checks().HasReceiverClassId(kTwoByteStringCid);
+}
+
+
 bool CheckArrayBoundInstr::AttributesEqual(Instruction* other) const {
   CheckArrayBoundInstr* other_check = other->AsCheckArrayBound();
   ASSERT(other_check != NULL);
@@ -153,13 +161,6 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   ASSERT(field().value() != Object::sentinel().raw());
   ASSERT(field().value() != Object::transition_sentinel().raw());
   return field().raw() == other_load->field().raw();
-}
-
-
-bool StringCharCodeAtInstr::AttributesEqual(Instruction* other) const {
-  StringCharCodeAtInstr* other_load = other->AsStringCharCodeAt();
-  ASSERT(other_load != NULL);
-  return class_id() == other_load->class_id();
 }
 
 
@@ -1108,16 +1109,6 @@ RawAbstractType* NativeCallInstr::CompileType() const {
 }
 
 
-RawAbstractType* StringCharCodeAtInstr::CompileType() const {
-  return Type::IntType();
-}
-
-
-intptr_t StringCharCodeAtInstr::ResultCid() const {
-  return kSmiCid;
-}
-
-
 RawAbstractType* StringFromCharCodeInstr::CompileType() const {
   return Type::StringType();
 }
@@ -1131,9 +1122,14 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return Type::Double();
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
       return Type::IntType();
     default:
       UNIMPLEMENTED();
@@ -1150,9 +1146,14 @@ intptr_t LoadIndexedInstr::ResultCid() const {
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return kDoubleCid;
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
       return kSmiCid;
     default:
       UNIMPLEMENTED();
@@ -1165,9 +1166,14 @@ Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -1190,7 +1196,11 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
+    case kInt8ArrayCid:
     case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
       return kTagged;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
@@ -1748,12 +1758,19 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
 Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   const intptr_t value_cid = value()->ResultCid();
-  const intptr_t num_checks = unary_checks().NumberOfChecks();
-  if ((num_checks == 1) &&
-      (value_cid == unary_checks().GetReceiverClassIdAt(0))) {
-    // No checks needed.
-    return NULL;
+  if (value_cid == kDynamicCid) {
+    return this;
   }
+
+  const intptr_t num_checks = unary_checks().NumberOfChecks();
+
+  for (intptr_t i = 0; i < num_checks; i++) {
+    if (value_cid == unary_checks().GetReceiverClassIdAt(i)) {
+      // No checks needed.
+      return NULL;
+    }
+  }
+
   return this;
 }
 
@@ -1797,7 +1814,9 @@ void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetBlockLabel(this));
   if (IsCatchEntry()) {
     compiler->AddExceptionHandler(catch_try_index(),
-                                  compiler->assembler()->CodeSize());
+                                  try_index(),
+                                  compiler->assembler()->CodeSize(),
+                                  catch_handler_types_);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -1880,115 +1899,6 @@ void ConstraintInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
-LocationSummary* ThrowInstr::MakeLocationSummary() const {
-  return new LocationSummary(0, 0, LocationSummary::kCall);
-}
-
-
-
-void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(token_pos(),
-                                kThrowRuntimeEntry,
-                                locs());
-  __ int3();
-}
-
-
-LocationSummary* ReThrowInstr::MakeLocationSummary() const {
-  return new LocationSummary(0, 0, LocationSummary::kCall);
-}
-
-
-void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(token_pos(),
-                                kReThrowRuntimeEntry,
-                                locs());
-  __ int3();
-}
-
-
-LocationSummary* GotoInstr::MakeLocationSummary() const {
-  return new LocationSummary(0, 0, LocationSummary::kNoCall);
-}
-
-
-void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Add deoptimization descriptor for deoptimizing instructions
-  // that may be inserted before this instruction.
-  if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
-                                   GetDeoptId(),
-                                   0);  // No token position.
-  }
-
-  if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
-  }
-
-  // We can fall through if the successor is the next block in the list.
-  // Otherwise, we need a jump.
-  if (!compiler->IsNextBlock(successor())) {
-    __ jmp(compiler->GetBlockLabel(successor()));
-  }
-}
-
-
-static Condition NegateCondition(Condition condition) {
-  switch (condition) {
-    case EQUAL:         return NOT_EQUAL;
-    case NOT_EQUAL:     return EQUAL;
-    case LESS:          return GREATER_EQUAL;
-    case LESS_EQUAL:    return GREATER;
-    case GREATER:       return LESS_EQUAL;
-    case GREATER_EQUAL: return LESS;
-    case BELOW:         return ABOVE_EQUAL;
-    case BELOW_EQUAL:   return ABOVE;
-    case ABOVE:         return BELOW_EQUAL;
-    case ABOVE_EQUAL:   return BELOW;
-    default:
-      OS::Print("Error %d\n", condition);
-      UNIMPLEMENTED();
-      return EQUAL;
-  }
-}
-
-
-void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
-                                           bool value) {
-  if (value && compiler->IsNextBlock(false_successor())) {
-    __ jmp(compiler->GetBlockLabel(true_successor()));
-  } else if (!value && compiler->IsNextBlock(true_successor())) {
-    __ jmp(compiler->GetBlockLabel(false_successor()));
-  }
-}
-
-
-void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                                               Condition true_condition) {
-  if (compiler->IsNextBlock(false_successor())) {
-    // If the next block is the false successor we will fall through to it.
-    __ j(true_condition, compiler->GetBlockLabel(true_successor()));
-  } else {
-    // If the next block is the true successor we negate comparison and fall
-    // through to it.
-    ASSERT(compiler->IsNextBlock(true_successor()));
-    Condition false_condition = NegateCondition(true_condition);
-    __ j(false_condition, compiler->GetBlockLabel(false_successor()));
-  }
-}
-
-
-LocationSummary* CurrentContextInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(0,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-
-void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ MoveRegister(locs()->out().reg(), CTX);
-}
-
 
 LocationSummary* StoreContextInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
@@ -2012,107 +1922,6 @@ StrictCompareInstr::StrictCompareInstr(Token::Kind kind,
     : ComparisonInstr(kind, left, right),
       needs_number_check_(FLAG_new_identity_spec) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
-}
-
-
-LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RegisterOrConstant(left()));
-  locs->set_in(1, Location::RegisterOrConstant(right()));
-  locs->set_out(Location::RequiresRegister());
-  return locs;
-}
-
-
-// Special code for numbers (compare values instead of references.)
-void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-  Location left = locs()->in(0);
-  Location right = locs()->in(1);
-  if (left.IsConstant() && right.IsConstant()) {
-    // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = (kind() == Token::kEQ_STRICT) ?
-        left.constant().raw() == right.constant().raw() :
-        left.constant().raw() != right.constant().raw();
-    __ LoadObject(locs()->out().reg(), result ? Bool::True() : Bool::False());
-    return;
-  }
-  if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(),
-                                          left.constant(),
-                                          needs_number_check());
-  } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(),
-                                          right.constant(),
-                                          needs_number_check());
-  } else {
-    compiler->EmitEqualityRegRegCompare(left.reg(),
-                                       right.reg(),
-                                       needs_number_check());
-  }
-
-  Register result = locs()->out().reg();
-  Label load_true, done;
-  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
-  __ j(true_condition, &load_true, Assembler::kNearJump);
-  __ LoadObject(result, Bool::False());
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&load_true);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
-}
-
-
-void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                        BranchInstr* branch) {
-  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-  Location left = locs()->in(0);
-  Location right = locs()->in(1);
-  if (left.IsConstant() && right.IsConstant()) {
-    // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = (kind() == Token::kEQ_STRICT) ?
-        left.constant().raw() == right.constant().raw() :
-        left.constant().raw() != right.constant().raw();
-    branch->EmitBranchOnValue(compiler, result);
-    return;
-  }
-  if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(),
-                                          left.constant(),
-                                          needs_number_check());
-  } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(),
-                                          right.constant(),
-                                          needs_number_check());
-  } else {
-    compiler->EmitEqualityRegRegCompare(left.reg(),
-                                        right.reg(),
-                                        needs_number_check());
-  }
-
-  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
-  branch->EmitBranchOnCondition(compiler, true_condition);
-}
-
-
-void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // The arguments to the stub include the closure, as does the arguments
-  // descriptor.
-  Register temp_reg = locs()->temp(0).reg();
-  int argument_count = ArgumentCount();
-  const Array& arguments_descriptor =
-      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
-                                                 argument_names()));
-  __ LoadObject(temp_reg, arguments_descriptor);
-  compiler->GenerateDartCall(deopt_id(),
-                             token_pos(),
-                             &StubCode::CallClosureFunctionLabel(),
-                             PcDescriptors::kOther,
-                             locs());
-  __ Drop(argument_count);
 }
 
 
@@ -2172,6 +1981,13 @@ LocationSummary* StaticCallInstr::MakeLocationSummary() const {
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label skip_call;
+  if (!compiler->is_optimizing()) {
+    // Some static calls can be optimized by the optimizing compiler (e.g. sqrt)
+    // and therefore need a deoptimization descriptor.
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   deopt_id(),
+                                   token_pos());
+  }
   if (function().name() == Symbols::EqualOperator().raw()) {
     compiler->EmitSuperEqualityCallPrologue(locs()->out().reg(), &skip_call);
   }
@@ -2193,107 +2009,6 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                        locs());
   }
   ASSERT(locs()->in(0).reg() == locs()->out().reg());
-}
-
-
-LocationSummary* BooleanNegateInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(1,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-
-void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-
-  Label done;
-  __ LoadObject(result, Bool::True());
-  __ CompareRegisters(result, value);
-  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-  __ LoadObject(result, Bool::False());
-  __ Bind(&done);
-}
-
-
-LocationSummary* ChainContextInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(1,
-                               Location::NoLocation(),
-                               LocationSummary::kNoCall);
-}
-
-
-void ChainContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register context_value = locs()->in(0).reg();
-
-  // Chain the new context in context_value to its parent in CTX.
-  __ StoreIntoObject(context_value,
-                     FieldAddress(context_value, Context::parent_offset()),
-                     CTX);
-  // Set new context as current context.
-  __ MoveRegister(CTX, context_value);
-}
-
-
-LocationSummary* StoreVMFieldInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
-                                              : Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
-  return locs;
-}
-
-
-void StoreVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value_reg = locs()->in(0).reg();
-  Register dest_reg = locs()->in(1).reg();
-
-  if (value()->NeedsStoreBuffer()) {
-    __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
-                       value_reg);
-  } else {
-    __ StoreIntoObjectNoBarrier(
-        dest_reg, FieldAddress(dest_reg, offset_in_bytes()), value_reg);
-  }
-}
-
-
-LocationSummary* AllocateObjectInstr::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Class& cls = Class::ZoneHandle(constructor().Owner());
-  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
-  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(token_pos(),
-                         &label,
-                         PcDescriptors::kOther,
-                         locs());
-  __ Drop(ArgumentCount());  // Discard arguments.
-}
-
-
-LocationSummary* CreateClosureInstr::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void CreateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Function& closure_function = function();
-  ASSERT(!closure_function.IsImplicitStaticClosureFunction());
-  const Code& stub = Code::Handle(
-      StubCode::GetAllocationStubForClosure(closure_function));
-  const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(token_pos(),
-                         &label,
-                         PcDescriptors::kOther,
-                         locs());
-  __ Drop(2);  // Discard type arguments and receiver.
 }
 
 
@@ -2671,8 +2386,26 @@ void LoadFieldInstr::InferRange() {
 
 
 
-void StringCharCodeAtInstr::InferRange() {
-  switch (class_id_) {
+void LoadIndexedInstr::InferRange() {
+  switch (class_id()) {
+    case kInt8ArrayCid:
+      range_ = new Range(RangeBoundary::FromConstant(-128),
+                         RangeBoundary::FromConstant(127));
+      break;
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+      range_ = new Range(RangeBoundary::FromConstant(0),
+                         RangeBoundary::FromConstant(255));
+      break;
+    case kInt16ArrayCid:
+      range_ = new Range(RangeBoundary::FromConstant(-32768),
+                         RangeBoundary::FromConstant(32767));
+      break;
+    case kUint16ArrayCid:
+      range_ = new Range(RangeBoundary::FromConstant(0),
+                         RangeBoundary::FromConstant(65535));
+      break;
     case kOneByteStringCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(0xFF));
@@ -2680,20 +2413,6 @@ void StringCharCodeAtInstr::InferRange() {
     case kTwoByteStringCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(0xFFFF));
-      break;
-    default:
-      UNIMPLEMENTED();
-  }
-}
-
-
-void LoadIndexedInstr::InferRange() {
-  switch (class_id()) {
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-      range_ = new Range(RangeBoundary::FromConstant(0),
-                         RangeBoundary::FromConstant(255));
       break;
     default:
       Definition::InferRange();
@@ -2963,7 +2682,6 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
       return -1;
   }
 }
-
 
 #undef __
 

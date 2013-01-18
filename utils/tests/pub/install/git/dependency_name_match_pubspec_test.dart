@@ -7,10 +7,10 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('requires the dependency name to match the remote pubspec name', () {
+  integration('requires the dependency name to match the remote pubspec '
+      'name', () {
     ensureGit();
 
     git('foo.git', [
@@ -34,7 +34,5 @@ main() {
             '"weirdname", doesn\'t match the name "foo" in its '
             r'pubspec\.'),
         exitCode: 1);
-
-    run();
   });
 }

@@ -26,6 +26,10 @@ interface ElementTraversal {
 };
 Element implements ElementTraversal;
 
+// TODO(antonm): fix it
+[Supplemental, Constructor]
+interface MediaStream {};
+
 [Callback]
 interface TimeoutHandler {
   void handleEvent();
@@ -285,6 +289,13 @@ interface VoidCallback {
 
 interface SVGNumber {
   [StrictTypeChecking, Custom] attribute float value;
+};
+
+// Keep it in to generate Dart code, C++ implementation is filterd out in generator.
+[
+  Callback
+] interface MutationCallback {
+  [Custom] boolean handleEvent(in MutationRecordArray mutations, in MutationObserver observer);
 };
 
 [Supplemental,

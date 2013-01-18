@@ -1248,7 +1248,7 @@ UNIT_TEST_CASE(EnterExitScope) {
     const String& str1 = String::Handle(String::New("Test String"));
     Dart_Handle ref = Api::NewHandle(isolate, str1.raw());
     String& str2 = String::Handle();
-    str2 ^= Api::UnwrapHandle(ref);
+    str2 |= Api::UnwrapHandle(ref);
     EXPECT(str1.Equals(str2));
   }
   Dart_ExitScope();
@@ -1297,22 +1297,22 @@ UNIT_TEST_CASE(PersistentHandles) {
     DARTSCOPE_NOCHECKS(isolate);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapHandle(handles[i]);
+      str |= Api::UnwrapHandle(handles[i]);
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 500; i < 1000; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapHandle(handles[i]);
+      str |= Api::UnwrapHandle(handles[i]);
       EXPECT(str.Equals(kTestString2));
     }
     for (int i = 1000; i < 1500; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapHandle(handles[i]);
+      str |= Api::UnwrapHandle(handles[i]);
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 1500; i < 2000; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapHandle(handles[i]);
+      str |= Api::UnwrapHandle(handles[i]);
       EXPECT(str.Equals(kTestString2));
     }
   }
@@ -2255,7 +2255,7 @@ UNIT_TEST_CASE(LocalHandles) {
     }
     EXPECT_EQ(100, state->CountLocalHandles());
     for (int i = 0; i < 100; i++) {
-      val ^= Api::UnwrapHandle(handles[i]);
+      val |= Api::UnwrapHandle(handles[i]);
       EXPECT_EQ(i, val.Value());
     }
     // Start another scope and allocate some more local handles.
@@ -2266,7 +2266,7 @@ UNIT_TEST_CASE(LocalHandles) {
       }
       EXPECT_EQ(200, state->CountLocalHandles());
       for (int i = 100; i < 200; i++) {
-        val ^= Api::UnwrapHandle(handles[i]);
+        val |= Api::UnwrapHandle(handles[i]);
         EXPECT_EQ(i, val.Value());
       }
 
@@ -2278,7 +2278,7 @@ UNIT_TEST_CASE(LocalHandles) {
         }
         EXPECT_EQ(300, state->CountLocalHandles());
         for (int i = 200; i < 300; i++) {
-          val ^= Api::UnwrapHandle(handles[i]);
+          val |= Api::UnwrapHandle(handles[i]);
           EXPECT_EQ(i, val.Value());
         }
         EXPECT_EQ(300, state->CountLocalHandles());
@@ -3617,6 +3617,15 @@ TEST_CASE(New_Issue2971) {
 }
 
 
+static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
+  EXPECT(Dart_IsLibrary(lib));
+  Isolate* isolate = Isolate::Current();
+  const Library& library_obj = Api::UnwrapLibraryHandle(isolate, lib);
+  const String& name = String::Handle(String::New(str));
+  return Api::NewHandle(isolate, library_obj.PrivateName(name));
+}
+
+
 TEST_CASE(Invoke) {
   const char* kScriptChars =
       "class BaseMethods {\n"
@@ -3666,8 +3675,7 @@ TEST_CASE(Invoke) {
   EXPECT_ERROR(Dart_Invoke(instance, name, 2, bad_args),
                "did not find instance method 'Methods.instanceMethod'");
 
-  // Hidden instance method.
-  name = NewString("_instanceMethod");
+  name = PrivateLibName(lib, "_instanceMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
   result = Dart_Invoke(instance, name, 1, args);
@@ -3698,7 +3706,7 @@ TEST_CASE(Invoke) {
                "did not find static method 'Methods.staticMethod'");
 
   // Hidden static method.
-  name = NewString("_staticMethod");
+  name = PrivateLibName(lib, "_staticMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(cls, name, 1, args);
@@ -3727,7 +3735,7 @@ TEST_CASE(Invoke) {
                "2 passed, 1 expected.");
 
   // Hidden top-level method.
-  name = NewString("_topMethod");
+  name = PrivateLibName(lib, "_topMethod");
   EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
   EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
   result = Dart_Invoke(lib, name, 1, args);
@@ -4289,12 +4297,12 @@ TEST_CASE(FunctionReflection) {
       "  static set j(x) {}\n"
       "  static get _k => 'k';\n"
       "  static set _l(x) {}\n"
-      "  abstract m();\n"
-      "  abstract _n();\n"
-      "  abstract get o;\n"
-      "  abstract set p(x);\n"
-      "  abstract get _q;\n"
-      "  abstract set _r(x);\n"
+      "  m();\n"
+      "  _n();\n"
+      "  get o;\n"
+      "  set p(x);\n"
+      "  get _q;\n"
+      "  set _r(x);\n"
       "  s(x, [y, z]) {}\n"
       "  t([x, y, z]) {}\n"
       "  operator ==(x) {}\n"
@@ -7070,7 +7078,7 @@ TEST_CASE(OnePromotedPeer) {
   {
     DARTSCOPE_NOCHECKS(isolate);
     String& handle = String::Handle();
-    handle ^= Api::UnwrapHandle(str);
+    handle |= Api::UnwrapHandle(str);
     EXPECT(handle.IsOld());
   }
   EXPECT_VALID(Dart_GetPeer(str, &out));
@@ -7441,6 +7449,71 @@ TEST_CASE(LazyLoadDeoptimizes) {
   dart_args[0] = Dart_NewInteger(1);
   result = Dart_Invoke(lib1, NewString("start"), 1, dart_args);
   EXPECT_VALID(result);
+}
+
+
+// Test external strings and optimized code.
+static void ExternalStringDeoptimize_Finalize(void* peer) {
+  delete[] reinterpret_cast<char*>(peer);
+}
+
+
+static void A_change_str_native(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle str = Dart_GetNativeArgument(args, 0);
+  EXPECT(Dart_IsString(str));
+  intptr_t size = 0;
+  EXPECT_VALID(Dart_StringStorageSize(str, &size));
+  char* str_data = new char[size];
+  Dart_Handle result =
+      Dart_MakeExternalString(str,
+                              str_data,
+                              size,
+                              str_data,
+                              &ExternalStringDeoptimize_Finalize);
+  EXPECT_VALID(result);
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction ExternalStringDeoptimize_native_lookup(
+    Dart_Handle name, int argument_count) {
+  return reinterpret_cast<Dart_NativeFunction>(&A_change_str_native);
+}
+
+
+TEST_CASE(ExternalStringDeoptimize) {
+  const char* kScriptChars =
+      "String str = 'A';\n"
+      "class A {\n"
+      "  static change_str(String s) native 'A_change_str';\n"
+      "}\n"
+      "sum_chars(String s, bool b) {\n"
+      "  var result = 0;\n"
+      "  for (var i = 0; i < s.length; i++) {\n"
+      "    if (b && i == 0) A.change_str(str);\n"
+      "    result += s.charCodeAt(i);"
+      "  }\n"
+      "  return result;\n"
+      "}\n"
+      "main() {\n"
+      "  str = '$str$str';\n"
+      "  for (var i = 0; i < 2000; i++) sum_chars(str, false);\n"
+      "  var x = sum_chars(str, false);\n"
+      "  var y = sum_chars(str, true);\n"
+      "  return x + y;\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars,
+                               &ExternalStringDeoptimize_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(260, value);
 }
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).

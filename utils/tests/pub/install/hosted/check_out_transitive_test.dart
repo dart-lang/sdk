@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('checks out packages transitively from a pub server', () {
+  integration('checks out packages transitively from a pub server', () {
     servePackages([
       package("foo", "1.2.3", [dependency("bar", "2.0.4")]),
       package("bar", "2.0.3"),
@@ -25,7 +24,5 @@ main() {
 
     cacheDir({"foo": "1.2.3", "bar": "2.0.4"}).scheduleValidate();
     packagesDir({"foo": "1.2.3", "bar": "2.0.4"}).scheduleValidate();
-
-    run();
   });
 }

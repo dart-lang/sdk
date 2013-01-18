@@ -33,6 +33,12 @@ class DeoptInstr;
 class LocalScope;
 class Symbols;
 
+#if defined(DEBUG)
+#define CHECK_HANDLE() CheckHandle();
+#else
+#define CHECK_HANDLE()
+#endif
+
 #define OBJECT_IMPLEMENTATION(object, super)                                   \
  public:  /* NOLINT */                                                         \
   Raw##object* raw() const { return reinterpret_cast<Raw##object*>(raw_); }    \
@@ -43,6 +49,10 @@ class Symbols;
   void operator^=(RawObject* value) {                                          \
     initializeHandle(this, value);                                             \
     ASSERT(IsNull() || Is##object());                                          \
+  }                                                                            \
+  void operator|=(RawObject* value) {                                          \
+    raw_ = value;                                                              \
+    CHECK_HANDLE();                                                            \
   }                                                                            \
   static object& Handle(Isolate* isolate, Raw##object* raw_ptr) {              \
     object* obj =                                                              \
@@ -366,6 +376,7 @@ class Object {
   }
 
   inline void SetRaw(RawObject* value);
+  void CheckHandle() const;
 
   cpp_vtable vtable() const { return bit_copy<cpp_vtable>(*this); }
   void set_vtable(cpp_vtable value) { *vtable_address() = value; }
@@ -699,15 +710,19 @@ class Class : public Object {
 
   RawArray* functions() const { return raw_ptr()->functions_; }
   void SetFunctions(const Array& value) const;
+  void AddFunction(const Function& function) const;
 
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(intptr_t token_pos) const;
 
   RawFunction* LookupDynamicFunction(const String& name) const;
+  RawFunction* LookupDynamicFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupStaticFunction(const String& name) const;
+  RawFunction* LookupStaticFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupConstructor(const String& name) const;
   RawFunction* LookupFactory(const String& name) const;
   RawFunction* LookupFunction(const String& name) const;
+  RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
   RawFunction* LookupSetterFunction(const String& name) const;
   RawFunction* LookupFunctionAtToken(intptr_t token_pos) const;
@@ -1195,6 +1210,13 @@ class Function : public Object {
   RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
+  void set_extracted_method_closure(const Function& function) const;
+  RawFunction* extracted_method_closure() const;
+
+  bool IsMethodExtractor() const {
+    return kind() == RawFunction::kMethodExtractor;
+  }
+
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
@@ -1237,6 +1259,7 @@ class Function : public Object {
       case RawFunction::kSetterFunction:
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
+      case RawFunction::kMethodExtractor:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -2041,6 +2064,7 @@ class Library : public Object {
   static void InitASyncLibrary(Isolate* isolate);
   static void InitCoreLibrary(Isolate* isolate);
   static void InitCollectionLibrary(Isolate* isolate);
+  static void InitCollectionDevLibrary(Isolate* isolate);
   static void InitMathLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
   static void InitMirrorsLibrary(Isolate* isolate);
@@ -2050,6 +2074,7 @@ class Library : public Object {
   static RawLibrary* ASyncLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
+  static RawLibrary* CollectionDevLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MirrorsLibrary();
@@ -2391,29 +2416,21 @@ class Stackmap : public Object {
 
 
 class ExceptionHandlers : public Object {
- private:
-  // Describes the layout of exception handler data.
-  enum {
-    kTryIndexEntry = 0,  // Try block index associated with handler.
-    kHandlerPcEntry,  // PC value of handler.
-    kNumberOfEntries
-  };
-
  public:
   intptr_t Length() const;
 
-  intptr_t TryIndex(intptr_t index) const;
-  intptr_t HandlerPC(intptr_t index) const;
+  void GetHandlerInfo(intptr_t try_index,
+                      RawExceptionHandlers::HandlerInfo* info) const;
 
-  void SetHandlerEntry(intptr_t index,
-                       intptr_t try_index,
-                       intptr_t handler_pc) const {
-    SetTryIndex(index, try_index);
-    SetHandlerPC(index, handler_pc);
-  }
+  intptr_t HandlerPC(intptr_t try_index) const;
+  intptr_t OuterTryIndex(intptr_t try_index) const;
 
-  static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  void SetHandlerInfo(intptr_t try_index,
+                      intptr_t outer_try_index,
+                      intptr_t handler_pc) const;
+
+  RawArray* GetHandledTypes(intptr_t try_index) const;
+  void SetHandledTypes(intptr_t try_index, const Array& handled_types) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawExceptionHandlers) == OFFSET_OF(RawExceptionHandlers,
@@ -2421,9 +2438,9 @@ class ExceptionHandlers : public Object {
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(
-        sizeof(RawExceptionHandlers) + (len * kBytesPerElement));
+        sizeof(RawExceptionHandlers) +
+            (len * sizeof(RawExceptionHandlers::HandlerInfo)));
   }
 
   static RawExceptionHandlers* New(intptr_t num_handlers);
@@ -2432,17 +2449,12 @@ class ExceptionHandlers : public Object {
   // exception handler table to visit objects if any in the table.
 
  private:
-  void SetTryIndex(intptr_t index, intptr_t value) const;
-  void SetHandlerPC(intptr_t index, intptr_t value) const;
+  // Pick somewhat arbitrary maximum number of exception handlers
+  // for a function. This value is used to catch potentially
+  // malicious code.
+  static const intptr_t kMaxHandlers = 1024 * 1024;
 
-  void SetLength(intptr_t value) const;
-
-  intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
-    ASSERT((index >=0) && (index < Length()));
-    intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
-    return &raw_ptr()->data_[data_index];
-  }
-
+  void set_handled_types_data(const Array& value) const;
   HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers, Object);
   friend class Class;
 };
@@ -2977,6 +2989,7 @@ class ICData : public Object {
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
+  bool HasReceiverClassId(intptr_t class_id) const;
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,
@@ -3900,7 +3913,16 @@ class String : public Instance {
   intptr_t Length() const { return Smi::Value(raw_ptr()->length_); }
   static intptr_t length_offset() { return OFFSET_OF(RawString, length_); }
 
-  virtual intptr_t Hash() const;
+  intptr_t Hash() const {
+    intptr_t result = Smi::Value(raw_ptr()->hash_);
+    if (result != 0) {
+      return result;
+    }
+    result = String::Hash(*this, 0, this->Length());
+    this->SetHash(result);
+    return result;
+  }
+
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const uint8_t* characters, intptr_t len);

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -134,7 +134,7 @@ static ConstantInstr* GetDefaultValue(intptr_t i,
 
 
 // Pair of an argument name and its value.
-struct NamedArgument : ValueObject {
+struct NamedArgument {
  public:
   String* name;
   Value* value;
@@ -792,7 +792,7 @@ class CallSiteInliner : public ValueObject {
     GrowableArray<NamedArgument> named_args(argument_names_count);
     for (intptr_t i = 0; i < argument_names.Length(); ++i) {
       String& arg_name = String::Handle(Isolate::Current());
-      arg_name ^= argument_names.At(i);
+      arg_name |= argument_names.At(i);
       named_args.Add(
           NamedArgument(&arg_name, (*arguments)[i + fixed_param_count]));
     }

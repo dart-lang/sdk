@@ -528,6 +528,16 @@ class LibraryDependencyNode {
     pendingExportSet.addAll(library.getNonPrivateElementsInScope());
   }
 
+  void registerHandledExports(LibraryElement exportedLibraryElement,
+                              CombinatorFilter filter) {
+    assert(invariant(library, exportedLibraryElement.exportsHandled));
+    for (Element exportedElement in exportedLibraryElement.exports) {
+      if (!filter.exclude(exportedElement)) {
+        pendingExportSet.add(exportedElement);
+      }
+    }
+  }
+
   /**
    * Registers the compute export scope with the node library.
    */
@@ -685,12 +695,14 @@ class LibraryDependencyHandler {
                           LibraryElement loadedLibrary) {
     if (tag is Export) {
       // [loadedLibrary] is exported by [library].
+      LibraryDependencyNode exportingNode = nodeMap[library];
       if (loadedLibrary.exportsHandled) {
         // Export scope already computed on [loadedLibrary].
+        var combinatorFilter = new CombinatorFilter.fromTag(tag);
+        exportingNode.registerHandledExports(loadedLibrary, combinatorFilter);
         return;
       }
       LibraryDependencyNode exportedNode = nodeMap[loadedLibrary];
-      LibraryDependencyNode exportingNode = nodeMap[library];
       assert(invariant(loadedLibrary, exportedNode != null,
           message: "$loadedLibrary has not been registered"));
       assert(invariant(library, exportingNode != null,

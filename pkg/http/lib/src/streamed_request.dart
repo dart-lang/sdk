@@ -33,13 +33,13 @@ class StreamedRequest extends BaseRequest {
   /// Creates a new streaming request.
   StreamedRequest(String method, Uri url)
     : super(method, url),
-      _controller = new StreamController<List<int>>.singleSubscription();
+      _controller = new StreamController<List<int>>();
 
   /// Freezes all mutable fields other than [stream] and returns a
   /// single-subscription [ByteStream] that emits the data being written to
   /// [sink].
   ByteStream finalize() {
     super.finalize();
-    return new ByteStream(_controller);
+    return new ByteStream(_controller.stream);
   }
 }

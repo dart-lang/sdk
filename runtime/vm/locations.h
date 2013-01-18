@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -63,13 +63,20 @@ class Location : public ValueObject {
     // register code.
     kRegister = 6,
 
-    // XmmRegister location represents a fixed xmm register.  Payload contains
+    // FpuRegister location represents a fixed fpu register.  Payload contains
     // its code.
-    kXmmRegister = 7,
+    kFpuRegister = 7,
   };
 
   Location() : value_(kInvalidLocation) {
     ASSERT(IsInvalid());
+  }
+
+  Location(const Location& other) : ValueObject(), value_(other.value_) { }
+
+  Location& operator=(const Location& other) {
+    value_ = other.value_;
+    return *this;
   }
 
   bool IsInvalid() const {
@@ -98,7 +105,7 @@ class Location : public ValueObject {
     kAny,
     kPrefersRegister,
     kRequiresRegister,
-    kRequiresXmmRegister,
+    kRequiresFpuRegister,
     kWritableRegister,
     kSameAsFirstInput,
   };
@@ -128,8 +135,8 @@ class Location : public ValueObject {
     return UnallocatedLocation(kRequiresRegister);
   }
 
-  static Location RequiresXmmRegister() {
-    return UnallocatedLocation(kRequiresXmmRegister);
+  static Location RequiresFpuRegister() {
+    return UnallocatedLocation(kRequiresFpuRegister);
   }
 
   static Location WritableRegister() {
@@ -169,7 +176,7 @@ class Location : public ValueObject {
     return RegisterField::decode(payload());
   }
 
-  // XMM registers and double spill slots can contain either doubles
+  // FPU registers and double spill slots can contain either doubles
   // or 64-bit integers.
   enum Representation {
     kDouble,
@@ -177,24 +184,24 @@ class Location : public ValueObject {
   };
 
   Representation representation() const {
-    ASSERT(IsXmmRegister() || IsDoubleStackSlot());
+    ASSERT(IsFpuRegister() || IsDoubleStackSlot());
     return RepresentationField::decode(payload());
   }
 
-  // XmmRegister locations.
-  static Location XmmRegisterLocation(XmmRegister reg, Representation rep) {
+  // FpuRegister locations.
+  static Location FpuRegisterLocation(FpuRegister reg, Representation rep) {
     uword payload =
-        XmmRegisterField::encode(reg) | RepresentationField::encode(rep);
-    return Location(kXmmRegister, payload);
+        FpuRegisterField::encode(reg) | RepresentationField::encode(rep);
+    return Location(kFpuRegister, payload);
   }
 
-  bool IsXmmRegister() const {
-    return kind() == kXmmRegister;
+  bool IsFpuRegister() const {
+    return kind() == kFpuRegister;
   }
 
-  XmmRegister xmm_reg() const {
-    ASSERT(IsXmmRegister());
-    return XmmRegisterField::decode(payload());
+  FpuRegister fpu_reg() const {
+    ASSERT(IsFpuRegister());
+    return FpuRegisterField::decode(payload());
   }
 
   static bool IsMachineRegisterKind(Kind kind) {
@@ -207,8 +214,8 @@ class Location : public ValueObject {
     if (kind == kRegister) {
       return RegisterLocation(static_cast<Register>(reg));
     } else {
-      ASSERT(kind == kXmmRegister);
-      return XmmRegisterLocation(static_cast<XmmRegister>(reg), rep);
+      ASSERT(kind == kFpuRegister);
+      return FpuRegisterLocation(static_cast<FpuRegister>(reg), rep);
     }
   }
 
@@ -304,7 +311,7 @@ class Location : public ValueObject {
   typedef BitField<Policy, 0, 3> PolicyField;
 
   // Layout for register locations payload. The representation bit is only used
-  // for XmmRegister and unused for Register.
+  // for FpuRegister and unused for Register.
   static const intptr_t kBitsForRepresentation = 1;
   static const intptr_t kBitsForRegister =
       kBitsForPayload - kBitsForRepresentation;
@@ -314,9 +321,9 @@ class Location : public ValueObject {
   typedef BitField<Register,
                    kBitsForRepresentation,
                    kBitsForRegister> RegisterField;
-  typedef BitField<XmmRegister,
+  typedef BitField<FpuRegister,
                    kBitsForRepresentation,
-                   kBitsForRegister> XmmRegisterField;
+                   kBitsForRegister> FpuRegisterField;
 
   // Layout for stack slots. The representation bit is only used for
   // DoubleStackSlot and unused for StackSlot.
@@ -337,25 +344,25 @@ class Location : public ValueObject {
 
 class RegisterSet : public ValueObject {
  public:
-  RegisterSet() : cpu_registers_(0), xmm_registers_(0) {
+  RegisterSet() : cpu_registers_(0), fpu_registers_(0) {
     ASSERT(kNumberOfCpuRegisters < (kWordSize * kBitsPerByte));
-    ASSERT(kNumberOfXmmRegisters < (kWordSize * kBitsPerByte));
+    ASSERT(kNumberOfFpuRegisters < (kWordSize * kBitsPerByte));
   }
 
 
   void Add(Location loc) {
     if (loc.IsRegister()) {
       cpu_registers_ |= (1 << loc.reg());
-    } else if (loc.IsXmmRegister()) {
-      xmm_registers_ |= (1 << loc.xmm_reg());
+    } else if (loc.IsFpuRegister()) {
+      fpu_registers_ |= (1 << loc.fpu_reg());
     }
   }
 
   void Remove(Location loc) {
     if (loc.IsRegister()) {
       cpu_registers_ &= ~(1 << loc.reg());
-    } else if (loc.IsXmmRegister()) {
-      xmm_registers_ &= ~(1 << loc.xmm_reg());
+    } else if (loc.IsFpuRegister()) {
+      fpu_registers_ &= ~(1 << loc.fpu_reg());
     }
   }
 
@@ -363,14 +370,14 @@ class RegisterSet : public ValueObject {
     return (cpu_registers_ & (1 << reg)) != 0;
   }
 
-  bool ContainsXmmRegister(XmmRegister xmm_reg) {
-    return (xmm_registers_ & (1 << xmm_reg)) != 0;
+  bool ContainsFpuRegister(FpuRegister fpu_reg) {
+    return (fpu_registers_ & (1 << fpu_reg)) != 0;
   }
 
-  intptr_t xmm_regs_count() {
+  intptr_t fpu_regs_count() {
     intptr_t count = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; reg_idx++) {
-      if (ContainsXmmRegister(static_cast<XmmRegister>(reg_idx))) {
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; reg_idx++) {
+      if (ContainsFpuRegister(static_cast<FpuRegister>(reg_idx))) {
         count++;
       }
     }
@@ -379,7 +386,7 @@ class RegisterSet : public ValueObject {
 
  private:
   intptr_t cpu_registers_;
-  intptr_t xmm_registers_;
+  intptr_t fpu_registers_;
 
   DISALLOW_COPY_AND_ASSIGN(RegisterSet);
 };

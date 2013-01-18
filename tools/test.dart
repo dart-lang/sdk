@@ -30,6 +30,7 @@ import "testing/dart/test_options.dart";
 import "testing/dart/test_suite.dart";
 import "testing/dart/test_progress.dart";
 import "testing/dart/http_server.dart";
+import "testing/dart/utils.dart";
 
 import "../compiler/tests/dartc/test_config.dart";
 import "../runtime/tests/vm/test_config.dart";
@@ -48,6 +49,7 @@ final TEST_SUITE_DIRECTORIES = [
     new Path('runtime/tests/vm'),
     new Path('samples/tests/samples'),
     new Path('tests/benchmark_smoke'),
+    new Path('tests/chrome'),
     new Path('tests/compiler/dart2js'),
     new Path('tests/compiler/dart2js_extra'),
     new Path('tests/compiler/dart2js_foreign'),
@@ -82,12 +84,15 @@ main() {
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
 
-  if (!firstConf['append_flaky_log'])  {
+  if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
     if (file.existsSync()) {
       file.deleteSync();
     }
   }
+
+  DebugLogger.init(firstConf['write_debug_log'] ?
+      TestUtils.debugLogfile() : null, append: firstConf['append_logs']);
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
@@ -120,34 +125,35 @@ main() {
     }
   }
 
-  var configurationIterator = configurations.iterator;
-  void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.moveNext()) return;
-
-    var conf = configurationIterator.current;
+  var testSuites = new List<TestSuite>();
+  for (var conf in configurations) {
     TestingServerRunner.setPackageRootDir(conf);
-
     for (String key in selectors.keys) {
       if (key == 'co19') {
-        queue.addTestSuite(new Co19TestSuite(conf));
+        testSuites.add(new Co19TestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {
         // vm tests contain both cc tests (added here) and dart tests (added in
         // [TEST_SUITE_DIRECTORIES]).
-        queue.addTestSuite(new VMTestSuite(conf));
+        testSuites.add(new VMTestSuite(conf));
       } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
-        queue.addTestSuite(new SamplesDartcTestSuite(conf));
-        queue.addTestSuite(new JUnitDartcTestSuite(conf));
+        testSuites.add(new SamplesDartcTestSuite(conf));
+        testSuites.add(new JUnitDartcTestSuite(conf));
       }
     }
 
     for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
       final name = testSuiteDir.filename;
       if (selectors.containsKey(name)) {
-        queue.addTestSuite(
+        testSuites.add(
             new StandardTestSuite.forDirectory(conf, testSuiteDir,
             serverList: TestingServerRunner.serverList));
       }
     }
+  }
+
+  void allTestsFinished() {
+    TestingServerRunner.terminateHttpServers();
+    DebugLogger.close();
   }
 
   // Start process queue.
@@ -155,8 +161,8 @@ main() {
                    progressIndicator,
                    startTime,
                    printTiming,
-                   enqueueConfiguration,
-                   () => TestingServerRunner.terminateHttpServers(),
+                   testSuites,
+                   allTestsFinished,
                    verbose,
                    listTests);
 }

@@ -117,19 +117,25 @@
       'target_name': 'samples',
       'type': 'none',
       'conditions': [
-         ['OS=="android"', {
-            'dependencies': [
-              'samples/android_sample/android_sample.gyp:android_sample',
-            ],
+        ['OS=="android"', {
+           'dependencies': [
+             'samples/android_sample/android_sample.gyp:android_sample',
+           ],
           },
         ],
-         ['OS!="android"', {
-            'dependencies': [
-              'samples/sample_extension/sample_extension.gyp:sample_extension',
-            ],
+        ['OS=="win"', {
+           'dependencies': [
+             'samples/sample_extension/sample_extension.gyp:sample_extension',
+           ],
           },
-        ]
-      ],
+        ],
+        ['OS=="mac" or OS=="linux"', {
+           'dependencies': [
+             'samples/sample_extension/sample_extension.gyp:sample_extension',
+           ],
+          },
+        ],
+      ]
     },
     {
       'target_name': 'packages',

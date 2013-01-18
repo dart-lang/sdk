@@ -64,8 +64,7 @@ class EventListenerList {
     _ptr.$dom_removeEventListener(_type, listener, useCapture);
   }
 }
-
-/// @domName $DOMNAME
+$ANNOTATIONS
 /**
  * Base class for all browser objects that support events.
  *
@@ -76,7 +75,7 @@ class EventListenerList {
  */ 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
-  /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   Events get on => new Events(this);
 $!MEMBERS
 }

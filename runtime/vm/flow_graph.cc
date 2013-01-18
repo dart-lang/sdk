@@ -506,7 +506,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   GrowableArray<Definition*> env(variable_count());
 
   // Add global constants to the initial definitions.
-  ConstantInstr* constant_null =
+  constant_null_ =
       AddConstantToInitialDefinitions(Object::ZoneHandle());
 
   // Add parameters to the initial definitions and renaming environment.
@@ -531,7 +531,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
   // Initialize all locals with #null in the renaming environment.
   for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
-    env.Add(constant_null);
+    env.Add(constant_null());
   }
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);

@@ -53,6 +53,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   // Attempt to build ICData for call using propagated class-ids.
   bool TryCreateICData(InstanceCallInstr* call);
 
+  void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
+
   intptr_t PrepareIndexedOp(InstanceCallInstr* call,
                             intptr_t class_id,
                             Value** array,
@@ -70,8 +72,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
 
-  StringCharCodeAtInstr* BuildStringCharCodeAt(InstanceCallInstr* call,
-                                               intptr_t cid);
+  LoadIndexedInstr* BuildStringCharCodeAt(InstanceCallInstr* call,
+                                          intptr_t cid);
 
   void AddCheckClass(InstanceCallInstr* call, Value* value);
 
@@ -90,6 +92,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                         Instruction* deopt_target);
 
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call) const;
+  bool MethodExtractorNeedsClassCheck(InstanceCallInstr* call) const;
 
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
   void InlineArrayLengthGetter(InstanceCallInstr* call,

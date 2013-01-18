@@ -1104,15 +1104,19 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
   ASSERT(!isolate_lib.IsNull());
   const String& class_name = String::Handle(
       isolate, isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+  // TODO(asiva): Symbols should contain private keys.
+  const String& function_name =
+      String::Handle(isolate_lib.PrivateName(Symbols::_get_or_create()));
   const int kNumArguments = 1;
   const Function& function = Function::Handle(
       isolate,
       Resolver::ResolveStatic(isolate_lib,
                               class_name,
-                              Symbols::_get_or_create(),
+                              function_name,
                               kNumArguments,
                               Object::empty_array(),
                               Resolver::kIsQualified));
+  ASSERT(!function.IsNull());
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(isolate, Integer::New(port_id)));
   return Api::NewHandle(isolate, DartEntry::InvokeStatic(function, args));
@@ -2730,12 +2734,13 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
     // Some special types like 'dynamic' have a null functions list.
     if (!func_array.IsNull()) {
       for (intptr_t i = 0; i < func_array.Length(); ++i) {
-        func ^= func_array.At(i);
+        func |= func_array.At(i);
 
         // Skip implicit getters and setters.
         if (func.kind() == RawFunction::kImplicitGetter ||
             func.kind() == RawFunction::kImplicitSetter ||
-            func.kind() == RawFunction::kConstImplicitGetter) {
+            func.kind() == RawFunction::kConstImplicitGetter ||
+            func.kind() == RawFunction::kMethodExtractor) {
           continue;
         }
 
@@ -2750,7 +2755,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
     while (it.HasNext()) {
       obj = it.GetNext();
       if (obj.IsFunction()) {
-        func ^= obj.raw();
+        func |= obj.raw();
         name = func.UserVisibleName();
         names.Add(name);
       }
@@ -2783,7 +2788,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
     const Class& cls = Class::Cast(obj);
 
     // Case 1.  Lookup the unmodified function name.
-    func = cls.LookupFunction(func_name);
+    func = cls.LookupFunctionAllowPrivate(func_name);
 
     // Case 2.  Lookup the function without the external setter suffix
     // '='.  Make sure to do this check after the regular lookup, so
@@ -2791,20 +2796,20 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
     if (func.IsNull() && HasExternalSetterSuffix(func_name)) {
       tmp_name = RemoveExternalSetterSuffix(func_name);
       tmp_name = Field::SetterName(tmp_name);
-      func = cls.LookupFunction(tmp_name);
+      func = cls.LookupFunctionAllowPrivate(tmp_name);
     }
 
     // Case 3.  Lookup the funciton with the getter prefix prepended.
     if (func.IsNull()) {
       tmp_name = Field::GetterName(func_name);
-      func = cls.LookupFunction(tmp_name);
+      func = cls.LookupFunctionAllowPrivate(tmp_name);
     }
 
     // Case 4.  Lookup the function with a . appended to find the
     // unnamed constructor.
     if (func.IsNull()) {
       tmp_name = String::Concat(func_name, Symbols::Dot());
-      func = cls.LookupFunction(tmp_name);
+      func = cls.LookupFunctionAllowPrivate(tmp_name);
     }
   } else if (obj.IsLibrary()) {
     const Library& lib = Library::Cast(obj);
@@ -3073,7 +3078,7 @@ DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target) {
     // allocated in the vm isolate.
     if (!field_array.IsNull()) {
       for (intptr_t i = 0; i < field_array.Length(); ++i) {
-        field ^= field_array.At(i);
+        field |= field_array.At(i);
         name = field.UserVisibleName();
         names.Add(name);
       }
@@ -3085,7 +3090,7 @@ DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target) {
     while (it.HasNext()) {
       obj = it.GetNext();
       if (obj.IsField()) {
-        field ^= obj.raw();
+        field |= obj.raw();
         name = field.UserVisibleName();
         names.Add(name);
       }
@@ -3299,7 +3304,7 @@ static RawObject* ResolveConstructor(const char* current_func,
   // The constructor must be present in the interface.
   String& constr_name = String::Handle(String::Concat(class_name, dotted_name));
   const Function& constructor =
-      Function::Handle(cls.LookupFunction(constr_name));
+      Function::Handle(cls.LookupFunctionAllowPrivate(constr_name));
   if (constructor.IsNull() ||
       (!constructor.IsConstructor() && !constructor.IsFactory())) {
     const String& lookup_class_name = String::Handle(cls.Name());
@@ -3388,7 +3393,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   // TODO(turnidge): Support redirecting factories.
   ASSERT(result.IsFunction());
   Function& constructor = Function::Handle(isolate);
-  constructor ^= result.raw();
+  constructor |= result.raw();
 
   Instance& new_object = Instance::Handle(isolate);
   if (constructor.IsConstructor()) {
@@ -3611,7 +3616,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     while (!cls.IsNull()) {
       String& getter_name =
           String::Handle(isolate, Field::GetterName(field_name));
-      getter = cls.LookupDynamicFunction(getter_name);
+      getter = cls.LookupDynamicFunctionAllowPrivate(getter_name);
       if (!getter.IsNull()) {
         break;
       }
@@ -3642,7 +3647,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     if (field.IsNull() || FieldIsUninitialized(isolate, field)) {
       const String& getter_name =
           String::Handle(isolate, Field::GetterName(field_name));
-      getter = cls.LookupStaticFunction(getter_name);
+      getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
     }
 
     if (!getter.IsNull()) {
@@ -3674,7 +3679,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       const Class& cls = Class::Handle(isolate, field.owner());
       const String& getter_name =
           String::Handle(isolate, Field::GetterName(field_name));
-      getter = cls.LookupStaticFunction(getter_name);
+      getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
     }
 
     if (!getter.IsNull()) {
@@ -3737,7 +3742,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
       }
       String& setter_name =
           String::Handle(isolate, Field::SetterName(field_name));
-      setter = cls.LookupDynamicFunction(setter_name);
+      setter = cls.LookupDynamicFunctionAllowPrivate(setter_name);
       if (!setter.IsNull()) {
         break;
       }
@@ -3764,7 +3769,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     if (field.IsNull()) {
       String& setter_name =
           String::Handle(isolate, Field::SetterName(field_name));
-      setter = cls.LookupStaticFunction(setter_name);
+      setter = cls.LookupStaticFunctionAllowPrivate(setter_name);
     }
 
     if (!setter.IsNull()) {
@@ -3801,7 +3806,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     if (field.IsNull()) {
       const String& setter_name =
           String::Handle(isolate, Field::SetterName(field_name));
-      setter ^= lib.LookupFunctionAllowPrivate(setter_name);
+      setter |= lib.LookupFunctionAllowPrivate(setter_name);
     }
 
     if (!setter.IsNull()) {
@@ -4175,7 +4180,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
     return Api::NewError("%s: Unable to deserialize snapshot correctly.",
                          CURRENT_FUNC);
   }
-  library ^= tmp.raw();
+  library |= tmp.raw();
   library.set_debuggable(true);
   isolate->object_store()->set_root_library(library);
   return Api::NewHandle(isolate, library.raw());

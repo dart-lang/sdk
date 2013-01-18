@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -103,7 +103,7 @@ const char* Location::Name() const {
   switch (kind()) {
     case kInvalid: return "?";
     case kRegister: return Assembler::RegisterName(reg());
-    case kXmmRegister: return Assembler::XmmRegisterName(xmm_reg());
+    case kFpuRegister: return Assembler::FpuRegisterName(fpu_reg());
     case kStackSlot: return "S";
     case kDoubleStackSlot: return "DS";
     case kUnallocated:
@@ -114,7 +114,7 @@ const char* Location::Name() const {
           return "P";
         case kRequiresRegister:
           return "R";
-        case kRequiresXmmRegister:
+        case kRequiresFpuRegister:
           return "DR";
         case kWritableRegister:
           return "WR";

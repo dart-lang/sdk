@@ -154,7 +154,7 @@ uword CodePatcher::GetInstanceCallAt(uword return_address,
                                      Array* arguments_descriptor) {
   InstanceCall call(return_address);
   if (ic_data != NULL) {
-    *ic_data ^= call.ic_data();
+    *ic_data |= call.ic_data();
   }
   if (arguments_descriptor != NULL) {
     *arguments_descriptor ^= call.arguments_descriptor();

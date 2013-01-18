@@ -485,6 +485,13 @@ class ArgumentTypesRegistry {
   void registerDynamicInvocation(HInvokeDynamic node,
                                  Selector selector,
                                  HTypeMap types) {
+    if (selector.isClosureCall()) {
+      // We cannot use the current framework to do optimizations based
+      // on the 'call' selector because we are also generating closure
+      // calls during the emitter phase, which at this point, does not
+      // track parameter types, nor invalidates optimized methods.
+      return;
+    }
     HTypeList providedTypes =
         new HTypeList.fromDynamicInvocation(node, selector, types);
     if (!selectorTypeMap.containsKey(selector)) {

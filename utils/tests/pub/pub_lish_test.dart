@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:json' as json;
 
 import 'test_pub.dart';
+import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/io.dart';
 
@@ -49,7 +50,7 @@ void handleUpload(ScheduledServer server) {
 main() {
   setUp(() => normalPackage.scheduleCreate());
 
-  test('archives and uploads a package', () {
+  integration('archives and uploads a package', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -72,14 +73,12 @@ main() {
         'Looks great! Are you ready to upload your package (y/n)?'
         ' Package test_pkg 1.0.0 uploaded!'));
     pub.shouldExit(0);
-
-    run();
   });
 
   // TODO(nweiz): Once a multipart/form-data parser in Dart exists, we should
   // test that "pub lish" chooses the correct files to publish.
 
-  test('package validation has an error', () {
+  integration('package validation has an error', () {
     var package = package("test_pkg", "1.0.0");
     package.remove("homepage");
     dir(appPath, [pubspec(package)]).scheduleCreate();
@@ -91,11 +90,9 @@ main() {
     expectLater(pub.remainingStderr(),
         contains("Sorry, your package is missing a requirement and can't be "
             "published yet."));
-
-    run();
   });
 
-  test('package validation has a warning and is canceled', () {
+  integration('package validation has a warning and is canceled', () {
     var package = package("test_pkg", "1.0.0");
     package["author"] = "Nathan Weizenbaum";
     dir(appPath, [pubspec(package)]).scheduleCreate();
@@ -106,11 +103,9 @@ main() {
     pub.writeLine("n");
     pub.shouldExit(1);
     expectLater(pub.remainingStderr(), contains("Package upload canceled."));
-
-    run();
   });
 
-  test('package validation has a warning and continues', () {
+  integration('package validation has a warning and continues', () {
     var package = package("test_pkg", "1.0.0");
     package["author"] = "Nathan Weizenbaum";
     dir(appPath, [pubspec(package)]).scheduleCreate();
@@ -132,11 +127,9 @@ main() {
     pub.shouldExit(0);
     expectLater(pub.remainingStdout(),
         contains('Package test_pkg 1.0.0 uploaded!'));
-
-    run();
   });
 
-  test('upload form provides an error', () {
+  integration('upload form provides an error', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -153,11 +146,9 @@ main() {
 
     expectLater(pub.nextErrLine(), equals('your request sucked'));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('upload form provides invalid JSON', () {
+  integration('upload form provides invalid JSON', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -172,11 +163,9 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals('{not json'));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('upload form is missing url', () {
+  integration('upload form is missing url', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -194,11 +183,9 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('upload form url is not a string', () {
+  integration('upload form url is not a string', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -217,11 +204,9 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('upload form is missing fields', () {
+  integration('upload form is missing fields', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -233,11 +218,9 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('upload form fields is not a map', () {
+  integration('upload form fields is not a map', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -249,11 +232,9 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('upload form fields has a non-string value', () {
+  integration('upload form fields has a non-string value', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -268,11 +249,9 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('cloud storage upload provides an error', () {
+  integration('cloud storage upload provides an error', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -292,11 +271,9 @@ main() {
     // can parse the XML.
     expectLater(pub.nextErrLine(), equals('Failed to upload the package.'));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test("cloud storage upload doesn't redirect", () {
+  integration("cloud storage upload doesn't redirect", () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -311,11 +288,9 @@ main() {
 
     expectLater(pub.nextErrLine(), equals('Failed to upload the package.'));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('package creation provides an error', () {
+  integration('package creation provides an error', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -334,11 +309,9 @@ main() {
 
     expectLater(pub.nextErrLine(), equals('Your package was too boring.'));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('package creation provides invalid JSON', () {
+  integration('package creation provides invalid JSON', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -355,11 +328,9 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals('{not json'));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('package creation provides a malformed error', () {
+  integration('package creation provides a malformed error', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -378,11 +349,9 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
-
-    run();
   });
 
-  test('package creation provides a malformed success', () {
+  integration('package creation provides a malformed success', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -400,7 +369,5 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
-
-    run();
   });
 }

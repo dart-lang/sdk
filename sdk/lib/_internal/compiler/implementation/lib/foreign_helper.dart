@@ -116,6 +116,20 @@ dynamic JS_CALL_IN_ISOLATE(var isolate, Function function) {}
 dynamic DART_CLOSURE_TO_JS(Function function) {}
 
 /**
+ * Returns a raw reference to the JavaScript function which implements
+ * [function].
+ *
+ * Warning: this is dangerous, you should probably use
+ * [DART_CLOSURE_TO_JS] instead. The returned object is not a valid
+ * Dart closure, does not store the isolate context or arity.
+ *
+ * A valid example of where this can be used is as the second argument
+ * to V8's Error.captureStackTrace. See
+ * https://code.google.com/p/v8/wiki/JavaScriptStackTraceApi.
+ */
+dynamic RAW_DART_FUNCTION_REF(Function function) {}
+
+/**
  * Sets the current isolate to [isolate].
  */
 void JS_SET_CURRENT_ISOLATE(var isolate) {}

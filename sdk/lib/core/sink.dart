@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dart.core;
 /**
  * An interface for an object that can receive a sequence of values.
  */
@@ -24,6 +25,14 @@ class CollectionSink<T> implements Sink<T> {
   final _CollectionSinkCallback<T> callback;
   bool _isClosed = false;
 
+  /**
+   * Create a sink that stores incoming values in a collection.
+   *
+   * The [collection] is the collection to add the values to.
+   *
+   * If [callback] is provided, then it's called with the collection as arugment
+   * when the sink's [close] method is called.
+   */
   CollectionSink(this.collection, [void callback(Collection<T> collection)])
       : this.callback = callback;
 

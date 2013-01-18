@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('checks out a package from Git twice', () {
+  integration('checks out a package from Git twice', () {
     ensureGit();
 
     git('foo.git', [
@@ -43,7 +42,5 @@ main() {
     // in the cache.
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
-
-    run();
   });
 }

@@ -20,7 +20,8 @@ main() {
   RegExp re = new RegExp(r"\(a,b,c");
   Expect.isTrue(re.hasMatch(generated));
 
-  re = new RegExp(r"x,y,z,A,B,C");
+  // 'z' will be used as a local.
+  re = new RegExp(r"x,y,A,B,C");
   Expect.isTrue(re.hasMatch(generated));
   
   re = new RegExp(r"Y,Z,a0,a1,a2,a3,a4,a5,a6");

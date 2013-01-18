@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -632,13 +632,6 @@ class _HttpParser {
   }
 
   void streamError(e) {
-    // Don't report errors for a request parser when HTTP parser is in
-    // idle state. Clients can close the connection and cause a
-    // connection reset by peer error which is OK.
-    if (_requestParser && _state == _State.START) {
-      closed();
-      return;
-    }
     error(e);
   }
 

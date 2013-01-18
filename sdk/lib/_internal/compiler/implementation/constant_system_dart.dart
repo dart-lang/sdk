@@ -335,7 +335,7 @@ class IdentityOperation implements BinaryOperation {
  * that doesn't correctly implement Dart's semantics this constant system will
  * not return the correct values.
  */
-class DartConstantSystem implements ConstantSystem {
+class DartConstantSystem extends ConstantSystem {
   const add = const AddOperation();
   const bitAnd = const BitAndOperation();
   const bitNot = const BitNotOperation();

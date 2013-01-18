@@ -7,10 +7,10 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('updates a locked Git package with a new incompatible constraint', () {
+  integration('updates a locked Git package with a new incompatible '
+      'constraint', () {
     ensureGit();
 
     git('foo.git', [
@@ -44,7 +44,5 @@ main() {
         file('foo.dart', 'main() => "foo 1.0.0";')
       ])
     ]).scheduleValidate();
-
-    run();
   });
 }

@@ -23,7 +23,7 @@
             'dummy_target',
           ],
           'action' : [
-            '../third_party/apache_ant/v1_7_1/bin/ant',
+            '../third_party/apache_ant/1.8.4/bin/ant',
             '-Dbuild.dir=<(PRODUCT_DIR)/ant-out',
             'clean',
             'dist',

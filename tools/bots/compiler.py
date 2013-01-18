@@ -22,7 +22,7 @@ import bot
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
-    r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(all|html))?')
+    r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(all|html))?(-(\d+)-(\d+))?')
 
 
 def GetBuildInfo(builder_name, is_buildbot):
@@ -49,6 +49,8 @@ def GetBuildInfo(builder_name, is_buildbot):
     system = web_pattern.group(2)
     mode = 'release'
     test_set = web_pattern.group(4)
+    shard_index = web_pattern.group(6)
+    total_shards = web_pattern.group(7)
   elif dart2js_pattern:
     compiler = 'dart2js'
     system = dart2js_pattern.group(1)
@@ -119,7 +121,8 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
                 '--runtime=' + runtime,
                 '--time',
                 '--use-sdk',
-                '--report'])
+                '--report',
+                '--write-debug-log'])
 
     # TODO(ricow/kustermann): Issue 7339
     if runtime == "safari":
@@ -134,7 +137,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
     if IsFirstTestStepCall:
       IsFirstTestStepCall = False
     else:
-      cmd.append('--append_flaky_log')
+      cmd.append('--append_logs')
 
     if flags:
       cmd.extend(flags)

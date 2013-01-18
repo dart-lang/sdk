@@ -15,9 +15,9 @@ import '../elements/modelx.dart'
          FieldParameterElementX,
          VariableListElementX,
          FunctionSignatureX,
-         SynthesizedConstructorElementX,
          LabelElementX,
-         TargetElementX;
+         TargetElementX,
+         MixinApplicationElementX;
 import '../util/util.dart';
 import '../scanner/scannerlib.dart' show PartialMetadataAnnotation;
 

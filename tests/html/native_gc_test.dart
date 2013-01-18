@@ -32,17 +32,21 @@ main() {
   });
 
   test('WindowEventListener', () {
+    String message = 'WindowEventListenerTestPingMessage';
+
     Element testDiv = new DivElement();
     testDiv.id = '#TestDiv';
     document.body.nodes.add(testDiv);
-    window.on.message.add((e) => testDiv.click());
+    window.on.message.add((e) {
+      if (e.data == message) testDiv.click();
+    });
 
     for (int i = 0; i < 100; ++i) {
       triggerMajorGC();
     }
 
     testDiv.on.click.add(expectAsync1((e) {}));
-    window.postMessage('test', '*');
+    window.postMessage(message, '*');
   });
 }
 

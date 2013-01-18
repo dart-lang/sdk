@@ -108,9 +108,39 @@ class FilteredElementList implements List {
     return result;
   }
 
+  void remove(Object element) {
+    if (element is! Element) return;
+    for (int i = 0; i < length; i++) {
+      Element indexElement = this[i];
+      if (identical(indexElement, element)) {
+        indexElement.remove();
+        return;
+      }
+    }
+  }
+
+  // Operations defined in terms of [Collections]' [remove].
+
+  void removeAll(Iterable elements) {
+    // This should be optimized to not use [remove] directly.
+    Collections.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    Collections.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(Element element)) {
+    Collections.removeMatching(this, test);
+  }
+
+  void retainMatching(bool test(Element element)) {
+    Collections.retainMatching(this, test);
+  }
+
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
   bool every(bool f(Element element)) => _filtered.every(f);
   bool any(bool f(Element element)) => _filtered.any(f);
@@ -131,7 +161,6 @@ class FilteredElementList implements List {
   Element elementAt(int index) {
     return this[index];
   }
-
 
   bool get isEmpty => _filtered.isEmpty;
   int get length => _filtered.length;

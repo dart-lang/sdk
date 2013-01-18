@@ -2,9 +2,11 @@
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
+import logging
+import monitored
 import re
 
-html_interface_renames = {
+html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'CDATASection': 'CDataSection',
     'DOMApplicationCache': 'ApplicationCache',
     'DOMCoreException': 'DomException',
@@ -13,35 +15,40 @@ html_interface_renames = {
     'DOMFormData': 'FormData',
     'DOMURL': 'Url',
     'DOMWindow': 'Window',
+    'HTMLAppletElement' : '_AppletElement',
+    'HTMLBaseFontElement' : '_BaseFontElement',
+    'HTMLDirectoryElement' : '_DirectoryElement',
     'HTMLDocument' : 'HtmlDocument',
+    'HTMLFontElement' : '_FontElement',
+    'HTMLFrameElement' : '_FrameElement',
+    'HTMLFrameSetElement' : '_FrameSetElement',
+    'HTMLMarqueeElement' : '_MarqueeElement',
     'IDBAny': '_Any', # Suppressed, but needs to exist for Dartium.
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
+    'NavigatorUserMediaErrorCallback': '_NavigatorUserMediaErrorCallback',
+    'NavigatorUserMediaSuccessCallback': '_NavigatorUserMediaSuccessCallback',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebGLVertexArrayObjectOES': 'WebGLVertexArrayObject',
-    'WebKitAnimation': 'Animation',
     'WebKitAnimationEvent': 'AnimationEvent',
-    'WebKitBlobBuilder': 'BlobBuilder',
     'WebKitCSSKeyframeRule': 'CssKeyframeRule',
     'WebKitCSSKeyframesRule': 'CssKeyframesRule',
     'WebKitCSSMatrix': 'CssMatrix',
     'WebKitCSSTransformValue': 'CssTransformValue',
-    'WebKitFlags': 'Flags',
-    'WebKitLoseContext': 'LoseContext',
     'WebKitPoint': 'Point',
     'WebKitTransitionEvent': 'TransitionEvent',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestException': 'HttpRequestException',
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
-}
+})
 
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
 # browser.
-_private_html_members = set([
+_private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'CustomEvent.initCustomEvent',
   'Document.createElement',
   'Document.createElementNS',
@@ -131,62 +138,51 @@ _private_html_members = set([
   'UIEvent.keyCode',
   'WheelEvent.wheelDeltaX',
   'WheelEvent.wheelDeltaY',
-  'Window.getComputedStyle',
+  'WheelEvent.initWebKitWheelEvent',
+  'DOMWindow.getComputedStyle',
 ])
 
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
-_renamed_html_members = {
-    'AnimatedString.className': '$dom_svgClassName',
+_renamed_html_members = monitored.Dict('htmlrenamer._renamed_html_members', {
+    'DOMURL.createObjectURL': 'createObjectUrl',
+    'DOMURL.revokeObjectURL': 'revokeObjectUrl',
+    'DOMWindow.webkitNotifications': 'notifications',
+    'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
+    'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
+    'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
+    'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
     'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
     'Element.webkitMatchesSelector' : 'matches',
+    'Navigator.webkitGetUserMedia': '_getUserMedia',
     'Node.cloneNode': 'clone',
     'Node.nextSibling': 'nextNode',
     'Node.ownerDocument': 'document',
     'Node.parentElement': 'parent',
     'Node.previousSibling': 'previousNode',
     'Node.textContent': 'text',
-    'Stylable.className': '$dom_svgClassName',
-    'SvgElement.className': '$dom_svgClassName',
-    'Url.createObjectURL': 'createObjectUrl',
-    'Url.revokeObjectURL': 'revokeObjectUrl',
-    'Window.webkitRequestFileSystem': 'requestFileSystem',
-    'Window.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
+    'SVGElement.className': '$dom_svgClassName',
+    'SVGStylable.className': '$dom_svgClassName',
     'WorkerContext.webkitRequestFileSystem': 'requestFileSystem',
     'WorkerContext.webkitRequestFileSystemSync': 'requestFileSystemSync',
     'WorkerContext.webkitResolveLocalFileSystemSyncURL':
         'resolveLocalFileSystemSyncUrl',
     'WorkerContext.webkitResolveLocalFileSystemURL':
         'resolveLocalFileSystemUrl',
-}
+})
 
 # Members and classes from the dom that should be removed completely from
 # dart:html.  These could be expressed in the IDL instead but expressing this
 # as a simple table instead is more concise.
-# Syntax is: ClassName.(get\.|set\.)?MemberName
+# Syntax is: ClassName.(get\:|set\:|call\:|on\:)?MemberName
 # Using get: and set: is optional and should only be used when a getter needs
 # to be suppressed but not the setter, etc.
 # TODO(jacobr): cleanup and augment this list.
-_removed_html_members = set([
-    'AnchorElement.charset',
-    'AnchorElement.coords',
-    'AnchorElement.rev',
-    'AnchorElement.shape',
-    'AnchorElement.text',
-    'AreaElement.noHref',
+_removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Attr.*',
-    'BRElement.clear',
-    'BodyElement.aLink',
-    'BodyElement.background',
-    'BodyElement.bgColor',
-    'BodyElement.bgColor',
-    'BodyElement.link',
-    'BodyElement.text',
-    'BodyElement.text',
-    'BodyElement.vlink',
     'CanvasRenderingContext2D.clearShadow',
     'CanvasRenderingContext2D.drawImageFromRect',
     'CanvasRenderingContext2D.setAlpha',
@@ -198,12 +194,14 @@ _removed_html_members = set([
     'CanvasRenderingContext2D.setMiterLimit',
     'CanvasRenderingContext2D.setShadow',
     'CanvasRenderingContext2D.setStrokeColor',
-    'Cursor.NEXT',
-    'Cursor.NEXT_NO_DUPLICATE',
-    'Cursor.PREV',
-    'Cursor.PREV_NO_DUPLICATE',
-    'DListElement.compact',
-    'DivElement.align',
+    'DOMWindow.call:blur',
+    'DOMWindow.clientInformation',
+    'DOMWindow.call:focus',
+    'DOMWindow.get:frames',
+    'DOMWindow.get:length',
+    'DOMWindow.prompt',
+    'DOMWindow.webkitCancelRequestAnimationFrame',
+    'DOMWindow.webkitIndexedDB',
     'Document.adoptNode',
     'Document.alinkColor',
     'Document.all',
@@ -226,9 +224,7 @@ _removed_html_members = set([
     'Document.fgColor',
     'Document.get:URL',
     'Document.get:anchors',
-    'Document.get:applets',
     'Document.get:characterSet',
-    'Document.get:compatMode',
     'Document.get:compatMode',
     'Document.get:defaultCharset',
     'Document.get:doctype',
@@ -236,7 +232,6 @@ _removed_html_members = set([
     'Document.get:embeds',
     'Document.get:forms',
     'Document.get:height',
-    'Document.get:images',
     'Document.get:inputEncoding',
     'Document.get:links',
     'Document.get:plugins',
@@ -250,12 +245,9 @@ _removed_html_members = set([
     'Document.importNode',
     'Document.linkColor',
     'Document.location',
-    'Document.manifest',
     'Document.open',
     'Document.releaseEvents',
-    'Document.set:documentURI',
     'Document.set:domain',
-    'Document.version',
     'Document.vlinkColor',
     'Document.webkitCurrentFullScreenElement',
     'Document.webkitFullScreenKeyboardInputAllowed',
@@ -264,18 +256,38 @@ _removed_html_members = set([
     'Document.xmlStandalone',
     'Document.xmlVersion',
     'DocumentType.*',
+    'DOMCoreException.code',
+    'DOMCoreException.ABORT_ERR',
+    'DOMCoreException.DATA_CLONE_ERR',
+    'DOMCoreException.DOMSTRING_SIZE_ERR',
+    'DOMCoreException.HIERARCHY_REQUEST_ERR',
+    'DOMCoreException.INDEX_SIZE_ERR',
+    'DOMCoreException.INUSE_ATTRIBUTE_ERR',
+    'DOMCoreException.INVALID_ACCESS_ERR',
+    'DOMCoreException.INVALID_CHARACTER_ERR',
+    'DOMCoreException.INVALID_MODIFICATION_ERR',
+    'DOMCoreException.INVALID_NODE_TYPE_ERR',
+    'DOMCoreException.INVALID_STATE_ERR',
+    'DOMCoreException.NAMESPACE_ERR',
+    'DOMCoreException.NETWORK_ERR',
+    'DOMCoreException.NOT_FOUND_ERR',
+    'DOMCoreException.NOT_SUPPORTED_ERR',
+    'DOMCoreException.NO_DATA_ALLOWED_ERR',
+    'DOMCoreException.NO_MODIFICATION_ALLOWED_ERR',
+    'DOMCoreException.QUOTA_EXCEEDED_ERR',
+    'DOMCoreException.SECURITY_ERR',
+    'DOMCoreException.SYNTAX_ERR',
+    'DOMCoreException.TIMEOUT_ERR',
+    'DOMCoreException.TYPE_MISMATCH_ERR',
+    'DOMCoreException.URL_MISMATCH_ERR',
+    'DOMCoreException.VALIDATION_ERR',
+    'DOMCoreException.WRONG_DOCUMENT_ERR',
     'Element.accessKey',
     'Element.get:classList',
-    'Element.get:itemProp',
-    'Element.get:itemRef',
-    'Element.get:itemType',
     'Element.getAttributeNode',
     'Element.getAttributeNodeNS',
     'Element.getElementsByTagNameNS',
     'Element.innerText',
-    'Element.itemId',
-    'Element.itemScope',
-    'Element.itemValue',
     'Element.outerText',
     'Element.removeAttributeNode',
     'Element.scrollIntoView',
@@ -284,41 +296,112 @@ _removed_html_members = set([
     'Element.setAttributeNodeNS',
     'Event.srcElement',
     'EventSource.URL',
-    'FormElement.get:elements',
-    'HRElement.align',
-    'HRElement.noShade',
-    'HRElement.size',
-    'HRElement.width',
+    'HTMLAnchorElement.charset',
+    'HTMLAnchorElement.coords',
+    'HTMLAnchorElement.rev',
+    'HTMLAnchorElement.shape',
+    'HTMLAnchorElement.text',
+    'HTMLAppletElement.*',
+    'HTMLAreaElement.noHref',
+    'HTMLBRElement.clear',
+    'HTMLBaseFontElement.*',
+    'HTMLBodyElement.aLink',
+    'HTMLBodyElement.background',
+    'HTMLBodyElement.bgColor',
+    'HTMLBodyElement.link',
+    'HTMLBodyElement.text',
+    'HTMLBodyElement.vLink',
+    'HTMLDListElement.compact',
+    'HTMLDirectoryElement.*',
+    'HTMLDivElement.align',
+    'HTMLFontElement.*',
+    'HTMLFormElement.get:elements',
     'HTMLFrameElement.*',
     'HTMLFrameSetElement.*',
-    'HTMLIsIndexElement.*',
+    'HTMLHRElement.align',
+    'HTMLHRElement.noShade',
+    'HTMLHRElement.size',
+    'HTMLHRElement.width',
+    'HTMLHeadElement.profile',
+    'HTMLHeadingElement.align',
+    'HTMLHtmlElement.manifest',
+    'HTMLHtmlElement.version',
+    'HTMLIFrameElement.align',
+    'HTMLIFrameElement.frameBorder',
+    'HTMLIFrameElement.longDesc',
+    'HTMLIFrameElement.marginHeight',
+    'HTMLIFrameElement.marginWidth',
+    'HTMLIFrameElement.scrolling',
+    'HTMLImageElement.align',
+    'HTMLImageElement.hspace',
+    'HTMLImageElement.longDesc',
+    'HTMLImageElement.name',
+    'HTMLImageElement.vspace',
+    'HTMLInputElement.align',
+    'HTMLLegendElement.align',
+    'HTMLLinkElement.charset',
+    'HTMLLinkElement.rev',
+    'HTMLLinkElement.target',
+    'HTMLMarqueeElement.*',
+    'HTMLMenuElement.compact',
+    'HTMLMetaElement.scheme',
+    'HTMLOListElement.compact',
+    'HTMLObjectElement.align',
+    'HTMLObjectElement.archive',
+    'HTMLObjectElement.border',
+    'HTMLObjectElement.codeBase',
+    'HTMLObjectElement.codeType',
+    'HTMLObjectElement.declare',
+    'HTMLObjectElement.hspace',
+    'HTMLObjectElement.standby',
+    'HTMLObjectElement.vspace',
+    'HTMLOptionElement.text',
     'HTMLOptionsCollection.*',
-    'HTMLPropertiesCollection.*',
-    'HeadElement.profile',
-    'HeadingElement.align',
-    'HtmlElement.manifest',
-    'HtmlElement.version',
-    'HtmlElement.version',
-    'IFrameElement.align',
-    'IFrameElement.frameBorder',
-    'IFrameElement.longDesc',
-    'IFrameElement.marginHeight',
-    'IFrameElement.marginWidth',
-    'IFrameElement.scrolling',
-    'ImageElement.align',
-    'ImageElement.hspace',
-    'ImageElement.longDesc',
-    'ImageElement.name',
-    'ImageElement.vspace',
-    'InputElement.align',
-    'Legend.align',
-    'LinkElement.charset',
-    'LinkElement.rev',
-    'LinkElement.target',
-    'Menu.compact',
-    'MenuElement.compact',
-    'MetaElement.scheme',
-    'NamedNodeMap.*',
+    'HTMLParagraphElement.align',
+    'HTMLParamElement.type',
+    'HTMLParamElement.valueType',
+    'HTMLPreElement.width',
+    'HTMLScriptElement.text',
+    'HTMLSelectElement.options',
+    'HTMLSelectElement.remove',
+    'HTMLSelectElement.selectedOptions',
+    'HTMLTableCaptionElement.align',
+    'HTMLTableCellElement.abbr',
+    'HTMLTableCellElement.align',
+    'HTMLTableCellElement.axis',
+    'HTMLTableCellElement.bgColor',
+    'HTMLTableCellElement.ch',
+    'HTMLTableCellElement.chOff',
+    'HTMLTableCellElement.height',
+    'HTMLTableCellElement.noWrap',
+    'HTMLTableCellElement.scope',
+    'HTMLTableCellElement.vAlign',
+    'HTMLTableCellElement.width',
+    'HTMLTableColElement.align',
+    'HTMLTableColElement.ch',
+    'HTMLTableColElement.chOff',
+    'HTMLTableColElement.vAlign',
+    'HTMLTableColElement.width',
+    'HTMLTableElement.align',
+    'HTMLTableElement.bgColor',
+    'HTMLTableElement.cellPadding',
+    'HTMLTableElement.cellSpacing',
+    'HTMLTableElement.frame',
+    'HTMLTableElement.rules',
+    'HTMLTableElement.summary',
+    'HTMLTableElement.width',
+    'HTMLTableRowElement.align',
+    'HTMLTableRowElement.bgColor',
+    'HTMLTableRowElement.ch',
+    'HTMLTableRowElement.chOff',
+    'HTMLTableRowElement.vAlign',
+    'HTMLTableSectionElement.align',
+    'HTMLTableSectionElement.ch',
+    'HTMLTableSectionElement.chOff',
+    'HTMLTableSectionElement.vAlign',
+    'HTMLTitleElement.text',
+    'HTMLUListElement.compact',
+    'HTMLUListElement.type',
     'Node.compareDocumentPosition',
     'Node.get:ATTRIBUTE_NODE',
     'Node.get:CDATA_SECTION_NODE',
@@ -340,7 +423,6 @@ _removed_html_members = set([
     'Node.get:TEXT_NODE',
     'Node.get:baseURI',
     'Node.get:nodeName',
-    'Node.get:nodeValue',
     'Node.get:prefix',
     'Node.hasAttributes',
     'Node.isDefaultNamespace',
@@ -351,76 +433,9 @@ _removed_html_members = set([
     'Node.lookupPrefix',
     'Node.normalize',
     'Node.set:nodeValue',
-    'Node.set:prefix',
     'NodeList.item',
-    'OListElement.compact',
-    'ObjectElement.align',
-    'ObjectElement.archive',
-    'ObjectElement.border',
-    'ObjectElement.codeBase',
-    'ObjectElement.codeType',
-    'ObjectElement.declare',
-    'ObjectElement.hspace',
-    'ObjectElement.standby',
-    'ObjectElement.vspace',
-    'OptionElement.text',
-    'ParagraphElement.align',
-    'ParamElement.type',
-    'ParamElement.valueType',
-    'PreElement.width',
-    'ScriptElement.text',
-    'SelectElement.options',
-    'SelectElement.remove',
-    'SelectElement.selectedOptions',
     'ShadowRoot.getElementsByTagNameNS',
-    'TableCaptionElement.align',
-    'TableCellElement.abbr',
-    'TableCellElement.align',
-    'TableCellElement.axis',
-    'TableCellElement.bgColor',
-    'TableCellElement.ch',
-    'TableCellElement.chOff',
-    'TableCellElement.height',
-    'TableCellElement.noWrap',
-    'TableCellElement.scope',
-    'TableCellElement.vAlign',
-    'TableCellElement.width',
-    'TableColElement.align',
-    'TableColElement.ch',
-    'TableColElement.chOff',
-    'TableColElement.vAlign',
-    'TableColElement.width',
-    'TableElement.align',
-    'TableElement.bgColor',
-    'TableElement.cellPadding',
-    'TableElement.cellSpacing',
-    'TableElement.frame',
-    'TableElement.rules',
-    'TableElement.summary',
-    'TableElement.width',
-    'TableRowElement.align',
-    'TableRowElement.bgColor',
-    'TableRowElement.ch',
-    'TableRowElement.chOff',
-    'TableRowElement.vAlign',
-    'TableSectionElement.align',
-    'TableSectionElement.ch',
-    'TableSectionElement.choff',
-    'TableSectionElement.vAlign',
-    'TitleElement.text',
-    'Transaction.READ_ONLY',
-    'Transaction.READ_WRITE',
-    'UListElement.compact',
-    'UListElement.type',
     'WheelEvent.wheelDelta',
-    'Window.blur',
-    'Window.clientInformation',
-    'Window.focus',
-    'Window.get:frames',
-    'Window.get:length',
-    'Window.prompt',
-    'Window.webkitCancelRequestAnimationFrame',
-    'Window.webkitIndexedDB',
     'WorkerContext.webkitIndexedDB',
 # TODO(jacobr): should these be removed?
     'Document.close',
@@ -449,14 +464,14 @@ class HtmlRenamer(object):
     """
     interface = self._database.GetInterface(interface_name)
 
-    if self._FindMatch(interface, member, member_prefix, _removed_html_members):
+    if self.ShouldSuppressMember(interface, member, member_prefix):
       return None
 
     if 'CheckSecurityForNode' in member_node.ext_attrs:
       return None
 
     name = self._FindMatch(interface, member, member_prefix,
-                           _renamed_html_members)
+        _renamed_html_members)
 
     target_name = _renamed_html_members[name] if name else member
     if self._FindMatch(interface, member, member_prefix, _private_html_members):
@@ -467,13 +482,22 @@ class HtmlRenamer(object):
       target_name = self._DartifyMemberName(target_name)
     return target_name
 
+  def ShouldSuppressMember(self, interface, member, member_prefix=''):
+    """ Returns true if the member should be suppressed."""
+    if self._FindMatch(interface, member, member_prefix,
+        _removed_html_members):
+      return True
+    return False
+
   def _FindMatch(self, interface, member, member_prefix, candidates):
     for interface in self._database.Hierarchy(interface):
-      html_interface_name = self.RenameInterface(interface)
-      member_name = html_interface_name + '.' + member
+      member_name = interface.id + '.' + member
       if member_name in candidates:
         return member_name
-      member_name = html_interface_name + '.' + member_prefix + member
+      member_name = interface.id + '.' + member_prefix + member
+      if member_name in candidates:
+        return member_name
+      member_name = interface.id + '.*'
       if member_name in candidates:
         return member_name
 
@@ -490,6 +514,9 @@ class HtmlRenamer(object):
 
   def DartifyTypeName(self, type_name):
     """Converts a DOM name to a Dart-friendly class name. """
+
+    if type_name in html_interface_renames:
+      return html_interface_renames[type_name]
 
     # Strip off any standard prefixes.
     name = re.sub(r'^SVG', '', type_name)

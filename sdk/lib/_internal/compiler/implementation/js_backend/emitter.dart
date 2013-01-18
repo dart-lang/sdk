@@ -390,11 +390,14 @@ $lazyInitializerLogic
         $isolate[fieldName] = sentinelInProgress;
         try {
           result = $isolate[fieldName] = lazyValue();
-        } catch (e) {
-          if ($isolate[fieldName] === sentinelInProgress) {
-            $isolate[fieldName] = null;
+        } finally {
+""" // Use try-finally, not try-catch/throw as it destroys the stack trace.
+"""
+          if (result === sentinelUndefined) {
+            if ($isolate[fieldName] === sentinelInProgress) {
+              $isolate[fieldName] = null;
+            }
           }
-          throw e;
         }
       } else if (result === sentinelInProgress) {
         $cyclicThrow(staticName);
@@ -1749,7 +1752,8 @@ $lazyInitializerLogic
                           js.string(internalName),
                           new js.LiteralNumber('$type'),
                           new js.ArrayInitializer.from(
-                              parameters.mappedBy((param) => js.use(param.name)).toList()),
+                              parameters.mappedBy((param) => js.use(param.name))
+                                        .toList()),
                           new js.ArrayInitializer.from(argNames)])]);
       js.Expression function =
           new js.Fun(parameters,
@@ -1868,7 +1872,7 @@ $lazyInitializerLogic
     if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
       Selector selector = new Selector.callClosure(0);
       String invocationName = namer.invocationName(selector);
-      buffer.add("$mainAccess.$invocationName = $mainAccess");
+      buffer.add("$mainAccess.$invocationName = $mainAccess$N");
     }
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
@@ -2064,7 +2068,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     instantiatedClasses =
         compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
             .toSet();
-    neededClasses = instantiatedClasses.toSet();
+    neededClasses = new Set<ClassElement>.from(instantiatedClasses);
     for (ClassElement element in instantiatedClasses) {
       for (ClassElement superclass = element.superclass;
           superclass != null;

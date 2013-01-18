@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1127,39 +1127,6 @@ DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 3) {
 }
 
 
-// An instance call could not be resolved by an IC miss handler.  Check if
-// it was a getter call and if there is an instance function with the same
-// name.  If so, create and return an implicit closure from the function.
-// Otherwise return null.
-static RawInstance* ResolveImplicitClosure(const Instance& receiver,
-                                           const Class& receiver_class,
-                                           const String& target_name) {
-  // 1. Check if was a getter call.
-  if (!Field::IsGetterName(target_name)) return Instance::null();
-
-  // 2. Check if there is an instance function with the same name.
-  String& function_name = String::Handle(Field::NameFromGetter(target_name));
-  function_name = Symbols::New(function_name);
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamicAnyArgs(receiver_class, function_name));
-  if (function.IsNull()) return Instance::null();
-
-  // Create a closure object for the implicit closure function.
-  const Function& closure_function =
-      Function::Handle(function.ImplicitClosureFunction());
-  const Context& context = Context::Handle(Context::New(1));
-  context.SetAt(0, receiver);
-  const Instance& closure =
-      Instance::Handle(Closure::New(closure_function, context));
-  if (receiver_class.HasTypeArguments()) {
-    const AbstractTypeArguments& type_arguments =
-        AbstractTypeArguments::Handle(receiver.GetTypeArguments());
-    closure.SetTypeArguments(type_arguments);
-  }
-  return closure.raw();
-}
-
-
 // An instance call of the form o.f(...) could not be resolved.  Check if
 // there is a getter with the same name.  If so, invoke it.  If the value is
 // a closure, invoke it with the given arguments.  If the value is a
@@ -1179,7 +1146,9 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                                getter_name,
                                                kNumArguments,
                                                kNumNamedArguments));
-  if (getter.IsNull()) return false;
+  if (getter.IsNull() || getter.IsMethodExtractor()) {
+    return false;
+  }
 
   // 2. Invoke the getter.
   const Array& args = Array::Handle(Array::New(kNumArguments));
@@ -1230,14 +1199,6 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
     receiver_class = isolate->object_store()->object_class();
   }
   const String& target_name = String::Handle(ic_data.target_name());
-
-  Instance& closure = Instance::Handle(ResolveImplicitClosure(receiver,
-                                                              receiver_class,
-                                                              target_name));
-  if (!closure.IsNull()) {
-    arguments.SetReturn(closure);
-    return;
-  }
 
   Object& result = Object::Handle();
   if (!ResolveCallThroughGetter(receiver,
@@ -1488,13 +1449,13 @@ void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes) {
 
 // Copy saved registers into the isolate buffer.
 static void CopySavedRegisters(uword saved_registers_address) {
-  double* xmm_registers_copy = new double[kNumberOfXmmRegisters];
-  ASSERT(xmm_registers_copy != NULL);
-  for (intptr_t i = 0; i < kNumberOfXmmRegisters; i++) {
-    xmm_registers_copy[i] = *reinterpret_cast<double*>(saved_registers_address);
+  double* fpu_registers_copy = new double[kNumberOfFpuRegisters];
+  ASSERT(fpu_registers_copy != NULL);
+  for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+    fpu_registers_copy[i] = *reinterpret_cast<double*>(saved_registers_address);
     saved_registers_address += kDoubleSize;
   }
-  Isolate::Current()->set_deopt_xmm_registers_copy(xmm_registers_copy);
+  Isolate::Current()->set_deopt_fpu_registers_copy(fpu_registers_copy);
 
   intptr_t* cpu_registers_copy = new intptr_t[kNumberOfCpuRegisters];
   ASSERT(cpu_registers_copy != NULL);
@@ -1544,7 +1505,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
   // All registers have been saved below last-fp.
   const uword last_fp = saved_registers_address +
-      kNumberOfCpuRegisters * kWordSize + kNumberOfXmmRegisters * kDoubleSize;
+      kNumberOfCpuRegisters * kWordSize + kNumberOfFpuRegisters * kDoubleSize;
   CopySavedRegisters(saved_registers_address);
 
   // Get optimized code and frame that need to be deoptimized.
@@ -1646,7 +1607,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
 
   intptr_t* frame_copy = isolate->deopt_frame_copy();
   intptr_t* cpu_registers_copy = isolate->deopt_cpu_registers_copy();
-  double* xmm_registers_copy = isolate->deopt_xmm_registers_copy();
+  double* fpu_registers_copy = isolate->deopt_fpu_registers_copy();
 
   intptr_t deopt_reason = kDeoptUnknown;
   const DeoptInfo& deopt_info = DeoptInfo::Handle(
@@ -1660,10 +1621,10 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
 
   isolate->SetDeoptFrameCopy(NULL, 0);
   isolate->set_deopt_cpu_registers_copy(NULL);
-  isolate->set_deopt_xmm_registers_copy(NULL);
+  isolate->set_deopt_fpu_registers_copy(NULL);
   delete[] frame_copy;
   delete[] cpu_registers_copy;
-  delete[] xmm_registers_copy;
+  delete[] fpu_registers_copy;
 
   return caller_fp;
 }

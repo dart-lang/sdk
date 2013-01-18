@@ -215,6 +215,10 @@ class Selector {
   bool isGetter() => identical(kind, SelectorKind.GETTER);
   bool isSetter() => identical(kind, SelectorKind.SETTER);
   bool isCall() => identical(kind, SelectorKind.CALL);
+  bool isClosureCall() {
+    SourceString callName = Compiler.CALL_OPERATOR_NAME;
+    return isCall() && name == callName;
+  }
 
   bool isIndex() => identical(kind, SelectorKind.INDEX) && argumentCount == 1;
   bool isIndexSet() => identical(kind, SelectorKind.INDEX) && argumentCount == 2;
@@ -225,10 +229,6 @@ class Selector {
 
   /** Check whether this is a call to 'assert'. */
   bool isAssert() => isCall() && identical(name.stringValue, "assert");
-
-  /** Check whether this is a closure invocation call. */
-  bool isClosureCall() =>
-      isCall() && identical(name.stringValue, Compiler.CALL_OPERATOR_NAME);
 
   int get hashCode => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,9 +9,9 @@
 
 namespace dart {
 
-void CodePatcher::GetStaticCallAt(uword return_address,
-                                  uword* target) {
+uword CodePatcher::GetStaticCallTargetAt(uword return_address) {
   UNIMPLEMENTED();
+  return 0;
 }
 
 
@@ -25,49 +25,29 @@ void CodePatcher::PatchInstanceCallAt(uword return_address, uword new_target) {
 }
 
 
+void CodePatcher::InsertCallAt(uword start, uword target) {
+  UNIMPLEMENTED();
+}
+
+
 bool CodePatcher::IsDartCall(uword return_address) {
   UNIMPLEMENTED();
   return false;
 }
 
 
-void CodePatcher::GetInstanceCallAt(uword return_address,
-                                    String* function_name,
-                                    int* num_arguments,
-                                    int* num_named_arguments,
-                                    uword* target) {
+uword CodePatcher::GetInstanceCallAt(uword return_address,
+                                     ICData* ic_data,
+                                     Array* arguments_descriptor) {
   UNIMPLEMENTED();
+  return 0;
 }
 
 
-void CodePatcher::PatchEntry(const Code& code) {
+intptr_t CodePatcher::InstanceCallSizeInBytes() {
   UNIMPLEMENTED();
+  return 0;
 }
-
-
-void CodePatcher::RestoreEntry(const Code& code) {
-  UNIMPLEMENTED();
-}
-
-
-bool CodePatcher::CodeIsPatchable(const Code& code) {
-  UNIMPLEMENTED();
-  return false;
-}
-
-
-RawICData* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-
-void CodePatcher::InsertCallAt(uword start, uword target) {
-  UNIMPLEMENTED();
-}
-
-
 
 }  // namespace dart
 

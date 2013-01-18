@@ -594,6 +594,7 @@ abstract class Compiler implements DiagnosticListener {
         'dart/tests/compiler/dart2js_native');
     if (nativeTest
         || libraryName == 'dart:async'
+        || libraryName == 'dart:chrome'
         || libraryName == 'dart:mirrors'
         || libraryName == 'dart:math'
         || libraryName == 'dart:html'

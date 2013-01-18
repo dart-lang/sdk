@@ -5,10 +5,12 @@
 library test_progress;
 
 import "dart:io";
+import "dart:io" as io;
+import "http_server.dart" as http_server;
+import "status_file_parser.dart";
 import "test_runner.dart";
 import "test_suite.dart";
-import "status_file_parser.dart";
-import "http_server.dart" as http_server;
+import "utils.dart";
 
 class ProgressIndicator {
   ProgressIndicator(this._startTime, this._printTiming)
@@ -109,7 +111,9 @@ class ProgressIndicator {
     _printTimingInformation();
     stdout.close();
     stderr.close();
-    if (_failedTests > 0) exit(1);
+    if (_failedTests > 0) {
+      io.exitCode = 1;
+    }
   }
 
   void _printStartProgress(TestCase test) {}
@@ -188,13 +192,13 @@ class ProgressIndicator {
         output.add('DRT pixel test failed! stdout is not printed because it '
                    'contains binary data!');
       } else {
-        output.add(new String.fromCharCodes(test.lastCommandOutput.stdout));
+        output.add(decodeUtf8(test.lastCommandOutput.stdout));
       }
     }
     if (!test.lastCommandOutput.stderr.isEmpty) {
       output.add('');
       output.add('stderr:');
-      output.add(new String.fromCharCodes(test.lastCommandOutput.stderr));
+      output.add(decodeUtf8(test.lastCommandOutput.stderr));
     }
     if (test is BrowserTestCase) {
       // Additional command for rerunning the steps locally after the fact.
@@ -286,7 +290,9 @@ abstract class CompactIndicator extends ProgressIndicator {
     }
     stdout.close();
     stderr.close();
-    if (_failedTests > 0) exit(1);
+    if (_failedTests > 0) {
+      io.exitCode = 1;
+    }
   }
 
   void allTestsKnown() {
@@ -336,7 +342,7 @@ class ColorProgressIndicator extends CompactIndicator {
   addColorWrapped(List<int> codes, String string, int color) {
     codes.add(27);
     codes.addAll('[${color}m'.charCodes);
-    codes.addAll(string.charCodes);
+    codes.addAll(encodeUtf8(string));
     codes.add(27);
     codes.addAll('[0m'.charCodes);
   }
@@ -360,7 +366,7 @@ class ColorProgressIndicator extends CompactIndicator {
   String _header(String header) {
     var result = [];
     addColorWrapped(result, header, BOLD);
-    return new String.fromCharCodes(result);
+    return decodeUtf8(result);
   }
 }
 

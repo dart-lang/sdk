@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("updates one locked pub server package's dependencies if it's "
+  integration("updates one locked pub server package's dependencies if it's "
       "necessary", () {
     servePackages([
       package("foo", "1.0.0", [dependency("foo-dep")]),
@@ -39,7 +38,5 @@ main() {
       "foo": "2.0.0",
       "foo-dep": "2.0.0"
     }).scheduleValidate();
-
-    run();
   });
 }

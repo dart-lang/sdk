@@ -56,6 +56,15 @@ type_annotation_test/09: Fail # Issue 6973
 
 type_parameter_literal_test: Fail # Issue 7551
 
+mixin_field_test: Fail
+mixin_is_test: Fail
+mixin_method_test: Fail
+mixin_naming_test: Fail
+
+mixin_extends_field_test: Fail
+mixin_extends_is_test: Fail
+mixin_extends_method_test: Fail
+
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
 
@@ -89,9 +98,6 @@ class_literal_test/none : Fail # Issue 7630.
 # test issue 7749
 list_literal1_negative_test: Fail
 map_literal1_negative_test: Fail
-
-# test issue XXXX
-naming_test: Fail
 
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
@@ -342,6 +348,16 @@ type_variable_scope_test: Fail # type arguments on redirecting factory not imple
 
 many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
+
+# Mixins aren't unparsed the right way yet.
+mixin_field_test: Fail # http://dartbug.com/7972
+mixin_is_test: Fail # http://dartbug.com/7972
+mixin_method_test: Fail # http://dartbug.com/7972
+mixin_naming_test: Fail # http://dartbug.com/7972
+
+mixin_extends_field_test: Fail # http://dartbug.com/7972
+mixin_extends_is_test: Fail # http://dartbug.com/7972
+mixin_extends_method_test: Fail # http://dartbug.com/7972
 
 # Malformed types not handled as unresolved:
 import_core_prefix_test: Fail

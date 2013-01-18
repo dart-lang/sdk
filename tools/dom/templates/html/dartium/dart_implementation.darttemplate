@@ -5,8 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 part of $LIBRARYNAME;
-
-/// @domName $DOMNAME$ANNOTATIONS
+$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 }

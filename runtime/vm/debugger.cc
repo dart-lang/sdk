@@ -301,6 +301,12 @@ intptr_t ActivationFrame::PcDescIndex() {
 }
 
 
+intptr_t ActivationFrame::TryIndex() {
+  intptr_t desc_index = PcDescIndex();
+  return pc_desc_.TryIndex(desc_index);
+}
+
+
 intptr_t ActivationFrame::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
   if (line_number_ < 0) {
@@ -369,6 +375,44 @@ RawContext* ActivationFrame::CallerContext() {
   }
   // Caller uses same context chain.
   return ctx_.raw();
+}
+
+
+ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
+    const Instance& exc_obj) const {
+  ExceptionHandlers& handlers = ExceptionHandlers::Handle();
+  Array& handled_types = Array::Handle();
+  AbstractType& type = Type::Handle();
+  const TypeArguments& no_instantiator = TypeArguments::Handle();
+  for (int frame_index = 0; frame_index < Length(); frame_index++) {
+    ActivationFrame* frame = trace_[frame_index];
+    intptr_t try_index = frame->TryIndex();
+    if (try_index < 0) continue;
+    const Code& code = frame->DartCode();
+    handlers = code.exception_handlers();
+    ASSERT(!handlers.IsNull());
+    intptr_t num_handlers_checked = 0;
+    while (try_index >= 0) {
+      // Detect circles in the exception handler data.
+      num_handlers_checked++;
+      ASSERT(num_handlers_checked <= handlers.Length());
+      handled_types = handlers.GetHandledTypes(try_index);
+      const intptr_t num_types = handled_types.Length();
+      for (int k = 0; k < num_types; k++) {
+        type ^= handled_types.At(k);
+        ASSERT(!type.IsNull());
+        // Uninstantiated types are not added to ExceptionHandlers data.
+        ASSERT(type.IsInstantiated());
+        if (type.IsDynamicType()) return frame;
+        if (type.IsMalformed()) continue;
+        if (exc_obj.IsInstanceOf(type, no_instantiator, NULL)) {
+          return frame;
+        }
+      }
+      try_index = handlers.OuterTryIndex(try_index);
+    }
+  }
+  return NULL;
 }
 
 
@@ -464,7 +508,7 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(i < desc_indices_.length());
   intptr_t desc_index = desc_indices_[i];
   ASSERT(name != NULL);
-  *name ^= var_descriptors_.GetName(desc_index);
+  *name |= var_descriptors_.GetName(desc_index);
   RawLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
   ASSERT(token_pos != NULL);
@@ -780,7 +824,7 @@ void Debugger::DeoptimizeWorld() {
       functions = cls.functions();
       intptr_t num_functions = functions.IsNull() ? 0 : functions.Length();
       for (intptr_t f = 0; f < num_functions; f++) {
-        function ^= functions.At(f);
+        function |= functions.At(f);
         ASSERT(!function.IsNull());
         if (function.HasOptimizedCode()) {
           function.SwitchToUnoptimizedCode();
@@ -866,31 +910,29 @@ Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() {
 }
 
 
-// TODO(hausner): Determine whether the exception is handled or not.
 bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
-                                      const Object& exc) {
+                                      const Instance& exc) {
   if (exc_pause_info_ == kNoPauseOnExceptions) {
     return false;
   }
-  if ((exc_pause_info_ & kPauseOnAllExceptions) != 0) {
+  if (exc_pause_info_ == kPauseOnAllExceptions) {
     return true;
   }
-  // Assume TypeError and AssertionError exceptions are unhandled.
-  const Class& exc_class = Class::Handle(exc.clazz());
-  const String& class_name = String::Handle(exc_class.Name());
-  // TODO(hausner): Note the poor man's type test. This code will go
-  // away when we have a way to determine whether an exception is unhandled.
-  if (class_name.Equals("TypeErrorImplementation")) {
-    return true;
-  }
-  if (class_name.Equals("AssertionErrorImplementation")) {
+  ASSERT(exc_pause_info_ == kPauseOnUnhandledExceptions);
+  ActivationFrame* handler_frame = stack_trace->GetHandlerFrame(exc);
+  if (handler_frame == NULL) {
+    // Did not find an exception handler that catches this exception.
+    // Note that this check is not precise, since we can't check
+    // uninstantiated types, i.e. types containing type parameters.
+    // Thus, we may report an exception as unhandled when in fact
+    // it will be caught once we unwind the stack.
     return true;
   }
   return false;
 }
 
 
-void Debugger::SignalExceptionThrown(const Object& exc) {
+void Debugger::SignalExceptionThrown(const Instance& exc) {
   // We ignore this exception event when the VM is executing code invoked
   // by the debugger to evaluate variables values, when we see a nested
   // breakpoint or exception event, or if the debugger is not
@@ -1100,7 +1142,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
   for (int i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
+    lib |= libs.At(i);
     script = lib.LookupScript(script_url);
     if (!script.IsNull()) {
       break;
@@ -1235,7 +1277,7 @@ RawArray* Debugger::GetInstanceFields(const Instance& obj) {
   while (!cls.IsNull()) {
     fields = cls.fields();
     for (int i = 0; i < fields.Length(); i++) {
-      field ^= fields.At(i);
+      field |= fields.At(i);
       if (!field.is_static()) {
         field_name = field.name();
         field_list.Add(field_name);
@@ -1257,7 +1299,7 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
   String& field_name = String::Handle();
   Object& field_value = Object::Handle();
   for (int i = 0; i < fields.Length(); i++) {
-    field ^= fields.At(i);
+    field |= fields.At(i);
     if (field.is_static()) {
       field_name = field.name();
       field_value = GetStaticField(cls, field_name);
@@ -1282,7 +1324,7 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
   while (it.HasNext()) {
     entry = it.GetNext();
     if (entry.IsField()) {
-      field ^= entry.raw();
+      field |= entry.raw();
       cls = field.owner();
       ASSERT(field.is_static());
       field_name = field.name();
@@ -1368,7 +1410,8 @@ bool Debugger::IsDebuggable(const Function& func) {
   RawFunction::Kind fkind = func.kind();
   if ((fkind == RawFunction::kImplicitGetter) ||
       (fkind == RawFunction::kImplicitSetter) ||
-      (fkind == RawFunction::kConstImplicitGetter)) {
+      (fkind == RawFunction::kConstImplicitGetter) ||
+      (fkind == RawFunction::kMethodExtractor)) {
     return false;
   }
   const Class& cls = Class::Handle(func.Owner());

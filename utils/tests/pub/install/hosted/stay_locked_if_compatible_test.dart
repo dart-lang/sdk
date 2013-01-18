@@ -7,11 +7,10 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("doesn't update a locked pub server package with a new compatible "
-      "constraint", () {
+  integration("doesn't update a locked pub server package with a new "
+      "compatible constraint", () {
     servePackages([package("foo", "1.0.0")]);
 
     appDir([dependency("foo")]).scheduleCreate();
@@ -29,7 +28,5 @@ main() {
         output: new RegExp(r"Dependencies installed!$"));
 
     packagesDir({"foo": "1.0.0"}).scheduleValidate();
-
-    run();
   });
 }

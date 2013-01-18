@@ -9,7 +9,7 @@ part of dart.async;
  */
 class AsyncError {
   /** The actual error thrown by the computation. */
-  final Object error;
+  final error;
   /** Stack trace corresponding to the error, if available. */
   final Object stackTrace;
   /** Asynchronous error leading to this error, if error handling fails. */
@@ -17,8 +17,8 @@ class AsyncError {
 
   // TODO(lrn): When possible, combine into one constructor with both optional
   // positional and named arguments.
-  AsyncError(Object this.error, [Object this.stackTrace]): cause = null;
-  AsyncError.withCause(Object this.error, Object this.stackTrace, this.cause);
+  AsyncError(this.error, [this.stackTrace]): cause = null;
+  AsyncError.withCause(this.error, this.stackTrace, this.cause);
 
   void _writeOn(StringBuffer buffer) {
     buffer.add("'");

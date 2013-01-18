@@ -5,11 +5,11 @@
 part of dart.collection;
 
 /**
- * The [Collections] class implements static methods useful when
- * writing a class that implements [Collection] and the [iterator]
- * method.
+ * This class provides default implementations for Iterables (including Lists).
+ *
+ * Once Dart receives Mixins it will be replaced with mixin classes.
  */
-class Collections {
+class IterableMixinWorkaround {
   static bool contains(Iterable iterable, var element) {
     for (final e in iterable) {
       if (element == e) return true;
@@ -46,6 +46,80 @@ class Collections {
     return initialValue;
   }
 
+  /**
+   * Simple implementation for [Collection.removeAll].
+   *
+   * This implementation assumes that [Collection.remove] on [collection]
+   * is efficient. The [:remove:] method on [List] objects is typically
+   * not efficient since it requires linear search to find an element.
+   */
+  static void removeAll(Collection collection, Iterable elementsToRemove) {
+    for (Object object in elementsToRemove) {
+      collection.remove(object);
+    }
+  }
+
+  /**
+   * Implementation of [Collection.removeAll] for lists.
+   *
+   * This implementation assumes that [Collection.remove] is not efficient
+   * (as it usually isn't on a [List]) and uses [Collection.removeMathcing]
+   * instead of just repeatedly calling remove.
+   */
+  static void removeAllList(Collection collection, Iterable elementsToRemove) {
+    Set setToRemove;
+    // Assume contains is efficient on a Set.
+    if (elementsToRemove is Set) {
+      setToRemove = elementsToRemove;
+    } else {
+      setToRemove = elementsToRemove.toSet();
+    }
+    collection.removeMatching(setToRemve.contains);
+  }
+
+  /**
+   * Simple implemenation for [Collection.retainAll].
+   *
+   * This implementation assumes that [Collecton.retainMatching] on [collection]
+   * is efficient.
+   */
+  static void retainAll(Collection collection, Iterable elementsToRetain) {
+    Set lookup;
+    if (elementsToRetain is Set) {
+      lookup = elementsToRetain;
+    } else {
+      lookup = elementsToRetain.toSet();
+    }
+    collection.retainMatching(lookup.contains);
+  }
+
+  /**
+   * Simple implemenation for [Collection.removeMatching].
+   *
+   * This implementation assumes that [Collecton.removeAll] on [collection] is
+   * efficient.
+   */
+  static void removeMatching(Collection collection, bool test(var element)) {
+    List elementsToRemove = [];
+    for (var element in collection) {
+      if (test(element)) elementsToRemove.add(element);
+    }
+    collection.removeAll(elementsToRemove);
+  }
+
+  /**
+   * Simple implemenation for [Collection.retainMatching].
+   *
+   * This implementation assumes that [Collecton.removeAll] on [collection] is
+   * efficient.
+   */
+  static void retainMatching(Collection collection, bool test(var element)) {
+    List elementsToRemove = [];
+    for (var element in collection) {
+      if (!test(element)) elementsToRemove.add(element);
+    }
+    collection.removeAll(elementsToRemove);
+  }
   static bool isEmpty(Iterable iterable) {
     return !iterable.iterator.moveNext();
   }
@@ -186,7 +260,7 @@ class Collections {
     return buffer.toString();
   }
 
-  static String joinList(List<Object> list, [String separator]) {
+  static String joinList(List list, [String separator]) {
     if (list.isEmpty) return "";
     if (list.length == 1) return "${list[0]}";
     StringBuffer buffer = new StringBuffer();
@@ -203,6 +277,151 @@ class Collections {
     }
     return buffer.toString();
   }
+
+  static Iterable where(Iterable iterable, bool f(var element)) {
+    return new WhereIterable(iterable, f);
+  }
+
+  static List mappedByList(List list, f(var element)) {
+    return new MappedList(list, f);
+  }
+
+  static List takeList(List list, int n) {
+    // The generic type is currently lost. It will be fixed with mixins.
+    return new ListView(list, 0, n);
+  }
+
+  static Iterable takeWhile(Iterable iterable, bool test(var value)) {
+    // The generic type is currently lost. It will be fixed with mixins.
+    return new TakeWhileIterable(iterable, test);
+  }
+
+  static List skipList(List list, int n) {
+    // The generic type is currently lost. It will be fixed with mixins.
+    return new ListView(list, n, null);
+  }
+
+  static Iterable skipWhile(Iterable iterable, bool test(var value)) {
+    // The generic type is currently lost. It will be fixed with mixins.
+    return new SkipWhileIterable(iterable, test);
+  }
+
+  static void sortList(List l, int compare(a, b)) {
+    if (compare == null) compare = Comparable.compare;
+    _Sort.sort(l, compare);
+  }
+}
+
+/**
+ * The [Collections] class implements static methods useful when
+ * writing a class that implements [Collection] and the [iterator]
+ * method.
+ */
+class Collections {
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static bool contains(Iterable iterable, var element)
+      => IterableMixinWorkaround.contains(iterable, element);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static void forEach(Iterable iterable, void f(o)) {
+    IterableMixinWorkaround.forEach(iterable, f);
+  }
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static bool any(Iterable iterable, bool f(o))
+      => IterableMixinWorkaround.any(iterable, f);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static bool every(Iterable iterable, bool f(o))
+      => IterableMixinWorkaround.every(iterable, f);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic reduce(Iterable iterable,
+                        dynamic initialValue,
+                        dynamic combine(dynamic previousValue, element))
+      => IterableMixinWorkaround.reduce(iterable, initialValue, combine);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static bool isEmpty(Iterable iterable)
+      => IterableMixinWorkaround.isEmpty(iterable);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic first(Iterable iterable)
+      => IterableMixinWorkaround.first(iterable);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic last(Iterable iterable)
+      => IterableMixinWorkaround.last(iterable);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic min(Iterable iterable, [int compare(var a, var b)])
+      => IterableMixinWorkaround.min(iterable, compare);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic max(Iterable iterable, [int compare(var a, var b)])
+      => IterableMixinWorkaround.max(iterable, compare);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic single(Iterable iterable)
+      => IterableMixinWorkaround.single(iterable);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic firstMatching(Iterable iterable,
+                               bool test(dynamic value),
+                               dynamic orElse())
+      => IterableMixinWorkaround.firstMatching(iterable, test, orElse);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic lastMatching(Iterable iterable,
+                              bool test(dynamic value),
+                              dynamic orElse())
+      => IterableMixinWorkaround.lastMatching(iterable, test, orElse);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic lastMatchingInList(List list,
+                                    bool test(dynamic value),
+                                    dynamic orElse())
+      => IterableMixinWorkaround.lastMatchingInList(list, test, orElse);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic singleMatching(Iterable iterable, bool test(dynamic value))
+      => IterableMixinWorkaround.singleMatching(iterable, test);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static dynamic elementAt(Iterable iterable, int index)
+      => IterableMixinWorkaround.elementAt(iterable, index);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static String join(Iterable iterable, [String separator])
+      => IterableMixinWorkaround.join(iterable, separator);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static String joinList(List list, [String separator])
+      => IterableMixinWorkaround.joinList(list, separator);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static Iterable where(Iterable iterable, bool f(var element))
+      => IterableMixinWorkaround.where(iterable, f);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static List mappedByList(List list, f(var element))
+      => IterableMixinWorkaround.mappedByList(list, f);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static List takeList(List list, int n)
+      => IterableMixinWorkaround.takeList(list, n);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static Iterable takeWhile(Iterable iterable, bool test(var value))
+      => IterableMixinWorkaround.takeWhile(iterable, test);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static List skipList(List list, int n)
+      => IterableMixinWorkaround.skipList(list, n);
+
+  /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
+  static Iterable skipWhile(Iterable iterable, bool test(var value))
+      => IterableMixinWorkaround.skipWhile(iterable, test);
 
   // TODO(jjb): visiting list should be an identityHashSet when it exists
 

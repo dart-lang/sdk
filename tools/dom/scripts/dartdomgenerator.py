@@ -9,6 +9,7 @@ import dartgenerator
 import database
 import fremontcutbuilder
 import logging.config
+import monitored
 import multiemitter
 import optparse
 import os
@@ -28,7 +29,7 @@ import utils
 
 _logger = logging.getLogger('dartdomgenerator')
 
-_libraries = ['html', 'indexed_db', 'svg', 'web_audio']
+_libraries = ['chrome', 'html', 'indexed_db', 'svg', 'web_audio']
 
 class GeneratorOptions(object):
   def __init__(self, templates, database, type_registry, renamer):
@@ -36,12 +37,6 @@ class GeneratorOptions(object):
     self.database = database
     self.type_registry = type_registry
     self.renamer = renamer
-
-# TODO(vsm): Remove once we fix Dartium to pass in the database directly.
-def Generate(database_dir, use_database_cache, dart2js_output_dir=None,
-             dartium_output_dir=None):
-  database = LoadDatabase(database_dir, use_database_cache)
-  GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir)
 
 def LoadDatabase(database_dir, use_database_cache):
   common_database = database.Database(database_dir)
@@ -138,6 +133,8 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
   _logger.info('Flush...')
   emitters.Flush()
 
+  monitored.FinishMonitoring()
+
 def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
   library_dir = os.path.dirname(library_path)
   library_filename = os.path.basename(library_path)
@@ -194,24 +191,6 @@ def main():
     # Load the previously generated database.
     database = LoadDatabase(database_dir, options.use_database_cache)
   GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir)
-
-  _logger.info('Add documentation to generated classes.')
-  html_to_json_script = os.path.relpath(
-      '../../html_json_doc/bin/html_json_doc.dart',
-      current_dir)
-  html_output_dir = os.path.join(output_dir, 'dart2js/dart/html/')
-  svg_output_dir = os.path.join(output_dir, 'dart2js/dart/svg/')
-  html_json_path = os.path.relpath('../docs/html_docs.json')
-  svg_json_path = os.path.relpath('../docs/svg_docs.json')
-
-  path_to_dart = utils.DartSdkBinary()
-  html_command = ' '.join([path_to_dart, html_to_json_script,
-                           '--mode=json-to-html', html_output_dir,
-                           html_json_path])
-  svg_command = ' '.join([path_to_dart, html_to_json_script,
-                          '--mode=json-to-html', svg_output_dir, svg_json_path])
-  subprocess.call([html_command], shell=True)
-  subprocess.call([svg_command], shell=True)
 
   if 'htmldart2js' in systems:
     _logger.info('Generating dart2js single files.')

@@ -1759,8 +1759,9 @@ TEST_CASE(GrowableObjectArray) {
 
   // Test the MakeArray functionality to make sure the resulting array
   // object is properly setup.
-  // 1. Should produce an array of length 2 and a remainder array of length 1.
+  // 1. Should produce an array of length 2 and a left over int8 array.
   Array& new_array = Array::Handle();
+  Int8Array& left_over_array = Int8Array::Handle();
   Object& obj = Object::Handle();
   uword addr = 0;
   intptr_t used_size = 0;
@@ -1781,11 +1782,11 @@ TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(2, new_array.Length());
   addr += used_size;
   obj = RawObject::FromAddr(addr);
-  EXPECT(obj.IsArray());
-  new_array ^= obj.raw();
-  EXPECT_EQ(0, new_array.Length());
+  EXPECT(obj.IsInt8Array());
+  left_over_array ^= obj.raw();
+  EXPECT_EQ((2 * kWordSize), left_over_array.Length());
 
-  // 2. Should produce an array of length 3 and a remainder object.
+  // 2. Should produce an array of length 3 and a left over int8 array.
   array = GrowableObjectArray::New(kArrayLen);
   EXPECT_EQ(kArrayLen, array.Capacity());
   EXPECT_EQ(0, array.Length());
@@ -1802,9 +1803,11 @@ TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(3, new_array.Length());
   addr += used_size;
   obj = RawObject::FromAddr(addr);
-  EXPECT(!obj.IsArray());
+  EXPECT(obj.IsInt8Array());
+  left_over_array ^= obj.raw();
+  EXPECT_EQ(0, left_over_array.Length());
 
-  // 3. Should produce an array of length 1 and a remainder array of length 2.
+  // 3. Should produce an array of length 1 and a left over int8 array.
   array = GrowableObjectArray::New(kArrayLen + 3);
   EXPECT_EQ((kArrayLen + 3), array.Capacity());
   EXPECT_EQ(0, array.Length());
@@ -1821,9 +1824,9 @@ TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(1, new_array.Length());
   addr += used_size;
   obj = RawObject::FromAddr(addr);
-  EXPECT(obj.IsArray());
-  new_array ^= obj.raw();
-  EXPECT_EQ(4, new_array.Length());
+  EXPECT(obj.IsInt8Array());
+  left_over_array ^= obj.raw();
+  EXPECT_EQ((6 * kWordSize), left_over_array.Length());
 }
 
 
@@ -2488,17 +2491,17 @@ TEST_CASE(ContextScope) {
       new LocalScope(parent_scope, local_scope_function_level, 0);
 
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
-  const String& a = String::ZoneHandle(String::New("a"));
+  const String& a = String::ZoneHandle(Symbols::New("a"));
   LocalVariable* var_a =
       new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
-  const String& b = String::ZoneHandle(String::New("b"));
+  const String& b = String::ZoneHandle(Symbols::New("b"));
   LocalVariable* var_b =
       new LocalVariable(Scanner::kDummyTokenIndex, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
-  const String& c = String::ZoneHandle(String::New("c"));
+  const String& c = String::ZoneHandle(Symbols::New("c"));
   LocalVariable* var_c =
       new LocalVariable(Scanner::kDummyTokenIndex, c, dynamic_type);
   parent_scope->AddVariable(var_c);
@@ -2728,16 +2731,14 @@ TEST_CASE(EmbedSmiIn64BitCode) {
 
 
 TEST_CASE(ExceptionHandlers) {
-  const int kNumEntries = 6;
+  const int kNumEntries = 4;
   // Add an exception handler table to the code.
   ExceptionHandlers& exception_handlers = ExceptionHandlers::Handle();
   exception_handlers ^= ExceptionHandlers::New(kNumEntries);
-  exception_handlers.SetHandlerEntry(0, 10, 20);
-  exception_handlers.SetHandlerEntry(1, 20, 30);
-  exception_handlers.SetHandlerEntry(2, 30, 40);
-  exception_handlers.SetHandlerEntry(3, 10, 40);
-  exception_handlers.SetHandlerEntry(4, 10, 80);
-  exception_handlers.SetHandlerEntry(5, 80, 150);
+  exception_handlers.SetHandlerInfo(0, -1, 20);
+  exception_handlers.SetHandlerInfo(1, 0, 30);
+  exception_handlers.SetHandlerInfo(2, -1, 40);
+  exception_handlers.SetHandlerInfo(3, 1, 150);
 
   extern void GenerateIncrement(Assembler* assembler);
   Assembler _assembler_;
@@ -2750,10 +2751,14 @@ TEST_CASE(ExceptionHandlers) {
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(code.exception_handlers());
   EXPECT_EQ(kNumEntries, handlers.Length());
-  EXPECT_EQ(10, handlers.TryIndex(0));
+  RawExceptionHandlers::HandlerInfo info;
+  handlers.GetHandlerInfo(0, &info);
+  EXPECT_EQ(-1, handlers.OuterTryIndex(0));
+  EXPECT_EQ(-1, info.outer_try_index);
   EXPECT_EQ(20, handlers.HandlerPC(0));
-  EXPECT_EQ(80, handlers.TryIndex(5));
-  EXPECT_EQ(150, handlers.HandlerPC(5));
+  EXPECT_EQ(20, info.handler_pc);
+  EXPECT_EQ(1, handlers.OuterTryIndex(3));
+  EXPECT_EQ(150, handlers.HandlerPC(3));
 }
 
 

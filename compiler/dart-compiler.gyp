@@ -53,7 +53,7 @@
             '<(PRODUCT_DIR)/analyzer/util/analyzer/guava/r09/guava-r09.jar',
           ],
           'action' : [
-            '../third_party/apache_ant/v1_7_1/bin/ant<(script_suffix)',
+            '../third_party/apache_ant/1.8.4/bin/ant<(script_suffix)',
             '-f', 'dart_analyzer.xml',
             '-Dbuild.dir=<(INTERMEDIATE_DIR)/<(_target_name)',
             '-Ddist.dir=<(PRODUCT_DIR)/analyzer',

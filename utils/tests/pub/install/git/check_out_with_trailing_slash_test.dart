@@ -6,12 +6,12 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../../test_pub.dart';
 import '../../../../../pkg/unittest/lib/unittest.dart';
+import '../../test_pub.dart';
 
 main() {
   group("(regression)", () {
-    test('checks out a package from Git with a trailing slash', () {
+    integration('checks out a package from Git with a trailing slash', () {
       ensureGit();
 
       git('foo.git', [
@@ -36,8 +36,6 @@ main() {
           file('foo.dart', 'main() => "foo";')
         ])
       ]).scheduleValidate();
-
-      run();
     });
   });
 }

@@ -169,7 +169,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final Set<HInstruction> controlFlowOperators;
   final Map<Element, ElementAction> breakAction;
   final Map<Element, ElementAction> continueAction;
-  final Map<Element, String> parameterNames;
   final List<js.Parameter> parameters;
 
   js.Block currentContainer;
@@ -214,7 +213,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     : this.work = work,
       this.types =
           (work.compilationContext as JavaScriptItemCompilationContext).types,
-      parameterNames = new LinkedHashMap<Element, String>(),
       declaredLocals = new Set<String>(),
       collectedVariableDeclarations = new OrderedSet<String>(),
       currentContainer = new js.Block.empty(),
@@ -226,7 +224,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>();
 
-  LibraryElement get currentLibrary => work.element.getLibrary();
   Compiler get compiler => backend.compiler;
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
   CodegenEnqueuer get world => backend.compiler.enqueuer.codegen;
@@ -359,8 +356,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         compiler,
         intervalBuilder.liveInstructions,
         intervalBuilder.liveIntervals,
-        generateAtUseSite,
-        parameterNames);
+        generateAtUseSite);
     allocator.visitGraph(graph);
     variableNames = allocator.names;
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
@@ -668,6 +664,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         needsAssignment = false;
       }
     }
+    if (instruction is HLocalValue) {
+      needsAssignment = false;
+    }
 
     if (needsAssignment &&
         !instruction.isControlFlow() && variableNames.hasName(instruction)) {
@@ -800,9 +799,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Catch catchPart = null;
     js.Block finallyPart = null;
     if (info.catchBlock != null) {
-      HParameterValue exception = info.catchVariable;
+      HLocalValue exception = info.catchVariable;
       String name = variableNames.getName(exception);
-      parameterNames[exception.sourceElement] = name;
       js.VariableDeclaration decl = new js.VariableDeclaration(name);
       js.Block catchBlock = generateStatementsInNewBlock(info.catchBlock);
       catchPart = new js.Catch(decl, catchBlock);
@@ -1259,6 +1257,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeBinary(HInvokeBinary node, String op) {
+    use(node.left);
+    js.Expression jsLeft = pop();
+    use(node.right);
+    push(new js.Binary(op, jsLeft, pop()), node);
+  }
+
+  visitRelational(HRelational node, String op) {
     if (node.isBuiltin(types)) {
       use(node.left);
       js.Expression jsLeft = pop();
@@ -1273,25 +1278,21 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
     visitInvokeBinary(node, op);
-    if (node.isBuiltin(types) && requiresUintConversion(node)) {
+    if (requiresUintConversion(node)) {
       push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
 
   visitInvokeUnary(HInvokeUnary node, String op) {
-    if (node.isBuiltin(types)) {
-      use(node.operand);
-      push(new js.Prefix(op, pop()), node);
-    } else {
-      visitInvokeStatic(node);
-    }
+    use(node.operand);
+    push(new js.Prefix(op, pop()), node);
   }
 
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeUnary(HInvokeUnary node, String op) {
     visitInvokeUnary(node, op);
-    if (node.isBuiltin(types) && requiresUintConversion(node)) {
+    if (requiresUintConversion(node)) {
       push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
@@ -1336,24 +1337,18 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitDivide(HDivide node)         => visitInvokeBinary(node, '/');
   visitMultiply(HMultiply node)     => visitInvokeBinary(node, '*');
   visitSubtract(HSubtract node)     => visitInvokeBinary(node, '-');
-  // Truncating divide does not have a JS equivalent.
-  visitTruncatingDivide(HTruncatingDivide node) => visitInvokeStatic(node);
-  // Modulo cannot be mapped to the native operator (different semantics).
-  visitModulo(HModulo node)                     => visitInvokeStatic(node);
-
   visitBitAnd(HBitAnd node)         => visitBitInvokeBinary(node, '&');
   visitBitNot(HBitNot node)         => visitBitInvokeUnary(node, '~');
   visitBitOr(HBitOr node)           => visitBitInvokeBinary(node, '|');
   visitBitXor(HBitXor node)         => visitBitInvokeBinary(node, '^');
-  visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>');
   visitShiftLeft(HShiftLeft node)   => visitBitInvokeBinary(node, '<<');
 
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
-  visitLess(HLess node)                 => visitInvokeBinary(node, '<');
-  visitLessEqual(HLessEqual node)       => visitInvokeBinary(node, '<=');
-  visitGreater(HGreater node)           => visitInvokeBinary(node, '>');
-  visitGreaterEqual(HGreaterEqual node) => visitInvokeBinary(node, '>=');
+  visitLess(HLess node)                 => visitRelational(node, '<');
+  visitLessEqual(HLessEqual node)       => visitRelational(node, '<=');
+  visitGreater(HGreater node)           => visitRelational(node, '>');
+  visitGreaterEqual(HGreaterEqual node) => visitRelational(node, '>=');
 
   visitBoolify(HBoolify node) {
     assert(node.inputs.length == 1);
@@ -1653,11 +1648,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         visitArguments(node.inputs)),
          node);
     world.registerDynamicInvocation(call.name, call);
-    // A closure can also be invoked through [HInvokeDynamicMethod] by
-    // explicitly calling the [:call:] method. Therefore, we must also
-    // register types here to let the backend invalidate wrong
-    // optimizations.
-    backend.registerDynamicInvocation(node, call, types);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
@@ -1896,18 +1886,24 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       };
       HRelational relational = input;
       BinaryOperation operation = relational.operation(backend.constantSystem);
-      visitInvokeBinary(input, inverseOperator[operation.name.stringValue]);
+      visitRelational(input, inverseOperator[operation.name.stringValue]);
     } else {
       use(input);
       push(new js.Prefix("!", pop()));
     }
   }
 
-  visitParameterValue(HParameterValue node) => visitLocalValue(node);
+  visitParameterValue(HParameterValue node) {
+    assert(!isGenerateAtUseSite(node));
+    String name = variableNames.getName(node);
+    parameters.add(new js.Parameter(name));
+    declaredLocals.add(name);
+  }
 
   visitLocalValue(HLocalValue node) {
-    assert(isGenerateAtUseSite(node));
-    push(new js.VariableUse(variableNames.getName(node)), node);
+    assert(!isGenerateAtUseSite(node));
+    String name = variableNames.getName(node);
+    collectedVariableDeclarations.add(name);
   }
 
   visitPhi(HPhi node) {
@@ -2143,17 +2139,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitIndexAssign(HIndexAssign node) {
-    if (node.isBuiltin(types)) {
-      use(node.inputs[1]);
-      js.Expression receiver = pop();
-      use(node.inputs[2]);
-      js.Expression index = pop();
-      use(node.inputs[3]);
-      push(new js.Assignment(new js.PropertyAccess(receiver, index), pop()),
-           node);
-    } else {
-      visitInvokeStatic(node);
-    }
+    use(node.receiver);
+    js.Expression receiver = pop();
+    use(node.index);
+    js.Expression index = pop();
+    use(node.value);
+    push(new js.Assignment(new js.PropertyAccess(receiver, index), pop()),
+         node);
   }
 
   void checkInt(HInstruction input, String cmp) {
@@ -2510,12 +2502,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   int maxBailoutParameters;
 
   HBasicBlock beginGraph(HGraph graph) {
-    // Declare the parameter names only for the optimized version. The
-    // unoptimized version has different parameters.
-    parameterNames.forEach((Element element, String name) {
-      parameters.add(new js.Parameter(name));
-      declaredLocals.add(name);
-    });
     return graph.entry;
   }
 
@@ -2790,6 +2776,11 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       // Put back the original first instruction of the block.
       propagator.firstBailoutTarget.block.first = savedFirstInstruction;
     }
+  }
+
+  visitParameterValue(HParameterValue node) {
+    // Nothing to do, parameters are dealt with specially in a bailout
+    // method.
   }
 
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;

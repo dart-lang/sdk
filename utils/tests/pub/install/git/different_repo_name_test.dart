@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('doesn\'t require the repository name to match the name in the '
+  integration('doesn\'t require the repository name to match the name in the '
       'pubspec', () {
     ensureGit();
 
@@ -36,7 +35,5 @@ main() {
         file('weirdname.dart', 'main() => "weirdname";')
       ])
     ]).scheduleValidate();
-
-    run();
   });
 }

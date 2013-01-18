@@ -9,6 +9,7 @@ import 'dart:json' as json;
 import 'dart:uri';
 
 import 'test_pub.dart';
+import 'test_pub.dart';
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/io.dart';
@@ -17,8 +18,8 @@ import '../../pub/utils.dart';
 main() {
   setUp(() => normalPackage.scheduleCreate());
 
-  test('with no credentials.json, authenticates and saves credentials.json',
-      () {
+  integration('with no credentials.json, authenticates and saves '
+      'credentials.json', () {
     var server = new ScheduledServer();
     var pub = startPubLish(server);
     confirmPublish(pub);
@@ -34,11 +35,9 @@ main() {
     pub.kill();
 
     credentialsFile(server, 'access token').scheduleValidate();
-
-    run();
   });
 
-  test('with a pre-existing credentials.json does not authenticate', () {
+  integration('with a pre-existing credentials.json does not authenticate', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
     var pub = startPubLish(server);
@@ -52,12 +51,10 @@ main() {
     });
 
     pub.kill();
-
-    run();
   });
 
-  test('with an expired credentials.json, refreshes and saves the refreshed '
-      'access token to credentials.json', () {
+  integration('with an expired credentials.json, refreshes and saves the '
+      'refreshed access token to credentials.json', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token',
         refreshToken: 'refresh token',
@@ -93,11 +90,9 @@ main() {
 
     credentialsFile(server, 'new access token', refreshToken: 'refresh token')
         .scheduleValidate();
-
-    run();
   });
 
-  test('with an expired credentials.json without a refresh token, '
+  integration('with an expired credentials.json without a refresh token, '
        'authenticates again and saves credentials.json', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token',
@@ -121,12 +116,10 @@ main() {
     pub.kill();
 
     credentialsFile(server, 'new access token').scheduleValidate();
-
-    run();
   });
 
-  test('with a malformed credentials.json, authenticates again and saves '
-      'credentials.json', () {
+  integration('with a malformed credentials.json, authenticates again and '
+      'saves credentials.json', () {
     var server = new ScheduledServer();
     dir(cachePath, [
       file('credentials.json', '{bad json')
@@ -146,11 +139,9 @@ main() {
     pub.kill();
 
     credentialsFile(server, 'new access token').scheduleValidate();
-
-    run();
   });
 
-  test('with server-rejected credentials, authenticates again and saves '
+  integration('with server-rejected credentials, authenticates again and saves '
       'credentials.json', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
@@ -177,7 +168,6 @@ main() {
         'Looks great! Are you ready to upload your package (y/n)? '
         'Pub needs your authorization to upload packages on your behalf.'));
     pub.kill();
-    run();
   });
 }
 

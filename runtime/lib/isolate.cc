@@ -45,7 +45,7 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 static void StoreError(Isolate* isolate, const Object& obj) {
   ASSERT(obj.IsError());
   Error& error = Error::Handle();
-  error ^= obj.raw();
+  error |= obj.raw();
   isolate->object_store()->set_sticky_error(error);
 }
 
@@ -62,12 +62,15 @@ static RawObject* ReceivePortCreate(intptr_t port_id) {
     ASSERT(!isolate_lib.IsNull());
     const String& class_name =
         String::Handle(isolate_lib.PrivateName(Symbols::_ReceivePortImpl()));
+    const String& function_name =
+        String::Handle(isolate_lib.PrivateName(Symbols::_get_or_create()));
     func = Resolver::ResolveStatic(isolate_lib,
                                    class_name,
-                                   Symbols::_get_or_create(),
+                                   function_name,
                                    kNumArguments,
                                    Object::empty_array(),
                                    Resolver::kIsQualified);
+    ASSERT(!func.IsNull());
     isolate->object_store()->set_receive_port_create_function(func);
   }
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
@@ -189,7 +192,7 @@ static bool CanonicalizeUri(Isolate* isolate,
     return false;
   } else if (obj.IsString()) {
     String& string_obj = String::Handle();
-    string_obj ^= obj.raw();
+    string_obj |= obj.raw();
     *canonical_uri = zone->MakeCopyOfString(string_obj.ToCString());
     return true;
   } else {
@@ -374,7 +377,7 @@ static bool RunIsolate(uword parameter) {
     }
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(isolate);
-    func ^= result.raw();
+    func |= result.raw();
     result = DartEntry::InvokeStatic(func, Object::empty_array());
     if (result.IsError()) {
       StoreError(isolate, result);
@@ -419,7 +422,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 2) {
   bool throw_exception = false;
   Function& func = Function::Handle();
   if (closure.IsClosure()) {
-    func ^= Closure::function(closure);
+    func |= Closure::function(closure);
     const Class& cls = Class::Handle(func.Owner());
     if (!func.IsClosureFunction() || !func.is_static() || !cls.IsTopLevel()) {
       throw_exception = true;
@@ -437,7 +440,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 2) {
   GET_NATIVE_ARGUMENT(Instance, callback, arguments->NativeArgAt(1));
   Function& callback_func = Function::Handle();
   if (callback.IsClosure()) {
-    callback_func ^= Closure::function(callback);
+    callback_func |= Closure::function(callback);
     const Class& cls = Class::Handle(callback_func.Owner());
     if (!callback_func.IsClosureFunction() || !callback_func.is_static() ||
         !cls.IsTopLevel()) {

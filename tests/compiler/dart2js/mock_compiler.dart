@@ -58,6 +58,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray {
     var length;
     operator[](index) {}
+    operator[]=(index, value) {}
     var add;
   }
   class JSString {
@@ -65,6 +66,17 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator[](index) {}
   }
   class JSNumber {
+    operator-() {}
+    operator +(other) {}
+    operator -(other) {}
+    operator ~/(other) {}
+    operator /(other) {}
+    operator *(other) {}
+    operator <<(other) {}
+    operator >>(other) {}
+    operator |(other) {}
+    operator &(other) {}
+    operator ^(other) {}
   }
   class JSInt {
   }
@@ -140,6 +152,18 @@ class MockCompiler extends Compiler {
     // the interfaces of the Object class which would be 'null' if the class
     // wasn't resolved.
     objectClass.ensureResolved(this);
+
+    // Our unit tests check code generation output that is affected by
+    // inlining support.
+    disableInlining = true;
+  }
+
+  /**
+   * Registers the [source] with [uri] making it possible load [source] as a
+   * library.
+   */
+  void registerSource(Uri uri, String source) {
+    sourceFiles[uri.toString()] = new MockFile(source);
   }
 
   /**

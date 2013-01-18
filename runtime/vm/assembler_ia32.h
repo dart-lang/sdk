@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,6 +22,8 @@ class Immediate : public ValueObject {
  public:
   explicit Immediate(int32_t value) : value_(value) { }
 
+  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) { }
+
   int32_t value() const { return value_; }
 
   bool is_int8() const { return Utils::IsInt(8, value_); }
@@ -33,6 +35,7 @@ class Immediate : public ValueObject {
 
   // TODO(5411081): Add DISALLOW_COPY_AND_ASSIGN(Immediate) once the mac
   // build issue is resolved.
+  // And remove the unnecessary copy constructor.
 };
 
 
@@ -68,14 +71,18 @@ class Operand : public ValueObject {
     return bit_copy<int32_t>(encoding_[length_ - 4]);
   }
 
-  bool IsRegister(Register reg) const {
-    return ((encoding_[0] & 0xF8) == 0xC0)  // Addressing mode is register only.
-        && ((encoding_[0] & 0x07) == reg);  // Register codes match.
+  Operand(const Operand& other) : ValueObject(), length_(other.length_) {
+    memmove(&encoding_[0], &other.encoding_[0], other.length_);
+  }
+
+  Operand& operator=(const Operand& other) {
+    length_ = other.length_;
+    memmove(&encoding_[0], &other.encoding_[0], other.length_);
+    return *this;
   }
 
  protected:
-  // Operand can be sub classed (e.g: Address).
-  Operand() : length_(0) { }
+  Operand() : length_(0) { }  // Needed by subclass Address.
 
   void SetModRM(int mod, Register rm) {
     ASSERT((mod & ~3) == 0);
@@ -115,10 +122,14 @@ class Operand : public ValueObject {
     return encoding_[index];
   }
 
-  friend class Assembler;
+  // Returns whether or not this operand is really the given register in
+  // disguise. Used from the assembler to generate better encodings.
+  bool IsRegister(Register reg) const {
+    return ((encoding_[0] & 0xF8) == 0xC0)  // Addressing mode is register only.
+        && ((encoding_[0] & 0x07) == reg);  // Register codes match.
+  }
 
-  // TODO(5411081): Add DISALLOW_COPY_AND_ASSIGN(Operand) once the mac
-  // build issue is resolved.
+  friend class Assembler;
 };
 
 
@@ -162,6 +173,13 @@ class Address : public Operand {
     }
   }
 
+  Address(const Address& other) : Operand(other) { }
+
+  Address& operator=(const Address& other) {
+    Operand::operator=(other);
+    return *this;
+  }
+
   static Address Absolute(const uword addr) {
     Address result;
     result.SetModRM(0, EBP);
@@ -170,19 +188,24 @@ class Address : public Operand {
   }
 
  private:
-  Address() {}
-
-  // TODO(5411081): Add DISALLOW_COPY_AND_ASSIGN(Address) once the mac
-  // build issue is resolved.
+  Address() { }  // Needed by Address::Absolute.
 };
 
 
 class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp)
-      : Address(base, disp - kHeapObjectTag) {}
+      : Address(base, disp - kHeapObjectTag) { }
+
   FieldAddress(Register base, Register index, ScaleFactor scale, int32_t disp)
-      : Address(base, index, scale, disp - kHeapObjectTag) {}
+      : Address(base, index, scale, disp - kHeapObjectTag) { }
+
+  FieldAddress(const FieldAddress& other) : Address(other) { }
+
+  FieldAddress& operator=(const FieldAddress& other) {
+    Address::operator=(other);
+    return *this;
+  }
 };
 
 
@@ -260,6 +283,7 @@ class CPUFeatures : public AllStatic {
   static void InitOnce();
   static bool sse2_supported();
   static bool sse4_1_supported();
+  static bool double_truncate_round_supported() { return sse4_1_supported(); }
 
  private:
   static const uint64_t kSSE2BitMask = static_cast<uint64_t>(1) << 26;
@@ -636,7 +660,7 @@ class Assembler : public ValueObject {
   const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg);
-  static const char* XmmRegisterName(XmmRegister reg);
+  static const char* FpuRegisterName(FpuRegister reg);
 
  private:
   AssemblerBuffer buffer_;

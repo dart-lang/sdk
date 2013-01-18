@@ -446,6 +446,11 @@ class _LazyList extends Iterable implements List {
   clear() => _throw();
   removeAt(x) => _throw();
   removeLast() => _throw();
+  remove(x) => _throw();
+  removeAll(x) => _throw();
+  retainAll(x) => _throw();
+  removeMatching(x) => _throw();
+  retainMatching(x) => _throw();
   getRange(x, y) => _throw();
   setRange(x, y, z, [a]) => _throw();
   removeRange(x, y) => _throw();

@@ -129,13 +129,34 @@ class _SocketOutputStream
   }
 
   bool _write(List<int> buffer, int offset, int len, bool copyBuffer) {
-    if (_closing || _closed) throw new StreamException("Stream closed");
+    if (_closing || _closed) {
+      if (_error) return false;
+      _error = true;
+      var e = new StreamException.streamClosed();
+      if (_onError != null) {
+        _onError(e);
+        return false;
+      } else {
+        throw e;
+      }
+    }
     int bytesWritten = 0;
     if (_pendingWrites.isEmpty) {
       // If nothing is buffered write as much as possible and buffer
       // the rest.
-      bytesWritten = _socket.writeList(buffer, offset, len);
-      if (bytesWritten == len) return true;
+      try {
+        bytesWritten = _socket.writeList(buffer, offset, len);
+        if (bytesWritten == len) return true;
+      } catch (e) {
+        if (_error) return false;
+        _error = true;
+        if (_onError != null) {
+          _onError(e);
+          return false;
+        } else {
+          throw e;
+        }
+      }
     }
 
     // Place remaining data on the pending writes queue.
@@ -163,7 +184,7 @@ class _SocketOutputStream
         bytesWritten = _socket.writeList(buffer, offset, bytesToWrite);
       } catch (e) {
         _pendingWrites.clear();
-        _onSocketError(e);
+        if (_onError != null) _onError(e);
         return;
       }
       _pendingWrites.removeBytes(bytesWritten);
@@ -192,6 +213,7 @@ class _SocketOutputStream
 
   bool _onSocketError(e) {
     destroy();
+    if (_error) return true;
     if (_onError != null) {
       _onError(e);
       return true;
@@ -206,4 +228,5 @@ class _SocketOutputStream
   Function _onClosed;
   bool _closing = false;
   bool _closed = false;
+  bool _error = false;
 }

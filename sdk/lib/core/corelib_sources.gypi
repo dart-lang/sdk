@@ -30,7 +30,6 @@
     'queue.dart',
     'regexp.dart',
     'set.dart',
-    'sort.dart',
     'sink.dart',
     'stopwatch.dart',
     'string.dart',

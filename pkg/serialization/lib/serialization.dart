@@ -87,7 +87,7 @@
  *      addressToMap(a) => {"number" : a.number, "street" : a.street,
  *          "city" : a.city};
  *      createAddress(Map m) => new Address.create(m["number"], m["street"]);
- *      fillInAddress(Map m, Address a) => a.city = m["city"];
+ *      fillInAddress(Address a, Map m) => a.city = m["city"];
  *      var serialization = new Serialization()
  *        ..addRule(
  *            new ClosureRule(anAddress.runtimeType,

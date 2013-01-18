@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test("doesn't unlock dependencies if a new dependency is already "
+  integration("doesn't unlock dependencies if a new dependency is already "
       "satisfied", () {
     servePackages([
       package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
@@ -47,7 +46,5 @@ main() {
       "baz": "1.0.0",
       "newdep": "2.0.0"
     }).scheduleValidate();
-
-    run();
   });
 }

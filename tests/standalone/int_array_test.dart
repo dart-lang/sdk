@@ -9,6 +9,50 @@ library IntArrayTest;
 
 import 'dart:scalarlist';
 
+void testInt16() {
+  Int16List intArray = new Int16List(4);
+  intArray[0] = 0;
+  intArray[1] = -1;
+  intArray[2] = -2;
+  intArray[3] = -3;
+  for (int i = 0; i < intArray.length; i++) {
+    intArray[i]++;
+  }
+  var x = intArray[0];
+  var y = intArray[1];
+  var z = intArray[2];
+  var w = intArray[3];
+  Expect.equals(1, x);
+  Expect.equals(0, y);
+  Expect.equals(-1, z);
+  Expect.equals(-2, w);
+  var t = y + 1;
+  intArray[0] = t;
+  Expect.equals(t, intArray[0]);
+}
+
+void testUint16() {
+  Uint16List intArray = new Uint16List(4);
+  intArray[0] = 0;
+  intArray[1] = 1;
+  intArray[2] = 2;
+  intArray[3] = 3;
+  for (int i = 0; i < intArray.length; i++) {
+    intArray[i]--;
+  }
+  var x = intArray[0];
+  var y = intArray[1];
+  var z = intArray[2];
+  var w = intArray[3];
+  Expect.equals(65535, x);
+  Expect.equals(0, y);
+  Expect.equals(1, z);
+  Expect.equals(2, w); 
+  var t = y + 1;
+  intArray[0] = t;
+  Expect.equals(t, intArray[0]);
+}
+
 void testInt32ToSmi() {
   Int32List intArray;
 
@@ -75,7 +119,6 @@ void testUint64ToSmi() {
   var y = intArray[1];
   var z = intArray[2];
   var w = intArray[3];
-  print(w);
   Expect.equals(4611686018427387903, x);
   Expect.equals(18446744073709551615, y);
   Expect.equals(4611686018427387904, z);
@@ -85,8 +128,9 @@ void testUint64ToSmi() {
 
 main() {
   testUint64ToSmi();
-  return;
   for (int i = 0; i < 2000; i++) {
+    testInt16();
+    testUint16();
     testInt32ToSmi();
     testUint32ToSmi();
     testInt64ToSmi();

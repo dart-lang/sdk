@@ -29,6 +29,16 @@ import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
 import '../../pub/validator.dart';
 import '../../pub/yaml/yaml.dart';
+import 'command_line_config.dart';
+
+/// This should be called at the top of a test file to set up an appropriate
+/// test configuration for the machine running the tests.
+initConfig() {
+  // If we aren't running on the bots, use the human-friendly config.
+  if (new Options().arguments.contains('--human')) {
+    configure(new CommandLineConfiguration());
+  }
+}
 
 /// Creates a new [FileDescriptor] with [name] and [contents].
 FileDescriptor file(Pattern name, String contents) =>
@@ -443,11 +453,19 @@ bool _abortScheduled = false;
 /// complete.
 final _TIMEOUT = 30000;
 
+/// Defines an integration test. The [body] should schedule a series of
+/// operations which will be run asynchronously.
+integration(String description, body()) {
+  test(description, () {
+    body();
+    _run();
+  });
+}
+
 /// Runs all the scheduled events for a test case. This should only be called
 /// once per test case.
-void run() {
+void _run() {
   var createdSandboxDir;
-
   var asyncDone = expectAsync0(() {});
 
   Future cleanup() {
@@ -525,7 +543,7 @@ void schedulePub({List args, Pattern output, Pattern error,
 /// Any futures in [args] will be resolved before the process is started.
 void runPub({List args, Pattern output, Pattern error, int exitCode: 0}) {
   schedulePub(args: args, output: output, error: error, exitCode: exitCode);
-  run();
+  _run();
 }
 
 /// Starts a Pub process and returns a [ScheduledProcess] that supports

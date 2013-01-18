@@ -33,8 +33,35 @@ class JSArray<E> implements List<E> {
     return JS('var', r'#.pop()', this);
   }
 
+  void remove(Object element) {
+    checkGrowable(this, 'remove');
+    for (int i = 0; i < this.length; i++) {
+      if (this[i] == element) {
+        JS('var', r'#.splice(#, 1)', this, i);
+        return;
+      }
+    }
+  }
+
+  void removeAll(Iterable elements) {
+    Collections.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    Collections.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(E element)) {
+    // This could, and should, be optimized.
+    Collections.removeMatching(this, test);
+  }
+
+  void reatainMatching(bool test(E element)) {
+    Collections.reatainMatching(this, test);
+  }
+
   Iterable<E> where(bool f(E element)) {
-    return new WhereIterable<E>(this, f);
+    return IterableMixinWorkaround.where(this, f);
   }
 
   void addAll(Collection<E> collection) {
@@ -53,11 +80,11 @@ class JSArray<E> implements List<E> {
   }
 
   void forEach(void f(E element)) {
-    return Collections.forEach(this, f);
+    return IterableMixinWorkaround.forEach(this, f);
   }
 
   List mappedBy(f(E element)) {
-    return new MappedList(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
   String join([String separator]) {
@@ -70,35 +97,35 @@ class JSArray<E> implements List<E> {
   }
 
   List<E> take(int n) {
-    return new ListView<E>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return new TakeWhileIterable<E>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<E> skip(int n) {
-    return new ListView<E>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return new SkipWhileIterable<E>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   E firstMatching(bool test(E value), {E orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   E lastMatching(bool test(E value), {E orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   E singleMatching(bool test(E value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   E elementAt(int index) {
@@ -142,9 +169,9 @@ class JSArray<E> implements List<E> {
     throw new StateError("More than one element");
   }
 
-  E min([int compare(E a, E b)]) => Collections.min(this, compare);
+  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
 
-  E max([int compare(E a, E b)]) => Collections.max(this, compare);
+  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
   void removeRange(int start, int length) {
     checkGrowable(this, 'removeRange');
@@ -172,7 +199,7 @@ class JSArray<E> implements List<E> {
   }
 
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
-    checkMutable(this, 'indexed set');
+    checkMutable(this, 'set range');
     if (length == 0) return;
     checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
     checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
@@ -190,14 +217,13 @@ class JSArray<E> implements List<E> {
     Arrays.copy(from, startFrom, this, start, length);
   }
 
-  bool any(bool f(E element)) => Collections.any(this, f);
+  bool any(bool f(E element)) => IterableMixinWorkaround.any(this, f);
 
-  bool every(bool f(E element)) => Collections.every(this, f);
+  bool every(bool f(E element)) => IterableMixinWorkaround.every(this, f);
 
   void sort([int compare(E a, E b)]) {
     checkMutable(this, 'sort');
-    if (compare == null) compare = Comparable.compare;
-    coreSort(this, compare);
+    IterableMixinWorkaround.sortList(this, compare);
   }
 
   int indexOf(E element, [int start = 0]) {
@@ -247,6 +273,13 @@ class JSArray<E> implements List<E> {
     if (index is !int) throw new ArgumentError(index);
     if (index >= length || index < 0) throw new RangeError.value(index);
     return JS('var', '#[#]', this, index);
+  }
+
+  void operator []=(int index, E value) {
+    checkMutable(this, 'indexed set');
+    if (index is !int) throw new ArgumentError(index);
+    if (index >= length || index < 0) throw new RangeError.value(index);
+    JS('void', r'#[#] = #', this, index, value);
   }
 }
 

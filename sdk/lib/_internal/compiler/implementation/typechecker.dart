@@ -800,6 +800,14 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     fail(node);
   }
 
+  DartType visitMixinApplication(MixinApplication node) {
+    fail(node);
+  }
+
+  DartType visitNamedMixinApplication(NamedMixinApplication node) {
+    fail(node);
+  }
+
   DartType visitDoWhile(DoWhile node) {
     StatementType bodyType = analyze(node.body);
     checkCondition(node.condition);

@@ -50,8 +50,8 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
-  
-  if (!firstConf['append_flaky_log'])  {
+
+  if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
     if (file.existsSync()) {
       file.deleteSync();
@@ -72,25 +72,21 @@ main() {
     print(Strings.join(output_words, ' '));
   }
 
-  var configurationIterator = configurations.iterator;
-  void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.moveNext()) return;
-
-    var conf = configurationIterator.current;
+  var testSuites = new List<TestSuite>();
+  for (var conf in configurations) {
     if (selectors.containsKey('co19')) {
-      queue.addTestSuite(new Co19TestSuite(conf));
+      testSuites.add(new Co19TestSuite(conf));
     }
     if (conf['runtime'] == 'vm' && selectors.containsKey('vm')) {
       // vm tests contain both cc tests (added here) and dart tests (added in
       // [TEST_SUITE_DIRECTORIES]).
-      queue.addTestSuite(new VMTestSuite(conf));
+      testSuites.add(new VMTestSuite(conf));
     }
 
     for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
       final name = testSuiteDir.filename;
       if (selectors.containsKey(name)) {
-        queue.addTestSuite(
-            new StandardTestSuite.forDirectory(conf, testSuiteDir));
+        testSuites.add(new StandardTestSuite.forDirectory(conf, testSuiteDir));
       }
     }
   }
@@ -112,8 +108,8 @@ main() {
       progressIndicator,
       startTime,
       printTiming,
-      enqueueConfiguration,
-      () => terminateHttpServer(),
+      testSuites,
+      () => TestingServerRunner.terminateHttpServers(),
       verbose,
       listTests);
 }

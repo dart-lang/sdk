@@ -32,6 +32,7 @@ class ClassBaseType implements BaseType {
   final ClassElement element;
 
   ClassBaseType(this.element);
+
   bool operator ==(BaseType other) {
     if (identical(this, other)) return true;
     if (other is! ClassBaseType) return false;
@@ -194,14 +195,15 @@ class UnionType implements ConcreteType {
 class ConcreteTypeCartesianProduct
     extends Iterable<ConcreteTypesEnvironment> {
   final ConcreteTypesInferrer inferrer;
-  final BaseType baseTypeOfThis;
+  final ClassElement typeOfThis;
   final Map<Element, ConcreteType> concreteTypes;
-  ConcreteTypeCartesianProduct(this.inferrer, this.baseTypeOfThis,
+  ConcreteTypeCartesianProduct(this.inferrer, this.typeOfThis,
                                this.concreteTypes);
   Iterator get iterator => concreteTypes.isEmpty
-      ? [new ConcreteTypesEnvironment(inferrer, baseTypeOfThis)].iterator
-      : new ConcreteTypeCartesianProductIterator(inferrer, baseTypeOfThis,
-                                                 concreteTypes);
+      ? [new ConcreteTypesEnvironment(inferrer, new ClassBaseType(typeOfThis))]
+            .iterator
+      : new ConcreteTypeCartesianProductIterator(inferrer,
+            new ClassBaseType(typeOfThis), concreteTypes);
   String toString() {
     List<ConcreteTypesEnvironment> cartesianProduct =
         new List<ConcreteTypesEnvironment>.from(this);
@@ -647,7 +649,7 @@ class ConcreteTypesInferrer {
    * of [receiverType].
    */
   ConcreteType getSendReturnType(FunctionElement function,
-                                 BaseType receiverType,
+                                 ClassElement receiverType,
                                  ArgumentsTypes argumentsTypes) {
     ConcreteType result = emptyConcreteType;
     Map<Element, ConcreteType> argumentMap =
@@ -656,6 +658,7 @@ class ConcreteTypesInferrer {
     if (argumentMap == null) {
       return emptyConcreteType;
     }
+
     argumentMap.forEach(augmentParameterType);
     ConcreteTypeCartesianProduct product =
         new ConcreteTypeCartesianProduct(this, receiverType, argumentMap);
@@ -675,62 +678,81 @@ class ConcreteTypesInferrer {
                                                 ArgumentsTypes argumentsTypes) {
     final Map<Element, ConcreteType> result = new Map<Element, ConcreteType>();
     final FunctionSignature signature = function.computeSignature(compiler);
-    // too many arguments
+
+    // guard 1: too many arguments
     if (argumentsTypes.length > signature.parameterCount) {
       return null;
     }
-    // not enough arguments
+    // guard 2: not enough arguments
     if (argumentsTypes.positional.length < signature.requiredParameterCount) {
       return null;
     }
-    final HasNextIterator<ConcreteType> remainingPositionalArguments =
-        new HasNextIterator<ConcreteType>(argumentsTypes.positional.iterator);
+    // guard 3: too many positional arguments
+    if (signature.optionalParametersAreNamed &&
+        argumentsTypes.positional.length > signature.requiredParameterCount) {
+      return null;
+    }
+
+    handleLeftoverOptionalParameter(Element parameter) {
+      // TODO(polux): use default value whenever available
+      // TODO(polux): add a marker to indicate whether an argument was provided
+      //     in order to handle "?parameter" tests
+      result[parameter] = singletonConcreteType(const NullBaseType());
+    }
+
+    final Iterator<ConcreteType> remainingPositionalArguments =
+        argumentsTypes.positional.iterator;
     // we attach each positional parameter to its corresponding positional
     // argument
     for (Link<Element> requiredParameters = signature.requiredParameters;
-         !requiredParameters.isEmpty;
-         requiredParameters = requiredParameters.tail) {
+        !requiredParameters.isEmpty;
+        requiredParameters = requiredParameters.tail) {
       final Element requiredParameter = requiredParameters.head;
-      // we know next() is defined because of the guard above
-      result[requiredParameter] = remainingPositionalArguments.next();
+      // we know moveNext() succeeds because of guard 2
+      remainingPositionalArguments.moveNext();
+      result[requiredParameter] = remainingPositionalArguments.current;
     }
-    // we attach the remaining positional arguments to their corresponding
-    // named arguments
-    Link<Element> remainingNamedParameters = signature.optionalParameters;
-    while (remainingPositionalArguments.hasNext) {
-      final Element namedParameter = remainingNamedParameters.head;
-      result[namedParameter] = remainingPositionalArguments.next();
-      // we know tail is defined because of the guard above
-      remainingNamedParameters = remainingNamedParameters.tail;
+    if (signature.optionalParametersAreNamed) {
+      // we build a map out of the remaining named parameters
+      Link<Element> remainingOptionalParameters = signature.optionalParameters;
+      final Map<SourceString, Element> leftOverNamedParameters =
+          new Map<SourceString, Element>();
+      for (;
+           !remainingOptionalParameters.isEmpty;
+           remainingOptionalParameters = remainingOptionalParameters.tail) {
+        final Element namedParameter = remainingOptionalParameters.head;
+        leftOverNamedParameters[namedParameter.name] = namedParameter;
+      }
+      // we attach the named arguments to their corresponding optional
+      // parameters
+      for (Identifier identifier in argumentsTypes.named.keys) {
+        final ConcreteType concreteType = argumentsTypes.named[identifier];
+        SourceString source = identifier.source;
+        final Element namedParameter = leftOverNamedParameters[source];
+        // unexisting or already used named parameter
+        if (namedParameter == null) return null;
+        result[namedParameter] = concreteType;
+        leftOverNamedParameters.remove(source);
+      }
+      leftOverNamedParameters.forEach((_, Element parameter) {
+        handleLeftoverOptionalParameter(parameter);
+      });
+    } else { // optional parameters are positional
+      // we attach the remaining positional arguments to their corresponding
+      // optional parameters
+      Link<Element> remainingOptionalParameters = signature.optionalParameters;
+      while (remainingPositionalArguments.moveNext()) {
+        final Element optionalParameter = remainingOptionalParameters.head;
+        result[optionalParameter] = remainingPositionalArguments.current;
+        // we know tail is defined because of guard 1
+        remainingOptionalParameters = remainingOptionalParameters.tail;
+      }
+      for (;
+           !remainingOptionalParameters.isEmpty;
+           remainingOptionalParameters = remainingOptionalParameters.tail) {
+        handleLeftoverOptionalParameter(remainingOptionalParameters.head);
+      }
     }
-    // we build a map out of the remaining named parameters
-    final Map<SourceString, Element> leftOverNamedParameters =
-        new Map<SourceString, Element>();
-    for (;
-         !remainingNamedParameters.isEmpty;
-         remainingNamedParameters = remainingNamedParameters.tail) {
-      final Element namedParameter = remainingNamedParameters.head;
-      leftOverNamedParameters[namedParameter.name] = namedParameter;
-    }
-    // we attach the named arguments to their corresponding named paramaters
-    // (we don't use foreach because we want to be able to return early)
-    for (Identifier identifier in argumentsTypes.named.keys) {
-      final ConcreteType concreteType = argumentsTypes.named[identifier];
-      SourceString source = identifier.source;
-      final Element namedParameter = leftOverNamedParameters[source];
-      // unexisting or already used named parameter
-      if (namedParameter == null) return null;
-      result[namedParameter] = concreteType;
-      leftOverNamedParameters.remove(source);
-    };
-    // we use null for each unused named parameter
-    // TODO(polux): use default value whenever available
-    // TODO(polux): add a marker to indicate whether an argument was provided
-    //     in order to handle "?parameter" tests
-    leftOverNamedParameters.forEach((_, Element namedParameter) {
-      result[namedParameter] =
-          singletonConcreteType(const NullBaseType());
-    });
     return result;
   }
 
@@ -815,7 +837,7 @@ class ConcreteTypesInferrer {
           new Selector.callDefaultConstructor(enclosingClass.getLibrary()));
         final superClassConcreteType = singletonConcreteType(
             new ClassBaseType(enclosingClass));
-        getSendReturnType(target, new ClassBaseType(enclosingClass),
+        getSendReturnType(target, enclosingClass,
             new ArgumentsTypes(new List(), new Map()));
       }
     }
@@ -1051,8 +1073,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       // exceptions for instance, we need to do it by uncommenting the following
       // line.
       // inferrer.addCaller(setter, currentMethod);
-      BaseType baseReceiverType = new ClassBaseType(receiver.enclosingElement);
-      inferrer.getSendReturnType(setter, baseReceiverType,
+      inferrer.getSendReturnType(setter, receiver.enclosingElement,
           new ArgumentsTypes([argumentType], new Map()));
     }
     return argumentType;
@@ -1062,7 +1083,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
                               SourceString name) {
     ConcreteType receiverType = analyze(receiver);
 
-    void augmentField(BaseType baseReceiverType, Element member) {
+    void augmentField(ClassElement receiverType, Element member) {
       if (member.isField()) {
         inferrer.augmentFieldType(member, argumentType);
       } else if (member.isAbstractField()){
@@ -1074,7 +1095,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         // exceptions for instance, we need to do it by uncommenting the
         // following line.
         // inferrer.addCaller(setter, currentMethod);
-        inferrer.getSendReturnType(setter, baseReceiverType,
+        inferrer.getSendReturnType(setter, receiverType,
             new ArgumentsTypes([argumentType], new Map()));
       }
       // since this is a sendSet we ignore non-fields
@@ -1083,9 +1104,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     if (receiverType.isUnkown()) {
       for (Element member in inferrer.getMembersByName(name)) {
         if (!(member.isField() || member.isAbstractField())) continue;
-        Element classElem = member.getEnclosingClass();
-        BaseType baseReceiverType = new ClassBaseType(classElem);
-        augmentField(baseReceiverType, member);
+        Element cls = member.getEnclosingClass();
+        augmentField(cls, member);
       }
     } else {
       for (BaseType baseReceiverType in receiverType.baseTypes) {
@@ -1093,7 +1113,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         ClassBaseType baseReceiverClassType = baseReceiverType;
         Element member = baseReceiverClassType.element.lookupMember(name);
         if (member != null) {
-          augmentField(baseReceiverClassType, member);
+          augmentField(baseReceiverClassType.element, member);
         }
       }
     }
@@ -1197,8 +1217,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     Element constructor = elements[node.send];
     inferrer.addCaller(constructor, currentMethod);
     ClassElement cls = constructor.enclosingElement;
-    return inferrer.getSendReturnType(constructor,
-        new ClassBaseType(cls), analyzeArguments(node.send.arguments));
+    return inferrer.getSendReturnType(constructor, cls,
+                                      analyzeArguments(node.send.arguments));
   }
 
   ConcreteType visitLiteralList(LiteralList node) {
@@ -1366,11 +1386,11 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     return inferrer.getFieldType(field);
   }
 
-  ConcreteType analyzeGetterSend(BaseType baseReceiverType,
+  ConcreteType analyzeGetterSend(ClassElement receiverType,
                                  FunctionElement getter) {
       inferrer.addCaller(getter, currentMethod);
       return inferrer.getSendReturnType(getter,
-                                        baseReceiverType,
+                                        receiverType,
                                         new ArgumentsTypes([], new Map()));
   }
 
@@ -1388,9 +1408,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
           return analyzeFieldRead(element);
         } else {
           assert(element.isGetter());
-          ClassBaseType baseReceiverType =
-              new ClassBaseType(element.enclosingElement);
-          return analyzeGetterSend(baseReceiverType, element);
+          ClassElement receiverType = element.enclosingElement;
+          return analyzeGetterSend(receiverType, element);
         }
       }
     } else {
@@ -1398,7 +1417,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       assert(node.receiver != null);
 
       ConcreteType result = inferrer.emptyConcreteType;
-      void augmentResult(BaseType baseReceiverType, Element member) {
+      void augmentResult(ClassElement baseReceiverType, Element member) {
         if (member.isField()) {
           result = inferrer.union(result, analyzeFieldRead(member));
         } else if (member.isAbstractField()){
@@ -1417,18 +1436,18 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
             inferrer.getMembersByName(node.selector.asIdentifier().source);
         for (Element member in members) {
           if (!(member.isField() || member.isAbstractField())) continue;
-          Element classElement = member.getEnclosingClass();
-          ClassBaseType baseReceiverType = new ClassBaseType(classElement);
-          augmentResult(baseReceiverType, member);
+          Element cls = member.getEnclosingClass();
+          augmentResult(cls, member);
         }
       } else {
         for (BaseType baseReceiverType in receiverType.baseTypes) {
           if (!baseReceiverType.isNull()) {
             ClassBaseType classBaseType = baseReceiverType;
-            Element getterOrField = classBaseType.element
-                .lookupMember(node.selector.asIdentifier().source);
+            ClassElement cls = classBaseType.element;
+            Element getterOrField =
+                cls.lookupMember(node.selector.asIdentifier().source);
             if (getterOrField != null) {
-              augmentResult(baseReceiverType, getterOrField);
+              augmentResult(cls, getterOrField);
             }
           }
         }
@@ -1455,26 +1474,23 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         if (!element.isFunction()) continue;
         FunctionElement method = element;
         inferrer.addCaller(method, currentMethod);
-        Element classElem = method.enclosingElement;
-        ClassBaseType baseReceiverType = new ClassBaseType(classElem);
+        Element cls = method.enclosingElement;
         result = inferrer.union(
             result,
-            inferrer.getSendReturnType(method,baseReceiverType,
-                                       argumentsTypes));
+            inferrer.getSendReturnType(method, cls, argumentsTypes));
       }
 
     } else {
       for (BaseType baseReceiverType in receiverType.baseTypes) {
         if (!baseReceiverType.isNull()) {
           ClassBaseType classBaseReceiverType = baseReceiverType;
-          FunctionElement method = classBaseReceiverType.element.lookupMember(
-              canonicalizedMethodName);
+          ClassElement cls = classBaseReceiverType.element;
+          FunctionElement method = cls.lookupMember(canonicalizedMethodName);
           if (method != null) {
             inferrer.addCaller(method, currentMethod);
             result = inferrer.union(
                 result,
-                inferrer.getSendReturnType(method, baseReceiverType,
-                                           argumentsTypes));
+                inferrer.getSendReturnType(method, cls, argumentsTypes));
           }
         }
       }

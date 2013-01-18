@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('includes transitive dependencies', () {
+  integration('includes transitive dependencies', () {
     dir(sdkPath, [
       file('revision', '1234'),
       dir('pkg', [
@@ -36,7 +35,5 @@ main() {
       'foo': '0.0.1234',
       'bar': '0.0.1234'
     }).scheduleValidate();
-
-    run();
   });
 }

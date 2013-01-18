@@ -18,8 +18,7 @@ class _FrozenCssClassSet extends CssClassSet {
 
   bool get frozen => true;
 }
-
-/// @domName $DOMNAME
+$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.createDocumentFragment();
 

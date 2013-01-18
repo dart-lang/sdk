@@ -97,7 +97,10 @@ class SsaOptimizerTask extends CompilerTask {
       // In order to generate correct code for the bailout version, we did not
       // propagate types from the instruction to the type guard. We do it
       // now to be able to optimize further.
-      work.guards.forEach((HTypeGuard guard) { guard.isEnabled = true; });
+      work.guards.forEach((HTypeGuard guard) {
+        guard.bailoutTarget.isEnabled = false;
+        guard.isEnabled = true;
+      });
       // We also need to insert range and integer checks for the type
       // guards. Now that they claim to have a certain type, some
       // depending instructions might become builtin (like native array
@@ -197,14 +200,18 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeUnary(HInvokeUnary node) {
-    HInstruction operand = node.operand;
+    HInstruction folded =
+        foldUnary(node.operation(constantSystem), node.operand);
+    return folded != null ? folded : node;
+  }
+
+  HInstruction foldUnary(UnaryOperation operation, HInstruction operand) {
     if (operand is HConstant) {
-      UnaryOperation operation = node.operation(constantSystem);
       HConstant receiver = operand;
       Constant folded = operation.fold(receiver.constant);
       if (folded != null) return graph.addConstant(folded);
     }
-    return node;
+    return null;
   }
 
   HInstruction handleInterceptorCall(HInvokeDynamicMethod node) {
@@ -228,12 +235,21 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
           node.selector, node.inputs.getRange(1, node.inputs.length - 1));
     }
 
-    Selector selector = node.selector;
-
-    if (node.isIndexOperatorOnIndexablePrimitive(types)) {
-      return new HIndex(node.inputs[1], node.inputs[2]);
+    // Try constant folding the instruction.
+    Operation operation = node.specializer.operation(constantSystem);
+    if (operation != null) {
+      HInstruction instruction = node.inputs.length == 2
+          ? foldUnary(operation, node.inputs[1])
+          : foldBinary(operation, node.inputs[1], node.inputs[2]);
+      if (instruction != null) return instruction;
     }
 
+    // Try converting the instruction to a builtin instruction.
+    HInstruction instruction =
+        node.specializer.tryConvertToBuiltin(node, types);
+    if (instruction != null) return instruction;
+
+    Selector selector = node.selector;
     SourceString selectorName = selector.name;
     Element target;
     if (input.isExtendableArray(types)) {
@@ -350,24 +366,24 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  HInstruction visitIndexAssign(HIndexAssign node) {
-    if (!node.receiver.canBePrimitive(types)) {
-      Selector selector = new Selector.indexSet();
-      return fromPrimitiveInstructionToDynamicInvocation(node, selector);
-    }
-    return node;
-  }
-
-  HInstruction visitInvokeBinary(HInvokeBinary node) {
-    HInstruction left = node.left;
-    HInstruction right = node.right;
-    BinaryOperation operation = node.operation(constantSystem);
+  HInstruction foldBinary(BinaryOperation operation,
+                          HInstruction left,
+                          HInstruction right) {
     if (left is HConstant && right is HConstant) {
       HConstant op1 = left;
       HConstant op2 = right;
       Constant folded = operation.fold(op1.constant, op2.constant);
       if (folded != null) return graph.addConstant(folded);
     }
+    return null;
+  }
+
+  HInstruction visitInvokeBinary(HInvokeBinary node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    BinaryOperation operation = node.operation(constantSystem);
+    HConstant folded = foldBinary(operation, left, right);
+    if (folded != null) return folded;
 
     if (!left.canBePrimitive(types)
         && operation.isUserDefinable()
@@ -416,7 +432,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return super.visitRelational(node);
   }
 
-  HInstruction handleIdentityCheck(HInvokeBinary node) {
+  HInstruction handleIdentityCheck(HRelational node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
     HType leftType = types[left];
@@ -753,6 +769,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (constantInterceptor == null) return node;
+    if (constantInterceptor == work.element.getEnclosingClass()) {
+      return graph.thisInstruction;
+    }
 
     Constant constant = new ConstructedConstant(
         constantInterceptor.computeType(compiler), <Constant>[]);
@@ -832,7 +851,6 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     }
     index = insertBoundsCheck(node, node.receiver, index);
     node.changeUse(node.index, index);
-    assert(node.isBuiltin(types));
   }
 
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
@@ -1484,8 +1502,20 @@ class SsaReceiverSpecialization extends HBaseVisitor
 
   void visitInterceptor(HInterceptor interceptor) {
     HInstruction receiver = interceptor.receiver;
+    JavaScriptBackend backend = compiler.backend;
     for (var user in receiver.usedBy) {
       if (user is HInterceptor && interceptor.dominates(user)) {
+        Set<ClassElement> otherIntercepted = user.interceptedClasses;
+        // If the dominated interceptor intercepts the int class or
+        // the double class, we make sure these classes are also being
+        // intercepted by the dominating interceptor. Otherwise, the
+        // dominating interceptor could just intercept the number
+        // class and therefore not implement the methods in the int or
+        // double class.
+        if (otherIntercepted.contains(backend.jsIntClass)
+            || otherIntercepted.contains(backend.jsDoubleClass)) {
+          interceptor.interceptedClasses.addAll(user.interceptedClasses);
+        }
         user.interceptedClasses = interceptor.interceptedClasses;
       }
     }

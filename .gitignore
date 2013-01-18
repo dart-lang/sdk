@@ -14,6 +14,7 @@
 /out
 /xcodebuild
 /.flaky.log
+/.debug.log
 /*.Makefile
 /*.opensdf
 /*.pyc

@@ -5,6 +5,7 @@
 library _js_helper;
 
 import 'dart:collection';
+import 'dart:collection-dev';
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -12,22 +13,6 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 
 // Performance critical helper methods.
-add(var a, var b) => (a is num && b is num)
-    ? JS('num', r'# + #', a, b)
-    : add$slow(a, b);
-
-sub(var a, var b) => (a is num && b is num)
-    ? JS('num', r'# - #', a, b)
-    : sub$slow(a, b);
-
-div(var a, var b) => (a is num && b is num)
-    ? JS('num', r'# / #', a, b)
-    : div$slow(a, b);
-
-mul(var a, var b) => (a is num && b is num)
-    ? JS('num', r'# * #', a, b)
-    : mul$slow(a, b);
-
 gt(var a, var b) => (a is num && b is num)
     ? JS('bool', r'# > #', a, b)
     : gt$slow(a, b);
@@ -60,39 +45,6 @@ leB(var a, var b) => (a is num && b is num)
     ? JS('bool', r'# <= #', a, b)
     : identical(le$slow(a, b), true);
 
-index(var a, var index) {
-  // The type test may cause a NoSuchMethodError to be thrown but
-  // that matches the specification of what the indexing operator is
-  // supposed to do.
-  bool isJsArrayOrString = JS('bool',
-      r'typeof # == "string" || #.constructor === Array',
-      a, a);
-  if (isJsArrayOrString) {
-    var key = JS('int', '# >>> 0', index);
-    if (identical(key, index) && key < JS('int', r'#.length', a)) {
-      return JS('var', r'#[#]', a, key);
-    }
-  }
-  return index$slow(a, index);
-}
-
-indexSet(var a, var index, var value) {
-  // The type test may cause a NoSuchMethodError to be thrown but
-  // that matches the specification of what the indexing operator is
-  // supposed to do.
-  bool isMutableJsArray = JS('bool',
-      r'#.constructor === Array && !#.immutable$list',
-      a, a);
-  if (isMutableJsArray) {
-    var key = JS('int', '# >>> 0', index);
-    if (identical(key, index) && key < JS('int', r'#.length', a)) {
-      JS('void', r'#[#] = #', a, key, value);
-      return;
-    }
-  }
-  indexSet$slow(a, index, value);
-}
-
 /**
  * Returns true if both arguments are numbers.
  *
@@ -112,56 +64,6 @@ bool checkNumbers(var a, var b) {
 
 bool isJsArray(var value) {
   return value != null && JS('bool', r'#.constructor === Array', value);
-}
-
-add$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('num', r'# + #', a, b);
-  }
-  return UNINTERCEPTED(a + b);
-}
-
-div$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('num', r'# / #', a, b);
-  }
-  return UNINTERCEPTED(a / b);
-}
-
-mul$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('num', r'# * #', a, b);
-  }
-  return UNINTERCEPTED(a * b);
-}
-
-sub$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('num', r'# - #', a, b);
-  }
-  return UNINTERCEPTED(a - b);
-}
-
-mod(var a, var b) {
-  if (checkNumbers(a, b)) {
-    // Euclidean Modulo.
-    num result = JS('num', r'# % #', a, b);
-    if (result == 0) return 0;  // Make sure we don't return -0.0.
-    if (result > 0) return result;
-    if (JS('num', '#', b) < 0) {
-      return result - JS('num', '#', b);
-    } else {
-      return result + JS('num', '#', b);
-    }
-  }
-  return UNINTERCEPTED(a % b);
-}
-
-tdiv(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return (JS('num', r'# / #', a, b)).truncate();
-  }
-  return UNINTERCEPTED(a ~/ b);
 }
 
 eq(var a, var b) {
@@ -218,106 +120,6 @@ le$slow(var a, var b) {
     return JS('bool', r'# <= #', a, b);
   }
   return UNINTERCEPTED(a <= b);
-}
-
-shl(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    if (JS('num', '#', b) < 0) throw new ArgumentError(b);
-    // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
-    // by 33 is hence equivalent to a shift by 1.
-    if (JS('bool', r'# > 31', b)) return 0;
-    return JS('num', r'(# << #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a << b);
-}
-
-shr(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    if (JS('num', '#', b) < 0) throw new ArgumentError(b);
-    if (JS('num', '#', a) > 0) {
-      // JavaScript only looks at the last 5 bits of the shift-amount. In JS
-      // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
-      // computation when that happens.
-      if (JS('bool', r'# > 31', b)) return 0;
-      // Given that 'a' is positive we must not use '>>'. Otherwise a number
-      // that has the 31st bit set would be treated as negative and shift in
-      // ones.
-      return JS('num', r'# >>> #', a, b);
-    }
-    // For negative numbers we just clamp the shift-by amount. 'a' could be
-    // negative but not have its 31st bit set. The ">>" would then shift in
-    // 0s instead of 1s. Therefore we cannot simply return 0xFFFFFFFF.
-    if (JS('num', '#', b) > 31) b = 31;
-    return JS('num', r'(# >> #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a >> b);
-}
-
-and(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    return JS('num', r'(# & #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a & b);
-}
-
-or(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    return JS('num', r'(# | #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a | b);
-}
-
-xor(var a, var b) {
-  // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b)) {
-    return JS('num', r'(# ^ #) >>> 0', a, b);
-  }
-  return UNINTERCEPTED(a ^ b);
-}
-
-not(var a) {
-  if (JS('bool', r'typeof # === "number"', a)) {
-    return JS('num', r'(~#) >>> 0', a);
-  }
-  return UNINTERCEPTED(~a);
-}
-
-neg(var a) {
-  if (JS('bool', r'typeof # === "number"', a)) return JS('num', r'-#', a);
-  return UNINTERCEPTED(-a);
-}
-
-index$slow(var a, var index) {
-  if (a is String || isJsArray(a)) {
-    if (index is !int) {
-      if (index is !num) throw new ArgumentError(index);
-      if (!identical(index.truncate(), index)) throw new ArgumentError(index);
-    }
-    if (index < 0 || index >= a.length) {
-      throw new RangeError.value(index);
-    }
-    return JS('', r'#[#]', a, index);
-  }
-  return UNINTERCEPTED(a[index]);
-}
-
-void indexSet$slow(var a, var index, var value) {
-  if (isJsArray(a)) {
-    if (index is !int) {
-      throw new ArgumentError(index);
-    }
-    if (index < 0 || index >= a.length) {
-      throw new RangeError.value(index);
-    }
-    checkMutable(a, 'indexed set');
-    JS('void', r'#[#] = #', a, index, value);
-    return;
-  }
-  UNINTERCEPTED(a[index] = value);
 }
 
 checkMutable(list, reason) {
@@ -561,16 +363,10 @@ class Primitives {
   }
 
   static List newGrowableList(length) {
-    // TODO(sra): For good concrete type analysis we need the JS-type to
-    // specifically name the JavaScript Array implementation.  'List' matches
-    // all the dart:html types that implement List<T>.
     return JS('=List', r'new Array(#)', length);
   }
 
   static List newFixedList(length) {
-    // TODO(sra): For good concrete type analysis we need the JS-type to
-    // specifically name the JavaScript Array implementation.  'List' matches
-    // all the dart:html types that implement List<T>.
     var result = JS('=List', r'new Array(#)', length);
     JS('void', r'#.fixed$length = #', result, true);
     return result;
@@ -815,7 +611,7 @@ class Primitives {
     return JS('var', r'$[#]', className);
   }
 
-  static bool identical(a, b) {
+  static bool identicalImplementation(a, b) {
     return JS('bool', '# == null', a)
       ? JS('bool', '# == null', b)
       : JS('bool', '# === #', a, b);
@@ -944,30 +740,86 @@ class MathNatives {
 }
 
 /**
- * Throws the given Dart object as an exception by wrapping it in a
- * proper JavaScript error object and then throwing that. That gives
- * us a reasonable stack trace on most JavaScript implementations. The
- * code in [unwrapException] deals with getting the original Dart
+ * Wrap the given Dart object and record a stack trace.
+ *
+ * The code in [unwrapException] deals with getting the original Dart
  * object out of the wrapper again.
  */
 $throw(ex) {
   if (ex == null) ex = const NullThrownError();
-  var jsError = JS('var', r'new Error()');
-  JS('void', r'#.name = #', jsError, ex);
-  JS('void', r'#.description = #', jsError, ex);
-  JS('void', r'#.dartException = #', jsError, ex);
-  JS('void', r'#.toString = #', jsError,
-     DART_CLOSURE_TO_JS(toStringWrapper));
-  JS('void', r'throw #', jsError);
+  var wrapper = new DartError(ex);
+
+  if (JS('bool', '!!Error.captureStackTrace')) {
+    // Use V8 API for recording a "fast" stack trace (this installs a
+    // "stack" property getter on [wrapper]).
+    JS('void', r'Error.captureStackTrace(#, #)',
+       wrapper, RAW_DART_FUNCTION_REF($throw));
+  } else {
+    // Otherwise, produce a stack trace and record it in the wrapper.
+    // This is a slower way to create a stack trace which works on
+    // some browsers, but may simply evaluate to null.
+    String stackTrace = JS('', 'new Error().stack');
+    JS('void', '#.stack = #', wrapper, stackTrace);
+  }
+  return wrapper;
 }
 
 /**
- * This method is installed as JavaScript toString method on exception
- * objects in [$throw]. So JavaScript 'this' binds to an instance of
- * JavaScript Error to which we have added a property 'dartException'
- * which holds a Dart object.
+ * Wrapper class for throwing exceptions.
  */
-toStringWrapper() => JS('', r'this.dartException').toString();
+class DartError {
+  /// The Dart object (or primitive JavaScript value) which was thrown is
+  /// attached to this object as a field named 'dartException'.  We do this
+  /// only in raw JS so that we can use the 'in' operator and so that the
+  /// minifier does not rename the field.  Therefore it is not declared as a
+  /// real field.
+
+  DartError(var dartException) {
+    JS('void', '#.dartException = #', this, dartException);
+    // Install a toString method that the JavaScript system will call
+    // to format uncaught exceptions.
+    JS('void', '#.toString = #', this, DART_CLOSURE_TO_JS(toStringWrapper));
+  }
+
+  /**
+   * V8/Chrome installs a property getter, "stack", when calling
+   * Error.captureStackTrace (see [$throw]). In [$throw], we make sure
+   * that this property is always set.
+   */
+  String get stack => JS('', '#.stack', this);
+
+  /**
+   * This method can be invoked by calling toString from
+   * JavaScript. See the constructor of this class.
+   *
+   * We only expect this method to be called (indirectly) by the
+   * browser when an uncaught exception occurs. Instance of this class
+   * should never escape into Dart code (except for [$throw] above).
+   */
+  String toString() {
+    // If Error.captureStackTrace is available, accessing stack from
+    // this method would cause recursion because the stack property
+    // (on this object) is actually a getter which calls toString on
+    // this object (via the wrapper installed in this class'
+    // constructor). Fortunately, both Chrome and d8 prints the stack
+    // trace and Chrome even applies source maps to the stack
+    // trace. Remeber, this method is only ever invoked by the browser
+    // when an uncaught exception occurs.
+    var dartException = JS('var', r'#.dartException', this);
+    if (JS('bool', '!!Error.captureStackTrace') || (stack == null)) {
+      return dartException.toString();
+    } else {
+      return '$dartException\n$stack';
+    }
+  }
+
+  /**
+   * This method is installed as JavaScript toString method on
+   * [DartError].  So JavaScript 'this' binds to an instance of
+   * DartError.
+   */
+  static toStringWrapper() => JS('', r'this').toString();
+}
 
 makeLiteralListConst(list) {
   JS('bool', r'#.immutable$list = #', list, true);
@@ -1035,6 +887,7 @@ unwrapException(ex) {
       if (message.endsWith('is null') ||
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined') ||
+          message.endsWith('of undefined') ||
           message.endsWith('of null')) {
         return new NoSuchMethodError(null, '<unknown>', [], {});
       } else if (contains(message, ' has no method ') ||
@@ -1147,8 +1000,10 @@ convertDartClosureToJS(closure, int arity) {
   // executes.
   var currentIsolate = JS_CURRENT_ISOLATE();
 
+  // We use $0 and $1 to not clash with variable names used by the
+  // compiler and/or minifier.
   function = JS("var",
-                r"""function(a, b) { return #(#, #, #, a, b); }""",
+                r"""function($0, $1) { return #(#, #, #, $0, $1); }""",
                 DART_CLOSURE_TO_JS(invokeClosure),
                 closure,
                 JS_CURRENT_ISOLATE(),

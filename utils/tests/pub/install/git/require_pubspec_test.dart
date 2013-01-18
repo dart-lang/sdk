@@ -7,10 +7,9 @@ library pub_tests;
 import 'dart:io';
 
 import '../../test_pub.dart';
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 main() {
-  test('requires the dependency to have a pubspec', () {
+  integration('requires the dependency to have a pubspec', () {
     ensureGit();
 
     git('foo.git', [
@@ -25,7 +24,5 @@ main() {
         error: new RegExp('^Package "foo" doesn\'t have a '
             'pubspec.yaml file.'),
         exitCode: 1);
-
-    run();
   });
 }

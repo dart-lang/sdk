@@ -392,22 +392,19 @@ class VariableNames {
     return swapTemp;
   }
 
-  VariableNames(Map<Element, String> parameterNames)
+  VariableNames()
     : ownName = new Map<HInstruction, String>(),
       copyHandlers = new Map<HBasicBlock, CopyHandler>(),
       allUsedNames = new Set<String>(),
-      swapTemp = computeFreshWithPrefix("t", parameterNames),
-      stateName = computeFreshWithPrefix("state", parameterNames);
+      swapTemp = computeFreshWithPrefix("t"),
+      stateName = computeFreshWithPrefix("state");
 
   int get numberOfVariables => allUsedNames.length;
 
   /** Returns a fresh variable with the given prefix. */
-  static String computeFreshWithPrefix(String prefix,
-                                       Map<Element, String> parameterNames) {
-    Set<String> parameters = new Set<String>.from(parameterNames.values);
+  static String computeFreshWithPrefix(String prefix) {
     String name = '${prefix}0';
     int i = 1;
-    while (parameters.contains(name)) name = '$prefix${i++}';
     return name;
   }
 
@@ -443,14 +440,12 @@ class VariableNamer {
   final VariableNames names;
   final Compiler compiler;
   final Set<String> usedNames;
-  final Map<Element, String> parameterNames;
   final List<String> freeTemporaryNames;
   int temporaryIndex = 0;
   static final RegExp regexp = new RegExp('t[0-9]+');
 
   VariableNamer(LiveEnvironment environment,
                 this.names,
-                this.parameterNames,
                 this.compiler)
     : usedNames = new Set<String>(),
       freeTemporaryNames = new List<String>() {
@@ -516,13 +511,7 @@ class VariableNamer {
       if (name != null) return addAllocatedName(instruction, name);
     }
 
-    if (instruction is HParameterValue
-        && instruction.sourceElement.enclosingElement.isNative()) {
-      // The dom/html libraries have inline JS code that reference	
-      // parameter names directly. Long-term such code will be rejected.
-      // Now, just don't mangle the parameter name.
-      name = instruction.sourceElement.name.slowToString();
-    } else if (instruction.sourceElement != null) {
+    if (instruction.sourceElement != null) {
       name = allocateWithHint(instruction.sourceElement.name.slowToString());
     } else {
       // We could not find an element for the instruction. If the
@@ -539,9 +528,6 @@ class VariableNamer {
   }
 
   String addAllocatedName(HInstruction instruction, String name) {
-    if (instruction is HParameterValue) {
-      parameterNames[instruction.sourceElement] = name;
-    }
     usedNames.add(name);
     names.addNameUsed(name);
     names.ownName[instruction] = name;
@@ -584,17 +570,14 @@ class SsaVariableAllocator extends HBaseVisitor {
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
   final Map<HInstruction, LiveInterval> liveIntervals;
   final Set<HInstruction> generateAtUseSite;
-  final Map<Element, String> parameterNames;
 
   final VariableNames names;
 
   SsaVariableAllocator(this.compiler,
                        this.liveInstructions,
                        this.liveIntervals,
-                       this.generateAtUseSite,
-                       parameterNames)
-    : this.names = new VariableNames(parameterNames),
-      this.parameterNames = parameterNames;
+                       this.generateAtUseSite)
+    : this.names = new VariableNames();
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -602,7 +585,7 @@ class SsaVariableAllocator extends HBaseVisitor {
 
   void visitBasicBlock(HBasicBlock block) {
     VariableNamer namer = new VariableNamer(
-        liveInstructions[block], names, parameterNames, compiler);
+        liveInstructions[block], names, compiler);
 
     block.forEachPhi((HPhi phi) {
       handlePhi(phi, namer);
@@ -618,11 +601,8 @@ class SsaVariableAllocator extends HBaseVisitor {
    * have no users or that are generated at use site does not need a name.
    */
   bool needsName(HInstruction instruction) {
-    // TODO(ngeoffray): locals/parameters are being generated at use site,
-    // but we need a name for them. We should probably not make
-    // them generate at use site to make things simpler.
     if (instruction is HThis) return false;
-    if (instruction is HLocalValue) return true;
+    if (instruction is HParameterValue) return true;
     if (instruction.usedBy.isEmpty) return false;
     if (generateAtUseSite.contains(instruction)) return false;
     // A [HCheck] instruction that has control flow needs a name only if its

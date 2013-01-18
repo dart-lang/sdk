@@ -187,7 +187,7 @@ abstract class _ByteArrayBase {
 
   // Methods implementing the Collection interface.
 
-  bool contains(element) => Collections.contains(this, element);
+  bool contains(element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(element)) {
     var len = this.length;
@@ -197,56 +197,56 @@ abstract class _ByteArrayBase {
   }
 
   List mappedBy(f(int element)) {
-    return new MappedList<int, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
   String join([String separator]) {
-    return Collections.join(this, separator);
+    return IterableMixinWorkaround.join(this, separator);
   }
 
   dynamic reduce(dynamic initialValue,
                  dynamic combine(dynamic initialValue, element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   Collection where(bool f(element)) {
-    return new WhereIterable<int>(this, f);
+    return IterableMixinWorkaround.where(this, f);
   }
 
   List<int> take(int n) {
-    return new ListView<int>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<int> skip(int n) {
-    return new ListView<int>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   bool every(bool f(element)) {
-    return Collections.every(this, f);
+    return IterableMixinWorkaround.every(this, f);
   }
 
   bool any(bool f(element)) {
-    return Collections.any(this, f);
+    return IterableMixinWorkaround.any(this, f);
   }
 
   int firstMatching(bool test(int value), {int orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -284,8 +284,7 @@ abstract class _ByteArrayBase {
   }
 
   void sort([int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
-    coreSort(this, compare);
+    return IterableMixinWorkaround.sortList(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
@@ -307,6 +306,31 @@ abstract class _ByteArrayBase {
         "Cannot remove from a non-extendable array");
   }
 
+  void remove(Object element) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
   int get first {
     if (length > 0) return this[0];
     throw new StateError("No elements");
@@ -323,9 +347,9 @@ abstract class _ByteArrayBase {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   void removeRange(int start, int length) {
     throw new UnsupportedError(
@@ -1963,8 +1987,7 @@ class _ByteArrayViewBase extends Collection<int> {
   }
 
   void sort([int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
-    coreSort(this, compare);
+    return IterableMixinWorkaround.sortList(this, compare);
   }
 
   int indexOf(element, [int start = 0]) {
@@ -1982,6 +2005,36 @@ class _ByteArrayViewBase extends Collection<int> {
   }
 
   int removeLast() {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  int removeAt(int index) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void remove(Object element) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  void retainMatching(bool test(int element)) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }

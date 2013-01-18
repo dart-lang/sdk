@@ -17,6 +17,7 @@ _pure_interfaces = set([
     'ElementTraversal',
     'EventListener',
     'MediaQueryListListener',
+    'MutationCallback',
     'NodeSelector',
     'SVGExternalResourcesRequired',
     'SVGFilterPrimitiveStandardAttributes',
@@ -74,9 +75,9 @@ interface_factories = {
     'Int16Array': '_TypedArrayFactoryProvider',
     'Int32Array': '_TypedArrayFactoryProvider',
     'Uint8Array': '_TypedArrayFactoryProvider',
+    'Uint8ClampedArray': '_TypedArrayFactoryProvider',
     'Uint16Array': '_TypedArrayFactoryProvider',
     'Uint32Array': '_TypedArrayFactoryProvider',
-    'Uint8ClampedArray': '_TypedArrayFactoryProvider',
 }
 
 #
@@ -640,6 +641,12 @@ _all_but_ie9_annotations = [
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
 ]
 
+_webkit_experimental_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  "@Experimental()",
+]
+
 _history_annotations = _all_but_ie9_annotations
 
 _performance_annotations = [
@@ -655,8 +662,16 @@ _performance_annotations = [
 dart_annotations = {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
+  'DOMApplicationCache': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.IE, '10')",
+    "@SupportedBrowser(SupportedBrowser.OPERA)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
   'DOMWindow.indexedDB': _indexed_db_annotations,
   'DOMWindow.performance': _performance_annotations,
+  'DOMWindow.webkitNotifications': _webkit_experimental_annotations,
   'DOMWindow.webkitRequestFileSystem': _file_system_annotations,
   'DOMWindow.webkitResolveLocalFileSystemURL': _file_system_annotations,
   'Element.webkitCreateShadowRoot': [
@@ -672,21 +687,13 @@ dart_annotations = {
     "@Experimental()",
   ],
   'HTMLDataListElement': _all_but_ie9_annotations,
-  'HTMLDetailsElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-    "@Experimental()",
-  ],
+  'HTMLDetailsElement': _webkit_experimental_annotations,
   'HTMLEmbedElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.IE)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
-  'HTMLKeygenElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-    "@Experimental()",
-  ],
+  'HTMLKeygenElement': _webkit_experimental_annotations,
   'HTMLMeterElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -714,6 +721,7 @@ dart_annotations = {
   ],
   'IDBFactory': _indexed_db_annotations,
   'IDBDatabase': _indexed_db_annotations,
+  'NotificationCenter': _webkit_experimental_annotations,
   'Performance': _performance_annotations,
   'ShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
@@ -731,9 +739,16 @@ def FindCommonAnnotations(interface_name, member_name=None):
   """ Finds annotations common between dart2js and dartium.
   """
   if member_name:
-    return dart_annotations.get('%s.%s' % (interface_name, member_name))
+    key = '%s.%s' % (interface_name, member_name)
   else:
-    return dart_annotations.get(interface_name)
+    key = interface_name
+
+  annotations = ["@DocsEditable",
+                 "@DomName('" + key + "')",]
+  if (dart_annotations.get(key) != None):
+    annotations.extend(dart_annotations.get(key))
+
+  return annotations
 
 def FindDart2JSAnnotations(idl_type, interface_name, member_name):
   """ Finds all annotations for Dart2JS members- including annotations for
@@ -750,6 +765,13 @@ def FindDart2JSAnnotations(idl_type, interface_name, member_name):
     else:
       annotations = ann2
   return annotations
+
+def AnyConversionAnnotations(idl_type, interface_name, member_name):
+  if (dart_annotations.get('%s.%s' % (interface_name, member_name)) or
+      _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name)):
+    return True
+  else:
+    return False
 
 def _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name):
   """ Finds dart2js-specific annotations. This does not include ones shared with
@@ -852,9 +874,9 @@ class IDLTypeInfo(object):
         'Int16Array',
         'Int32Array',
         'Uint8Array',
+        'Uint8ClampedArray',
         'Uint16Array',
         'Uint32Array',
-        'Uint8ClampedArray',
     ]
 
     if self._idl_type in WTF_INCLUDES:
@@ -1081,7 +1103,7 @@ class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
 class TypeData(object):
   def __init__(self, clazz, dart_type=None, native_type=None,
                merged_interface=None, merged_into=None,
-               custom_to_dart=None, custom_to_native=None,
+               custom_to_dart=False, custom_to_native=False,
                conversion_includes=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
@@ -1221,6 +1243,7 @@ _idl_type_registry = {
     'Int16Array': TypedArrayTypeData('int'),
     'Int32Array': TypedArrayTypeData('int'),
     'Uint8Array': TypedArrayTypeData('int'),
+    'Uint8ClampedArray': TypedArrayTypeData('int'),
     'Uint16Array': TypedArrayTypeData('int'),
     'Uint32Array': TypedArrayTypeData('int'),
 

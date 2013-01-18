@@ -5,6 +5,7 @@
 library dart.core;
 
 import "dart:collection";
+import "dart:collection-dev";
 
 part "bool.dart";
 part "collection.dart";
@@ -33,7 +34,6 @@ part "queue.dart";
 part "regexp.dart";
 part "set.dart";
 part "sink.dart";
-part "sort.dart";
 part "stopwatch.dart";
 part "string.dart";
 part "string_buffer.dart";

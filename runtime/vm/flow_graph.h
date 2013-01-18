@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23,6 +23,11 @@ class BlockIterator : public ValueObject {
  public:
   explicit BlockIterator(const GrowableArray<BlockEntryInstr*>& block_order)
       : block_order_(block_order), current_(0) { }
+
+  BlockIterator(const BlockIterator& other)
+      : ValueObject(),
+        block_order_(other.block_order_),
+        current_(other.current_) { }
 
   void Advance() {
     ASSERT(!Done());
@@ -97,6 +102,10 @@ class FlowGraph : public ZoneAllocated {
 
   GraphEntryInstr* graph_entry() const {
     return graph_entry_;
+  }
+
+  ConstantInstr* constant_null() const {
+    return constant_null_;
   }
 
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
@@ -178,6 +187,7 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
   bool invalid_dominator_tree_;
+  ConstantInstr* constant_null_;
 };
 
 }  // namespace dart

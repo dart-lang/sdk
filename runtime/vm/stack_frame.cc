@@ -152,27 +152,17 @@ bool StackFrame::FindExceptionHandler(uword* handler_pc) const {
     return false;  // Stub frames do not have exception handlers.
   }
 
-  // First try to find pc descriptor for the current pc.
-  intptr_t try_index = -1;
+  // Find pc descriptor for the current pc.
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if ((static_cast<uword>(descriptors.PC(i)) == pc()) &&
         (descriptors.TryIndex(i) != -1)) {
-      try_index = descriptors.TryIndex(i);
-      break;
-    }
-  }
-  if (try_index != -1) {
-    // We found a pc descriptor, now try to see if we have an
-    // exception catch handler for this try index.
-    const ExceptionHandlers& handlers =
-        ExceptionHandlers::Handle(code.exception_handlers());
-    for (intptr_t j = 0; j < handlers.Length(); j++) {
-      if (handlers.TryIndex(j) == try_index) {
-        *handler_pc = handlers.HandlerPC(j);
-        return true;
-      }
+      const intptr_t try_index = descriptors.TryIndex(i);
+      const ExceptionHandlers& handlers =
+          ExceptionHandlers::Handle(code.exception_handlers());
+      *handler_pc = handlers.HandlerPC(try_index);
+      return true;
     }
   }
   return false;
@@ -325,7 +315,7 @@ RawFunction* InlinedFunctionsInDartFrameIterator::GetNextFunction(uword* pc) {
     index_ += 1;
     intptr_t deopt_instr = deopt_info_.Instruction(cur_index);
     ASSERT(deopt_instr != DeoptInstr::kRetBeforeAddress);
-    if ((deopt_instr == DeoptInstr::kRetAfterAddress)) {
+    if (deopt_instr == DeoptInstr::kRetAfterAddress) {
       intptr_t deopt_from_index = deopt_info_.FromIndex(cur_index);
       *pc = DeoptInstr::GetRetAfterAddress(deopt_from_index,
                                            object_table_,

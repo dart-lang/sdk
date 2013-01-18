@@ -135,3 +135,18 @@ class EventStreamProvider<T extends Event> {
     return new _EventStream(e, _eventType, useCapture);
   }
 }
+
+/**
+ * A factory to expose DOM events as streams, where the DOM event name has to
+ * be determined on the fly (for example, mouse wheel events).
+ */
+class _CustomEventStreamProvider<T extends Event>
+    implements EventStreamProvider<T> {
+
+  final _eventTypeGetter;
+  const _CustomEventStreamProvider(this._eventTypeGetter);
+
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+    return new _EventStream(e, _eventTypeGetter(e), useCapture);
+  }
+}

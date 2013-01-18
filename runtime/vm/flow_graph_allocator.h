@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -275,10 +275,10 @@ class FlowGraphAllocator : public ValueObject {
   GrowableArray<LiveRange*> unallocated_xmm_;
 
   LiveRange* cpu_regs_[kNumberOfCpuRegisters];
-  LiveRange* xmm_regs_[kNumberOfXmmRegisters];
+  LiveRange* fpu_regs_[kNumberOfFpuRegisters];
 
   bool blocked_cpu_registers_[kNumberOfCpuRegisters];
-  bool blocked_xmm_registers_[kNumberOfXmmRegisters];
+  bool blocked_fpu_registers_[kNumberOfFpuRegisters];
 
 #if defined(DEBUG)
   GrowableArray<LiveRange*> temporaries_;

@@ -67,11 +67,12 @@ abstract class CssClassSet implements Set<String> {
 
   void add(String value) {
     // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough
+    // or if the browser natively does enough.
     _modify((s) => s.add(value));
   }
 
-  bool remove(String value) {
+  bool remove(Object value) {
+    if (value is! String) return false;
     Set<String> s = readClasses();
     bool result = s.remove(value);
     writeClasses(s);
@@ -79,12 +80,24 @@ abstract class CssClassSet implements Set<String> {
   }
 
   void addAll(Iterable<String> iterable) {
-    // TODO - see comment above about validation
+    // TODO - see comment above about validation.
     _modify((s) => s.addAll(iterable));
   }
 
   void removeAll(Iterable<String> iterable) {
     _modify((s) => s.removeAll(iterable));
+  }
+
+  void retainAll(Iterable<String> iterable) {
+    _modify((s) => s.retainAll(iterable));
+  }
+
+  void removeMatching(bool test(String name)) {
+    _modify((s) => s.removeMatching(test));
+  }
+
+  void retainMatching(bool test(String name)) {
+    _modify((s) => s.retainMatching(test));
   }
 
   bool isSubsetOf(Collection<String> collection) =>

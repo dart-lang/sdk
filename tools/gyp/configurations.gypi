@@ -23,6 +23,8 @@
     ['"<(target_arch)"=="x64"', { 'dart_target_arch': 'X64', }],
     ['"<(target_arch)"=="arm"', { 'dart_target_arch': 'ARM', }],
     ['"<(target_arch)"=="simarm"', { 'dart_target_arch': 'SIMARM', }],
+    ['"<(target_arch)"=="mips"', { 'dart_target_arch': 'MIPS', }],
+    ['"<(target_arch)"=="simmips"', { 'dart_target_arch': 'SIMMIPS', }],
   ],
   },
   'conditions': [
@@ -57,6 +59,20 @@
         'abstract': 1,
         'defines': [
           'TARGET_ARCH_ARM',
+        ],
+      },
+
+      'Dart_simmips_Base': {
+        'abstract': 1,
+        'defines': [
+          'TARGET_ARCH_MIPS',
+        ]
+      },
+
+      'Dart_mips_Base': {
+        'abstract': 1,
+        'defines': [
+          'TARGET_ARCH_MIPS',
         ],
       },
 
@@ -98,11 +114,7 @@
       },
 
       'ReleaseSIMARM': {
-        # Should not inherit from Dart_Release (see DebugSIMARM).
-        'inherit_from': ['Dart_Base', 'Dart_simarm_Base'],
-        'defines': [
-          'NDEBUG',
-        ],
+        'inherit_from': ['Dart_Base', 'Dart_simarm_Base', 'Dart_Release'],
       },
 
       'DebugARM': {
@@ -111,6 +123,28 @@
 
       'ReleaseARM': {
         'inherit_from': ['Dart_Base', 'Dart_arm_Base', 'Dart_Release'],
+      },
+
+      'DebugSIMMIPS': {
+        # Should not inherit from Dart_Debug because Dart_simmips_Base defines
+        # the optimization level to be -O3, as the simulator runs too slow
+        # otherwise.
+        'inherit_from': ['Dart_Base', 'Dart_simmips_Base'],
+        'defines': [
+          'DEBUG',
+        ],
+      },
+
+      'ReleaseSIMMIPS': {
+        'inherit_from': ['Dart_Base', 'Dart_simmips_Base', 'Dart_Release'],
+      },
+
+      'DebugMIPS': {
+        'inherit_from': ['Dart_Base', 'Dart_mips_Base', 'Dart_Debug'],
+      },
+
+      'ReleaseMIPS': {
+        'inherit_from': ['Dart_Base', 'Dart_mips_Base', 'Dart_Release'],
       },
 
       # These targets assume that target_arch is passed in explicitly

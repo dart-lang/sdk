@@ -2,6 +2,7 @@ library html;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:collection-dev';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -72,38 +73,40 @@ _callPortSync(num id, var message) {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName AbstractWorker
+@DocsEditable
+@DomName('AbstractWorker')
 class AbstractWorker extends EventTarget {
   AbstractWorker.internal() : super.internal();
 
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   AbstractWorkerEvents get on =>
     new AbstractWorkerEvents(this);
 
-
-  /** @domName AbstractWorker.addEventListener */
+  @DocsEditable
+  @DomName('AbstractWorker.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_addEventListener_Callback";
 
-
-  /** @domName AbstractWorker.dispatchEvent */
+  @DocsEditable
+  @DomName('AbstractWorker.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "AbstractWorker_dispatchEvent_Callback";
 
-
-  /** @domName AbstractWorker.removeEventListener */
+  @DocsEditable
+  @DomName('AbstractWorker.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_removeEventListener_Callback";
 
   Stream<Event> get onError => errorEvent.forTarget(this);
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class AbstractWorkerEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   AbstractWorkerEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -113,143 +116,144 @@ class AbstractWorkerEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLAnchorElement
+@DocsEditable
+@DomName('HTMLAnchorElement')
 class AnchorElement extends _Element_Merged {
   AnchorElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
     if (href != null) e.href = href;
     return e;
   }
 
-
-  /** @domName HTMLAnchorElement.download */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.download')
   String get download native "HTMLAnchorElement_download_Getter";
 
-
-  /** @domName HTMLAnchorElement.download */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.download')
   void set download(String value) native "HTMLAnchorElement_download_Setter";
 
-
-  /** @domName HTMLAnchorElement.hash */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.hash')
   String get hash native "HTMLAnchorElement_hash_Getter";
 
-
-  /** @domName HTMLAnchorElement.hash */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.hash')
   void set hash(String value) native "HTMLAnchorElement_hash_Setter";
 
-
-  /** @domName HTMLAnchorElement.host */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.host')
   String get host native "HTMLAnchorElement_host_Getter";
 
-
-  /** @domName HTMLAnchorElement.host */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.host')
   void set host(String value) native "HTMLAnchorElement_host_Setter";
 
-
-  /** @domName HTMLAnchorElement.hostname */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.hostname')
   String get hostname native "HTMLAnchorElement_hostname_Getter";
 
-
-  /** @domName HTMLAnchorElement.hostname */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.hostname')
   void set hostname(String value) native "HTMLAnchorElement_hostname_Setter";
 
-
-  /** @domName HTMLAnchorElement.href */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.href')
   String get href native "HTMLAnchorElement_href_Getter";
 
-
-  /** @domName HTMLAnchorElement.href */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.href')
   void set href(String value) native "HTMLAnchorElement_href_Setter";
 
-
-  /** @domName HTMLAnchorElement.hreflang */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.hreflang')
   String get hreflang native "HTMLAnchorElement_hreflang_Getter";
 
-
-  /** @domName HTMLAnchorElement.hreflang */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.hreflang')
   void set hreflang(String value) native "HTMLAnchorElement_hreflang_Setter";
 
-
-  /** @domName HTMLAnchorElement.name */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.name')
   String get name native "HTMLAnchorElement_name_Getter";
 
-
-  /** @domName HTMLAnchorElement.name */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.name')
   void set name(String value) native "HTMLAnchorElement_name_Setter";
 
-
-  /** @domName HTMLAnchorElement.origin */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.origin')
   String get origin native "HTMLAnchorElement_origin_Getter";
 
-
-  /** @domName HTMLAnchorElement.pathname */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.pathname')
   String get pathname native "HTMLAnchorElement_pathname_Getter";
 
-
-  /** @domName HTMLAnchorElement.pathname */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.pathname')
   void set pathname(String value) native "HTMLAnchorElement_pathname_Setter";
 
-
-  /** @domName HTMLAnchorElement.ping */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.ping')
   String get ping native "HTMLAnchorElement_ping_Getter";
 
-
-  /** @domName HTMLAnchorElement.ping */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.ping')
   void set ping(String value) native "HTMLAnchorElement_ping_Setter";
 
-
-  /** @domName HTMLAnchorElement.port */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.port')
   String get port native "HTMLAnchorElement_port_Getter";
 
-
-  /** @domName HTMLAnchorElement.port */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.port')
   void set port(String value) native "HTMLAnchorElement_port_Setter";
 
-
-  /** @domName HTMLAnchorElement.protocol */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.protocol')
   String get protocol native "HTMLAnchorElement_protocol_Getter";
 
-
-  /** @domName HTMLAnchorElement.protocol */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.protocol')
   void set protocol(String value) native "HTMLAnchorElement_protocol_Setter";
 
-
-  /** @domName HTMLAnchorElement.rel */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.rel')
   String get rel native "HTMLAnchorElement_rel_Getter";
 
-
-  /** @domName HTMLAnchorElement.rel */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.rel')
   void set rel(String value) native "HTMLAnchorElement_rel_Setter";
 
-
-  /** @domName HTMLAnchorElement.search */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.search')
   String get search native "HTMLAnchorElement_search_Getter";
 
-
-  /** @domName HTMLAnchorElement.search */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.search')
   void set search(String value) native "HTMLAnchorElement_search_Setter";
 
-
-  /** @domName HTMLAnchorElement.target */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.target')
   String get target native "HTMLAnchorElement_target_Getter";
 
-
-  /** @domName HTMLAnchorElement.target */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.target')
   void set target(String value) native "HTMLAnchorElement_target_Setter";
 
-
-  /** @domName HTMLAnchorElement.type */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.type')
   String get type native "HTMLAnchorElement_type_Getter";
 
-
-  /** @domName HTMLAnchorElement.type */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.type')
   void set type(String value) native "HTMLAnchorElement_type_Setter";
 
-
-  /** @domName HTMLAnchorElement.toString */
+  @DocsEditable
+  @DomName('HTMLAnchorElement.toString')
   String toString() native "HTMLAnchorElement_toString_Callback";
 
 }
@@ -260,16 +264,17 @@ class AnchorElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitAnimationEvent
+@DocsEditable
+@DomName('WebKitAnimationEvent')
 class AnimationEvent extends Event {
   AnimationEvent.internal() : super.internal();
 
-
-  /** @domName WebKitAnimationEvent.animationName */
+  @DocsEditable
+  @DomName('WebKitAnimationEvent.animationName')
   String get animationName native "WebKitAnimationEvent_animationName_Getter";
 
-
-  /** @domName WebKitAnimationEvent.elapsedTime */
+  @DocsEditable
+  @DomName('WebKitAnimationEvent.elapsedTime')
   num get elapsedTime native "WebKitAnimationEvent_elapsedTime_Getter";
 
 }
@@ -280,107 +285,13 @@ class AnimationEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLAppletElement
-class AppletElement extends _Element_Merged {
-  AppletElement.internal() : super.internal();
-
-
-  /** @domName HTMLAppletElement.align */
-  String get align native "HTMLAppletElement_align_Getter";
-
-
-  /** @domName HTMLAppletElement.align */
-  void set align(String value) native "HTMLAppletElement_align_Setter";
-
-
-  /** @domName HTMLAppletElement.alt */
-  String get alt native "HTMLAppletElement_alt_Getter";
-
-
-  /** @domName HTMLAppletElement.alt */
-  void set alt(String value) native "HTMLAppletElement_alt_Setter";
-
-
-  /** @domName HTMLAppletElement.archive */
-  String get archive native "HTMLAppletElement_archive_Getter";
-
-
-  /** @domName HTMLAppletElement.archive */
-  void set archive(String value) native "HTMLAppletElement_archive_Setter";
-
-
-  /** @domName HTMLAppletElement.code */
-  String get code native "HTMLAppletElement_code_Getter";
-
-
-  /** @domName HTMLAppletElement.code */
-  void set code(String value) native "HTMLAppletElement_code_Setter";
-
-
-  /** @domName HTMLAppletElement.codeBase */
-  String get codeBase native "HTMLAppletElement_codeBase_Getter";
-
-
-  /** @domName HTMLAppletElement.codeBase */
-  void set codeBase(String value) native "HTMLAppletElement_codeBase_Setter";
-
-
-  /** @domName HTMLAppletElement.height */
-  String get height native "HTMLAppletElement_height_Getter";
-
-
-  /** @domName HTMLAppletElement.height */
-  void set height(String value) native "HTMLAppletElement_height_Setter";
-
-
-  /** @domName HTMLAppletElement.hspace */
-  String get hspace native "HTMLAppletElement_hspace_Getter";
-
-
-  /** @domName HTMLAppletElement.hspace */
-  void set hspace(String value) native "HTMLAppletElement_hspace_Setter";
-
-
-  /** @domName HTMLAppletElement.name */
-  String get name native "HTMLAppletElement_name_Getter";
-
-
-  /** @domName HTMLAppletElement.name */
-  void set name(String value) native "HTMLAppletElement_name_Setter";
-
-
-  /** @domName HTMLAppletElement.object */
-  String get object native "HTMLAppletElement_object_Getter";
-
-
-  /** @domName HTMLAppletElement.object */
-  void set object(String value) native "HTMLAppletElement_object_Setter";
-
-
-  /** @domName HTMLAppletElement.vspace */
-  String get vspace native "HTMLAppletElement_vspace_Getter";
-
-
-  /** @domName HTMLAppletElement.vspace */
-  void set vspace(String value) native "HTMLAppletElement_vspace_Setter";
-
-
-  /** @domName HTMLAppletElement.width */
-  String get width native "HTMLAppletElement_width_Getter";
-
-
-  /** @domName HTMLAppletElement.width */
-  void set width(String value) native "HTMLAppletElement_width_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DOMApplicationCache
+@DocsEditable
+@DomName('DOMApplicationCache')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.OPERA)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ApplicationCache extends EventTarget {
   ApplicationCache.internal() : super.internal();
 
@@ -400,7 +311,11 @@ class ApplicationCache extends EventTarget {
 
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ApplicationCacheEvents get on =>
     new ApplicationCacheEvents(this);
 
@@ -416,32 +331,32 @@ class ApplicationCache extends EventTarget {
 
   static const int UPDATEREADY = 4;
 
-
-  /** @domName DOMApplicationCache.status */
+  @DocsEditable
+  @DomName('DOMApplicationCache.status')
   int get status native "DOMApplicationCache_status_Getter";
 
-
-  /** @domName DOMApplicationCache.abort */
+  @DocsEditable
+  @DomName('DOMApplicationCache.abort')
   void abort() native "DOMApplicationCache_abort_Callback";
 
-
-  /** @domName DOMApplicationCache.addEventListener */
+  @DocsEditable
+  @DomName('DOMApplicationCache.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_addEventListener_Callback";
 
-
-  /** @domName DOMApplicationCache.dispatchEvent */
+  @DocsEditable
+  @DomName('DOMApplicationCache.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "DOMApplicationCache_dispatchEvent_Callback";
 
-
-  /** @domName DOMApplicationCache.removeEventListener */
+  @DocsEditable
+  @DomName('DOMApplicationCache.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_removeEventListener_Callback";
 
-
-  /** @domName DOMApplicationCache.swapCache */
+  @DocsEditable
+  @DomName('DOMApplicationCache.swapCache')
   void swapCache() native "DOMApplicationCache_swapCache_Callback";
 
-
-  /** @domName DOMApplicationCache.update */
+  @DocsEditable
+  @DomName('DOMApplicationCache.update')
   void update() native "DOMApplicationCache_update_Callback";
 
   Stream<Event> get onCached => cachedEvent.forTarget(this);
@@ -462,33 +377,33 @@ class ApplicationCache extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class ApplicationCacheEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   ApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get cached => this['cached'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get checking => this['checking'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get downloading => this['downloading'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get noUpdate => this['noupdate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get obsolete => this['obsolete'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get updateReady => this['updateready'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -498,87 +413,88 @@ class ApplicationCacheEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLAreaElement
+@DocsEditable
+@DomName('HTMLAreaElement')
 class AreaElement extends _Element_Merged {
   AreaElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory AreaElement() => document.$dom_createElement("area");
 
-
-  /** @domName HTMLAreaElement.alt */
+  @DocsEditable
+  @DomName('HTMLAreaElement.alt')
   String get alt native "HTMLAreaElement_alt_Getter";
 
-
-  /** @domName HTMLAreaElement.alt */
+  @DocsEditable
+  @DomName('HTMLAreaElement.alt')
   void set alt(String value) native "HTMLAreaElement_alt_Setter";
 
-
-  /** @domName HTMLAreaElement.coords */
+  @DocsEditable
+  @DomName('HTMLAreaElement.coords')
   String get coords native "HTMLAreaElement_coords_Getter";
 
-
-  /** @domName HTMLAreaElement.coords */
+  @DocsEditable
+  @DomName('HTMLAreaElement.coords')
   void set coords(String value) native "HTMLAreaElement_coords_Setter";
 
-
-  /** @domName HTMLAreaElement.hash */
+  @DocsEditable
+  @DomName('HTMLAreaElement.hash')
   String get hash native "HTMLAreaElement_hash_Getter";
 
-
-  /** @domName HTMLAreaElement.host */
+  @DocsEditable
+  @DomName('HTMLAreaElement.host')
   String get host native "HTMLAreaElement_host_Getter";
 
-
-  /** @domName HTMLAreaElement.hostname */
+  @DocsEditable
+  @DomName('HTMLAreaElement.hostname')
   String get hostname native "HTMLAreaElement_hostname_Getter";
 
-
-  /** @domName HTMLAreaElement.href */
+  @DocsEditable
+  @DomName('HTMLAreaElement.href')
   String get href native "HTMLAreaElement_href_Getter";
 
-
-  /** @domName HTMLAreaElement.href */
+  @DocsEditable
+  @DomName('HTMLAreaElement.href')
   void set href(String value) native "HTMLAreaElement_href_Setter";
 
-
-  /** @domName HTMLAreaElement.pathname */
+  @DocsEditable
+  @DomName('HTMLAreaElement.pathname')
   String get pathname native "HTMLAreaElement_pathname_Getter";
 
-
-  /** @domName HTMLAreaElement.ping */
+  @DocsEditable
+  @DomName('HTMLAreaElement.ping')
   String get ping native "HTMLAreaElement_ping_Getter";
 
-
-  /** @domName HTMLAreaElement.ping */
+  @DocsEditable
+  @DomName('HTMLAreaElement.ping')
   void set ping(String value) native "HTMLAreaElement_ping_Setter";
 
-
-  /** @domName HTMLAreaElement.port */
+  @DocsEditable
+  @DomName('HTMLAreaElement.port')
   String get port native "HTMLAreaElement_port_Getter";
 
-
-  /** @domName HTMLAreaElement.protocol */
+  @DocsEditable
+  @DomName('HTMLAreaElement.protocol')
   String get protocol native "HTMLAreaElement_protocol_Getter";
 
-
-  /** @domName HTMLAreaElement.search */
+  @DocsEditable
+  @DomName('HTMLAreaElement.search')
   String get search native "HTMLAreaElement_search_Getter";
 
-
-  /** @domName HTMLAreaElement.shape */
+  @DocsEditable
+  @DomName('HTMLAreaElement.shape')
   String get shape native "HTMLAreaElement_shape_Getter";
 
-
-  /** @domName HTMLAreaElement.shape */
+  @DocsEditable
+  @DomName('HTMLAreaElement.shape')
   void set shape(String value) native "HTMLAreaElement_shape_Setter";
 
-
-  /** @domName HTMLAreaElement.target */
+  @DocsEditable
+  @DomName('HTMLAreaElement.target')
   String get target native "HTMLAreaElement_target_Getter";
 
-
-  /** @domName HTMLAreaElement.target */
+  @DocsEditable
+  @DomName('HTMLAreaElement.target')
   void set target(String value) native "HTMLAreaElement_target_Setter";
 
 }
@@ -589,7 +505,8 @@ class AreaElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ArrayBuffer
+@DocsEditable
+@DomName('ArrayBuffer')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -597,30 +514,30 @@ class AreaElement extends _Element_Merged {
 class ArrayBuffer extends NativeFieldWrapperClass1 {
   ArrayBuffer.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory ArrayBuffer(int length) => ArrayBuffer._create(length);
   static ArrayBuffer _create(int length) native "ArrayBuffer_constructor_Callback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName ArrayBuffer.byteLength */
+  @DocsEditable
+  @DomName('ArrayBuffer.byteLength')
   int get byteLength native "ArrayBuffer_byteLength_Getter";
 
-  ArrayBuffer slice(/*long*/ begin, [/*long*/ end]) {
+  ArrayBuffer slice(int begin, [int end]) {
     if (?end) {
       return _slice_1(begin, end);
     }
     return _slice_2(begin);
   }
 
-
-  /** @domName ArrayBuffer.slice_1 */
+  @DocsEditable
+  @DomName('ArrayBuffer.slice_1')
   ArrayBuffer _slice_1(begin, end) native "ArrayBuffer_slice_1_Callback";
 
-
-  /** @domName ArrayBuffer.slice_2 */
+  @DocsEditable
+  @DomName('ArrayBuffer.slice_2')
   ArrayBuffer _slice_2(begin) native "ArrayBuffer_slice_2_Callback";
 
 }
@@ -631,7 +548,8 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ArrayBufferView
+@DocsEditable
+@DomName('ArrayBufferView')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -639,16 +557,16 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
 class ArrayBufferView extends NativeFieldWrapperClass1 {
   ArrayBufferView.internal();
 
-
-  /** @domName ArrayBufferView.buffer */
+  @DocsEditable
+  @DomName('ArrayBufferView.buffer')
   ArrayBuffer get buffer native "ArrayBufferView_buffer_Getter";
 
-
-  /** @domName ArrayBufferView.byteLength */
+  @DocsEditable
+  @DomName('ArrayBufferView.byteLength')
   int get byteLength native "ArrayBufferView_byteLength_Getter";
 
-
-  /** @domName ArrayBufferView.byteOffset */
+  @DocsEditable
+  @DomName('ArrayBufferView.byteOffset')
   int get byteOffset native "ArrayBufferView_byteOffset_Getter";
 
 }
@@ -659,33 +577,10 @@ class ArrayBufferView extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Attr
+@DocsEditable
+@DomName('Attr')
 class Attr extends Node {
   Attr.internal() : super.internal();
-
-
-  /** @domName Attr.isId */
-  bool get isId native "Attr_isId_Getter";
-
-
-  /** @domName Attr.name */
-  String get name native "Attr_name_Getter";
-
-
-  /** @domName Attr.ownerElement */
-  Element get ownerElement native "Attr_ownerElement_Getter";
-
-
-  /** @domName Attr.specified */
-  bool get specified native "Attr_specified_Getter";
-
-
-  /** @domName Attr.value */
-  String get value native "Attr_value_Getter";
-
-
-  /** @domName Attr.value */
-  void set value(String value) native "Attr_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -695,11 +590,12 @@ class Attr extends Node {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLAudioElement
+@DocsEditable
+@DomName('HTMLAudioElement')
 class AudioElement extends MediaElement {
   AudioElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory AudioElement([String src]) {
     if (!?src) {
       return AudioElement._create();
@@ -716,11 +612,12 @@ class AudioElement extends MediaElement {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLBRElement
+@DocsEditable
+@DomName('HTMLBRElement')
 class BRElement extends _Element_Merged {
   BRElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory BRElement() => document.$dom_createElement("br");
 
 }
@@ -731,12 +628,13 @@ class BRElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName BarInfo
+@DocsEditable
+@DomName('BarInfo')
 class BarInfo extends NativeFieldWrapperClass1 {
   BarInfo.internal();
 
-
-  /** @domName BarInfo.visible */
+  @DocsEditable
+  @DomName('BarInfo.visible')
   bool get visible native "BarInfo_visible_Getter";
 
 }
@@ -747,27 +645,28 @@ class BarInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLBaseElement
+@DocsEditable
+@DomName('HTMLBaseElement')
 class BaseElement extends _Element_Merged {
   BaseElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory BaseElement() => document.$dom_createElement("base");
 
-
-  /** @domName HTMLBaseElement.href */
+  @DocsEditable
+  @DomName('HTMLBaseElement.href')
   String get href native "HTMLBaseElement_href_Getter";
 
-
-  /** @domName HTMLBaseElement.href */
+  @DocsEditable
+  @DomName('HTMLBaseElement.href')
   void set href(String value) native "HTMLBaseElement_href_Setter";
 
-
-  /** @domName HTMLBaseElement.target */
+  @DocsEditable
+  @DomName('HTMLBaseElement.target')
   String get target native "HTMLBaseElement_target_Getter";
 
-
-  /** @domName HTMLBaseElement.target */
+  @DocsEditable
+  @DomName('HTMLBaseElement.target')
   void set target(String value) native "HTMLBaseElement_target_Setter";
 
 }
@@ -778,43 +677,8 @@ class BaseElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLBaseFontElement
-class BaseFontElement extends _Element_Merged {
-  BaseFontElement.internal() : super.internal();
-
-
-  /** @domName HTMLBaseFontElement.color */
-  String get color native "HTMLBaseFontElement_color_Getter";
-
-
-  /** @domName HTMLBaseFontElement.color */
-  void set color(String value) native "HTMLBaseFontElement_color_Setter";
-
-
-  /** @domName HTMLBaseFontElement.face */
-  String get face native "HTMLBaseFontElement_face_Getter";
-
-
-  /** @domName HTMLBaseFontElement.face */
-  void set face(String value) native "HTMLBaseFontElement_face_Setter";
-
-
-  /** @domName HTMLBaseFontElement.size */
-  int get size native "HTMLBaseFontElement_size_Getter";
-
-
-  /** @domName HTMLBaseFontElement.size */
-  void set size(int value) native "HTMLBaseFontElement_size_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName BatteryManager
+@DocsEditable
+@DomName('BatteryManager')
 class BatteryManager extends EventTarget {
   BatteryManager.internal() : super.internal();
 
@@ -826,36 +690,37 @@ class BatteryManager extends EventTarget {
 
   static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
 
-
-  /** @domName BatteryManager.charging */
+  @DocsEditable
+  @DomName('BatteryManager.charging')
   bool get charging native "BatteryManager_charging_Getter";
 
-
-  /** @domName BatteryManager.chargingTime */
+  @DocsEditable
+  @DomName('BatteryManager.chargingTime')
   num get chargingTime native "BatteryManager_chargingTime_Getter";
 
-
-  /** @domName BatteryManager.dischargingTime */
+  @DocsEditable
+  @DomName('BatteryManager.dischargingTime')
   num get dischargingTime native "BatteryManager_dischargingTime_Getter";
 
-
-  /** @domName BatteryManager.level */
+  @DocsEditable
+  @DomName('BatteryManager.level')
   num get level native "BatteryManager_level_Getter";
 
-
-  /** @domName BatteryManager.addEventListener */
+  @DocsEditable
+  @DomName('BatteryManager.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_addEventListener_Callback";
 
-
-  /** @domName BatteryManager.dispatchEvent */
+  @DocsEditable
+  @DomName('BatteryManager.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "BatteryManager_dispatchEvent_Callback";
 
-
-  /** @domName BatteryManager.removeEventListener */
+  @DocsEditable
+  @DomName('BatteryManager.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_removeEventListener_Callback";
 
   Stream<Event> get onChargingChange => chargingChangeEvent.forTarget(this);
@@ -868,21 +733,21 @@ class BatteryManager extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class BatteryManagerEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   BatteryManagerEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get chargingChange => this['chargingchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get chargingTimeChange => this['chargingtimechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get levelChange => this['levelchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -892,12 +757,13 @@ class BatteryManagerEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName BeforeLoadEvent
+@DocsEditable
+@DomName('BeforeLoadEvent')
 class BeforeLoadEvent extends Event {
   BeforeLoadEvent.internal() : super.internal();
 
-
-  /** @domName BeforeLoadEvent.url */
+  @DocsEditable
+  @DomName('BeforeLoadEvent.url')
   String get url native "BeforeLoadEvent_url_Getter";
 
 }
@@ -906,11 +772,12 @@ class BeforeLoadEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Blob
+@DocsEditable
+@DomName('Blob')
 class Blob extends NativeFieldWrapperClass1 {
   Blob.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory Blob(List blobParts, [String type, String endings]) {
     if (!?type) {
       return Blob._create(blobParts);
@@ -922,15 +789,15 @@ class Blob extends NativeFieldWrapperClass1 {
   }
   static Blob _create(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 
-
-  /** @domName Blob.size */
+  @DocsEditable
+  @DomName('Blob.size')
   int get size native "Blob_size_Getter";
 
-
-  /** @domName Blob.type */
+  @DocsEditable
+  @DomName('Blob.type')
   String get type native "Blob_type_Getter";
 
-  Blob slice([/*long long*/ start, /*long long*/ end, /*DOMString*/ contentType]) {
+  Blob slice([int start, int end, String contentType]) {
     if (?contentType) {
       return _slice_1(start, end, contentType);
     }
@@ -943,20 +810,20 @@ class Blob extends NativeFieldWrapperClass1 {
     return _slice_4();
   }
 
-
-  /** @domName Blob.slice_1 */
+  @DocsEditable
+  @DomName('Blob.slice_1')
   Blob _slice_1(start, end, contentType) native "Blob_slice_1_Callback";
 
-
-  /** @domName Blob.slice_2 */
+  @DocsEditable
+  @DomName('Blob.slice_2')
   Blob _slice_2(start, end) native "Blob_slice_2_Callback";
 
-
-  /** @domName Blob.slice_3 */
+  @DocsEditable
+  @DomName('Blob.slice_3')
   Blob _slice_3(start) native "Blob_slice_3_Callback";
 
-
-  /** @domName Blob.slice_4 */
+  @DocsEditable
+  @DomName('Blob.slice_4')
   Blob _slice_4() native "Blob_slice_4_Callback";
 
 }
@@ -968,7 +835,8 @@ class Blob extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLBodyElement
+@DocsEditable
+@DomName('HTMLBodyElement')
 class BodyElement extends _Element_Merged {
   BodyElement.internal() : super.internal();
 
@@ -998,20 +866,13 @@ class BodyElement extends _Element_Merged {
 
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  ///@docsEditable true
+  @DocsEditable
   factory BodyElement() => document.$dom_createElement("body");
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   BodyElementEvents get on =>
     new BodyElementEvents(this);
-
-
-  /** @domName HTMLBodyElement.vLink */
-  String get vLink native "HTMLBodyElement_vLink_Getter";
-
-
-  /** @domName HTMLBodyElement.vLink */
-  void set vLink(String value) native "HTMLBodyElement_vLink_Setter";
 
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
@@ -1041,48 +902,48 @@ class BodyElement extends _Element_Merged {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class BodyElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   BodyElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeUnload => this['beforeunload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get hashChange => this['hashchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get offline => this['offline'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get online => this['online'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get popState => this['popstate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get resize => this['resize'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get storage => this['storage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1092,119 +953,120 @@ class BodyElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLButtonElement
+@DocsEditable
+@DomName('HTMLButtonElement')
 class ButtonElement extends _Element_Merged {
   ButtonElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory ButtonElement() => document.$dom_createElement("button");
 
-
-  /** @domName HTMLButtonElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLButtonElement.autofocus')
   bool get autofocus native "HTMLButtonElement_autofocus_Getter";
 
-
-  /** @domName HTMLButtonElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLButtonElement.autofocus')
   void set autofocus(bool value) native "HTMLButtonElement_autofocus_Setter";
 
-
-  /** @domName HTMLButtonElement.disabled */
+  @DocsEditable
+  @DomName('HTMLButtonElement.disabled')
   bool get disabled native "HTMLButtonElement_disabled_Getter";
 
-
-  /** @domName HTMLButtonElement.disabled */
+  @DocsEditable
+  @DomName('HTMLButtonElement.disabled')
   void set disabled(bool value) native "HTMLButtonElement_disabled_Setter";
 
-
-  /** @domName HTMLButtonElement.form */
+  @DocsEditable
+  @DomName('HTMLButtonElement.form')
   FormElement get form native "HTMLButtonElement_form_Getter";
 
-
-  /** @domName HTMLButtonElement.formAction */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formAction')
   String get formAction native "HTMLButtonElement_formAction_Getter";
 
-
-  /** @domName HTMLButtonElement.formAction */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formAction')
   void set formAction(String value) native "HTMLButtonElement_formAction_Setter";
 
-
-  /** @domName HTMLButtonElement.formEnctype */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formEnctype')
   String get formEnctype native "HTMLButtonElement_formEnctype_Getter";
 
-
-  /** @domName HTMLButtonElement.formEnctype */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formEnctype')
   void set formEnctype(String value) native "HTMLButtonElement_formEnctype_Setter";
 
-
-  /** @domName HTMLButtonElement.formMethod */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formMethod')
   String get formMethod native "HTMLButtonElement_formMethod_Getter";
 
-
-  /** @domName HTMLButtonElement.formMethod */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formMethod')
   void set formMethod(String value) native "HTMLButtonElement_formMethod_Setter";
 
-
-  /** @domName HTMLButtonElement.formNoValidate */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formNoValidate')
   bool get formNoValidate native "HTMLButtonElement_formNoValidate_Getter";
 
-
-  /** @domName HTMLButtonElement.formNoValidate */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formNoValidate')
   void set formNoValidate(bool value) native "HTMLButtonElement_formNoValidate_Setter";
 
-
-  /** @domName HTMLButtonElement.formTarget */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formTarget')
   String get formTarget native "HTMLButtonElement_formTarget_Getter";
 
-
-  /** @domName HTMLButtonElement.formTarget */
+  @DocsEditable
+  @DomName('HTMLButtonElement.formTarget')
   void set formTarget(String value) native "HTMLButtonElement_formTarget_Setter";
 
-
-  /** @domName HTMLButtonElement.labels */
+  @DocsEditable
+  @DomName('HTMLButtonElement.labels')
   List<Node> get labels native "HTMLButtonElement_labels_Getter";
 
-
-  /** @domName HTMLButtonElement.name */
+  @DocsEditable
+  @DomName('HTMLButtonElement.name')
   String get name native "HTMLButtonElement_name_Getter";
 
-
-  /** @domName HTMLButtonElement.name */
+  @DocsEditable
+  @DomName('HTMLButtonElement.name')
   void set name(String value) native "HTMLButtonElement_name_Setter";
 
-
-  /** @domName HTMLButtonElement.type */
+  @DocsEditable
+  @DomName('HTMLButtonElement.type')
   String get type native "HTMLButtonElement_type_Getter";
 
-
-  /** @domName HTMLButtonElement.type */
+  @DocsEditable
+  @DomName('HTMLButtonElement.type')
   void set type(String value) native "HTMLButtonElement_type_Setter";
 
-
-  /** @domName HTMLButtonElement.validationMessage */
+  @DocsEditable
+  @DomName('HTMLButtonElement.validationMessage')
   String get validationMessage native "HTMLButtonElement_validationMessage_Getter";
 
-
-  /** @domName HTMLButtonElement.validity */
+  @DocsEditable
+  @DomName('HTMLButtonElement.validity')
   ValidityState get validity native "HTMLButtonElement_validity_Getter";
 
-
-  /** @domName HTMLButtonElement.value */
+  @DocsEditable
+  @DomName('HTMLButtonElement.value')
   String get value native "HTMLButtonElement_value_Getter";
 
-
-  /** @domName HTMLButtonElement.value */
+  @DocsEditable
+  @DomName('HTMLButtonElement.value')
   void set value(String value) native "HTMLButtonElement_value_Setter";
 
-
-  /** @domName HTMLButtonElement.willValidate */
+  @DocsEditable
+  @DomName('HTMLButtonElement.willValidate')
   bool get willValidate native "HTMLButtonElement_willValidate_Getter";
 
-
-  /** @domName HTMLButtonElement.checkValidity */
+  @DocsEditable
+  @DomName('HTMLButtonElement.checkValidity')
   bool checkValidity() native "HTMLButtonElement_checkValidity_Callback";
 
-
-  /** @domName HTMLButtonElement.setCustomValidity */
+  @DocsEditable
+  @DomName('HTMLButtonElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLButtonElement_setCustomValidity_Callback";
 
 }
@@ -1215,7 +1077,8 @@ class ButtonElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CDATASection
+@DocsEditable
+@DomName('CDATASection')
 class CDataSection extends Text {
   CDataSection.internal() : super.internal();
 
@@ -1225,11 +1088,12 @@ class CDataSection extends Text {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLCanvasElement
+@DocsEditable
+@DomName('HTMLCanvasElement')
 class CanvasElement extends _Element_Merged {
   CanvasElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory CanvasElement({int width, int height}) {
     var e = document.$dom_createElement("canvas");
     if (width != null) e.width = width;
@@ -1237,28 +1101,28 @@ class CanvasElement extends _Element_Merged {
     return e;
   }
 
-
-  /** @domName HTMLCanvasElement.height */
+  @DocsEditable
+  @DomName('HTMLCanvasElement.height')
   int get height native "HTMLCanvasElement_height_Getter";
 
-
-  /** @domName HTMLCanvasElement.height */
+  @DocsEditable
+  @DomName('HTMLCanvasElement.height')
   void set height(int value) native "HTMLCanvasElement_height_Setter";
 
-
-  /** @domName HTMLCanvasElement.width */
+  @DocsEditable
+  @DomName('HTMLCanvasElement.width')
   int get width native "HTMLCanvasElement_width_Getter";
 
-
-  /** @domName HTMLCanvasElement.width */
+  @DocsEditable
+  @DomName('HTMLCanvasElement.width')
   void set width(int value) native "HTMLCanvasElement_width_Setter";
 
-
-  /** @domName HTMLCanvasElement.getContext */
+  @DocsEditable
+  @DomName('HTMLCanvasElement.getContext')
   Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
 
-
-  /** @domName HTMLCanvasElement.toDataURL */
+  @DocsEditable
+  @DomName('HTMLCanvasElement.toDataURL')
   String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
 
@@ -1271,12 +1135,13 @@ class CanvasElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CanvasGradient
+@DocsEditable
+@DomName('CanvasGradient')
 class CanvasGradient extends NativeFieldWrapperClass1 {
   CanvasGradient.internal();
 
-
-  /** @domName CanvasGradient.addColorStop */
+  @DocsEditable
+  @DomName('CanvasGradient.addColorStop')
   void addColorStop(num offset, String color) native "CanvasGradient_addColorStop_Callback";
 
 }
@@ -1287,7 +1152,8 @@ class CanvasGradient extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CanvasPattern
+@DocsEditable
+@DomName('CanvasPattern')
 class CanvasPattern extends NativeFieldWrapperClass1 {
   CanvasPattern.internal();
 
@@ -1299,12 +1165,13 @@ class CanvasPattern extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CanvasRenderingContext
+@DocsEditable
+@DomName('CanvasRenderingContext')
 class CanvasRenderingContext extends NativeFieldWrapperClass1 {
   CanvasRenderingContext.internal();
 
-
-  /** @domName CanvasRenderingContext.canvas */
+  @DocsEditable
+  @DomName('CanvasRenderingContext.canvas')
   CanvasElement get canvas native "CanvasRenderingContext_canvas_Getter";
 
 }
@@ -1313,195 +1180,196 @@ class CanvasRenderingContext extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName CanvasRenderingContext2D
+@DocsEditable
+@DomName('CanvasRenderingContext2D')
 class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasRenderingContext2D.internal() : super.internal();
 
-
-  /** @domName CanvasRenderingContext2D.fillStyle */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.fillStyle')
   dynamic get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.fillStyle */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.fillStyle')
   void set fillStyle(dynamic value) native "CanvasRenderingContext2D_fillStyle_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.font */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.font')
   String get font native "CanvasRenderingContext2D_font_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.font */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.font')
   void set font(String value) native "CanvasRenderingContext2D_font_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.globalAlpha */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.globalAlpha')
   num get globalAlpha native "CanvasRenderingContext2D_globalAlpha_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.globalAlpha */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.globalAlpha')
   void set globalAlpha(num value) native "CanvasRenderingContext2D_globalAlpha_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.globalCompositeOperation */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   String get globalCompositeOperation native "CanvasRenderingContext2D_globalCompositeOperation_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.globalCompositeOperation */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   void set globalCompositeOperation(String value) native "CanvasRenderingContext2D_globalCompositeOperation_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.lineCap */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.lineCap')
   String get lineCap native "CanvasRenderingContext2D_lineCap_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.lineCap */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.lineCap')
   void set lineCap(String value) native "CanvasRenderingContext2D_lineCap_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.lineDashOffset */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.lineDashOffset')
   num get lineDashOffset native "CanvasRenderingContext2D_lineDashOffset_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.lineDashOffset */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.lineDashOffset')
   void set lineDashOffset(num value) native "CanvasRenderingContext2D_lineDashOffset_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.lineJoin */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.lineJoin')
   String get lineJoin native "CanvasRenderingContext2D_lineJoin_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.lineJoin */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.lineJoin')
   void set lineJoin(String value) native "CanvasRenderingContext2D_lineJoin_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.lineWidth */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.lineWidth')
   num get lineWidth native "CanvasRenderingContext2D_lineWidth_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.lineWidth */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.lineWidth')
   void set lineWidth(num value) native "CanvasRenderingContext2D_lineWidth_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.miterLimit */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.miterLimit')
   num get miterLimit native "CanvasRenderingContext2D_miterLimit_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.miterLimit */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.miterLimit')
   void set miterLimit(num value) native "CanvasRenderingContext2D_miterLimit_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.shadowBlur */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.shadowBlur')
   num get shadowBlur native "CanvasRenderingContext2D_shadowBlur_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.shadowBlur */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.shadowBlur')
   void set shadowBlur(num value) native "CanvasRenderingContext2D_shadowBlur_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.shadowColor */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.shadowColor')
   String get shadowColor native "CanvasRenderingContext2D_shadowColor_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.shadowColor */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.shadowColor')
   void set shadowColor(String value) native "CanvasRenderingContext2D_shadowColor_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.shadowOffsetX */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.shadowOffsetX')
   num get shadowOffsetX native "CanvasRenderingContext2D_shadowOffsetX_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.shadowOffsetX */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.shadowOffsetX')
   void set shadowOffsetX(num value) native "CanvasRenderingContext2D_shadowOffsetX_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.shadowOffsetY */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.shadowOffsetY')
   num get shadowOffsetY native "CanvasRenderingContext2D_shadowOffsetY_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.shadowOffsetY */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.shadowOffsetY')
   void set shadowOffsetY(num value) native "CanvasRenderingContext2D_shadowOffsetY_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.strokeStyle */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.strokeStyle')
   dynamic get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.strokeStyle */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.strokeStyle')
   void set strokeStyle(dynamic value) native "CanvasRenderingContext2D_strokeStyle_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.textAlign */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.textAlign')
   String get textAlign native "CanvasRenderingContext2D_textAlign_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.textAlign */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.textAlign')
   void set textAlign(String value) native "CanvasRenderingContext2D_textAlign_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.textBaseline */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.textBaseline')
   String get textBaseline native "CanvasRenderingContext2D_textBaseline_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.textBaseline */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.textBaseline')
   void set textBaseline(String value) native "CanvasRenderingContext2D_textBaseline_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
   num get webkitBackingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
   bool get webkitImageSmoothingEnabled native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.webkitImageSmoothingEnabled */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
   void set webkitImageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.webkitLineDash */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitLineDash')
   List get webkitLineDash native "CanvasRenderingContext2D_webkitLineDash_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.webkitLineDash */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitLineDash')
   void set webkitLineDash(List value) native "CanvasRenderingContext2D_webkitLineDash_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.webkitLineDashOffset */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
   num get webkitLineDashOffset native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
 
-
-  /** @domName CanvasRenderingContext2D.webkitLineDashOffset */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
   void set webkitLineDashOffset(num value) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
 
-
-  /** @domName CanvasRenderingContext2D.arc */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.arc')
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "CanvasRenderingContext2D_arc_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.arcTo */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.arcTo')
   void arcTo(num x1, num y1, num x2, num y2, num radius) native "CanvasRenderingContext2D_arcTo_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.beginPath */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.beginPath')
   void beginPath() native "CanvasRenderingContext2D_beginPath_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.bezierCurveTo */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.bezierCurveTo')
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native "CanvasRenderingContext2D_bezierCurveTo_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.clearRect */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.clearRect')
   void clearRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_clearRect_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.clip */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.clip')
   void clip() native "CanvasRenderingContext2D_clip_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.closePath */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.closePath')
   void closePath() native "CanvasRenderingContext2D_closePath_Callback";
 
-  ImageData createImageData(imagedata_OR_sw, [/*float*/ sh]) {
+  ImageData createImageData(imagedata_OR_sw, [num sh]) {
     if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
       return _createImageData_1(imagedata_OR_sw);
     }
@@ -1511,19 +1379,19 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName CanvasRenderingContext2D.createImageData_1 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.createImageData_1')
   ImageData _createImageData_1(imagedata_OR_sw) native "CanvasRenderingContext2D_createImageData_1_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.createImageData_2 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.createImageData_2')
   ImageData _createImageData_2(imagedata_OR_sw, sh) native "CanvasRenderingContext2D_createImageData_2_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.createLinearGradient */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.createLinearGradient')
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
 
-  CanvasPattern createPattern(canvas_OR_image, /*DOMString*/ repetitionType) {
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType) {
     if ((canvas_OR_image is CanvasElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
       return _createPattern_1(canvas_OR_image, repetitionType);
     }
@@ -1533,19 +1401,19 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName CanvasRenderingContext2D.createPattern_1 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.createPattern_1')
   CanvasPattern _createPattern_1(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_1_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.createPattern_2 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.createPattern_2')
   CanvasPattern _createPattern_2(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_2_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.createRadialGradient */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.createRadialGradient')
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
-  void drawImage(canvas_OR_image_OR_video, /*float*/ sx_OR_x, /*float*/ sy_OR_y, [/*float*/ sw_OR_width, /*float*/ height_OR_sh, /*float*/ dx, /*float*/ dy, /*float*/ dw, /*float*/ dh]) {
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
     if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
@@ -1585,51 +1453,51 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName CanvasRenderingContext2D.drawImage_1 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.drawImage_1')
   void _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_1_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.drawImage_2 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.drawImage_2')
   void _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_2_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.drawImage_3 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.drawImage_3')
   void _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_3_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.drawImage_4 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.drawImage_4')
   void _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_4_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.drawImage_5 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.drawImage_5')
   void _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_5_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.drawImage_6 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.drawImage_6')
   void _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_6_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.drawImage_7 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.drawImage_7')
   void _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_7_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.drawImage_8 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.drawImage_8')
   void _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_8_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.drawImage_9 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.drawImage_9')
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.fill */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.fill')
   void fill() native "CanvasRenderingContext2D_fill_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.fillRect */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.fillRect')
   void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
 
-  void fillText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
+  void fillText(String text, num x, num y, [num maxWidth]) {
     if (?maxWidth) {
       _fillText_1(text, x, y, maxWidth);
       return;
@@ -1637,39 +1505,39 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     _fillText_2(text, x, y);
   }
 
-
-  /** @domName CanvasRenderingContext2D.fillText_1 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.fillText_1')
   void _fillText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_1_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.fillText_2 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.fillText_2')
   void _fillText_2(text, x, y) native "CanvasRenderingContext2D_fillText_2_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.getImageData */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.getImageData')
   ImageData getImageData(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_getImageData_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.getLineDash */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.getLineDash')
   List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.isPointInPath */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.isPointInPath')
   bool isPointInPath(num x, num y) native "CanvasRenderingContext2D_isPointInPath_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.lineTo */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.lineTo')
   void lineTo(num x, num y) native "CanvasRenderingContext2D_lineTo_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.measureText */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.measureText')
   TextMetrics measureText(String text) native "CanvasRenderingContext2D_measureText_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.moveTo */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.moveTo')
   void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
 
-  void putImageData(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _putImageData_1(imagedata, dx, dy);
       return;
@@ -1681,51 +1549,51 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName CanvasRenderingContext2D.putImageData_1 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.putImageData_1')
   void _putImageData_1(imagedata, dx, dy) native "CanvasRenderingContext2D_putImageData_1_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.putImageData_2 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.putImageData_2')
   void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_putImageData_2_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.quadraticCurveTo */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.quadraticCurveTo')
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native "CanvasRenderingContext2D_quadraticCurveTo_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.rect */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.rect')
   void rect(num x, num y, num width, num height) native "CanvasRenderingContext2D_rect_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.restore */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.restore')
   void restore() native "CanvasRenderingContext2D_restore_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.rotate */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.rotate')
   void rotate(num angle) native "CanvasRenderingContext2D_rotate_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.save */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.save')
   void save() native "CanvasRenderingContext2D_save_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.scale */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.scale')
   void scale(num sx, num sy) native "CanvasRenderingContext2D_scale_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.setLineDash */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.setLineDash')
   void setLineDash(List<num> dash) native "CanvasRenderingContext2D_setLineDash_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.setTransform */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.setTransform')
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_setTransform_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.stroke */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.stroke')
   void stroke() native "CanvasRenderingContext2D_stroke_Callback";
 
-  void strokeRect(/*float*/ x, /*float*/ y, /*float*/ width, /*float*/ height, [/*float*/ lineWidth]) {
+  void strokeRect(num x, num y, num width, num height, [num lineWidth]) {
     if (?lineWidth) {
       _strokeRect_1(x, y, width, height, lineWidth);
       return;
@@ -1733,15 +1601,15 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     _strokeRect_2(x, y, width, height);
   }
 
-
-  /** @domName CanvasRenderingContext2D.strokeRect_1 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.strokeRect_1')
   void _strokeRect_1(x, y, width, height, lineWidth) native "CanvasRenderingContext2D_strokeRect_1_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.strokeRect_2 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.strokeRect_2')
   void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_2_Callback";
 
-  void strokeText(/*DOMString*/ text, /*float*/ x, /*float*/ y, [/*float*/ maxWidth]) {
+  void strokeText(String text, num x, num y, [num maxWidth]) {
     if (?maxWidth) {
       _strokeText_1(text, x, y, maxWidth);
       return;
@@ -1749,27 +1617,27 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     _strokeText_2(text, x, y);
   }
 
-
-  /** @domName CanvasRenderingContext2D.strokeText_1 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.strokeText_1')
   void _strokeText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_1_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.strokeText_2 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.strokeText_2')
   void _strokeText_2(text, x, y) native "CanvasRenderingContext2D_strokeText_2_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.transform */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.transform')
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_transform_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.translate */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.translate')
   void translate(num tx, num ty) native "CanvasRenderingContext2D_translate_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.webkitGetImageDataHD */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
 
-  void webkitPutImageDataHD(/*ImageData*/ imagedata, /*float*/ dx, /*float*/ dy, [/*float*/ dirtyX, /*float*/ dirtyY, /*float*/ dirtyWidth, /*float*/ dirtyHeight]) {
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _webkitPutImageDataHD_1(imagedata, dx, dy);
       return;
@@ -1781,12 +1649,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD_1 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD_1')
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native "CanvasRenderingContext2D_webkitPutImageDataHD_1_Callback";
 
-
-  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD_2 */
+  @DocsEditable
+  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD_2')
   void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_2_Callback";
 
 
@@ -1833,44 +1701,45 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CharacterData
+@DocsEditable
+@DomName('CharacterData')
 class CharacterData extends Node {
   CharacterData.internal() : super.internal();
 
-
-  /** @domName CharacterData.data */
+  @DocsEditable
+  @DomName('CharacterData.data')
   String get data native "CharacterData_data_Getter";
 
-
-  /** @domName CharacterData.data */
+  @DocsEditable
+  @DomName('CharacterData.data')
   void set data(String value) native "CharacterData_data_Setter";
 
-
-  /** @domName CharacterData.length */
+  @DocsEditable
+  @DomName('CharacterData.length')
   int get length native "CharacterData_length_Getter";
 
-
-  /** @domName CharacterData.appendData */
+  @DocsEditable
+  @DomName('CharacterData.appendData')
   void appendData(String data) native "CharacterData_appendData_Callback";
 
-
-  /** @domName CharacterData.deleteData */
+  @DocsEditable
+  @DomName('CharacterData.deleteData')
   void deleteData(int offset, int length) native "CharacterData_deleteData_Callback";
 
-
-  /** @domName CharacterData.insertData */
+  @DocsEditable
+  @DomName('CharacterData.insertData')
   void insertData(int offset, String data) native "CharacterData_insertData_Callback";
 
-
-  /** @domName CharacterData.remove */
+  @DocsEditable
+  @DomName('CharacterData.remove')
   void remove() native "CharacterData_remove_Callback";
 
-
-  /** @domName CharacterData.replaceData */
+  @DocsEditable
+  @DomName('CharacterData.replaceData')
   void replaceData(int offset, int length, String data) native "CharacterData_replaceData_Callback";
 
-
-  /** @domName CharacterData.substringData */
+  @DocsEditable
+  @DomName('CharacterData.substringData')
   String substringData(int offset, int length) native "CharacterData_substringData_Callback";
 
 }
@@ -1881,32 +1750,33 @@ class CharacterData extends Node {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ClientRect
+@DocsEditable
+@DomName('ClientRect')
 class ClientRect extends NativeFieldWrapperClass1 {
   ClientRect.internal();
 
-
-  /** @domName ClientRect.bottom */
+  @DocsEditable
+  @DomName('ClientRect.bottom')
   num get bottom native "ClientRect_bottom_Getter";
 
-
-  /** @domName ClientRect.height */
+  @DocsEditable
+  @DomName('ClientRect.height')
   num get height native "ClientRect_height_Getter";
 
-
-  /** @domName ClientRect.left */
+  @DocsEditable
+  @DomName('ClientRect.left')
   num get left native "ClientRect_left_Getter";
 
-
-  /** @domName ClientRect.right */
+  @DocsEditable
+  @DomName('ClientRect.right')
   num get right native "ClientRect_right_Getter";
 
-
-  /** @domName ClientRect.top */
+  @DocsEditable
+  @DomName('ClientRect.top')
   num get top native "ClientRect_top_Getter";
 
-
-  /** @domName ClientRect.width */
+  @DocsEditable
+  @DomName('ClientRect.width')
   num get width native "ClientRect_width_Getter";
 
 }
@@ -1917,52 +1787,53 @@ class ClientRect extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Clipboard
+@DocsEditable
+@DomName('Clipboard')
 class Clipboard extends NativeFieldWrapperClass1 {
   Clipboard.internal();
 
-
-  /** @domName Clipboard.dropEffect */
+  @DocsEditable
+  @DomName('Clipboard.dropEffect')
   String get dropEffect native "Clipboard_dropEffect_Getter";
 
-
-  /** @domName Clipboard.dropEffect */
+  @DocsEditable
+  @DomName('Clipboard.dropEffect')
   void set dropEffect(String value) native "Clipboard_dropEffect_Setter";
 
-
-  /** @domName Clipboard.effectAllowed */
+  @DocsEditable
+  @DomName('Clipboard.effectAllowed')
   String get effectAllowed native "Clipboard_effectAllowed_Getter";
 
-
-  /** @domName Clipboard.effectAllowed */
+  @DocsEditable
+  @DomName('Clipboard.effectAllowed')
   void set effectAllowed(String value) native "Clipboard_effectAllowed_Setter";
 
-
-  /** @domName Clipboard.files */
+  @DocsEditable
+  @DomName('Clipboard.files')
   List<File> get files native "Clipboard_files_Getter";
 
-
-  /** @domName Clipboard.items */
+  @DocsEditable
+  @DomName('Clipboard.items')
   DataTransferItemList get items native "Clipboard_items_Getter";
 
-
-  /** @domName Clipboard.types */
+  @DocsEditable
+  @DomName('Clipboard.types')
   List get types native "Clipboard_types_Getter";
 
-
-  /** @domName Clipboard.clearData */
+  @DocsEditable
+  @DomName('Clipboard.clearData')
   void clearData([String type]) native "Clipboard_clearData_Callback";
 
-
-  /** @domName Clipboard.getData */
+  @DocsEditable
+  @DomName('Clipboard.getData')
   String getData(String type) native "Clipboard_getData_Callback";
 
-
-  /** @domName Clipboard.setData */
+  @DocsEditable
+  @DomName('Clipboard.setData')
   bool setData(String type, String data) native "Clipboard_setData_Callback";
 
-
-  /** @domName Clipboard.setDragImage */
+  @DocsEditable
+  @DomName('Clipboard.setDragImage')
   void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
 
 }
@@ -1973,20 +1844,21 @@ class Clipboard extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CloseEvent
+@DocsEditable
+@DomName('CloseEvent')
 class CloseEvent extends Event {
   CloseEvent.internal() : super.internal();
 
-
-  /** @domName CloseEvent.code */
+  @DocsEditable
+  @DomName('CloseEvent.code')
   int get code native "CloseEvent_code_Getter";
 
-
-  /** @domName CloseEvent.reason */
+  @DocsEditable
+  @DomName('CloseEvent.reason')
   String get reason native "CloseEvent_reason_Getter";
 
-
-  /** @domName CloseEvent.wasClean */
+  @DocsEditable
+  @DomName('CloseEvent.wasClean')
   bool get wasClean native "CloseEvent_wasClean_Getter";
 
 }
@@ -1997,7 +1869,8 @@ class CloseEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Comment
+@DocsEditable
+@DomName('Comment')
 class Comment extends CharacterData {
   Comment.internal() : super.internal();
 
@@ -2009,16 +1882,17 @@ class Comment extends CharacterData {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CompositionEvent
+@DocsEditable
+@DomName('CompositionEvent')
 class CompositionEvent extends UIEvent {
   CompositionEvent.internal() : super.internal();
 
-
-  /** @domName CompositionEvent.data */
+  @DocsEditable
+  @DomName('CompositionEvent.data')
   String get data native "CompositionEvent_data_Getter";
 
-
-  /** @domName CompositionEvent.initCompositionEvent */
+  @DocsEditable
+  @DomName('CompositionEvent.initCompositionEvent')
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
 
 }
@@ -2029,96 +1903,97 @@ class CompositionEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Console
+@DocsEditable
+@DomName('Console')
 class Console extends NativeFieldWrapperClass1 {
   Console.internal();
 
-
-  /** @domName Console.memory */
+  @DocsEditable
+  @DomName('Console.memory')
   MemoryInfo get memory native "Console_memory_Getter";
 
-
-  /** @domName Console.profiles */
+  @DocsEditable
+  @DomName('Console.profiles')
   List<ScriptProfile> get profiles native "Console_profiles_Getter";
 
-
-  /** @domName Console.assertCondition */
+  @DocsEditable
+  @DomName('Console.assertCondition')
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
 
-
-  /** @domName Console.clear */
+  @DocsEditable
+  @DomName('Console.clear')
   void clear(Object arg) native "Console_clear_Callback";
 
-
-  /** @domName Console.count */
+  @DocsEditable
+  @DomName('Console.count')
   void count(Object arg) native "Console_count_Callback";
 
-
-  /** @domName Console.debug */
+  @DocsEditable
+  @DomName('Console.debug')
   void debug(Object arg) native "Console_debug_Callback";
 
-
-  /** @domName Console.dir */
+  @DocsEditable
+  @DomName('Console.dir')
   void dir(Object arg) native "Console_dir_Callback";
 
-
-  /** @domName Console.dirxml */
+  @DocsEditable
+  @DomName('Console.dirxml')
   void dirxml(Object arg) native "Console_dirxml_Callback";
 
-
-  /** @domName Console.error */
+  @DocsEditable
+  @DomName('Console.error')
   void error(Object arg) native "Console_error_Callback";
 
-
-  /** @domName Console.group */
+  @DocsEditable
+  @DomName('Console.group')
   void group(Object arg) native "Console_group_Callback";
 
-
-  /** @domName Console.groupCollapsed */
+  @DocsEditable
+  @DomName('Console.groupCollapsed')
   void groupCollapsed(Object arg) native "Console_groupCollapsed_Callback";
 
-
-  /** @domName Console.groupEnd */
+  @DocsEditable
+  @DomName('Console.groupEnd')
   void groupEnd() native "Console_groupEnd_Callback";
 
-
-  /** @domName Console.info */
+  @DocsEditable
+  @DomName('Console.info')
   void info(Object arg) native "Console_info_Callback";
 
-
-  /** @domName Console.log */
+  @DocsEditable
+  @DomName('Console.log')
   void log(Object arg) native "Console_log_Callback";
 
-
-  /** @domName Console.markTimeline */
+  @DocsEditable
+  @DomName('Console.markTimeline')
   void markTimeline() native "Console_markTimeline_Callback";
 
-
-  /** @domName Console.profile */
+  @DocsEditable
+  @DomName('Console.profile')
   void profile(String title) native "Console_profile_Callback";
 
-
-  /** @domName Console.profileEnd */
+  @DocsEditable
+  @DomName('Console.profileEnd')
   void profileEnd(String title) native "Console_profileEnd_Callback";
 
-
-  /** @domName Console.time */
+  @DocsEditable
+  @DomName('Console.time')
   void time(String title) native "Console_time_Callback";
 
-
-  /** @domName Console.timeEnd */
+  @DocsEditable
+  @DomName('Console.timeEnd')
   void timeEnd(String title) native "Console_timeEnd_Callback";
 
-
-  /** @domName Console.timeStamp */
+  @DocsEditable
+  @DomName('Console.timeStamp')
   void timeStamp() native "Console_timeStamp_Callback";
 
-
-  /** @domName Console.trace */
+  @DocsEditable
+  @DomName('Console.trace')
   void trace(Object arg) native "Console_trace_Callback";
 
-
-  /** @domName Console.warn */
+  @DocsEditable
+  @DomName('Console.warn')
   void warn(Object arg) native "Console_warn_Callback";
 
 }
@@ -2129,36 +2004,37 @@ class Console extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLContentElement
+@DocsEditable
+@DomName('HTMLContentElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class ContentElement extends _Element_Merged {
   ContentElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory ContentElement() => document.$dom_createElement("content");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLContentElement.resetStyleInheritance */
+  @DocsEditable
+  @DomName('HTMLContentElement.resetStyleInheritance')
   bool get resetStyleInheritance native "HTMLContentElement_resetStyleInheritance_Getter";
 
-
-  /** @domName HTMLContentElement.resetStyleInheritance */
+  @DocsEditable
+  @DomName('HTMLContentElement.resetStyleInheritance')
   void set resetStyleInheritance(bool value) native "HTMLContentElement_resetStyleInheritance_Setter";
 
-
-  /** @domName HTMLContentElement.select */
+  @DocsEditable
+  @DomName('HTMLContentElement.select')
   String get select native "HTMLContentElement_select_Getter";
 
-
-  /** @domName HTMLContentElement.select */
+  @DocsEditable
+  @DomName('HTMLContentElement.select')
   void set select(String value) native "HTMLContentElement_select_Setter";
 
-
-  /** @domName HTMLContentElement.getDistributedNodes */
+  @DocsEditable
+  @DomName('HTMLContentElement.getDistributedNodes')
   List<Node> getDistributedNodes() native "HTMLContentElement_getDistributedNodes_Callback";
 
 }
@@ -2169,36 +2045,37 @@ class ContentElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Coordinates
+@DocsEditable
+@DomName('Coordinates')
 class Coordinates extends NativeFieldWrapperClass1 {
   Coordinates.internal();
 
-
-  /** @domName Coordinates.accuracy */
+  @DocsEditable
+  @DomName('Coordinates.accuracy')
   num get accuracy native "Coordinates_accuracy_Getter";
 
-
-  /** @domName Coordinates.altitude */
+  @DocsEditable
+  @DomName('Coordinates.altitude')
   num get altitude native "Coordinates_altitude_Getter";
 
-
-  /** @domName Coordinates.altitudeAccuracy */
+  @DocsEditable
+  @DomName('Coordinates.altitudeAccuracy')
   num get altitudeAccuracy native "Coordinates_altitudeAccuracy_Getter";
 
-
-  /** @domName Coordinates.heading */
+  @DocsEditable
+  @DomName('Coordinates.heading')
   num get heading native "Coordinates_heading_Getter";
 
-
-  /** @domName Coordinates.latitude */
+  @DocsEditable
+  @DomName('Coordinates.latitude')
   num get latitude native "Coordinates_latitude_Getter";
 
-
-  /** @domName Coordinates.longitude */
+  @DocsEditable
+  @DomName('Coordinates.longitude')
   num get longitude native "Coordinates_longitude_Getter";
 
-
-  /** @domName Coordinates.speed */
+  @DocsEditable
+  @DomName('Coordinates.speed')
   num get speed native "Coordinates_speed_Getter";
 
 }
@@ -2209,20 +2086,21 @@ class Coordinates extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Counter
+@DocsEditable
+@DomName('Counter')
 class Counter extends NativeFieldWrapperClass1 {
   Counter.internal();
 
-
-  /** @domName Counter.identifier */
+  @DocsEditable
+  @DomName('Counter.identifier')
   String get identifier native "Counter_identifier_Getter";
 
-
-  /** @domName Counter.listStyle */
+  @DocsEditable
+  @DomName('Counter.listStyle')
   String get listStyle native "Counter_listStyle_Getter";
 
-
-  /** @domName Counter.separator */
+  @DocsEditable
+  @DomName('Counter.separator')
   String get separator native "Counter_separator_Getter";
 
 }
@@ -2233,13 +2111,14 @@ class Counter extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Crypto
+@DocsEditable
+@DomName('Crypto')
 class Crypto extends NativeFieldWrapperClass1 {
   Crypto.internal();
 
-
-  /** @domName Crypto.getRandomValues */
-  void getRandomValues(ArrayBufferView array) native "Crypto_getRandomValues_Callback";
+  @DocsEditable
+  @DomName('Crypto.getRandomValues')
+  ArrayBufferView getRandomValues(ArrayBufferView array) native "Crypto_getRandomValues_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2249,16 +2128,17 @@ class Crypto extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSCharsetRule
+@DocsEditable
+@DomName('CSSCharsetRule')
 class CssCharsetRule extends CssRule {
   CssCharsetRule.internal() : super.internal();
 
-
-  /** @domName CSSCharsetRule.encoding */
+  @DocsEditable
+  @DomName('CSSCharsetRule.encoding')
   String get encoding native "CSSCharsetRule_encoding_Getter";
 
-
-  /** @domName CSSCharsetRule.encoding */
+  @DocsEditable
+  @DomName('CSSCharsetRule.encoding')
   void set encoding(String value) native "CSSCharsetRule_encoding_Setter";
 
 }
@@ -2269,12 +2149,13 @@ class CssCharsetRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSFontFaceRule
+@DocsEditable
+@DomName('CSSFontFaceRule')
 class CssFontFaceRule extends CssRule {
   CssFontFaceRule.internal() : super.internal();
 
-
-  /** @domName CSSFontFaceRule.style */
+  @DocsEditable
+  @DomName('CSSFontFaceRule.style')
   CssStyleDeclaration get style native "CSSFontFaceRule_style_Getter";
 
 }
@@ -2285,20 +2166,21 @@ class CssFontFaceRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSImportRule
+@DocsEditable
+@DomName('CSSImportRule')
 class CssImportRule extends CssRule {
   CssImportRule.internal() : super.internal();
 
-
-  /** @domName CSSImportRule.href */
+  @DocsEditable
+  @DomName('CSSImportRule.href')
   String get href native "CSSImportRule_href_Getter";
 
-
-  /** @domName CSSImportRule.media */
+  @DocsEditable
+  @DomName('CSSImportRule.media')
   MediaList get media native "CSSImportRule_media_Getter";
 
-
-  /** @domName CSSImportRule.styleSheet */
+  @DocsEditable
+  @DomName('CSSImportRule.styleSheet')
   CssStyleSheet get styleSheet native "CSSImportRule_styleSheet_Getter";
 
 }
@@ -2309,20 +2191,21 @@ class CssImportRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitCSSKeyframeRule
+@DocsEditable
+@DomName('WebKitCSSKeyframeRule')
 class CssKeyframeRule extends CssRule {
   CssKeyframeRule.internal() : super.internal();
 
-
-  /** @domName WebKitCSSKeyframeRule.keyText */
+  @DocsEditable
+  @DomName('WebKitCSSKeyframeRule.keyText')
   String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
 
-
-  /** @domName WebKitCSSKeyframeRule.keyText */
+  @DocsEditable
+  @DomName('WebKitCSSKeyframeRule.keyText')
   void set keyText(String value) native "WebKitCSSKeyframeRule_keyText_Setter";
 
-
-  /** @domName WebKitCSSKeyframeRule.style */
+  @DocsEditable
+  @DomName('WebKitCSSKeyframeRule.style')
   CssStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
 
 }
@@ -2333,32 +2216,33 @@ class CssKeyframeRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitCSSKeyframesRule
+@DocsEditable
+@DomName('WebKitCSSKeyframesRule')
 class CssKeyframesRule extends CssRule {
   CssKeyframesRule.internal() : super.internal();
 
-
-  /** @domName WebKitCSSKeyframesRule.cssRules */
+  @DocsEditable
+  @DomName('WebKitCSSKeyframesRule.cssRules')
   List<CssRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
 
-
-  /** @domName WebKitCSSKeyframesRule.name */
+  @DocsEditable
+  @DomName('WebKitCSSKeyframesRule.name')
   String get name native "WebKitCSSKeyframesRule_name_Getter";
 
-
-  /** @domName WebKitCSSKeyframesRule.name */
+  @DocsEditable
+  @DomName('WebKitCSSKeyframesRule.name')
   void set name(String value) native "WebKitCSSKeyframesRule_name_Setter";
 
-
-  /** @domName WebKitCSSKeyframesRule.deleteRule */
+  @DocsEditable
+  @DomName('WebKitCSSKeyframesRule.deleteRule')
   void deleteRule(String key) native "WebKitCSSKeyframesRule_deleteRule_Callback";
 
-
-  /** @domName WebKitCSSKeyframesRule.findRule */
+  @DocsEditable
+  @DomName('WebKitCSSKeyframesRule.findRule')
   CssKeyframeRule findRule(String key) native "WebKitCSSKeyframesRule_findRule_Callback";
 
-
-  /** @domName WebKitCSSKeyframesRule.insertRule */
+  @DocsEditable
+  @DomName('WebKitCSSKeyframesRule.insertRule')
   void insertRule(String rule) native "WebKitCSSKeyframesRule_insertRule_Callback";
 
 }
@@ -2369,11 +2253,12 @@ class CssKeyframesRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitCSSMatrix
+@DocsEditable
+@DomName('WebKitCSSMatrix')
 class CssMatrix extends NativeFieldWrapperClass1 {
   CssMatrix.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory CssMatrix([String cssValue]) {
     if (!?cssValue) {
       return CssMatrix._create();
@@ -2382,220 +2267,220 @@ class CssMatrix extends NativeFieldWrapperClass1 {
   }
   static CssMatrix _create([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 
-
-  /** @domName WebKitCSSMatrix.a */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.a')
   num get a native "WebKitCSSMatrix_a_Getter";
 
-
-  /** @domName WebKitCSSMatrix.a */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.a')
   void set a(num value) native "WebKitCSSMatrix_a_Setter";
 
-
-  /** @domName WebKitCSSMatrix.b */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.b')
   num get b native "WebKitCSSMatrix_b_Getter";
 
-
-  /** @domName WebKitCSSMatrix.b */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.b')
   void set b(num value) native "WebKitCSSMatrix_b_Setter";
 
-
-  /** @domName WebKitCSSMatrix.c */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.c')
   num get c native "WebKitCSSMatrix_c_Getter";
 
-
-  /** @domName WebKitCSSMatrix.c */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.c')
   void set c(num value) native "WebKitCSSMatrix_c_Setter";
 
-
-  /** @domName WebKitCSSMatrix.d */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.d')
   num get d native "WebKitCSSMatrix_d_Getter";
 
-
-  /** @domName WebKitCSSMatrix.d */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.d')
   void set d(num value) native "WebKitCSSMatrix_d_Setter";
 
-
-  /** @domName WebKitCSSMatrix.e */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.e')
   num get e native "WebKitCSSMatrix_e_Getter";
 
-
-  /** @domName WebKitCSSMatrix.e */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.e')
   void set e(num value) native "WebKitCSSMatrix_e_Setter";
 
-
-  /** @domName WebKitCSSMatrix.f */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.f')
   num get f native "WebKitCSSMatrix_f_Getter";
 
-
-  /** @domName WebKitCSSMatrix.f */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.f')
   void set f(num value) native "WebKitCSSMatrix_f_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m11 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m11')
   num get m11 native "WebKitCSSMatrix_m11_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m11 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m11')
   void set m11(num value) native "WebKitCSSMatrix_m11_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m12 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m12')
   num get m12 native "WebKitCSSMatrix_m12_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m12 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m12')
   void set m12(num value) native "WebKitCSSMatrix_m12_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m13 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m13')
   num get m13 native "WebKitCSSMatrix_m13_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m13 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m13')
   void set m13(num value) native "WebKitCSSMatrix_m13_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m14 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m14')
   num get m14 native "WebKitCSSMatrix_m14_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m14 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m14')
   void set m14(num value) native "WebKitCSSMatrix_m14_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m21 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m21')
   num get m21 native "WebKitCSSMatrix_m21_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m21 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m21')
   void set m21(num value) native "WebKitCSSMatrix_m21_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m22 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m22')
   num get m22 native "WebKitCSSMatrix_m22_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m22 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m22')
   void set m22(num value) native "WebKitCSSMatrix_m22_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m23 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m23')
   num get m23 native "WebKitCSSMatrix_m23_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m23 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m23')
   void set m23(num value) native "WebKitCSSMatrix_m23_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m24 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m24')
   num get m24 native "WebKitCSSMatrix_m24_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m24 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m24')
   void set m24(num value) native "WebKitCSSMatrix_m24_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m31 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m31')
   num get m31 native "WebKitCSSMatrix_m31_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m31 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m31')
   void set m31(num value) native "WebKitCSSMatrix_m31_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m32 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m32')
   num get m32 native "WebKitCSSMatrix_m32_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m32 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m32')
   void set m32(num value) native "WebKitCSSMatrix_m32_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m33 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m33')
   num get m33 native "WebKitCSSMatrix_m33_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m33 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m33')
   void set m33(num value) native "WebKitCSSMatrix_m33_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m34 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m34')
   num get m34 native "WebKitCSSMatrix_m34_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m34 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m34')
   void set m34(num value) native "WebKitCSSMatrix_m34_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m41 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m41')
   num get m41 native "WebKitCSSMatrix_m41_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m41 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m41')
   void set m41(num value) native "WebKitCSSMatrix_m41_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m42 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m42')
   num get m42 native "WebKitCSSMatrix_m42_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m42 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m42')
   void set m42(num value) native "WebKitCSSMatrix_m42_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m43 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m43')
   num get m43 native "WebKitCSSMatrix_m43_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m43 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m43')
   void set m43(num value) native "WebKitCSSMatrix_m43_Setter";
 
-
-  /** @domName WebKitCSSMatrix.m44 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m44')
   num get m44 native "WebKitCSSMatrix_m44_Getter";
 
-
-  /** @domName WebKitCSSMatrix.m44 */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.m44')
   void set m44(num value) native "WebKitCSSMatrix_m44_Setter";
 
-
-  /** @domName WebKitCSSMatrix.inverse */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.inverse')
   CssMatrix inverse() native "WebKitCSSMatrix_inverse_Callback";
 
-
-  /** @domName WebKitCSSMatrix.multiply */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.multiply')
   CssMatrix multiply(CssMatrix secondMatrix) native "WebKitCSSMatrix_multiply_Callback";
 
-
-  /** @domName WebKitCSSMatrix.rotate */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.rotate')
   CssMatrix rotate(num rotX, num rotY, num rotZ) native "WebKitCSSMatrix_rotate_Callback";
 
-
-  /** @domName WebKitCSSMatrix.rotateAxisAngle */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.rotateAxisAngle')
   CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native "WebKitCSSMatrix_rotateAxisAngle_Callback";
 
-
-  /** @domName WebKitCSSMatrix.scale */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.scale')
   CssMatrix scale(num scaleX, num scaleY, num scaleZ) native "WebKitCSSMatrix_scale_Callback";
 
-
-  /** @domName WebKitCSSMatrix.setMatrixValue */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.setMatrixValue')
   void setMatrixValue(String string) native "WebKitCSSMatrix_setMatrixValue_Callback";
 
-
-  /** @domName WebKitCSSMatrix.skewX */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.skewX')
   CssMatrix skewX(num angle) native "WebKitCSSMatrix_skewX_Callback";
 
-
-  /** @domName WebKitCSSMatrix.skewY */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.skewY')
   CssMatrix skewY(num angle) native "WebKitCSSMatrix_skewY_Callback";
 
-
-  /** @domName WebKitCSSMatrix.toString */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.toString')
   String toString() native "WebKitCSSMatrix_toString_Callback";
 
-
-  /** @domName WebKitCSSMatrix.translate */
+  @DocsEditable
+  @DomName('WebKitCSSMatrix.translate')
   CssMatrix translate(num x, num y, num z) native "WebKitCSSMatrix_translate_Callback";
 
 }
@@ -2606,24 +2491,25 @@ class CssMatrix extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSMediaRule
+@DocsEditable
+@DomName('CSSMediaRule')
 class CssMediaRule extends CssRule {
   CssMediaRule.internal() : super.internal();
 
-
-  /** @domName CSSMediaRule.cssRules */
+  @DocsEditable
+  @DomName('CSSMediaRule.cssRules')
   List<CssRule> get cssRules native "CSSMediaRule_cssRules_Getter";
 
-
-  /** @domName CSSMediaRule.media */
+  @DocsEditable
+  @DomName('CSSMediaRule.media')
   MediaList get media native "CSSMediaRule_media_Getter";
 
-
-  /** @domName CSSMediaRule.deleteRule */
+  @DocsEditable
+  @DomName('CSSMediaRule.deleteRule')
   void deleteRule(int index) native "CSSMediaRule_deleteRule_Callback";
 
-
-  /** @domName CSSMediaRule.insertRule */
+  @DocsEditable
+  @DomName('CSSMediaRule.insertRule')
   int insertRule(String rule, int index) native "CSSMediaRule_insertRule_Callback";
 
 }
@@ -2634,20 +2520,21 @@ class CssMediaRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSPageRule
+@DocsEditable
+@DomName('CSSPageRule')
 class CssPageRule extends CssRule {
   CssPageRule.internal() : super.internal();
 
-
-  /** @domName CSSPageRule.selectorText */
+  @DocsEditable
+  @DomName('CSSPageRule.selectorText')
   String get selectorText native "CSSPageRule_selectorText_Getter";
 
-
-  /** @domName CSSPageRule.selectorText */
+  @DocsEditable
+  @DomName('CSSPageRule.selectorText')
   void set selectorText(String value) native "CSSPageRule_selectorText_Setter";
 
-
-  /** @domName CSSPageRule.style */
+  @DocsEditable
+  @DomName('CSSPageRule.style')
   CssStyleDeclaration get style native "CSSPageRule_style_Getter";
 
 }
@@ -2658,7 +2545,8 @@ class CssPageRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSPrimitiveValue
+@DocsEditable
+@DomName('CSSPrimitiveValue')
 class CssPrimitiveValue extends CssValue {
   CssPrimitiveValue.internal() : super.internal();
 
@@ -2720,36 +2608,36 @@ class CssPrimitiveValue extends CssValue {
 
   static const int CSS_VW = 26;
 
-
-  /** @domName CSSPrimitiveValue.primitiveType */
+  @DocsEditable
+  @DomName('CSSPrimitiveValue.primitiveType')
   int get primitiveType native "CSSPrimitiveValue_primitiveType_Getter";
 
-
-  /** @domName CSSPrimitiveValue.getCounterValue */
+  @DocsEditable
+  @DomName('CSSPrimitiveValue.getCounterValue')
   Counter getCounterValue() native "CSSPrimitiveValue_getCounterValue_Callback";
 
-
-  /** @domName CSSPrimitiveValue.getFloatValue */
+  @DocsEditable
+  @DomName('CSSPrimitiveValue.getFloatValue')
   num getFloatValue(int unitType) native "CSSPrimitiveValue_getFloatValue_Callback";
 
-
-  /** @domName CSSPrimitiveValue.getRGBColorValue */
+  @DocsEditable
+  @DomName('CSSPrimitiveValue.getRGBColorValue')
   RgbColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
 
-
-  /** @domName CSSPrimitiveValue.getRectValue */
+  @DocsEditable
+  @DomName('CSSPrimitiveValue.getRectValue')
   Rect getRectValue() native "CSSPrimitiveValue_getRectValue_Callback";
 
-
-  /** @domName CSSPrimitiveValue.getStringValue */
+  @DocsEditable
+  @DomName('CSSPrimitiveValue.getStringValue')
   String getStringValue() native "CSSPrimitiveValue_getStringValue_Callback";
 
-
-  /** @domName CSSPrimitiveValue.setFloatValue */
+  @DocsEditable
+  @DomName('CSSPrimitiveValue.setFloatValue')
   void setFloatValue(int unitType, num floatValue) native "CSSPrimitiveValue_setFloatValue_Callback";
 
-
-  /** @domName CSSPrimitiveValue.setStringValue */
+  @DocsEditable
+  @DomName('CSSPrimitiveValue.setStringValue')
   void setStringValue(int stringType, String stringValue) native "CSSPrimitiveValue_setStringValue_Callback";
 
 }
@@ -2760,7 +2648,8 @@ class CssPrimitiveValue extends CssValue {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSRule
+@DocsEditable
+@DomName('CSSRule')
 class CssRule extends NativeFieldWrapperClass1 {
   CssRule.internal();
 
@@ -2782,24 +2671,24 @@ class CssRule extends NativeFieldWrapperClass1 {
 
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
-
-  /** @domName CSSRule.cssText */
+  @DocsEditable
+  @DomName('CSSRule.cssText')
   String get cssText native "CSSRule_cssText_Getter";
 
-
-  /** @domName CSSRule.cssText */
+  @DocsEditable
+  @DomName('CSSRule.cssText')
   void set cssText(String value) native "CSSRule_cssText_Setter";
 
-
-  /** @domName CSSRule.parentRule */
+  @DocsEditable
+  @DomName('CSSRule.parentRule')
   CssRule get parentRule native "CSSRule_parentRule_Getter";
 
-
-  /** @domName CSSRule.parentStyleSheet */
+  @DocsEditable
+  @DomName('CSSRule.parentStyleSheet')
   CssStyleSheet get parentStyleSheet native "CSSRule_parentStyleSheet_Getter";
 
-
-  /** @domName CSSRule.type */
+  @DocsEditable
+  @DomName('CSSRule.type')
   int get type native "CSSRule_type_Getter";
 
 }
@@ -2825,7 +2714,8 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
-/// @domName CSSStyleDeclaration
+@DocsEditable
+@DomName('CSSStyleDeclaration')
 class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
   factory CssStyleDeclaration.css(String css) =>
@@ -2833,52 +2723,52 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   CssStyleDeclaration.internal();
 
-
-  /** @domName CSSStyleDeclaration.cssText */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.cssText')
   String get cssText native "CSSStyleDeclaration_cssText_Getter";
 
-
-  /** @domName CSSStyleDeclaration.cssText */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.cssText')
   void set cssText(String value) native "CSSStyleDeclaration_cssText_Setter";
 
-
-  /** @domName CSSStyleDeclaration.length */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.length')
   int get length native "CSSStyleDeclaration_length_Getter";
 
-
-  /** @domName CSSStyleDeclaration.parentRule */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.parentRule')
   CssRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
 
-
-  /** @domName CSSStyleDeclaration.getPropertyCSSValue */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.getPropertyCSSValue')
   CssValue getPropertyCssValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
 
-
-  /** @domName CSSStyleDeclaration.getPropertyPriority */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.getPropertyPriority')
   String getPropertyPriority(String propertyName) native "CSSStyleDeclaration_getPropertyPriority_Callback";
 
-
-  /** @domName CSSStyleDeclaration.getPropertyShorthand */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.getPropertyShorthand')
   String getPropertyShorthand(String propertyName) native "CSSStyleDeclaration_getPropertyShorthand_Callback";
 
-
-  /** @domName CSSStyleDeclaration._getPropertyValue */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration._getPropertyValue')
   String _getPropertyValue(String propertyName) native "CSSStyleDeclaration__getPropertyValue_Callback";
 
-
-  /** @domName CSSStyleDeclaration.isPropertyImplicit */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.isPropertyImplicit')
   bool isPropertyImplicit(String propertyName) native "CSSStyleDeclaration_isPropertyImplicit_Callback";
 
-
-  /** @domName CSSStyleDeclaration.item */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.item')
   String item(int index) native "CSSStyleDeclaration_item_Callback";
 
-
-  /** @domName CSSStyleDeclaration.removeProperty */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.removeProperty')
   String removeProperty(String propertyName) native "CSSStyleDeclaration_removeProperty_Callback";
 
-
-  /** @domName CSSStyleDeclaration.setProperty */
+  @DocsEditable
+  @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) native "CSSStyleDeclaration_setProperty_Callback";
 
 
@@ -6046,20 +5936,21 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSStyleRule
+@DocsEditable
+@DomName('CSSStyleRule')
 class CssStyleRule extends CssRule {
   CssStyleRule.internal() : super.internal();
 
-
-  /** @domName CSSStyleRule.selectorText */
+  @DocsEditable
+  @DomName('CSSStyleRule.selectorText')
   String get selectorText native "CSSStyleRule_selectorText_Getter";
 
-
-  /** @domName CSSStyleRule.selectorText */
+  @DocsEditable
+  @DomName('CSSStyleRule.selectorText')
   void set selectorText(String value) native "CSSStyleRule_selectorText_Setter";
 
-
-  /** @domName CSSStyleRule.style */
+  @DocsEditable
+  @DomName('CSSStyleRule.style')
   CssStyleDeclaration get style native "CSSStyleRule_style_Getter";
 
 }
@@ -6070,47 +5961,48 @@ class CssStyleRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSStyleSheet
+@DocsEditable
+@DomName('CSSStyleSheet')
 class CssStyleSheet extends StyleSheet {
   CssStyleSheet.internal() : super.internal();
 
-
-  /** @domName CSSStyleSheet.cssRules */
+  @DocsEditable
+  @DomName('CSSStyleSheet.cssRules')
   List<CssRule> get cssRules native "CSSStyleSheet_cssRules_Getter";
 
-
-  /** @domName CSSStyleSheet.ownerRule */
+  @DocsEditable
+  @DomName('CSSStyleSheet.ownerRule')
   CssRule get ownerRule native "CSSStyleSheet_ownerRule_Getter";
 
-
-  /** @domName CSSStyleSheet.rules */
+  @DocsEditable
+  @DomName('CSSStyleSheet.rules')
   List<CssRule> get rules native "CSSStyleSheet_rules_Getter";
 
-  int addRule(/*DOMString*/ selector, /*DOMString*/ style, [/*unsigned long*/ index]) {
+  int addRule(String selector, String style, [int index]) {
     if (?index) {
       return _addRule_1(selector, style, index);
     }
     return _addRule_2(selector, style);
   }
 
-
-  /** @domName CSSStyleSheet.addRule_1 */
+  @DocsEditable
+  @DomName('CSSStyleSheet.addRule_1')
   int _addRule_1(selector, style, index) native "CSSStyleSheet_addRule_1_Callback";
 
-
-  /** @domName CSSStyleSheet.addRule_2 */
+  @DocsEditable
+  @DomName('CSSStyleSheet.addRule_2')
   int _addRule_2(selector, style) native "CSSStyleSheet_addRule_2_Callback";
 
-
-  /** @domName CSSStyleSheet.deleteRule */
+  @DocsEditable
+  @DomName('CSSStyleSheet.deleteRule')
   void deleteRule(int index) native "CSSStyleSheet_deleteRule_Callback";
 
-
-  /** @domName CSSStyleSheet.insertRule */
+  @DocsEditable
+  @DomName('CSSStyleSheet.insertRule')
   int insertRule(String rule, int index) native "CSSStyleSheet_insertRule_Callback";
 
-
-  /** @domName CSSStyleSheet.removeRule */
+  @DocsEditable
+  @DomName('CSSStyleSheet.removeRule')
   void removeRule(int index) native "CSSStyleSheet_removeRule_Callback";
 
 }
@@ -6121,7 +6013,8 @@ class CssStyleSheet extends StyleSheet {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitCSSTransformValue
+@DocsEditable
+@DomName('WebKitCSSTransformValue')
 class CssTransformValue extends _CssValueList {
   CssTransformValue.internal() : super.internal();
 
@@ -6167,8 +6060,8 @@ class CssTransformValue extends _CssValueList {
 
   static const int CSS_TRANSLATEZ = 12;
 
-
-  /** @domName WebKitCSSTransformValue.operationType */
+  @DocsEditable
+  @DomName('WebKitCSSTransformValue.operationType')
   int get operationType native "WebKitCSSTransformValue_operationType_Getter";
 
 }
@@ -6179,7 +6072,8 @@ class CssTransformValue extends _CssValueList {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSUnknownRule
+@DocsEditable
+@DomName('CSSUnknownRule')
 class CssUnknownRule extends CssRule {
   CssUnknownRule.internal() : super.internal();
 
@@ -6191,7 +6085,8 @@ class CssUnknownRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSValue
+@DocsEditable
+@DomName('CSSValue')
 class CssValue extends NativeFieldWrapperClass1 {
   CssValue.internal();
 
@@ -6203,16 +6098,16 @@ class CssValue extends NativeFieldWrapperClass1 {
 
   static const int CSS_VALUE_LIST = 2;
 
-
-  /** @domName CSSValue.cssText */
+  @DocsEditable
+  @DomName('CSSValue.cssText')
   String get cssText native "CSSValue_cssText_Getter";
 
-
-  /** @domName CSSValue.cssText */
+  @DocsEditable
+  @DomName('CSSValue.cssText')
   void set cssText(String value) native "CSSValue_cssText_Setter";
 
-
-  /** @domName CSSValue.cssValueType */
+  @DocsEditable
+  @DomName('CSSValue.cssValueType')
   int get cssValueType native "CSSValue_cssValueType_Getter";
 
 }
@@ -6223,19 +6118,20 @@ class CssValue extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CustomEvent
+@DocsEditable
+@DomName('CustomEvent')
 class CustomEvent extends Event {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
       type, canBubble, cancelable, detail);
   CustomEvent.internal() : super.internal();
 
-
-  /** @domName CustomEvent.detail */
+  @DocsEditable
+  @DomName('CustomEvent.detail')
   Object get detail native "CustomEvent_detail_Getter";
 
-
-  /** @domName CustomEvent.initCustomEvent */
+  @DocsEditable
+  @DomName('CustomEvent.initCustomEvent')
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native "CustomEvent_initCustomEvent_Callback";
 
 }
@@ -6246,11 +6142,12 @@ class CustomEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLDListElement
+@DocsEditable
+@DomName('HTMLDListElement')
 class DListElement extends _Element_Merged {
   DListElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory DListElement() => document.$dom_createElement("dl");
 
 }
@@ -6261,7 +6158,8 @@ class DListElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLDataListElement
+@DocsEditable
+@DomName('HTMLDataListElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -6269,14 +6167,14 @@ class DListElement extends _Element_Merged {
 class DataListElement extends _Element_Merged {
   DataListElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory DataListElement() => document.$dom_createElement("datalist");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLDataListElement.options */
+  @DocsEditable
+  @DomName('HTMLDataListElement.options')
   HtmlCollection get options native "HTMLDataListElement_options_Getter";
 
 }
@@ -6287,28 +6185,29 @@ class DataListElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DataTransferItem
+@DocsEditable
+@DomName('DataTransferItem')
 class DataTransferItem extends NativeFieldWrapperClass1 {
   DataTransferItem.internal();
 
-
-  /** @domName DataTransferItem.kind */
+  @DocsEditable
+  @DomName('DataTransferItem.kind')
   String get kind native "DataTransferItem_kind_Getter";
 
-
-  /** @domName DataTransferItem.type */
+  @DocsEditable
+  @DomName('DataTransferItem.type')
   String get type native "DataTransferItem_type_Getter";
 
-
-  /** @domName DataTransferItem.getAsFile */
+  @DocsEditable
+  @DomName('DataTransferItem.getAsFile')
   Blob getAsFile() native "DataTransferItem_getAsFile_Callback";
 
-
-  /** @domName DataTransferItem.getAsString */
+  @DocsEditable
+  @DomName('DataTransferItem.getAsString')
   void getAsString([StringCallback callback]) native "DataTransferItem_getAsString_Callback";
 
-
-  /** @domName DataTransferItem.webkitGetAsEntry */
+  @DocsEditable
+  @DomName('DataTransferItem.webkitGetAsEntry')
   Entry webkitGetAsEntry() native "DataTransferItem_webkitGetAsEntry_Callback";
 
 }
@@ -6319,15 +6218,16 @@ class DataTransferItem extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DataTransferItemList
+@DocsEditable
+@DomName('DataTransferItemList')
 class DataTransferItemList extends NativeFieldWrapperClass1 {
   DataTransferItemList.internal();
 
-
-  /** @domName DataTransferItemList.length */
+  @DocsEditable
+  @DomName('DataTransferItemList.length')
   int get length native "DataTransferItemList_length_Getter";
 
-  void add(data_OR_file, [/*DOMString*/ type]) {
+  void add(data_OR_file, [String type]) {
     if ((data_OR_file is File || data_OR_file == null) && !?type) {
       _add_1(data_OR_file);
       return;
@@ -6339,20 +6239,20 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName DataTransferItemList.add_1 */
+  @DocsEditable
+  @DomName('DataTransferItemList.add_1')
   void _add_1(data_OR_file) native "DataTransferItemList_add_1_Callback";
 
-
-  /** @domName DataTransferItemList.add_2 */
+  @DocsEditable
+  @DomName('DataTransferItemList.add_2')
   void _add_2(data_OR_file, type) native "DataTransferItemList_add_2_Callback";
 
-
-  /** @domName DataTransferItemList.clear */
+  @DocsEditable
+  @DomName('DataTransferItemList.clear')
   void clear() native "DataTransferItemList_clear_Callback";
 
-
-  /** @domName DataTransferItemList.item */
+  @DocsEditable
+  @DomName('DataTransferItemList.item')
   DataTransferItem item(int index) native "DataTransferItemList_item_Callback";
 
 }
@@ -6363,11 +6263,12 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DataView
+@DocsEditable
+@DomName('DataView')
 class DataView extends ArrayBufferView {
   DataView.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (!?byteOffset) {
       return DataView._create(buffer);
@@ -6379,105 +6280,105 @@ class DataView extends ArrayBufferView {
   }
   static DataView _create(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
 
-  num getFloat32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  num getFloat32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getFloat32_1(byteOffset, littleEndian);
     }
     return _getFloat32_2(byteOffset);
   }
 
-
-  /** @domName DataView.getFloat32_1 */
+  @DocsEditable
+  @DomName('DataView.getFloat32_1')
   num _getFloat32_1(byteOffset, littleEndian) native "DataView_getFloat32_1_Callback";
 
-
-  /** @domName DataView.getFloat32_2 */
+  @DocsEditable
+  @DomName('DataView.getFloat32_2')
   num _getFloat32_2(byteOffset) native "DataView_getFloat32_2_Callback";
 
-  num getFloat64(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  num getFloat64(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getFloat64_1(byteOffset, littleEndian);
     }
     return _getFloat64_2(byteOffset);
   }
 
-
-  /** @domName DataView.getFloat64_1 */
+  @DocsEditable
+  @DomName('DataView.getFloat64_1')
   num _getFloat64_1(byteOffset, littleEndian) native "DataView_getFloat64_1_Callback";
 
-
-  /** @domName DataView.getFloat64_2 */
+  @DocsEditable
+  @DomName('DataView.getFloat64_2')
   num _getFloat64_2(byteOffset) native "DataView_getFloat64_2_Callback";
 
-  int getInt16(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  int getInt16(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getInt16_1(byteOffset, littleEndian);
     }
     return _getInt16_2(byteOffset);
   }
 
-
-  /** @domName DataView.getInt16_1 */
+  @DocsEditable
+  @DomName('DataView.getInt16_1')
   int _getInt16_1(byteOffset, littleEndian) native "DataView_getInt16_1_Callback";
 
-
-  /** @domName DataView.getInt16_2 */
+  @DocsEditable
+  @DomName('DataView.getInt16_2')
   int _getInt16_2(byteOffset) native "DataView_getInt16_2_Callback";
 
-  int getInt32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  int getInt32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getInt32_1(byteOffset, littleEndian);
     }
     return _getInt32_2(byteOffset);
   }
 
-
-  /** @domName DataView.getInt32_1 */
+  @DocsEditable
+  @DomName('DataView.getInt32_1')
   int _getInt32_1(byteOffset, littleEndian) native "DataView_getInt32_1_Callback";
 
-
-  /** @domName DataView.getInt32_2 */
+  @DocsEditable
+  @DomName('DataView.getInt32_2')
   int _getInt32_2(byteOffset) native "DataView_getInt32_2_Callback";
 
-
-  /** @domName DataView.getInt8 */
+  @DocsEditable
+  @DomName('DataView.getInt8')
   int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
-  int getUint16(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  int getUint16(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getUint16_1(byteOffset, littleEndian);
     }
     return _getUint16_2(byteOffset);
   }
 
-
-  /** @domName DataView.getUint16_1 */
+  @DocsEditable
+  @DomName('DataView.getUint16_1')
   int _getUint16_1(byteOffset, littleEndian) native "DataView_getUint16_1_Callback";
 
-
-  /** @domName DataView.getUint16_2 */
+  @DocsEditable
+  @DomName('DataView.getUint16_2')
   int _getUint16_2(byteOffset) native "DataView_getUint16_2_Callback";
 
-  int getUint32(/*unsigned long*/ byteOffset, {/*boolean*/ littleEndian}) {
+  int getUint32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
       return _getUint32_1(byteOffset, littleEndian);
     }
     return _getUint32_2(byteOffset);
   }
 
-
-  /** @domName DataView.getUint32_1 */
+  @DocsEditable
+  @DomName('DataView.getUint32_1')
   int _getUint32_1(byteOffset, littleEndian) native "DataView_getUint32_1_Callback";
 
-
-  /** @domName DataView.getUint32_2 */
+  @DocsEditable
+  @DomName('DataView.getUint32_2')
   int _getUint32_2(byteOffset) native "DataView_getUint32_2_Callback";
 
-
-  /** @domName DataView.getUint8 */
+  @DocsEditable
+  @DomName('DataView.getUint8')
   int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
-  void setFloat32(/*unsigned long*/ byteOffset, /*float*/ value, {/*boolean*/ littleEndian}) {
+  void setFloat32(int byteOffset, num value, {bool littleEndian}) {
     if (?littleEndian) {
       _setFloat32_1(byteOffset, value, littleEndian);
       return;
@@ -6485,15 +6386,15 @@ class DataView extends ArrayBufferView {
     _setFloat32_2(byteOffset, value);
   }
 
-
-  /** @domName DataView.setFloat32_1 */
+  @DocsEditable
+  @DomName('DataView.setFloat32_1')
   void _setFloat32_1(byteOffset, value, littleEndian) native "DataView_setFloat32_1_Callback";
 
-
-  /** @domName DataView.setFloat32_2 */
+  @DocsEditable
+  @DomName('DataView.setFloat32_2')
   void _setFloat32_2(byteOffset, value) native "DataView_setFloat32_2_Callback";
 
-  void setFloat64(/*unsigned long*/ byteOffset, /*double*/ value, {/*boolean*/ littleEndian}) {
+  void setFloat64(int byteOffset, num value, {bool littleEndian}) {
     if (?littleEndian) {
       _setFloat64_1(byteOffset, value, littleEndian);
       return;
@@ -6501,15 +6402,15 @@ class DataView extends ArrayBufferView {
     _setFloat64_2(byteOffset, value);
   }
 
-
-  /** @domName DataView.setFloat64_1 */
+  @DocsEditable
+  @DomName('DataView.setFloat64_1')
   void _setFloat64_1(byteOffset, value, littleEndian) native "DataView_setFloat64_1_Callback";
 
-
-  /** @domName DataView.setFloat64_2 */
+  @DocsEditable
+  @DomName('DataView.setFloat64_2')
   void _setFloat64_2(byteOffset, value) native "DataView_setFloat64_2_Callback";
 
-  void setInt16(/*unsigned long*/ byteOffset, /*short*/ value, {/*boolean*/ littleEndian}) {
+  void setInt16(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
       _setInt16_1(byteOffset, value, littleEndian);
       return;
@@ -6517,15 +6418,15 @@ class DataView extends ArrayBufferView {
     _setInt16_2(byteOffset, value);
   }
 
-
-  /** @domName DataView.setInt16_1 */
+  @DocsEditable
+  @DomName('DataView.setInt16_1')
   void _setInt16_1(byteOffset, value, littleEndian) native "DataView_setInt16_1_Callback";
 
-
-  /** @domName DataView.setInt16_2 */
+  @DocsEditable
+  @DomName('DataView.setInt16_2')
   void _setInt16_2(byteOffset, value) native "DataView_setInt16_2_Callback";
 
-  void setInt32(/*unsigned long*/ byteOffset, /*long*/ value, {/*boolean*/ littleEndian}) {
+  void setInt32(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
       _setInt32_1(byteOffset, value, littleEndian);
       return;
@@ -6533,19 +6434,19 @@ class DataView extends ArrayBufferView {
     _setInt32_2(byteOffset, value);
   }
 
-
-  /** @domName DataView.setInt32_1 */
+  @DocsEditable
+  @DomName('DataView.setInt32_1')
   void _setInt32_1(byteOffset, value, littleEndian) native "DataView_setInt32_1_Callback";
 
-
-  /** @domName DataView.setInt32_2 */
+  @DocsEditable
+  @DomName('DataView.setInt32_2')
   void _setInt32_2(byteOffset, value) native "DataView_setInt32_2_Callback";
 
-
-  /** @domName DataView.setInt8 */
+  @DocsEditable
+  @DomName('DataView.setInt8')
   void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
 
-  void setUint16(/*unsigned long*/ byteOffset, /*unsigned short*/ value, {/*boolean*/ littleEndian}) {
+  void setUint16(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
       _setUint16_1(byteOffset, value, littleEndian);
       return;
@@ -6553,15 +6454,15 @@ class DataView extends ArrayBufferView {
     _setUint16_2(byteOffset, value);
   }
 
-
-  /** @domName DataView.setUint16_1 */
+  @DocsEditable
+  @DomName('DataView.setUint16_1')
   void _setUint16_1(byteOffset, value, littleEndian) native "DataView_setUint16_1_Callback";
 
-
-  /** @domName DataView.setUint16_2 */
+  @DocsEditable
+  @DomName('DataView.setUint16_2')
   void _setUint16_2(byteOffset, value) native "DataView_setUint16_2_Callback";
 
-  void setUint32(/*unsigned long*/ byteOffset, /*unsigned long*/ value, {/*boolean*/ littleEndian}) {
+  void setUint32(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
       _setUint32_1(byteOffset, value, littleEndian);
       return;
@@ -6569,16 +6470,16 @@ class DataView extends ArrayBufferView {
     _setUint32_2(byteOffset, value);
   }
 
-
-  /** @domName DataView.setUint32_1 */
+  @DocsEditable
+  @DomName('DataView.setUint32_1')
   void _setUint32_1(byteOffset, value, littleEndian) native "DataView_setUint32_1_Callback";
 
-
-  /** @domName DataView.setUint32_2 */
+  @DocsEditable
+  @DomName('DataView.setUint32_2')
   void _setUint32_2(byteOffset, value) native "DataView_setUint32_2_Callback";
 
-
-  /** @domName DataView.setUint8 */
+  @DocsEditable
+  @DomName('DataView.setUint8')
   void setUint8(int byteOffset, int value) native "DataView_setUint8_Callback";
 
 }
@@ -6589,24 +6490,25 @@ class DataView extends ArrayBufferView {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Database
+@DocsEditable
+@DomName('Database')
 class Database extends NativeFieldWrapperClass1 {
   Database.internal();
 
-
-  /** @domName Database.version */
+  @DocsEditable
+  @DomName('Database.version')
   String get version native "Database_version_Getter";
 
-
-  /** @domName Database.changeVersion */
+  @DocsEditable
+  @DomName('Database.changeVersion')
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_changeVersion_Callback";
 
-
-  /** @domName Database.readTransaction */
+  @DocsEditable
+  @DomName('Database.readTransaction')
   void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_readTransaction_Callback";
 
-
-  /** @domName Database.transaction */
+  @DocsEditable
+  @DomName('Database.transaction')
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_transaction_Callback";
 
 }
@@ -6625,28 +6527,29 @@ typedef void DatabaseCallback(database);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DatabaseSync
+@DocsEditable
+@DomName('DatabaseSync')
 class DatabaseSync extends NativeFieldWrapperClass1 {
   DatabaseSync.internal();
 
-
-  /** @domName DatabaseSync.lastErrorMessage */
+  @DocsEditable
+  @DomName('DatabaseSync.lastErrorMessage')
   String get lastErrorMessage native "DatabaseSync_lastErrorMessage_Getter";
 
-
-  /** @domName DatabaseSync.version */
+  @DocsEditable
+  @DomName('DatabaseSync.version')
   String get version native "DatabaseSync_version_Getter";
 
-
-  /** @domName DatabaseSync.changeVersion */
+  @DocsEditable
+  @DomName('DatabaseSync.changeVersion')
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native "DatabaseSync_changeVersion_Callback";
 
-
-  /** @domName DatabaseSync.readTransaction */
+  @DocsEditable
+  @DomName('DatabaseSync.readTransaction')
   void readTransaction(SqlTransactionSyncCallback callback) native "DatabaseSync_readTransaction_Callback";
 
-
-  /** @domName DatabaseSync.transaction */
+  @DocsEditable
+  @DomName('DatabaseSync.transaction')
   void transaction(SqlTransactionSyncCallback callback) native "DatabaseSync_transaction_Callback";
 
 }
@@ -6657,30 +6560,32 @@ class DatabaseSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DedicatedWorkerContext
+@DocsEditable
+@DomName('DedicatedWorkerContext')
 class DedicatedWorkerContext extends WorkerContext {
   DedicatedWorkerContext.internal() : super.internal();
 
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
-
-  /** @domName DedicatedWorkerContext.postMessage */
+  @DocsEditable
+  @DomName('DedicatedWorkerContext.postMessage')
   void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class DedicatedWorkerContextEvents extends WorkerContextEvents {
-  /// @docsEditable true
+  @DocsEditable
   DedicatedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6690,25 +6595,26 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLDetailsElement
+@DocsEditable
+@DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 class DetailsElement extends _Element_Merged {
   DetailsElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory DetailsElement() => document.$dom_createElement("details");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLDetailsElement.open */
+  @DocsEditable
+  @DomName('HTMLDetailsElement.open')
   bool get open native "HTMLDetailsElement_open_Getter";
 
-
-  /** @domName HTMLDetailsElement.open */
+  @DocsEditable
+  @DomName('HTMLDetailsElement.open')
   void set open(bool value) native "HTMLDetailsElement_open_Setter";
 
 }
@@ -6719,12 +6625,13 @@ class DetailsElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DeviceMotionEvent
+@DocsEditable
+@DomName('DeviceMotionEvent')
 class DeviceMotionEvent extends Event {
   DeviceMotionEvent.internal() : super.internal();
 
-
-  /** @domName DeviceMotionEvent.interval */
+  @DocsEditable
+  @DomName('DeviceMotionEvent.interval')
   num get interval native "DeviceMotionEvent_interval_Getter";
 
 }
@@ -6735,28 +6642,29 @@ class DeviceMotionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DeviceOrientationEvent
+@DocsEditable
+@DomName('DeviceOrientationEvent')
 class DeviceOrientationEvent extends Event {
   DeviceOrientationEvent.internal() : super.internal();
 
-
-  /** @domName DeviceOrientationEvent.absolute */
+  @DocsEditable
+  @DomName('DeviceOrientationEvent.absolute')
   bool get absolute native "DeviceOrientationEvent_absolute_Getter";
 
-
-  /** @domName DeviceOrientationEvent.alpha */
+  @DocsEditable
+  @DomName('DeviceOrientationEvent.alpha')
   num get alpha native "DeviceOrientationEvent_alpha_Getter";
 
-
-  /** @domName DeviceOrientationEvent.beta */
+  @DocsEditable
+  @DomName('DeviceOrientationEvent.beta')
   num get beta native "DeviceOrientationEvent_beta_Getter";
 
-
-  /** @domName DeviceOrientationEvent.gamma */
+  @DocsEditable
+  @DomName('DeviceOrientationEvent.gamma')
   num get gamma native "DeviceOrientationEvent_gamma_Getter";
 
-
-  /** @domName DeviceOrientationEvent.initDeviceOrientationEvent */
+  @DocsEditable
+  @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
 
 }
@@ -6767,44 +6675,25 @@ class DeviceOrientationEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLDirectoryElement
-class DirectoryElement extends _Element_Merged {
-  DirectoryElement.internal() : super.internal();
-
-
-  /** @domName HTMLDirectoryElement.compact */
-  bool get compact native "HTMLDirectoryElement_compact_Getter";
-
-
-  /** @domName HTMLDirectoryElement.compact */
-  void set compact(bool value) native "HTMLDirectoryElement_compact_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName DirectoryEntry
+@DocsEditable
+@DomName('DirectoryEntry')
 class DirectoryEntry extends Entry {
   DirectoryEntry.internal() : super.internal();
 
-
-  /** @domName DirectoryEntry.createReader */
+  @DocsEditable
+  @DomName('DirectoryEntry.createReader')
   DirectoryReader createReader() native "DirectoryEntry_createReader_Callback";
 
-
-  /** @domName DirectoryEntry.getDirectory */
+  @DocsEditable
+  @DomName('DirectoryEntry.getDirectory')
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getDirectory_Callback";
 
-
-  /** @domName DirectoryEntry.getFile */
+  @DocsEditable
+  @DomName('DirectoryEntry.getFile')
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) native "DirectoryEntry_getFile_Callback";
 
-
-  /** @domName DirectoryEntry.removeRecursively */
+  @DocsEditable
+  @DomName('DirectoryEntry.removeRecursively')
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryEntry_removeRecursively_Callback";
 
 }
@@ -6815,24 +6704,25 @@ class DirectoryEntry extends Entry {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DirectoryEntrySync
+@DocsEditable
+@DomName('DirectoryEntrySync')
 class DirectoryEntrySync extends EntrySync {
   DirectoryEntrySync.internal() : super.internal();
 
-
-  /** @domName DirectoryEntrySync.createReader */
+  @DocsEditable
+  @DomName('DirectoryEntrySync.createReader')
   DirectoryReaderSync createReader() native "DirectoryEntrySync_createReader_Callback";
 
-
-  /** @domName DirectoryEntrySync.getDirectory */
+  @DocsEditable
+  @DomName('DirectoryEntrySync.getDirectory')
   DirectoryEntrySync getDirectory(String path, Map flags) native "DirectoryEntrySync_getDirectory_Callback";
 
-
-  /** @domName DirectoryEntrySync.getFile */
+  @DocsEditable
+  @DomName('DirectoryEntrySync.getFile')
   FileEntrySync getFile(String path, Map flags) native "DirectoryEntrySync_getFile_Callback";
 
-
-  /** @domName DirectoryEntrySync.removeRecursively */
+  @DocsEditable
+  @DomName('DirectoryEntrySync.removeRecursively')
   void removeRecursively() native "DirectoryEntrySync_removeRecursively_Callback";
 
 }
@@ -6843,12 +6733,13 @@ class DirectoryEntrySync extends EntrySync {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DirectoryReader
+@DocsEditable
+@DomName('DirectoryReader')
 class DirectoryReader extends NativeFieldWrapperClass1 {
   DirectoryReader.internal();
 
-
-  /** @domName DirectoryReader.readEntries */
+  @DocsEditable
+  @DomName('DirectoryReader.readEntries')
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryReader_readEntries_Callback";
 
 }
@@ -6859,12 +6750,13 @@ class DirectoryReader extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DirectoryReaderSync
+@DocsEditable
+@DomName('DirectoryReaderSync')
 class DirectoryReaderSync extends NativeFieldWrapperClass1 {
   DirectoryReaderSync.internal();
 
-
-  /** @domName DirectoryReaderSync.readEntries */
+  @DocsEditable
+  @DomName('DirectoryReaderSync.readEntries')
   List<EntrySync> readEntries() native "DirectoryReaderSync_readEntries_Callback";
 
 }
@@ -6875,11 +6767,12 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLDivElement
+@DocsEditable
+@DomName('HTMLDivElement')
 class DivElement extends _Element_Merged {
   DivElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory DivElement() => document.$dom_createElement("div");
 
 }
@@ -6888,7 +6781,8 @@ class DivElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Document
+@DocsEditable
+@DomName('Document')
 /**
  * The base class for all documents.
  *
@@ -6903,413 +6797,324 @@ class Document extends Node
 
   Document.internal() : super.internal();
 
-  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
-
-  static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
-
-  static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
-
-  static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
-
-  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
-
-  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
-
-  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
-
-  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
-
-  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
-
-  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
-
-  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
-
-  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
-
-  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
-
-  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
-
-  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
-
-  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
-  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
-
-  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
-
-  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
-
-  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
-
-  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
-
-  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
-
-  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
-
-  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
-
-  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
-
-  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
-
-  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
-
   static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
 
-  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
-
-  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
-
-  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
-
-  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
-
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
-
-  static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
-
-  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
-
-  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
-
-  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
-
-  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
-
-  static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
-
-  static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   DocumentEvents get on =>
     new DocumentEvents(this);
 
-
-  /** @domName Document.body */
+  @DocsEditable
+  @DomName('Document.body')
   Element get $dom_body native "Document_body_Getter";
 
-
-  /** @domName Document.body */
+  @DocsEditable
+  @DomName('Document.body')
   void set $dom_body(Element value) native "Document_body_Setter";
 
-
-  /** @domName Document.charset */
+  @DocsEditable
+  @DomName('Document.charset')
   String get charset native "Document_charset_Getter";
 
-
-  /** @domName Document.charset */
+  @DocsEditable
+  @DomName('Document.charset')
   void set charset(String value) native "Document_charset_Setter";
 
-
-  /** @domName Document.cookie */
+  @DocsEditable
+  @DomName('Document.cookie')
   String get cookie native "Document_cookie_Getter";
 
-
-  /** @domName Document.cookie */
+  @DocsEditable
+  @DomName('Document.cookie')
   void set cookie(String value) native "Document_cookie_Setter";
 
-
-  /** @domName Document.defaultView */
+  @DocsEditable
+  @DomName('Document.defaultView')
   WindowBase get window native "Document_defaultView_Getter";
 
-
-  /** @domName Document.documentElement */
+  @DocsEditable
+  @DomName('Document.documentElement')
   Element get documentElement native "Document_documentElement_Getter";
 
-
-  /** @domName Document.domain */
+  @DocsEditable
+  @DomName('Document.domain')
   String get domain native "Document_domain_Getter";
 
-
-  /** @domName Document.head */
+  @DocsEditable
+  @DomName('Document.head')
   HeadElement get $dom_head native "Document_head_Getter";
 
-
-  /** @domName Document.implementation */
+  @DocsEditable
+  @DomName('Document.implementation')
   DomImplementation get implementation native "Document_implementation_Getter";
 
-
-  /** @domName Document.lastModified */
+  @DocsEditable
+  @DomName('Document.lastModified')
   String get $dom_lastModified native "Document_lastModified_Getter";
 
-
-  /** @domName Document.preferredStylesheetSet */
+  @DocsEditable
+  @DomName('Document.preferredStylesheetSet')
   String get $dom_preferredStylesheetSet native "Document_preferredStylesheetSet_Getter";
 
-
-  /** @domName Document.readyState */
+  @DocsEditable
+  @DomName('Document.readyState')
   String get readyState native "Document_readyState_Getter";
 
-
-  /** @domName Document.referrer */
+  @DocsEditable
+  @DomName('Document.referrer')
   String get $dom_referrer native "Document_referrer_Getter";
 
-
-  /** @domName Document.selectedStylesheetSet */
+  @DocsEditable
+  @DomName('Document.selectedStylesheetSet')
   String get $dom_selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
 
-
-  /** @domName Document.selectedStylesheetSet */
+  @DocsEditable
+  @DomName('Document.selectedStylesheetSet')
   void set $dom_selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
-
-  /** @domName Document.styleSheets */
+  @DocsEditable
+  @DomName('Document.styleSheets')
   List<StyleSheet> get $dom_styleSheets native "Document_styleSheets_Getter";
 
-
-  /** @domName Document.title */
+  @DocsEditable
+  @DomName('Document.title')
   String get $dom_title native "Document_title_Getter";
 
-
-  /** @domName Document.title */
+  @DocsEditable
+  @DomName('Document.title')
   void set $dom_title(String value) native "Document_title_Setter";
 
-
-  /** @domName Document.webkitFullscreenElement */
+  @DocsEditable
+  @DomName('Document.webkitFullscreenElement')
   Element get $dom_webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
-
-  /** @domName Document.webkitFullscreenEnabled */
+  @DocsEditable
+  @DomName('Document.webkitFullscreenEnabled')
   bool get $dom_webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
-
-  /** @domName Document.webkitHidden */
+  @DocsEditable
+  @DomName('Document.webkitHidden')
   bool get $dom_webkitHidden native "Document_webkitHidden_Getter";
 
-
-  /** @domName Document.webkitIsFullScreen */
+  @DocsEditable
+  @DomName('Document.webkitIsFullScreen')
   bool get $dom_webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
-
-  /** @domName Document.webkitPointerLockElement */
+  @DocsEditable
+  @DomName('Document.webkitPointerLockElement')
   Element get $dom_webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
 
-
-  /** @domName Document.webkitVisibilityState */
+  @DocsEditable
+  @DomName('Document.webkitVisibilityState')
   String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
-
-  /** @domName Document.caretRangeFromPoint */
+  @DocsEditable
+  @DomName('Document.caretRangeFromPoint')
   Range $dom_caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
 
-
-  /** @domName Document.createCDATASection */
+  @DocsEditable
+  @DomName('Document.createCDATASection')
   CDataSection createCDataSection(String data) native "Document_createCDATASection_Callback";
 
-
-  /** @domName Document.createDocumentFragment */
+  @DocsEditable
+  @DomName('Document.createDocumentFragment')
   DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
 
-
-  /** @domName Document.createElement */
+  @DocsEditable
+  @DomName('Document.createElement')
   Element $dom_createElement(String tagName) native "Document_createElement_Callback";
 
-
-  /** @domName Document.createElementNS */
+  @DocsEditable
+  @DomName('Document.createElementNS')
   Element $dom_createElementNS(String namespaceURI, String qualifiedName) native "Document_createElementNS_Callback";
 
-
-  /** @domName Document.createEvent */
+  @DocsEditable
+  @DomName('Document.createEvent')
   Event $dom_createEvent(String eventType) native "Document_createEvent_Callback";
 
-
-  /** @domName Document.createRange */
+  @DocsEditable
+  @DomName('Document.createRange')
   Range $dom_createRange() native "Document_createRange_Callback";
 
-
-  /** @domName Document.createTextNode */
+  @DocsEditable
+  @DomName('Document.createTextNode')
   Text $dom_createTextNode(String data) native "Document_createTextNode_Callback";
 
-
-  /** @domName Document.createTouch */
+  @DocsEditable
+  @DomName('Document.createTouch')
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
-
-  /** @domName Document.createTouchList */
+  @DocsEditable
+  @DomName('Document.createTouchList')
   TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
 
-
-  /** @domName Document.elementFromPoint */
+  @DocsEditable
+  @DomName('Document.elementFromPoint')
   Element $dom_elementFromPoint(int x, int y) native "Document_elementFromPoint_Callback";
 
-
-  /** @domName Document.execCommand */
+  @DocsEditable
+  @DomName('Document.execCommand')
   bool execCommand(String command, bool userInterface, String value) native "Document_execCommand_Callback";
 
-
-  /** @domName Document.getCSSCanvasContext */
+  @DocsEditable
+  @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
-
-  /** @domName Document.getElementById */
+  @DocsEditable
+  @DomName('Document.getElementById')
   Element $dom_getElementById(String elementId) native "Document_getElementById_Callback";
 
-
-  /** @domName Document.getElementsByClassName */
+  @DocsEditable
+  @DomName('Document.getElementsByClassName')
   List<Node> $dom_getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
 
-
-  /** @domName Document.getElementsByName */
+  @DocsEditable
+  @DomName('Document.getElementsByName')
   List<Node> $dom_getElementsByName(String elementName) native "Document_getElementsByName_Callback";
 
-
-  /** @domName Document.getElementsByTagName */
+  @DocsEditable
+  @DomName('Document.getElementsByTagName')
   List<Node> $dom_getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
 
-
-  /** @domName Document.queryCommandEnabled */
+  @DocsEditable
+  @DomName('Document.queryCommandEnabled')
   bool queryCommandEnabled(String command) native "Document_queryCommandEnabled_Callback";
 
-
-  /** @domName Document.queryCommandIndeterm */
+  @DocsEditable
+  @DomName('Document.queryCommandIndeterm')
   bool queryCommandIndeterm(String command) native "Document_queryCommandIndeterm_Callback";
 
-
-  /** @domName Document.queryCommandState */
+  @DocsEditable
+  @DomName('Document.queryCommandState')
   bool queryCommandState(String command) native "Document_queryCommandState_Callback";
 
-
-  /** @domName Document.queryCommandSupported */
+  @DocsEditable
+  @DomName('Document.queryCommandSupported')
   bool queryCommandSupported(String command) native "Document_queryCommandSupported_Callback";
 
-
-  /** @domName Document.queryCommandValue */
+  @DocsEditable
+  @DomName('Document.queryCommandValue')
   String queryCommandValue(String command) native "Document_queryCommandValue_Callback";
 
-
-  /** @domName Document.querySelector */
+  @DocsEditable
+  @DomName('Document.querySelector')
   Element $dom_querySelector(String selectors) native "Document_querySelector_Callback";
 
-
-  /** @domName Document.querySelectorAll */
+  @DocsEditable
+  @DomName('Document.querySelectorAll')
   List<Node> $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
 
-
-  /** @domName Document.webkitCancelFullScreen */
+  @DocsEditable
+  @DomName('Document.webkitCancelFullScreen')
   void $dom_webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
-
-  /** @domName Document.webkitExitFullscreen */
+  @DocsEditable
+  @DomName('Document.webkitExitFullscreen')
   void $dom_webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
-
-  /** @domName Document.webkitExitPointerLock */
+  @DocsEditable
+  @DomName('Document.webkitExitPointerLock')
   void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
-  Stream<Event> get onAbort => abortEvent.forTarget(this);
+  Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
+  Stream<Event> get onBeforeCopy => Element.beforeCopyEvent.forTarget(this);
 
-  Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
+  Stream<Event> get onBeforeCut => Element.beforeCutEvent.forTarget(this);
 
-  Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
+  Stream<Event> get onBeforePaste => Element.beforePasteEvent.forTarget(this);
 
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  Stream<Event> get onChange => changeEvent.forTarget(this);
+  Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
+  Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
+  Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  Stream<Event> get onCopy => copyEvent.forTarget(this);
+  Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
 
-  Stream<Event> get onCut => cutEvent.forTarget(this);
+  Stream<Event> get onCut => Element.cutEvent.forTarget(this);
 
-  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+  Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+  Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+  Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+  Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+  Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+  Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
-  Stream<Event> get onInput => inputEvent.forTarget(this);
+  Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+  Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
+  Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+  Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
-  Stream<Event> get onPaste => pasteEvent.forTarget(this);
+  Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
 
   Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
-  Stream<Event> get onReset => resetEvent.forTarget(this);
+  Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
-  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+  Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  Stream<Event> get onSearch => searchEvent.forTarget(this);
+  Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  Stream<Event> get onSelect => selectEvent.forTarget(this);
+  Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
   Stream<Event> get onSelectionChange => selectionChangeEvent.forTarget(this);
 
-  Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
+  Stream<Event> get onSelectStart => Element.selectStartEvent.forTarget(this);
 
-  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+  Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
-  Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
+  Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
-  Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
+  Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
@@ -7378,21 +7183,21 @@ class Document extends Node
   }
 }
 
-/// @docsEditable true
+@DocsEditable
 class DocumentEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   DocumentEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get readyStateChange => this['readystatechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get selectionChange => this['selectionchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pointerLockError => this['webkitpointerlockerror'];
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -7415,7 +7220,8 @@ class _FrozenCssClassSet extends CssClassSet {
   bool get frozen => true;
 }
 
-/// @domName DocumentFragment
+@DocsEditable
+@DomName('DocumentFragment')
 class DocumentFragment extends Node {
   factory DocumentFragment() => _DocumentFragmentFactoryProvider.createDocumentFragment();
 
@@ -7661,16 +7467,17 @@ class DocumentFragment extends Node {
 
   DocumentFragment.internal() : super.internal();
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ElementEvents get on =>
     new ElementEvents(this);
 
-
-  /** @domName DocumentFragment.querySelector */
+  @DocsEditable
+  @DomName('DocumentFragment.querySelector')
   Element $dom_querySelector(String selectors) native "DocumentFragment_querySelector_Callback";
 
-
-  /** @domName DocumentFragment.querySelectorAll */
+  @DocsEditable
+  @DomName('DocumentFragment.querySelectorAll')
   List<Node> $dom_querySelectorAll(String selectors) native "DocumentFragment_querySelectorAll_Callback";
 
 }
@@ -7681,38 +7488,11 @@ class DocumentFragment extends Node {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DocumentType
+@DocsEditable
+@DomName('DocumentType')
 class DocumentType extends Node {
   DocumentType.internal() : super.internal();
 
-
-  /** @domName DocumentType.entities */
-  NamedNodeMap get entities native "DocumentType_entities_Getter";
-
-
-  /** @domName DocumentType.internalSubset */
-  String get internalSubset native "DocumentType_internalSubset_Getter";
-
-
-  /** @domName DocumentType.name */
-  String get name native "DocumentType_name_Getter";
-
-
-  /** @domName DocumentType.notations */
-  NamedNodeMap get notations native "DocumentType_notations_Getter";
-
-
-  /** @domName DocumentType.publicId */
-  String get publicId native "DocumentType_publicId_Getter";
-
-
-  /** @domName DocumentType.systemId */
-  String get systemId native "DocumentType_systemId_Getter";
-
-
-  /** @domName DocumentType.remove */
-  void remove() native "DocumentType_remove_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7721,90 +7501,58 @@ class DocumentType extends Node {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMError
+@DocsEditable
+@DomName('DOMError')
 class DomError extends NativeFieldWrapperClass1 {
   DomError.internal();
 
-
-  /** @domName DOMError.name */
+  @DocsEditable
+  @DomName('DOMError.name')
   String get name native "DOMError_name_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 /// @domName DOMException
 class DomException extends NativeFieldWrapperClass1 {
+
+  static const String INDEX_SIZE = 'IndexSizeError';
+  static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
+  static const String WRONG_DOCUMENT = 'WrongDocumentError';
+  static const String INVALID_CHARACTER = 'InvalidCharacterError';
+  static const String NO_MODIFICATION_ALLOWED = 'NoModificationAllowedError';
+  static const String NOT_FOUND = 'NotFoundError';
+  static const String NOT_SUPPORTED = 'NotSupportedError';
+  static const String INVALID_STATE = 'InvalidStateError';
+  static const String SYNTAX = 'SyntaxError';
+  static const String INVALID_MODIFICATION = 'InvalidModificationError';
+  static const String NAMESPACE = 'NamespaceError';
+  static const String INVALID_ACCESS = 'InvalidAccessError';
+  static const String TYPE_MISMATCH = 'TypeMismatchError';
+  static const String SECURITY = 'SecurityError';
+  static const String NETWORK = 'NetworkError';
+  static const String ABORT = 'AbortError';
+  static const String URL_MISMATCH = 'URLMismatchError';
+  static const String QUOTA_EXCEEDED = 'QuotaExceededError';
+  static const String TIMEOUT = 'TimeoutError';
+  static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
+  static const String DATA_CLONE = 'DataCloneError';
+
   DomException.internal();
 
-  static const int ABORT_ERR = 20;
-
-  static const int DATA_CLONE_ERR = 25;
-
-  static const int DOMSTRING_SIZE_ERR = 2;
-
-  static const int HIERARCHY_REQUEST_ERR = 3;
-
-  static const int INDEX_SIZE_ERR = 1;
-
-  static const int INUSE_ATTRIBUTE_ERR = 10;
-
-  static const int INVALID_ACCESS_ERR = 15;
-
-  static const int INVALID_CHARACTER_ERR = 5;
-
-  static const int INVALID_MODIFICATION_ERR = 13;
-
-  static const int INVALID_NODE_TYPE_ERR = 24;
-
-  static const int INVALID_STATE_ERR = 11;
-
-  static const int NAMESPACE_ERR = 14;
-
-  static const int NETWORK_ERR = 19;
-
-  static const int NOT_FOUND_ERR = 8;
-
-  static const int NOT_SUPPORTED_ERR = 9;
-
-  static const int NO_DATA_ALLOWED_ERR = 6;
-
-  static const int NO_MODIFICATION_ALLOWED_ERR = 7;
-
-  static const int QUOTA_EXCEEDED_ERR = 22;
-
-  static const int SECURITY_ERR = 18;
-
-  static const int SYNTAX_ERR = 12;
-
-  static const int TIMEOUT_ERR = 23;
-
-  static const int TYPE_MISMATCH_ERR = 17;
-
-  static const int URL_MISMATCH_ERR = 21;
-
-  static const int VALIDATION_ERR = 16;
-
-  static const int WRONG_DOCUMENT_ERR = 4;
-
-
-  /** @domName DOMCoreException.code */
-  int get code native "DOMCoreException_code_Getter";
-
-
-  /** @domName DOMCoreException.message */
+  @DocsEditable
+  @DomName('DOMCoreException.message')
   String get message native "DOMCoreException_message_Getter";
 
-
-  /** @domName DOMCoreException.name */
+  @DocsEditable
+  @DomName('DOMCoreException.name')
   String get name native "DOMCoreException_name_Getter";
 
-
-  /** @domName DOMCoreException.toString */
+  @DocsEditable
+  @DomName('DOMCoreException.toString')
   String toString() native "DOMCoreException_toString_Callback";
 
 }
@@ -7815,28 +7563,29 @@ class DomException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMImplementation
+@DocsEditable
+@DomName('DOMImplementation')
 class DomImplementation extends NativeFieldWrapperClass1 {
   DomImplementation.internal();
 
-
-  /** @domName DOMImplementation.createCSSStyleSheet */
+  @DocsEditable
+  @DomName('DOMImplementation.createCSSStyleSheet')
   CssStyleSheet createCssStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
 
-
-  /** @domName DOMImplementation.createDocument */
+  @DocsEditable
+  @DomName('DOMImplementation.createDocument')
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native "DOMImplementation_createDocument_Callback";
 
-
-  /** @domName DOMImplementation.createDocumentType */
+  @DocsEditable
+  @DomName('DOMImplementation.createDocumentType')
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native "DOMImplementation_createDocumentType_Callback";
 
-
-  /** @domName DOMImplementation.createHTMLDocument */
+  @DocsEditable
+  @DomName('DOMImplementation.createHTMLDocument')
   HtmlDocument createHtmlDocument(String title) native "DOMImplementation_createHTMLDocument_Callback";
 
-
-  /** @domName DOMImplementation.hasFeature */
+  @DocsEditable
+  @DomName('DOMImplementation.hasFeature')
   bool hasFeature(String feature, String version) native "DOMImplementation_hasFeature_Callback";
 
 }
@@ -7847,24 +7596,25 @@ class DomImplementation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MimeType
+@DocsEditable
+@DomName('MimeType')
 class DomMimeType extends NativeFieldWrapperClass1 {
   DomMimeType.internal();
 
-
-  /** @domName DOMMimeType.description */
+  @DocsEditable
+  @DomName('DOMMimeType.description')
   String get description native "DOMMimeType_description_Getter";
 
-
-  /** @domName DOMMimeType.enabledPlugin */
+  @DocsEditable
+  @DomName('DOMMimeType.enabledPlugin')
   DomPlugin get enabledPlugin native "DOMMimeType_enabledPlugin_Getter";
 
-
-  /** @domName DOMMimeType.suffixes */
+  @DocsEditable
+  @DomName('DOMMimeType.suffixes')
   String get suffixes native "DOMMimeType_suffixes_Getter";
 
-
-  /** @domName DOMMimeType.type */
+  @DocsEditable
+  @DomName('DOMMimeType.type')
   String get type native "DOMMimeType_type_Getter";
 
 }
@@ -7875,12 +7625,13 @@ class DomMimeType extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MimeTypeArray
+@DocsEditable
+@DomName('MimeTypeArray')
 class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeType> {
   DomMimeTypeArray.internal();
 
-
-  /** @domName DOMMimeTypeArray.length */
+  @DocsEditable
+  @DomName('DOMMimeTypeArray.length')
   int get length native "DOMMimeTypeArray_length_Getter";
 
   DomMimeType operator[](int index) native "DOMMimeTypeArray_item_Callback";
@@ -7901,50 +7652,50 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(DomMimeType element) => Collections.contains(this, element);
+  bool contains(DomMimeType element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(DomMimeType element)) => Collections.forEach(this, f);
+  void forEach(void f(DomMimeType element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomMimeType element)) => new MappedList<DomMimeType, dynamic>(this, f);
+  List mappedBy(f(DomMimeType element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<DomMimeType> where(bool f(DomMimeType element)) => new WhereIterable<DomMimeType>(this, f);
+  Iterable<DomMimeType> where(bool f(DomMimeType element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(DomMimeType element)) => Collections.every(this, f);
+  bool every(bool f(DomMimeType element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(DomMimeType element)) => Collections.any(this, f);
+  bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
 
   List<DomMimeType> toList() => new List<DomMimeType>.from(this);
   Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<DomMimeType> take(int n) => new ListView<DomMimeType>(this, 0, n);
+  List<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
-    return new TakeWhileIterable<DomMimeType>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomMimeType> skip(int n) => new ListView<DomMimeType>(this, n, null);
+  List<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
-    return new SkipWhileIterable<DomMimeType>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   DomMimeType firstMatching(bool test(DomMimeType value), { DomMimeType orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   DomMimeType lastMatching(bool test(DomMimeType value), {DomMimeType orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   DomMimeType singleMatching(bool test(DomMimeType value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   DomMimeType elementAt(int index) {
@@ -8002,16 +7753,36 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new StateError("More than one element");
   }
 
-  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => Collections.min(this, compare);
+  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => IterableMixinWorkaround.min(this, compare);
 
-  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => Collections.max(this, compare);
+  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => IterableMixinWorkaround.max(this, compare);
 
   DomMimeType removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   DomMimeType removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(DomMimeType element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(DomMimeType element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DomMimeType> from, [int startFrom]) {
@@ -8031,12 +7802,12 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
   // -- end List<DomMimeType> mixins.
 
-
-  /** @domName DOMMimeTypeArray.item */
+  @DocsEditable
+  @DomName('DOMMimeTypeArray.item')
   DomMimeType item(int index) native "DOMMimeTypeArray_item_Callback";
 
-
-  /** @domName DOMMimeTypeArray.namedItem */
+  @DocsEditable
+  @DomName('DOMMimeTypeArray.namedItem')
   DomMimeType namedItem(String name) native "DOMMimeTypeArray_namedItem_Callback";
 
 }
@@ -8047,16 +7818,17 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMParser
+@DocsEditable
+@DomName('DOMParser')
 class DomParser extends NativeFieldWrapperClass1 {
   DomParser.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory DomParser() => DomParser._create();
   static DomParser _create() native "DOMParser_constructor_Callback";
 
-
-  /** @domName DOMParser.parseFromString */
+  @DocsEditable
+  @DomName('DOMParser.parseFromString')
   Document parseFromString(String str, String contentType) native "DOMParser_parseFromString_Callback";
 
 }
@@ -8067,32 +7839,33 @@ class DomParser extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Plugin
+@DocsEditable
+@DomName('Plugin')
 class DomPlugin extends NativeFieldWrapperClass1 {
   DomPlugin.internal();
 
-
-  /** @domName DOMPlugin.description */
+  @DocsEditable
+  @DomName('DOMPlugin.description')
   String get description native "DOMPlugin_description_Getter";
 
-
-  /** @domName DOMPlugin.filename */
+  @DocsEditable
+  @DomName('DOMPlugin.filename')
   String get filename native "DOMPlugin_filename_Getter";
 
-
-  /** @domName DOMPlugin.length */
+  @DocsEditable
+  @DomName('DOMPlugin.length')
   int get length native "DOMPlugin_length_Getter";
 
-
-  /** @domName DOMPlugin.name */
+  @DocsEditable
+  @DomName('DOMPlugin.name')
   String get name native "DOMPlugin_name_Getter";
 
-
-  /** @domName DOMPlugin.item */
+  @DocsEditable
+  @DomName('DOMPlugin.item')
   DomMimeType item(int index) native "DOMPlugin_item_Callback";
 
-
-  /** @domName DOMPlugin.namedItem */
+  @DocsEditable
+  @DomName('DOMPlugin.namedItem')
   DomMimeType namedItem(String name) native "DOMPlugin_namedItem_Callback";
 
 }
@@ -8103,12 +7876,13 @@ class DomPlugin extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName PluginArray
+@DocsEditable
+@DomName('PluginArray')
 class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin> {
   DomPluginArray.internal();
 
-
-  /** @domName DOMPluginArray.length */
+  @DocsEditable
+  @DomName('DOMPluginArray.length')
   int get length native "DOMPluginArray_length_Getter";
 
   DomPlugin operator[](int index) native "DOMPluginArray_item_Callback";
@@ -8129,50 +7903,50 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(DomPlugin element) => Collections.contains(this, element);
+  bool contains(DomPlugin element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(DomPlugin element)) => Collections.forEach(this, f);
+  void forEach(void f(DomPlugin element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomPlugin element)) => new MappedList<DomPlugin, dynamic>(this, f);
+  List mappedBy(f(DomPlugin element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<DomPlugin> where(bool f(DomPlugin element)) => new WhereIterable<DomPlugin>(this, f);
+  Iterable<DomPlugin> where(bool f(DomPlugin element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(DomPlugin element)) => Collections.every(this, f);
+  bool every(bool f(DomPlugin element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(DomPlugin element)) => Collections.any(this, f);
+  bool any(bool f(DomPlugin element)) => IterableMixinWorkaround.any(this, f);
 
   List<DomPlugin> toList() => new List<DomPlugin>.from(this);
   Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<DomPlugin> take(int n) => new ListView<DomPlugin>(this, 0, n);
+  List<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
-    return new TakeWhileIterable<DomPlugin>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomPlugin> skip(int n) => new ListView<DomPlugin>(this, n, null);
+  List<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
-    return new SkipWhileIterable<DomPlugin>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   DomPlugin firstMatching(bool test(DomPlugin value), { DomPlugin orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   DomPlugin lastMatching(bool test(DomPlugin value), {DomPlugin orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   DomPlugin singleMatching(bool test(DomPlugin value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   DomPlugin elementAt(int index) {
@@ -8230,16 +8004,36 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new StateError("More than one element");
   }
 
-  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => Collections.min(this, compare);
+  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => IterableMixinWorkaround.min(this, compare);
 
-  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => Collections.max(this, compare);
+  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => IterableMixinWorkaround.max(this, compare);
 
   DomPlugin removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   DomPlugin removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(DomPlugin element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(DomPlugin element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<DomPlugin> from, [int startFrom]) {
@@ -8259,16 +8053,16 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   // -- end List<DomPlugin> mixins.
 
-
-  /** @domName DOMPluginArray.item */
+  @DocsEditable
+  @DomName('DOMPluginArray.item')
   DomPlugin item(int index) native "DOMPluginArray_item_Callback";
 
-
-  /** @domName DOMPluginArray.namedItem */
+  @DocsEditable
+  @DomName('DOMPluginArray.namedItem')
   DomPlugin namedItem(String name) native "DOMPluginArray_namedItem_Callback";
 
-
-  /** @domName DOMPluginArray.refresh */
+  @DocsEditable
+  @DomName('DOMPluginArray.refresh')
   void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
 
 }
@@ -8279,112 +8073,113 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Selection
+@DocsEditable
+@DomName('Selection')
 class DomSelection extends NativeFieldWrapperClass1 {
   DomSelection.internal();
 
-
-  /** @domName DOMSelection.anchorNode */
+  @DocsEditable
+  @DomName('DOMSelection.anchorNode')
   Node get anchorNode native "DOMSelection_anchorNode_Getter";
 
-
-  /** @domName DOMSelection.anchorOffset */
+  @DocsEditable
+  @DomName('DOMSelection.anchorOffset')
   int get anchorOffset native "DOMSelection_anchorOffset_Getter";
 
-
-  /** @domName DOMSelection.baseNode */
+  @DocsEditable
+  @DomName('DOMSelection.baseNode')
   Node get baseNode native "DOMSelection_baseNode_Getter";
 
-
-  /** @domName DOMSelection.baseOffset */
+  @DocsEditable
+  @DomName('DOMSelection.baseOffset')
   int get baseOffset native "DOMSelection_baseOffset_Getter";
 
-
-  /** @domName DOMSelection.extentNode */
+  @DocsEditable
+  @DomName('DOMSelection.extentNode')
   Node get extentNode native "DOMSelection_extentNode_Getter";
 
-
-  /** @domName DOMSelection.extentOffset */
+  @DocsEditable
+  @DomName('DOMSelection.extentOffset')
   int get extentOffset native "DOMSelection_extentOffset_Getter";
 
-
-  /** @domName DOMSelection.focusNode */
+  @DocsEditable
+  @DomName('DOMSelection.focusNode')
   Node get focusNode native "DOMSelection_focusNode_Getter";
 
-
-  /** @domName DOMSelection.focusOffset */
+  @DocsEditable
+  @DomName('DOMSelection.focusOffset')
   int get focusOffset native "DOMSelection_focusOffset_Getter";
 
-
-  /** @domName DOMSelection.isCollapsed */
+  @DocsEditable
+  @DomName('DOMSelection.isCollapsed')
   bool get isCollapsed native "DOMSelection_isCollapsed_Getter";
 
-
-  /** @domName DOMSelection.rangeCount */
+  @DocsEditable
+  @DomName('DOMSelection.rangeCount')
   int get rangeCount native "DOMSelection_rangeCount_Getter";
 
-
-  /** @domName DOMSelection.type */
+  @DocsEditable
+  @DomName('DOMSelection.type')
   String get type native "DOMSelection_type_Getter";
 
-
-  /** @domName DOMSelection.addRange */
+  @DocsEditable
+  @DomName('DOMSelection.addRange')
   void addRange(Range range) native "DOMSelection_addRange_Callback";
 
-
-  /** @domName DOMSelection.collapse */
+  @DocsEditable
+  @DomName('DOMSelection.collapse')
   void collapse(Node node, int index) native "DOMSelection_collapse_Callback";
 
-
-  /** @domName DOMSelection.collapseToEnd */
+  @DocsEditable
+  @DomName('DOMSelection.collapseToEnd')
   void collapseToEnd() native "DOMSelection_collapseToEnd_Callback";
 
-
-  /** @domName DOMSelection.collapseToStart */
+  @DocsEditable
+  @DomName('DOMSelection.collapseToStart')
   void collapseToStart() native "DOMSelection_collapseToStart_Callback";
 
-
-  /** @domName DOMSelection.containsNode */
+  @DocsEditable
+  @DomName('DOMSelection.containsNode')
   bool containsNode(Node node, bool allowPartial) native "DOMSelection_containsNode_Callback";
 
-
-  /** @domName DOMSelection.deleteFromDocument */
+  @DocsEditable
+  @DomName('DOMSelection.deleteFromDocument')
   void deleteFromDocument() native "DOMSelection_deleteFromDocument_Callback";
 
-
-  /** @domName DOMSelection.empty */
+  @DocsEditable
+  @DomName('DOMSelection.empty')
   void empty() native "DOMSelection_empty_Callback";
 
-
-  /** @domName DOMSelection.extend */
+  @DocsEditable
+  @DomName('DOMSelection.extend')
   void extend(Node node, int offset) native "DOMSelection_extend_Callback";
 
-
-  /** @domName DOMSelection.getRangeAt */
+  @DocsEditable
+  @DomName('DOMSelection.getRangeAt')
   Range getRangeAt(int index) native "DOMSelection_getRangeAt_Callback";
 
-
-  /** @domName DOMSelection.modify */
+  @DocsEditable
+  @DomName('DOMSelection.modify')
   void modify(String alter, String direction, String granularity) native "DOMSelection_modify_Callback";
 
-
-  /** @domName DOMSelection.removeAllRanges */
+  @DocsEditable
+  @DomName('DOMSelection.removeAllRanges')
   void removeAllRanges() native "DOMSelection_removeAllRanges_Callback";
 
-
-  /** @domName DOMSelection.selectAllChildren */
+  @DocsEditable
+  @DomName('DOMSelection.selectAllChildren')
   void selectAllChildren(Node node) native "DOMSelection_selectAllChildren_Callback";
 
-
-  /** @domName DOMSelection.setBaseAndExtent */
+  @DocsEditable
+  @DomName('DOMSelection.setBaseAndExtent')
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native "DOMSelection_setBaseAndExtent_Callback";
 
-
-  /** @domName DOMSelection.setPosition */
+  @DocsEditable
+  @DomName('DOMSelection.setPosition')
   void setPosition(Node node, int offset) native "DOMSelection_setPosition_Callback";
 
-
-  /** @domName DOMSelection.toString */
+  @DocsEditable
+  @DomName('DOMSelection.toString')
   String toString() native "DOMSelection_toString_Callback";
 
 }
@@ -8395,16 +8190,17 @@ class DomSelection extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMSettableTokenList
+@DocsEditable
+@DomName('DOMSettableTokenList')
 class DomSettableTokenList extends DomTokenList {
   DomSettableTokenList.internal() : super.internal();
 
-
-  /** @domName DOMSettableTokenList.value */
+  @DocsEditable
+  @DomName('DOMSettableTokenList.value')
   String get value native "DOMSettableTokenList_value_Getter";
 
-
-  /** @domName DOMSettableTokenList.value */
+  @DocsEditable
+  @DomName('DOMSettableTokenList.value')
   void set value(String value) native "DOMSettableTokenList_value_Setter";
 
 }
@@ -8415,12 +8211,13 @@ class DomSettableTokenList extends DomTokenList {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMStringList
+@DocsEditable
+@DomName('DOMStringList')
 class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   DomStringList.internal();
 
-
-  /** @domName DOMStringList.length */
+  @DocsEditable
+  @DomName('DOMStringList.length')
   int get length native "DOMStringList_length_Getter";
 
   String operator[](int index) native "DOMStringList_item_Callback";
@@ -8441,50 +8238,50 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   // contains() defined by IDL.
 
-  void forEach(void f(String element)) => Collections.forEach(this, f);
+  void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(String element)) => new MappedList<String, dynamic>(this, f);
+  List mappedBy(f(String element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<String> where(bool f(String element)) => new WhereIterable<String>(this, f);
+  Iterable<String> where(bool f(String element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(String element)) => Collections.every(this, f);
+  bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(String element)) => Collections.any(this, f);
+  bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
 
   List<String> toList() => new List<String>.from(this);
   Set<String> toSet() => new Set<String>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<String> take(int n) => new ListView<String>(this, 0, n);
+  List<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<String> takeWhile(bool test(String value)) {
-    return new TakeWhileIterable<String>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<String> skip(int n) => new ListView<String>(this, n, null);
+  List<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<String> skipWhile(bool test(String value)) {
-    return new SkipWhileIterable<String>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   String firstMatching(bool test(String value), { String orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   String lastMatching(bool test(String value), {String orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   String singleMatching(bool test(String value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   String elementAt(int index) {
@@ -8542,16 +8339,36 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new StateError("More than one element");
   }
 
-  String min([int compare(String a, String b)]) => Collections.min(this, compare);
+  String min([int compare(String a, String b)]) => IterableMixinWorkaround.min(this, compare);
 
-  String max([int compare(String a, String b)]) => Collections.max(this, compare);
+  String max([int compare(String a, String b)]) => IterableMixinWorkaround.max(this, compare);
 
   String removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   String removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(String element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(String element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
@@ -8571,12 +8388,12 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // -- end List<String> mixins.
 
-
-  /** @domName DOMStringList.contains */
+  @DocsEditable
+  @DomName('DOMStringList.contains')
   bool contains(String string) native "DOMStringList_contains_Callback";
 
-
-  /** @domName DOMStringList.item */
+  @DocsEditable
+  @DomName('DOMStringList.item')
   String item(int index) native "DOMStringList_item_Callback";
 
 }
@@ -8587,7 +8404,8 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMStringMap
+@DocsEditable
+@DomName('DOMStringMap')
 class DomStringMap extends NativeFieldWrapperClass1 {
   DomStringMap.internal();
 
@@ -8599,39 +8417,40 @@ class DomStringMap extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMTokenList
+@DocsEditable
+@DomName('DOMTokenList')
 class DomTokenList extends NativeFieldWrapperClass1 {
   DomTokenList.internal();
 
-
-  /** @domName DOMTokenList.length */
+  @DocsEditable
+  @DomName('DOMTokenList.length')
   int get length native "DOMTokenList_length_Getter";
 
-
-  /** @domName DOMTokenList.contains */
+  @DocsEditable
+  @DomName('DOMTokenList.contains')
   bool contains(String token) native "DOMTokenList_contains_Callback";
 
-
-  /** @domName DOMTokenList.item */
+  @DocsEditable
+  @DomName('DOMTokenList.item')
   String item(int index) native "DOMTokenList_item_Callback";
 
-
-  /** @domName DOMTokenList.toString */
+  @DocsEditable
+  @DomName('DOMTokenList.toString')
   String toString() native "DOMTokenList_toString_Callback";
 
-  bool toggle(/*DOMString*/ token, [/*boolean*/ force]) {
+  bool toggle(String token, [bool force]) {
     if (?force) {
       return _toggle_1(token, force);
     }
     return _toggle_2(token);
   }
 
-
-  /** @domName DOMTokenList.toggle_1 */
+  @DocsEditable
+  @DomName('DOMTokenList.toggle_1')
   bool _toggle_1(token, force) native "DOMTokenList_toggle_1_Callback";
 
-
-  /** @domName DOMTokenList.toggle_2 */
+  @DocsEditable
+  @DomName('DOMTokenList.toggle_2')
   bool _toggle_2(token) native "DOMTokenList_toggle_2_Callback";
 
 }
@@ -8694,46 +8513,47 @@ class _ChildrenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -8752,10 +8572,10 @@ class _ChildrenElementList implements List {
     _element.$dom_replaceChild(value, _childElements[index]);
   }
 
-   void set length(int newLength) {
-     // TODO(jacobr): remove children when length is reduced.
-     throw new UnsupportedError('');
-   }
+  void set length(int newLength) {
+    // TODO(jacobr): remove children when length is reduced.
+    throw new UnsupportedError('');
+  }
 
   Element add(Element value) {
     _element.$dom_appendChild(value);
@@ -8778,11 +8598,36 @@ class _ChildrenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw new UnimplementedError();
+  }
+
+  void remove(Object object) {
+    if (object is Element) {
+      Element element = object;
+      if (identical(element.parentNode, this)) {
+        _element.$dom_removeChild(element);
+      }
+    }
+  }
+
+  void removeAll(Iterable elements) {
+    Collections.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    Collections.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(Element element)) {
+    Collections.removeMatching(this, test);
+  }
+
+  void retainMatching(bool test(Element element)) {
+    Collections.retainMatching(this, test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -8846,11 +8691,11 @@ class _ChildrenElementList implements List {
   }
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 
@@ -8877,15 +8722,16 @@ class _FrozenElementList implements List {
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
   List mappedBy(f(Element element)) {
-    return new MappedList<Element, dynamic>(this, f);
+    return IterableMixinWorkaround.mappedByList(this, f);
   }
 
-  Iterable<Element> where(bool f(Element element))
-      => new WhereIterable(this, f);
+  Iterable<Element> where(bool f(Element element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -8909,31 +8755,31 @@ class _FrozenElementList implements List {
   Set<Element> toSet() => new Set<Element>.from(this);
 
   List<Element> take(int n) {
-    return new ListView<Element>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Element> skip(int n) {
-    return new ListView<Element>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element firstMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Element lastMatching(bool test(Element value), {Element orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Element singleMatching(bool test(Element value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Element elementAt(int index) {
@@ -8974,7 +8820,7 @@ class _FrozenElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -9010,6 +8856,26 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  void remove(Object element) {
+    throw new UnsupportedError('');
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError('');
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError('');
+  }
+
+  void removeMatching(bool test(Element element)) {
+    throw new UnsupportedError('');
+  }
+
+  void retainMatching(bool test(Element element)) {
+    throw new UnsupportedError('');
+  }
+
   Element get first => _nodeList.first;
 
   Element get last => _nodeList.last;
@@ -9017,11 +8883,11 @@ class _FrozenElementList implements List {
   Element get single => _nodeList.single;
 
   Element min([int compare(Element a, Element b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Element max([int compare(Element a, Element b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 }
 
@@ -9458,250 +9324,232 @@ abstract class Element extends Node implements ElementTraversal {
 
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   ElementEvents get on =>
     new ElementEvents(this);
 
-  /// @domName HTMLElement.children; @docsEditable true
   HtmlCollection get $dom_children;
 
-  /// @domName HTMLElement.contentEditable; @docsEditable true
   String contentEditable;
 
-  /// @domName HTMLElement.dir; @docsEditable true
   String dir;
 
-  /// @domName HTMLElement.draggable; @docsEditable true
   bool draggable;
 
-  /// @domName HTMLElement.hidden; @docsEditable true
   bool hidden;
 
-  /// @domName HTMLElement.id; @docsEditable true
   String id;
 
-  /// @domName HTMLElement.innerHTML; @docsEditable true
   String innerHtml;
 
-  /// @domName HTMLElement.isContentEditable; @docsEditable true
   bool get isContentEditable;
 
-  /// @domName HTMLElement.lang; @docsEditable true
   String lang;
 
-  /// @domName HTMLElement.outerHTML; @docsEditable true
   String get outerHtml;
 
-  /// @domName HTMLElement.spellcheck; @docsEditable true
   bool spellcheck;
 
-  /// @domName HTMLElement.tabIndex; @docsEditable true
   int tabIndex;
 
-  /// @domName HTMLElement.title; @docsEditable true
   String title;
 
-  /// @domName HTMLElement.translate; @docsEditable true
   bool translate;
 
-  /// @domName HTMLElement.webkitdropzone; @docsEditable true
   String webkitdropzone;
 
-  /// @domName HTMLElement.click; @docsEditable true
   void click();
 
-  /// @domName HTMLElement.insertAdjacentElement; @docsEditable true
   Element insertAdjacentElement(String where, Element element);
 
-  /// @domName HTMLElement.insertAdjacentHTML; @docsEditable true
   void insertAdjacentHtml(String where, String html);
 
-  /// @domName HTMLElement.insertAdjacentText; @docsEditable true
   void insertAdjacentText(String where, String text);
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
-
-  /** @domName Element.childElementCount */
+  @DocsEditable
+  @DomName('Element.childElementCount')
   int get $dom_childElementCount native "Element_childElementCount_Getter";
 
-
-  /** @domName Element.className */
+  @DocsEditable
+  @DomName('Element.className')
   String get $dom_className native "Element_className_Getter";
 
-
-  /** @domName Element.className */
+  @DocsEditable
+  @DomName('Element.className')
   void set $dom_className(String value) native "Element_className_Setter";
 
-
-  /** @domName Element.clientHeight */
+  @DocsEditable
+  @DomName('Element.clientHeight')
   int get clientHeight native "Element_clientHeight_Getter";
 
-
-  /** @domName Element.clientLeft */
+  @DocsEditable
+  @DomName('Element.clientLeft')
   int get clientLeft native "Element_clientLeft_Getter";
 
-
-  /** @domName Element.clientTop */
+  @DocsEditable
+  @DomName('Element.clientTop')
   int get clientTop native "Element_clientTop_Getter";
 
-
-  /** @domName Element.clientWidth */
+  @DocsEditable
+  @DomName('Element.clientWidth')
   int get clientWidth native "Element_clientWidth_Getter";
 
-
-  /** @domName Element.dataset */
+  @DocsEditable
+  @DomName('Element.dataset')
   Map<String, String> get dataset native "Element_dataset_Getter";
 
-
-  /** @domName Element.firstElementChild */
+  @DocsEditable
+  @DomName('Element.firstElementChild')
   Element get $dom_firstElementChild native "Element_firstElementChild_Getter";
 
-
-  /** @domName Element.lastElementChild */
+  @DocsEditable
+  @DomName('Element.lastElementChild')
   Element get $dom_lastElementChild native "Element_lastElementChild_Getter";
 
-
-  /** @domName Element.nextElementSibling */
+  @DocsEditable
+  @DomName('Element.nextElementSibling')
   Element get nextElementSibling native "Element_nextElementSibling_Getter";
 
-
-  /** @domName Element.offsetHeight */
+  @DocsEditable
+  @DomName('Element.offsetHeight')
   int get offsetHeight native "Element_offsetHeight_Getter";
 
-
-  /** @domName Element.offsetLeft */
+  @DocsEditable
+  @DomName('Element.offsetLeft')
   int get offsetLeft native "Element_offsetLeft_Getter";
 
-
-  /** @domName Element.offsetParent */
+  @DocsEditable
+  @DomName('Element.offsetParent')
   Element get offsetParent native "Element_offsetParent_Getter";
 
-
-  /** @domName Element.offsetTop */
+  @DocsEditable
+  @DomName('Element.offsetTop')
   int get offsetTop native "Element_offsetTop_Getter";
 
-
-  /** @domName Element.offsetWidth */
+  @DocsEditable
+  @DomName('Element.offsetWidth')
   int get offsetWidth native "Element_offsetWidth_Getter";
 
-
-  /** @domName Element.previousElementSibling */
+  @DocsEditable
+  @DomName('Element.previousElementSibling')
   Element get previousElementSibling native "Element_previousElementSibling_Getter";
 
-
-  /** @domName Element.scrollHeight */
+  @DocsEditable
+  @DomName('Element.scrollHeight')
   int get scrollHeight native "Element_scrollHeight_Getter";
 
-
-  /** @domName Element.scrollLeft */
+  @DocsEditable
+  @DomName('Element.scrollLeft')
   int get scrollLeft native "Element_scrollLeft_Getter";
 
-
-  /** @domName Element.scrollLeft */
+  @DocsEditable
+  @DomName('Element.scrollLeft')
   void set scrollLeft(int value) native "Element_scrollLeft_Setter";
 
-
-  /** @domName Element.scrollTop */
+  @DocsEditable
+  @DomName('Element.scrollTop')
   int get scrollTop native "Element_scrollTop_Getter";
 
-
-  /** @domName Element.scrollTop */
+  @DocsEditable
+  @DomName('Element.scrollTop')
   void set scrollTop(int value) native "Element_scrollTop_Setter";
 
-
-  /** @domName Element.scrollWidth */
+  @DocsEditable
+  @DomName('Element.scrollWidth')
   int get scrollWidth native "Element_scrollWidth_Getter";
 
-
-  /** @domName Element.style */
+  @DocsEditable
+  @DomName('Element.style')
   CssStyleDeclaration get style native "Element_style_Getter";
 
-
-  /** @domName Element.tagName */
+  @DocsEditable
+  @DomName('Element.tagName')
   String get tagName native "Element_tagName_Getter";
 
-
-  /** @domName Element.webkitPseudo */
+  @DocsEditable
+  @DomName('Element.webkitPseudo')
   String get webkitPseudo native "Element_webkitPseudo_Getter";
 
-
-  /** @domName Element.webkitPseudo */
+  @DocsEditable
+  @DomName('Element.webkitPseudo')
   void set webkitPseudo(String value) native "Element_webkitPseudo_Setter";
 
-
-  /** @domName Element.webkitShadowRoot */
+  @DocsEditable
+  @DomName('Element.webkitShadowRoot')
   ShadowRoot get webkitShadowRoot native "Element_webkitShadowRoot_Getter";
 
-
-  /** @domName Element.blur */
+  @DocsEditable
+  @DomName('Element.blur')
   void blur() native "Element_blur_Callback";
 
-
-  /** @domName Element.focus */
+  @DocsEditable
+  @DomName('Element.focus')
   void focus() native "Element_focus_Callback";
 
-
-  /** @domName Element.getAttribute */
+  @DocsEditable
+  @DomName('Element.getAttribute')
   String $dom_getAttribute(String name) native "Element_getAttribute_Callback";
 
-
-  /** @domName Element.getAttributeNS */
+  @DocsEditable
+  @DomName('Element.getAttributeNS')
   String $dom_getAttributeNS(String namespaceURI, String localName) native "Element_getAttributeNS_Callback";
 
-
-  /** @domName Element.getBoundingClientRect */
+  @DocsEditable
+  @DomName('Element.getBoundingClientRect')
   ClientRect getBoundingClientRect() native "Element_getBoundingClientRect_Callback";
 
-
-  /** @domName Element.getClientRects */
+  @DocsEditable
+  @DomName('Element.getClientRects')
   List<ClientRect> getClientRects() native "Element_getClientRects_Callback";
 
-
-  /** @domName Element.getElementsByClassName */
+  @DocsEditable
+  @DomName('Element.getElementsByClassName')
   List<Node> $dom_getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
 
-
-  /** @domName Element.getElementsByTagName */
+  @DocsEditable
+  @DomName('Element.getElementsByTagName')
   List<Node> $dom_getElementsByTagName(String name) native "Element_getElementsByTagName_Callback";
 
-
-  /** @domName Element.hasAttribute */
+  @DocsEditable
+  @DomName('Element.hasAttribute')
   bool $dom_hasAttribute(String name) native "Element_hasAttribute_Callback";
 
-
-  /** @domName Element.hasAttributeNS */
+  @DocsEditable
+  @DomName('Element.hasAttributeNS')
   bool $dom_hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
 
-
-  /** @domName Element.querySelector */
+  @DocsEditable
+  @DomName('Element.querySelector')
   Element $dom_querySelector(String selectors) native "Element_querySelector_Callback";
 
-
-  /** @domName Element.querySelectorAll */
+  @DocsEditable
+  @DomName('Element.querySelectorAll')
   List<Node> $dom_querySelectorAll(String selectors) native "Element_querySelectorAll_Callback";
 
-
-  /** @domName Element.remove */
+  @DocsEditable
+  @DomName('Element.remove')
   void remove() native "Element_remove_Callback";
 
-
-  /** @domName Element.removeAttribute */
+  @DocsEditable
+  @DomName('Element.removeAttribute')
   void $dom_removeAttribute(String name) native "Element_removeAttribute_Callback";
 
-
-  /** @domName Element.removeAttributeNS */
+  @DocsEditable
+  @DomName('Element.removeAttributeNS')
   void $dom_removeAttributeNS(String namespaceURI, String localName) native "Element_removeAttributeNS_Callback";
 
-
-  /** @domName Element.scrollByLines */
+  @DocsEditable
+  @DomName('Element.scrollByLines')
   void scrollByLines(int lines) native "Element_scrollByLines_Callback";
 
-
-  /** @domName Element.scrollByPages */
+  @DocsEditable
+  @DomName('Element.scrollByPages')
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
-  void scrollIntoView([/*boolean*/ centerIfNeeded]) {
+  void scrollIntoView([bool centerIfNeeded]) {
     if (?centerIfNeeded) {
       _scrollIntoViewIfNeeded_1(centerIfNeeded);
       return;
@@ -9709,42 +9557,42 @@ abstract class Element extends Node implements ElementTraversal {
     _scrollIntoViewIfNeeded_2();
   }
 
-
-  /** @domName Element.scrollIntoViewIfNeeded_1 */
+  @DocsEditable
+  @DomName('Element.scrollIntoViewIfNeeded_1')
   void _scrollIntoViewIfNeeded_1(centerIfNeeded) native "Element_scrollIntoViewIfNeeded_1_Callback";
 
-
-  /** @domName Element.scrollIntoViewIfNeeded_2 */
+  @DocsEditable
+  @DomName('Element.scrollIntoViewIfNeeded_2')
   void _scrollIntoViewIfNeeded_2() native "Element_scrollIntoViewIfNeeded_2_Callback";
 
-
-  /** @domName Element.setAttribute */
+  @DocsEditable
+  @DomName('Element.setAttribute')
   void $dom_setAttribute(String name, String value) native "Element_setAttribute_Callback";
 
-
-  /** @domName Element.setAttributeNS */
+  @DocsEditable
+  @DomName('Element.setAttributeNS')
   void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native "Element_setAttributeNS_Callback";
 
-
-  /** @domName Element.webkitCreateShadowRoot */
+  @DocsEditable
+  @DomName('Element.webkitCreateShadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
   ShadowRoot createShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
 
-
-  /** @domName Element.webkitMatchesSelector */
+  @DocsEditable
+  @DomName('Element.webkitMatchesSelector')
   bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
 
-
-  /** @domName Element.webkitRequestFullScreen */
+  @DocsEditable
+  @DomName('Element.webkitRequestFullScreen')
   void webkitRequestFullScreen(int flags) native "Element_webkitRequestFullScreen_Callback";
 
-
-  /** @domName Element.webkitRequestFullscreen */
+  @DocsEditable
+  @DomName('Element.webkitRequestFullscreen')
   void webkitRequestFullscreen() native "Element_webkitRequestFullscreen_Callback";
 
-
-  /** @domName Element.webkitRequestPointerLock */
+  @DocsEditable
+  @DomName('Element.webkitRequestPointerLock')
   void webkitRequestPointerLock() native "Element_webkitRequestPointerLock_Callback";
 
   Stream<Event> get onAbort => abortEvent.forTarget(this);
@@ -9847,11 +9695,12 @@ abstract class Element extends Node implements ElementTraversal {
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
-  static final _CUSTOM_PARENT_TAG_MAP = const {
+  static const _CUSTOM_PARENT_TAG_MAP = const {
     'body' : 'html',
     'head' : 'html',
     'caption' : 'table',
     'td': 'tr',
+    'th': 'tr',
     'colgroup': 'table',
     'col' : 'colgroup',
     'tr' : 'tbody',
@@ -9861,7 +9710,20 @@ class _ElementFactoryProvider {
     'track' : 'audio',
   };
 
-  /** @domName Document.createElement */
+  // TODO(jmesserly): const set would be better
+  static const _TABLE_TAGS = const {
+    'caption': null,
+    'col': null,
+    'colgroup': null,
+    'tbody': null,
+    'td': null,
+    'tfoot': null,
+    'th': null,
+    'thead': null,
+    'tr': null,
+  };
+
+  @DomName('Document.createElement')
   static Element createElement_html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
     // 1) Cache the dummy parent elements required to use innerHTML rather than
@@ -9874,181 +9736,241 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
-        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      if (_Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+        return _createTableForIE(html, tag);
       }
+      parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      if (parentTag == null) parentTag = 'div';
     }
-    final Element temp = new Element.tag(parentTag);
+
+    final temp = new Element.tag(parentTag);
     temp.innerHtml = html;
 
     Element element;
     if (temp.children.length == 1) {
       element = temp.children[0];
     } else if (parentTag == 'html' && temp.children.length == 2) {
-      // Work around for edge case in WebKit and possibly other browsers where
-      // both body and head elements are created even though the inner html
-      // only contains a head or body element.
+      // In html5 the root <html> tag will always have a <body> and a <head>,
+      // even though the inner html only contains one of them.
       element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      throw new ArgumentError('HTML had ${temp.children.length} '
-          'top level elements but 1 expected');
+      _singleNode(temp.children);
     }
     element.remove();
     return element;
   }
 
-  /** @domName Document.createElement */
+  /**
+   * IE table elements don't support innerHTML (even in standards mode).
+   * Instead we use a div and inject the table element in the innerHtml string.
+   * This technique works on other browsers too, but it's probably slower,
+   * so we only use it when running on IE.
+   *
+   * See also innerHTML:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms533897(v=vs.85).aspx>
+   * and Building Tables Dynamically:
+   * <http://msdn.microsoft.com/en-us/library/ie/ms532998(v=vs.85).aspx>.
+   */
+  static Element _createTableForIE(String html, String tag) {
+    var div = new Element.tag('div');
+    div.innerHtml = '<table>$html</table>';
+    var table = _singleNode(div.children);
+    Element element;
+    switch (tag) {
+      case 'td':
+      case 'th':
+        element = _singleNode(_singleNode(table.rows).cells);
+        break;
+      case 'tr':
+        element = _singleNode(table.rows);
+        break;
+      case 'tbody':
+        element = _singleNode(table.tBodies);
+        break;
+      case 'thead':
+        element = table.tHead;
+        break;
+      case 'tfoot':
+        element = table.tFoot;
+        break;
+      case 'caption':
+        element = table.caption;
+        break;
+      case 'colgroup':
+        element = _getColgroup(table);
+        break;
+      case 'col':
+        element = _singleNode(_getColgroup(table).children);
+        break;
+    }
+    element.remove();
+    return element;
+  }
+
+  static TableColElement _getColgroup(TableElement table) {
+    // TODO(jmesserly): is there a better way to do this?
+    return _singleNode(table.children.where((n) => n.tagName == 'COLGROUP')
+        .toList());
+  }
+
+  static Node _singleNode(List<Node> list) {
+    if (list.length == 1) return list[0];
+    throw new ArgumentError('HTML had ${list.length} '
+        'top level elements but 1 expected');
+  }
+
+  @DomName('Document.createElement')
   static Element createElement_tag(String tag) =>
       document.$dom_createElement(tag);
 }
 
-/// @docsEditable true
+@DocsEditable
 class ElementEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   ElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeCopy => this['beforecopy'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeCut => this['beforecut'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforePaste => this['beforepaste'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get change => this['change'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get click => this['click'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get contextMenu => this['contextmenu'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get copy => this['copy'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get cut => this['cut'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get doubleClick => this['dblclick'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drag => this['drag'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnd => this['dragend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnter => this['dragenter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragLeave => this['dragleave'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragOver => this['dragover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragStart => this['dragstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drop => this['drop'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get input => this['input'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get invalid => this['invalid'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyDown => this['keydown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyPress => this['keypress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyUp => this['keyup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseDown => this['mousedown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseMove => this['mousemove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOut => this['mouseout'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOver => this['mouseover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseUp => this['mouseup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseWheel => this['mousewheel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get paste => this['paste'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get reset => this['reset'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get scroll => this['scroll'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get search => this['search'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get select => this['select'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get selectStart => this['selectstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get submit => this['submit'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchCancel => this['touchcancel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchEnd => this['touchend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchEnter => this['touchenter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchLeave => this['touchleave'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchMove => this['touchmove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchStart => this['touchstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get fullscreenError => this['webkitfullscreenerror'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10058,28 +9980,29 @@ class ElementEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ElementTraversal
+@DocsEditable
+@DomName('ElementTraversal')
 class ElementTraversal extends NativeFieldWrapperClass1 {
   ElementTraversal.internal();
 
-
-  /** @domName ElementTraversal.childElementCount */
+  @DocsEditable
+  @DomName('ElementTraversal.childElementCount')
   int get $dom_childElementCount native "ElementTraversal_childElementCount_Getter";
 
-
-  /** @domName ElementTraversal.firstElementChild */
+  @DocsEditable
+  @DomName('ElementTraversal.firstElementChild')
   Element get $dom_firstElementChild native "ElementTraversal_firstElementChild_Getter";
 
-
-  /** @domName ElementTraversal.lastElementChild */
+  @DocsEditable
+  @DomName('ElementTraversal.lastElementChild')
   Element get $dom_lastElementChild native "ElementTraversal_lastElementChild_Getter";
 
-
-  /** @domName ElementTraversal.nextElementSibling */
+  @DocsEditable
+  @DomName('ElementTraversal.nextElementSibling')
   Element get nextElementSibling native "ElementTraversal_nextElementSibling_Getter";
 
-
-  /** @domName ElementTraversal.previousElementSibling */
+  @DocsEditable
+  @DomName('ElementTraversal.previousElementSibling')
   Element get previousElementSibling native "ElementTraversal_previousElementSibling_Getter";
 
 }
@@ -10090,65 +10013,66 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLEmbedElement
+@DocsEditable
+@DomName('HTMLEmbedElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class EmbedElement extends _Element_Merged {
   EmbedElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory EmbedElement() => document.$dom_createElement("embed");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLEmbedElement.align */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.align')
   String get align native "HTMLEmbedElement_align_Getter";
 
-
-  /** @domName HTMLEmbedElement.align */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.align')
   void set align(String value) native "HTMLEmbedElement_align_Setter";
 
-
-  /** @domName HTMLEmbedElement.height */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.height')
   String get height native "HTMLEmbedElement_height_Getter";
 
-
-  /** @domName HTMLEmbedElement.height */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.height')
   void set height(String value) native "HTMLEmbedElement_height_Setter";
 
-
-  /** @domName HTMLEmbedElement.name */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.name')
   String get name native "HTMLEmbedElement_name_Getter";
 
-
-  /** @domName HTMLEmbedElement.name */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.name')
   void set name(String value) native "HTMLEmbedElement_name_Setter";
 
-
-  /** @domName HTMLEmbedElement.src */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.src')
   String get src native "HTMLEmbedElement_src_Getter";
 
-
-  /** @domName HTMLEmbedElement.src */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.src')
   void set src(String value) native "HTMLEmbedElement_src_Setter";
 
-
-  /** @domName HTMLEmbedElement.type */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.type')
   String get type native "HTMLEmbedElement_type_Getter";
 
-
-  /** @domName HTMLEmbedElement.type */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.type')
   void set type(String value) native "HTMLEmbedElement_type_Setter";
 
-
-  /** @domName HTMLEmbedElement.width */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.width')
   String get width native "HTMLEmbedElement_width_Getter";
 
-
-  /** @domName HTMLEmbedElement.width */
+  @DocsEditable
+  @DomName('HTMLEmbedElement.width')
   void set width(String value) native "HTMLEmbedElement_width_Setter";
 
 }
@@ -10159,7 +10083,8 @@ class EmbedElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName EntityReference
+@DocsEditable
+@DomName('EntityReference')
 class EntityReference extends Node {
   EntityReference.internal() : super.internal();
 
@@ -10179,31 +10104,32 @@ typedef void EntriesCallback(List<Entry> entries);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Entry
+@DocsEditable
+@DomName('Entry')
 class Entry extends NativeFieldWrapperClass1 {
   Entry.internal();
 
-
-  /** @domName Entry.filesystem */
+  @DocsEditable
+  @DomName('Entry.filesystem')
   FileSystem get filesystem native "Entry_filesystem_Getter";
 
-
-  /** @domName Entry.fullPath */
+  @DocsEditable
+  @DomName('Entry.fullPath')
   String get fullPath native "Entry_fullPath_Getter";
 
-
-  /** @domName Entry.isDirectory */
+  @DocsEditable
+  @DomName('Entry.isDirectory')
   bool get isDirectory native "Entry_isDirectory_Getter";
 
-
-  /** @domName Entry.isFile */
+  @DocsEditable
+  @DomName('Entry.isFile')
   bool get isFile native "Entry_isFile_Getter";
 
-
-  /** @domName Entry.name */
+  @DocsEditable
+  @DomName('Entry.name')
   String get name native "Entry_name_Getter";
 
-  void copyTo(/*DirectoryEntry*/ parent, [/*DOMString*/ name, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
+  void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (?name) {
       _copyTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -10211,23 +10137,23 @@ class Entry extends NativeFieldWrapperClass1 {
     _copyTo_2(parent);
   }
 
-
-  /** @domName Entry.copyTo_1 */
+  @DocsEditable
+  @DomName('Entry.copyTo_1')
   void _copyTo_1(parent, name, successCallback, errorCallback) native "Entry_copyTo_1_Callback";
 
-
-  /** @domName Entry.copyTo_2 */
+  @DocsEditable
+  @DomName('Entry.copyTo_2')
   void _copyTo_2(parent) native "Entry_copyTo_2_Callback";
 
-
-  /** @domName Entry.getMetadata */
+  @DocsEditable
+  @DomName('Entry.getMetadata')
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native "Entry_getMetadata_Callback";
 
-
-  /** @domName Entry.getParent */
+  @DocsEditable
+  @DomName('Entry.getParent')
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native "Entry_getParent_Callback";
 
-  void moveTo(/*DirectoryEntry*/ parent, [/*DOMString*/ name, /*EntryCallback*/ successCallback, /*ErrorCallback*/ errorCallback]) {
+  void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (?name) {
       _moveTo_1(parent, name, successCallback, errorCallback);
       return;
@@ -10235,20 +10161,20 @@ class Entry extends NativeFieldWrapperClass1 {
     _moveTo_2(parent);
   }
 
-
-  /** @domName Entry.moveTo_1 */
+  @DocsEditable
+  @DomName('Entry.moveTo_1')
   void _moveTo_1(parent, name, successCallback, errorCallback) native "Entry_moveTo_1_Callback";
 
-
-  /** @domName Entry.moveTo_2 */
+  @DocsEditable
+  @DomName('Entry.moveTo_2')
   void _moveTo_2(parent) native "Entry_moveTo_2_Callback";
 
-
-  /** @domName Entry.remove */
+  @DocsEditable
+  @DomName('Entry.remove')
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native "Entry_remove_Callback";
 
-
-  /** @domName Entry.toURL */
+  @DocsEditable
+  @DomName('Entry.toURL')
   String toUrl() native "Entry_toURL_Callback";
 
 }
@@ -10267,52 +10193,53 @@ typedef void EntryCallback(Entry entry);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName EntrySync
+@DocsEditable
+@DomName('EntrySync')
 class EntrySync extends NativeFieldWrapperClass1 {
   EntrySync.internal();
 
-
-  /** @domName EntrySync.filesystem */
+  @DocsEditable
+  @DomName('EntrySync.filesystem')
   FileSystemSync get filesystem native "EntrySync_filesystem_Getter";
 
-
-  /** @domName EntrySync.fullPath */
+  @DocsEditable
+  @DomName('EntrySync.fullPath')
   String get fullPath native "EntrySync_fullPath_Getter";
 
-
-  /** @domName EntrySync.isDirectory */
+  @DocsEditable
+  @DomName('EntrySync.isDirectory')
   bool get isDirectory native "EntrySync_isDirectory_Getter";
 
-
-  /** @domName EntrySync.isFile */
+  @DocsEditable
+  @DomName('EntrySync.isFile')
   bool get isFile native "EntrySync_isFile_Getter";
 
-
-  /** @domName EntrySync.name */
+  @DocsEditable
+  @DomName('EntrySync.name')
   String get name native "EntrySync_name_Getter";
 
-
-  /** @domName EntrySync.copyTo */
+  @DocsEditable
+  @DomName('EntrySync.copyTo')
   EntrySync copyTo(DirectoryEntrySync parent, String name) native "EntrySync_copyTo_Callback";
 
-
-  /** @domName EntrySync.getMetadata */
+  @DocsEditable
+  @DomName('EntrySync.getMetadata')
   Metadata getMetadata() native "EntrySync_getMetadata_Callback";
 
-
-  /** @domName EntrySync.getParent */
+  @DocsEditable
+  @DomName('EntrySync.getParent')
   EntrySync getParent() native "EntrySync_getParent_Callback";
 
-
-  /** @domName EntrySync.moveTo */
+  @DocsEditable
+  @DomName('EntrySync.moveTo')
   EntrySync moveTo(DirectoryEntrySync parent, String name) native "EntrySync_moveTo_Callback";
 
-
-  /** @domName EntrySync.remove */
+  @DocsEditable
+  @DomName('EntrySync.remove')
   void remove() native "EntrySync_remove_Callback";
 
-
-  /** @domName EntrySync.toURL */
+  @DocsEditable
+  @DomName('EntrySync.toURL')
   String toUrl() native "EntrySync_toURL_Callback";
 
 }
@@ -10331,20 +10258,21 @@ typedef void ErrorCallback(FileError error);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ErrorEvent
+@DocsEditable
+@DomName('ErrorEvent')
 class ErrorEvent extends Event {
   ErrorEvent.internal() : super.internal();
 
-
-  /** @domName ErrorEvent.filename */
+  @DocsEditable
+  @DomName('ErrorEvent.filename')
   String get filename native "ErrorEvent_filename_Getter";
 
-
-  /** @domName ErrorEvent.lineno */
+  @DocsEditable
+  @DomName('ErrorEvent.lineno')
   int get lineno native "ErrorEvent_lineno_Getter";
 
-
-  /** @domName ErrorEvent.message */
+  @DocsEditable
+  @DomName('ErrorEvent.message')
   String get message native "ErrorEvent_message_Getter";
 
 }
@@ -10355,7 +10283,8 @@ class ErrorEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Event
+@DocsEditable
+@DomName('Event')
 class Event extends NativeFieldWrapperClass1 {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -10407,72 +10336,72 @@ class Event extends NativeFieldWrapperClass1 {
 
   static const int SELECT = 16384;
 
-
-  /** @domName Event.bubbles */
+  @DocsEditable
+  @DomName('Event.bubbles')
   bool get bubbles native "Event_bubbles_Getter";
 
-
-  /** @domName Event.cancelBubble */
+  @DocsEditable
+  @DomName('Event.cancelBubble')
   bool get cancelBubble native "Event_cancelBubble_Getter";
 
-
-  /** @domName Event.cancelBubble */
+  @DocsEditable
+  @DomName('Event.cancelBubble')
   void set cancelBubble(bool value) native "Event_cancelBubble_Setter";
 
-
-  /** @domName Event.cancelable */
+  @DocsEditable
+  @DomName('Event.cancelable')
   bool get cancelable native "Event_cancelable_Getter";
 
-
-  /** @domName Event.clipboardData */
+  @DocsEditable
+  @DomName('Event.clipboardData')
   Clipboard get clipboardData native "Event_clipboardData_Getter";
 
-
-  /** @domName Event.currentTarget */
+  @DocsEditable
+  @DomName('Event.currentTarget')
   EventTarget get currentTarget native "Event_currentTarget_Getter";
 
-
-  /** @domName Event.defaultPrevented */
+  @DocsEditable
+  @DomName('Event.defaultPrevented')
   bool get defaultPrevented native "Event_defaultPrevented_Getter";
 
-
-  /** @domName Event.eventPhase */
+  @DocsEditable
+  @DomName('Event.eventPhase')
   int get eventPhase native "Event_eventPhase_Getter";
 
-
-  /** @domName Event.returnValue */
+  @DocsEditable
+  @DomName('Event.returnValue')
   bool get returnValue native "Event_returnValue_Getter";
 
-
-  /** @domName Event.returnValue */
+  @DocsEditable
+  @DomName('Event.returnValue')
   void set returnValue(bool value) native "Event_returnValue_Setter";
 
-
-  /** @domName Event.target */
+  @DocsEditable
+  @DomName('Event.target')
   EventTarget get target native "Event_target_Getter";
 
-
-  /** @domName Event.timeStamp */
+  @DocsEditable
+  @DomName('Event.timeStamp')
   int get timeStamp native "Event_timeStamp_Getter";
 
-
-  /** @domName Event.type */
+  @DocsEditable
+  @DomName('Event.type')
   String get type native "Event_type_Getter";
 
-
-  /** @domName Event.initEvent */
+  @DocsEditable
+  @DomName('Event.initEvent')
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "Event_initEvent_Callback";
 
-
-  /** @domName Event.preventDefault */
+  @DocsEditable
+  @DomName('Event.preventDefault')
   void preventDefault() native "Event_preventDefault_Callback";
 
-
-  /** @domName Event.stopImmediatePropagation */
+  @DocsEditable
+  @DomName('Event.stopImmediatePropagation')
   void stopImmediatePropagation() native "Event_stopImmediatePropagation_Callback";
 
-
-  /** @domName Event.stopPropagation */
+  @DocsEditable
+  @DomName('Event.stopPropagation')
   void stopPropagation() native "Event_stopPropagation_Callback";
 
 }
@@ -10483,7 +10412,8 @@ class Event extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName EventException
+@DocsEditable
+@DomName('EventException')
 class EventException extends NativeFieldWrapperClass1 {
   EventException.internal();
 
@@ -10491,20 +10421,20 @@ class EventException extends NativeFieldWrapperClass1 {
 
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
-
-  /** @domName EventException.code */
+  @DocsEditable
+  @DomName('EventException.code')
   int get code native "EventException_code_Getter";
 
-
-  /** @domName EventException.message */
+  @DocsEditable
+  @DomName('EventException.message')
   String get message native "EventException_message_Getter";
 
-
-  /** @domName EventException.name */
+  @DocsEditable
+  @DomName('EventException.name')
   String get name native "EventException_name_Getter";
 
-
-  /** @domName EventException.toString */
+  @DocsEditable
+  @DomName('EventException.toString')
   String toString() native "EventException_toString_Callback";
 
 }
@@ -10515,7 +10445,8 @@ class EventException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName EventSource
+@DocsEditable
+@DomName('EventSource')
 class EventSource extends EventTarget {
   EventSource.internal() : super.internal();
 
@@ -10525,11 +10456,17 @@ class EventSource extends EventTarget {
 
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  ///@docsEditable true
-  factory EventSource(String scriptUrl) => EventSource._create(scriptUrl);
-  static EventSource _create(String scriptUrl) native "EventSource_constructor_Callback";
+  @DocsEditable
+  factory EventSource(String url, [Map eventSourceInit]) {
+    if (!?eventSourceInit) {
+      return EventSource._create(url);
+    }
+    return EventSource._create(url, eventSourceInit);
+  }
+  static EventSource _create(String url, [Map eventSourceInit]) native "EventSource_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   EventSourceEvents get on =>
     new EventSourceEvents(this);
 
@@ -10539,28 +10476,32 @@ class EventSource extends EventTarget {
 
   static const int OPEN = 1;
 
-
-  /** @domName EventSource.readyState */
+  @DocsEditable
+  @DomName('EventSource.readyState')
   int get readyState native "EventSource_readyState_Getter";
 
-
-  /** @domName EventSource.url */
+  @DocsEditable
+  @DomName('EventSource.url')
   String get url native "EventSource_url_Getter";
 
+  @DocsEditable
+  @DomName('EventSource.withCredentials')
+  bool get withCredentials native "EventSource_withCredentials_Getter";
 
-  /** @domName EventSource.addEventListener */
+  @DocsEditable
+  @DomName('EventSource.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_addEventListener_Callback";
 
-
-  /** @domName EventSource.close */
+  @DocsEditable
+  @DomName('EventSource.close')
   void close() native "EventSource_close_Callback";
 
-
-  /** @domName EventSource.dispatchEvent */
+  @DocsEditable
+  @DomName('EventSource.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "EventSource_dispatchEvent_Callback";
 
-
-  /** @domName EventSource.removeEventListener */
+  @DocsEditable
+  @DomName('EventSource.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_removeEventListener_Callback";
 
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -10571,18 +10512,18 @@ class EventSource extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class EventSourceEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   EventSourceEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10651,7 +10592,8 @@ class EventListenerList {
   }
 }
 
-/// @domName EventTarget
+@DocsEditable
+@DomName('EventTarget')
 /**
  * Base class for all browser objects that support events.
  *
@@ -10662,20 +10604,20 @@ class EventListenerList {
  */ 
 class EventTarget extends NativeFieldWrapperClass1 {
 
-  /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   Events get on => new Events(this);
   EventTarget.internal();
 
-
-  /** @domName EventTarget.addEventListener */
+  @DocsEditable
+  @DomName('EventTarget.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_addEventListener_Callback";
 
-
-  /** @domName EventTarget.dispatchEvent */
+  @DocsEditable
+  @DomName('EventTarget.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "EventTarget_dispatchEvent_Callback";
 
-
-  /** @domName EventTarget.removeEventListener */
+  @DocsEditable
+  @DomName('EventTarget.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_removeEventListener_Callback";
 
 }
@@ -10686,7 +10628,8 @@ class EventTarget extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName EXTTextureFilterAnisotropic
+@DocsEditable
+@DomName('EXTTextureFilterAnisotropic')
 class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
   ExtTextureFilterAnisotropic.internal();
 
@@ -10702,59 +10645,60 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLFieldSetElement
+@DocsEditable
+@DomName('HTMLFieldSetElement')
 class FieldSetElement extends _Element_Merged {
   FieldSetElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
-
-  /** @domName HTMLFieldSetElement.disabled */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.disabled')
   bool get disabled native "HTMLFieldSetElement_disabled_Getter";
 
-
-  /** @domName HTMLFieldSetElement.disabled */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.disabled')
   void set disabled(bool value) native "HTMLFieldSetElement_disabled_Setter";
 
-
-  /** @domName HTMLFieldSetElement.elements */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.elements')
   HtmlCollection get elements native "HTMLFieldSetElement_elements_Getter";
 
-
-  /** @domName HTMLFieldSetElement.form */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.form')
   FormElement get form native "HTMLFieldSetElement_form_Getter";
 
-
-  /** @domName HTMLFieldSetElement.name */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.name')
   String get name native "HTMLFieldSetElement_name_Getter";
 
-
-  /** @domName HTMLFieldSetElement.name */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.name')
   void set name(String value) native "HTMLFieldSetElement_name_Setter";
 
-
-  /** @domName HTMLFieldSetElement.type */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.type')
   String get type native "HTMLFieldSetElement_type_Getter";
 
-
-  /** @domName HTMLFieldSetElement.validationMessage */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.validationMessage')
   String get validationMessage native "HTMLFieldSetElement_validationMessage_Getter";
 
-
-  /** @domName HTMLFieldSetElement.validity */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.validity')
   ValidityState get validity native "HTMLFieldSetElement_validity_Getter";
 
-
-  /** @domName HTMLFieldSetElement.willValidate */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.willValidate')
   bool get willValidate native "HTMLFieldSetElement_willValidate_Getter";
 
-
-  /** @domName HTMLFieldSetElement.checkValidity */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.checkValidity')
   bool checkValidity() native "HTMLFieldSetElement_checkValidity_Callback";
 
-
-  /** @domName HTMLFieldSetElement.setCustomValidity */
+  @DocsEditable
+  @DomName('HTMLFieldSetElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLFieldSetElement_setCustomValidity_Callback";
 
 }
@@ -10765,20 +10709,21 @@ class FieldSetElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName File
+@DocsEditable
+@DomName('File')
 class File extends Blob {
   File.internal() : super.internal();
 
-
-  /** @domName File.lastModifiedDate */
+  @DocsEditable
+  @DomName('File.lastModifiedDate')
   Date get lastModifiedDate native "File_lastModifiedDate_Getter";
 
-
-  /** @domName File.name */
+  @DocsEditable
+  @DomName('File.name')
   String get name native "File_name_Getter";
 
-
-  /** @domName File.webkitRelativePath */
+  @DocsEditable
+  @DomName('File.webkitRelativePath')
   String get webkitRelativePath native "File_webkitRelativePath_Getter";
 
 }
@@ -10797,16 +10742,17 @@ typedef void FileCallback(File file);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName FileEntry
+@DocsEditable
+@DomName('FileEntry')
 class FileEntry extends Entry {
   FileEntry.internal() : super.internal();
 
-
-  /** @domName FileEntry.createWriter */
+  @DocsEditable
+  @DomName('FileEntry.createWriter')
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_createWriter_Callback";
 
-
-  /** @domName FileEntry.file */
+  @DocsEditable
+  @DomName('FileEntry.file')
   void file(FileCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_file_Callback";
 
 }
@@ -10817,16 +10763,17 @@ class FileEntry extends Entry {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName FileEntrySync
+@DocsEditable
+@DomName('FileEntrySync')
 class FileEntrySync extends EntrySync {
   FileEntrySync.internal() : super.internal();
 
-
-  /** @domName FileEntrySync.createWriter */
+  @DocsEditable
+  @DomName('FileEntrySync.createWriter')
   FileWriterSync createWriter() native "FileEntrySync_createWriter_Callback";
 
-
-  /** @domName FileEntrySync.file */
+  @DocsEditable
+  @DomName('FileEntrySync.file')
   File file() native "FileEntrySync_file_Callback";
 
 }
@@ -10837,7 +10784,8 @@ class FileEntrySync extends EntrySync {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName FileError
+@DocsEditable
+@DomName('FileError')
 class FileError extends NativeFieldWrapperClass1 {
   FileError.internal();
 
@@ -10865,8 +10813,8 @@ class FileError extends NativeFieldWrapperClass1 {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-
-  /** @domName FileError.code */
+  @DocsEditable
+  @DomName('FileError.code')
   int get code native "FileError_code_Getter";
 
 }
@@ -10877,7 +10825,8 @@ class FileError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName FileException
+@DocsEditable
+@DomName('FileException')
 class FileException extends NativeFieldWrapperClass1 {
   FileException.internal();
 
@@ -10905,20 +10854,20 @@ class FileException extends NativeFieldWrapperClass1 {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-
-  /** @domName FileException.code */
+  @DocsEditable
+  @DomName('FileException.code')
   int get code native "FileException_code_Getter";
 
-
-  /** @domName FileException.message */
+  @DocsEditable
+  @DomName('FileException.message')
   String get message native "FileException_message_Getter";
 
-
-  /** @domName FileException.name */
+  @DocsEditable
+  @DomName('FileException.name')
   String get name native "FileException_name_Getter";
 
-
-  /** @domName FileException.toString */
+  @DocsEditable
+  @DomName('FileException.toString')
   String toString() native "FileException_toString_Callback";
 
 }
@@ -10929,12 +10878,13 @@ class FileException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName FileList
+@DocsEditable
+@DomName('FileList')
 class FileList extends NativeFieldWrapperClass1 implements List<File> {
   FileList.internal();
 
-
-  /** @domName FileList.length */
+  @DocsEditable
+  @DomName('FileList.length')
   int get length native "FileList_length_Getter";
 
   File operator[](int index) native "FileList_item_Callback";
@@ -10955,50 +10905,50 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(File element) => Collections.contains(this, element);
+  bool contains(File element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(File element)) => Collections.forEach(this, f);
+  void forEach(void f(File element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(File element)) => new MappedList<File, dynamic>(this, f);
+  List mappedBy(f(File element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<File> where(bool f(File element)) => new WhereIterable<File>(this, f);
+  Iterable<File> where(bool f(File element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(File element)) => Collections.every(this, f);
+  bool every(bool f(File element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(File element)) => Collections.any(this, f);
+  bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
 
   List<File> toList() => new List<File>.from(this);
   Set<File> toSet() => new Set<File>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<File> take(int n) => new ListView<File>(this, 0, n);
+  List<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<File> takeWhile(bool test(File value)) {
-    return new TakeWhileIterable<File>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<File> skip(int n) => new ListView<File>(this, n, null);
+  List<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<File> skipWhile(bool test(File value)) {
-    return new SkipWhileIterable<File>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   File firstMatching(bool test(File value), { File orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   File lastMatching(bool test(File value), {File orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   File singleMatching(bool test(File value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   File elementAt(int index) {
@@ -11056,16 +11006,36 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new StateError("More than one element");
   }
 
-  File min([int compare(File a, File b)]) => Collections.min(this, compare);
+  File min([int compare(File a, File b)]) => IterableMixinWorkaround.min(this, compare);
 
-  File max([int compare(File a, File b)]) => Collections.max(this, compare);
+  File max([int compare(File a, File b)]) => IterableMixinWorkaround.max(this, compare);
 
   File removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   File removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(File element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(File element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
@@ -11085,8 +11055,8 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
   // -- end List<File> mixins.
 
-
-  /** @domName FileList.item */
+  @DocsEditable
+  @DomName('FileList.item')
   File item(int index) native "FileList_item_Callback";
 
 }
@@ -11097,7 +11067,8 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName FileReader
+@DocsEditable
+@DomName('FileReader')
 class FileReader extends EventTarget {
   FileReader.internal() : super.internal();
 
@@ -11113,11 +11084,12 @@ class FileReader extends EventTarget {
 
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  ///@docsEditable true
+  @DocsEditable
   factory FileReader() => FileReader._create();
   static FileReader _create() native "FileReader_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   FileReaderEvents get on =>
     new FileReaderEvents(this);
 
@@ -11127,43 +11099,43 @@ class FileReader extends EventTarget {
 
   static const int LOADING = 1;
 
-
-  /** @domName FileReader.error */
+  @DocsEditable
+  @DomName('FileReader.error')
   FileError get error native "FileReader_error_Getter";
 
-
-  /** @domName FileReader.readyState */
+  @DocsEditable
+  @DomName('FileReader.readyState')
   int get readyState native "FileReader_readyState_Getter";
 
-
-  /** @domName FileReader.result */
+  @DocsEditable
+  @DomName('FileReader.result')
   Object get result native "FileReader_result_Getter";
 
-
-  /** @domName FileReader.abort */
+  @DocsEditable
+  @DomName('FileReader.abort')
   void abort() native "FileReader_abort_Callback";
 
-
-  /** @domName FileReader.addEventListener */
+  @DocsEditable
+  @DomName('FileReader.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_addEventListener_Callback";
 
-
-  /** @domName FileReader.dispatchEvent */
+  @DocsEditable
+  @DomName('FileReader.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "FileReader_dispatchEvent_Callback";
 
-
-  /** @domName FileReader.readAsArrayBuffer */
+  @DocsEditable
+  @DomName('FileReader.readAsArrayBuffer')
   void readAsArrayBuffer(Blob blob) native "FileReader_readAsArrayBuffer_Callback";
 
-
-  /** @domName FileReader.readAsBinaryString */
+  @DocsEditable
+  @DomName('FileReader.readAsBinaryString')
   void readAsBinaryString(Blob blob) native "FileReader_readAsBinaryString_Callback";
 
-
-  /** @domName FileReader.readAsDataURL */
+  @DocsEditable
+  @DomName('FileReader.readAsDataURL')
   void readAsDataUrl(Blob blob) native "FileReader_readAsDataURL_Callback";
 
-  void readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
+  void readAsText(Blob blob, [String encoding]) {
     if (?encoding) {
       _readAsText_1(blob, encoding);
       return;
@@ -11171,16 +11143,16 @@ class FileReader extends EventTarget {
     _readAsText_2(blob);
   }
 
-
-  /** @domName FileReader.readAsText_1 */
+  @DocsEditable
+  @DomName('FileReader.readAsText_1')
   void _readAsText_1(blob, encoding) native "FileReader_readAsText_1_Callback";
 
-
-  /** @domName FileReader.readAsText_2 */
+  @DocsEditable
+  @DomName('FileReader.readAsText_2')
   void _readAsText_2(blob) native "FileReader_readAsText_2_Callback";
 
-
-  /** @domName FileReader.removeEventListener */
+  @DocsEditable
+  @DomName('FileReader.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
 
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -11197,27 +11169,27 @@ class FileReader extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class FileReaderEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   FileReaderEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadEnd => this['loadend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11227,39 +11199,40 @@ class FileReaderEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName FileReaderSync
+@DocsEditable
+@DomName('FileReaderSync')
 class FileReaderSync extends NativeFieldWrapperClass1 {
   FileReaderSync.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory FileReaderSync() => FileReaderSync._create();
   static FileReaderSync _create() native "FileReaderSync_constructor_Callback";
 
-
-  /** @domName FileReaderSync.readAsArrayBuffer */
+  @DocsEditable
+  @DomName('FileReaderSync.readAsArrayBuffer')
   ArrayBuffer readAsArrayBuffer(Blob blob) native "FileReaderSync_readAsArrayBuffer_Callback";
 
-
-  /** @domName FileReaderSync.readAsBinaryString */
+  @DocsEditable
+  @DomName('FileReaderSync.readAsBinaryString')
   String readAsBinaryString(Blob blob) native "FileReaderSync_readAsBinaryString_Callback";
 
-
-  /** @domName FileReaderSync.readAsDataURL */
+  @DocsEditable
+  @DomName('FileReaderSync.readAsDataURL')
   String readAsDataUrl(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
 
-  String readAsText(/*Blob*/ blob, [/*DOMString*/ encoding]) {
+  String readAsText(Blob blob, [String encoding]) {
     if (?encoding) {
       return _readAsText_1(blob, encoding);
     }
     return _readAsText_2(blob);
   }
 
-
-  /** @domName FileReaderSync.readAsText_1 */
+  @DocsEditable
+  @DomName('FileReaderSync.readAsText_1')
   String _readAsText_1(blob, encoding) native "FileReaderSync_readAsText_1_Callback";
 
-
-  /** @domName FileReaderSync.readAsText_2 */
+  @DocsEditable
+  @DomName('FileReaderSync.readAsText_2')
   String _readAsText_2(blob) native "FileReaderSync_readAsText_2_Callback";
 
 }
@@ -11270,19 +11243,20 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMFileSystem
+@DocsEditable
+@DomName('DOMFileSystem')
 class FileSystem extends NativeFieldWrapperClass1 {
   FileSystem.internal();
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName DOMFileSystem.name */
+  @DocsEditable
+  @DomName('DOMFileSystem.name')
   String get name native "DOMFileSystem_name_Getter";
 
-
-  /** @domName DOMFileSystem.root */
+  @DocsEditable
+  @DomName('DOMFileSystem.root')
   DirectoryEntry get root native "DOMFileSystem_root_Getter";
 
 }
@@ -11301,16 +11275,17 @@ typedef void FileSystemCallback(FileSystem fileSystem);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName DOMFileSystemSync
+@DocsEditable
+@DomName('DOMFileSystemSync')
 class FileSystemSync extends NativeFieldWrapperClass1 {
   FileSystemSync.internal();
 
-
-  /** @domName DOMFileSystemSync.name */
+  @DocsEditable
+  @DomName('DOMFileSystemSync.name')
   String get name native "DOMFileSystemSync_name_Getter";
 
-
-  /** @domName DOMFileSystemSync.root */
+  @DocsEditable
+  @DomName('DOMFileSystemSync.root')
   DirectoryEntrySync get root native "DOMFileSystemSync_root_Getter";
 
 }
@@ -11321,7 +11296,8 @@ class FileSystemSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName FileWriter
+@DocsEditable
+@DomName('FileWriter')
 class FileWriter extends EventTarget {
   FileWriter.internal() : super.internal();
 
@@ -11337,7 +11313,8 @@ class FileWriter extends EventTarget {
 
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   FileWriterEvents get on =>
     new FileWriterEvents(this);
 
@@ -11347,48 +11324,48 @@ class FileWriter extends EventTarget {
 
   static const int WRITING = 1;
 
-
-  /** @domName FileWriter.error */
+  @DocsEditable
+  @DomName('FileWriter.error')
   FileError get error native "FileWriter_error_Getter";
 
-
-  /** @domName FileWriter.length */
+  @DocsEditable
+  @DomName('FileWriter.length')
   int get length native "FileWriter_length_Getter";
 
-
-  /** @domName FileWriter.position */
+  @DocsEditable
+  @DomName('FileWriter.position')
   int get position native "FileWriter_position_Getter";
 
-
-  /** @domName FileWriter.readyState */
+  @DocsEditable
+  @DomName('FileWriter.readyState')
   int get readyState native "FileWriter_readyState_Getter";
 
-
-  /** @domName FileWriter.abort */
+  @DocsEditable
+  @DomName('FileWriter.abort')
   void abort() native "FileWriter_abort_Callback";
 
-
-  /** @domName FileWriter.addEventListener */
+  @DocsEditable
+  @DomName('FileWriter.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_addEventListener_Callback";
 
-
-  /** @domName FileWriter.dispatchEvent */
+  @DocsEditable
+  @DomName('FileWriter.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "FileWriter_dispatchEvent_Callback";
 
-
-  /** @domName FileWriter.removeEventListener */
+  @DocsEditable
+  @DomName('FileWriter.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_removeEventListener_Callback";
 
-
-  /** @domName FileWriter.seek */
+  @DocsEditable
+  @DomName('FileWriter.seek')
   void seek(int position) native "FileWriter_seek_Callback";
 
-
-  /** @domName FileWriter.truncate */
+  @DocsEditable
+  @DomName('FileWriter.truncate')
   void truncate(int size) native "FileWriter_truncate_Callback";
 
-
-  /** @domName FileWriter.write */
+  @DocsEditable
+  @DomName('FileWriter.write')
   void write(Blob data) native "FileWriter_write_Callback";
 
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -11405,27 +11382,27 @@ class FileWriter extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class FileWriterEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   FileWriterEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get write => this['write'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get writeEnd => this['writeend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get writeStart => this['writestart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11443,28 +11420,29 @@ typedef void FileWriterCallback(FileWriter fileWriter);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName FileWriterSync
+@DocsEditable
+@DomName('FileWriterSync')
 class FileWriterSync extends NativeFieldWrapperClass1 {
   FileWriterSync.internal();
 
-
-  /** @domName FileWriterSync.length */
+  @DocsEditable
+  @DomName('FileWriterSync.length')
   int get length native "FileWriterSync_length_Getter";
 
-
-  /** @domName FileWriterSync.position */
+  @DocsEditable
+  @DomName('FileWriterSync.position')
   int get position native "FileWriterSync_position_Getter";
 
-
-  /** @domName FileWriterSync.seek */
+  @DocsEditable
+  @DomName('FileWriterSync.seek')
   void seek(int position) native "FileWriterSync_seek_Callback";
 
-
-  /** @domName FileWriterSync.truncate */
+  @DocsEditable
+  @DomName('FileWriterSync.truncate')
   void truncate(int size) native "FileWriterSync_truncate_Callback";
 
-
-  /** @domName FileWriterSync.write */
+  @DocsEditable
+  @DomName('FileWriterSync.write')
   void write(Blob data) native "FileWriterSync_write_Callback";
 
 }
@@ -11475,7 +11453,8 @@ class FileWriterSync extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Float32Array
+@DocsEditable
+@DomName('Float32Array')
 class Float32Array extends ArrayBufferView implements List<num> {
   Float32Array.internal() : super.internal();
 
@@ -11490,16 +11469,16 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   static const int BYTES_PER_ELEMENT = 4;
 
-
-  /** @domName Float32Array.length */
+  @DocsEditable
+  @DomName('Float32Array.length')
   int get length native "Float32Array_length_Getter";
 
-
-  /** @domName Float32Array.numericIndexGetter */
+  @DocsEditable
+  @DomName('Float32Array.numericIndexGetter')
   num operator[](int index) native "Float32Array_numericIndexGetter_Callback";
 
-
-  /** @domName Float32Array.numericIndexSetter */
+  @DocsEditable
+  @DomName('Float32Array.numericIndexSetter')
   void operator[]=(int index, num value) native "Float32Array_numericIndexSetter_Callback";
   // -- start List<num> mixins.
   // num is the element type.
@@ -11514,50 +11493,50 @@ class Float32Array extends ArrayBufferView implements List<num> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(num element) => Collections.contains(this, element);
+  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(num element)) => Collections.forEach(this, f);
+  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+  Iterable<num> where(bool f(num element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(num element)) => Collections.every(this, f);
+  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(num element)) => Collections.any(this, f);
+  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
   List<num> toList() => new List<num>.from(this);
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => new ListView<num>(this, 0, n);
+  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
-    return new TakeWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => new ListView<num>(this, n, null);
+  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
-    return new SkipWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   num firstMatching(bool test(num value), { num orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   num lastMatching(bool test(num value), {num orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   num singleMatching(bool test(num value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   num elementAt(int index) {
@@ -11615,16 +11594,36 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => Collections.min(this, compare);
+  num min([int compare(num a, num b)]) => IterableMixinWorkaround.min(this, compare);
 
-  num max([int compare(num a, num b)]) => Collections.max(this, compare);
+  num max([int compare(num a, num b)]) => IterableMixinWorkaround.max(this, compare);
 
   num removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   num removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
@@ -11644,23 +11643,23 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   // -- end List<num> mixins.
 
-
-  /** @domName Float32Array.setElements */
+  @DocsEditable
+  @DomName('Float32Array.setElements')
   void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
 
-  Float32Array subarray(/*long*/ start, [/*long*/ end]) {
+  Float32Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
     return _subarray_2(start);
   }
 
-
-  /** @domName Float32Array.subarray_1 */
+  @DocsEditable
+  @DomName('Float32Array.subarray_1')
   Float32Array _subarray_1(start, end) native "Float32Array_subarray_1_Callback";
 
-
-  /** @domName Float32Array.subarray_2 */
+  @DocsEditable
+  @DomName('Float32Array.subarray_2')
   Float32Array _subarray_2(start) native "Float32Array_subarray_2_Callback";
 
 }
@@ -11671,7 +11670,8 @@ class Float32Array extends ArrayBufferView implements List<num> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Float64Array
+@DocsEditable
+@DomName('Float64Array')
 class Float64Array extends ArrayBufferView implements List<num> {
   Float64Array.internal() : super.internal();
 
@@ -11686,16 +11686,16 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   static const int BYTES_PER_ELEMENT = 8;
 
-
-  /** @domName Float64Array.length */
+  @DocsEditable
+  @DomName('Float64Array.length')
   int get length native "Float64Array_length_Getter";
 
-
-  /** @domName Float64Array.numericIndexGetter */
+  @DocsEditable
+  @DomName('Float64Array.numericIndexGetter')
   num operator[](int index) native "Float64Array_numericIndexGetter_Callback";
 
-
-  /** @domName Float64Array.numericIndexSetter */
+  @DocsEditable
+  @DomName('Float64Array.numericIndexSetter')
   void operator[]=(int index, num value) native "Float64Array_numericIndexSetter_Callback";
   // -- start List<num> mixins.
   // num is the element type.
@@ -11710,50 +11710,50 @@ class Float64Array extends ArrayBufferView implements List<num> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(num element) => Collections.contains(this, element);
+  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(num element)) => Collections.forEach(this, f);
+  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => new MappedList<num, dynamic>(this, f);
+  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<num> where(bool f(num element)) => new WhereIterable<num>(this, f);
+  Iterable<num> where(bool f(num element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(num element)) => Collections.every(this, f);
+  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(num element)) => Collections.any(this, f);
+  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
 
   List<num> toList() => new List<num>.from(this);
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => new ListView<num>(this, 0, n);
+  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
-    return new TakeWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => new ListView<num>(this, n, null);
+  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
-    return new SkipWhileIterable<num>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   num firstMatching(bool test(num value), { num orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   num lastMatching(bool test(num value), {num orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   num singleMatching(bool test(num value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   num elementAt(int index) {
@@ -11811,16 +11811,36 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => Collections.min(this, compare);
+  num min([int compare(num a, num b)]) => IterableMixinWorkaround.min(this, compare);
 
-  num max([int compare(num a, num b)]) => Collections.max(this, compare);
+  num max([int compare(num a, num b)]) => IterableMixinWorkaround.max(this, compare);
 
   num removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   num removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
@@ -11840,23 +11860,23 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   // -- end List<num> mixins.
 
-
-  /** @domName Float64Array.setElements */
+  @DocsEditable
+  @DomName('Float64Array.setElements')
   void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
 
-  Float64Array subarray(/*long*/ start, [/*long*/ end]) {
+  Float64Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
     return _subarray_2(start);
   }
 
-
-  /** @domName Float64Array.subarray_1 */
+  @DocsEditable
+  @DomName('Float64Array.subarray_1')
   Float64Array _subarray_1(start, end) native "Float64Array_subarray_1_Callback";
 
-
-  /** @domName Float64Array.subarray_2 */
+  @DocsEditable
+  @DomName('Float64Array.subarray_2')
   Float64Array _subarray_2(start) native "Float64Array_subarray_2_Callback";
 
 }
@@ -11867,47 +11887,12 @@ class Float64Array extends ArrayBufferView implements List<num> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLFontElement
-class FontElement extends _Element_Merged {
-  FontElement.internal() : super.internal();
-
-
-  /** @domName HTMLFontElement.color */
-  String get color native "HTMLFontElement_color_Getter";
-
-
-  /** @domName HTMLFontElement.color */
-  void set color(String value) native "HTMLFontElement_color_Setter";
-
-
-  /** @domName HTMLFontElement.face */
-  String get face native "HTMLFontElement_face_Getter";
-
-
-  /** @domName HTMLFontElement.face */
-  void set face(String value) native "HTMLFontElement_face_Setter";
-
-
-  /** @domName HTMLFontElement.size */
-  String get size native "HTMLFontElement_size_Getter";
-
-
-  /** @domName HTMLFontElement.size */
-  void set size(String value) native "HTMLFontElement_size_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName FormData
+@DocsEditable
+@DomName('FormData')
 class FormData extends NativeFieldWrapperClass1 {
   FormData.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory FormData([FormElement form]) {
     if (!?form) {
       return FormData._create();
@@ -11916,8 +11901,8 @@ class FormData extends NativeFieldWrapperClass1 {
   }
   static FormData _create([FormElement form]) native "DOMFormData_constructor_Callback";
 
-
-  /** @domName DOMFormData.append */
+  @DocsEditable
+  @DomName('DOMFormData.append')
   void append(String name, value, [String filename]) native "DOMFormData_append_Callback";
 
 }
@@ -11928,99 +11913,100 @@ class FormData extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLFormElement
+@DocsEditable
+@DomName('HTMLFormElement')
 class FormElement extends _Element_Merged {
   FormElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory FormElement() => document.$dom_createElement("form");
 
-
-  /** @domName HTMLFormElement.acceptCharset */
+  @DocsEditable
+  @DomName('HTMLFormElement.acceptCharset')
   String get acceptCharset native "HTMLFormElement_acceptCharset_Getter";
 
-
-  /** @domName HTMLFormElement.acceptCharset */
+  @DocsEditable
+  @DomName('HTMLFormElement.acceptCharset')
   void set acceptCharset(String value) native "HTMLFormElement_acceptCharset_Setter";
 
-
-  /** @domName HTMLFormElement.action */
+  @DocsEditable
+  @DomName('HTMLFormElement.action')
   String get action native "HTMLFormElement_action_Getter";
 
-
-  /** @domName HTMLFormElement.action */
+  @DocsEditable
+  @DomName('HTMLFormElement.action')
   void set action(String value) native "HTMLFormElement_action_Setter";
 
-
-  /** @domName HTMLFormElement.autocomplete */
+  @DocsEditable
+  @DomName('HTMLFormElement.autocomplete')
   String get autocomplete native "HTMLFormElement_autocomplete_Getter";
 
-
-  /** @domName HTMLFormElement.autocomplete */
+  @DocsEditable
+  @DomName('HTMLFormElement.autocomplete')
   void set autocomplete(String value) native "HTMLFormElement_autocomplete_Setter";
 
-
-  /** @domName HTMLFormElement.encoding */
+  @DocsEditable
+  @DomName('HTMLFormElement.encoding')
   String get encoding native "HTMLFormElement_encoding_Getter";
 
-
-  /** @domName HTMLFormElement.encoding */
+  @DocsEditable
+  @DomName('HTMLFormElement.encoding')
   void set encoding(String value) native "HTMLFormElement_encoding_Setter";
 
-
-  /** @domName HTMLFormElement.enctype */
+  @DocsEditable
+  @DomName('HTMLFormElement.enctype')
   String get enctype native "HTMLFormElement_enctype_Getter";
 
-
-  /** @domName HTMLFormElement.enctype */
+  @DocsEditable
+  @DomName('HTMLFormElement.enctype')
   void set enctype(String value) native "HTMLFormElement_enctype_Setter";
 
-
-  /** @domName HTMLFormElement.length */
+  @DocsEditable
+  @DomName('HTMLFormElement.length')
   int get length native "HTMLFormElement_length_Getter";
 
-
-  /** @domName HTMLFormElement.method */
+  @DocsEditable
+  @DomName('HTMLFormElement.method')
   String get method native "HTMLFormElement_method_Getter";
 
-
-  /** @domName HTMLFormElement.method */
+  @DocsEditable
+  @DomName('HTMLFormElement.method')
   void set method(String value) native "HTMLFormElement_method_Setter";
 
-
-  /** @domName HTMLFormElement.name */
+  @DocsEditable
+  @DomName('HTMLFormElement.name')
   String get name native "HTMLFormElement_name_Getter";
 
-
-  /** @domName HTMLFormElement.name */
+  @DocsEditable
+  @DomName('HTMLFormElement.name')
   void set name(String value) native "HTMLFormElement_name_Setter";
 
-
-  /** @domName HTMLFormElement.noValidate */
+  @DocsEditable
+  @DomName('HTMLFormElement.noValidate')
   bool get noValidate native "HTMLFormElement_noValidate_Getter";
 
-
-  /** @domName HTMLFormElement.noValidate */
+  @DocsEditable
+  @DomName('HTMLFormElement.noValidate')
   void set noValidate(bool value) native "HTMLFormElement_noValidate_Setter";
 
-
-  /** @domName HTMLFormElement.target */
+  @DocsEditable
+  @DomName('HTMLFormElement.target')
   String get target native "HTMLFormElement_target_Getter";
 
-
-  /** @domName HTMLFormElement.target */
+  @DocsEditable
+  @DomName('HTMLFormElement.target')
   void set target(String value) native "HTMLFormElement_target_Setter";
 
-
-  /** @domName HTMLFormElement.checkValidity */
+  @DocsEditable
+  @DomName('HTMLFormElement.checkValidity')
   bool checkValidity() native "HTMLFormElement_checkValidity_Callback";
 
-
-  /** @domName HTMLFormElement.reset */
+  @DocsEditable
+  @DomName('HTMLFormElement.reset')
   void reset() native "HTMLFormElement_reset_Callback";
 
-
-  /** @domName HTMLFormElement.submit */
+  @DocsEditable
+  @DomName('HTMLFormElement.submit')
   void submit() native "HTMLFormElement_submit_Callback";
 
 }
@@ -12031,253 +12017,29 @@ class FormElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLFrameElement
-class FrameElement extends _Element_Merged {
-  FrameElement.internal() : super.internal();
-
-
-  /** @domName HTMLFrameElement.contentWindow */
-  WindowBase get contentWindow native "HTMLFrameElement_contentWindow_Getter";
-
-
-  /** @domName HTMLFrameElement.frameBorder */
-  String get frameBorder native "HTMLFrameElement_frameBorder_Getter";
-
-
-  /** @domName HTMLFrameElement.frameBorder */
-  void set frameBorder(String value) native "HTMLFrameElement_frameBorder_Setter";
-
-
-  /** @domName HTMLFrameElement.height */
-  int get height native "HTMLFrameElement_height_Getter";
-
-
-  /** @domName HTMLFrameElement.location */
-  String get location native "HTMLFrameElement_location_Getter";
-
-
-  /** @domName HTMLFrameElement.location */
-  void set location(String value) native "HTMLFrameElement_location_Setter";
-
-
-  /** @domName HTMLFrameElement.longDesc */
-  String get longDesc native "HTMLFrameElement_longDesc_Getter";
-
-
-  /** @domName HTMLFrameElement.longDesc */
-  void set longDesc(String value) native "HTMLFrameElement_longDesc_Setter";
-
-
-  /** @domName HTMLFrameElement.marginHeight */
-  String get marginHeight native "HTMLFrameElement_marginHeight_Getter";
-
-
-  /** @domName HTMLFrameElement.marginHeight */
-  void set marginHeight(String value) native "HTMLFrameElement_marginHeight_Setter";
-
-
-  /** @domName HTMLFrameElement.marginWidth */
-  String get marginWidth native "HTMLFrameElement_marginWidth_Getter";
-
-
-  /** @domName HTMLFrameElement.marginWidth */
-  void set marginWidth(String value) native "HTMLFrameElement_marginWidth_Setter";
-
-
-  /** @domName HTMLFrameElement.name */
-  String get name native "HTMLFrameElement_name_Getter";
-
-
-  /** @domName HTMLFrameElement.name */
-  void set name(String value) native "HTMLFrameElement_name_Setter";
-
-
-  /** @domName HTMLFrameElement.noResize */
-  bool get noResize native "HTMLFrameElement_noResize_Getter";
-
-
-  /** @domName HTMLFrameElement.noResize */
-  void set noResize(bool value) native "HTMLFrameElement_noResize_Setter";
-
-
-  /** @domName HTMLFrameElement.scrolling */
-  String get scrolling native "HTMLFrameElement_scrolling_Getter";
-
-
-  /** @domName HTMLFrameElement.scrolling */
-  void set scrolling(String value) native "HTMLFrameElement_scrolling_Setter";
-
-
-  /** @domName HTMLFrameElement.src */
-  String get src native "HTMLFrameElement_src_Getter";
-
-
-  /** @domName HTMLFrameElement.src */
-  void set src(String value) native "HTMLFrameElement_src_Setter";
-
-
-  /** @domName HTMLFrameElement.width */
-  int get width native "HTMLFrameElement_width_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName HTMLFrameSetElement
-class FrameSetElement extends _Element_Merged {
-  FrameSetElement.internal() : super.internal();
-
-  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
-  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-  static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
-
-  static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
-
-  static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
-
-  static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
-
-  static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
-
-  static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  FrameSetElementEvents get on =>
-    new FrameSetElementEvents(this);
-
-
-  /** @domName HTMLFrameSetElement.cols */
-  String get cols native "HTMLFrameSetElement_cols_Getter";
-
-
-  /** @domName HTMLFrameSetElement.cols */
-  void set cols(String value) native "HTMLFrameSetElement_cols_Setter";
-
-
-  /** @domName HTMLFrameSetElement.rows */
-  String get rows native "HTMLFrameSetElement_rows_Getter";
-
-
-  /** @domName HTMLFrameSetElement.rows */
-  void set rows(String value) native "HTMLFrameSetElement_rows_Setter";
-
-  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
-
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
-
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
-
-  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
-
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
-
-  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
-
-  Stream<Event> get onOffline => offlineEvent.forTarget(this);
-
-  Stream<Event> get onOnline => onlineEvent.forTarget(this);
-
-  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
-
-  Stream<Event> get onResize => resizeEvent.forTarget(this);
-
-  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
-
-  Stream<Event> get onUnload => unloadEvent.forTarget(this);
-
-}
-
-/// @docsEditable true
-class FrameSetElementEvents extends ElementEvents {
-  /// @docsEditable true
-  FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  /// @docsEditable true
-  EventListenerList get blur => this['blur'];
-
-  /// @docsEditable true
-  EventListenerList get error => this['error'];
-
-  /// @docsEditable true
-  EventListenerList get focus => this['focus'];
-
-  /// @docsEditable true
-  EventListenerList get hashChange => this['hashchange'];
-
-  /// @docsEditable true
-  EventListenerList get load => this['load'];
-
-  /// @docsEditable true
-  EventListenerList get message => this['message'];
-
-  /// @docsEditable true
-  EventListenerList get offline => this['offline'];
-
-  /// @docsEditable true
-  EventListenerList get online => this['online'];
-
-  /// @docsEditable true
-  EventListenerList get popState => this['popstate'];
-
-  /// @docsEditable true
-  EventListenerList get resize => this['resize'];
-
-  /// @docsEditable true
-  EventListenerList get storage => this['storage'];
-
-  /// @docsEditable true
-  EventListenerList get unload => this['unload'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName Gamepad
+@DocsEditable
+@DomName('Gamepad')
 class Gamepad extends NativeFieldWrapperClass1 {
   Gamepad.internal();
 
-
-  /** @domName Gamepad.axes */
+  @DocsEditable
+  @DomName('Gamepad.axes')
   List<num> get axes native "Gamepad_axes_Getter";
 
-
-  /** @domName Gamepad.buttons */
+  @DocsEditable
+  @DomName('Gamepad.buttons')
   List<num> get buttons native "Gamepad_buttons_Getter";
 
-
-  /** @domName Gamepad.id */
+  @DocsEditable
+  @DomName('Gamepad.id')
   String get id native "Gamepad_id_Getter";
 
-
-  /** @domName Gamepad.index */
+  @DocsEditable
+  @DomName('Gamepad.index')
   int get index native "Gamepad_index_Getter";
 
-
-  /** @domName Gamepad.timestamp */
+  @DocsEditable
+  @DomName('Gamepad.timestamp')
   int get timestamp native "Gamepad_timestamp_Getter";
 
 }
@@ -12288,20 +12050,21 @@ class Gamepad extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Geolocation
+@DocsEditable
+@DomName('Geolocation')
 class Geolocation extends NativeFieldWrapperClass1 {
   Geolocation.internal();
 
-
-  /** @domName Geolocation.clearWatch */
+  @DocsEditable
+  @DomName('Geolocation.clearWatch')
   void clearWatch(int watchId) native "Geolocation_clearWatch_Callback";
 
-
-  /** @domName Geolocation.getCurrentPosition */
+  @DocsEditable
+  @DomName('Geolocation.getCurrentPosition')
   void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native "Geolocation_getCurrentPosition_Callback";
 
-
-  /** @domName Geolocation.watchPosition */
+  @DocsEditable
+  @DomName('Geolocation.watchPosition')
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native "Geolocation_watchPosition_Callback";
 
 }
@@ -12312,16 +12075,17 @@ class Geolocation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Geoposition
+@DocsEditable
+@DomName('Geoposition')
 class Geoposition extends NativeFieldWrapperClass1 {
   Geoposition.internal();
 
-
-  /** @domName Geoposition.coords */
+  @DocsEditable
+  @DomName('Geoposition.coords')
   Coordinates get coords native "Geoposition_coords_Getter";
 
-
-  /** @domName Geoposition.timestamp */
+  @DocsEditable
+  @DomName('Geoposition.timestamp')
   int get timestamp native "Geoposition_timestamp_Getter";
 
 }
@@ -12332,11 +12096,12 @@ class Geoposition extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLHRElement
+@DocsEditable
+@DomName('HTMLHRElement')
 class HRElement extends _Element_Merged {
   HRElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory HRElement() => document.$dom_createElement("hr");
 
 }
@@ -12347,20 +12112,21 @@ class HRElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HashChangeEvent
+@DocsEditable
+@DomName('HashChangeEvent')
 class HashChangeEvent extends Event {
   HashChangeEvent.internal() : super.internal();
 
-
-  /** @domName HashChangeEvent.newURL */
+  @DocsEditable
+  @DomName('HashChangeEvent.newURL')
   String get newUrl native "HashChangeEvent_newURL_Getter";
 
-
-  /** @domName HashChangeEvent.oldURL */
+  @DocsEditable
+  @DomName('HashChangeEvent.oldURL')
   String get oldUrl native "HashChangeEvent_oldURL_Getter";
 
-
-  /** @domName HashChangeEvent.initHashChangeEvent */
+  @DocsEditable
+  @DomName('HashChangeEvent.initHashChangeEvent')
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
 
 }
@@ -12371,11 +12137,12 @@ class HashChangeEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLHeadElement
+@DocsEditable
+@DomName('HTMLHeadElement')
 class HeadElement extends _Element_Merged {
   HeadElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadElement() => document.$dom_createElement("head");
 
 }
@@ -12386,26 +12153,27 @@ class HeadElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLHeadingElement
+@DocsEditable
+@DomName('HTMLHeadingElement')
 class HeadingElement extends _Element_Merged {
   HeadingElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h1() => document.$dom_createElement("h1");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h2() => document.$dom_createElement("h2");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h3() => document.$dom_createElement("h3");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h4() => document.$dom_createElement("h4");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h5() => document.$dom_createElement("h5");
 
-  ///@docsEditable true
+  @DocsEditable
   factory HeadingElement.h6() => document.$dom_createElement("h6");
 
 }
@@ -12414,7 +12182,9 @@ class HeadingElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName History; @docsEditable true
+
+@DocsEditable
+@DomName('History')
 class History extends NativeFieldWrapperClass1 implements HistoryBase {
 
   /**
@@ -12429,36 +12199,36 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
   static bool get supportsState => true;
   History.internal();
 
-
-  /** @domName History.length */
+  @DocsEditable
+  @DomName('History.length')
   int get length native "History_length_Getter";
 
-
-  /** @domName History.state */
+  @DocsEditable
+  @DomName('History.state')
   dynamic get state native "History_state_Getter";
 
-
-  /** @domName History.back */
+  @DocsEditable
+  @DomName('History.back')
   void back() native "History_back_Callback";
 
-
-  /** @domName History.forward */
+  @DocsEditable
+  @DomName('History.forward')
   void forward() native "History_forward_Callback";
 
-
-  /** @domName History.go */
+  @DocsEditable
+  @DomName('History.go')
   void go(int distance) native "History_go_Callback";
 
-
-  /** @domName History.pushState */
+  @DocsEditable
+  @DomName('History.pushState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
 
-
-  /** @domName History.replaceState */
+  @DocsEditable
+  @DomName('History.replaceState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -12472,12 +12242,13 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLAllCollection
+@DocsEditable
+@DomName('HTMLAllCollection')
 class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   HtmlAllCollection.internal();
 
-
-  /** @domName HTMLAllCollection.length */
+  @DocsEditable
+  @DomName('HTMLAllCollection.length')
   int get length native "HTMLAllCollection_length_Getter";
 
   Node operator[](int index) native "HTMLAllCollection_item_Callback";
@@ -12498,50 +12269,50 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -12599,16 +12370,36 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -12628,16 +12419,16 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   // -- end List<Node> mixins.
 
-
-  /** @domName HTMLAllCollection.item */
+  @DocsEditable
+  @DomName('HTMLAllCollection.item')
   Node item(int index) native "HTMLAllCollection_item_Callback";
 
-
-  /** @domName HTMLAllCollection.namedItem */
+  @DocsEditable
+  @DomName('HTMLAllCollection.namedItem')
   Node namedItem(String name) native "HTMLAllCollection_namedItem_Callback";
 
-
-  /** @domName HTMLAllCollection.tags */
+  @DocsEditable
+  @DomName('HTMLAllCollection.tags')
   List<Node> tags(String name) native "HTMLAllCollection_tags_Callback";
 
 }
@@ -12648,12 +12439,13 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLCollection
+@DocsEditable
+@DomName('HTMLCollection')
 class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   HtmlCollection.internal();
 
-
-  /** @domName HTMLCollection.length */
+  @DocsEditable
+  @DomName('HTMLCollection.length')
   int get length native "HTMLCollection_length_Getter";
 
   Node operator[](int index) native "HTMLCollection_item_Callback";
@@ -12674,50 +12466,50 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -12775,16 +12567,36 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -12804,12 +12616,12 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   // -- end List<Node> mixins.
 
-
-  /** @domName HTMLCollection.item */
+  @DocsEditable
+  @DomName('HTMLCollection.item')
   Node item(int index) native "HTMLCollection_item_Callback";
 
-
-  /** @domName HTMLCollection.namedItem */
+  @DocsEditable
+  @DomName('HTMLCollection.namedItem')
   Node namedItem(String name) native "HTMLCollection_namedItem_Callback";
 
 }
@@ -12820,28 +12632,29 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLDocument
+@DocsEditable
+@DomName('HTMLDocument')
 class HtmlDocument extends Document {
   HtmlDocument.internal() : super.internal();
 
-
-  /** @domName HTMLDocument.activeElement */
+  @DocsEditable
+  @DomName('HTMLDocument.activeElement')
   Element get activeElement native "HTMLDocument_activeElement_Getter";
 
-  /** @domName Document.body */
+  @DomName('Document.body')
   BodyElement get body => document.$dom_body;
 
-  /** @domName Document.body */
+  @DomName('Document.body')
   void set body(BodyElement value) {
     document.$dom_body = value;
   }
 
-  /** @domName Document.caretRangeFromPoint */
+  @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {
     return document.$dom_caretRangeFromPoint(x, y);
   }
 
-  /** @domName Document.elementFromPoint */
+  @DomName('Document.elementFromPoint')
   Element elementFromPoint(int x, int y) {
     return document.$dom_elementFromPoint(x, y);
   }
@@ -12879,72 +12692,73 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
+  @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
     return document.$dom_getCssCanvasContext(contextId, name, width, height);
   }
 
-  /** @domName Document.head */
+  @DomName('Document.head')
   HeadElement get head => document.$dom_head;
 
-  /** @domName Document.lastModified */
+  @DomName('Document.lastModified')
   String get lastModified => document.$dom_lastModified;
 
-  /** @domName Document.preferredStylesheetSet */
+  @DomName('Document.preferredStylesheetSet')
   String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
 
-  /** @domName Document.referrer */
+  @DomName('Document.referrer')
   String get referrer => document.$dom_referrer;
 
-  /** @domName Document.selectedStylesheetSet */
+  @DomName('Document.selectedStylesheetSet')
   String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
   void set selectedStylesheetSet(String value) {
     document.$dom_selectedStylesheetSet = value;
   }
 
-  /** @domName Document.styleSheets */
+  @DomName('Document.styleSheets')
   List<StyleSheet> get styleSheets => document.$dom_styleSheets;
 
-  /** @domName Document.title */
+  @DomName('Document.title')
   String get title => document.$dom_title;
 
-  /** @domName Document.title */
+  @DomName('Document.title')
   void set title(String value) {
     document.$dom_title = value;
   }
 
-  /** @domName Document.webkitCancelFullScreen */
+  @DomName('Document.webkitCancelFullScreen')
   void webkitCancelFullScreen() {
     document.$dom_webkitCancelFullScreen();
   }
 
-  /** @domName Document.webkitExitFullscreen */
+  @DomName('Document.webkitExitFullscreen')
   void webkitExitFullscreen() {
     document.$dom_webkitExitFullscreen();
   }
 
-  /** @domName Document.webkitExitPointerLock */
+  @DomName('Document.webkitExitPointerLock')
   void webkitExitPointerLock() {
     document.$dom_webkitExitPointerLock();
   }
 
-  /** @domName Document.webkitFullscreenElement */
+  @DomName('Document.webkitFullscreenElement')
   Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
 
-  /** @domName Document.webkitFullscreenEnabled */
+  @DomName('Document.webkitFullscreenEnabled')
   bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
 
-  /** @domName Document.webkitHidden */
+  @DomName('Document.webkitHidden')
   bool get webkitHidden => document.$dom_webkitHidden;
 
-  /** @domName Document.webkitIsFullScreen */
+  @DomName('Document.webkitIsFullScreen')
   bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
 
-  /** @domName Document.webkitPointerLockElement */
+  @DomName('Document.webkitPointerLockElement')
   Element get webkitPointerLockElement =>
       document.$dom_webkitPointerLockElement;
 
-  /** @domName Document.webkitVisibilityState */
+  @DomName('Document.webkitVisibilityState')
   String get webkitVisibilityState => document.$dom_webkitVisibilityState;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12954,11 +12768,12 @@ class HtmlDocument extends Document {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLHtmlElement
+@DocsEditable
+@DomName('HTMLHtmlElement')
 class HtmlElement extends _Element_Merged {
   HtmlElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory HtmlElement() => document.$dom_createElement("html");
 
 }
@@ -12969,12 +12784,13 @@ class HtmlElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLFormControlsCollection
+@DocsEditable
+@DomName('HTMLFormControlsCollection')
 class HtmlFormControlsCollection extends HtmlCollection {
   HtmlFormControlsCollection.internal() : super.internal();
 
-
-  /** @domName HTMLFormControlsCollection.namedItem */
+  @DocsEditable
+  @DomName('HTMLFormControlsCollection.namedItem')
   Node namedItem(String name) native "HTMLFormControlsCollection_namedItem_Callback";
 
 }
@@ -12985,37 +12801,14 @@ class HtmlFormControlsCollection extends HtmlCollection {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLOptionsCollection
+@DocsEditable
+@DomName('HTMLOptionsCollection')
 class HtmlOptionsCollection extends HtmlCollection {
   HtmlOptionsCollection.internal() : super.internal();
 
-
-  /** @domName HTMLOptionsCollection.length */
-  int get length native "HTMLOptionsCollection_length_Getter";
-
-
-  /** @domName HTMLOptionsCollection.length */
-  void set length(int value) native "HTMLOptionsCollection_length_Setter";
-
-
-  /** @domName HTMLOptionsCollection.selectedIndex */
-  int get selectedIndex native "HTMLOptionsCollection_selectedIndex_Getter";
-
-
-  /** @domName HTMLOptionsCollection.selectedIndex */
-  void set selectedIndex(int value) native "HTMLOptionsCollection_selectedIndex_Setter";
-
-
-  /** @domName HTMLOptionsCollection.numericIndexSetter */
+  @DocsEditable
+  @DomName('HTMLOptionsCollection.numericIndexSetter')
   void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
-
-
-  /** @domName HTMLOptionsCollection.namedItem */
-  Node namedItem(String name) native "HTMLOptionsCollection_namedItem_Callback";
-
-
-  /** @domName HTMLOptionsCollection.remove */
-  void remove(int index) native "HTMLOptionsCollection_remove_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13048,7 +12841,7 @@ class HtmlOptionsCollection extends HtmlCollection {
  * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
-/// @domName XMLHttpRequest
+@DomName('XMLHttpRequest')
 class HttpRequest extends EventTarget {
   /**
    * Creates a URL get request for the specified `url`.
@@ -13097,11 +12890,12 @@ class HttpRequest extends EventTarget {
 
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
-  ///@docsEditable true
+  @DocsEditable
   factory HttpRequest() => HttpRequest._create();
   static HttpRequest _create() native "XMLHttpRequest_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
 
@@ -13115,88 +12909,88 @@ class HttpRequest extends EventTarget {
 
   static const int UNSENT = 0;
 
-
-  /** @domName XMLHttpRequest.readyState */
+  @DocsEditable
+  @DomName('XMLHttpRequest.readyState')
   int get readyState native "XMLHttpRequest_readyState_Getter";
 
-
-  /** @domName XMLHttpRequest.response */
+  @DocsEditable
+  @DomName('XMLHttpRequest.response')
   Object get response native "XMLHttpRequest_response_Getter";
 
-
-  /** @domName XMLHttpRequest.responseText */
+  @DocsEditable
+  @DomName('XMLHttpRequest.responseText')
   String get responseText native "XMLHttpRequest_responseText_Getter";
 
-
-  /** @domName XMLHttpRequest.responseType */
+  @DocsEditable
+  @DomName('XMLHttpRequest.responseType')
   String get responseType native "XMLHttpRequest_responseType_Getter";
 
-
-  /** @domName XMLHttpRequest.responseType */
+  @DocsEditable
+  @DomName('XMLHttpRequest.responseType')
   void set responseType(String value) native "XMLHttpRequest_responseType_Setter";
 
-
-  /** @domName XMLHttpRequest.responseXML */
+  @DocsEditable
+  @DomName('XMLHttpRequest.responseXML')
   Document get responseXml native "XMLHttpRequest_responseXML_Getter";
 
-
-  /** @domName XMLHttpRequest.status */
+  @DocsEditable
+  @DomName('XMLHttpRequest.status')
   int get status native "XMLHttpRequest_status_Getter";
 
-
-  /** @domName XMLHttpRequest.statusText */
+  @DocsEditable
+  @DomName('XMLHttpRequest.statusText')
   String get statusText native "XMLHttpRequest_statusText_Getter";
 
-
-  /** @domName XMLHttpRequest.upload */
+  @DocsEditable
+  @DomName('XMLHttpRequest.upload')
   HttpRequestUpload get upload native "XMLHttpRequest_upload_Getter";
 
-
-  /** @domName XMLHttpRequest.withCredentials */
+  @DocsEditable
+  @DomName('XMLHttpRequest.withCredentials')
   bool get withCredentials native "XMLHttpRequest_withCredentials_Getter";
 
-
-  /** @domName XMLHttpRequest.withCredentials */
+  @DocsEditable
+  @DomName('XMLHttpRequest.withCredentials')
   void set withCredentials(bool value) native "XMLHttpRequest_withCredentials_Setter";
 
-
-  /** @domName XMLHttpRequest.abort */
+  @DocsEditable
+  @DomName('XMLHttpRequest.abort')
   void abort() native "XMLHttpRequest_abort_Callback";
 
-
-  /** @domName XMLHttpRequest.addEventListener */
+  @DocsEditable
+  @DomName('XMLHttpRequest.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_addEventListener_Callback";
 
-
-  /** @domName XMLHttpRequest.dispatchEvent */
+  @DocsEditable
+  @DomName('XMLHttpRequest.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "XMLHttpRequest_dispatchEvent_Callback";
 
-
-  /** @domName XMLHttpRequest.getAllResponseHeaders */
+  @DocsEditable
+  @DomName('XMLHttpRequest.getAllResponseHeaders')
   String getAllResponseHeaders() native "XMLHttpRequest_getAllResponseHeaders_Callback";
 
-
-  /** @domName XMLHttpRequest.getResponseHeader */
+  @DocsEditable
+  @DomName('XMLHttpRequest.getResponseHeader')
   String getResponseHeader(String header) native "XMLHttpRequest_getResponseHeader_Callback";
 
-
-  /** @domName XMLHttpRequest.open */
+  @DocsEditable
+  @DomName('XMLHttpRequest.open')
   void open(String method, String url, [bool async, String user, String password]) native "XMLHttpRequest_open_Callback";
 
-
-  /** @domName XMLHttpRequest.overrideMimeType */
+  @DocsEditable
+  @DomName('XMLHttpRequest.overrideMimeType')
   void overrideMimeType(String override) native "XMLHttpRequest_overrideMimeType_Callback";
 
-
-  /** @domName XMLHttpRequest.removeEventListener */
+  @DocsEditable
+  @DomName('XMLHttpRequest.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_removeEventListener_Callback";
 
-
-  /** @domName XMLHttpRequest.send */
+  @DocsEditable
+  @DomName('XMLHttpRequest.send')
   void send([data]) native "XMLHttpRequest_send_Callback";
 
-
-  /** @domName XMLHttpRequest.setRequestHeader */
+  @DocsEditable
+  @DomName('XMLHttpRequest.setRequestHeader')
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -13215,30 +13009,30 @@ class HttpRequest extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class HttpRequestEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   HttpRequestEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadEnd => this['loadend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get readyStateChange => this['readystatechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13248,7 +13042,8 @@ class HttpRequestEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XMLHttpRequestException
+@DocsEditable
+@DomName('XMLHttpRequestException')
 class HttpRequestException extends NativeFieldWrapperClass1 {
   HttpRequestException.internal();
 
@@ -13256,20 +13051,20 @@ class HttpRequestException extends NativeFieldWrapperClass1 {
 
   static const int NETWORK_ERR = 101;
 
-
-  /** @domName XMLHttpRequestException.code */
+  @DocsEditable
+  @DomName('XMLHttpRequestException.code')
   int get code native "XMLHttpRequestException_code_Getter";
 
-
-  /** @domName XMLHttpRequestException.message */
+  @DocsEditable
+  @DomName('XMLHttpRequestException.message')
   String get message native "XMLHttpRequestException_message_Getter";
 
-
-  /** @domName XMLHttpRequestException.name */
+  @DocsEditable
+  @DomName('XMLHttpRequestException.name')
   String get name native "XMLHttpRequestException_name_Getter";
 
-
-  /** @domName XMLHttpRequestException.toString */
+  @DocsEditable
+  @DomName('XMLHttpRequestException.toString')
   String toString() native "XMLHttpRequestException_toString_Callback";
 
 }
@@ -13280,16 +13075,17 @@ class HttpRequestException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XMLHttpRequestProgressEvent
+@DocsEditable
+@DomName('XMLHttpRequestProgressEvent')
 class HttpRequestProgressEvent extends ProgressEvent {
   HttpRequestProgressEvent.internal() : super.internal();
 
-
-  /** @domName XMLHttpRequestProgressEvent.position */
+  @DocsEditable
+  @DomName('XMLHttpRequestProgressEvent.position')
   int get position native "XMLHttpRequestProgressEvent_position_Getter";
 
-
-  /** @domName XMLHttpRequestProgressEvent.totalSize */
+  @DocsEditable
+  @DomName('XMLHttpRequestProgressEvent.totalSize')
   int get totalSize native "XMLHttpRequestProgressEvent_totalSize_Getter";
 
 }
@@ -13300,7 +13096,8 @@ class HttpRequestProgressEvent extends ProgressEvent {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XMLHttpRequestUpload
+@DocsEditable
+@DomName('XMLHttpRequestUpload')
 class HttpRequestUpload extends EventTarget {
   HttpRequestUpload.internal() : super.internal();
 
@@ -13316,20 +13113,21 @@ class HttpRequestUpload extends EventTarget {
 
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
 
-
-  /** @domName XMLHttpRequestUpload.addEventListener */
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_addEventListener_Callback";
 
-
-  /** @domName XMLHttpRequestUpload.dispatchEvent */
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "XMLHttpRequestUpload_dispatchEvent_Callback";
 
-
-  /** @domName XMLHttpRequestUpload.removeEventListener */
+  @DocsEditable
+  @DomName('XMLHttpRequestUpload.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_removeEventListener_Callback";
 
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -13346,27 +13144,27 @@ class HttpRequestUpload extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class HttpRequestUploadEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   HttpRequestUploadEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadEnd => this['loadend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13376,63 +13174,64 @@ class HttpRequestUploadEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLIFrameElement
+@DocsEditable
+@DomName('HTMLIFrameElement')
 class IFrameElement extends _Element_Merged {
   IFrameElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory IFrameElement() => document.$dom_createElement("iframe");
 
-
-  /** @domName HTMLIFrameElement.contentWindow */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.contentWindow')
   WindowBase get contentWindow native "HTMLIFrameElement_contentWindow_Getter";
 
-
-  /** @domName HTMLIFrameElement.height */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.height')
   String get height native "HTMLIFrameElement_height_Getter";
 
-
-  /** @domName HTMLIFrameElement.height */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.height')
   void set height(String value) native "HTMLIFrameElement_height_Setter";
 
-
-  /** @domName HTMLIFrameElement.name */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.name')
   String get name native "HTMLIFrameElement_name_Getter";
 
-
-  /** @domName HTMLIFrameElement.name */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.name')
   void set name(String value) native "HTMLIFrameElement_name_Setter";
 
-
-  /** @domName HTMLIFrameElement.sandbox */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.sandbox')
   String get sandbox native "HTMLIFrameElement_sandbox_Getter";
 
-
-  /** @domName HTMLIFrameElement.sandbox */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.sandbox')
   void set sandbox(String value) native "HTMLIFrameElement_sandbox_Setter";
 
-
-  /** @domName HTMLIFrameElement.src */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.src')
   String get src native "HTMLIFrameElement_src_Getter";
 
-
-  /** @domName HTMLIFrameElement.src */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.src')
   void set src(String value) native "HTMLIFrameElement_src_Setter";
 
-
-  /** @domName HTMLIFrameElement.srcdoc */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.srcdoc')
   String get srcdoc native "HTMLIFrameElement_srcdoc_Getter";
 
-
-  /** @domName HTMLIFrameElement.srcdoc */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.srcdoc')
   void set srcdoc(String value) native "HTMLIFrameElement_srcdoc_Setter";
 
-
-  /** @domName HTMLIFrameElement.width */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.width')
   String get width native "HTMLIFrameElement_width_Getter";
 
-
-  /** @domName HTMLIFrameElement.width */
+  @DocsEditable
+  @DomName('HTMLIFrameElement.width')
   void set width(String value) native "HTMLIFrameElement_width_Setter";
 
 }
@@ -13443,20 +13242,21 @@ class IFrameElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ImageData
+@DocsEditable
+@DomName('ImageData')
 class ImageData extends NativeFieldWrapperClass1 {
   ImageData.internal();
 
-
-  /** @domName ImageData.data */
+  @DocsEditable
+  @DomName('ImageData.data')
   Uint8ClampedArray get data native "ImageData_data_Getter";
 
-
-  /** @domName ImageData.height */
+  @DocsEditable
+  @DomName('ImageData.height')
   int get height native "ImageData_height_Getter";
 
-
-  /** @domName ImageData.width */
+  @DocsEditable
+  @DomName('ImageData.width')
   int get width native "ImageData_width_Getter";
 
 }
@@ -13467,11 +13267,12 @@ class ImageData extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLImageElement
+@DocsEditable
+@DomName('HTMLImageElement')
 class ImageElement extends _Element_Merged {
   ImageElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
     if (src != null) e.src = src;
@@ -13480,96 +13281,96 @@ class ImageElement extends _Element_Merged {
     return e;
   }
 
-
-  /** @domName HTMLImageElement.alt */
+  @DocsEditable
+  @DomName('HTMLImageElement.alt')
   String get alt native "HTMLImageElement_alt_Getter";
 
-
-  /** @domName HTMLImageElement.alt */
+  @DocsEditable
+  @DomName('HTMLImageElement.alt')
   void set alt(String value) native "HTMLImageElement_alt_Setter";
 
-
-  /** @domName HTMLImageElement.border */
+  @DocsEditable
+  @DomName('HTMLImageElement.border')
   String get border native "HTMLImageElement_border_Getter";
 
-
-  /** @domName HTMLImageElement.border */
+  @DocsEditable
+  @DomName('HTMLImageElement.border')
   void set border(String value) native "HTMLImageElement_border_Setter";
 
-
-  /** @domName HTMLImageElement.complete */
+  @DocsEditable
+  @DomName('HTMLImageElement.complete')
   bool get complete native "HTMLImageElement_complete_Getter";
 
-
-  /** @domName HTMLImageElement.crossOrigin */
+  @DocsEditable
+  @DomName('HTMLImageElement.crossOrigin')
   String get crossOrigin native "HTMLImageElement_crossOrigin_Getter";
 
-
-  /** @domName HTMLImageElement.crossOrigin */
+  @DocsEditable
+  @DomName('HTMLImageElement.crossOrigin')
   void set crossOrigin(String value) native "HTMLImageElement_crossOrigin_Setter";
 
-
-  /** @domName HTMLImageElement.height */
+  @DocsEditable
+  @DomName('HTMLImageElement.height')
   int get height native "HTMLImageElement_height_Getter";
 
-
-  /** @domName HTMLImageElement.height */
+  @DocsEditable
+  @DomName('HTMLImageElement.height')
   void set height(int value) native "HTMLImageElement_height_Setter";
 
-
-  /** @domName HTMLImageElement.isMap */
+  @DocsEditable
+  @DomName('HTMLImageElement.isMap')
   bool get isMap native "HTMLImageElement_isMap_Getter";
 
-
-  /** @domName HTMLImageElement.isMap */
+  @DocsEditable
+  @DomName('HTMLImageElement.isMap')
   void set isMap(bool value) native "HTMLImageElement_isMap_Setter";
 
-
-  /** @domName HTMLImageElement.lowsrc */
+  @DocsEditable
+  @DomName('HTMLImageElement.lowsrc')
   String get lowsrc native "HTMLImageElement_lowsrc_Getter";
 
-
-  /** @domName HTMLImageElement.lowsrc */
+  @DocsEditable
+  @DomName('HTMLImageElement.lowsrc')
   void set lowsrc(String value) native "HTMLImageElement_lowsrc_Setter";
 
-
-  /** @domName HTMLImageElement.naturalHeight */
+  @DocsEditable
+  @DomName('HTMLImageElement.naturalHeight')
   int get naturalHeight native "HTMLImageElement_naturalHeight_Getter";
 
-
-  /** @domName HTMLImageElement.naturalWidth */
+  @DocsEditable
+  @DomName('HTMLImageElement.naturalWidth')
   int get naturalWidth native "HTMLImageElement_naturalWidth_Getter";
 
-
-  /** @domName HTMLImageElement.src */
+  @DocsEditable
+  @DomName('HTMLImageElement.src')
   String get src native "HTMLImageElement_src_Getter";
 
-
-  /** @domName HTMLImageElement.src */
+  @DocsEditable
+  @DomName('HTMLImageElement.src')
   void set src(String value) native "HTMLImageElement_src_Setter";
 
-
-  /** @domName HTMLImageElement.useMap */
+  @DocsEditable
+  @DomName('HTMLImageElement.useMap')
   String get useMap native "HTMLImageElement_useMap_Getter";
 
-
-  /** @domName HTMLImageElement.useMap */
+  @DocsEditable
+  @DomName('HTMLImageElement.useMap')
   void set useMap(String value) native "HTMLImageElement_useMap_Setter";
 
-
-  /** @domName HTMLImageElement.width */
+  @DocsEditable
+  @DomName('HTMLImageElement.width')
   int get width native "HTMLImageElement_width_Getter";
 
-
-  /** @domName HTMLImageElement.width */
+  @DocsEditable
+  @DomName('HTMLImageElement.width')
   void set width(int value) native "HTMLImageElement_width_Setter";
 
-
-  /** @domName HTMLImageElement.x */
+  @DocsEditable
+  @DomName('HTMLImageElement.x')
   int get x native "HTMLImageElement_x_Getter";
 
-
-  /** @domName HTMLImageElement.y */
+  @DocsEditable
+  @DomName('HTMLImageElement.y')
   int get y native "HTMLImageElement_y_Getter";
 
 }
@@ -13578,7 +13379,8 @@ class ImageElement extends _Element_Merged {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLInputElement
+@DocsEditable
+@DomName('HTMLInputElement')
 class InputElement extends _Element_Merged implements
     HiddenInputElement,
     SearchInputElement,
@@ -13604,7 +13406,6 @@ class InputElement extends _Element_Merged implements
     ButtonInputElement
      {
 
-  ///@docsEditable true
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
     if (type != null) {
@@ -13619,387 +13420,388 @@ class InputElement extends _Element_Merged implements
 
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   InputElementEvents get on =>
     new InputElementEvents(this);
 
-
-  /** @domName HTMLInputElement.accept */
+  @DocsEditable
+  @DomName('HTMLInputElement.accept')
   String get accept native "HTMLInputElement_accept_Getter";
 
-
-  /** @domName HTMLInputElement.accept */
+  @DocsEditable
+  @DomName('HTMLInputElement.accept')
   void set accept(String value) native "HTMLInputElement_accept_Setter";
 
-
-  /** @domName HTMLInputElement.alt */
+  @DocsEditable
+  @DomName('HTMLInputElement.alt')
   String get alt native "HTMLInputElement_alt_Getter";
 
-
-  /** @domName HTMLInputElement.alt */
+  @DocsEditable
+  @DomName('HTMLInputElement.alt')
   void set alt(String value) native "HTMLInputElement_alt_Setter";
 
-
-  /** @domName HTMLInputElement.autocomplete */
+  @DocsEditable
+  @DomName('HTMLInputElement.autocomplete')
   String get autocomplete native "HTMLInputElement_autocomplete_Getter";
 
-
-  /** @domName HTMLInputElement.autocomplete */
+  @DocsEditable
+  @DomName('HTMLInputElement.autocomplete')
   void set autocomplete(String value) native "HTMLInputElement_autocomplete_Setter";
 
-
-  /** @domName HTMLInputElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLInputElement.autofocus')
   bool get autofocus native "HTMLInputElement_autofocus_Getter";
 
-
-  /** @domName HTMLInputElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLInputElement.autofocus')
   void set autofocus(bool value) native "HTMLInputElement_autofocus_Setter";
 
-
-  /** @domName HTMLInputElement.checked */
+  @DocsEditable
+  @DomName('HTMLInputElement.checked')
   bool get checked native "HTMLInputElement_checked_Getter";
 
-
-  /** @domName HTMLInputElement.checked */
+  @DocsEditable
+  @DomName('HTMLInputElement.checked')
   void set checked(bool value) native "HTMLInputElement_checked_Setter";
 
-
-  /** @domName HTMLInputElement.defaultChecked */
+  @DocsEditable
+  @DomName('HTMLInputElement.defaultChecked')
   bool get defaultChecked native "HTMLInputElement_defaultChecked_Getter";
 
-
-  /** @domName HTMLInputElement.defaultChecked */
+  @DocsEditable
+  @DomName('HTMLInputElement.defaultChecked')
   void set defaultChecked(bool value) native "HTMLInputElement_defaultChecked_Setter";
 
-
-  /** @domName HTMLInputElement.defaultValue */
+  @DocsEditable
+  @DomName('HTMLInputElement.defaultValue')
   String get defaultValue native "HTMLInputElement_defaultValue_Getter";
 
-
-  /** @domName HTMLInputElement.defaultValue */
+  @DocsEditable
+  @DomName('HTMLInputElement.defaultValue')
   void set defaultValue(String value) native "HTMLInputElement_defaultValue_Setter";
 
-
-  /** @domName HTMLInputElement.dirName */
+  @DocsEditable
+  @DomName('HTMLInputElement.dirName')
   String get dirName native "HTMLInputElement_dirName_Getter";
 
-
-  /** @domName HTMLInputElement.dirName */
+  @DocsEditable
+  @DomName('HTMLInputElement.dirName')
   void set dirName(String value) native "HTMLInputElement_dirName_Setter";
 
-
-  /** @domName HTMLInputElement.disabled */
+  @DocsEditable
+  @DomName('HTMLInputElement.disabled')
   bool get disabled native "HTMLInputElement_disabled_Getter";
 
-
-  /** @domName HTMLInputElement.disabled */
+  @DocsEditable
+  @DomName('HTMLInputElement.disabled')
   void set disabled(bool value) native "HTMLInputElement_disabled_Setter";
 
-
-  /** @domName HTMLInputElement.files */
+  @DocsEditable
+  @DomName('HTMLInputElement.files')
   List<File> get files native "HTMLInputElement_files_Getter";
 
-
-  /** @domName HTMLInputElement.files */
+  @DocsEditable
+  @DomName('HTMLInputElement.files')
   void set files(List<File> value) native "HTMLInputElement_files_Setter";
 
-
-  /** @domName HTMLInputElement.form */
+  @DocsEditable
+  @DomName('HTMLInputElement.form')
   FormElement get form native "HTMLInputElement_form_Getter";
 
-
-  /** @domName HTMLInputElement.formAction */
+  @DocsEditable
+  @DomName('HTMLInputElement.formAction')
   String get formAction native "HTMLInputElement_formAction_Getter";
 
-
-  /** @domName HTMLInputElement.formAction */
+  @DocsEditable
+  @DomName('HTMLInputElement.formAction')
   void set formAction(String value) native "HTMLInputElement_formAction_Setter";
 
-
-  /** @domName HTMLInputElement.formEnctype */
+  @DocsEditable
+  @DomName('HTMLInputElement.formEnctype')
   String get formEnctype native "HTMLInputElement_formEnctype_Getter";
 
-
-  /** @domName HTMLInputElement.formEnctype */
+  @DocsEditable
+  @DomName('HTMLInputElement.formEnctype')
   void set formEnctype(String value) native "HTMLInputElement_formEnctype_Setter";
 
-
-  /** @domName HTMLInputElement.formMethod */
+  @DocsEditable
+  @DomName('HTMLInputElement.formMethod')
   String get formMethod native "HTMLInputElement_formMethod_Getter";
 
-
-  /** @domName HTMLInputElement.formMethod */
+  @DocsEditable
+  @DomName('HTMLInputElement.formMethod')
   void set formMethod(String value) native "HTMLInputElement_formMethod_Setter";
 
-
-  /** @domName HTMLInputElement.formNoValidate */
+  @DocsEditable
+  @DomName('HTMLInputElement.formNoValidate')
   bool get formNoValidate native "HTMLInputElement_formNoValidate_Getter";
 
-
-  /** @domName HTMLInputElement.formNoValidate */
+  @DocsEditable
+  @DomName('HTMLInputElement.formNoValidate')
   void set formNoValidate(bool value) native "HTMLInputElement_formNoValidate_Setter";
 
-
-  /** @domName HTMLInputElement.formTarget */
+  @DocsEditable
+  @DomName('HTMLInputElement.formTarget')
   String get formTarget native "HTMLInputElement_formTarget_Getter";
 
-
-  /** @domName HTMLInputElement.formTarget */
+  @DocsEditable
+  @DomName('HTMLInputElement.formTarget')
   void set formTarget(String value) native "HTMLInputElement_formTarget_Setter";
 
-
-  /** @domName HTMLInputElement.height */
+  @DocsEditable
+  @DomName('HTMLInputElement.height')
   int get height native "HTMLInputElement_height_Getter";
 
-
-  /** @domName HTMLInputElement.height */
+  @DocsEditable
+  @DomName('HTMLInputElement.height')
   void set height(int value) native "HTMLInputElement_height_Setter";
 
-
-  /** @domName HTMLInputElement.incremental */
+  @DocsEditable
+  @DomName('HTMLInputElement.incremental')
   bool get incremental native "HTMLInputElement_incremental_Getter";
 
-
-  /** @domName HTMLInputElement.incremental */
+  @DocsEditable
+  @DomName('HTMLInputElement.incremental')
   void set incremental(bool value) native "HTMLInputElement_incremental_Setter";
 
-
-  /** @domName HTMLInputElement.indeterminate */
+  @DocsEditable
+  @DomName('HTMLInputElement.indeterminate')
   bool get indeterminate native "HTMLInputElement_indeterminate_Getter";
 
-
-  /** @domName HTMLInputElement.indeterminate */
+  @DocsEditable
+  @DomName('HTMLInputElement.indeterminate')
   void set indeterminate(bool value) native "HTMLInputElement_indeterminate_Setter";
 
-
-  /** @domName HTMLInputElement.labels */
+  @DocsEditable
+  @DomName('HTMLInputElement.labels')
   List<Node> get labels native "HTMLInputElement_labels_Getter";
 
-
-  /** @domName HTMLInputElement.list */
+  @DocsEditable
+  @DomName('HTMLInputElement.list')
   Element get list native "HTMLInputElement_list_Getter";
 
-
-  /** @domName HTMLInputElement.max */
+  @DocsEditable
+  @DomName('HTMLInputElement.max')
   String get max native "HTMLInputElement_max_Getter";
 
-
-  /** @domName HTMLInputElement.max */
+  @DocsEditable
+  @DomName('HTMLInputElement.max')
   void set max(String value) native "HTMLInputElement_max_Setter";
 
-
-  /** @domName HTMLInputElement.maxLength */
+  @DocsEditable
+  @DomName('HTMLInputElement.maxLength')
   int get maxLength native "HTMLInputElement_maxLength_Getter";
 
-
-  /** @domName HTMLInputElement.maxLength */
+  @DocsEditable
+  @DomName('HTMLInputElement.maxLength')
   void set maxLength(int value) native "HTMLInputElement_maxLength_Setter";
 
-
-  /** @domName HTMLInputElement.min */
+  @DocsEditable
+  @DomName('HTMLInputElement.min')
   String get min native "HTMLInputElement_min_Getter";
 
-
-  /** @domName HTMLInputElement.min */
+  @DocsEditable
+  @DomName('HTMLInputElement.min')
   void set min(String value) native "HTMLInputElement_min_Setter";
 
-
-  /** @domName HTMLInputElement.multiple */
+  @DocsEditable
+  @DomName('HTMLInputElement.multiple')
   bool get multiple native "HTMLInputElement_multiple_Getter";
 
-
-  /** @domName HTMLInputElement.multiple */
+  @DocsEditable
+  @DomName('HTMLInputElement.multiple')
   void set multiple(bool value) native "HTMLInputElement_multiple_Setter";
 
-
-  /** @domName HTMLInputElement.name */
+  @DocsEditable
+  @DomName('HTMLInputElement.name')
   String get name native "HTMLInputElement_name_Getter";
 
-
-  /** @domName HTMLInputElement.name */
+  @DocsEditable
+  @DomName('HTMLInputElement.name')
   void set name(String value) native "HTMLInputElement_name_Setter";
 
-
-  /** @domName HTMLInputElement.pattern */
+  @DocsEditable
+  @DomName('HTMLInputElement.pattern')
   String get pattern native "HTMLInputElement_pattern_Getter";
 
-
-  /** @domName HTMLInputElement.pattern */
+  @DocsEditable
+  @DomName('HTMLInputElement.pattern')
   void set pattern(String value) native "HTMLInputElement_pattern_Setter";
 
-
-  /** @domName HTMLInputElement.placeholder */
+  @DocsEditable
+  @DomName('HTMLInputElement.placeholder')
   String get placeholder native "HTMLInputElement_placeholder_Getter";
 
-
-  /** @domName HTMLInputElement.placeholder */
+  @DocsEditable
+  @DomName('HTMLInputElement.placeholder')
   void set placeholder(String value) native "HTMLInputElement_placeholder_Setter";
 
-
-  /** @domName HTMLInputElement.readOnly */
+  @DocsEditable
+  @DomName('HTMLInputElement.readOnly')
   bool get readOnly native "HTMLInputElement_readOnly_Getter";
 
-
-  /** @domName HTMLInputElement.readOnly */
+  @DocsEditable
+  @DomName('HTMLInputElement.readOnly')
   void set readOnly(bool value) native "HTMLInputElement_readOnly_Setter";
 
-
-  /** @domName HTMLInputElement.required */
+  @DocsEditable
+  @DomName('HTMLInputElement.required')
   bool get required native "HTMLInputElement_required_Getter";
 
-
-  /** @domName HTMLInputElement.required */
+  @DocsEditable
+  @DomName('HTMLInputElement.required')
   void set required(bool value) native "HTMLInputElement_required_Setter";
 
-
-  /** @domName HTMLInputElement.selectionDirection */
+  @DocsEditable
+  @DomName('HTMLInputElement.selectionDirection')
   String get selectionDirection native "HTMLInputElement_selectionDirection_Getter";
 
-
-  /** @domName HTMLInputElement.selectionDirection */
+  @DocsEditable
+  @DomName('HTMLInputElement.selectionDirection')
   void set selectionDirection(String value) native "HTMLInputElement_selectionDirection_Setter";
 
-
-  /** @domName HTMLInputElement.selectionEnd */
+  @DocsEditable
+  @DomName('HTMLInputElement.selectionEnd')
   int get selectionEnd native "HTMLInputElement_selectionEnd_Getter";
 
-
-  /** @domName HTMLInputElement.selectionEnd */
+  @DocsEditable
+  @DomName('HTMLInputElement.selectionEnd')
   void set selectionEnd(int value) native "HTMLInputElement_selectionEnd_Setter";
 
-
-  /** @domName HTMLInputElement.selectionStart */
+  @DocsEditable
+  @DomName('HTMLInputElement.selectionStart')
   int get selectionStart native "HTMLInputElement_selectionStart_Getter";
 
-
-  /** @domName HTMLInputElement.selectionStart */
+  @DocsEditable
+  @DomName('HTMLInputElement.selectionStart')
   void set selectionStart(int value) native "HTMLInputElement_selectionStart_Setter";
 
-
-  /** @domName HTMLInputElement.size */
+  @DocsEditable
+  @DomName('HTMLInputElement.size')
   int get size native "HTMLInputElement_size_Getter";
 
-
-  /** @domName HTMLInputElement.size */
+  @DocsEditable
+  @DomName('HTMLInputElement.size')
   void set size(int value) native "HTMLInputElement_size_Setter";
 
-
-  /** @domName HTMLInputElement.src */
+  @DocsEditable
+  @DomName('HTMLInputElement.src')
   String get src native "HTMLInputElement_src_Getter";
 
-
-  /** @domName HTMLInputElement.src */
+  @DocsEditable
+  @DomName('HTMLInputElement.src')
   void set src(String value) native "HTMLInputElement_src_Setter";
 
-
-  /** @domName HTMLInputElement.step */
+  @DocsEditable
+  @DomName('HTMLInputElement.step')
   String get step native "HTMLInputElement_step_Getter";
 
-
-  /** @domName HTMLInputElement.step */
+  @DocsEditable
+  @DomName('HTMLInputElement.step')
   void set step(String value) native "HTMLInputElement_step_Setter";
 
-
-  /** @domName HTMLInputElement.type */
+  @DocsEditable
+  @DomName('HTMLInputElement.type')
   String get type native "HTMLInputElement_type_Getter";
 
-
-  /** @domName HTMLInputElement.type */
+  @DocsEditable
+  @DomName('HTMLInputElement.type')
   void set type(String value) native "HTMLInputElement_type_Setter";
 
-
-  /** @domName HTMLInputElement.useMap */
+  @DocsEditable
+  @DomName('HTMLInputElement.useMap')
   String get useMap native "HTMLInputElement_useMap_Getter";
 
-
-  /** @domName HTMLInputElement.useMap */
+  @DocsEditable
+  @DomName('HTMLInputElement.useMap')
   void set useMap(String value) native "HTMLInputElement_useMap_Setter";
 
-
-  /** @domName HTMLInputElement.validationMessage */
+  @DocsEditable
+  @DomName('HTMLInputElement.validationMessage')
   String get validationMessage native "HTMLInputElement_validationMessage_Getter";
 
-
-  /** @domName HTMLInputElement.validity */
+  @DocsEditable
+  @DomName('HTMLInputElement.validity')
   ValidityState get validity native "HTMLInputElement_validity_Getter";
 
-
-  /** @domName HTMLInputElement.value */
+  @DocsEditable
+  @DomName('HTMLInputElement.value')
   String get value native "HTMLInputElement_value_Getter";
 
-
-  /** @domName HTMLInputElement.value */
+  @DocsEditable
+  @DomName('HTMLInputElement.value')
   void set value(String value) native "HTMLInputElement_value_Setter";
 
-
-  /** @domName HTMLInputElement.valueAsDate */
+  @DocsEditable
+  @DomName('HTMLInputElement.valueAsDate')
   Date get valueAsDate native "HTMLInputElement_valueAsDate_Getter";
 
-
-  /** @domName HTMLInputElement.valueAsDate */
+  @DocsEditable
+  @DomName('HTMLInputElement.valueAsDate')
   void set valueAsDate(Date value) native "HTMLInputElement_valueAsDate_Setter";
 
-
-  /** @domName HTMLInputElement.valueAsNumber */
+  @DocsEditable
+  @DomName('HTMLInputElement.valueAsNumber')
   num get valueAsNumber native "HTMLInputElement_valueAsNumber_Getter";
 
-
-  /** @domName HTMLInputElement.valueAsNumber */
+  @DocsEditable
+  @DomName('HTMLInputElement.valueAsNumber')
   void set valueAsNumber(num value) native "HTMLInputElement_valueAsNumber_Setter";
 
-
-  /** @domName HTMLInputElement.webkitEntries */
+  @DocsEditable
+  @DomName('HTMLInputElement.webkitEntries')
   List<Entry> get webkitEntries native "HTMLInputElement_webkitEntries_Getter";
 
-
-  /** @domName HTMLInputElement.webkitGrammar */
+  @DocsEditable
+  @DomName('HTMLInputElement.webkitGrammar')
   bool get webkitGrammar native "HTMLInputElement_webkitGrammar_Getter";
 
-
-  /** @domName HTMLInputElement.webkitGrammar */
+  @DocsEditable
+  @DomName('HTMLInputElement.webkitGrammar')
   void set webkitGrammar(bool value) native "HTMLInputElement_webkitGrammar_Setter";
 
-
-  /** @domName HTMLInputElement.webkitSpeech */
+  @DocsEditable
+  @DomName('HTMLInputElement.webkitSpeech')
   bool get webkitSpeech native "HTMLInputElement_webkitSpeech_Getter";
 
-
-  /** @domName HTMLInputElement.webkitSpeech */
+  @DocsEditable
+  @DomName('HTMLInputElement.webkitSpeech')
   void set webkitSpeech(bool value) native "HTMLInputElement_webkitSpeech_Setter";
 
-
-  /** @domName HTMLInputElement.webkitdirectory */
+  @DocsEditable
+  @DomName('HTMLInputElement.webkitdirectory')
   bool get webkitdirectory native "HTMLInputElement_webkitdirectory_Getter";
 
-
-  /** @domName HTMLInputElement.webkitdirectory */
+  @DocsEditable
+  @DomName('HTMLInputElement.webkitdirectory')
   void set webkitdirectory(bool value) native "HTMLInputElement_webkitdirectory_Setter";
 
-
-  /** @domName HTMLInputElement.width */
+  @DocsEditable
+  @DomName('HTMLInputElement.width')
   int get width native "HTMLInputElement_width_Getter";
 
-
-  /** @domName HTMLInputElement.width */
+  @DocsEditable
+  @DomName('HTMLInputElement.width')
   void set width(int value) native "HTMLInputElement_width_Setter";
 
-
-  /** @domName HTMLInputElement.willValidate */
+  @DocsEditable
+  @DomName('HTMLInputElement.willValidate')
   bool get willValidate native "HTMLInputElement_willValidate_Getter";
 
-
-  /** @domName HTMLInputElement.checkValidity */
+  @DocsEditable
+  @DomName('HTMLInputElement.checkValidity')
   bool checkValidity() native "HTMLInputElement_checkValidity_Callback";
 
-
-  /** @domName HTMLInputElement.select */
+  @DocsEditable
+  @DomName('HTMLInputElement.select')
   void select() native "HTMLInputElement_select_Callback";
 
-
-  /** @domName HTMLInputElement.setCustomValidity */
+  @DocsEditable
+  @DomName('HTMLInputElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLInputElement_setCustomValidity_Callback";
 
-  void setRangeText(/*DOMString*/ replacement, [/*unsigned long*/ start, /*unsigned long*/ end, /*DOMString*/ selectionMode]) {
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) {
     if ((replacement is String || replacement == null) && !?start && !?end && !?selectionMode) {
       _setRangeText_1(replacement);
       return;
@@ -14011,19 +13813,19 @@ class InputElement extends _Element_Merged implements
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName HTMLInputElement.setRangeText_1 */
+  @DocsEditable
+  @DomName('HTMLInputElement.setRangeText_1')
   void _setRangeText_1(replacement) native "HTMLInputElement_setRangeText_1_Callback";
 
-
-  /** @domName HTMLInputElement.setRangeText_2 */
+  @DocsEditable
+  @DomName('HTMLInputElement.setRangeText_2')
   void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLInputElement_setRangeText_2_Callback";
 
-
-  /** @domName HTMLInputElement.setSelectionRange */
+  @DocsEditable
+  @DomName('HTMLInputElement.setSelectionRange')
   void setSelectionRange(int start, int end, [String direction]) native "HTMLInputElement_setSelectionRange_Callback";
 
-  void stepDown([/*long*/ n]) {
+  void stepDown([int n]) {
     if (?n) {
       _stepDown_1(n);
       return;
@@ -14031,15 +13833,15 @@ class InputElement extends _Element_Merged implements
     _stepDown_2();
   }
 
-
-  /** @domName HTMLInputElement.stepDown_1 */
+  @DocsEditable
+  @DomName('HTMLInputElement.stepDown_1')
   void _stepDown_1(n) native "HTMLInputElement_stepDown_1_Callback";
 
-
-  /** @domName HTMLInputElement.stepDown_2 */
+  @DocsEditable
+  @DomName('HTMLInputElement.stepDown_2')
   void _stepDown_2() native "HTMLInputElement_stepDown_2_Callback";
 
-  void stepUp([/*long*/ n]) {
+  void stepUp([int n]) {
     if (?n) {
       _stepUp_1(n);
       return;
@@ -14047,12 +13849,12 @@ class InputElement extends _Element_Merged implements
     _stepUp_2();
   }
 
-
-  /** @domName HTMLInputElement.stepUp_1 */
+  @DocsEditable
+  @DomName('HTMLInputElement.stepUp_1')
   void _stepUp_1(n) native "HTMLInputElement_stepUp_1_Callback";
 
-
-  /** @domName HTMLInputElement.stepUp_2 */
+  @DocsEditable
+  @DomName('HTMLInputElement.stepUp_2')
   void _stepUp_2() native "HTMLInputElement_stepUp_2_Callback";
 
   Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
@@ -14068,40 +13870,40 @@ class InputElement extends _Element_Merged implements
  * Exposes the functionality common between all InputElement types.
  */
 abstract class InputElementBase implements Element {
-  /// @domName HTMLInputElement.autofocus
+  @DomName('HTMLInputElement.autofocus')
   bool autofocus;
 
-  /// @domName HTMLInputElement.disabled
+  @DomName('HTMLInputElement.disabled')
   bool disabled;
 
-  /// @domName HTMLInputElement.incremental
+  @DomName('HTMLInputElement.incremental')
   bool incremental;
 
-  /// @domName HTMLInputElement.indeterminate
+  @DomName('HTMLInputElement.indeterminate')
   bool indeterminate;
 
-  /// @domName HTMLInputElement.labels
+  @DomName('HTMLInputElement.labels')
   List<Node> get labels;
 
-  /// @domName HTMLInputElement.name
+  @DomName('HTMLInputElement.name')
   String name;
 
-  /// @domName HTMLInputElement.validationMessage
+  @DomName('HTMLInputElement.validationMessage')
   String get validationMessage;
 
-  /// @domName HTMLInputElement.validity
+  @DomName('HTMLInputElement.validity')
   ValidityState get validity;
 
-  /// @domName HTMLInputElement.value
+  @DomName('HTMLInputElement.value')
   String value;
 
-  /// @domName HTMLInputElement.willValidate
+  @DomName('HTMLInputElement.willValidate')
   bool get willValidate;
 
-  /// @domName HTMLInputElement.checkValidity
+  @DomName('HTMLInputElement.checkValidity')
   bool checkValidity();
 
-  /// @domName HTMLInputElement.setCustomValidity
+  @DomName('HTMLInputElement.setCustomValidity')
   void setCustomValidity(String error);
 }
 
@@ -14117,40 +13919,40 @@ abstract class HiddenInputElement implements Element {
  * Base interface for all inputs which involve text editing.
  */
 abstract class TextInputElementBase implements InputElementBase {
-  /// @domName HTMLInputElement.autocomplete
+  @DomName('HTMLInputElement.autocomplete')
   String autocomplete;
 
-  /// @domName HTMLInputElement.maxLength
+  @DomName('HTMLInputElement.maxLength')
   int maxLength;
 
-  /// @domName HTMLInputElement.pattern
+  @DomName('HTMLInputElement.pattern')
   String pattern;
 
-  /// @domName HTMLInputElement.placeholder
+  @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
-  /// @domName HTMLInputElement.size
+  @DomName('HTMLInputElement.size')
   int size;
 
-  /// @domName HTMLInputElement.select
+  @DomName('HTMLInputElement.select')
   void select();
 
-  /// @domName HTMLInputElement.selectionDirection
+  @DomName('HTMLInputElement.selectionDirection')
   String selectionDirection;
 
-  /// @domName HTMLInputElement.selectionEnd
+  @DomName('HTMLInputElement.selectionEnd')
   int selectionEnd;
 
-  /// @domName HTMLInputElement.selectionStart
+  @DomName('HTMLInputElement.selectionStart')
   int selectionStart;
 
-  /// @domName HTMLInputElement.setSelectionRange
+  @DomName('HTMLInputElement.setSelectionRange')
   void setSelectionRange(int start, int end, [String direction]);
 }
 
@@ -14167,10 +13969,10 @@ abstract class TextInputElementBase implements InputElementBase {
 abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
-  /// @domName HTMLInputElement.dirName;
+  @DomName('HTMLInputElement.dirName')
   String dirName;
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14185,10 +13987,10 @@ abstract class SearchInputElement implements TextInputElementBase {
 abstract class TextInputElement implements TextInputElementBase {
   factory TextInputElement() => new InputElement(type: 'text');
 
-  /// @domName HTMLInputElement.dirName;
+  @DomName('HTMLInputElement.dirName')
   String dirName;
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 }
 
@@ -14204,7 +14006,7 @@ abstract class TextInputElement implements TextInputElementBase {
 abstract class UrlInputElement implements TextInputElementBase {
   factory UrlInputElement() => new InputElement(type: 'url');
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14228,7 +14030,7 @@ abstract class UrlInputElement implements TextInputElementBase {
 abstract class TelephoneInputElement implements TextInputElementBase {
   factory TelephoneInputElement() => new InputElement(type: 'tel');
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14249,34 +14051,34 @@ abstract class TelephoneInputElement implements TextInputElementBase {
 abstract class EmailInputElement implements TextInputElementBase {
   factory EmailInputElement() => new InputElement(type: 'email');
 
-  /// @domName HTMLInputElement.autocomplete
+  @DomName('HTMLInputElement.autocomplete')
   String autocomplete;
 
-  /// @domName HTMLInputElement.autofocus
+  @DomName('HTMLInputElement.autofocus')
   bool autofocus;
 
-  /// @domName HTMLInputElement.list;
+  @DomName('HTMLInputElement.list')
   Element get list;
 
-  /// @domName HTMLInputElement.maxLength
+  @DomName('HTMLInputElement.maxLength')
   int maxLength;
 
-  /// @domName HTMLInputElement.multiple;
+  @DomName('HTMLInputElement.multiple')
   bool multiple;
 
-  /// @domName HTMLInputElement.pattern
+  @DomName('HTMLInputElement.pattern')
   String pattern;
 
-  /// @domName HTMLInputElement.placeholder
+  @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
-  /// @domName HTMLInputElement.size
+  @DomName('HTMLInputElement.size')
   int size;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14297,25 +14099,25 @@ abstract class PasswordInputElement implements TextInputElementBase {
  */
 abstract class RangeInputElementBase implements InputElementBase {
 
-  /// @domName HTMLInputElement.list
+  @DomName('HTMLInputElement.list')
   Element get list;
 
-  /// @domName HTMLInputElement.max
+  @DomName('HTMLInputElement.max')
   String max;
 
-  /// @domName HTMLInputElement.min
+  @DomName('HTMLInputElement.min')
   String min;
 
-  /// @domName HTMLInputElement.step
+  @DomName('HTMLInputElement.step')
   String step;
 
-  /// @domName HTMLInputElement.valueAsNumber
+  @DomName('HTMLInputElement.valueAsNumber')
   num valueAsNumber;
 
-  /// @domName HTMLInputElement.stepDown
+  @DomName('HTMLInputElement.stepDown')
   void stepDown([int n]);
 
-  /// @domName HTMLInputElement.stepUp
+  @DomName('HTMLInputElement.stepUp')
   void stepUp([int n]);
 }
 
@@ -14330,13 +14132,13 @@ abstract class RangeInputElementBase implements InputElementBase {
 abstract class DateTimeInputElement implements RangeInputElementBase {
   factory DateTimeInputElement() => new InputElement(type: 'datetime');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14355,13 +14157,13 @@ abstract class DateTimeInputElement implements RangeInputElementBase {
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14380,13 +14182,13 @@ abstract class DateInputElement implements RangeInputElementBase {
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14405,13 +14207,13 @@ abstract class MonthInputElement implements RangeInputElementBase {
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14430,13 +14232,13 @@ abstract class WeekInputElement implements RangeInputElementBase {
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
-  /// @domName HTMLInputElement.valueAsDate
+  @DomName('HTMLInputElement.valueAsDate')
   Date valueAsDate;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14457,10 +14259,10 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14479,13 +14281,13 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
 abstract class NumberInputElement implements RangeInputElementBase {
   factory NumberInputElement() => new InputElement(type: 'number');
 
-  /// @domName HTMLInputElement.placeholder
+  @DomName('HTMLInputElement.placeholder')
   String placeholder;
 
-  /// @domName HTMLInputElement.readOnly
+  @DomName('HTMLInputElement.readOnly')
   bool readOnly;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
   /// Returns true if this input type is supported on the current platform.
@@ -14521,10 +14323,10 @@ abstract class RangeInputElement implements RangeInputElementBase {
 abstract class CheckboxInputElement implements InputElementBase {
   factory CheckboxInputElement() => new InputElement(type: 'checkbox');
 
-  /// @domName HTMLInputElement.checked
+  @DomName('HTMLInputElement.checked')
   bool checked;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 }
 
@@ -14543,10 +14345,10 @@ abstract class CheckboxInputElement implements InputElementBase {
 abstract class RadioButtonInputElement implements InputElementBase {
   factory RadioButtonInputElement() => new InputElement(type: 'radio');
 
-  /// @domName HTMLInputElement.checked
+  @DomName('HTMLInputElement.checked')
   bool checked;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 }
 
@@ -14556,16 +14358,16 @@ abstract class RadioButtonInputElement implements InputElementBase {
 abstract class FileUploadInputElement implements InputElementBase {
   factory FileUploadInputElement() => new InputElement(type: 'file');
 
-  /// @domName HTMLInputElement.accept
+  @DomName('HTMLInputElement.accept')
   String accept;
 
-  /// @domName HTMLInputElement.multiple
+  @DomName('HTMLInputElement.multiple')
   bool multiple;
 
-  /// @domName HTMLInputElement.required
+  @DomName('HTMLInputElement.required')
   bool required;
 
-  /// @domName HTMLInputElement.files
+  @DomName('HTMLInputElement.files')
   List<File> files;
 }
 
@@ -14575,19 +14377,19 @@ abstract class FileUploadInputElement implements InputElementBase {
 abstract class SubmitButtonInputElement implements InputElementBase {
   factory SubmitButtonInputElement() => new InputElement(type: 'submit');
 
-  /// @domName HTMLInputElement.formAction
+  @DomName('HTMLInputElement.formAction')
   String formAction;
 
-  /// @domName HTMLInputElement.formEnctype
+  @DomName('HTMLInputElement.formEnctype')
   String formEnctype;
 
-  /// @domName HTMLInputElement.formMethod
+  @DomName('HTMLInputElement.formMethod')
   String formMethod;
 
-  /// @domName HTMLInputElement.formNoValidate
+  @DomName('HTMLInputElement.formNoValidate')
   bool formNoValidate;
 
-  /// @domName HTMLInputElement.formTarget
+  @DomName('HTMLInputElement.formTarget')
   String formTarget;
 }
 
@@ -14598,31 +14400,31 @@ abstract class SubmitButtonInputElement implements InputElementBase {
 abstract class ImageButtonInputElement implements InputElementBase {
   factory ImageButtonInputElement() => new InputElement(type: 'image');
 
-  /// @domName HTMLInputElement.alt
+  @DomName('HTMLInputElement.alt')
   String alt;
 
-  /// @domName HTMLInputElement.formAction
+  @DomName('HTMLInputElement.formAction')
   String formAction;
 
-  /// @domName HTMLInputElement.formEnctype
+  @DomName('HTMLInputElement.formEnctype')
   String formEnctype;
 
-  /// @domName HTMLInputElement.formMethod
+  @DomName('HTMLInputElement.formMethod')
   String formMethod;
 
-  /// @domName HTMLInputElement.formNoValidate
+  @DomName('HTMLInputElement.formNoValidate')
   bool formNoValidate;
 
-  /// @domName HTMLInputElement.formTarget
+  @DomName('HTMLInputElement.formTarget')
   String formTarget;
 
-  /// @domName HTMLInputElement.height
+  @DomName('HTMLInputElement.height')
   int height;
 
-  /// @domName HTMLInputElement.src
+  @DomName('HTMLInputElement.src')
   String src;
 
-  /// @domName HTMLInputElement.width
+  @DomName('HTMLInputElement.width')
   int width;
 }
 
@@ -14641,12 +14443,12 @@ abstract class ButtonInputElement implements InputElementBase {
 }
 
 
-/// @docsEditable true
+@DocsEditable
 class InputElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   InputElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get speechChange => this['webkitSpeechChange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14656,7 +14458,8 @@ class InputElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Int16Array
+@DocsEditable
+@DomName('Int16Array')
 class Int16Array extends ArrayBufferView implements List<int> {
   Int16Array.internal() : super.internal();
 
@@ -14671,16 +14474,16 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 2;
 
-
-  /** @domName Int16Array.length */
+  @DocsEditable
+  @DomName('Int16Array.length')
   int get length native "Int16Array_length_Getter";
 
-
-  /** @domName Int16Array.numericIndexGetter */
+  @DocsEditable
+  @DomName('Int16Array.numericIndexGetter')
   int operator[](int index) native "Int16Array_numericIndexGetter_Callback";
 
-
-  /** @domName Int16Array.numericIndexSetter */
+  @DocsEditable
+  @DomName('Int16Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Int16Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
   // int is the element type.
@@ -14695,50 +14498,50 @@ class Int16Array extends ArrayBufferView implements List<int> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -14796,16 +14599,36 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -14825,23 +14648,23 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
-
-  /** @domName Int16Array.setElements */
+  @DocsEditable
+  @DomName('Int16Array.setElements')
   void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
 
-  Int16Array subarray(/*long*/ start, [/*long*/ end]) {
+  Int16Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
     return _subarray_2(start);
   }
 
-
-  /** @domName Int16Array.subarray_1 */
+  @DocsEditable
+  @DomName('Int16Array.subarray_1')
   Int16Array _subarray_1(start, end) native "Int16Array_subarray_1_Callback";
 
-
-  /** @domName Int16Array.subarray_2 */
+  @DocsEditable
+  @DomName('Int16Array.subarray_2')
   Int16Array _subarray_2(start) native "Int16Array_subarray_2_Callback";
 
 }
@@ -14852,7 +14675,8 @@ class Int16Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Int32Array
+@DocsEditable
+@DomName('Int32Array')
 class Int32Array extends ArrayBufferView implements List<int> {
   Int32Array.internal() : super.internal();
 
@@ -14867,16 +14691,16 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 4;
 
-
-  /** @domName Int32Array.length */
+  @DocsEditable
+  @DomName('Int32Array.length')
   int get length native "Int32Array_length_Getter";
 
-
-  /** @domName Int32Array.numericIndexGetter */
+  @DocsEditable
+  @DomName('Int32Array.numericIndexGetter')
   int operator[](int index) native "Int32Array_numericIndexGetter_Callback";
 
-
-  /** @domName Int32Array.numericIndexSetter */
+  @DocsEditable
+  @DomName('Int32Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Int32Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
   // int is the element type.
@@ -14891,50 +14715,50 @@ class Int32Array extends ArrayBufferView implements List<int> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -14992,16 +14816,36 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -15021,23 +14865,23 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
-
-  /** @domName Int32Array.setElements */
+  @DocsEditable
+  @DomName('Int32Array.setElements')
   void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
 
-  Int32Array subarray(/*long*/ start, [/*long*/ end]) {
+  Int32Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
     return _subarray_2(start);
   }
 
-
-  /** @domName Int32Array.subarray_1 */
+  @DocsEditable
+  @DomName('Int32Array.subarray_1')
   Int32Array _subarray_1(start, end) native "Int32Array_subarray_1_Callback";
 
-
-  /** @domName Int32Array.subarray_2 */
+  @DocsEditable
+  @DomName('Int32Array.subarray_2')
   Int32Array _subarray_2(start) native "Int32Array_subarray_2_Callback";
 
 }
@@ -15048,7 +14892,8 @@ class Int32Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Int8Array
+@DocsEditable
+@DomName('Int8Array')
 class Int8Array extends ArrayBufferView implements List<int> {
   Int8Array.internal() : super.internal();
 
@@ -15063,16 +14908,16 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 1;
 
-
-  /** @domName Int8Array.length */
+  @DocsEditable
+  @DomName('Int8Array.length')
   int get length native "Int8Array_length_Getter";
 
-
-  /** @domName Int8Array.numericIndexGetter */
+  @DocsEditable
+  @DomName('Int8Array.numericIndexGetter')
   int operator[](int index) native "Int8Array_numericIndexGetter_Callback";
 
-
-  /** @domName Int8Array.numericIndexSetter */
+  @DocsEditable
+  @DomName('Int8Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Int8Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
   // int is the element type.
@@ -15087,50 +14932,50 @@ class Int8Array extends ArrayBufferView implements List<int> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -15188,16 +15033,36 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -15217,23 +15082,23 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
-
-  /** @domName Int8Array.setElements */
+  @DocsEditable
+  @DomName('Int8Array.setElements')
   void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
 
-  Int8Array subarray(/*long*/ start, [/*long*/ end]) {
+  Int8Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
     return _subarray_2(start);
   }
 
-
-  /** @domName Int8Array.subarray_1 */
+  @DocsEditable
+  @DomName('Int8Array.subarray_1')
   Int8Array _subarray_1(start, end) native "Int8Array_subarray_1_Callback";
 
-
-  /** @domName Int8Array.subarray_2 */
+  @DocsEditable
+  @DomName('Int8Array.subarray_2')
   Int8Array _subarray_2(start) native "Int8Array_subarray_2_Callback";
 
 }
@@ -15244,7 +15109,8 @@ class Int8Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName JavaScriptCallFrame
+@DocsEditable
+@DomName('JavaScriptCallFrame')
 class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
   JavaScriptCallFrame.internal();
 
@@ -15258,48 +15124,48 @@ class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
 
   static const int WITH_SCOPE = 2;
 
-
-  /** @domName JavaScriptCallFrame.caller */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.caller')
   JavaScriptCallFrame get caller native "JavaScriptCallFrame_caller_Getter";
 
-
-  /** @domName JavaScriptCallFrame.column */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.column')
   int get column native "JavaScriptCallFrame_column_Getter";
 
-
-  /** @domName JavaScriptCallFrame.functionName */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.functionName')
   String get functionName native "JavaScriptCallFrame_functionName_Getter";
 
-
-  /** @domName JavaScriptCallFrame.line */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.line')
   int get line native "JavaScriptCallFrame_line_Getter";
 
-
-  /** @domName JavaScriptCallFrame.scopeChain */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.scopeChain')
   List get scopeChain native "JavaScriptCallFrame_scopeChain_Getter";
 
-
-  /** @domName JavaScriptCallFrame.sourceID */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.sourceID')
   int get sourceID native "JavaScriptCallFrame_sourceID_Getter";
 
-
-  /** @domName JavaScriptCallFrame.thisObject */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.thisObject')
   Object get thisObject native "JavaScriptCallFrame_thisObject_Getter";
 
-
-  /** @domName JavaScriptCallFrame.type */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.type')
   String get type native "JavaScriptCallFrame_type_Getter";
 
-
-  /** @domName JavaScriptCallFrame.evaluate */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.evaluate')
   void evaluate(String script) native "JavaScriptCallFrame_evaluate_Callback";
 
-
-  /** @domName JavaScriptCallFrame.restart */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.restart')
   Object restart() native "JavaScriptCallFrame_restart_Callback";
 
-
-  /** @domName JavaScriptCallFrame.scopeType */
+  @DocsEditable
+  @DomName('JavaScriptCallFrame.scopeType')
   int scopeType(int scopeIndex) native "JavaScriptCallFrame_scopeType_Callback";
 
 }
@@ -15308,7 +15174,7 @@ class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName KeyboardEvent; @docsEditable true
+@DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent {
 
   factory KeyboardEvent(String type, Window view,
@@ -15322,43 +15188,43 @@ class KeyboardEvent extends UIEvent {
     return e;
   }
 
-  /** @domName KeyboardEvent.keyCode */
+  @DomName('KeyboardEvent.keyCode')
   int get keyCode => $dom_keyCode;
   
-  /** @domName KeyboardEvent.charCode */
+  @DomName('KeyboardEvent.charCode')
   int get charCode => $dom_charCode;
   KeyboardEvent.internal() : super.internal();
 
-
-  /** @domName KeyboardEvent.altGraphKey */
+  @DocsEditable
+  @DomName('KeyboardEvent.altGraphKey')
   bool get altGraphKey native "KeyboardEvent_altGraphKey_Getter";
 
-
-  /** @domName KeyboardEvent.altKey */
+  @DocsEditable
+  @DomName('KeyboardEvent.altKey')
   bool get altKey native "KeyboardEvent_altKey_Getter";
 
-
-  /** @domName KeyboardEvent.ctrlKey */
+  @DocsEditable
+  @DomName('KeyboardEvent.ctrlKey')
   bool get ctrlKey native "KeyboardEvent_ctrlKey_Getter";
 
-
-  /** @domName KeyboardEvent.keyIdentifier */
+  @DocsEditable
+  @DomName('KeyboardEvent.keyIdentifier')
   String get $dom_keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
 
-
-  /** @domName KeyboardEvent.keyLocation */
+  @DocsEditable
+  @DomName('KeyboardEvent.keyLocation')
   int get keyLocation native "KeyboardEvent_keyLocation_Getter";
 
-
-  /** @domName KeyboardEvent.metaKey */
+  @DocsEditable
+  @DomName('KeyboardEvent.metaKey')
   bool get metaKey native "KeyboardEvent_metaKey_Getter";
 
-
-  /** @domName KeyboardEvent.shiftKey */
+  @DocsEditable
+  @DomName('KeyboardEvent.shiftKey')
   bool get shiftKey native "KeyboardEvent_shiftKey_Getter";
 
-
-  /** @domName KeyboardEvent.initKeyboardEvent */
+  @DocsEditable
+  @DomName('KeyboardEvent.initKeyboardEvent')
   void $dom_initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native "KeyboardEvent_initKeyboardEvent_Callback";
 
 }
@@ -15369,89 +15235,90 @@ class KeyboardEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLKeygenElement
+@DocsEditable
+@DomName('HTMLKeygenElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 class KeygenElement extends _Element_Merged {
   KeygenElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory KeygenElement() => document.$dom_createElement("keygen");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLKeygenElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.autofocus')
   bool get autofocus native "HTMLKeygenElement_autofocus_Getter";
 
-
-  /** @domName HTMLKeygenElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.autofocus')
   void set autofocus(bool value) native "HTMLKeygenElement_autofocus_Setter";
 
-
-  /** @domName HTMLKeygenElement.challenge */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.challenge')
   String get challenge native "HTMLKeygenElement_challenge_Getter";
 
-
-  /** @domName HTMLKeygenElement.challenge */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.challenge')
   void set challenge(String value) native "HTMLKeygenElement_challenge_Setter";
 
-
-  /** @domName HTMLKeygenElement.disabled */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.disabled')
   bool get disabled native "HTMLKeygenElement_disabled_Getter";
 
-
-  /** @domName HTMLKeygenElement.disabled */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.disabled')
   void set disabled(bool value) native "HTMLKeygenElement_disabled_Setter";
 
-
-  /** @domName HTMLKeygenElement.form */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.form')
   FormElement get form native "HTMLKeygenElement_form_Getter";
 
-
-  /** @domName HTMLKeygenElement.keytype */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.keytype')
   String get keytype native "HTMLKeygenElement_keytype_Getter";
 
-
-  /** @domName HTMLKeygenElement.keytype */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.keytype')
   void set keytype(String value) native "HTMLKeygenElement_keytype_Setter";
 
-
-  /** @domName HTMLKeygenElement.labels */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.labels')
   List<Node> get labels native "HTMLKeygenElement_labels_Getter";
 
-
-  /** @domName HTMLKeygenElement.name */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.name')
   String get name native "HTMLKeygenElement_name_Getter";
 
-
-  /** @domName HTMLKeygenElement.name */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.name')
   void set name(String value) native "HTMLKeygenElement_name_Setter";
 
-
-  /** @domName HTMLKeygenElement.type */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.type')
   String get type native "HTMLKeygenElement_type_Getter";
 
-
-  /** @domName HTMLKeygenElement.validationMessage */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.validationMessage')
   String get validationMessage native "HTMLKeygenElement_validationMessage_Getter";
 
-
-  /** @domName HTMLKeygenElement.validity */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.validity')
   ValidityState get validity native "HTMLKeygenElement_validity_Getter";
 
-
-  /** @domName HTMLKeygenElement.willValidate */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.willValidate')
   bool get willValidate native "HTMLKeygenElement_willValidate_Getter";
 
-
-  /** @domName HTMLKeygenElement.checkValidity */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.checkValidity')
   bool checkValidity() native "HTMLKeygenElement_checkValidity_Callback";
 
-
-  /** @domName HTMLKeygenElement.setCustomValidity */
+  @DocsEditable
+  @DomName('HTMLKeygenElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLKeygenElement_setCustomValidity_Callback";
 
 }
@@ -15462,27 +15329,28 @@ class KeygenElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLLIElement
+@DocsEditable
+@DomName('HTMLLIElement')
 class LIElement extends _Element_Merged {
   LIElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory LIElement() => document.$dom_createElement("li");
 
-
-  /** @domName HTMLLIElement.type */
+  @DocsEditable
+  @DomName('HTMLLIElement.type')
   String get type native "HTMLLIElement_type_Getter";
 
-
-  /** @domName HTMLLIElement.type */
+  @DocsEditable
+  @DomName('HTMLLIElement.type')
   void set type(String value) native "HTMLLIElement_type_Setter";
 
-
-  /** @domName HTMLLIElement.value */
+  @DocsEditable
+  @DomName('HTMLLIElement.value')
   int get value native "HTMLLIElement_value_Getter";
 
-
-  /** @domName HTMLLIElement.value */
+  @DocsEditable
+  @DomName('HTMLLIElement.value')
   void set value(int value) native "HTMLLIElement_value_Setter";
 
 }
@@ -15493,27 +15361,28 @@ class LIElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLLabelElement
+@DocsEditable
+@DomName('HTMLLabelElement')
 class LabelElement extends _Element_Merged {
   LabelElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory LabelElement() => document.$dom_createElement("label");
 
-
-  /** @domName HTMLLabelElement.control */
+  @DocsEditable
+  @DomName('HTMLLabelElement.control')
   Element get control native "HTMLLabelElement_control_Getter";
 
-
-  /** @domName HTMLLabelElement.form */
+  @DocsEditable
+  @DomName('HTMLLabelElement.form')
   FormElement get form native "HTMLLabelElement_form_Getter";
 
-
-  /** @domName HTMLLabelElement.htmlFor */
+  @DocsEditable
+  @DomName('HTMLLabelElement.htmlFor')
   String get htmlFor native "HTMLLabelElement_htmlFor_Getter";
 
-
-  /** @domName HTMLLabelElement.htmlFor */
+  @DocsEditable
+  @DomName('HTMLLabelElement.htmlFor')
   void set htmlFor(String value) native "HTMLLabelElement_htmlFor_Setter";
 
 }
@@ -15524,23 +15393,16 @@ class LabelElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLLegendElement
+@DocsEditable
+@DomName('HTMLLegendElement')
 class LegendElement extends _Element_Merged {
   LegendElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory LegendElement() => document.$dom_createElement("legend");
 
-
-  /** @domName HTMLLegendElement.align */
-  String get align native "HTMLLegendElement_align_Getter";
-
-
-  /** @domName HTMLLegendElement.align */
-  void set align(String value) native "HTMLLegendElement_align_Setter";
-
-
-  /** @domName HTMLLegendElement.form */
+  @DocsEditable
+  @DomName('HTMLLegendElement.form')
   FormElement get form native "HTMLLegendElement_form_Getter";
 
 }
@@ -15551,71 +15413,72 @@ class LegendElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLLinkElement
+@DocsEditable
+@DomName('HTMLLinkElement')
 class LinkElement extends _Element_Merged {
   LinkElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory LinkElement() => document.$dom_createElement("link");
 
-
-  /** @domName HTMLLinkElement.disabled */
+  @DocsEditable
+  @DomName('HTMLLinkElement.disabled')
   bool get disabled native "HTMLLinkElement_disabled_Getter";
 
-
-  /** @domName HTMLLinkElement.disabled */
+  @DocsEditable
+  @DomName('HTMLLinkElement.disabled')
   void set disabled(bool value) native "HTMLLinkElement_disabled_Setter";
 
-
-  /** @domName HTMLLinkElement.href */
+  @DocsEditable
+  @DomName('HTMLLinkElement.href')
   String get href native "HTMLLinkElement_href_Getter";
 
-
-  /** @domName HTMLLinkElement.href */
+  @DocsEditable
+  @DomName('HTMLLinkElement.href')
   void set href(String value) native "HTMLLinkElement_href_Setter";
 
-
-  /** @domName HTMLLinkElement.hreflang */
+  @DocsEditable
+  @DomName('HTMLLinkElement.hreflang')
   String get hreflang native "HTMLLinkElement_hreflang_Getter";
 
-
-  /** @domName HTMLLinkElement.hreflang */
+  @DocsEditable
+  @DomName('HTMLLinkElement.hreflang')
   void set hreflang(String value) native "HTMLLinkElement_hreflang_Setter";
 
-
-  /** @domName HTMLLinkElement.media */
+  @DocsEditable
+  @DomName('HTMLLinkElement.media')
   String get media native "HTMLLinkElement_media_Getter";
 
-
-  /** @domName HTMLLinkElement.media */
+  @DocsEditable
+  @DomName('HTMLLinkElement.media')
   void set media(String value) native "HTMLLinkElement_media_Setter";
 
-
-  /** @domName HTMLLinkElement.rel */
+  @DocsEditable
+  @DomName('HTMLLinkElement.rel')
   String get rel native "HTMLLinkElement_rel_Getter";
 
-
-  /** @domName HTMLLinkElement.rel */
+  @DocsEditable
+  @DomName('HTMLLinkElement.rel')
   void set rel(String value) native "HTMLLinkElement_rel_Setter";
 
-
-  /** @domName HTMLLinkElement.sheet */
+  @DocsEditable
+  @DomName('HTMLLinkElement.sheet')
   StyleSheet get sheet native "HTMLLinkElement_sheet_Getter";
 
-
-  /** @domName HTMLLinkElement.sizes */
+  @DocsEditable
+  @DomName('HTMLLinkElement.sizes')
   DomSettableTokenList get sizes native "HTMLLinkElement_sizes_Getter";
 
-
-  /** @domName HTMLLinkElement.sizes */
+  @DocsEditable
+  @DomName('HTMLLinkElement.sizes')
   void set sizes(DomSettableTokenList value) native "HTMLLinkElement_sizes_Setter";
 
-
-  /** @domName HTMLLinkElement.type */
+  @DocsEditable
+  @DomName('HTMLLinkElement.type')
   String get type native "HTMLLinkElement_type_Getter";
 
-
-  /** @domName HTMLLinkElement.type */
+  @DocsEditable
+  @DomName('HTMLLinkElement.type')
   void set type(String value) native "HTMLLinkElement_type_Setter";
 
 }
@@ -15626,12 +15489,13 @@ class LinkElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName LocalMediaStream
+@DocsEditable
+@DomName('LocalMediaStream')
 class LocalMediaStream extends MediaStream implements EventTarget {
   LocalMediaStream.internal() : super.internal();
 
-
-  /** @domName LocalMediaStream.stop */
+  @DocsEditable
+  @DomName('LocalMediaStream.stop')
   void stop() native "LocalMediaStream_stop_Callback";
 
 }
@@ -15642,96 +15506,97 @@ class LocalMediaStream extends MediaStream implements EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Location
+@DocsEditable
+@DomName('Location')
 class Location extends NativeFieldWrapperClass1 implements LocationBase {
   Location.internal();
 
-
-  /** @domName Location.ancestorOrigins */
+  @DocsEditable
+  @DomName('Location.ancestorOrigins')
   List<String> get ancestorOrigins native "Location_ancestorOrigins_Getter";
 
-
-  /** @domName Location.hash */
+  @DocsEditable
+  @DomName('Location.hash')
   String get hash native "Location_hash_Getter";
 
-
-  /** @domName Location.hash */
+  @DocsEditable
+  @DomName('Location.hash')
   void set hash(String value) native "Location_hash_Setter";
 
-
-  /** @domName Location.host */
+  @DocsEditable
+  @DomName('Location.host')
   String get host native "Location_host_Getter";
 
-
-  /** @domName Location.host */
+  @DocsEditable
+  @DomName('Location.host')
   void set host(String value) native "Location_host_Setter";
 
-
-  /** @domName Location.hostname */
+  @DocsEditable
+  @DomName('Location.hostname')
   String get hostname native "Location_hostname_Getter";
 
-
-  /** @domName Location.hostname */
+  @DocsEditable
+  @DomName('Location.hostname')
   void set hostname(String value) native "Location_hostname_Setter";
 
-
-  /** @domName Location.href */
+  @DocsEditable
+  @DomName('Location.href')
   String get href native "Location_href_Getter";
 
-
-  /** @domName Location.href */
+  @DocsEditable
+  @DomName('Location.href')
   void set href(String value) native "Location_href_Setter";
 
-
-  /** @domName Location.origin */
+  @DocsEditable
+  @DomName('Location.origin')
   String get origin native "Location_origin_Getter";
 
-
-  /** @domName Location.pathname */
+  @DocsEditable
+  @DomName('Location.pathname')
   String get pathname native "Location_pathname_Getter";
 
-
-  /** @domName Location.pathname */
+  @DocsEditable
+  @DomName('Location.pathname')
   void set pathname(String value) native "Location_pathname_Setter";
 
-
-  /** @domName Location.port */
+  @DocsEditable
+  @DomName('Location.port')
   String get port native "Location_port_Getter";
 
-
-  /** @domName Location.port */
+  @DocsEditable
+  @DomName('Location.port')
   void set port(String value) native "Location_port_Setter";
 
-
-  /** @domName Location.protocol */
+  @DocsEditable
+  @DomName('Location.protocol')
   String get protocol native "Location_protocol_Getter";
 
-
-  /** @domName Location.protocol */
+  @DocsEditable
+  @DomName('Location.protocol')
   void set protocol(String value) native "Location_protocol_Setter";
 
-
-  /** @domName Location.search */
+  @DocsEditable
+  @DomName('Location.search')
   String get search native "Location_search_Getter";
 
-
-  /** @domName Location.search */
+  @DocsEditable
+  @DomName('Location.search')
   void set search(String value) native "Location_search_Setter";
 
-
-  /** @domName Location.assign */
+  @DocsEditable
+  @DomName('Location.assign')
   void assign(String url) native "Location_assign_Callback";
 
-
-  /** @domName Location.reload */
+  @DocsEditable
+  @DomName('Location.reload')
   void reload() native "Location_reload_Callback";
 
-
-  /** @domName Location.replace */
+  @DocsEditable
+  @DomName('Location.replace')
   void replace(String url) native "Location_replace_Callback";
 
-
-  /** @domName Location.toString */
+  @DocsEditable
+  @DomName('Location.toString')
   String toString() native "Location_toString_Callback";
 
 }
@@ -15742,23 +15607,24 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLMapElement
+@DocsEditable
+@DomName('HTMLMapElement')
 class MapElement extends _Element_Merged {
   MapElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory MapElement() => document.$dom_createElement("map");
 
-
-  /** @domName HTMLMapElement.areas */
+  @DocsEditable
+  @DomName('HTMLMapElement.areas')
   HtmlCollection get areas native "HTMLMapElement_areas_Getter";
 
-
-  /** @domName HTMLMapElement.name */
+  @DocsEditable
+  @DomName('HTMLMapElement.name')
   String get name native "HTMLMapElement_name_Getter";
 
-
-  /** @domName HTMLMapElement.name */
+  @DocsEditable
+  @DomName('HTMLMapElement.name')
   void set name(String value) native "HTMLMapElement_name_Setter";
 
 }
@@ -15769,211 +15635,101 @@ class MapElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLMarqueeElement
-class MarqueeElement extends _Element_Merged {
-  MarqueeElement.internal() : super.internal();
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-
-  /** @domName HTMLMarqueeElement.behavior */
-  String get behavior native "HTMLMarqueeElement_behavior_Getter";
-
-
-  /** @domName HTMLMarqueeElement.behavior */
-  void set behavior(String value) native "HTMLMarqueeElement_behavior_Setter";
-
-
-  /** @domName HTMLMarqueeElement.bgColor */
-  String get bgColor native "HTMLMarqueeElement_bgColor_Getter";
-
-
-  /** @domName HTMLMarqueeElement.bgColor */
-  void set bgColor(String value) native "HTMLMarqueeElement_bgColor_Setter";
-
-
-  /** @domName HTMLMarqueeElement.direction */
-  String get direction native "HTMLMarqueeElement_direction_Getter";
-
-
-  /** @domName HTMLMarqueeElement.direction */
-  void set direction(String value) native "HTMLMarqueeElement_direction_Setter";
-
-
-  /** @domName HTMLMarqueeElement.height */
-  String get height native "HTMLMarqueeElement_height_Getter";
-
-
-  /** @domName HTMLMarqueeElement.height */
-  void set height(String value) native "HTMLMarqueeElement_height_Setter";
-
-
-  /** @domName HTMLMarqueeElement.hspace */
-  int get hspace native "HTMLMarqueeElement_hspace_Getter";
-
-
-  /** @domName HTMLMarqueeElement.hspace */
-  void set hspace(int value) native "HTMLMarqueeElement_hspace_Setter";
-
-
-  /** @domName HTMLMarqueeElement.loop */
-  int get loop native "HTMLMarqueeElement_loop_Getter";
-
-
-  /** @domName HTMLMarqueeElement.loop */
-  void set loop(int value) native "HTMLMarqueeElement_loop_Setter";
-
-
-  /** @domName HTMLMarqueeElement.scrollAmount */
-  int get scrollAmount native "HTMLMarqueeElement_scrollAmount_Getter";
-
-
-  /** @domName HTMLMarqueeElement.scrollAmount */
-  void set scrollAmount(int value) native "HTMLMarqueeElement_scrollAmount_Setter";
-
-
-  /** @domName HTMLMarqueeElement.scrollDelay */
-  int get scrollDelay native "HTMLMarqueeElement_scrollDelay_Getter";
-
-
-  /** @domName HTMLMarqueeElement.scrollDelay */
-  void set scrollDelay(int value) native "HTMLMarqueeElement_scrollDelay_Setter";
-
-
-  /** @domName HTMLMarqueeElement.trueSpeed */
-  bool get trueSpeed native "HTMLMarqueeElement_trueSpeed_Getter";
-
-
-  /** @domName HTMLMarqueeElement.trueSpeed */
-  void set trueSpeed(bool value) native "HTMLMarqueeElement_trueSpeed_Setter";
-
-
-  /** @domName HTMLMarqueeElement.vspace */
-  int get vspace native "HTMLMarqueeElement_vspace_Getter";
-
-
-  /** @domName HTMLMarqueeElement.vspace */
-  void set vspace(int value) native "HTMLMarqueeElement_vspace_Setter";
-
-
-  /** @domName HTMLMarqueeElement.width */
-  String get width native "HTMLMarqueeElement_width_Getter";
-
-
-  /** @domName HTMLMarqueeElement.width */
-  void set width(String value) native "HTMLMarqueeElement_width_Setter";
-
-
-  /** @domName HTMLMarqueeElement.start */
-  void start() native "HTMLMarqueeElement_start_Callback";
-
-
-  /** @domName HTMLMarqueeElement.stop */
-  void stop() native "HTMLMarqueeElement_stop_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName MediaController
+@DocsEditable
+@DomName('MediaController')
 class MediaController extends EventTarget {
   MediaController.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory MediaController() => MediaController._create();
   static MediaController _create() native "MediaController_constructor_Callback";
 
-
-  /** @domName MediaController.buffered */
+  @DocsEditable
+  @DomName('MediaController.buffered')
   TimeRanges get buffered native "MediaController_buffered_Getter";
 
-
-  /** @domName MediaController.currentTime */
+  @DocsEditable
+  @DomName('MediaController.currentTime')
   num get currentTime native "MediaController_currentTime_Getter";
 
-
-  /** @domName MediaController.currentTime */
+  @DocsEditable
+  @DomName('MediaController.currentTime')
   void set currentTime(num value) native "MediaController_currentTime_Setter";
 
-
-  /** @domName MediaController.defaultPlaybackRate */
+  @DocsEditable
+  @DomName('MediaController.defaultPlaybackRate')
   num get defaultPlaybackRate native "MediaController_defaultPlaybackRate_Getter";
 
-
-  /** @domName MediaController.defaultPlaybackRate */
+  @DocsEditable
+  @DomName('MediaController.defaultPlaybackRate')
   void set defaultPlaybackRate(num value) native "MediaController_defaultPlaybackRate_Setter";
 
-
-  /** @domName MediaController.duration */
+  @DocsEditable
+  @DomName('MediaController.duration')
   num get duration native "MediaController_duration_Getter";
 
-
-  /** @domName MediaController.muted */
+  @DocsEditable
+  @DomName('MediaController.muted')
   bool get muted native "MediaController_muted_Getter";
 
-
-  /** @domName MediaController.muted */
+  @DocsEditable
+  @DomName('MediaController.muted')
   void set muted(bool value) native "MediaController_muted_Setter";
 
-
-  /** @domName MediaController.paused */
+  @DocsEditable
+  @DomName('MediaController.paused')
   bool get paused native "MediaController_paused_Getter";
 
-
-  /** @domName MediaController.playbackRate */
+  @DocsEditable
+  @DomName('MediaController.playbackRate')
   num get playbackRate native "MediaController_playbackRate_Getter";
 
-
-  /** @domName MediaController.playbackRate */
+  @DocsEditable
+  @DomName('MediaController.playbackRate')
   void set playbackRate(num value) native "MediaController_playbackRate_Setter";
 
-
-  /** @domName MediaController.playbackState */
+  @DocsEditable
+  @DomName('MediaController.playbackState')
   String get playbackState native "MediaController_playbackState_Getter";
 
-
-  /** @domName MediaController.played */
+  @DocsEditable
+  @DomName('MediaController.played')
   TimeRanges get played native "MediaController_played_Getter";
 
-
-  /** @domName MediaController.seekable */
+  @DocsEditable
+  @DomName('MediaController.seekable')
   TimeRanges get seekable native "MediaController_seekable_Getter";
 
-
-  /** @domName MediaController.volume */
+  @DocsEditable
+  @DomName('MediaController.volume')
   num get volume native "MediaController_volume_Getter";
 
-
-  /** @domName MediaController.volume */
+  @DocsEditable
+  @DomName('MediaController.volume')
   void set volume(num value) native "MediaController_volume_Setter";
 
-
-  /** @domName MediaController.addEventListener */
+  @DocsEditable
+  @DomName('MediaController.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_addEventListener_Callback";
 
-
-  /** @domName MediaController.dispatchEvent */
+  @DocsEditable
+  @DomName('MediaController.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "MediaController_dispatchEvent_Callback";
 
-
-  /** @domName MediaController.pause */
+  @DocsEditable
+  @DomName('MediaController.pause')
   void pause() native "MediaController_pause_Callback";
 
-
-  /** @domName MediaController.play */
+  @DocsEditable
+  @DomName('MediaController.play')
   void play() native "MediaController_play_Callback";
 
-
-  /** @domName MediaController.removeEventListener */
+  @DocsEditable
+  @DomName('MediaController.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
 
-
-  /** @domName MediaController.unpause */
+  @DocsEditable
+  @DomName('MediaController.unpause')
   void unpause() native "MediaController_unpause_Callback";
 
 }
@@ -15984,7 +15740,8 @@ class MediaController extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLMediaElement
+@DocsEditable
+@DomName('HTMLMediaElement')
 class MediaElement extends _Element_Merged {
   MediaElement.internal() : super.internal();
 
@@ -16038,7 +15795,8 @@ class MediaElement extends _Element_Merged {
 
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaElementEvents get on =>
     new MediaElementEvents(this);
 
@@ -16060,195 +15818,195 @@ class MediaElement extends _Element_Merged {
 
   static const int NETWORK_NO_SOURCE = 3;
 
-
-  /** @domName HTMLMediaElement.autoplay */
+  @DocsEditable
+  @DomName('HTMLMediaElement.autoplay')
   bool get autoplay native "HTMLMediaElement_autoplay_Getter";
 
-
-  /** @domName HTMLMediaElement.autoplay */
+  @DocsEditable
+  @DomName('HTMLMediaElement.autoplay')
   void set autoplay(bool value) native "HTMLMediaElement_autoplay_Setter";
 
-
-  /** @domName HTMLMediaElement.buffered */
+  @DocsEditable
+  @DomName('HTMLMediaElement.buffered')
   TimeRanges get buffered native "HTMLMediaElement_buffered_Getter";
 
-
-  /** @domName HTMLMediaElement.controller */
+  @DocsEditable
+  @DomName('HTMLMediaElement.controller')
   MediaController get controller native "HTMLMediaElement_controller_Getter";
 
-
-  /** @domName HTMLMediaElement.controller */
+  @DocsEditable
+  @DomName('HTMLMediaElement.controller')
   void set controller(MediaController value) native "HTMLMediaElement_controller_Setter";
 
-
-  /** @domName HTMLMediaElement.controls */
+  @DocsEditable
+  @DomName('HTMLMediaElement.controls')
   bool get controls native "HTMLMediaElement_controls_Getter";
 
-
-  /** @domName HTMLMediaElement.controls */
+  @DocsEditable
+  @DomName('HTMLMediaElement.controls')
   void set controls(bool value) native "HTMLMediaElement_controls_Setter";
 
-
-  /** @domName HTMLMediaElement.currentSrc */
+  @DocsEditable
+  @DomName('HTMLMediaElement.currentSrc')
   String get currentSrc native "HTMLMediaElement_currentSrc_Getter";
 
-
-  /** @domName HTMLMediaElement.currentTime */
+  @DocsEditable
+  @DomName('HTMLMediaElement.currentTime')
   num get currentTime native "HTMLMediaElement_currentTime_Getter";
 
-
-  /** @domName HTMLMediaElement.currentTime */
+  @DocsEditable
+  @DomName('HTMLMediaElement.currentTime')
   void set currentTime(num value) native "HTMLMediaElement_currentTime_Setter";
 
-
-  /** @domName HTMLMediaElement.defaultMuted */
+  @DocsEditable
+  @DomName('HTMLMediaElement.defaultMuted')
   bool get defaultMuted native "HTMLMediaElement_defaultMuted_Getter";
 
-
-  /** @domName HTMLMediaElement.defaultMuted */
+  @DocsEditable
+  @DomName('HTMLMediaElement.defaultMuted')
   void set defaultMuted(bool value) native "HTMLMediaElement_defaultMuted_Setter";
 
-
-  /** @domName HTMLMediaElement.defaultPlaybackRate */
+  @DocsEditable
+  @DomName('HTMLMediaElement.defaultPlaybackRate')
   num get defaultPlaybackRate native "HTMLMediaElement_defaultPlaybackRate_Getter";
 
-
-  /** @domName HTMLMediaElement.defaultPlaybackRate */
+  @DocsEditable
+  @DomName('HTMLMediaElement.defaultPlaybackRate')
   void set defaultPlaybackRate(num value) native "HTMLMediaElement_defaultPlaybackRate_Setter";
 
-
-  /** @domName HTMLMediaElement.duration */
+  @DocsEditable
+  @DomName('HTMLMediaElement.duration')
   num get duration native "HTMLMediaElement_duration_Getter";
 
-
-  /** @domName HTMLMediaElement.ended */
+  @DocsEditable
+  @DomName('HTMLMediaElement.ended')
   bool get ended native "HTMLMediaElement_ended_Getter";
 
-
-  /** @domName HTMLMediaElement.error */
+  @DocsEditable
+  @DomName('HTMLMediaElement.error')
   MediaError get error native "HTMLMediaElement_error_Getter";
 
-
-  /** @domName HTMLMediaElement.initialTime */
+  @DocsEditable
+  @DomName('HTMLMediaElement.initialTime')
   num get initialTime native "HTMLMediaElement_initialTime_Getter";
 
-
-  /** @domName HTMLMediaElement.loop */
+  @DocsEditable
+  @DomName('HTMLMediaElement.loop')
   bool get loop native "HTMLMediaElement_loop_Getter";
 
-
-  /** @domName HTMLMediaElement.loop */
+  @DocsEditable
+  @DomName('HTMLMediaElement.loop')
   void set loop(bool value) native "HTMLMediaElement_loop_Setter";
 
-
-  /** @domName HTMLMediaElement.mediaGroup */
+  @DocsEditable
+  @DomName('HTMLMediaElement.mediaGroup')
   String get mediaGroup native "HTMLMediaElement_mediaGroup_Getter";
 
-
-  /** @domName HTMLMediaElement.mediaGroup */
+  @DocsEditable
+  @DomName('HTMLMediaElement.mediaGroup')
   void set mediaGroup(String value) native "HTMLMediaElement_mediaGroup_Setter";
 
-
-  /** @domName HTMLMediaElement.muted */
+  @DocsEditable
+  @DomName('HTMLMediaElement.muted')
   bool get muted native "HTMLMediaElement_muted_Getter";
 
-
-  /** @domName HTMLMediaElement.muted */
+  @DocsEditable
+  @DomName('HTMLMediaElement.muted')
   void set muted(bool value) native "HTMLMediaElement_muted_Setter";
 
-
-  /** @domName HTMLMediaElement.networkState */
+  @DocsEditable
+  @DomName('HTMLMediaElement.networkState')
   int get networkState native "HTMLMediaElement_networkState_Getter";
 
-
-  /** @domName HTMLMediaElement.paused */
+  @DocsEditable
+  @DomName('HTMLMediaElement.paused')
   bool get paused native "HTMLMediaElement_paused_Getter";
 
-
-  /** @domName HTMLMediaElement.playbackRate */
+  @DocsEditable
+  @DomName('HTMLMediaElement.playbackRate')
   num get playbackRate native "HTMLMediaElement_playbackRate_Getter";
 
-
-  /** @domName HTMLMediaElement.playbackRate */
+  @DocsEditable
+  @DomName('HTMLMediaElement.playbackRate')
   void set playbackRate(num value) native "HTMLMediaElement_playbackRate_Setter";
 
-
-  /** @domName HTMLMediaElement.played */
+  @DocsEditable
+  @DomName('HTMLMediaElement.played')
   TimeRanges get played native "HTMLMediaElement_played_Getter";
 
-
-  /** @domName HTMLMediaElement.preload */
+  @DocsEditable
+  @DomName('HTMLMediaElement.preload')
   String get preload native "HTMLMediaElement_preload_Getter";
 
-
-  /** @domName HTMLMediaElement.preload */
+  @DocsEditable
+  @DomName('HTMLMediaElement.preload')
   void set preload(String value) native "HTMLMediaElement_preload_Setter";
 
-
-  /** @domName HTMLMediaElement.readyState */
+  @DocsEditable
+  @DomName('HTMLMediaElement.readyState')
   int get readyState native "HTMLMediaElement_readyState_Getter";
 
-
-  /** @domName HTMLMediaElement.seekable */
+  @DocsEditable
+  @DomName('HTMLMediaElement.seekable')
   TimeRanges get seekable native "HTMLMediaElement_seekable_Getter";
 
-
-  /** @domName HTMLMediaElement.seeking */
+  @DocsEditable
+  @DomName('HTMLMediaElement.seeking')
   bool get seeking native "HTMLMediaElement_seeking_Getter";
 
-
-  /** @domName HTMLMediaElement.src */
+  @DocsEditable
+  @DomName('HTMLMediaElement.src')
   String get src native "HTMLMediaElement_src_Getter";
 
-
-  /** @domName HTMLMediaElement.src */
+  @DocsEditable
+  @DomName('HTMLMediaElement.src')
   void set src(String value) native "HTMLMediaElement_src_Setter";
 
-
-  /** @domName HTMLMediaElement.startTime */
+  @DocsEditable
+  @DomName('HTMLMediaElement.startTime')
   num get startTime native "HTMLMediaElement_startTime_Getter";
 
-
-  /** @domName HTMLMediaElement.textTracks */
+  @DocsEditable
+  @DomName('HTMLMediaElement.textTracks')
   TextTrackList get textTracks native "HTMLMediaElement_textTracks_Getter";
 
-
-  /** @domName HTMLMediaElement.volume */
+  @DocsEditable
+  @DomName('HTMLMediaElement.volume')
   num get volume native "HTMLMediaElement_volume_Getter";
 
-
-  /** @domName HTMLMediaElement.volume */
+  @DocsEditable
+  @DomName('HTMLMediaElement.volume')
   void set volume(num value) native "HTMLMediaElement_volume_Setter";
 
-
-  /** @domName HTMLMediaElement.webkitAudioDecodedByteCount */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
   int get webkitAudioDecodedByteCount native "HTMLMediaElement_webkitAudioDecodedByteCount_Getter";
 
-
-  /** @domName HTMLMediaElement.webkitClosedCaptionsVisible */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
   bool get webkitClosedCaptionsVisible native "HTMLMediaElement_webkitClosedCaptionsVisible_Getter";
 
-
-  /** @domName HTMLMediaElement.webkitClosedCaptionsVisible */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
   void set webkitClosedCaptionsVisible(bool value) native "HTMLMediaElement_webkitClosedCaptionsVisible_Setter";
 
-
-  /** @domName HTMLMediaElement.webkitHasClosedCaptions */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitHasClosedCaptions')
   bool get webkitHasClosedCaptions native "HTMLMediaElement_webkitHasClosedCaptions_Getter";
 
-
-  /** @domName HTMLMediaElement.webkitPreservesPitch */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitPreservesPitch')
   bool get webkitPreservesPitch native "HTMLMediaElement_webkitPreservesPitch_Getter";
 
-
-  /** @domName HTMLMediaElement.webkitPreservesPitch */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitPreservesPitch')
   void set webkitPreservesPitch(bool value) native "HTMLMediaElement_webkitPreservesPitch_Setter";
 
-
-  /** @domName HTMLMediaElement.webkitVideoDecodedByteCount */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitVideoDecodedByteCount')
   int get webkitVideoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
-  TextTrack addTextTrack(/*DOMString*/ kind, [/*DOMString*/ label, /*DOMString*/ language]) {
+  TextTrack addTextTrack(String kind, [String label, String language]) {
     if (?language) {
       return _addTextTrack_1(kind, label, language);
     }
@@ -16258,35 +16016,35 @@ class MediaElement extends _Element_Merged {
     return _addTextTrack_3(kind);
   }
 
-
-  /** @domName HTMLMediaElement.addTextTrack_1 */
+  @DocsEditable
+  @DomName('HTMLMediaElement.addTextTrack_1')
   TextTrack _addTextTrack_1(kind, label, language) native "HTMLMediaElement_addTextTrack_1_Callback";
 
-
-  /** @domName HTMLMediaElement.addTextTrack_2 */
+  @DocsEditable
+  @DomName('HTMLMediaElement.addTextTrack_2')
   TextTrack _addTextTrack_2(kind, label) native "HTMLMediaElement_addTextTrack_2_Callback";
 
-
-  /** @domName HTMLMediaElement.addTextTrack_3 */
+  @DocsEditable
+  @DomName('HTMLMediaElement.addTextTrack_3')
   TextTrack _addTextTrack_3(kind) native "HTMLMediaElement_addTextTrack_3_Callback";
 
-
-  /** @domName HTMLMediaElement.canPlayType */
+  @DocsEditable
+  @DomName('HTMLMediaElement.canPlayType')
   String canPlayType(String type, String keySystem) native "HTMLMediaElement_canPlayType_Callback";
 
-
-  /** @domName HTMLMediaElement.load */
+  @DocsEditable
+  @DomName('HTMLMediaElement.load')
   void load() native "HTMLMediaElement_load_Callback";
 
-
-  /** @domName HTMLMediaElement.pause */
+  @DocsEditable
+  @DomName('HTMLMediaElement.pause')
   void pause() native "HTMLMediaElement_pause_Callback";
 
-
-  /** @domName HTMLMediaElement.play */
+  @DocsEditable
+  @DomName('HTMLMediaElement.play')
   void play() native "HTMLMediaElement_play_Callback";
 
-  void webkitAddKey(/*DOMString*/ keySystem, /*Uint8Array*/ key, [/*Uint8Array*/ initData, /*DOMString*/ sessionId]) {
+  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) {
     if (?initData) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
@@ -16294,19 +16052,19 @@ class MediaElement extends _Element_Merged {
     _webkitAddKey_2(keySystem, key);
   }
 
-
-  /** @domName HTMLMediaElement.webkitAddKey_1 */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitAddKey_1')
   void _webkitAddKey_1(keySystem, key, initData, sessionId) native "HTMLMediaElement_webkitAddKey_1_Callback";
 
-
-  /** @domName HTMLMediaElement.webkitAddKey_2 */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitAddKey_2')
   void _webkitAddKey_2(keySystem, key) native "HTMLMediaElement_webkitAddKey_2_Callback";
 
-
-  /** @domName HTMLMediaElement.webkitCancelKeyRequest */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   void webkitCancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void webkitGenerateKeyRequest(/*DOMString*/ keySystem, [/*Uint8Array*/ initData]) {
+  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) {
     if (?initData) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
@@ -16314,12 +16072,12 @@ class MediaElement extends _Element_Merged {
     _webkitGenerateKeyRequest_2(keySystem);
   }
 
-
-  /** @domName HTMLMediaElement.webkitGenerateKeyRequest_1 */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitGenerateKeyRequest_1')
   void _webkitGenerateKeyRequest_1(keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_1_Callback";
 
-
-  /** @domName HTMLMediaElement.webkitGenerateKeyRequest_2 */
+  @DocsEditable
+  @DomName('HTMLMediaElement.webkitGenerateKeyRequest_2')
   void _webkitGenerateKeyRequest_2(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
 
   Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
@@ -16374,84 +16132,84 @@ class MediaElement extends _Element_Merged {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaElementEvents extends ElementEvents {
-  /// @docsEditable true
+  @DocsEditable
   MediaElementEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlay => this['canplay'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get durationChange => this['durationchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get emptied => this['emptied'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedData => this['loadeddata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pause => this['pause'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get play => this['play'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get playing => this['playing'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get rateChange => this['ratechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeked => this['seeked'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeking => this['seeking'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get show => this['show'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get stalled => this['stalled'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get suspend => this['suspend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get timeUpdate => this['timeupdate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get volumeChange => this['volumechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get waiting => this['waiting'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyAdded => this['webkitkeyadded'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyError => this['webkitkeyerror'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyMessage => this['webkitkeymessage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get needKey => this['webkitneedkey'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16461,7 +16219,8 @@ class MediaElementEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaError
+@DocsEditable
+@DomName('MediaError')
 class MediaError extends NativeFieldWrapperClass1 {
   MediaError.internal();
 
@@ -16475,8 +16234,8 @@ class MediaError extends NativeFieldWrapperClass1 {
 
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-
-  /** @domName MediaError.code */
+  @DocsEditable
+  @DomName('MediaError.code')
   int get code native "MediaError_code_Getter";
 
 }
@@ -16487,7 +16246,8 @@ class MediaError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaKeyError
+@DocsEditable
+@DomName('MediaKeyError')
 class MediaKeyError extends NativeFieldWrapperClass1 {
   MediaKeyError.internal();
 
@@ -16503,8 +16263,8 @@ class MediaKeyError extends NativeFieldWrapperClass1 {
 
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
-
-  /** @domName MediaKeyError.code */
+  @DocsEditable
+  @DomName('MediaKeyError.code')
   int get code native "MediaKeyError_code_Getter";
 
 }
@@ -16515,36 +16275,37 @@ class MediaKeyError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaKeyEvent
+@DocsEditable
+@DomName('MediaKeyEvent')
 class MediaKeyEvent extends Event {
   MediaKeyEvent.internal() : super.internal();
 
-
-  /** @domName MediaKeyEvent.defaultURL */
+  @DocsEditable
+  @DomName('MediaKeyEvent.defaultURL')
   String get defaultUrl native "MediaKeyEvent_defaultURL_Getter";
 
-
-  /** @domName MediaKeyEvent.errorCode */
+  @DocsEditable
+  @DomName('MediaKeyEvent.errorCode')
   MediaKeyError get errorCode native "MediaKeyEvent_errorCode_Getter";
 
-
-  /** @domName MediaKeyEvent.initData */
+  @DocsEditable
+  @DomName('MediaKeyEvent.initData')
   Uint8Array get initData native "MediaKeyEvent_initData_Getter";
 
-
-  /** @domName MediaKeyEvent.keySystem */
+  @DocsEditable
+  @DomName('MediaKeyEvent.keySystem')
   String get keySystem native "MediaKeyEvent_keySystem_Getter";
 
-
-  /** @domName MediaKeyEvent.message */
+  @DocsEditable
+  @DomName('MediaKeyEvent.message')
   Uint8Array get message native "MediaKeyEvent_message_Getter";
 
-
-  /** @domName MediaKeyEvent.sessionId */
+  @DocsEditable
+  @DomName('MediaKeyEvent.sessionId')
   String get sessionId native "MediaKeyEvent_sessionId_Getter";
 
-
-  /** @domName MediaKeyEvent.systemCode */
+  @DocsEditable
+  @DomName('MediaKeyEvent.systemCode')
   int get systemCode native "MediaKeyEvent_systemCode_Getter";
 
 }
@@ -16555,32 +16316,33 @@ class MediaKeyEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaList
+@DocsEditable
+@DomName('MediaList')
 class MediaList extends NativeFieldWrapperClass1 {
   MediaList.internal();
 
-
-  /** @domName MediaList.length */
+  @DocsEditable
+  @DomName('MediaList.length')
   int get length native "MediaList_length_Getter";
 
-
-  /** @domName MediaList.mediaText */
+  @DocsEditable
+  @DomName('MediaList.mediaText')
   String get mediaText native "MediaList_mediaText_Getter";
 
-
-  /** @domName MediaList.mediaText */
+  @DocsEditable
+  @DomName('MediaList.mediaText')
   void set mediaText(String value) native "MediaList_mediaText_Setter";
 
-
-  /** @domName MediaList.appendMedium */
+  @DocsEditable
+  @DomName('MediaList.appendMedium')
   void appendMedium(String newMedium) native "MediaList_appendMedium_Callback";
 
-
-  /** @domName MediaList.deleteMedium */
+  @DocsEditable
+  @DomName('MediaList.deleteMedium')
   void deleteMedium(String oldMedium) native "MediaList_deleteMedium_Callback";
 
-
-  /** @domName MediaList.item */
+  @DocsEditable
+  @DomName('MediaList.item')
   String item(int index) native "MediaList_item_Callback";
 
 }
@@ -16591,24 +16353,25 @@ class MediaList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaQueryList
+@DocsEditable
+@DomName('MediaQueryList')
 class MediaQueryList extends NativeFieldWrapperClass1 {
   MediaQueryList.internal();
 
-
-  /** @domName MediaQueryList.matches */
+  @DocsEditable
+  @DomName('MediaQueryList.matches')
   bool get matches native "MediaQueryList_matches_Getter";
 
-
-  /** @domName MediaQueryList.media */
+  @DocsEditable
+  @DomName('MediaQueryList.media')
   String get media native "MediaQueryList_media_Getter";
 
-
-  /** @domName MediaQueryList.addListener */
+  @DocsEditable
+  @DomName('MediaQueryList.addListener')
   void addListener(MediaQueryListListener listener) native "MediaQueryList_addListener_Callback";
 
-
-  /** @domName MediaQueryList.removeListener */
+  @DocsEditable
+  @DomName('MediaQueryList.removeListener')
   void removeListener(MediaQueryListListener listener) native "MediaQueryList_removeListener_Callback";
 
 }
@@ -16619,12 +16382,13 @@ class MediaQueryList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaQueryListListener
+@DocsEditable
+@DomName('MediaQueryListListener')
 class MediaQueryListListener extends NativeFieldWrapperClass1 {
   MediaQueryListListener.internal();
 
-
-  /** @domName MediaQueryListListener.queryChanged */
+  @DocsEditable
+  @DomName('MediaQueryListListener.queryChanged')
   void queryChanged(MediaQueryList list) native "MediaQueryListListener_queryChanged_Callback";
 
 }
@@ -16635,123 +16399,152 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaSource
+@DocsEditable
+@DomName('MediaSource')
 class MediaSource extends EventTarget {
   MediaSource.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory MediaSource() => MediaSource._create();
   static MediaSource _create() native "MediaSource_constructor_Callback";
 
-
-  /** @domName MediaSource.activeSourceBuffers */
+  @DocsEditable
+  @DomName('MediaSource.activeSourceBuffers')
   SourceBufferList get activeSourceBuffers native "MediaSource_activeSourceBuffers_Getter";
 
-
-  /** @domName MediaSource.duration */
+  @DocsEditable
+  @DomName('MediaSource.duration')
   num get duration native "MediaSource_duration_Getter";
 
-
-  /** @domName MediaSource.duration */
+  @DocsEditable
+  @DomName('MediaSource.duration')
   void set duration(num value) native "MediaSource_duration_Setter";
 
-
-  /** @domName MediaSource.readyState */
+  @DocsEditable
+  @DomName('MediaSource.readyState')
   String get readyState native "MediaSource_readyState_Getter";
 
-
-  /** @domName MediaSource.sourceBuffers */
+  @DocsEditable
+  @DomName('MediaSource.sourceBuffers')
   SourceBufferList get sourceBuffers native "MediaSource_sourceBuffers_Getter";
 
-
-  /** @domName MediaSource.addEventListener */
+  @DocsEditable
+  @DomName('MediaSource.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
 
-
-  /** @domName MediaSource.addSourceBuffer */
+  @DocsEditable
+  @DomName('MediaSource.addSourceBuffer')
   SourceBuffer addSourceBuffer(String type) native "MediaSource_addSourceBuffer_Callback";
 
-
-  /** @domName MediaSource.dispatchEvent */
+  @DocsEditable
+  @DomName('MediaSource.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "MediaSource_dispatchEvent_Callback";
 
-
-  /** @domName MediaSource.endOfStream */
+  @DocsEditable
+  @DomName('MediaSource.endOfStream')
   void endOfStream(String error) native "MediaSource_endOfStream_Callback";
 
-
-  /** @domName MediaSource.removeEventListener */
+  @DocsEditable
+  @DomName('MediaSource.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
 
-
-  /** @domName MediaSource.removeSourceBuffer */
+  @DocsEditable
+  @DomName('MediaSource.removeSourceBuffer')
   void removeSourceBuffer(SourceBuffer buffer) native "MediaSource_removeSourceBuffer_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-/// @domName MediaStream
+/// @domName MediaStream; @docsEditable true
+@DocsEditable
+@DomName('MediaStream')
 class MediaStream extends EventTarget {
   MediaStream.internal() : super.internal();
 
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  ///@docsEditable true
-  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => MediaStream._create(audioTracks, videoTracks);
-  static MediaStream _create(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native "MediaStream_constructor_Callback";
+  @DocsEditable
+  factory MediaStream() => MediaStream._create();
+  static MediaStream _create() native "MediaStream_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
-  static const int ENDED = 2;
+  @DocsEditable
+  @DomName('MediaStream.ended')
+  bool get ended native "MediaStream_ended_Getter";
 
-  static const int LIVE = 1;
+  @DocsEditable
+  @DomName('MediaStream.id')
+  String get id native "MediaStream_id_Getter";
 
-
-  /** @domName MediaStream.audioTracks */
-  MediaStreamTrackList get audioTracks native "MediaStream_audioTracks_Getter";
-
-
-  /** @domName MediaStream.label */
+  @DocsEditable
+  @DomName('MediaStream.label')
   String get label native "MediaStream_label_Getter";
 
-
-  /** @domName MediaStream.readyState */
-  int get readyState native "MediaStream_readyState_Getter";
-
-
-  /** @domName MediaStream.videoTracks */
-  MediaStreamTrackList get videoTracks native "MediaStream_videoTracks_Getter";
-
-
-  /** @domName MediaStream.addEventListener */
+  @DocsEditable
+  @DomName('MediaStream.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
 
+  @DocsEditable
+  @DomName('MediaStream.addTrack')
+  void addTrack(MediaStreamTrack track) native "MediaStream_addTrack_Callback";
 
-  /** @domName MediaStream.dispatchEvent */
+  @DocsEditable
+  @DomName('MediaStream.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
 
+  @DocsEditable
+  @DomName('MediaStream.getAudioTracks')
+  List<MediaStreamTrack> getAudioTracks() native "MediaStream_getAudioTracks_Callback";
 
-  /** @domName MediaStream.removeEventListener */
+  @DocsEditable
+  @DomName('MediaStream.getTrackById')
+  MediaStreamTrack getTrackById(String trackId) native "MediaStream_getTrackById_Callback";
+
+  @DocsEditable
+  @DomName('MediaStream.getVideoTracks')
+  List<MediaStreamTrack> getVideoTracks() native "MediaStream_getVideoTracks_Callback";
+
+  @DocsEditable
+  @DomName('MediaStream.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
+
+  @DocsEditable
+  @DomName('MediaStream.removeTrack')
+  void removeTrack(MediaStreamTrack track) native "MediaStream_removeTrack_Callback";
 
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
+
+  /**
+   * Checks if the MediaStream APIs are supported on the current platform.
+   *
+   * See also:
+   *
+   * * [Navigator.getUserMedia]
+   */
+  static bool get supported => true;
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaStreamEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MediaStreamEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
+  EventListenerList get addTrack => this['addtrack'];
+
+  @DocsEditable
   EventListenerList get ended => this['ended'];
+
+  @DocsEditable
+  EventListenerList get removeTrack => this['removetrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16760,12 +16553,13 @@ class MediaStreamEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaStreamEvent
+@DocsEditable
+@DomName('MediaStreamEvent')
 class MediaStreamEvent extends Event {
   MediaStreamEvent.internal() : super.internal();
 
-
-  /** @domName MediaStreamEvent.stream */
+  @DocsEditable
+  @DomName('MediaStreamEvent.stream')
   MediaStream get stream native "MediaStreamEvent_stream_Getter";
 
 }
@@ -16776,7 +16570,8 @@ class MediaStreamEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaStreamTrack
+@DocsEditable
+@DomName('MediaStreamTrack')
 class MediaStreamTrack extends EventTarget {
   MediaStreamTrack.internal() : super.internal();
 
@@ -16786,7 +16581,8 @@ class MediaStreamTrack extends EventTarget {
 
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
 
@@ -16796,36 +16592,40 @@ class MediaStreamTrack extends EventTarget {
 
   static const int MUTED = 1;
 
-
-  /** @domName MediaStreamTrack.enabled */
+  @DocsEditable
+  @DomName('MediaStreamTrack.enabled')
   bool get enabled native "MediaStreamTrack_enabled_Getter";
 
-
-  /** @domName MediaStreamTrack.enabled */
+  @DocsEditable
+  @DomName('MediaStreamTrack.enabled')
   void set enabled(bool value) native "MediaStreamTrack_enabled_Setter";
 
+  @DocsEditable
+  @DomName('MediaStreamTrack.id')
+  String get id native "MediaStreamTrack_id_Getter";
 
-  /** @domName MediaStreamTrack.kind */
+  @DocsEditable
+  @DomName('MediaStreamTrack.kind')
   String get kind native "MediaStreamTrack_kind_Getter";
 
-
-  /** @domName MediaStreamTrack.label */
+  @DocsEditable
+  @DomName('MediaStreamTrack.label')
   String get label native "MediaStreamTrack_label_Getter";
 
-
-  /** @domName MediaStreamTrack.readyState */
+  @DocsEditable
+  @DomName('MediaStreamTrack.readyState')
   int get readyState native "MediaStreamTrack_readyState_Getter";
 
-
-  /** @domName MediaStreamTrack.addEventListener */
+  @DocsEditable
+  @DomName('MediaStreamTrack.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_addEventListener_Callback";
 
-
-  /** @domName MediaStreamTrack.dispatchEvent */
+  @DocsEditable
+  @DomName('MediaStreamTrack.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "MediaStreamTrack_dispatchEvent_Callback";
 
-
-  /** @domName MediaStreamTrack.removeEventListener */
+  @DocsEditable
+  @DomName('MediaStreamTrack.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_removeEventListener_Callback";
 
   Stream<Event> get onEnded => endedEvent.forTarget(this);
@@ -16836,18 +16636,18 @@ class MediaStreamTrack extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class MediaStreamTrackEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MediaStreamTrackEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mute => this['mute'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unmute => this['unmute'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16857,12 +16657,13 @@ class MediaStreamTrackEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaStreamTrackEvent
+@DocsEditable
+@DomName('MediaStreamTrackEvent')
 class MediaStreamTrackEvent extends Event {
   MediaStreamTrackEvent.internal() : super.internal();
 
-
-  /** @domName MediaStreamTrackEvent.track */
+  @DocsEditable
+  @DomName('MediaStreamTrackEvent.track')
   MediaStreamTrack get track native "MediaStreamTrackEvent_track_Getter";
 
 }
@@ -16873,84 +16674,21 @@ class MediaStreamTrackEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaStreamTrackList
-class MediaStreamTrackList extends EventTarget {
-  MediaStreamTrackList.internal() : super.internal();
-
-  static const EventStreamProvider<MediaStreamTrackEvent> addTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('addtrack');
-
-  static const EventStreamProvider<MediaStreamTrackEvent> removeTrackEvent = const EventStreamProvider<MediaStreamTrackEvent>('removetrack');
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
-  MediaStreamTrackListEvents get on =>
-    new MediaStreamTrackListEvents(this);
-
-
-  /** @domName MediaStreamTrackList.length */
-  int get length native "MediaStreamTrackList_length_Getter";
-
-
-  /** @domName MediaStreamTrackList.add */
-  void add(MediaStreamTrack track) native "MediaStreamTrackList_add_Callback";
-
-
-  /** @domName MediaStreamTrackList.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_addEventListener_Callback";
-
-
-  /** @domName MediaStreamTrackList.dispatchEvent */
-  bool $dom_dispatchEvent(Event event) native "MediaStreamTrackList_dispatchEvent_Callback";
-
-
-  /** @domName MediaStreamTrackList.item */
-  MediaStreamTrack item(int index) native "MediaStreamTrackList_item_Callback";
-
-
-  /** @domName MediaStreamTrackList.remove */
-  void remove(MediaStreamTrack track) native "MediaStreamTrackList_remove_Callback";
-
-
-  /** @domName MediaStreamTrackList.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_removeEventListener_Callback";
-
-  Stream<MediaStreamTrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
-
-  Stream<MediaStreamTrackEvent> get onRemoveTrack => removeTrackEvent.forTarget(this);
-
-}
-
-/// @docsEditable true
-class MediaStreamTrackListEvents extends Events {
-  /// @docsEditable true
-  MediaStreamTrackListEvents(EventTarget _ptr) : super(_ptr);
-
-  /// @docsEditable true
-  EventListenerList get addTrack => this['addtrack'];
-
-  /// @docsEditable true
-  EventListenerList get removeTrack => this['removetrack'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-/// @domName MemoryInfo
+@DocsEditable
+@DomName('MemoryInfo')
 class MemoryInfo extends NativeFieldWrapperClass1 {
   MemoryInfo.internal();
 
-
-  /** @domName MemoryInfo.jsHeapSizeLimit */
+  @DocsEditable
+  @DomName('MemoryInfo.jsHeapSizeLimit')
   int get jsHeapSizeLimit native "MemoryInfo_jsHeapSizeLimit_Getter";
 
-
-  /** @domName MemoryInfo.totalJSHeapSize */
+  @DocsEditable
+  @DomName('MemoryInfo.totalJSHeapSize')
   int get totalJSHeapSize native "MemoryInfo_totalJSHeapSize_Getter";
 
-
-  /** @domName MemoryInfo.usedJSHeapSize */
+  @DocsEditable
+  @DomName('MemoryInfo.usedJSHeapSize')
   int get usedJSHeapSize native "MemoryInfo_usedJSHeapSize_Getter";
 
 }
@@ -16961,11 +16699,12 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLMenuElement
+@DocsEditable
+@DomName('HTMLMenuElement')
 class MenuElement extends _Element_Merged {
   MenuElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory MenuElement() => document.$dom_createElement("menu");
 
 }
@@ -16976,20 +16715,21 @@ class MenuElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MessageChannel
+@DocsEditable
+@DomName('MessageChannel')
 class MessageChannel extends NativeFieldWrapperClass1 {
   MessageChannel.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory MessageChannel() => MessageChannel._create();
   static MessageChannel _create() native "MessageChannel_constructor_Callback";
 
-
-  /** @domName MessageChannel.port1 */
+  @DocsEditable
+  @DomName('MessageChannel.port1')
   MessagePort get port1 native "MessageChannel_port1_Getter";
 
-
-  /** @domName MessageChannel.port2 */
+  @DocsEditable
+  @DomName('MessageChannel.port2')
   MessagePort get port2 native "MessageChannel_port2_Getter";
 
 }
@@ -17000,36 +16740,37 @@ class MessageChannel extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MessageEvent
+@DocsEditable
+@DomName('MessageEvent')
 class MessageEvent extends Event {
   MessageEvent.internal() : super.internal();
 
-
-  /** @domName MessageEvent.data */
+  @DocsEditable
+  @DomName('MessageEvent.data')
   Object get data native "MessageEvent_data_Getter";
 
-
-  /** @domName MessageEvent.lastEventId */
+  @DocsEditable
+  @DomName('MessageEvent.lastEventId')
   String get lastEventId native "MessageEvent_lastEventId_Getter";
 
-
-  /** @domName MessageEvent.origin */
+  @DocsEditable
+  @DomName('MessageEvent.origin')
   String get origin native "MessageEvent_origin_Getter";
 
-
-  /** @domName MessageEvent.ports */
+  @DocsEditable
+  @DomName('MessageEvent.ports')
   List get ports native "MessageEvent_ports_Getter";
 
-
-  /** @domName MessageEvent.source */
+  @DocsEditable
+  @DomName('MessageEvent.source')
   WindowBase get source native "MessageEvent_source_Getter";
 
-
-  /** @domName MessageEvent.initMessageEvent */
+  @DocsEditable
+  @DomName('MessageEvent.initMessageEvent')
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
-
-  /** @domName MessageEvent.webkitInitMessageEvent */
+  @DocsEditable
+  @DomName('MessageEvent.webkitInitMessageEvent')
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
 
 }
@@ -17040,50 +16781,52 @@ class MessageEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MessagePort
+@DocsEditable
+@DomName('MessagePort')
 class MessagePort extends EventTarget {
   MessagePort.internal() : super.internal();
 
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   MessagePortEvents get on =>
     new MessagePortEvents(this);
 
-
-  /** @domName MessagePort.addEventListener */
+  @DocsEditable
+  @DomName('MessagePort.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
 
-
-  /** @domName MessagePort.close */
+  @DocsEditable
+  @DomName('MessagePort.close')
   void close() native "MessagePort_close_Callback";
 
-
-  /** @domName MessagePort.dispatchEvent */
+  @DocsEditable
+  @DomName('MessagePort.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "MessagePort_dispatchEvent_Callback";
 
-
-  /** @domName MessagePort.postMessage */
+  @DocsEditable
+  @DomName('MessagePort.postMessage')
   void postMessage(Object message, [List messagePorts]) native "MessagePort_postMessage_Callback";
 
-
-  /** @domName MessagePort.removeEventListener */
+  @DocsEditable
+  @DomName('MessagePort.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
 
-
-  /** @domName MessagePort.start */
+  @DocsEditable
+  @DomName('MessagePort.start')
   void start() native "MessagePort_start_Callback";
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class MessagePortEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   MessagePortEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17093,32 +16836,33 @@ class MessagePortEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLMetaElement
+@DocsEditable
+@DomName('HTMLMetaElement')
 class MetaElement extends _Element_Merged {
   MetaElement.internal() : super.internal();
 
-
-  /** @domName HTMLMetaElement.content */
+  @DocsEditable
+  @DomName('HTMLMetaElement.content')
   String get content native "HTMLMetaElement_content_Getter";
 
-
-  /** @domName HTMLMetaElement.content */
+  @DocsEditable
+  @DomName('HTMLMetaElement.content')
   void set content(String value) native "HTMLMetaElement_content_Setter";
 
-
-  /** @domName HTMLMetaElement.httpEquiv */
+  @DocsEditable
+  @DomName('HTMLMetaElement.httpEquiv')
   String get httpEquiv native "HTMLMetaElement_httpEquiv_Getter";
 
-
-  /** @domName HTMLMetaElement.httpEquiv */
+  @DocsEditable
+  @DomName('HTMLMetaElement.httpEquiv')
   void set httpEquiv(String value) native "HTMLMetaElement_httpEquiv_Setter";
 
-
-  /** @domName HTMLMetaElement.name */
+  @DocsEditable
+  @DomName('HTMLMetaElement.name')
   String get name native "HTMLMetaElement_name_Getter";
 
-
-  /** @domName HTMLMetaElement.name */
+  @DocsEditable
+  @DomName('HTMLMetaElement.name')
   void set name(String value) native "HTMLMetaElement_name_Setter";
 
 }
@@ -17129,16 +16873,17 @@ class MetaElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Metadata
+@DocsEditable
+@DomName('Metadata')
 class Metadata extends NativeFieldWrapperClass1 {
   Metadata.internal();
 
-
-  /** @domName Metadata.modificationTime */
+  @DocsEditable
+  @DomName('Metadata.modificationTime')
   Date get modificationTime native "Metadata_modificationTime_Getter";
 
-
-  /** @domName Metadata.size */
+  @DocsEditable
+  @DomName('Metadata.size')
   int get size native "Metadata_size_Getter";
 
 }
@@ -17157,69 +16902,70 @@ typedef void MetadataCallback(Metadata metadata);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLMeterElement
+@DocsEditable
+@DomName('HTMLMeterElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class MeterElement extends _Element_Merged {
   MeterElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory MeterElement() => document.$dom_createElement("meter");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLMeterElement.high */
+  @DocsEditable
+  @DomName('HTMLMeterElement.high')
   num get high native "HTMLMeterElement_high_Getter";
 
-
-  /** @domName HTMLMeterElement.high */
+  @DocsEditable
+  @DomName('HTMLMeterElement.high')
   void set high(num value) native "HTMLMeterElement_high_Setter";
 
-
-  /** @domName HTMLMeterElement.labels */
+  @DocsEditable
+  @DomName('HTMLMeterElement.labels')
   List<Node> get labels native "HTMLMeterElement_labels_Getter";
 
-
-  /** @domName HTMLMeterElement.low */
+  @DocsEditable
+  @DomName('HTMLMeterElement.low')
   num get low native "HTMLMeterElement_low_Getter";
 
-
-  /** @domName HTMLMeterElement.low */
+  @DocsEditable
+  @DomName('HTMLMeterElement.low')
   void set low(num value) native "HTMLMeterElement_low_Setter";
 
-
-  /** @domName HTMLMeterElement.max */
+  @DocsEditable
+  @DomName('HTMLMeterElement.max')
   num get max native "HTMLMeterElement_max_Getter";
 
-
-  /** @domName HTMLMeterElement.max */
+  @DocsEditable
+  @DomName('HTMLMeterElement.max')
   void set max(num value) native "HTMLMeterElement_max_Setter";
 
-
-  /** @domName HTMLMeterElement.min */
+  @DocsEditable
+  @DomName('HTMLMeterElement.min')
   num get min native "HTMLMeterElement_min_Getter";
 
-
-  /** @domName HTMLMeterElement.min */
+  @DocsEditable
+  @DomName('HTMLMeterElement.min')
   void set min(num value) native "HTMLMeterElement_min_Setter";
 
-
-  /** @domName HTMLMeterElement.optimum */
+  @DocsEditable
+  @DomName('HTMLMeterElement.optimum')
   num get optimum native "HTMLMeterElement_optimum_Getter";
 
-
-  /** @domName HTMLMeterElement.optimum */
+  @DocsEditable
+  @DomName('HTMLMeterElement.optimum')
   void set optimum(num value) native "HTMLMeterElement_optimum_Setter";
 
-
-  /** @domName HTMLMeterElement.value */
+  @DocsEditable
+  @DomName('HTMLMeterElement.value')
   num get value native "HTMLMeterElement_value_Getter";
 
-
-  /** @domName HTMLMeterElement.value */
+  @DocsEditable
+  @DomName('HTMLMeterElement.value')
   void set value(num value) native "HTMLMeterElement_value_Setter";
 
 }
@@ -17230,24 +16976,25 @@ class MeterElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLModElement
+@DocsEditable
+@DomName('HTMLModElement')
 class ModElement extends _Element_Merged {
   ModElement.internal() : super.internal();
 
-
-  /** @domName HTMLModElement.cite */
+  @DocsEditable
+  @DomName('HTMLModElement.cite')
   String get cite native "HTMLModElement_cite_Getter";
 
-
-  /** @domName HTMLModElement.cite */
+  @DocsEditable
+  @DomName('HTMLModElement.cite')
   void set cite(String value) native "HTMLModElement_cite_Setter";
 
-
-  /** @domName HTMLModElement.dateTime */
+  @DocsEditable
+  @DomName('HTMLModElement.dateTime')
   String get dateTime native "HTMLModElement_dateTime_Getter";
 
-
-  /** @domName HTMLModElement.dateTime */
+  @DocsEditable
+  @DomName('HTMLModElement.dateTime')
   void set dateTime(String value) native "HTMLModElement_dateTime_Setter";
 
 }
@@ -17258,7 +17005,8 @@ class ModElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MouseEvent
+@DocsEditable
+@DomName('MouseEvent')
 class MouseEvent extends UIEvent {
   factory MouseEvent(String type, Window view, int detail, int screenX,
       int screenY, int clientX, int clientY, int button, [bool canBubble = true,
@@ -17272,84 +17020,84 @@ class MouseEvent extends UIEvent {
           relatedTarget);
   MouseEvent.internal() : super.internal();
 
-
-  /** @domName MouseEvent.altKey */
+  @DocsEditable
+  @DomName('MouseEvent.altKey')
   bool get altKey native "MouseEvent_altKey_Getter";
 
-
-  /** @domName MouseEvent.button */
+  @DocsEditable
+  @DomName('MouseEvent.button')
   int get button native "MouseEvent_button_Getter";
 
-
-  /** @domName MouseEvent.clientX */
+  @DocsEditable
+  @DomName('MouseEvent.clientX')
   int get clientX native "MouseEvent_clientX_Getter";
 
-
-  /** @domName MouseEvent.clientY */
+  @DocsEditable
+  @DomName('MouseEvent.clientY')
   int get clientY native "MouseEvent_clientY_Getter";
 
-
-  /** @domName MouseEvent.ctrlKey */
+  @DocsEditable
+  @DomName('MouseEvent.ctrlKey')
   bool get ctrlKey native "MouseEvent_ctrlKey_Getter";
 
-
-  /** @domName MouseEvent.dataTransfer */
+  @DocsEditable
+  @DomName('MouseEvent.dataTransfer')
   Clipboard get dataTransfer native "MouseEvent_dataTransfer_Getter";
 
-
-  /** @domName MouseEvent.fromElement */
+  @DocsEditable
+  @DomName('MouseEvent.fromElement')
   Node get fromElement native "MouseEvent_fromElement_Getter";
 
-
-  /** @domName MouseEvent.metaKey */
+  @DocsEditable
+  @DomName('MouseEvent.metaKey')
   bool get metaKey native "MouseEvent_metaKey_Getter";
 
-
-  /** @domName MouseEvent.offsetX */
+  @DocsEditable
+  @DomName('MouseEvent.offsetX')
   int get offsetX native "MouseEvent_offsetX_Getter";
 
-
-  /** @domName MouseEvent.offsetY */
+  @DocsEditable
+  @DomName('MouseEvent.offsetY')
   int get offsetY native "MouseEvent_offsetY_Getter";
 
-
-  /** @domName MouseEvent.relatedTarget */
+  @DocsEditable
+  @DomName('MouseEvent.relatedTarget')
   EventTarget get relatedTarget native "MouseEvent_relatedTarget_Getter";
 
-
-  /** @domName MouseEvent.screenX */
+  @DocsEditable
+  @DomName('MouseEvent.screenX')
   int get screenX native "MouseEvent_screenX_Getter";
 
-
-  /** @domName MouseEvent.screenY */
+  @DocsEditable
+  @DomName('MouseEvent.screenY')
   int get screenY native "MouseEvent_screenY_Getter";
 
-
-  /** @domName MouseEvent.shiftKey */
+  @DocsEditable
+  @DomName('MouseEvent.shiftKey')
   bool get shiftKey native "MouseEvent_shiftKey_Getter";
 
-
-  /** @domName MouseEvent.toElement */
+  @DocsEditable
+  @DomName('MouseEvent.toElement')
   Node get toElement native "MouseEvent_toElement_Getter";
 
-
-  /** @domName MouseEvent.webkitMovementX */
+  @DocsEditable
+  @DomName('MouseEvent.webkitMovementX')
   int get webkitMovementX native "MouseEvent_webkitMovementX_Getter";
 
-
-  /** @domName MouseEvent.webkitMovementY */
+  @DocsEditable
+  @DomName('MouseEvent.webkitMovementY')
   int get webkitMovementY native "MouseEvent_webkitMovementY_Getter";
 
-
-  /** @domName MouseEvent.x */
+  @DocsEditable
+  @DomName('MouseEvent.x')
   int get x native "MouseEvent_x_Getter";
 
-
-  /** @domName MouseEvent.y */
+  @DocsEditable
+  @DomName('MouseEvent.y')
   int get y native "MouseEvent_y_Getter";
 
-
-  /** @domName MouseEvent.initMouseEvent */
+  @DocsEditable
+  @DomName('MouseEvent.initMouseEvent')
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";
 
 }
@@ -17368,7 +17116,8 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MutationEvent
+@DocsEditable
+@DomName('MutationEvent')
 class MutationEvent extends Event {
   MutationEvent.internal() : super.internal();
 
@@ -17378,28 +17127,28 @@ class MutationEvent extends Event {
 
   static const int REMOVAL = 3;
 
-
-  /** @domName MutationEvent.attrChange */
+  @DocsEditable
+  @DomName('MutationEvent.attrChange')
   int get attrChange native "MutationEvent_attrChange_Getter";
 
-
-  /** @domName MutationEvent.attrName */
+  @DocsEditable
+  @DomName('MutationEvent.attrName')
   String get attrName native "MutationEvent_attrName_Getter";
 
-
-  /** @domName MutationEvent.newValue */
+  @DocsEditable
+  @DomName('MutationEvent.newValue')
   String get newValue native "MutationEvent_newValue_Getter";
 
-
-  /** @domName MutationEvent.prevValue */
+  @DocsEditable
+  @DomName('MutationEvent.prevValue')
   String get prevValue native "MutationEvent_prevValue_Getter";
 
-
-  /** @domName MutationEvent.relatedNode */
+  @DocsEditable
+  @DomName('MutationEvent.relatedNode')
   Node get relatedNode native "MutationEvent_relatedNode_Getter";
 
-
-  /** @domName MutationEvent.initMutationEvent */
+  @DocsEditable
+  @DomName('MutationEvent.initMutationEvent')
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
 
 }
@@ -17408,7 +17157,8 @@ class MutationEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MutationObserver
+@DocsEditable
+@DomName('MutationObserver')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -17416,20 +17166,20 @@ class MutationEvent extends Event {
 class MutationObserver extends NativeFieldWrapperClass1 {
   MutationObserver.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
   static MutationObserver _create(MutationCallback callback) native "MutationObserver_constructor_Callback";
 
-
-  /** @domName MutationObserver.disconnect */
+  @DocsEditable
+  @DomName('MutationObserver.disconnect')
   void disconnect() native "MutationObserver_disconnect_Callback";
 
-
-  /** @domName MutationObserver._observe */
+  @DocsEditable
+  @DomName('MutationObserver._observe')
   void _observe(Node target, Map options) native "MutationObserver__observe_Callback";
 
-
-  /** @domName MutationObserver.takeRecords */
+  @DocsEditable
+  @DomName('MutationObserver.takeRecords')
   List<MutationRecord> takeRecords() native "MutationObserver_takeRecords_Callback";
 
   /**
@@ -17509,44 +17259,45 @@ class MutationObserver extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MutationRecord
+@DocsEditable
+@DomName('MutationRecord')
 class MutationRecord extends NativeFieldWrapperClass1 {
   MutationRecord.internal();
 
-
-  /** @domName MutationRecord.addedNodes */
+  @DocsEditable
+  @DomName('MutationRecord.addedNodes')
   List<Node> get addedNodes native "MutationRecord_addedNodes_Getter";
 
-
-  /** @domName MutationRecord.attributeName */
+  @DocsEditable
+  @DomName('MutationRecord.attributeName')
   String get attributeName native "MutationRecord_attributeName_Getter";
 
-
-  /** @domName MutationRecord.attributeNamespace */
+  @DocsEditable
+  @DomName('MutationRecord.attributeNamespace')
   String get attributeNamespace native "MutationRecord_attributeNamespace_Getter";
 
-
-  /** @domName MutationRecord.nextSibling */
+  @DocsEditable
+  @DomName('MutationRecord.nextSibling')
   Node get nextSibling native "MutationRecord_nextSibling_Getter";
 
-
-  /** @domName MutationRecord.oldValue */
+  @DocsEditable
+  @DomName('MutationRecord.oldValue')
   String get oldValue native "MutationRecord_oldValue_Getter";
 
-
-  /** @domName MutationRecord.previousSibling */
+  @DocsEditable
+  @DomName('MutationRecord.previousSibling')
   Node get previousSibling native "MutationRecord_previousSibling_Getter";
 
-
-  /** @domName MutationRecord.removedNodes */
+  @DocsEditable
+  @DomName('MutationRecord.removedNodes')
   List<Node> get removedNodes native "MutationRecord_removedNodes_Getter";
 
-
-  /** @domName MutationRecord.target */
+  @DocsEditable
+  @DomName('MutationRecord.target')
   Node get target native "MutationRecord_target_Getter";
 
-
-  /** @domName MutationRecord.type */
+  @DocsEditable
+  @DomName('MutationRecord.type')
   String get type native "MutationRecord_type_Getter";
 
 }
@@ -17557,12 +17308,13 @@ class MutationRecord extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName NamedNodeMap
+@DocsEditable
+@DomName('NamedNodeMap')
 class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   NamedNodeMap.internal();
 
-
-  /** @domName NamedNodeMap.length */
+  @DocsEditable
+  @DomName('NamedNodeMap.length')
   int get length native "NamedNodeMap_length_Getter";
 
   Node operator[](int index) native "NamedNodeMap_item_Callback";
@@ -17583,50 +17335,50 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -17684,16 +17436,36 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -17713,32 +17485,32 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
   // -- end List<Node> mixins.
 
-
-  /** @domName NamedNodeMap.getNamedItem */
+  @DocsEditable
+  @DomName('NamedNodeMap.getNamedItem')
   Node getNamedItem(String name) native "NamedNodeMap_getNamedItem_Callback";
 
-
-  /** @domName NamedNodeMap.getNamedItemNS */
+  @DocsEditable
+  @DomName('NamedNodeMap.getNamedItemNS')
   Node getNamedItemNS(String namespaceURI, String localName) native "NamedNodeMap_getNamedItemNS_Callback";
 
-
-  /** @domName NamedNodeMap.item */
+  @DocsEditable
+  @DomName('NamedNodeMap.item')
   Node item(int index) native "NamedNodeMap_item_Callback";
 
-
-  /** @domName NamedNodeMap.removeNamedItem */
+  @DocsEditable
+  @DomName('NamedNodeMap.removeNamedItem')
   Node removeNamedItem(String name) native "NamedNodeMap_removeNamedItem_Callback";
 
-
-  /** @domName NamedNodeMap.removeNamedItemNS */
+  @DocsEditable
+  @DomName('NamedNodeMap.removeNamedItemNS')
   Node removeNamedItemNS(String namespaceURI, String localName) native "NamedNodeMap_removeNamedItemNS_Callback";
 
-
-  /** @domName NamedNodeMap.setNamedItem */
+  @DocsEditable
+  @DomName('NamedNodeMap.setNamedItem')
   Node setNamedItem(Node node) native "NamedNodeMap_setNamedItem_Callback";
 
-
-  /** @domName NamedNodeMap.setNamedItemNS */
+  @DocsEditable
+  @DomName('NamedNodeMap.setNamedItemNS')
   Node setNamedItemNS(Node node) native "NamedNodeMap_setNamedItemNS_Callback";
 
 }
@@ -17746,92 +17518,132 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-/// @domName Navigator
+@DocsEditable
+@DomName('Navigator')
 class Navigator extends NativeFieldWrapperClass1 {
+
+
+  /**
+   * Gets a stream (video and or audio) from the local computer.
+   *
+   * Use [MediaStream.supported] to check if this is supported by the current
+   * platform.
+   *
+   * Example use:
+   *
+   *     window.navigator.getUserMedia(audio:true, video: true).then((stream) {
+   *       var video = new VideoElement()
+   *         ..autoplay = true
+   *         ..src = Url.createObjectUrl(stream);
+   *       document.body.append(video);
+   *     });
+   *
+   * See also:
+   * * [MediaStream.supported]
+   */
+  @DomName('Navigator.webkitGetUserMedia')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental()
+  Future<LocalMediaStream> getUserMedia({bool audio: false,
+      bool video: false}) {
+    var completer = new Completer<LocalMediaStream>();
+    var options = {
+      'audio': audio,
+      'video': video
+    };
+    this._getUserMedia(options,
+      (stream) {
+        completer.complete(stream);
+      },
+      (error) {
+        completer.completeError(error);
+      });
+    return completer.future;
+  }
+
+
   Navigator.internal();
 
-
-  /** @domName Navigator.appCodeName */
+  @DocsEditable
+  @DomName('Navigator.appCodeName')
   String get appCodeName native "Navigator_appCodeName_Getter";
 
-
-  /** @domName Navigator.appName */
+  @DocsEditable
+  @DomName('Navigator.appName')
   String get appName native "Navigator_appName_Getter";
 
-
-  /** @domName Navigator.appVersion */
+  @DocsEditable
+  @DomName('Navigator.appVersion')
   String get appVersion native "Navigator_appVersion_Getter";
 
-
-  /** @domName Navigator.cookieEnabled */
+  @DocsEditable
+  @DomName('Navigator.cookieEnabled')
   bool get cookieEnabled native "Navigator_cookieEnabled_Getter";
 
-
-  /** @domName Navigator.geolocation */
+  @DocsEditable
+  @DomName('Navigator.geolocation')
   Geolocation get geolocation native "Navigator_geolocation_Getter";
 
-
-  /** @domName Navigator.language */
+  @DocsEditable
+  @DomName('Navigator.language')
   String get language native "Navigator_language_Getter";
 
-
-  /** @domName Navigator.mimeTypes */
+  @DocsEditable
+  @DomName('Navigator.mimeTypes')
   DomMimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
 
-
-  /** @domName Navigator.onLine */
+  @DocsEditable
+  @DomName('Navigator.onLine')
   bool get onLine native "Navigator_onLine_Getter";
 
-
-  /** @domName Navigator.platform */
+  @DocsEditable
+  @DomName('Navigator.platform')
   String get platform native "Navigator_platform_Getter";
 
-
-  /** @domName Navigator.plugins */
+  @DocsEditable
+  @DomName('Navigator.plugins')
   DomPluginArray get plugins native "Navigator_plugins_Getter";
 
-
-  /** @domName Navigator.product */
+  @DocsEditable
+  @DomName('Navigator.product')
   String get product native "Navigator_product_Getter";
 
-
-  /** @domName Navigator.productSub */
+  @DocsEditable
+  @DomName('Navigator.productSub')
   String get productSub native "Navigator_productSub_Getter";
 
-
-  /** @domName Navigator.userAgent */
+  @DocsEditable
+  @DomName('Navigator.userAgent')
   String get userAgent native "Navigator_userAgent_Getter";
 
-
-  /** @domName Navigator.vendor */
+  @DocsEditable
+  @DomName('Navigator.vendor')
   String get vendor native "Navigator_vendor_Getter";
 
-
-  /** @domName Navigator.vendorSub */
+  @DocsEditable
+  @DomName('Navigator.vendorSub')
   String get vendorSub native "Navigator_vendorSub_Getter";
 
-
-  /** @domName Navigator.webkitBattery */
+  @DocsEditable
+  @DomName('Navigator.webkitBattery')
   BatteryManager get webkitBattery native "Navigator_webkitBattery_Getter";
 
-
-  /** @domName Navigator.getStorageUpdates */
+  @DocsEditable
+  @DomName('Navigator.getStorageUpdates')
   void getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
 
-
-  /** @domName Navigator.javaEnabled */
+  @DocsEditable
+  @DomName('Navigator.javaEnabled')
   bool javaEnabled() native "Navigator_javaEnabled_Callback";
 
-
-  /** @domName Navigator.webkitGetGamepads */
+  @DocsEditable
+  @DomName('Navigator.webkitGetGamepads')
   List<Gamepad> webkitGetGamepads() native "Navigator_webkitGetGamepads_Callback";
 
-
-  /** @domName Navigator.webkitGetUserMedia */
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
+  @DocsEditable
+  @DomName('Navigator.webkitGetUserMedia')
+  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, [_NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17841,14 +17653,15 @@ class Navigator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName NavigatorUserMediaError
+@DocsEditable
+@DomName('NavigatorUserMediaError')
 class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
   NavigatorUserMediaError.internal();
 
   static const int PERMISSION_DENIED = 1;
 
-
-  /** @domName NavigatorUserMediaError.code */
+  @DocsEditable
+  @DomName('NavigatorUserMediaError.code')
   int get code native "NavigatorUserMediaError_code_Getter";
 
 }
@@ -17859,7 +17672,7 @@ class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+typedef void _NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17867,7 +17680,7 @@ typedef void NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
+typedef void _NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17902,11 +17715,11 @@ class _ChildNodeListLazy implements List {
   }
 
   Node min([int compare(Node a, Node b)]) {
-    return Collections.min(this, compare);
+    return IterableMixinWorkaround.min(this, compare);
   }
 
   Node max([int compare(Node a, Node b)]) {
-    return Collections.max(this, compare);
+    return IterableMixinWorkaround.max(this, compare);
   }
 
   void add(Node value) {
@@ -17940,6 +17753,29 @@ class _ChildNodeListLazy implements List {
     return result;
   }
 
+  void remove(Object object) {
+    if (object is! Node) return;
+    Node node = object;
+    if (!identical(this, node.parentNode)) return;
+    _this.$dom_removeChild(node);
+  }
+
+  void removeAll(Iterable elements) {
+    IterableMixinWorkaround.removeAll(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    IterableMixinWorkaround.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(Node node)) {
+    IterableMixinWorkaround.removeMatching(this, test);
+  }
+
+  void retainMatching(bool test(Node node)) {
+    IterableMixinWorkaround.retainMatching(this, test);
+  }
+
   void clear() {
     _this.text = '';
   }
@@ -17952,28 +17788,30 @@ class _ChildNodeListLazy implements List {
 
   // TODO(jacobr): We can implement these methods much more efficiently by
   // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Node element)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
   String join([String separator]) {
-    return Collections.joinList(this, separator);
+    return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  List mappedBy(f(Node element)) =>
-      new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) {
+    return IterableMixinWorkaround.mappedByList(this, f);
+  }
 
-  Iterable<Node> where(bool f(Node element)) =>
-     new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) {
+    return IterableMixinWorkaround.where(this, f);
+  }
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
@@ -17983,31 +17821,31 @@ class _ChildNodeListLazy implements List {
   // From List<Node>:
 
   List<Node> take(int n) {
-    return new ListView<Node>(this, 0, n);
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
   List<Node> skip(int n) {
-    return new ListView<Node>(this, n, null);
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -18056,7 +17894,8 @@ class _ChildNodeListLazy implements List {
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
-/// @domName Node
+@DocsEditable
+@DomName('Node')
 class Node extends EventTarget {
   List<Node> get nodes {
     return new _ChildNodeListLazy(this);
@@ -18074,8 +17913,8 @@ class Node extends EventTarget {
 
   /**
    * Removes this node from the DOM.
-   * @domName Node.removeChild
    */
+  @DomName('Node.removeChild')
   void remove() {
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
@@ -18087,8 +17926,8 @@ class Node extends EventTarget {
 
   /**
    * Replaces this node with another node.
-   * @domName Node.replaceChild
    */
+  @DomName('Node.replaceChild')
   Node replaceWith(Node otherNode) {
     try {
       final Node parent = this.parentNode;
@@ -18101,136 +17940,104 @@ class Node extends EventTarget {
 
   Node.internal() : super.internal();
 
-  static const int ATTRIBUTE_NODE = 2;
-
-  static const int CDATA_SECTION_NODE = 4;
-
-  static const int COMMENT_NODE = 8;
-
-  static const int DOCUMENT_FRAGMENT_NODE = 11;
-
-  static const int DOCUMENT_NODE = 9;
-
-  static const int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
-
-  static const int DOCUMENT_POSITION_CONTAINS = 0x08;
-
-  static const int DOCUMENT_POSITION_DISCONNECTED = 0x01;
-
-  static const int DOCUMENT_POSITION_FOLLOWING = 0x04;
-
-  static const int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
-
-  static const int DOCUMENT_POSITION_PRECEDING = 0x02;
-
-  static const int DOCUMENT_TYPE_NODE = 10;
-
-  static const int ELEMENT_NODE = 1;
-
-  static const int ENTITY_NODE = 6;
-
-  static const int ENTITY_REFERENCE_NODE = 5;
-
-  static const int NOTATION_NODE = 12;
-
-  static const int PROCESSING_INSTRUCTION_NODE = 7;
-
-  static const int TEXT_NODE = 3;
-
-
-  /** @domName Node.attributes */
+  @DocsEditable
+  @DomName('Node.attributes')
   NamedNodeMap get $dom_attributes native "Node_attributes_Getter";
 
-
-  /** @domName Node.childNodes */
+  @DocsEditable
+  @DomName('Node.childNodes')
   List<Node> get $dom_childNodes native "Node_childNodes_Getter";
 
-
-  /** @domName Node.firstChild */
+  @DocsEditable
+  @DomName('Node.firstChild')
   Node get $dom_firstChild native "Node_firstChild_Getter";
 
-
-  /** @domName Node.lastChild */
+  @DocsEditable
+  @DomName('Node.lastChild')
   Node get $dom_lastChild native "Node_lastChild_Getter";
 
-
-  /** @domName Node.localName */
+  @DocsEditable
+  @DomName('Node.localName')
   String get $dom_localName native "Node_localName_Getter";
 
-
-  /** @domName Node.namespaceURI */
+  @DocsEditable
+  @DomName('Node.namespaceURI')
   String get $dom_namespaceUri native "Node_namespaceURI_Getter";
 
-
-  /** @domName Node.nextSibling */
+  @DocsEditable
+  @DomName('Node.nextSibling')
   Node get nextNode native "Node_nextSibling_Getter";
 
-
-  /** @domName Node.nodeType */
+  @DocsEditable
+  @DomName('Node.nodeType')
   int get nodeType native "Node_nodeType_Getter";
 
+  @DocsEditable
+  @DomName('Node.nodeValue')
+  String get nodeValue native "Node_nodeValue_Getter";
 
-  /** @domName Node.ownerDocument */
+  @DocsEditable
+  @DomName('Node.ownerDocument')
   Document get document native "Node_ownerDocument_Getter";
 
-
-  /** @domName Node.parentElement */
+  @DocsEditable
+  @DomName('Node.parentElement')
   Element get parent native "Node_parentElement_Getter";
 
-
-  /** @domName Node.parentNode */
+  @DocsEditable
+  @DomName('Node.parentNode')
   Node get parentNode native "Node_parentNode_Getter";
 
-
-  /** @domName Node.previousSibling */
+  @DocsEditable
+  @DomName('Node.previousSibling')
   Node get previousNode native "Node_previousSibling_Getter";
 
-
-  /** @domName Node.textContent */
+  @DocsEditable
+  @DomName('Node.textContent')
   String get text native "Node_textContent_Getter";
 
-
-  /** @domName Node.textContent */
+  @DocsEditable
+  @DomName('Node.textContent')
   void set text(String value) native "Node_textContent_Setter";
 
-
-  /** @domName Node.addEventListener */
+  @DocsEditable
+  @DomName('Node.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
 
-
-  /** @domName Node.appendChild */
+  @DocsEditable
+  @DomName('Node.appendChild')
   Node $dom_appendChild(Node newChild) native "Node_appendChild_Callback";
 
-
-  /** @domName Node.cloneNode */
+  @DocsEditable
+  @DomName('Node.cloneNode')
   Node clone(bool deep) native "Node_cloneNode_Callback";
 
-
-  /** @domName Node.contains */
+  @DocsEditable
+  @DomName('Node.contains')
   bool contains(Node other) native "Node_contains_Callback";
 
-
-  /** @domName Node.dispatchEvent */
+  @DocsEditable
+  @DomName('Node.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "Node_dispatchEvent_Callback";
 
-
-  /** @domName Node.hasChildNodes */
+  @DocsEditable
+  @DomName('Node.hasChildNodes')
   bool hasChildNodes() native "Node_hasChildNodes_Callback";
 
-
-  /** @domName Node.insertBefore */
+  @DocsEditable
+  @DomName('Node.insertBefore')
   Node insertBefore(Node newChild, Node refChild) native "Node_insertBefore_Callback";
 
-
-  /** @domName Node.removeChild */
+  @DocsEditable
+  @DomName('Node.removeChild')
   Node $dom_removeChild(Node oldChild) native "Node_removeChild_Callback";
 
-
-  /** @domName Node.removeEventListener */
+  @DocsEditable
+  @DomName('Node.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Node_removeEventListener_Callback";
 
-
-  /** @domName Node.replaceChild */
+  @DocsEditable
+  @DomName('Node.replaceChild')
   Node $dom_replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
 
 }
@@ -18241,7 +18048,8 @@ class Node extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName NodeFilter
+@DocsEditable
+@DomName('NodeFilter')
 class NodeFilter extends NativeFieldWrapperClass1 {
   NodeFilter.internal();
 
@@ -18277,8 +18085,8 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 
   static const int SHOW_TEXT = 0x00000004;
 
-
-  /** @domName NodeFilter.acceptNode */
+  @DocsEditable
+  @DomName('NodeFilter.acceptNode')
   int acceptNode(Node n) native "NodeFilter_acceptNode_Callback";
 
 }
@@ -18289,44 +18097,45 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName NodeIterator
+@DocsEditable
+@DomName('NodeIterator')
 class NodeIterator extends NativeFieldWrapperClass1 {
   NodeIterator.internal();
 
-
-  /** @domName NodeIterator.expandEntityReferences */
+  @DocsEditable
+  @DomName('NodeIterator.expandEntityReferences')
   bool get expandEntityReferences native "NodeIterator_expandEntityReferences_Getter";
 
-
-  /** @domName NodeIterator.filter */
+  @DocsEditable
+  @DomName('NodeIterator.filter')
   NodeFilter get filter native "NodeIterator_filter_Getter";
 
-
-  /** @domName NodeIterator.pointerBeforeReferenceNode */
+  @DocsEditable
+  @DomName('NodeIterator.pointerBeforeReferenceNode')
   bool get pointerBeforeReferenceNode native "NodeIterator_pointerBeforeReferenceNode_Getter";
 
-
-  /** @domName NodeIterator.referenceNode */
+  @DocsEditable
+  @DomName('NodeIterator.referenceNode')
   Node get referenceNode native "NodeIterator_referenceNode_Getter";
 
-
-  /** @domName NodeIterator.root */
+  @DocsEditable
+  @DomName('NodeIterator.root')
   Node get root native "NodeIterator_root_Getter";
 
-
-  /** @domName NodeIterator.whatToShow */
+  @DocsEditable
+  @DomName('NodeIterator.whatToShow')
   int get whatToShow native "NodeIterator_whatToShow_Getter";
 
-
-  /** @domName NodeIterator.detach */
+  @DocsEditable
+  @DomName('NodeIterator.detach')
   void detach() native "NodeIterator_detach_Callback";
 
-
-  /** @domName NodeIterator.nextNode */
+  @DocsEditable
+  @DomName('NodeIterator.nextNode')
   Node nextNode() native "NodeIterator_nextNode_Callback";
 
-
-  /** @domName NodeIterator.previousNode */
+  @DocsEditable
+  @DomName('NodeIterator.previousNode')
   Node previousNode() native "NodeIterator_previousNode_Callback";
 
 }
@@ -18337,12 +18146,13 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName NodeList
+@DocsEditable
+@DomName('NodeList')
 class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   NodeList.internal();
 
-
-  /** @domName NodeList.length */
+  @DocsEditable
+  @DomName('NodeList.length')
   int get length native "NodeList_length_Getter";
 
   Node operator[](int index) native "NodeList_item_Callback";
@@ -18363,50 +18173,50 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Node element) => Collections.contains(this, element);
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Node element)) => Collections.forEach(this, f);
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => new MappedList<Node, dynamic>(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => new WhereIterable<Node>(this, f);
+  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Node element)) => Collections.every(this, f);
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Node element)) => Collections.any(this, f);
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
 
   List<Node> toList() => new List<Node>.from(this);
   Set<Node> toSet() => new Set<Node>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => new ListView<Node>(this, 0, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
-    return new TakeWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => new ListView<Node>(this, n, null);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
-    return new SkipWhileIterable<Node>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Node singleMatching(bool test(Node value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Node elementAt(int index) {
@@ -18464,16 +18274,36 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => Collections.min(this, compare);
+  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => Collections.max(this, compare);
+  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Node removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -18493,8 +18323,8 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   // -- end List<Node> mixins.
 
-
-  /** @domName NodeList.item */
+  @DocsEditable
+  @DomName('NodeList.item')
   Node _item(int index) native "NodeList_item_Callback";
 
 }
@@ -18505,16 +18335,17 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Notation
+@DocsEditable
+@DomName('Notation')
 class Notation extends Node {
   Notation.internal() : super.internal();
 
-
-  /** @domName Notation.publicId */
+  @DocsEditable
+  @DomName('Notation.publicId')
   String get publicId native "Notation_publicId_Getter";
 
-
-  /** @domName Notation.systemId */
+  @DocsEditable
+  @DomName('Notation.systemId')
   String get systemId native "Notation_systemId_Getter";
 
 }
@@ -18525,7 +18356,8 @@ class Notation extends Node {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Notification
+@DocsEditable
+@DomName('Notification')
 class Notification extends EventTarget {
   Notification.internal() : super.internal();
 
@@ -18539,7 +18371,7 @@ class Notification extends EventTarget {
 
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
-  ///@docsEditable true
+  @DocsEditable
   factory Notification(String title, [Map options]) {
     if (!?options) {
       return Notification._create(title);
@@ -18548,64 +18380,65 @@ class Notification extends EventTarget {
   }
   static Notification _create(String title, [Map options]) native "Notification_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   NotificationEvents get on =>
     new NotificationEvents(this);
 
-
-  /** @domName Notification.dir */
+  @DocsEditable
+  @DomName('Notification.dir')
   String get dir native "Notification_dir_Getter";
 
-
-  /** @domName Notification.dir */
+  @DocsEditable
+  @DomName('Notification.dir')
   void set dir(String value) native "Notification_dir_Setter";
 
-
-  /** @domName Notification.permission */
+  @DocsEditable
+  @DomName('Notification.permission')
   String get permission native "Notification_permission_Getter";
 
-
-  /** @domName Notification.replaceId */
+  @DocsEditable
+  @DomName('Notification.replaceId')
   String get replaceId native "Notification_replaceId_Getter";
 
-
-  /** @domName Notification.replaceId */
+  @DocsEditable
+  @DomName('Notification.replaceId')
   void set replaceId(String value) native "Notification_replaceId_Setter";
 
-
-  /** @domName Notification.tag */
+  @DocsEditable
+  @DomName('Notification.tag')
   String get tag native "Notification_tag_Getter";
 
-
-  /** @domName Notification.tag */
+  @DocsEditable
+  @DomName('Notification.tag')
   void set tag(String value) native "Notification_tag_Setter";
 
-
-  /** @domName Notification.addEventListener */
+  @DocsEditable
+  @DomName('Notification.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_addEventListener_Callback";
 
-
-  /** @domName Notification.cancel */
+  @DocsEditable
+  @DomName('Notification.cancel')
   void cancel() native "Notification_cancel_Callback";
 
-
-  /** @domName Notification.close */
+  @DocsEditable
+  @DomName('Notification.close')
   void close() native "Notification_close_Callback";
 
-
-  /** @domName Notification.dispatchEvent */
+  @DocsEditable
+  @DomName('Notification.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "Notification_dispatchEvent_Callback";
 
-
-  /** @domName Notification.removeEventListener */
+  @DocsEditable
+  @DomName('Notification.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
 
-
-  /** @domName Notification.requestPermission */
+  @DocsEditable
+  @DomName('Notification.requestPermission')
   static void requestPermission(NotificationPermissionCallback callback) native "Notification_requestPermission_Callback";
 
-
-  /** @domName Notification.show */
+  @DocsEditable
+  @DomName('Notification.show')
   void show() native "Notification_show_Callback";
 
   Stream<Event> get onClick => clickEvent.forTarget(this);
@@ -18620,24 +18453,24 @@ class Notification extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class NotificationEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   NotificationEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get click => this['click'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get close => this['close'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get display => this['display'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get show => this['show'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18647,24 +18480,31 @@ class NotificationEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName NotificationCenter
+@DocsEditable
+@DomName('NotificationCenter')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class NotificationCenter extends NativeFieldWrapperClass1 {
   NotificationCenter.internal();
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
-  /** @domName NotificationCenter.checkPermission */
+  @DocsEditable
+  @DomName('NotificationCenter.checkPermission')
   int checkPermission() native "NotificationCenter_checkPermission_Callback";
 
-
-  /** @domName NotificationCenter.createHTMLNotification */
+  @DocsEditable
+  @DomName('NotificationCenter.createHTMLNotification')
   Notification createHtmlNotification(String url) native "NotificationCenter_createHTMLNotification_Callback";
 
-
-  /** @domName NotificationCenter.createNotification */
+  @DocsEditable
+  @DomName('NotificationCenter.createNotification')
   Notification createNotification(String iconUrl, String title, String body) native "NotificationCenter_createNotification_Callback";
 
-
-  /** @domName NotificationCenter.requestPermission */
+  @DocsEditable
+  @DomName('NotificationCenter.requestPermission')
   void requestPermission(VoidCallback callback) native "NotificationCenter_requestPermission_Callback";
 
 }
@@ -18683,35 +18523,36 @@ typedef void NotificationPermissionCallback(String permission);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLOListElement
+@DocsEditable
+@DomName('HTMLOListElement')
 class OListElement extends _Element_Merged {
   OListElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory OListElement() => document.$dom_createElement("ol");
 
-
-  /** @domName HTMLOListElement.reversed */
+  @DocsEditable
+  @DomName('HTMLOListElement.reversed')
   bool get reversed native "HTMLOListElement_reversed_Getter";
 
-
-  /** @domName HTMLOListElement.reversed */
+  @DocsEditable
+  @DomName('HTMLOListElement.reversed')
   void set reversed(bool value) native "HTMLOListElement_reversed_Setter";
 
-
-  /** @domName HTMLOListElement.start */
+  @DocsEditable
+  @DomName('HTMLOListElement.start')
   int get start native "HTMLOListElement_start_Getter";
 
-
-  /** @domName HTMLOListElement.start */
+  @DocsEditable
+  @DomName('HTMLOListElement.start')
   void set start(int value) native "HTMLOListElement_start_Setter";
 
-
-  /** @domName HTMLOListElement.type */
+  @DocsEditable
+  @DomName('HTMLOListElement.type')
   String get type native "HTMLOListElement_type_Getter";
 
-
-  /** @domName HTMLOListElement.type */
+  @DocsEditable
+  @DomName('HTMLOListElement.type')
   void set type(String value) native "HTMLOListElement_type_Setter";
 
 }
@@ -18722,97 +18563,98 @@ class OListElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLObjectElement
+@DocsEditable
+@DomName('HTMLObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends _Element_Merged {
   ObjectElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory ObjectElement() => document.$dom_createElement("object");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLObjectElement.code */
+  @DocsEditable
+  @DomName('HTMLObjectElement.code')
   String get code native "HTMLObjectElement_code_Getter";
 
-
-  /** @domName HTMLObjectElement.code */
+  @DocsEditable
+  @DomName('HTMLObjectElement.code')
   void set code(String value) native "HTMLObjectElement_code_Setter";
 
-
-  /** @domName HTMLObjectElement.data */
+  @DocsEditable
+  @DomName('HTMLObjectElement.data')
   String get data native "HTMLObjectElement_data_Getter";
 
-
-  /** @domName HTMLObjectElement.data */
+  @DocsEditable
+  @DomName('HTMLObjectElement.data')
   void set data(String value) native "HTMLObjectElement_data_Setter";
 
-
-  /** @domName HTMLObjectElement.form */
+  @DocsEditable
+  @DomName('HTMLObjectElement.form')
   FormElement get form native "HTMLObjectElement_form_Getter";
 
-
-  /** @domName HTMLObjectElement.height */
+  @DocsEditable
+  @DomName('HTMLObjectElement.height')
   String get height native "HTMLObjectElement_height_Getter";
 
-
-  /** @domName HTMLObjectElement.height */
+  @DocsEditable
+  @DomName('HTMLObjectElement.height')
   void set height(String value) native "HTMLObjectElement_height_Setter";
 
-
-  /** @domName HTMLObjectElement.name */
+  @DocsEditable
+  @DomName('HTMLObjectElement.name')
   String get name native "HTMLObjectElement_name_Getter";
 
-
-  /** @domName HTMLObjectElement.name */
+  @DocsEditable
+  @DomName('HTMLObjectElement.name')
   void set name(String value) native "HTMLObjectElement_name_Setter";
 
-
-  /** @domName HTMLObjectElement.type */
+  @DocsEditable
+  @DomName('HTMLObjectElement.type')
   String get type native "HTMLObjectElement_type_Getter";
 
-
-  /** @domName HTMLObjectElement.type */
+  @DocsEditable
+  @DomName('HTMLObjectElement.type')
   void set type(String value) native "HTMLObjectElement_type_Setter";
 
-
-  /** @domName HTMLObjectElement.useMap */
+  @DocsEditable
+  @DomName('HTMLObjectElement.useMap')
   String get useMap native "HTMLObjectElement_useMap_Getter";
 
-
-  /** @domName HTMLObjectElement.useMap */
+  @DocsEditable
+  @DomName('HTMLObjectElement.useMap')
   void set useMap(String value) native "HTMLObjectElement_useMap_Setter";
 
-
-  /** @domName HTMLObjectElement.validationMessage */
+  @DocsEditable
+  @DomName('HTMLObjectElement.validationMessage')
   String get validationMessage native "HTMLObjectElement_validationMessage_Getter";
 
-
-  /** @domName HTMLObjectElement.validity */
+  @DocsEditable
+  @DomName('HTMLObjectElement.validity')
   ValidityState get validity native "HTMLObjectElement_validity_Getter";
 
-
-  /** @domName HTMLObjectElement.width */
+  @DocsEditable
+  @DomName('HTMLObjectElement.width')
   String get width native "HTMLObjectElement_width_Getter";
 
-
-  /** @domName HTMLObjectElement.width */
+  @DocsEditable
+  @DomName('HTMLObjectElement.width')
   void set width(String value) native "HTMLObjectElement_width_Setter";
 
-
-  /** @domName HTMLObjectElement.willValidate */
+  @DocsEditable
+  @DomName('HTMLObjectElement.willValidate')
   bool get willValidate native "HTMLObjectElement_willValidate_Getter";
 
-
-  /** @domName HTMLObjectElement.checkValidity */
+  @DocsEditable
+  @DomName('HTMLObjectElement.checkValidity')
   bool checkValidity() native "HTMLObjectElement_checkValidity_Callback";
 
-
-  /** @domName HTMLObjectElement.setCustomValidity */
+  @DocsEditable
+  @DomName('HTMLObjectElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLObjectElement_setCustomValidity_Callback";
 
 }
@@ -18823,7 +18665,8 @@ class ObjectElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OESElementIndexUint
+@DocsEditable
+@DomName('OESElementIndexUint')
 class OesElementIndexUint extends NativeFieldWrapperClass1 {
   OesElementIndexUint.internal();
 
@@ -18835,7 +18678,8 @@ class OesElementIndexUint extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OESStandardDerivatives
+@DocsEditable
+@DomName('OESStandardDerivatives')
 class OesStandardDerivatives extends NativeFieldWrapperClass1 {
   OesStandardDerivatives.internal();
 
@@ -18849,7 +18693,8 @@ class OesStandardDerivatives extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OESTextureFloat
+@DocsEditable
+@DomName('OESTextureFloat')
 class OesTextureFloat extends NativeFieldWrapperClass1 {
   OesTextureFloat.internal();
 
@@ -18861,26 +18706,27 @@ class OesTextureFloat extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OESVertexArrayObject
+@DocsEditable
+@DomName('OESVertexArrayObject')
 class OesVertexArrayObject extends NativeFieldWrapperClass1 {
   OesVertexArrayObject.internal();
 
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
-
-  /** @domName OESVertexArrayObject.bindVertexArrayOES */
+  @DocsEditable
+  @DomName('OESVertexArrayObject.bindVertexArrayOES')
   void bindVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
 
-
-  /** @domName OESVertexArrayObject.createVertexArrayOES */
+  @DocsEditable
+  @DomName('OESVertexArrayObject.createVertexArrayOES')
   WebGLVertexArrayObject createVertexArray() native "OESVertexArrayObject_createVertexArrayOES_Callback";
 
-
-  /** @domName OESVertexArrayObject.deleteVertexArrayOES */
+  @DocsEditable
+  @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   void deleteVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
 
-
-  /** @domName OESVertexArrayObject.isVertexArrayOES */
+  @DocsEditable
+  @DomName('OESVertexArrayObject.isVertexArrayOES')
   bool isVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
 
 }
@@ -18891,27 +18737,28 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLOptGroupElement
+@DocsEditable
+@DomName('HTMLOptGroupElement')
 class OptGroupElement extends _Element_Merged {
   OptGroupElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
-
-  /** @domName HTMLOptGroupElement.disabled */
+  @DocsEditable
+  @DomName('HTMLOptGroupElement.disabled')
   bool get disabled native "HTMLOptGroupElement_disabled_Getter";
 
-
-  /** @domName HTMLOptGroupElement.disabled */
+  @DocsEditable
+  @DomName('HTMLOptGroupElement.disabled')
   void set disabled(bool value) native "HTMLOptGroupElement_disabled_Setter";
 
-
-  /** @domName HTMLOptGroupElement.label */
+  @DocsEditable
+  @DomName('HTMLOptGroupElement.label')
   String get label native "HTMLOptGroupElement_label_Getter";
 
-
-  /** @domName HTMLOptGroupElement.label */
+  @DocsEditable
+  @DomName('HTMLOptGroupElement.label')
   void set label(String value) native "HTMLOptGroupElement_label_Setter";
 
 }
@@ -18922,11 +18769,12 @@ class OptGroupElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLOptionElement
+@DocsEditable
+@DomName('HTMLOptionElement')
 class OptionElement extends _Element_Merged {
   OptionElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (!?data) {
       return OptionElement._create();
@@ -18944,52 +18792,52 @@ class OptionElement extends _Element_Merged {
   }
   static OptionElement _create([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
 
-
-  /** @domName HTMLOptionElement.defaultSelected */
+  @DocsEditable
+  @DomName('HTMLOptionElement.defaultSelected')
   bool get defaultSelected native "HTMLOptionElement_defaultSelected_Getter";
 
-
-  /** @domName HTMLOptionElement.defaultSelected */
+  @DocsEditable
+  @DomName('HTMLOptionElement.defaultSelected')
   void set defaultSelected(bool value) native "HTMLOptionElement_defaultSelected_Setter";
 
-
-  /** @domName HTMLOptionElement.disabled */
+  @DocsEditable
+  @DomName('HTMLOptionElement.disabled')
   bool get disabled native "HTMLOptionElement_disabled_Getter";
 
-
-  /** @domName HTMLOptionElement.disabled */
+  @DocsEditable
+  @DomName('HTMLOptionElement.disabled')
   void set disabled(bool value) native "HTMLOptionElement_disabled_Setter";
 
-
-  /** @domName HTMLOptionElement.form */
+  @DocsEditable
+  @DomName('HTMLOptionElement.form')
   FormElement get form native "HTMLOptionElement_form_Getter";
 
-
-  /** @domName HTMLOptionElement.index */
+  @DocsEditable
+  @DomName('HTMLOptionElement.index')
   int get index native "HTMLOptionElement_index_Getter";
 
-
-  /** @domName HTMLOptionElement.label */
+  @DocsEditable
+  @DomName('HTMLOptionElement.label')
   String get label native "HTMLOptionElement_label_Getter";
 
-
-  /** @domName HTMLOptionElement.label */
+  @DocsEditable
+  @DomName('HTMLOptionElement.label')
   void set label(String value) native "HTMLOptionElement_label_Setter";
 
-
-  /** @domName HTMLOptionElement.selected */
+  @DocsEditable
+  @DomName('HTMLOptionElement.selected')
   bool get selected native "HTMLOptionElement_selected_Getter";
 
-
-  /** @domName HTMLOptionElement.selected */
+  @DocsEditable
+  @DomName('HTMLOptionElement.selected')
   void set selected(bool value) native "HTMLOptionElement_selected_Setter";
 
-
-  /** @domName HTMLOptionElement.value */
+  @DocsEditable
+  @DomName('HTMLOptionElement.value')
   String get value native "HTMLOptionElement_value_Getter";
 
-
-  /** @domName HTMLOptionElement.value */
+  @DocsEditable
+  @DomName('HTMLOptionElement.value')
   void set value(String value) native "HTMLOptionElement_value_Setter";
 
 }
@@ -19000,81 +18848,82 @@ class OptionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLOutputElement
+@DocsEditable
+@DomName('HTMLOutputElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class OutputElement extends _Element_Merged {
   OutputElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory OutputElement() => document.$dom_createElement("output");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLOutputElement.defaultValue */
+  @DocsEditable
+  @DomName('HTMLOutputElement.defaultValue')
   String get defaultValue native "HTMLOutputElement_defaultValue_Getter";
 
-
-  /** @domName HTMLOutputElement.defaultValue */
+  @DocsEditable
+  @DomName('HTMLOutputElement.defaultValue')
   void set defaultValue(String value) native "HTMLOutputElement_defaultValue_Setter";
 
-
-  /** @domName HTMLOutputElement.form */
+  @DocsEditable
+  @DomName('HTMLOutputElement.form')
   FormElement get form native "HTMLOutputElement_form_Getter";
 
-
-  /** @domName HTMLOutputElement.htmlFor */
+  @DocsEditable
+  @DomName('HTMLOutputElement.htmlFor')
   DomSettableTokenList get htmlFor native "HTMLOutputElement_htmlFor_Getter";
 
-
-  /** @domName HTMLOutputElement.htmlFor */
+  @DocsEditable
+  @DomName('HTMLOutputElement.htmlFor')
   void set htmlFor(DomSettableTokenList value) native "HTMLOutputElement_htmlFor_Setter";
 
-
-  /** @domName HTMLOutputElement.labels */
+  @DocsEditable
+  @DomName('HTMLOutputElement.labels')
   List<Node> get labels native "HTMLOutputElement_labels_Getter";
 
-
-  /** @domName HTMLOutputElement.name */
+  @DocsEditable
+  @DomName('HTMLOutputElement.name')
   String get name native "HTMLOutputElement_name_Getter";
 
-
-  /** @domName HTMLOutputElement.name */
+  @DocsEditable
+  @DomName('HTMLOutputElement.name')
   void set name(String value) native "HTMLOutputElement_name_Setter";
 
-
-  /** @domName HTMLOutputElement.type */
+  @DocsEditable
+  @DomName('HTMLOutputElement.type')
   String get type native "HTMLOutputElement_type_Getter";
 
-
-  /** @domName HTMLOutputElement.validationMessage */
+  @DocsEditable
+  @DomName('HTMLOutputElement.validationMessage')
   String get validationMessage native "HTMLOutputElement_validationMessage_Getter";
 
-
-  /** @domName HTMLOutputElement.validity */
+  @DocsEditable
+  @DomName('HTMLOutputElement.validity')
   ValidityState get validity native "HTMLOutputElement_validity_Getter";
 
-
-  /** @domName HTMLOutputElement.value */
+  @DocsEditable
+  @DomName('HTMLOutputElement.value')
   String get value native "HTMLOutputElement_value_Getter";
 
-
-  /** @domName HTMLOutputElement.value */
+  @DocsEditable
+  @DomName('HTMLOutputElement.value')
   void set value(String value) native "HTMLOutputElement_value_Setter";
 
-
-  /** @domName HTMLOutputElement.willValidate */
+  @DocsEditable
+  @DomName('HTMLOutputElement.willValidate')
   bool get willValidate native "HTMLOutputElement_willValidate_Getter";
 
-
-  /** @domName HTMLOutputElement.checkValidity */
+  @DocsEditable
+  @DomName('HTMLOutputElement.checkValidity')
   bool checkValidity() native "HTMLOutputElement_checkValidity_Callback";
 
-
-  /** @domName HTMLOutputElement.setCustomValidity */
+  @DocsEditable
+  @DomName('HTMLOutputElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLOutputElement_setCustomValidity_Callback";
 
 }
@@ -19085,7 +18934,8 @@ class OutputElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName OverflowEvent
+@DocsEditable
+@DomName('OverflowEvent')
 class OverflowEvent extends Event {
   OverflowEvent.internal() : super.internal();
 
@@ -19095,16 +18945,16 @@ class OverflowEvent extends Event {
 
   static const int VERTICAL = 1;
 
-
-  /** @domName OverflowEvent.horizontalOverflow */
+  @DocsEditable
+  @DomName('OverflowEvent.horizontalOverflow')
   bool get horizontalOverflow native "OverflowEvent_horizontalOverflow_Getter";
 
-
-  /** @domName OverflowEvent.orient */
+  @DocsEditable
+  @DomName('OverflowEvent.orient')
   int get orient native "OverflowEvent_orient_Getter";
 
-
-  /** @domName OverflowEvent.verticalOverflow */
+  @DocsEditable
+  @DomName('OverflowEvent.verticalOverflow')
   bool get verticalOverflow native "OverflowEvent_verticalOverflow_Getter";
 
 }
@@ -19115,24 +18965,25 @@ class OverflowEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName PagePopupController
+@DocsEditable
+@DomName('PagePopupController')
 class PagePopupController extends NativeFieldWrapperClass1 {
   PagePopupController.internal();
 
-
-  /** @domName PagePopupController.formatMonth */
+  @DocsEditable
+  @DomName('PagePopupController.formatMonth')
   String formatMonth(int year, int zeroBaseMonth) native "PagePopupController_formatMonth_Callback";
 
-
-  /** @domName PagePopupController.histogramEnumeration */
+  @DocsEditable
+  @DomName('PagePopupController.histogramEnumeration')
   void histogramEnumeration(String name, int sample, int boundaryValue) native "PagePopupController_histogramEnumeration_Callback";
 
-
-  /** @domName PagePopupController.localizeNumberString */
+  @DocsEditable
+  @DomName('PagePopupController.localizeNumberString')
   String localizeNumberString(String numberString) native "PagePopupController_localizeNumberString_Callback";
 
-
-  /** @domName PagePopupController.setValueAndClosePopup */
+  @DocsEditable
+  @DomName('PagePopupController.setValueAndClosePopup')
   void setValueAndClosePopup(int numberValue, String stringValue) native "PagePopupController_setValueAndClosePopup_Callback";
 
 }
@@ -19143,12 +18994,13 @@ class PagePopupController extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName PageTransitionEvent
+@DocsEditable
+@DomName('PageTransitionEvent')
 class PageTransitionEvent extends Event {
   PageTransitionEvent.internal() : super.internal();
 
-
-  /** @domName PageTransitionEvent.persisted */
+  @DocsEditable
+  @DomName('PageTransitionEvent.persisted')
   bool get persisted native "PageTransitionEvent_persisted_Getter";
 
 }
@@ -19159,11 +19011,12 @@ class PageTransitionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLParagraphElement
+@DocsEditable
+@DomName('HTMLParagraphElement')
 class ParagraphElement extends _Element_Merged {
   ParagraphElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory ParagraphElement() => document.$dom_createElement("p");
 
 }
@@ -19174,27 +19027,28 @@ class ParagraphElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLParamElement
+@DocsEditable
+@DomName('HTMLParamElement')
 class ParamElement extends _Element_Merged {
   ParamElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory ParamElement() => document.$dom_createElement("param");
 
-
-  /** @domName HTMLParamElement.name */
+  @DocsEditable
+  @DomName('HTMLParamElement.name')
   String get name native "HTMLParamElement_name_Getter";
 
-
-  /** @domName HTMLParamElement.name */
+  @DocsEditable
+  @DomName('HTMLParamElement.name')
   void set name(String value) native "HTMLParamElement_name_Setter";
 
-
-  /** @domName HTMLParamElement.value */
+  @DocsEditable
+  @DomName('HTMLParamElement.value')
   String get value native "HTMLParamElement_value_Getter";
 
-
-  /** @domName HTMLParamElement.value */
+  @DocsEditable
+  @DomName('HTMLParamElement.value')
   void set value(String value) native "HTMLParamElement_value_Setter";
 
 }
@@ -19205,7 +19059,8 @@ class ParamElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Performance
+@DocsEditable
+@DomName('Performance')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE)
@@ -19215,20 +19070,20 @@ class Performance extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName Performance.memory */
+  @DocsEditable
+  @DomName('Performance.memory')
   MemoryInfo get memory native "Performance_memory_Getter";
 
-
-  /** @domName Performance.navigation */
+  @DocsEditable
+  @DomName('Performance.navigation')
   PerformanceNavigation get navigation native "Performance_navigation_Getter";
 
-
-  /** @domName Performance.timing */
+  @DocsEditable
+  @DomName('Performance.timing')
   PerformanceTiming get timing native "Performance_timing_Getter";
 
-
-  /** @domName Performance.now */
+  @DocsEditable
+  @DomName('Performance.now')
   num now() native "Performance_now_Callback";
 
 }
@@ -19239,7 +19094,8 @@ class Performance extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName PerformanceNavigation
+@DocsEditable
+@DomName('PerformanceNavigation')
 class PerformanceNavigation extends NativeFieldWrapperClass1 {
   PerformanceNavigation.internal();
 
@@ -19251,12 +19107,12 @@ class PerformanceNavigation extends NativeFieldWrapperClass1 {
 
   static const int TYPE_RESERVED = 255;
 
-
-  /** @domName PerformanceNavigation.redirectCount */
+  @DocsEditable
+  @DomName('PerformanceNavigation.redirectCount')
   int get redirectCount native "PerformanceNavigation_redirectCount_Getter";
 
-
-  /** @domName PerformanceNavigation.type */
+  @DocsEditable
+  @DomName('PerformanceNavigation.type')
   int get type native "PerformanceNavigation_type_Getter";
 
 }
@@ -19267,92 +19123,93 @@ class PerformanceNavigation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName PerformanceTiming
+@DocsEditable
+@DomName('PerformanceTiming')
 class PerformanceTiming extends NativeFieldWrapperClass1 {
   PerformanceTiming.internal();
 
-
-  /** @domName PerformanceTiming.connectEnd */
+  @DocsEditable
+  @DomName('PerformanceTiming.connectEnd')
   int get connectEnd native "PerformanceTiming_connectEnd_Getter";
 
-
-  /** @domName PerformanceTiming.connectStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.connectStart')
   int get connectStart native "PerformanceTiming_connectStart_Getter";
 
-
-  /** @domName PerformanceTiming.domComplete */
+  @DocsEditable
+  @DomName('PerformanceTiming.domComplete')
   int get domComplete native "PerformanceTiming_domComplete_Getter";
 
-
-  /** @domName PerformanceTiming.domContentLoadedEventEnd */
+  @DocsEditable
+  @DomName('PerformanceTiming.domContentLoadedEventEnd')
   int get domContentLoadedEventEnd native "PerformanceTiming_domContentLoadedEventEnd_Getter";
 
-
-  /** @domName PerformanceTiming.domContentLoadedEventStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.domContentLoadedEventStart')
   int get domContentLoadedEventStart native "PerformanceTiming_domContentLoadedEventStart_Getter";
 
-
-  /** @domName PerformanceTiming.domInteractive */
+  @DocsEditable
+  @DomName('PerformanceTiming.domInteractive')
   int get domInteractive native "PerformanceTiming_domInteractive_Getter";
 
-
-  /** @domName PerformanceTiming.domLoading */
+  @DocsEditable
+  @DomName('PerformanceTiming.domLoading')
   int get domLoading native "PerformanceTiming_domLoading_Getter";
 
-
-  /** @domName PerformanceTiming.domainLookupEnd */
+  @DocsEditable
+  @DomName('PerformanceTiming.domainLookupEnd')
   int get domainLookupEnd native "PerformanceTiming_domainLookupEnd_Getter";
 
-
-  /** @domName PerformanceTiming.domainLookupStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.domainLookupStart')
   int get domainLookupStart native "PerformanceTiming_domainLookupStart_Getter";
 
-
-  /** @domName PerformanceTiming.fetchStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.fetchStart')
   int get fetchStart native "PerformanceTiming_fetchStart_Getter";
 
-
-  /** @domName PerformanceTiming.loadEventEnd */
+  @DocsEditable
+  @DomName('PerformanceTiming.loadEventEnd')
   int get loadEventEnd native "PerformanceTiming_loadEventEnd_Getter";
 
-
-  /** @domName PerformanceTiming.loadEventStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.loadEventStart')
   int get loadEventStart native "PerformanceTiming_loadEventStart_Getter";
 
-
-  /** @domName PerformanceTiming.navigationStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.navigationStart')
   int get navigationStart native "PerformanceTiming_navigationStart_Getter";
 
-
-  /** @domName PerformanceTiming.redirectEnd */
+  @DocsEditable
+  @DomName('PerformanceTiming.redirectEnd')
   int get redirectEnd native "PerformanceTiming_redirectEnd_Getter";
 
-
-  /** @domName PerformanceTiming.redirectStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.redirectStart')
   int get redirectStart native "PerformanceTiming_redirectStart_Getter";
 
-
-  /** @domName PerformanceTiming.requestStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.requestStart')
   int get requestStart native "PerformanceTiming_requestStart_Getter";
 
-
-  /** @domName PerformanceTiming.responseEnd */
+  @DocsEditable
+  @DomName('PerformanceTiming.responseEnd')
   int get responseEnd native "PerformanceTiming_responseEnd_Getter";
 
-
-  /** @domName PerformanceTiming.responseStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.responseStart')
   int get responseStart native "PerformanceTiming_responseStart_Getter";
 
-
-  /** @domName PerformanceTiming.secureConnectionStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.secureConnectionStart')
   int get secureConnectionStart native "PerformanceTiming_secureConnectionStart_Getter";
 
-
-  /** @domName PerformanceTiming.unloadEventEnd */
+  @DocsEditable
+  @DomName('PerformanceTiming.unloadEventEnd')
   int get unloadEventEnd native "PerformanceTiming_unloadEventEnd_Getter";
 
-
-  /** @domName PerformanceTiming.unloadEventStart */
+  @DocsEditable
+  @DomName('PerformanceTiming.unloadEventStart')
   int get unloadEventStart native "PerformanceTiming_unloadEventStart_Getter";
 
 }
@@ -19363,28 +19220,29 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitPoint
+@DocsEditable
+@DomName('WebKitPoint')
 class Point extends NativeFieldWrapperClass1 {
   Point.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory Point(num x, num y) => Point._create(x, y);
   static Point _create(num x, num y) native "WebKitPoint_constructor_Callback";
 
-
-  /** @domName WebKitPoint.x */
+  @DocsEditable
+  @DomName('WebKitPoint.x')
   num get x native "WebKitPoint_x_Getter";
 
-
-  /** @domName WebKitPoint.x */
+  @DocsEditable
+  @DomName('WebKitPoint.x')
   void set x(num value) native "WebKitPoint_x_Setter";
 
-
-  /** @domName WebKitPoint.y */
+  @DocsEditable
+  @DomName('WebKitPoint.y')
   num get y native "WebKitPoint_y_Getter";
 
-
-  /** @domName WebKitPoint.y */
+  @DocsEditable
+  @DomName('WebKitPoint.y')
   void set y(num value) native "WebKitPoint_y_Setter";
 
 }
@@ -19395,12 +19253,13 @@ class Point extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName PopStateEvent
+@DocsEditable
+@DomName('PopStateEvent')
 class PopStateEvent extends Event {
   PopStateEvent.internal() : super.internal();
 
-
-  /** @domName PopStateEvent.state */
+  @DocsEditable
+  @DomName('PopStateEvent.state')
   Object get state native "PopStateEvent_state_Getter";
 
 }
@@ -19419,7 +19278,8 @@ typedef void PositionCallback(Geoposition position);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName PositionError
+@DocsEditable
+@DomName('PositionError')
 class PositionError extends NativeFieldWrapperClass1 {
   PositionError.internal();
 
@@ -19429,12 +19289,12 @@ class PositionError extends NativeFieldWrapperClass1 {
 
   static const int TIMEOUT = 3;
 
-
-  /** @domName PositionError.code */
+  @DocsEditable
+  @DomName('PositionError.code')
   int get code native "PositionError_code_Getter";
 
-
-  /** @domName PositionError.message */
+  @DocsEditable
+  @DomName('PositionError.message')
   String get message native "PositionError_message_Getter";
 
 }
@@ -19453,19 +19313,20 @@ typedef void PositionErrorCallback(PositionError error);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLPreElement
+@DocsEditable
+@DomName('HTMLPreElement')
 class PreElement extends _Element_Merged {
   PreElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory PreElement() => document.$dom_createElement("pre");
 
-
-  /** @domName HTMLPreElement.wrap */
+  @DocsEditable
+  @DomName('HTMLPreElement.wrap')
   bool get wrap native "HTMLPreElement_wrap_Getter";
 
-
-  /** @domName HTMLPreElement.wrap */
+  @DocsEditable
+  @DomName('HTMLPreElement.wrap')
   void set wrap(bool value) native "HTMLPreElement_wrap_Setter";
 
 }
@@ -19476,24 +19337,25 @@ class PreElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ProcessingInstruction
+@DocsEditable
+@DomName('ProcessingInstruction')
 class ProcessingInstruction extends Node {
   ProcessingInstruction.internal() : super.internal();
 
-
-  /** @domName ProcessingInstruction.data */
+  @DocsEditable
+  @DomName('ProcessingInstruction.data')
   String get data native "ProcessingInstruction_data_Getter";
 
-
-  /** @domName ProcessingInstruction.data */
+  @DocsEditable
+  @DomName('ProcessingInstruction.data')
   void set data(String value) native "ProcessingInstruction_data_Setter";
 
-
-  /** @domName ProcessingInstruction.sheet */
+  @DocsEditable
+  @DomName('ProcessingInstruction.sheet')
   StyleSheet get sheet native "ProcessingInstruction_sheet_Getter";
 
-
-  /** @domName ProcessingInstruction.target */
+  @DocsEditable
+  @DomName('ProcessingInstruction.target')
   String get target native "ProcessingInstruction_target_Getter";
 
 }
@@ -19504,7 +19366,8 @@ class ProcessingInstruction extends Node {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLProgressElement
+@DocsEditable
+@DomName('HTMLProgressElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -19512,34 +19375,34 @@ class ProcessingInstruction extends Node {
 class ProgressElement extends _Element_Merged {
   ProgressElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory ProgressElement() => document.$dom_createElement("progress");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLProgressElement.labels */
+  @DocsEditable
+  @DomName('HTMLProgressElement.labels')
   List<Node> get labels native "HTMLProgressElement_labels_Getter";
 
-
-  /** @domName HTMLProgressElement.max */
+  @DocsEditable
+  @DomName('HTMLProgressElement.max')
   num get max native "HTMLProgressElement_max_Getter";
 
-
-  /** @domName HTMLProgressElement.max */
+  @DocsEditable
+  @DomName('HTMLProgressElement.max')
   void set max(num value) native "HTMLProgressElement_max_Setter";
 
-
-  /** @domName HTMLProgressElement.position */
+  @DocsEditable
+  @DomName('HTMLProgressElement.position')
   num get position native "HTMLProgressElement_position_Getter";
 
-
-  /** @domName HTMLProgressElement.value */
+  @DocsEditable
+  @DomName('HTMLProgressElement.value')
   num get value native "HTMLProgressElement_value_Getter";
 
-
-  /** @domName HTMLProgressElement.value */
+  @DocsEditable
+  @DomName('HTMLProgressElement.value')
   void set value(num value) native "HTMLProgressElement_value_Setter";
 
 }
@@ -19550,20 +19413,21 @@ class ProgressElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ProgressEvent
+@DocsEditable
+@DomName('ProgressEvent')
 class ProgressEvent extends Event {
   ProgressEvent.internal() : super.internal();
 
-
-  /** @domName ProgressEvent.lengthComputable */
+  @DocsEditable
+  @DomName('ProgressEvent.lengthComputable')
   bool get lengthComputable native "ProgressEvent_lengthComputable_Getter";
 
-
-  /** @domName ProgressEvent.loaded */
+  @DocsEditable
+  @DomName('ProgressEvent.loaded')
   int get loaded native "ProgressEvent_loaded_Getter";
 
-
-  /** @domName ProgressEvent.total */
+  @DocsEditable
+  @DomName('ProgressEvent.total')
   int get total native "ProgressEvent_total_Getter";
 
 }
@@ -19574,16 +19438,17 @@ class ProgressEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLQuoteElement
+@DocsEditable
+@DomName('HTMLQuoteElement')
 class QuoteElement extends _Element_Merged {
   QuoteElement.internal() : super.internal();
 
-
-  /** @domName HTMLQuoteElement.cite */
+  @DocsEditable
+  @DomName('HTMLQuoteElement.cite')
   String get cite native "HTMLQuoteElement_cite_Getter";
 
-
-  /** @domName HTMLQuoteElement.cite */
+  @DocsEditable
+  @DomName('HTMLQuoteElement.cite')
   void set cite(String value) native "HTMLQuoteElement_cite_Setter";
 
 }
@@ -19618,16 +19483,17 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RadioNodeList
+@DocsEditable
+@DomName('RadioNodeList')
 class RadioNodeList extends NodeList {
   RadioNodeList.internal() : super.internal();
 
-
-  /** @domName RadioNodeList.value */
+  @DocsEditable
+  @DomName('RadioNodeList.value')
   String get value native "RadioNodeList_value_Getter";
 
-
-  /** @domName RadioNodeList.value */
+  @DocsEditable
+  @DomName('RadioNodeList.value')
   void set value(String value) native "RadioNodeList_value_Setter";
 
 }
@@ -19638,7 +19504,8 @@ class RadioNodeList extends NodeList {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Range
+@DocsEditable
+@DomName('Range')
 class Range extends NativeFieldWrapperClass1 {
   factory Range() => document.$dom_createRange();
 
@@ -19660,128 +19527,128 @@ class Range extends NativeFieldWrapperClass1 {
 
   static const int START_TO_START = 0;
 
-
-  /** @domName Range.collapsed */
+  @DocsEditable
+  @DomName('Range.collapsed')
   bool get collapsed native "Range_collapsed_Getter";
 
-
-  /** @domName Range.commonAncestorContainer */
+  @DocsEditable
+  @DomName('Range.commonAncestorContainer')
   Node get commonAncestorContainer native "Range_commonAncestorContainer_Getter";
 
-
-  /** @domName Range.endContainer */
+  @DocsEditable
+  @DomName('Range.endContainer')
   Node get endContainer native "Range_endContainer_Getter";
 
-
-  /** @domName Range.endOffset */
+  @DocsEditable
+  @DomName('Range.endOffset')
   int get endOffset native "Range_endOffset_Getter";
 
-
-  /** @domName Range.startContainer */
+  @DocsEditable
+  @DomName('Range.startContainer')
   Node get startContainer native "Range_startContainer_Getter";
 
-
-  /** @domName Range.startOffset */
+  @DocsEditable
+  @DomName('Range.startOffset')
   int get startOffset native "Range_startOffset_Getter";
 
-
-  /** @domName Range.cloneContents */
+  @DocsEditable
+  @DomName('Range.cloneContents')
   DocumentFragment cloneContents() native "Range_cloneContents_Callback";
 
-
-  /** @domName Range.cloneRange */
+  @DocsEditable
+  @DomName('Range.cloneRange')
   Range cloneRange() native "Range_cloneRange_Callback";
 
-
-  /** @domName Range.collapse */
+  @DocsEditable
+  @DomName('Range.collapse')
   void collapse(bool toStart) native "Range_collapse_Callback";
 
-
-  /** @domName Range.compareNode */
+  @DocsEditable
+  @DomName('Range.compareNode')
   int compareNode(Node refNode) native "Range_compareNode_Callback";
 
-
-  /** @domName Range.comparePoint */
+  @DocsEditable
+  @DomName('Range.comparePoint')
   int comparePoint(Node refNode, int offset) native "Range_comparePoint_Callback";
 
-
-  /** @domName Range.createContextualFragment */
+  @DocsEditable
+  @DomName('Range.createContextualFragment')
   DocumentFragment createContextualFragment(String html) native "Range_createContextualFragment_Callback";
 
-
-  /** @domName Range.deleteContents */
+  @DocsEditable
+  @DomName('Range.deleteContents')
   void deleteContents() native "Range_deleteContents_Callback";
 
-
-  /** @domName Range.detach */
+  @DocsEditable
+  @DomName('Range.detach')
   void detach() native "Range_detach_Callback";
 
-
-  /** @domName Range.expand */
+  @DocsEditable
+  @DomName('Range.expand')
   void expand(String unit) native "Range_expand_Callback";
 
-
-  /** @domName Range.extractContents */
+  @DocsEditable
+  @DomName('Range.extractContents')
   DocumentFragment extractContents() native "Range_extractContents_Callback";
 
-
-  /** @domName Range.getBoundingClientRect */
+  @DocsEditable
+  @DomName('Range.getBoundingClientRect')
   ClientRect getBoundingClientRect() native "Range_getBoundingClientRect_Callback";
 
-
-  /** @domName Range.getClientRects */
+  @DocsEditable
+  @DomName('Range.getClientRects')
   List<ClientRect> getClientRects() native "Range_getClientRects_Callback";
 
-
-  /** @domName Range.insertNode */
+  @DocsEditable
+  @DomName('Range.insertNode')
   void insertNode(Node newNode) native "Range_insertNode_Callback";
 
-
-  /** @domName Range.intersectsNode */
+  @DocsEditable
+  @DomName('Range.intersectsNode')
   bool intersectsNode(Node refNode) native "Range_intersectsNode_Callback";
 
-
-  /** @domName Range.isPointInRange */
+  @DocsEditable
+  @DomName('Range.isPointInRange')
   bool isPointInRange(Node refNode, int offset) native "Range_isPointInRange_Callback";
 
-
-  /** @domName Range.selectNode */
+  @DocsEditable
+  @DomName('Range.selectNode')
   void selectNode(Node refNode) native "Range_selectNode_Callback";
 
-
-  /** @domName Range.selectNodeContents */
+  @DocsEditable
+  @DomName('Range.selectNodeContents')
   void selectNodeContents(Node refNode) native "Range_selectNodeContents_Callback";
 
-
-  /** @domName Range.setEnd */
+  @DocsEditable
+  @DomName('Range.setEnd')
   void setEnd(Node refNode, int offset) native "Range_setEnd_Callback";
 
-
-  /** @domName Range.setEndAfter */
+  @DocsEditable
+  @DomName('Range.setEndAfter')
   void setEndAfter(Node refNode) native "Range_setEndAfter_Callback";
 
-
-  /** @domName Range.setEndBefore */
+  @DocsEditable
+  @DomName('Range.setEndBefore')
   void setEndBefore(Node refNode) native "Range_setEndBefore_Callback";
 
-
-  /** @domName Range.setStart */
+  @DocsEditable
+  @DomName('Range.setStart')
   void setStart(Node refNode, int offset) native "Range_setStart_Callback";
 
-
-  /** @domName Range.setStartAfter */
+  @DocsEditable
+  @DomName('Range.setStartAfter')
   void setStartAfter(Node refNode) native "Range_setStartAfter_Callback";
 
-
-  /** @domName Range.setStartBefore */
+  @DocsEditable
+  @DomName('Range.setStartBefore')
   void setStartBefore(Node refNode) native "Range_setStartBefore_Callback";
 
-
-  /** @domName Range.surroundContents */
+  @DocsEditable
+  @DomName('Range.surroundContents')
   void surroundContents(Node newParent) native "Range_surroundContents_Callback";
 
-
-  /** @domName Range.toString */
+  @DocsEditable
+  @DomName('Range.toString')
   String toString() native "Range_toString_Callback";
 
 }
@@ -19792,7 +19659,8 @@ class Range extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RangeException
+@DocsEditable
+@DomName('RangeException')
 class RangeException extends NativeFieldWrapperClass1 {
   RangeException.internal();
 
@@ -19800,20 +19668,20 @@ class RangeException extends NativeFieldWrapperClass1 {
 
   static const int INVALID_NODE_TYPE_ERR = 2;
 
-
-  /** @domName RangeException.code */
+  @DocsEditable
+  @DomName('RangeException.code')
   int get code native "RangeException_code_Getter";
 
-
-  /** @domName RangeException.message */
+  @DocsEditable
+  @DomName('RangeException.message')
   String get message native "RangeException_message_Getter";
 
-
-  /** @domName RangeException.name */
+  @DocsEditable
+  @DomName('RangeException.name')
   String get name native "RangeException_name_Getter";
 
-
-  /** @domName RangeException.toString */
+  @DocsEditable
+  @DomName('RangeException.toString')
   String toString() native "RangeException_toString_Callback";
 
 }
@@ -19824,24 +19692,25 @@ class RangeException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Rect
+@DocsEditable
+@DomName('Rect')
 class Rect extends NativeFieldWrapperClass1 {
   Rect.internal();
 
-
-  /** @domName Rect.bottom */
+  @DocsEditable
+  @DomName('Rect.bottom')
   CssPrimitiveValue get bottom native "Rect_bottom_Getter";
 
-
-  /** @domName Rect.left */
+  @DocsEditable
+  @DomName('Rect.left')
   CssPrimitiveValue get left native "Rect_left_Getter";
 
-
-  /** @domName Rect.right */
+  @DocsEditable
+  @DomName('Rect.right')
   CssPrimitiveValue get right native "Rect_right_Getter";
 
-
-  /** @domName Rect.top */
+  @DocsEditable
+  @DomName('Rect.top')
   CssPrimitiveValue get top native "Rect_top_Getter";
 
 }
@@ -19860,20 +19729,21 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RGBColor
+@DocsEditable
+@DomName('RGBColor')
 class RgbColor extends NativeFieldWrapperClass1 {
   RgbColor.internal();
 
-
-  /** @domName RGBColor.blue */
+  @DocsEditable
+  @DomName('RGBColor.blue')
   CssPrimitiveValue get blue native "RGBColor_blue_Getter";
 
-
-  /** @domName RGBColor.green */
+  @DocsEditable
+  @DomName('RGBColor.green')
   CssPrimitiveValue get green native "RGBColor_green_Getter";
 
-
-  /** @domName RGBColor.red */
+  @DocsEditable
+  @DomName('RGBColor.red')
   CssPrimitiveValue get red native "RGBColor_red_Getter";
 
 }
@@ -19884,7 +19754,8 @@ class RgbColor extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCDataChannel
+@DocsEditable
+@DomName('RTCDataChannel')
 class RtcDataChannel extends EventTarget {
   RtcDataChannel.internal() : super.internal();
 
@@ -19896,48 +19767,49 @@ class RtcDataChannel extends EventTarget {
 
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   RtcDataChannelEvents get on =>
     new RtcDataChannelEvents(this);
 
-
-  /** @domName RTCDataChannel.binaryType */
+  @DocsEditable
+  @DomName('RTCDataChannel.binaryType')
   String get binaryType native "RTCDataChannel_binaryType_Getter";
 
-
-  /** @domName RTCDataChannel.binaryType */
+  @DocsEditable
+  @DomName('RTCDataChannel.binaryType')
   void set binaryType(String value) native "RTCDataChannel_binaryType_Setter";
 
-
-  /** @domName RTCDataChannel.bufferedAmount */
+  @DocsEditable
+  @DomName('RTCDataChannel.bufferedAmount')
   int get bufferedAmount native "RTCDataChannel_bufferedAmount_Getter";
 
-
-  /** @domName RTCDataChannel.label */
+  @DocsEditable
+  @DomName('RTCDataChannel.label')
   String get label native "RTCDataChannel_label_Getter";
 
-
-  /** @domName RTCDataChannel.readyState */
+  @DocsEditable
+  @DomName('RTCDataChannel.readyState')
   String get readyState native "RTCDataChannel_readyState_Getter";
 
-
-  /** @domName RTCDataChannel.reliable */
+  @DocsEditable
+  @DomName('RTCDataChannel.reliable')
   bool get reliable native "RTCDataChannel_reliable_Getter";
 
-
-  /** @domName RTCDataChannel.addEventListener */
+  @DocsEditable
+  @DomName('RTCDataChannel.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_addEventListener_Callback";
 
-
-  /** @domName RTCDataChannel.close */
+  @DocsEditable
+  @DomName('RTCDataChannel.close')
   void close() native "RTCDataChannel_close_Callback";
 
-
-  /** @domName RTCDataChannel.dispatchEvent */
+  @DocsEditable
+  @DomName('RTCDataChannel.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "RTCDataChannel_dispatchEvent_Callback";
 
-
-  /** @domName RTCDataChannel.removeEventListener */
+  @DocsEditable
+  @DomName('RTCDataChannel.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
   void send(data) {
@@ -19960,20 +19832,20 @@ class RtcDataChannel extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName RTCDataChannel.send_1 */
+  @DocsEditable
+  @DomName('RTCDataChannel.send_1')
   void _send_1(data) native "RTCDataChannel_send_1_Callback";
 
-
-  /** @domName RTCDataChannel.send_2 */
+  @DocsEditable
+  @DomName('RTCDataChannel.send_2')
   void _send_2(data) native "RTCDataChannel_send_2_Callback";
 
-
-  /** @domName RTCDataChannel.send_3 */
+  @DocsEditable
+  @DomName('RTCDataChannel.send_3')
   void _send_3(data) native "RTCDataChannel_send_3_Callback";
 
-
-  /** @domName RTCDataChannel.send_4 */
+  @DocsEditable
+  @DomName('RTCDataChannel.send_4')
   void _send_4(data) native "RTCDataChannel_send_4_Callback";
 
   Stream<Event> get onClose => closeEvent.forTarget(this);
@@ -19986,21 +19858,21 @@ class RtcDataChannel extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class RtcDataChannelEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   RtcDataChannelEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get close => this['close'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20010,12 +19882,13 @@ class RtcDataChannelEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCDataChannelEvent
+@DocsEditable
+@DomName('RTCDataChannelEvent')
 class RtcDataChannelEvent extends Event {
   RtcDataChannelEvent.internal() : super.internal();
 
-
-  /** @domName RTCDataChannelEvent.channel */
+  @DocsEditable
+  @DomName('RTCDataChannelEvent.channel')
   RtcDataChannel get channel native "RTCDataChannelEvent_channel_Getter";
 
 }
@@ -20026,24 +19899,25 @@ class RtcDataChannelEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCIceCandidate
+@DocsEditable
+@DomName('RTCIceCandidate')
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
   RtcIceCandidate.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
   static RtcIceCandidate _create(Map dictionary) native "RTCIceCandidate_constructor_Callback";
 
-
-  /** @domName RTCIceCandidate.candidate */
+  @DocsEditable
+  @DomName('RTCIceCandidate.candidate')
   String get candidate native "RTCIceCandidate_candidate_Getter";
 
-
-  /** @domName RTCIceCandidate.sdpMLineIndex */
+  @DocsEditable
+  @DomName('RTCIceCandidate.sdpMLineIndex')
   int get sdpMLineIndex native "RTCIceCandidate_sdpMLineIndex_Getter";
 
-
-  /** @domName RTCIceCandidate.sdpMid */
+  @DocsEditable
+  @DomName('RTCIceCandidate.sdpMid')
   String get sdpMid native "RTCIceCandidate_sdpMid_Getter";
 
 }
@@ -20054,12 +19928,13 @@ class RtcIceCandidate extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCIceCandidateEvent
+@DocsEditable
+@DomName('RTCIceCandidateEvent')
 class RtcIceCandidateEvent extends Event {
   RtcIceCandidateEvent.internal() : super.internal();
 
-
-  /** @domName RTCIceCandidateEvent.candidate */
+  @DocsEditable
+  @DomName('RTCIceCandidateEvent.candidate')
   RtcIceCandidate get candidate native "RTCIceCandidateEvent_candidate_Getter";
 
 }
@@ -20070,7 +19945,8 @@ class RtcIceCandidateEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCPeerConnection
+@DocsEditable
+@DomName('RTCPeerConnection')
 class RtcPeerConnection extends EventTarget {
   RtcPeerConnection.internal() : super.internal();
 
@@ -20090,7 +19966,7 @@ class RtcPeerConnection extends EventTarget {
 
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
-  ///@docsEditable true
+  @DocsEditable
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     if (!?mediaConstraints) {
       return RtcPeerConnection._create(rtcIceServers);
@@ -20099,92 +19975,93 @@ class RtcPeerConnection extends EventTarget {
   }
   static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   RtcPeerConnectionEvents get on =>
     new RtcPeerConnectionEvents(this);
 
-
-  /** @domName RTCPeerConnection.iceGatheringState */
+  @DocsEditable
+  @DomName('RTCPeerConnection.iceGatheringState')
   String get iceGatheringState native "RTCPeerConnection_iceGatheringState_Getter";
 
-
-  /** @domName RTCPeerConnection.iceState */
+  @DocsEditable
+  @DomName('RTCPeerConnection.iceState')
   String get iceState native "RTCPeerConnection_iceState_Getter";
 
-
-  /** @domName RTCPeerConnection.localDescription */
+  @DocsEditable
+  @DomName('RTCPeerConnection.localDescription')
   RtcSessionDescription get localDescription native "RTCPeerConnection_localDescription_Getter";
 
-
-  /** @domName RTCPeerConnection.localStreams */
+  @DocsEditable
+  @DomName('RTCPeerConnection.localStreams')
   List<MediaStream> get localStreams native "RTCPeerConnection_localStreams_Getter";
 
-
-  /** @domName RTCPeerConnection.readyState */
+  @DocsEditable
+  @DomName('RTCPeerConnection.readyState')
   String get readyState native "RTCPeerConnection_readyState_Getter";
 
-
-  /** @domName RTCPeerConnection.remoteDescription */
+  @DocsEditable
+  @DomName('RTCPeerConnection.remoteDescription')
   RtcSessionDescription get remoteDescription native "RTCPeerConnection_remoteDescription_Getter";
 
-
-  /** @domName RTCPeerConnection.remoteStreams */
+  @DocsEditable
+  @DomName('RTCPeerConnection.remoteStreams')
   List<MediaStream> get remoteStreams native "RTCPeerConnection_remoteStreams_Getter";
 
-
-  /** @domName RTCPeerConnection.addEventListener */
+  @DocsEditable
+  @DomName('RTCPeerConnection.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
 
-
-  /** @domName RTCPeerConnection.addIceCandidate */
+  @DocsEditable
+  @DomName('RTCPeerConnection.addIceCandidate')
   void addIceCandidate(RtcIceCandidate candidate) native "RTCPeerConnection_addIceCandidate_Callback";
 
-
-  /** @domName RTCPeerConnection.addStream */
+  @DocsEditable
+  @DomName('RTCPeerConnection.addStream')
   void addStream(MediaStream stream, [Map mediaConstraints]) native "RTCPeerConnection_addStream_Callback";
 
-
-  /** @domName RTCPeerConnection.close */
+  @DocsEditable
+  @DomName('RTCPeerConnection.close')
   void close() native "RTCPeerConnection_close_Callback";
 
-
-  /** @domName RTCPeerConnection.createAnswer */
+  @DocsEditable
+  @DomName('RTCPeerConnection.createAnswer')
   void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createAnswer_Callback";
 
-
-  /** @domName RTCPeerConnection.createDataChannel */
+  @DocsEditable
+  @DomName('RTCPeerConnection.createDataChannel')
   RtcDataChannel createDataChannel(String label, [Map options]) native "RTCPeerConnection_createDataChannel_Callback";
 
-
-  /** @domName RTCPeerConnection.createOffer */
+  @DocsEditable
+  @DomName('RTCPeerConnection.createOffer')
   void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) native "RTCPeerConnection_createOffer_Callback";
 
-
-  /** @domName RTCPeerConnection.dispatchEvent */
+  @DocsEditable
+  @DomName('RTCPeerConnection.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
 
-
-  /** @domName RTCPeerConnection.getStats */
+  @DocsEditable
+  @DomName('RTCPeerConnection.getStats')
   void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
 
-
-  /** @domName RTCPeerConnection.removeEventListener */
+  @DocsEditable
+  @DomName('RTCPeerConnection.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
 
-
-  /** @domName RTCPeerConnection.removeStream */
+  @DocsEditable
+  @DomName('RTCPeerConnection.removeStream')
   void removeStream(MediaStream stream) native "RTCPeerConnection_removeStream_Callback";
 
-
-  /** @domName RTCPeerConnection.setLocalDescription */
+  @DocsEditable
+  @DomName('RTCPeerConnection.setLocalDescription')
   void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setLocalDescription_Callback";
 
-
-  /** @domName RTCPeerConnection.setRemoteDescription */
+  @DocsEditable
+  @DomName('RTCPeerConnection.setRemoteDescription')
   void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native "RTCPeerConnection_setRemoteDescription_Callback";
 
-
-  /** @domName RTCPeerConnection.updateIce */
+  @DocsEditable
+  @DomName('RTCPeerConnection.updateIce')
   void updateIce([Map configuration, Map mediaConstraints]) native "RTCPeerConnection_updateIce_Callback";
 
   Stream<MediaStreamEvent> get onAddStream => addStreamEvent.forTarget(this);
@@ -20205,30 +20082,30 @@ class RtcPeerConnection extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class RtcPeerConnectionEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   RtcPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get addStream => this['addstream'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get iceCandidate => this['icecandidate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get iceChange => this['icechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get negotiationNeeded => this['negotiationneeded'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get removeStream => this['removestream'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get stateChange => this['statechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20238,28 +20115,29 @@ class RtcPeerConnectionEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCSessionDescription
+@DocsEditable
+@DomName('RTCSessionDescription')
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
   RtcSessionDescription.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
   static RtcSessionDescription _create(Map dictionary) native "RTCSessionDescription_constructor_Callback";
 
-
-  /** @domName RTCSessionDescription.sdp */
+  @DocsEditable
+  @DomName('RTCSessionDescription.sdp')
   String get sdp native "RTCSessionDescription_sdp_Getter";
 
-
-  /** @domName RTCSessionDescription.sdp */
+  @DocsEditable
+  @DomName('RTCSessionDescription.sdp')
   void set sdp(String value) native "RTCSessionDescription_sdp_Setter";
 
-
-  /** @domName RTCSessionDescription.type */
+  @DocsEditable
+  @DomName('RTCSessionDescription.type')
   String get type native "RTCSessionDescription_type_Getter";
 
-
-  /** @domName RTCSessionDescription.type */
+  @DocsEditable
+  @DomName('RTCSessionDescription.type')
   void set type(String value) native "RTCSessionDescription_type_Setter";
 
 }
@@ -20270,20 +20148,21 @@ class RtcSessionDescription extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCStatsElement
+@DocsEditable
+@DomName('RTCStatsElement')
 class RtcStatsElement extends NativeFieldWrapperClass1 {
   RtcStatsElement.internal();
 
-
-  /** @domName RTCStatsElement.timestamp */
+  @DocsEditable
+  @DomName('RTCStatsElement.timestamp')
   Date get timestamp native "RTCStatsElement_timestamp_Getter";
 
-
-  /** @domName RTCStatsElement.names */
+  @DocsEditable
+  @DomName('RTCStatsElement.names')
   List<String> names() native "RTCStatsElement_names_Callback";
 
-
-  /** @domName RTCStatsElement.stat */
+  @DocsEditable
+  @DomName('RTCStatsElement.stat')
   String stat(String name) native "RTCStatsElement_stat_Callback";
 
 }
@@ -20294,16 +20173,17 @@ class RtcStatsElement extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCStatsReport
+@DocsEditable
+@DomName('RTCStatsReport')
 class RtcStatsReport extends NativeFieldWrapperClass1 {
   RtcStatsReport.internal();
 
-
-  /** @domName RTCStatsReport.local */
+  @DocsEditable
+  @DomName('RTCStatsReport.local')
   RtcStatsElement get local native "RTCStatsReport_local_Getter";
 
-
-  /** @domName RTCStatsReport.remote */
+  @DocsEditable
+  @DomName('RTCStatsReport.remote')
   RtcStatsElement get remote native "RTCStatsReport_remote_Getter";
 
 }
@@ -20314,12 +20194,13 @@ class RtcStatsReport extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName RTCStatsResponse
+@DocsEditable
+@DomName('RTCStatsResponse')
 class RtcStatsResponse extends NativeFieldWrapperClass1 {
   RtcStatsResponse.internal();
 
-
-  /** @domName RTCStatsResponse.result */
+  @DocsEditable
+  @DomName('RTCStatsResponse.result')
   List<RtcStatsReport> result() native "RTCStatsResponse_result_Callback";
 
 }
@@ -20370,40 +20251,41 @@ typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Screen
+@DocsEditable
+@DomName('Screen')
 class Screen extends NativeFieldWrapperClass1 {
   Screen.internal();
 
-
-  /** @domName Screen.availHeight */
+  @DocsEditable
+  @DomName('Screen.availHeight')
   int get availHeight native "Screen_availHeight_Getter";
 
-
-  /** @domName Screen.availLeft */
+  @DocsEditable
+  @DomName('Screen.availLeft')
   int get availLeft native "Screen_availLeft_Getter";
 
-
-  /** @domName Screen.availTop */
+  @DocsEditable
+  @DomName('Screen.availTop')
   int get availTop native "Screen_availTop_Getter";
 
-
-  /** @domName Screen.availWidth */
+  @DocsEditable
+  @DomName('Screen.availWidth')
   int get availWidth native "Screen_availWidth_Getter";
 
-
-  /** @domName Screen.colorDepth */
+  @DocsEditable
+  @DomName('Screen.colorDepth')
   int get colorDepth native "Screen_colorDepth_Getter";
 
-
-  /** @domName Screen.height */
+  @DocsEditable
+  @DomName('Screen.height')
   int get height native "Screen_height_Getter";
 
-
-  /** @domName Screen.pixelDepth */
+  @DocsEditable
+  @DomName('Screen.pixelDepth')
   int get pixelDepth native "Screen_pixelDepth_Getter";
 
-
-  /** @domName Screen.width */
+  @DocsEditable
+  @DomName('Screen.width')
   int get width native "Screen_width_Getter";
 
 }
@@ -20414,75 +20296,76 @@ class Screen extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLScriptElement
+@DocsEditable
+@DomName('HTMLScriptElement')
 class ScriptElement extends _Element_Merged {
   ScriptElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory ScriptElement() => document.$dom_createElement("script");
 
-
-  /** @domName HTMLScriptElement.async */
+  @DocsEditable
+  @DomName('HTMLScriptElement.async')
   bool get async native "HTMLScriptElement_async_Getter";
 
-
-  /** @domName HTMLScriptElement.async */
+  @DocsEditable
+  @DomName('HTMLScriptElement.async')
   void set async(bool value) native "HTMLScriptElement_async_Setter";
 
-
-  /** @domName HTMLScriptElement.charset */
+  @DocsEditable
+  @DomName('HTMLScriptElement.charset')
   String get charset native "HTMLScriptElement_charset_Getter";
 
-
-  /** @domName HTMLScriptElement.charset */
+  @DocsEditable
+  @DomName('HTMLScriptElement.charset')
   void set charset(String value) native "HTMLScriptElement_charset_Setter";
 
-
-  /** @domName HTMLScriptElement.crossOrigin */
+  @DocsEditable
+  @DomName('HTMLScriptElement.crossOrigin')
   String get crossOrigin native "HTMLScriptElement_crossOrigin_Getter";
 
-
-  /** @domName HTMLScriptElement.crossOrigin */
+  @DocsEditable
+  @DomName('HTMLScriptElement.crossOrigin')
   void set crossOrigin(String value) native "HTMLScriptElement_crossOrigin_Setter";
 
-
-  /** @domName HTMLScriptElement.defer */
+  @DocsEditable
+  @DomName('HTMLScriptElement.defer')
   bool get defer native "HTMLScriptElement_defer_Getter";
 
-
-  /** @domName HTMLScriptElement.defer */
+  @DocsEditable
+  @DomName('HTMLScriptElement.defer')
   void set defer(bool value) native "HTMLScriptElement_defer_Setter";
 
-
-  /** @domName HTMLScriptElement.event */
+  @DocsEditable
+  @DomName('HTMLScriptElement.event')
   String get event native "HTMLScriptElement_event_Getter";
 
-
-  /** @domName HTMLScriptElement.event */
+  @DocsEditable
+  @DomName('HTMLScriptElement.event')
   void set event(String value) native "HTMLScriptElement_event_Setter";
 
-
-  /** @domName HTMLScriptElement.htmlFor */
+  @DocsEditable
+  @DomName('HTMLScriptElement.htmlFor')
   String get htmlFor native "HTMLScriptElement_htmlFor_Getter";
 
-
-  /** @domName HTMLScriptElement.htmlFor */
+  @DocsEditable
+  @DomName('HTMLScriptElement.htmlFor')
   void set htmlFor(String value) native "HTMLScriptElement_htmlFor_Setter";
 
-
-  /** @domName HTMLScriptElement.src */
+  @DocsEditable
+  @DomName('HTMLScriptElement.src')
   String get src native "HTMLScriptElement_src_Getter";
 
-
-  /** @domName HTMLScriptElement.src */
+  @DocsEditable
+  @DomName('HTMLScriptElement.src')
   void set src(String value) native "HTMLScriptElement_src_Setter";
 
-
-  /** @domName HTMLScriptElement.type */
+  @DocsEditable
+  @DomName('HTMLScriptElement.type')
   String get type native "HTMLScriptElement_type_Getter";
 
-
-  /** @domName HTMLScriptElement.type */
+  @DocsEditable
+  @DomName('HTMLScriptElement.type')
   void set type(String value) native "HTMLScriptElement_type_Setter";
 
 }
@@ -20493,20 +20376,25 @@ class ScriptElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ScriptProfile
+@DocsEditable
+@DomName('ScriptProfile')
 class ScriptProfile extends NativeFieldWrapperClass1 {
   ScriptProfile.internal();
 
-
-  /** @domName ScriptProfile.head */
+  @DocsEditable
+  @DomName('ScriptProfile.head')
   ScriptProfileNode get head native "ScriptProfile_head_Getter";
 
+  @DocsEditable
+  @DomName('ScriptProfile.idleTime')
+  num get idleTime native "ScriptProfile_idleTime_Getter";
 
-  /** @domName ScriptProfile.title */
+  @DocsEditable
+  @DomName('ScriptProfile.title')
   String get title native "ScriptProfile_title_Getter";
 
-
-  /** @domName ScriptProfile.uid */
+  @DocsEditable
+  @DomName('ScriptProfile.uid')
   int get uid native "ScriptProfile_uid_Getter";
 
 }
@@ -20517,44 +20405,45 @@ class ScriptProfile extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ScriptProfileNode
+@DocsEditable
+@DomName('ScriptProfileNode')
 class ScriptProfileNode extends NativeFieldWrapperClass1 {
   ScriptProfileNode.internal();
 
-
-  /** @domName ScriptProfileNode.callUID */
+  @DocsEditable
+  @DomName('ScriptProfileNode.callUID')
   int get callUid native "ScriptProfileNode_callUID_Getter";
 
-
-  /** @domName ScriptProfileNode.functionName */
+  @DocsEditable
+  @DomName('ScriptProfileNode.functionName')
   String get functionName native "ScriptProfileNode_functionName_Getter";
 
-
-  /** @domName ScriptProfileNode.lineNumber */
+  @DocsEditable
+  @DomName('ScriptProfileNode.lineNumber')
   int get lineNumber native "ScriptProfileNode_lineNumber_Getter";
 
-
-  /** @domName ScriptProfileNode.numberOfCalls */
+  @DocsEditable
+  @DomName('ScriptProfileNode.numberOfCalls')
   int get numberOfCalls native "ScriptProfileNode_numberOfCalls_Getter";
 
-
-  /** @domName ScriptProfileNode.selfTime */
+  @DocsEditable
+  @DomName('ScriptProfileNode.selfTime')
   num get selfTime native "ScriptProfileNode_selfTime_Getter";
 
-
-  /** @domName ScriptProfileNode.totalTime */
+  @DocsEditable
+  @DomName('ScriptProfileNode.totalTime')
   num get totalTime native "ScriptProfileNode_totalTime_Getter";
 
-
-  /** @domName ScriptProfileNode.url */
+  @DocsEditable
+  @DomName('ScriptProfileNode.url')
   String get url native "ScriptProfileNode_url_Getter";
 
-
-  /** @domName ScriptProfileNode.visible */
+  @DocsEditable
+  @DomName('ScriptProfileNode.visible')
   bool get visible native "ScriptProfileNode_visible_Getter";
 
-
-  /** @domName ScriptProfileNode.children */
+  @DocsEditable
+  @DomName('ScriptProfileNode.children')
   List<ScriptProfileNode> children() native "ScriptProfileNode_children_Callback";
 
 }
@@ -20563,123 +20452,124 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName HTMLSelectElement
+@DocsEditable
+@DomName('HTMLSelectElement')
 class SelectElement extends _Element_Merged {
   SelectElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory SelectElement() => document.$dom_createElement("select");
 
-
-  /** @domName HTMLSelectElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLSelectElement.autofocus')
   bool get autofocus native "HTMLSelectElement_autofocus_Getter";
 
-
-  /** @domName HTMLSelectElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLSelectElement.autofocus')
   void set autofocus(bool value) native "HTMLSelectElement_autofocus_Setter";
 
-
-  /** @domName HTMLSelectElement.disabled */
+  @DocsEditable
+  @DomName('HTMLSelectElement.disabled')
   bool get disabled native "HTMLSelectElement_disabled_Getter";
 
-
-  /** @domName HTMLSelectElement.disabled */
+  @DocsEditable
+  @DomName('HTMLSelectElement.disabled')
   void set disabled(bool value) native "HTMLSelectElement_disabled_Setter";
 
-
-  /** @domName HTMLSelectElement.form */
+  @DocsEditable
+  @DomName('HTMLSelectElement.form')
   FormElement get form native "HTMLSelectElement_form_Getter";
 
-
-  /** @domName HTMLSelectElement.labels */
+  @DocsEditable
+  @DomName('HTMLSelectElement.labels')
   List<Node> get labels native "HTMLSelectElement_labels_Getter";
 
-
-  /** @domName HTMLSelectElement.length */
+  @DocsEditable
+  @DomName('HTMLSelectElement.length')
   int get length native "HTMLSelectElement_length_Getter";
 
-
-  /** @domName HTMLSelectElement.length */
+  @DocsEditable
+  @DomName('HTMLSelectElement.length')
   void set length(int value) native "HTMLSelectElement_length_Setter";
 
-
-  /** @domName HTMLSelectElement.multiple */
+  @DocsEditable
+  @DomName('HTMLSelectElement.multiple')
   bool get multiple native "HTMLSelectElement_multiple_Getter";
 
-
-  /** @domName HTMLSelectElement.multiple */
+  @DocsEditable
+  @DomName('HTMLSelectElement.multiple')
   void set multiple(bool value) native "HTMLSelectElement_multiple_Setter";
 
-
-  /** @domName HTMLSelectElement.name */
+  @DocsEditable
+  @DomName('HTMLSelectElement.name')
   String get name native "HTMLSelectElement_name_Getter";
 
-
-  /** @domName HTMLSelectElement.name */
+  @DocsEditable
+  @DomName('HTMLSelectElement.name')
   void set name(String value) native "HTMLSelectElement_name_Setter";
 
-
-  /** @domName HTMLSelectElement.required */
+  @DocsEditable
+  @DomName('HTMLSelectElement.required')
   bool get required native "HTMLSelectElement_required_Getter";
 
-
-  /** @domName HTMLSelectElement.required */
+  @DocsEditable
+  @DomName('HTMLSelectElement.required')
   void set required(bool value) native "HTMLSelectElement_required_Setter";
 
-
-  /** @domName HTMLSelectElement.selectedIndex */
+  @DocsEditable
+  @DomName('HTMLSelectElement.selectedIndex')
   int get selectedIndex native "HTMLSelectElement_selectedIndex_Getter";
 
-
-  /** @domName HTMLSelectElement.selectedIndex */
+  @DocsEditable
+  @DomName('HTMLSelectElement.selectedIndex')
   void set selectedIndex(int value) native "HTMLSelectElement_selectedIndex_Setter";
 
-
-  /** @domName HTMLSelectElement.size */
+  @DocsEditable
+  @DomName('HTMLSelectElement.size')
   int get size native "HTMLSelectElement_size_Getter";
 
-
-  /** @domName HTMLSelectElement.size */
+  @DocsEditable
+  @DomName('HTMLSelectElement.size')
   void set size(int value) native "HTMLSelectElement_size_Setter";
 
-
-  /** @domName HTMLSelectElement.type */
+  @DocsEditable
+  @DomName('HTMLSelectElement.type')
   String get type native "HTMLSelectElement_type_Getter";
 
-
-  /** @domName HTMLSelectElement.validationMessage */
+  @DocsEditable
+  @DomName('HTMLSelectElement.validationMessage')
   String get validationMessage native "HTMLSelectElement_validationMessage_Getter";
 
-
-  /** @domName HTMLSelectElement.validity */
+  @DocsEditable
+  @DomName('HTMLSelectElement.validity')
   ValidityState get validity native "HTMLSelectElement_validity_Getter";
 
-
-  /** @domName HTMLSelectElement.value */
+  @DocsEditable
+  @DomName('HTMLSelectElement.value')
   String get value native "HTMLSelectElement_value_Getter";
 
-
-  /** @domName HTMLSelectElement.value */
+  @DocsEditable
+  @DomName('HTMLSelectElement.value')
   void set value(String value) native "HTMLSelectElement_value_Setter";
 
-
-  /** @domName HTMLSelectElement.willValidate */
+  @DocsEditable
+  @DomName('HTMLSelectElement.willValidate')
   bool get willValidate native "HTMLSelectElement_willValidate_Getter";
 
-
-  /** @domName HTMLSelectElement.checkValidity */
+  @DocsEditable
+  @DomName('HTMLSelectElement.checkValidity')
   bool checkValidity() native "HTMLSelectElement_checkValidity_Callback";
 
-
-  /** @domName HTMLSelectElement.item */
+  @DocsEditable
+  @DomName('HTMLSelectElement.item')
   Node item(int index) native "HTMLSelectElement_item_Callback";
 
-
-  /** @domName HTMLSelectElement.namedItem */
+  @DocsEditable
+  @DomName('HTMLSelectElement.namedItem')
   Node namedItem(String name) native "HTMLSelectElement_namedItem_Callback";
 
-
-  /** @domName HTMLSelectElement.setCustomValidity */
+  @DocsEditable
+  @DomName('HTMLSelectElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLSelectElement_setCustomValidity_Callback";
 
 
@@ -20707,7 +20597,8 @@ class SelectElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLShadowElement
+@DocsEditable
+@DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class ShadowElement extends _Element_Merged {
@@ -20716,16 +20607,16 @@ class ShadowElement extends _Element_Merged {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-
-  /** @domName HTMLShadowElement.olderShadowRoot */
+  @DocsEditable
+  @DomName('HTMLShadowElement.olderShadowRoot')
   ShadowRoot get olderShadowRoot native "HTMLShadowElement_olderShadowRoot_Getter";
 
-
-  /** @domName HTMLShadowElement.resetStyleInheritance */
+  @DocsEditable
+  @DomName('HTMLShadowElement.resetStyleInheritance')
   bool get resetStyleInheritance native "HTMLShadowElement_resetStyleInheritance_Getter";
 
-
-  /** @domName HTMLShadowElement.resetStyleInheritance */
+  @DocsEditable
+  @DomName('HTMLShadowElement.resetStyleInheritance')
   void set resetStyleInheritance(bool value) native "HTMLShadowElement_resetStyleInheritance_Setter";
 
 }
@@ -20736,58 +20627,63 @@ class ShadowElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ShadowRoot
+@DocsEditable
+@DomName('ShadowRoot')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class ShadowRoot extends DocumentFragment {
   ShadowRoot.internal() : super.internal();
 
-
-  /** @domName ShadowRoot.activeElement */
+  @DocsEditable
+  @DomName('ShadowRoot.activeElement')
   Element get activeElement native "ShadowRoot_activeElement_Getter";
 
-
-  /** @domName ShadowRoot.applyAuthorStyles */
+  @DocsEditable
+  @DomName('ShadowRoot.applyAuthorStyles')
   bool get applyAuthorStyles native "ShadowRoot_applyAuthorStyles_Getter";
 
-
-  /** @domName ShadowRoot.applyAuthorStyles */
+  @DocsEditable
+  @DomName('ShadowRoot.applyAuthorStyles')
   void set applyAuthorStyles(bool value) native "ShadowRoot_applyAuthorStyles_Setter";
 
-
-  /** @domName ShadowRoot.innerHTML */
+  @DocsEditable
+  @DomName('ShadowRoot.innerHTML')
   String get innerHtml native "ShadowRoot_innerHTML_Getter";
 
-
-  /** @domName ShadowRoot.innerHTML */
+  @DocsEditable
+  @DomName('ShadowRoot.innerHTML')
   void set innerHtml(String value) native "ShadowRoot_innerHTML_Setter";
 
-
-  /** @domName ShadowRoot.resetStyleInheritance */
+  @DocsEditable
+  @DomName('ShadowRoot.resetStyleInheritance')
   bool get resetStyleInheritance native "ShadowRoot_resetStyleInheritance_Getter";
 
-
-  /** @domName ShadowRoot.resetStyleInheritance */
+  @DocsEditable
+  @DomName('ShadowRoot.resetStyleInheritance')
   void set resetStyleInheritance(bool value) native "ShadowRoot_resetStyleInheritance_Setter";
 
-
-  /** @domName ShadowRoot.cloneNode */
+  @DocsEditable
+  @DomName('ShadowRoot.cloneNode')
   Node clone(bool deep) native "ShadowRoot_cloneNode_Callback";
 
+  @DocsEditable
+  @DomName('ShadowRoot.elementFromPoint')
+  Element elementFromPoint(int x, int y) native "ShadowRoot_elementFromPoint_Callback";
 
-  /** @domName ShadowRoot.getElementById */
+  @DocsEditable
+  @DomName('ShadowRoot.getElementById')
   Element $dom_getElementById(String elementId) native "ShadowRoot_getElementById_Callback";
 
-
-  /** @domName ShadowRoot.getElementsByClassName */
+  @DocsEditable
+  @DomName('ShadowRoot.getElementsByClassName')
   List<Node> $dom_getElementsByClassName(String className) native "ShadowRoot_getElementsByClassName_Callback";
 
-
-  /** @domName ShadowRoot.getElementsByTagName */
+  @DocsEditable
+  @DomName('ShadowRoot.getElementsByTagName')
   List<Node> $dom_getElementsByTagName(String tagName) native "ShadowRoot_getElementsByTagName_Callback";
 
-
-  /** @domName ShadowRoot.getSelection */
+  @DocsEditable
+  @DomName('ShadowRoot.getSelection')
   DomSelection getSelection() native "ShadowRoot_getSelection_Callback";
 
   static bool get supported => _Utils.shadowRootSupported(window.document);
@@ -20799,11 +20695,12 @@ class ShadowRoot extends DocumentFragment {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SharedWorker
+@DocsEditable
+@DomName('SharedWorker')
 class SharedWorker extends AbstractWorker {
   SharedWorker.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory SharedWorker(String scriptURL, [String name]) {
     if (!?name) {
       return SharedWorker._create(scriptURL);
@@ -20812,8 +20709,8 @@ class SharedWorker extends AbstractWorker {
   }
   static SharedWorker _create(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
 
-
-  /** @domName SharedWorker.port */
+  @DocsEditable
+  @DomName('SharedWorker.port')
   MessagePort get port native "SharedWorker_port_Getter";
 
 }
@@ -20824,30 +20721,32 @@ class SharedWorker extends AbstractWorker {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SharedWorkerContext
+@DocsEditable
+@DomName('SharedWorkerContext')
 class SharedWorkerContext extends WorkerContext {
   SharedWorkerContext.internal() : super.internal();
 
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
-
-  /** @domName SharedWorkerContext.name */
+  @DocsEditable
+  @DomName('SharedWorkerContext.name')
   String get name native "SharedWorkerContext_name_Getter";
 
   Stream<Event> get onConnect => connectEvent.forTarget(this);
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class SharedWorkerContextEvents extends WorkerContextEvents {
-  /// @docsEditable true
+  @DocsEditable
   SharedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get connect => this['connect'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20857,28 +20756,29 @@ class SharedWorkerContextEvents extends WorkerContextEvents {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SourceBuffer
+@DocsEditable
+@DomName('SourceBuffer')
 class SourceBuffer extends NativeFieldWrapperClass1 {
   SourceBuffer.internal();
 
-
-  /** @domName SourceBuffer.buffered */
+  @DocsEditable
+  @DomName('SourceBuffer.buffered')
   TimeRanges get buffered native "SourceBuffer_buffered_Getter";
 
-
-  /** @domName SourceBuffer.timestampOffset */
+  @DocsEditable
+  @DomName('SourceBuffer.timestampOffset')
   num get timestampOffset native "SourceBuffer_timestampOffset_Getter";
 
-
-  /** @domName SourceBuffer.timestampOffset */
+  @DocsEditable
+  @DomName('SourceBuffer.timestampOffset')
   void set timestampOffset(num value) native "SourceBuffer_timestampOffset_Setter";
 
-
-  /** @domName SourceBuffer.abort */
+  @DocsEditable
+  @DomName('SourceBuffer.abort')
   void abort() native "SourceBuffer_abort_Callback";
 
-
-  /** @domName SourceBuffer.append */
+  @DocsEditable
+  @DomName('SourceBuffer.append')
   void append(Uint8Array data) native "SourceBuffer_append_Callback";
 
 }
@@ -20889,12 +20789,13 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SourceBufferList
+@DocsEditable
+@DomName('SourceBufferList')
 class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   SourceBufferList.internal() : super.internal();
 
-
-  /** @domName SourceBufferList.length */
+  @DocsEditable
+  @DomName('SourceBufferList.length')
   int get length native "SourceBufferList_length_Getter";
 
   SourceBuffer operator[](int index) native "SourceBufferList_item_Callback";
@@ -20915,50 +20816,50 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SourceBuffer element) => Collections.contains(this, element);
+  bool contains(SourceBuffer element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SourceBuffer element)) => Collections.forEach(this, f);
+  void forEach(void f(SourceBuffer element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SourceBuffer element)) => new MappedList<SourceBuffer, dynamic>(this, f);
+  List mappedBy(f(SourceBuffer element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) => new WhereIterable<SourceBuffer>(this, f);
+  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SourceBuffer element)) => Collections.every(this, f);
+  bool every(bool f(SourceBuffer element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SourceBuffer element)) => Collections.any(this, f);
+  bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
 
   List<SourceBuffer> toList() => new List<SourceBuffer>.from(this);
   Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SourceBuffer> take(int n) => new ListView<SourceBuffer>(this, 0, n);
+  List<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SourceBuffer> takeWhile(bool test(SourceBuffer value)) {
-    return new TakeWhileIterable<SourceBuffer>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SourceBuffer> skip(int n) => new ListView<SourceBuffer>(this, n, null);
+  List<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SourceBuffer> skipWhile(bool test(SourceBuffer value)) {
-    return new SkipWhileIterable<SourceBuffer>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SourceBuffer firstMatching(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SourceBuffer lastMatching(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SourceBuffer singleMatching(bool test(SourceBuffer value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SourceBuffer elementAt(int index) {
@@ -21016,16 +20917,36 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new StateError("More than one element");
   }
 
-  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.min(this, compare);
+  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => Collections.max(this, compare);
+  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => IterableMixinWorkaround.max(this, compare);
 
   SourceBuffer removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   SourceBuffer removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(SourceBuffer element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(SourceBuffer element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
@@ -21045,20 +20966,20 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
   // -- end List<SourceBuffer> mixins.
 
-
-  /** @domName SourceBufferList.addEventListener */
+  @DocsEditable
+  @DomName('SourceBufferList.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_addEventListener_Callback";
 
-
-  /** @domName SourceBufferList.dispatchEvent */
+  @DocsEditable
+  @DomName('SourceBufferList.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "SourceBufferList_dispatchEvent_Callback";
 
-
-  /** @domName SourceBufferList.item */
+  @DocsEditable
+  @DomName('SourceBufferList.item')
   SourceBuffer item(int index) native "SourceBufferList_item_Callback";
 
-
-  /** @domName SourceBufferList.removeEventListener */
+  @DocsEditable
+  @DomName('SourceBufferList.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_removeEventListener_Callback";
 
 }
@@ -21069,35 +20990,36 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLSourceElement
+@DocsEditable
+@DomName('HTMLSourceElement')
 class SourceElement extends _Element_Merged {
   SourceElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory SourceElement() => document.$dom_createElement("source");
 
-
-  /** @domName HTMLSourceElement.media */
+  @DocsEditable
+  @DomName('HTMLSourceElement.media')
   String get media native "HTMLSourceElement_media_Getter";
 
-
-  /** @domName HTMLSourceElement.media */
+  @DocsEditable
+  @DomName('HTMLSourceElement.media')
   void set media(String value) native "HTMLSourceElement_media_Setter";
 
-
-  /** @domName HTMLSourceElement.src */
+  @DocsEditable
+  @DomName('HTMLSourceElement.src')
   String get src native "HTMLSourceElement_src_Getter";
 
-
-  /** @domName HTMLSourceElement.src */
+  @DocsEditable
+  @DomName('HTMLSourceElement.src')
   void set src(String value) native "HTMLSourceElement_src_Setter";
 
-
-  /** @domName HTMLSourceElement.type */
+  @DocsEditable
+  @DomName('HTMLSourceElement.type')
   String get type native "HTMLSourceElement_type_Getter";
 
-
-  /** @domName HTMLSourceElement.type */
+  @DocsEditable
+  @DomName('HTMLSourceElement.type')
   void set type(String value) native "HTMLSourceElement_type_Setter";
 
 }
@@ -21108,11 +21030,12 @@ class SourceElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLSpanElement
+@DocsEditable
+@DomName('HTMLSpanElement')
 class SpanElement extends _Element_Merged {
   SpanElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory SpanElement() => document.$dom_createElement("span");
 
 }
@@ -21123,28 +21046,29 @@ class SpanElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechGrammar
+@DocsEditable
+@DomName('SpeechGrammar')
 class SpeechGrammar extends NativeFieldWrapperClass1 {
   SpeechGrammar.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory SpeechGrammar() => SpeechGrammar._create();
   static SpeechGrammar _create() native "SpeechGrammar_constructor_Callback";
 
-
-  /** @domName SpeechGrammar.src */
+  @DocsEditable
+  @DomName('SpeechGrammar.src')
   String get src native "SpeechGrammar_src_Getter";
 
-
-  /** @domName SpeechGrammar.src */
+  @DocsEditable
+  @DomName('SpeechGrammar.src')
   void set src(String value) native "SpeechGrammar_src_Setter";
 
-
-  /** @domName SpeechGrammar.weight */
+  @DocsEditable
+  @DomName('SpeechGrammar.weight')
   num get weight native "SpeechGrammar_weight_Getter";
 
-
-  /** @domName SpeechGrammar.weight */
+  @DocsEditable
+  @DomName('SpeechGrammar.weight')
   void set weight(num value) native "SpeechGrammar_weight_Setter";
 
 }
@@ -21155,16 +21079,17 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechGrammarList
+@DocsEditable
+@DomName('SpeechGrammarList')
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
   SpeechGrammarList.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory SpeechGrammarList() => SpeechGrammarList._create();
   static SpeechGrammarList _create() native "SpeechGrammarList_constructor_Callback";
 
-
-  /** @domName SpeechGrammarList.length */
+  @DocsEditable
+  @DomName('SpeechGrammarList.length')
   int get length native "SpeechGrammarList_length_Getter";
 
   SpeechGrammar operator[](int index) native "SpeechGrammarList_item_Callback";
@@ -21185,50 +21110,50 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SpeechGrammar element) => Collections.contains(this, element);
+  bool contains(SpeechGrammar element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SpeechGrammar element)) => Collections.forEach(this, f);
+  void forEach(void f(SpeechGrammar element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechGrammar element)) => new MappedList<SpeechGrammar, dynamic>(this, f);
+  List mappedBy(f(SpeechGrammar element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) => new WhereIterable<SpeechGrammar>(this, f);
+  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SpeechGrammar element)) => Collections.every(this, f);
+  bool every(bool f(SpeechGrammar element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SpeechGrammar element)) => Collections.any(this, f);
+  bool any(bool f(SpeechGrammar element)) => IterableMixinWorkaround.any(this, f);
 
   List<SpeechGrammar> toList() => new List<SpeechGrammar>.from(this);
   Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechGrammar> take(int n) => new ListView<SpeechGrammar>(this, 0, n);
+  List<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechGrammar> takeWhile(bool test(SpeechGrammar value)) {
-    return new TakeWhileIterable<SpeechGrammar>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechGrammar> skip(int n) => new ListView<SpeechGrammar>(this, n, null);
+  List<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechGrammar> skipWhile(bool test(SpeechGrammar value)) {
-    return new SkipWhileIterable<SpeechGrammar>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SpeechGrammar firstMatching(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SpeechGrammar lastMatching(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SpeechGrammar singleMatching(bool test(SpeechGrammar value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SpeechGrammar elementAt(int index) {
@@ -21286,16 +21211,36 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new StateError("More than one element");
   }
 
-  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.min(this, compare);
+  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => Collections.max(this, compare);
+  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => IterableMixinWorkaround.max(this, compare);
 
   SpeechGrammar removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   SpeechGrammar removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(SpeechGrammar element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(SpeechGrammar element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
@@ -21315,7 +21260,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   // -- end List<SpeechGrammar> mixins.
 
-  void addFromString(/*DOMString*/ string, [/*float*/ weight]) {
+  void addFromString(String string, [num weight]) {
     if (?weight) {
       _addFromString_1(string, weight);
       return;
@@ -21323,15 +21268,15 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     _addFromString_2(string);
   }
 
-
-  /** @domName SpeechGrammarList.addFromString_1 */
+  @DocsEditable
+  @DomName('SpeechGrammarList.addFromString_1')
   void _addFromString_1(string, weight) native "SpeechGrammarList_addFromString_1_Callback";
 
-
-  /** @domName SpeechGrammarList.addFromString_2 */
+  @DocsEditable
+  @DomName('SpeechGrammarList.addFromString_2')
   void _addFromString_2(string) native "SpeechGrammarList_addFromString_2_Callback";
 
-  void addFromUri(/*DOMString*/ src, [/*float*/ weight]) {
+  void addFromUri(String src, [num weight]) {
     if (?weight) {
       _addFromUri_1(src, weight);
       return;
@@ -21339,16 +21284,16 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     _addFromUri_2(src);
   }
 
-
-  /** @domName SpeechGrammarList.addFromUri_1 */
+  @DocsEditable
+  @DomName('SpeechGrammarList.addFromUri_1')
   void _addFromUri_1(src, weight) native "SpeechGrammarList_addFromUri_1_Callback";
 
-
-  /** @domName SpeechGrammarList.addFromUri_2 */
+  @DocsEditable
+  @DomName('SpeechGrammarList.addFromUri_2')
   void _addFromUri_2(src) native "SpeechGrammarList_addFromUri_2_Callback";
 
-
-  /** @domName SpeechGrammarList.item */
+  @DocsEditable
+  @DomName('SpeechGrammarList.item')
   SpeechGrammar item(int index) native "SpeechGrammarList_item_Callback";
 
 }
@@ -21359,12 +21304,13 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechInputEvent
+@DocsEditable
+@DomName('SpeechInputEvent')
 class SpeechInputEvent extends Event {
   SpeechInputEvent.internal() : super.internal();
 
-
-  /** @domName SpeechInputEvent.results */
+  @DocsEditable
+  @DomName('SpeechInputEvent.results')
   List<SpeechInputResult> get results native "SpeechInputEvent_results_Getter";
 
 }
@@ -21375,16 +21321,17 @@ class SpeechInputEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechInputResult
+@DocsEditable
+@DomName('SpeechInputResult')
 class SpeechInputResult extends NativeFieldWrapperClass1 {
   SpeechInputResult.internal();
 
-
-  /** @domName SpeechInputResult.confidence */
+  @DocsEditable
+  @DomName('SpeechInputResult.confidence')
   num get confidence native "SpeechInputResult_confidence_Getter";
 
-
-  /** @domName SpeechInputResult.utterance */
+  @DocsEditable
+  @DomName('SpeechInputResult.utterance')
   String get utterance native "SpeechInputResult_utterance_Getter";
 
 }
@@ -21395,7 +21342,8 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechRecognition
+@DocsEditable
+@DomName('SpeechRecognition')
 class SpeechRecognition extends EventTarget {
   SpeechRecognition.internal() : super.internal();
 
@@ -21421,76 +21369,77 @@ class SpeechRecognition extends EventTarget {
 
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
-  ///@docsEditable true
+  @DocsEditable
   factory SpeechRecognition() => SpeechRecognition._create();
   static SpeechRecognition _create() native "SpeechRecognition_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   SpeechRecognitionEvents get on =>
     new SpeechRecognitionEvents(this);
 
-
-  /** @domName SpeechRecognition.continuous */
+  @DocsEditable
+  @DomName('SpeechRecognition.continuous')
   bool get continuous native "SpeechRecognition_continuous_Getter";
 
-
-  /** @domName SpeechRecognition.continuous */
+  @DocsEditable
+  @DomName('SpeechRecognition.continuous')
   void set continuous(bool value) native "SpeechRecognition_continuous_Setter";
 
-
-  /** @domName SpeechRecognition.grammars */
+  @DocsEditable
+  @DomName('SpeechRecognition.grammars')
   SpeechGrammarList get grammars native "SpeechRecognition_grammars_Getter";
 
-
-  /** @domName SpeechRecognition.grammars */
+  @DocsEditable
+  @DomName('SpeechRecognition.grammars')
   void set grammars(SpeechGrammarList value) native "SpeechRecognition_grammars_Setter";
 
-
-  /** @domName SpeechRecognition.interimResults */
+  @DocsEditable
+  @DomName('SpeechRecognition.interimResults')
   bool get interimResults native "SpeechRecognition_interimResults_Getter";
 
-
-  /** @domName SpeechRecognition.interimResults */
+  @DocsEditable
+  @DomName('SpeechRecognition.interimResults')
   void set interimResults(bool value) native "SpeechRecognition_interimResults_Setter";
 
-
-  /** @domName SpeechRecognition.lang */
+  @DocsEditable
+  @DomName('SpeechRecognition.lang')
   String get lang native "SpeechRecognition_lang_Getter";
 
-
-  /** @domName SpeechRecognition.lang */
+  @DocsEditable
+  @DomName('SpeechRecognition.lang')
   void set lang(String value) native "SpeechRecognition_lang_Setter";
 
-
-  /** @domName SpeechRecognition.maxAlternatives */
+  @DocsEditable
+  @DomName('SpeechRecognition.maxAlternatives')
   int get maxAlternatives native "SpeechRecognition_maxAlternatives_Getter";
 
-
-  /** @domName SpeechRecognition.maxAlternatives */
+  @DocsEditable
+  @DomName('SpeechRecognition.maxAlternatives')
   void set maxAlternatives(int value) native "SpeechRecognition_maxAlternatives_Setter";
 
-
-  /** @domName SpeechRecognition.abort */
+  @DocsEditable
+  @DomName('SpeechRecognition.abort')
   void abort() native "SpeechRecognition_abort_Callback";
 
-
-  /** @domName SpeechRecognition.addEventListener */
+  @DocsEditable
+  @DomName('SpeechRecognition.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_addEventListener_Callback";
 
-
-  /** @domName SpeechRecognition.dispatchEvent */
+  @DocsEditable
+  @DomName('SpeechRecognition.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "SpeechRecognition_dispatchEvent_Callback";
 
-
-  /** @domName SpeechRecognition.removeEventListener */
+  @DocsEditable
+  @DomName('SpeechRecognition.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_removeEventListener_Callback";
 
-
-  /** @domName SpeechRecognition.start */
+  @DocsEditable
+  @DomName('SpeechRecognition.start')
   void start() native "SpeechRecognition_start_Callback";
 
-
-  /** @domName SpeechRecognition.stop */
+  @DocsEditable
+  @DomName('SpeechRecognition.stop')
   void stop() native "SpeechRecognition_stop_Callback";
 
   Stream<Event> get onAudioEnd => audioEndEvent.forTarget(this);
@@ -21517,42 +21466,42 @@ class SpeechRecognition extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class SpeechRecognitionEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   SpeechRecognitionEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get audioEnd => this['audioend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get audioStart => this['audiostart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get end => this['end'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get noMatch => this['nomatch'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get result => this['result'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get soundEnd => this['soundend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get soundStart => this['soundstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get speechEnd => this['speechend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get speechStart => this['speechstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get start => this['start'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21562,16 +21511,17 @@ class SpeechRecognitionEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechRecognitionAlternative
+@DocsEditable
+@DomName('SpeechRecognitionAlternative')
 class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
   SpeechRecognitionAlternative.internal();
 
-
-  /** @domName SpeechRecognitionAlternative.confidence */
+  @DocsEditable
+  @DomName('SpeechRecognitionAlternative.confidence')
   num get confidence native "SpeechRecognitionAlternative_confidence_Getter";
 
-
-  /** @domName SpeechRecognitionAlternative.transcript */
+  @DocsEditable
+  @DomName('SpeechRecognitionAlternative.transcript')
   String get transcript native "SpeechRecognitionAlternative_transcript_Getter";
 
 }
@@ -21582,16 +21532,17 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechRecognitionError
+@DocsEditable
+@DomName('SpeechRecognitionError')
 class SpeechRecognitionError extends Event {
   SpeechRecognitionError.internal() : super.internal();
 
-
-  /** @domName SpeechRecognitionError.error */
+  @DocsEditable
+  @DomName('SpeechRecognitionError.error')
   String get error native "SpeechRecognitionError_error_Getter";
 
-
-  /** @domName SpeechRecognitionError.message */
+  @DocsEditable
+  @DomName('SpeechRecognitionError.message')
   String get message native "SpeechRecognitionError_message_Getter";
 
 }
@@ -21602,24 +21553,25 @@ class SpeechRecognitionError extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechRecognitionEvent
+@DocsEditable
+@DomName('SpeechRecognitionEvent')
 class SpeechRecognitionEvent extends Event {
   SpeechRecognitionEvent.internal() : super.internal();
 
-
-  /** @domName SpeechRecognitionEvent.result */
+  @DocsEditable
+  @DomName('SpeechRecognitionEvent.result')
   SpeechRecognitionResult get result native "SpeechRecognitionEvent_result_Getter";
 
-
-  /** @domName SpeechRecognitionEvent.resultHistory */
+  @DocsEditable
+  @DomName('SpeechRecognitionEvent.resultHistory')
   List<SpeechRecognitionResult> get resultHistory native "SpeechRecognitionEvent_resultHistory_Getter";
 
-
-  /** @domName SpeechRecognitionEvent.resultIndex */
+  @DocsEditable
+  @DomName('SpeechRecognitionEvent.resultIndex')
   int get resultIndex native "SpeechRecognitionEvent_resultIndex_Getter";
 
-
-  /** @domName SpeechRecognitionEvent.results */
+  @DocsEditable
+  @DomName('SpeechRecognitionEvent.results')
   List<SpeechRecognitionResult> get results native "SpeechRecognitionEvent_results_Getter";
 
 }
@@ -21630,20 +21582,21 @@ class SpeechRecognitionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechRecognitionResult
+@DocsEditable
+@DomName('SpeechRecognitionResult')
 class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
   SpeechRecognitionResult.internal();
 
-
-  /** @domName SpeechRecognitionResult.isFinal */
+  @DocsEditable
+  @DomName('SpeechRecognitionResult.isFinal')
   bool get isFinal native "SpeechRecognitionResult_isFinal_Getter";
 
-
-  /** @domName SpeechRecognitionResult.length */
+  @DocsEditable
+  @DomName('SpeechRecognitionResult.length')
   int get length native "SpeechRecognitionResult_length_Getter";
 
-
-  /** @domName SpeechRecognitionResult.item */
+  @DocsEditable
+  @DomName('SpeechRecognitionResult.item')
   SpeechRecognitionAlternative item(int index) native "SpeechRecognitionResult_item_Callback";
 
 }
@@ -21654,7 +21607,8 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SQLError
+@DocsEditable
+@DomName('SQLError')
 class SqlError extends NativeFieldWrapperClass1 {
   SqlError.internal();
 
@@ -21674,12 +21628,12 @@ class SqlError extends NativeFieldWrapperClass1 {
 
   static const int VERSION_ERR = 2;
 
-
-  /** @domName SQLError.code */
+  @DocsEditable
+  @DomName('SQLError.code')
   int get code native "SQLError_code_Getter";
 
-
-  /** @domName SQLError.message */
+  @DocsEditable
+  @DomName('SQLError.message')
   String get message native "SQLError_message_Getter";
 
 }
@@ -21690,7 +21644,8 @@ class SqlError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SQLException
+@DocsEditable
+@DomName('SQLException')
 class SqlException extends NativeFieldWrapperClass1 {
   SqlException.internal();
 
@@ -21710,12 +21665,12 @@ class SqlException extends NativeFieldWrapperClass1 {
 
   static const int VERSION_ERR = 2;
 
-
-  /** @domName SQLException.code */
+  @DocsEditable
+  @DomName('SQLException.code')
   int get code native "SQLException_code_Getter";
 
-
-  /** @domName SQLException.message */
+  @DocsEditable
+  @DomName('SQLException.message')
   String get message native "SQLException_message_Getter";
 
 }
@@ -21726,20 +21681,21 @@ class SqlException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SQLResultSet
+@DocsEditable
+@DomName('SQLResultSet')
 class SqlResultSet extends NativeFieldWrapperClass1 {
   SqlResultSet.internal();
 
-
-  /** @domName SQLResultSet.insertId */
+  @DocsEditable
+  @DomName('SQLResultSet.insertId')
   int get insertId native "SQLResultSet_insertId_Getter";
 
-
-  /** @domName SQLResultSet.rows */
+  @DocsEditable
+  @DomName('SQLResultSet.rows')
   SqlResultSetRowList get rows native "SQLResultSet_rows_Getter";
 
-
-  /** @domName SQLResultSet.rowsAffected */
+  @DocsEditable
+  @DomName('SQLResultSet.rowsAffected')
   int get rowsAffected native "SQLResultSet_rowsAffected_Getter";
 
 }
@@ -21750,12 +21706,13 @@ class SqlResultSet extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SQLResultSetRowList
+@DocsEditable
+@DomName('SQLResultSetRowList')
 class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> {
   SqlResultSetRowList.internal();
 
-
-  /** @domName SQLResultSetRowList.length */
+  @DocsEditable
+  @DomName('SQLResultSetRowList.length')
   int get length native "SQLResultSetRowList_length_Getter";
 
   Map operator[](int index) native "SQLResultSetRowList_item_Callback";
@@ -21776,50 +21733,50 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Map element) => Collections.contains(this, element);
+  bool contains(Map element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Map element)) => Collections.forEach(this, f);
+  void forEach(void f(Map element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Map element)) => new MappedList<Map, dynamic>(this, f);
+  List mappedBy(f(Map element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Map> where(bool f(Map element)) => new WhereIterable<Map>(this, f);
+  Iterable<Map> where(bool f(Map element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Map element)) => Collections.every(this, f);
+  bool every(bool f(Map element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Map element)) => Collections.any(this, f);
+  bool any(bool f(Map element)) => IterableMixinWorkaround.any(this, f);
 
   List<Map> toList() => new List<Map>.from(this);
   Set<Map> toSet() => new Set<Map>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Map> take(int n) => new ListView<Map>(this, 0, n);
+  List<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Map> takeWhile(bool test(Map value)) {
-    return new TakeWhileIterable<Map>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Map> skip(int n) => new ListView<Map>(this, n, null);
+  List<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Map> skipWhile(bool test(Map value)) {
-    return new SkipWhileIterable<Map>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Map firstMatching(bool test(Map value), { Map orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Map lastMatching(bool test(Map value), {Map orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Map singleMatching(bool test(Map value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Map elementAt(int index) {
@@ -21877,16 +21834,36 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new StateError("More than one element");
   }
 
-  Map min([int compare(Map a, Map b)]) => Collections.min(this, compare);
+  Map min([int compare(Map a, Map b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Map max([int compare(Map a, Map b)]) => Collections.max(this, compare);
+  Map max([int compare(Map a, Map b)]) => IterableMixinWorkaround.max(this, compare);
 
   Map removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Map removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Map element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Map element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Map> from, [int startFrom]) {
@@ -21906,8 +21883,8 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   // -- end List<Map> mixins.
 
-
-  /** @domName SQLResultSetRowList.item */
+  @DocsEditable
+  @DomName('SQLResultSetRowList.item')
   Map item(int index) native "SQLResultSetRowList_item_Callback";
 
 }
@@ -21918,12 +21895,13 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SQLTransaction
+@DocsEditable
+@DomName('SQLTransaction')
 class SqlTransaction extends NativeFieldWrapperClass1 {
   SqlTransaction.internal();
 
-
-  /** @domName SQLTransaction.executeSql */
+  @DocsEditable
+  @DomName('SQLTransaction.executeSql')
   void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native "SQLTransaction_executeSql_Callback";
 
 }
@@ -21934,12 +21912,13 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SQLTransactionSync
+@DocsEditable
+@DomName('SQLTransactionSync')
 class SqlTransactionSync extends NativeFieldWrapperClass1 {
   SqlTransactionSync.internal();
 
-
-  /** @domName SQLTransactionSync.executeSql */
+  @DocsEditable
+  @DomName('SQLTransactionSync.executeSql')
   SqlResultSet executeSql(String sqlStatement, List arguments) native "SQLTransactionSync_executeSql_Callback";
 
 }
@@ -21948,7 +21927,8 @@ class SqlTransactionSync extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Storage
+@DocsEditable
+@DomName('Storage')
 class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 
   // TODO(nweiz): update this when maps support lazy iteration
@@ -21999,28 +21979,28 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
   bool get isEmpty => $dom_key(0) == null;
   Storage.internal();
 
-
-  /** @domName Storage.length */
+  @DocsEditable
+  @DomName('Storage.length')
   int get $dom_length native "Storage_length_Getter";
 
-
-  /** @domName Storage.clear */
+  @DocsEditable
+  @DomName('Storage.clear')
   void $dom_clear() native "Storage_clear_Callback";
 
-
-  /** @domName Storage.getItem */
+  @DocsEditable
+  @DomName('Storage.getItem')
   String $dom_getItem(String key) native "Storage_getItem_Callback";
 
-
-  /** @domName Storage.key */
+  @DocsEditable
+  @DomName('Storage.key')
   String $dom_key(int index) native "Storage_key_Callback";
 
-
-  /** @domName Storage.removeItem */
+  @DocsEditable
+  @DomName('Storage.removeItem')
   void $dom_removeItem(String key) native "Storage_removeItem_Callback";
 
-
-  /** @domName Storage.setItem */
+  @DocsEditable
+  @DomName('Storage.setItem')
   void $dom_setItem(String key, String data) native "Storage_setItem_Callback";
 
 }
@@ -22031,32 +22011,33 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>  {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName StorageEvent
+@DocsEditable
+@DomName('StorageEvent')
 class StorageEvent extends Event {
   StorageEvent.internal() : super.internal();
 
-
-  /** @domName StorageEvent.key */
+  @DocsEditable
+  @DomName('StorageEvent.key')
   String get key native "StorageEvent_key_Getter";
 
-
-  /** @domName StorageEvent.newValue */
+  @DocsEditable
+  @DomName('StorageEvent.newValue')
   String get newValue native "StorageEvent_newValue_Getter";
 
-
-  /** @domName StorageEvent.oldValue */
+  @DocsEditable
+  @DomName('StorageEvent.oldValue')
   String get oldValue native "StorageEvent_oldValue_Getter";
 
-
-  /** @domName StorageEvent.storageArea */
+  @DocsEditable
+  @DomName('StorageEvent.storageArea')
   Storage get storageArea native "StorageEvent_storageArea_Getter";
 
-
-  /** @domName StorageEvent.url */
+  @DocsEditable
+  @DomName('StorageEvent.url')
   String get url native "StorageEvent_url_Getter";
 
-
-  /** @domName StorageEvent.initStorageEvent */
+  @DocsEditable
+  @DomName('StorageEvent.initStorageEvent')
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
 
 }
@@ -22067,7 +22048,8 @@ class StorageEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName StorageInfo
+@DocsEditable
+@DomName('StorageInfo')
 class StorageInfo extends NativeFieldWrapperClass1 {
   StorageInfo.internal();
 
@@ -22075,12 +22057,12 @@ class StorageInfo extends NativeFieldWrapperClass1 {
 
   static const int TEMPORARY = 0;
 
-
-  /** @domName StorageInfo.queryUsageAndQuota */
+  @DocsEditable
+  @DomName('StorageInfo.queryUsageAndQuota')
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native "StorageInfo_queryUsageAndQuota_Callback";
 
-
-  /** @domName StorageInfo.requestQuota */
+  @DocsEditable
+  @DomName('StorageInfo.requestQuota')
   void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native "StorageInfo_requestQuota_Callback";
 
 }
@@ -22123,47 +22105,48 @@ typedef void StringCallback(String data);
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLStyleElement
+@DocsEditable
+@DomName('HTMLStyleElement')
 class StyleElement extends _Element_Merged {
   StyleElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory StyleElement() => document.$dom_createElement("style");
 
-
-  /** @domName HTMLStyleElement.disabled */
+  @DocsEditable
+  @DomName('HTMLStyleElement.disabled')
   bool get disabled native "HTMLStyleElement_disabled_Getter";
 
-
-  /** @domName HTMLStyleElement.disabled */
+  @DocsEditable
+  @DomName('HTMLStyleElement.disabled')
   void set disabled(bool value) native "HTMLStyleElement_disabled_Setter";
 
-
-  /** @domName HTMLStyleElement.media */
+  @DocsEditable
+  @DomName('HTMLStyleElement.media')
   String get media native "HTMLStyleElement_media_Getter";
 
-
-  /** @domName HTMLStyleElement.media */
+  @DocsEditable
+  @DomName('HTMLStyleElement.media')
   void set media(String value) native "HTMLStyleElement_media_Setter";
 
-
-  /** @domName HTMLStyleElement.scoped */
+  @DocsEditable
+  @DomName('HTMLStyleElement.scoped')
   bool get scoped native "HTMLStyleElement_scoped_Getter";
 
-
-  /** @domName HTMLStyleElement.scoped */
+  @DocsEditable
+  @DomName('HTMLStyleElement.scoped')
   void set scoped(bool value) native "HTMLStyleElement_scoped_Setter";
 
-
-  /** @domName HTMLStyleElement.sheet */
+  @DocsEditable
+  @DomName('HTMLStyleElement.sheet')
   StyleSheet get sheet native "HTMLStyleElement_sheet_Getter";
 
-
-  /** @domName HTMLStyleElement.type */
+  @DocsEditable
+  @DomName('HTMLStyleElement.type')
   String get type native "HTMLStyleElement_type_Getter";
 
-
-  /** @domName HTMLStyleElement.type */
+  @DocsEditable
+  @DomName('HTMLStyleElement.type')
   void set type(String value) native "HTMLStyleElement_type_Setter";
 
 }
@@ -22174,16 +22157,17 @@ class StyleElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName StyleMedia
+@DocsEditable
+@DomName('StyleMedia')
 class StyleMedia extends NativeFieldWrapperClass1 {
   StyleMedia.internal();
 
-
-  /** @domName StyleMedia.type */
+  @DocsEditable
+  @DomName('StyleMedia.type')
   String get type native "StyleMedia_type_Getter";
 
-
-  /** @domName StyleMedia.matchMedium */
+  @DocsEditable
+  @DomName('StyleMedia.matchMedium')
   bool matchMedium(String mediaquery) native "StyleMedia_matchMedium_Callback";
 
 }
@@ -22194,40 +22178,41 @@ class StyleMedia extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName StyleSheet
+@DocsEditable
+@DomName('StyleSheet')
 class StyleSheet extends NativeFieldWrapperClass1 {
   StyleSheet.internal();
 
-
-  /** @domName StyleSheet.disabled */
+  @DocsEditable
+  @DomName('StyleSheet.disabled')
   bool get disabled native "StyleSheet_disabled_Getter";
 
-
-  /** @domName StyleSheet.disabled */
+  @DocsEditable
+  @DomName('StyleSheet.disabled')
   void set disabled(bool value) native "StyleSheet_disabled_Setter";
 
-
-  /** @domName StyleSheet.href */
+  @DocsEditable
+  @DomName('StyleSheet.href')
   String get href native "StyleSheet_href_Getter";
 
-
-  /** @domName StyleSheet.media */
+  @DocsEditable
+  @DomName('StyleSheet.media')
   MediaList get media native "StyleSheet_media_Getter";
 
-
-  /** @domName StyleSheet.ownerNode */
+  @DocsEditable
+  @DomName('StyleSheet.ownerNode')
   Node get ownerNode native "StyleSheet_ownerNode_Getter";
 
-
-  /** @domName StyleSheet.parentStyleSheet */
+  @DocsEditable
+  @DomName('StyleSheet.parentStyleSheet')
   StyleSheet get parentStyleSheet native "StyleSheet_parentStyleSheet_Getter";
 
-
-  /** @domName StyleSheet.title */
+  @DocsEditable
+  @DomName('StyleSheet.title')
   String get title native "StyleSheet_title_Getter";
 
-
-  /** @domName StyleSheet.type */
+  @DocsEditable
+  @DomName('StyleSheet.type')
   String get type native "StyleSheet_type_Getter";
 
 }
@@ -22238,11 +22223,12 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLTableCaptionElement
+@DocsEditable
+@DomName('HTMLTableCaptionElement')
 class TableCaptionElement extends _Element_Merged {
   TableCaptionElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableCaptionElement() => document.$dom_createElement("caption");
 
 }
@@ -22253,39 +22239,40 @@ class TableCaptionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLTableCellElement
+@DocsEditable
+@DomName('HTMLTableCellElement')
 class TableCellElement extends _Element_Merged {
   TableCellElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableCellElement() => document.$dom_createElement("td");
 
-
-  /** @domName HTMLTableCellElement.cellIndex */
+  @DocsEditable
+  @DomName('HTMLTableCellElement.cellIndex')
   int get cellIndex native "HTMLTableCellElement_cellIndex_Getter";
 
-
-  /** @domName HTMLTableCellElement.colSpan */
+  @DocsEditable
+  @DomName('HTMLTableCellElement.colSpan')
   int get colSpan native "HTMLTableCellElement_colSpan_Getter";
 
-
-  /** @domName HTMLTableCellElement.colSpan */
+  @DocsEditable
+  @DomName('HTMLTableCellElement.colSpan')
   void set colSpan(int value) native "HTMLTableCellElement_colSpan_Setter";
 
-
-  /** @domName HTMLTableCellElement.headers */
+  @DocsEditable
+  @DomName('HTMLTableCellElement.headers')
   String get headers native "HTMLTableCellElement_headers_Getter";
 
-
-  /** @domName HTMLTableCellElement.headers */
+  @DocsEditable
+  @DomName('HTMLTableCellElement.headers')
   void set headers(String value) native "HTMLTableCellElement_headers_Setter";
 
-
-  /** @domName HTMLTableCellElement.rowSpan */
+  @DocsEditable
+  @DomName('HTMLTableCellElement.rowSpan')
   int get rowSpan native "HTMLTableCellElement_rowSpan_Getter";
 
-
-  /** @domName HTMLTableCellElement.rowSpan */
+  @DocsEditable
+  @DomName('HTMLTableCellElement.rowSpan')
   void set rowSpan(int value) native "HTMLTableCellElement_rowSpan_Setter";
 
 }
@@ -22296,19 +22283,20 @@ class TableCellElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLTableColElement
+@DocsEditable
+@DomName('HTMLTableColElement')
 class TableColElement extends _Element_Merged {
   TableColElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableColElement() => document.$dom_createElement("col");
 
-
-  /** @domName HTMLTableColElement.span */
+  @DocsEditable
+  @DomName('HTMLTableColElement.span')
   int get span native "HTMLTableColElement_span_Getter";
 
-
-  /** @domName HTMLTableColElement.span */
+  @DocsEditable
+  @DomName('HTMLTableColElement.span')
   void set span(int value) native "HTMLTableColElement_span_Setter";
 
 }
@@ -22319,87 +22307,88 @@ class TableColElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLTableElement
+@DocsEditable
+@DomName('HTMLTableElement')
 class TableElement extends _Element_Merged {
   TableElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableElement() => document.$dom_createElement("table");
 
-
-  /** @domName HTMLTableElement.border */
+  @DocsEditable
+  @DomName('HTMLTableElement.border')
   String get border native "HTMLTableElement_border_Getter";
 
-
-  /** @domName HTMLTableElement.border */
+  @DocsEditable
+  @DomName('HTMLTableElement.border')
   void set border(String value) native "HTMLTableElement_border_Setter";
 
-
-  /** @domName HTMLTableElement.caption */
+  @DocsEditable
+  @DomName('HTMLTableElement.caption')
   TableCaptionElement get caption native "HTMLTableElement_caption_Getter";
 
-
-  /** @domName HTMLTableElement.caption */
+  @DocsEditable
+  @DomName('HTMLTableElement.caption')
   void set caption(TableCaptionElement value) native "HTMLTableElement_caption_Setter";
 
-
-  /** @domName HTMLTableElement.rows */
+  @DocsEditable
+  @DomName('HTMLTableElement.rows')
   HtmlCollection get rows native "HTMLTableElement_rows_Getter";
 
-
-  /** @domName HTMLTableElement.tBodies */
+  @DocsEditable
+  @DomName('HTMLTableElement.tBodies')
   HtmlCollection get tBodies native "HTMLTableElement_tBodies_Getter";
 
-
-  /** @domName HTMLTableElement.tFoot */
+  @DocsEditable
+  @DomName('HTMLTableElement.tFoot')
   TableSectionElement get tFoot native "HTMLTableElement_tFoot_Getter";
 
-
-  /** @domName HTMLTableElement.tFoot */
+  @DocsEditable
+  @DomName('HTMLTableElement.tFoot')
   void set tFoot(TableSectionElement value) native "HTMLTableElement_tFoot_Setter";
 
-
-  /** @domName HTMLTableElement.tHead */
+  @DocsEditable
+  @DomName('HTMLTableElement.tHead')
   TableSectionElement get tHead native "HTMLTableElement_tHead_Getter";
 
-
-  /** @domName HTMLTableElement.tHead */
+  @DocsEditable
+  @DomName('HTMLTableElement.tHead')
   void set tHead(TableSectionElement value) native "HTMLTableElement_tHead_Setter";
 
-
-  /** @domName HTMLTableElement.createCaption */
+  @DocsEditable
+  @DomName('HTMLTableElement.createCaption')
   Element createCaption() native "HTMLTableElement_createCaption_Callback";
 
-
-  /** @domName HTMLTableElement.createTBody */
+  @DocsEditable
+  @DomName('HTMLTableElement.createTBody')
   Element createTBody() native "HTMLTableElement_createTBody_Callback";
 
-
-  /** @domName HTMLTableElement.createTFoot */
+  @DocsEditable
+  @DomName('HTMLTableElement.createTFoot')
   Element createTFoot() native "HTMLTableElement_createTFoot_Callback";
 
-
-  /** @domName HTMLTableElement.createTHead */
+  @DocsEditable
+  @DomName('HTMLTableElement.createTHead')
   Element createTHead() native "HTMLTableElement_createTHead_Callback";
 
-
-  /** @domName HTMLTableElement.deleteCaption */
+  @DocsEditable
+  @DomName('HTMLTableElement.deleteCaption')
   void deleteCaption() native "HTMLTableElement_deleteCaption_Callback";
 
-
-  /** @domName HTMLTableElement.deleteRow */
+  @DocsEditable
+  @DomName('HTMLTableElement.deleteRow')
   void deleteRow(int index) native "HTMLTableElement_deleteRow_Callback";
 
-
-  /** @domName HTMLTableElement.deleteTFoot */
+  @DocsEditable
+  @DomName('HTMLTableElement.deleteTFoot')
   void deleteTFoot() native "HTMLTableElement_deleteTFoot_Callback";
 
-
-  /** @domName HTMLTableElement.deleteTHead */
+  @DocsEditable
+  @DomName('HTMLTableElement.deleteTHead')
   void deleteTHead() native "HTMLTableElement_deleteTHead_Callback";
 
-
-  /** @domName HTMLTableElement.insertRow */
+  @DocsEditable
+  @DomName('HTMLTableElement.insertRow')
   Element insertRow(int index) native "HTMLTableElement_insertRow_Callback";
 
 }
@@ -22410,31 +22399,32 @@ class TableElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLTableRowElement
+@DocsEditable
+@DomName('HTMLTableRowElement')
 class TableRowElement extends _Element_Merged {
   TableRowElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory TableRowElement() => document.$dom_createElement("tr");
 
-
-  /** @domName HTMLTableRowElement.cells */
+  @DocsEditable
+  @DomName('HTMLTableRowElement.cells')
   HtmlCollection get cells native "HTMLTableRowElement_cells_Getter";
 
-
-  /** @domName HTMLTableRowElement.rowIndex */
+  @DocsEditable
+  @DomName('HTMLTableRowElement.rowIndex')
   int get rowIndex native "HTMLTableRowElement_rowIndex_Getter";
 
-
-  /** @domName HTMLTableRowElement.sectionRowIndex */
+  @DocsEditable
+  @DomName('HTMLTableRowElement.sectionRowIndex')
   int get sectionRowIndex native "HTMLTableRowElement_sectionRowIndex_Getter";
 
-
-  /** @domName HTMLTableRowElement.deleteCell */
+  @DocsEditable
+  @DomName('HTMLTableRowElement.deleteCell')
   void deleteCell(int index) native "HTMLTableRowElement_deleteCell_Callback";
 
-
-  /** @domName HTMLTableRowElement.insertCell */
+  @DocsEditable
+  @DomName('HTMLTableRowElement.insertCell')
   Element insertCell(int index) native "HTMLTableRowElement_insertCell_Callback";
 
 }
@@ -22445,28 +22435,21 @@ class TableRowElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLTableSectionElement
+@DocsEditable
+@DomName('HTMLTableSectionElement')
 class TableSectionElement extends _Element_Merged {
   TableSectionElement.internal() : super.internal();
 
-
-  /** @domName HTMLTableSectionElement.chOff */
-  String get chOff native "HTMLTableSectionElement_chOff_Getter";
-
-
-  /** @domName HTMLTableSectionElement.chOff */
-  void set chOff(String value) native "HTMLTableSectionElement_chOff_Setter";
-
-
-  /** @domName HTMLTableSectionElement.rows */
+  @DocsEditable
+  @DomName('HTMLTableSectionElement.rows')
   HtmlCollection get rows native "HTMLTableSectionElement_rows_Getter";
 
-
-  /** @domName HTMLTableSectionElement.deleteRow */
+  @DocsEditable
+  @DomName('HTMLTableSectionElement.deleteRow')
   void deleteRow(int index) native "HTMLTableSectionElement_deleteRow_Callback";
 
-
-  /** @domName HTMLTableSectionElement.insertRow */
+  @DocsEditable
+  @DomName('HTMLTableSectionElement.insertRow')
   Element insertRow(int index) native "HTMLTableSectionElement_insertRow_Callback";
 
 }
@@ -22477,21 +22460,22 @@ class TableSectionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Text
+@DocsEditable
+@DomName('Text')
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
   Text.internal() : super.internal();
 
-
-  /** @domName Text.wholeText */
+  @DocsEditable
+  @DomName('Text.wholeText')
   String get wholeText native "Text_wholeText_Getter";
 
-
-  /** @domName Text.replaceWholeText */
+  @DocsEditable
+  @DomName('Text.replaceWholeText')
   Text replaceWholeText(String content) native "Text_replaceWholeText_Callback";
 
-
-  /** @domName Text.splitText */
+  @DocsEditable
+  @DomName('Text.splitText')
   Text splitText(int offset) native "Text_splitText_Callback";
 
 }
@@ -22502,182 +22486,183 @@ class Text extends CharacterData {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLTextAreaElement
+@DocsEditable
+@DomName('HTMLTextAreaElement')
 class TextAreaElement extends _Element_Merged {
   TextAreaElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
-
-  /** @domName HTMLTextAreaElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.autofocus')
   bool get autofocus native "HTMLTextAreaElement_autofocus_Getter";
 
-
-  /** @domName HTMLTextAreaElement.autofocus */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.autofocus')
   void set autofocus(bool value) native "HTMLTextAreaElement_autofocus_Setter";
 
-
-  /** @domName HTMLTextAreaElement.cols */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.cols')
   int get cols native "HTMLTextAreaElement_cols_Getter";
 
-
-  /** @domName HTMLTextAreaElement.cols */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.cols')
   void set cols(int value) native "HTMLTextAreaElement_cols_Setter";
 
-
-  /** @domName HTMLTextAreaElement.defaultValue */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.defaultValue')
   String get defaultValue native "HTMLTextAreaElement_defaultValue_Getter";
 
-
-  /** @domName HTMLTextAreaElement.defaultValue */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.defaultValue')
   void set defaultValue(String value) native "HTMLTextAreaElement_defaultValue_Setter";
 
-
-  /** @domName HTMLTextAreaElement.dirName */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.dirName')
   String get dirName native "HTMLTextAreaElement_dirName_Getter";
 
-
-  /** @domName HTMLTextAreaElement.dirName */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.dirName')
   void set dirName(String value) native "HTMLTextAreaElement_dirName_Setter";
 
-
-  /** @domName HTMLTextAreaElement.disabled */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.disabled')
   bool get disabled native "HTMLTextAreaElement_disabled_Getter";
 
-
-  /** @domName HTMLTextAreaElement.disabled */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.disabled')
   void set disabled(bool value) native "HTMLTextAreaElement_disabled_Setter";
 
-
-  /** @domName HTMLTextAreaElement.form */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.form')
   FormElement get form native "HTMLTextAreaElement_form_Getter";
 
-
-  /** @domName HTMLTextAreaElement.labels */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.labels')
   List<Node> get labels native "HTMLTextAreaElement_labels_Getter";
 
-
-  /** @domName HTMLTextAreaElement.maxLength */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.maxLength')
   int get maxLength native "HTMLTextAreaElement_maxLength_Getter";
 
-
-  /** @domName HTMLTextAreaElement.maxLength */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.maxLength')
   void set maxLength(int value) native "HTMLTextAreaElement_maxLength_Setter";
 
-
-  /** @domName HTMLTextAreaElement.name */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.name')
   String get name native "HTMLTextAreaElement_name_Getter";
 
-
-  /** @domName HTMLTextAreaElement.name */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.name')
   void set name(String value) native "HTMLTextAreaElement_name_Setter";
 
-
-  /** @domName HTMLTextAreaElement.placeholder */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.placeholder')
   String get placeholder native "HTMLTextAreaElement_placeholder_Getter";
 
-
-  /** @domName HTMLTextAreaElement.placeholder */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.placeholder')
   void set placeholder(String value) native "HTMLTextAreaElement_placeholder_Setter";
 
-
-  /** @domName HTMLTextAreaElement.readOnly */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.readOnly')
   bool get readOnly native "HTMLTextAreaElement_readOnly_Getter";
 
-
-  /** @domName HTMLTextAreaElement.readOnly */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.readOnly')
   void set readOnly(bool value) native "HTMLTextAreaElement_readOnly_Setter";
 
-
-  /** @domName HTMLTextAreaElement.required */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.required')
   bool get required native "HTMLTextAreaElement_required_Getter";
 
-
-  /** @domName HTMLTextAreaElement.required */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.required')
   void set required(bool value) native "HTMLTextAreaElement_required_Setter";
 
-
-  /** @domName HTMLTextAreaElement.rows */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.rows')
   int get rows native "HTMLTextAreaElement_rows_Getter";
 
-
-  /** @domName HTMLTextAreaElement.rows */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.rows')
   void set rows(int value) native "HTMLTextAreaElement_rows_Setter";
 
-
-  /** @domName HTMLTextAreaElement.selectionDirection */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.selectionDirection')
   String get selectionDirection native "HTMLTextAreaElement_selectionDirection_Getter";
 
-
-  /** @domName HTMLTextAreaElement.selectionDirection */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.selectionDirection')
   void set selectionDirection(String value) native "HTMLTextAreaElement_selectionDirection_Setter";
 
-
-  /** @domName HTMLTextAreaElement.selectionEnd */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.selectionEnd')
   int get selectionEnd native "HTMLTextAreaElement_selectionEnd_Getter";
 
-
-  /** @domName HTMLTextAreaElement.selectionEnd */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.selectionEnd')
   void set selectionEnd(int value) native "HTMLTextAreaElement_selectionEnd_Setter";
 
-
-  /** @domName HTMLTextAreaElement.selectionStart */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.selectionStart')
   int get selectionStart native "HTMLTextAreaElement_selectionStart_Getter";
 
-
-  /** @domName HTMLTextAreaElement.selectionStart */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.selectionStart')
   void set selectionStart(int value) native "HTMLTextAreaElement_selectionStart_Setter";
 
-
-  /** @domName HTMLTextAreaElement.textLength */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.textLength')
   int get textLength native "HTMLTextAreaElement_textLength_Getter";
 
-
-  /** @domName HTMLTextAreaElement.type */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.type')
   String get type native "HTMLTextAreaElement_type_Getter";
 
-
-  /** @domName HTMLTextAreaElement.validationMessage */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.validationMessage')
   String get validationMessage native "HTMLTextAreaElement_validationMessage_Getter";
 
-
-  /** @domName HTMLTextAreaElement.validity */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.validity')
   ValidityState get validity native "HTMLTextAreaElement_validity_Getter";
 
-
-  /** @domName HTMLTextAreaElement.value */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.value')
   String get value native "HTMLTextAreaElement_value_Getter";
 
-
-  /** @domName HTMLTextAreaElement.value */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.value')
   void set value(String value) native "HTMLTextAreaElement_value_Setter";
 
-
-  /** @domName HTMLTextAreaElement.willValidate */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.willValidate')
   bool get willValidate native "HTMLTextAreaElement_willValidate_Getter";
 
-
-  /** @domName HTMLTextAreaElement.wrap */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.wrap')
   String get wrap native "HTMLTextAreaElement_wrap_Getter";
 
-
-  /** @domName HTMLTextAreaElement.wrap */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.wrap')
   void set wrap(String value) native "HTMLTextAreaElement_wrap_Setter";
 
-
-  /** @domName HTMLTextAreaElement.checkValidity */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.checkValidity')
   bool checkValidity() native "HTMLTextAreaElement_checkValidity_Callback";
 
-
-  /** @domName HTMLTextAreaElement.select */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.select')
   void select() native "HTMLTextAreaElement_select_Callback";
 
-
-  /** @domName HTMLTextAreaElement.setCustomValidity */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.setCustomValidity')
   void setCustomValidity(String error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
-  void setRangeText(/*DOMString*/ replacement, [/*unsigned long*/ start, /*unsigned long*/ end, /*DOMString*/ selectionMode]) {
+  void setRangeText(String replacement, [int start, int end, String selectionMode]) {
     if ((replacement is String || replacement == null) && !?start && !?end && !?selectionMode) {
       _setRangeText_1(replacement);
       return;
@@ -22689,15 +22674,15 @@ class TextAreaElement extends _Element_Merged {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName HTMLTextAreaElement.setRangeText_1 */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.setRangeText_1')
   void _setRangeText_1(replacement) native "HTMLTextAreaElement_setRangeText_1_Callback";
 
-
-  /** @domName HTMLTextAreaElement.setRangeText_2 */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.setRangeText_2')
   void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLTextAreaElement_setRangeText_2_Callback";
 
-  void setSelectionRange(/*long*/ start, /*long*/ end, [/*DOMString*/ direction]) {
+  void setSelectionRange(int start, int end, [String direction]) {
     if (?direction) {
       _setSelectionRange_1(start, end, direction);
       return;
@@ -22705,12 +22690,12 @@ class TextAreaElement extends _Element_Merged {
     _setSelectionRange_2(start, end);
   }
 
-
-  /** @domName HTMLTextAreaElement.setSelectionRange_1 */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.setSelectionRange_1')
   void _setSelectionRange_1(start, end, direction) native "HTMLTextAreaElement_setSelectionRange_1_Callback";
 
-
-  /** @domName HTMLTextAreaElement.setSelectionRange_2 */
+  @DocsEditable
+  @DomName('HTMLTextAreaElement.setSelectionRange_2')
   void _setSelectionRange_2(start, end) native "HTMLTextAreaElement_setSelectionRange_2_Callback";
 
 }
@@ -22721,16 +22706,17 @@ class TextAreaElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TextEvent
+@DocsEditable
+@DomName('TextEvent')
 class TextEvent extends UIEvent {
   TextEvent.internal() : super.internal();
 
-
-  /** @domName TextEvent.data */
+  @DocsEditable
+  @DomName('TextEvent.data')
   String get data native "TextEvent_data_Getter";
 
-
-  /** @domName TextEvent.initTextEvent */
+  @DocsEditable
+  @DomName('TextEvent.initTextEvent')
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
 
 }
@@ -22741,12 +22727,13 @@ class TextEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TextMetrics
+@DocsEditable
+@DomName('TextMetrics')
 class TextMetrics extends NativeFieldWrapperClass1 {
   TextMetrics.internal();
 
-
-  /** @domName TextMetrics.width */
+  @DocsEditable
+  @DomName('TextMetrics.width')
   num get width native "TextMetrics_width_Getter";
 
 }
@@ -22757,74 +22744,76 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TextTrack
+@DocsEditable
+@DomName('TextTrack')
 class TextTrack extends EventTarget {
   TextTrack.internal() : super.internal();
 
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TextTrackEvents get on =>
     new TextTrackEvents(this);
 
-
-  /** @domName TextTrack.activeCues */
+  @DocsEditable
+  @DomName('TextTrack.activeCues')
   TextTrackCueList get activeCues native "TextTrack_activeCues_Getter";
 
-
-  /** @domName TextTrack.cues */
+  @DocsEditable
+  @DomName('TextTrack.cues')
   TextTrackCueList get cues native "TextTrack_cues_Getter";
 
-
-  /** @domName TextTrack.kind */
+  @DocsEditable
+  @DomName('TextTrack.kind')
   String get kind native "TextTrack_kind_Getter";
 
-
-  /** @domName TextTrack.label */
+  @DocsEditable
+  @DomName('TextTrack.label')
   String get label native "TextTrack_label_Getter";
 
-
-  /** @domName TextTrack.language */
+  @DocsEditable
+  @DomName('TextTrack.language')
   String get language native "TextTrack_language_Getter";
 
-
-  /** @domName TextTrack.mode */
+  @DocsEditable
+  @DomName('TextTrack.mode')
   String get mode native "TextTrack_mode_Getter";
 
-
-  /** @domName TextTrack.mode */
+  @DocsEditable
+  @DomName('TextTrack.mode')
   void set mode(String value) native "TextTrack_mode_Setter";
 
-
-  /** @domName TextTrack.addCue */
+  @DocsEditable
+  @DomName('TextTrack.addCue')
   void addCue(TextTrackCue cue) native "TextTrack_addCue_Callback";
 
-
-  /** @domName TextTrack.addEventListener */
+  @DocsEditable
+  @DomName('TextTrack.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_addEventListener_Callback";
 
-
-  /** @domName TextTrack.dispatchEvent */
+  @DocsEditable
+  @DomName('TextTrack.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "TextTrack_dispatchEvent_Callback";
 
-
-  /** @domName TextTrack.removeCue */
+  @DocsEditable
+  @DomName('TextTrack.removeCue')
   void removeCue(TextTrackCue cue) native "TextTrack_removeCue_Callback";
 
-
-  /** @domName TextTrack.removeEventListener */
+  @DocsEditable
+  @DomName('TextTrack.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_removeEventListener_Callback";
 
   Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class TextTrackEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   TextTrackEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get cueChange => this['cuechange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22834,7 +22823,8 @@ class TextTrackEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TextTrackCue
+@DocsEditable
+@DomName('TextTrackCue')
 class TextTrackCue extends EventTarget {
   TextTrackCue.internal() : super.internal();
 
@@ -22842,120 +22832,121 @@ class TextTrackCue extends EventTarget {
 
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
-  ///@docsEditable true
+  @DocsEditable
   factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
   static TextTrackCue _create(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TextTrackCueEvents get on =>
     new TextTrackCueEvents(this);
 
-
-  /** @domName TextTrackCue.align */
+  @DocsEditable
+  @DomName('TextTrackCue.align')
   String get align native "TextTrackCue_align_Getter";
 
-
-  /** @domName TextTrackCue.align */
+  @DocsEditable
+  @DomName('TextTrackCue.align')
   void set align(String value) native "TextTrackCue_align_Setter";
 
-
-  /** @domName TextTrackCue.endTime */
+  @DocsEditable
+  @DomName('TextTrackCue.endTime')
   num get endTime native "TextTrackCue_endTime_Getter";
 
-
-  /** @domName TextTrackCue.endTime */
+  @DocsEditable
+  @DomName('TextTrackCue.endTime')
   void set endTime(num value) native "TextTrackCue_endTime_Setter";
 
-
-  /** @domName TextTrackCue.id */
+  @DocsEditable
+  @DomName('TextTrackCue.id')
   String get id native "TextTrackCue_id_Getter";
 
-
-  /** @domName TextTrackCue.id */
+  @DocsEditable
+  @DomName('TextTrackCue.id')
   void set id(String value) native "TextTrackCue_id_Setter";
 
-
-  /** @domName TextTrackCue.line */
+  @DocsEditable
+  @DomName('TextTrackCue.line')
   int get line native "TextTrackCue_line_Getter";
 
-
-  /** @domName TextTrackCue.line */
+  @DocsEditable
+  @DomName('TextTrackCue.line')
   void set line(int value) native "TextTrackCue_line_Setter";
 
-
-  /** @domName TextTrackCue.pauseOnExit */
+  @DocsEditable
+  @DomName('TextTrackCue.pauseOnExit')
   bool get pauseOnExit native "TextTrackCue_pauseOnExit_Getter";
 
-
-  /** @domName TextTrackCue.pauseOnExit */
+  @DocsEditable
+  @DomName('TextTrackCue.pauseOnExit')
   void set pauseOnExit(bool value) native "TextTrackCue_pauseOnExit_Setter";
 
-
-  /** @domName TextTrackCue.position */
+  @DocsEditable
+  @DomName('TextTrackCue.position')
   int get position native "TextTrackCue_position_Getter";
 
-
-  /** @domName TextTrackCue.position */
+  @DocsEditable
+  @DomName('TextTrackCue.position')
   void set position(int value) native "TextTrackCue_position_Setter";
 
-
-  /** @domName TextTrackCue.size */
+  @DocsEditable
+  @DomName('TextTrackCue.size')
   int get size native "TextTrackCue_size_Getter";
 
-
-  /** @domName TextTrackCue.size */
+  @DocsEditable
+  @DomName('TextTrackCue.size')
   void set size(int value) native "TextTrackCue_size_Setter";
 
-
-  /** @domName TextTrackCue.snapToLines */
+  @DocsEditable
+  @DomName('TextTrackCue.snapToLines')
   bool get snapToLines native "TextTrackCue_snapToLines_Getter";
 
-
-  /** @domName TextTrackCue.snapToLines */
+  @DocsEditable
+  @DomName('TextTrackCue.snapToLines')
   void set snapToLines(bool value) native "TextTrackCue_snapToLines_Setter";
 
-
-  /** @domName TextTrackCue.startTime */
+  @DocsEditable
+  @DomName('TextTrackCue.startTime')
   num get startTime native "TextTrackCue_startTime_Getter";
 
-
-  /** @domName TextTrackCue.startTime */
+  @DocsEditable
+  @DomName('TextTrackCue.startTime')
   void set startTime(num value) native "TextTrackCue_startTime_Setter";
 
-
-  /** @domName TextTrackCue.text */
+  @DocsEditable
+  @DomName('TextTrackCue.text')
   String get text native "TextTrackCue_text_Getter";
 
-
-  /** @domName TextTrackCue.text */
+  @DocsEditable
+  @DomName('TextTrackCue.text')
   void set text(String value) native "TextTrackCue_text_Setter";
 
-
-  /** @domName TextTrackCue.track */
+  @DocsEditable
+  @DomName('TextTrackCue.track')
   TextTrack get track native "TextTrackCue_track_Getter";
 
-
-  /** @domName TextTrackCue.vertical */
+  @DocsEditable
+  @DomName('TextTrackCue.vertical')
   String get vertical native "TextTrackCue_vertical_Getter";
 
-
-  /** @domName TextTrackCue.vertical */
+  @DocsEditable
+  @DomName('TextTrackCue.vertical')
   void set vertical(String value) native "TextTrackCue_vertical_Setter";
 
-
-  /** @domName TextTrackCue.addEventListener */
+  @DocsEditable
+  @DomName('TextTrackCue.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_addEventListener_Callback";
 
-
-  /** @domName TextTrackCue.dispatchEvent */
+  @DocsEditable
+  @DomName('TextTrackCue.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "TextTrackCue_dispatchEvent_Callback";
 
-
-  /** @domName TextTrackCue.getCueAsHTML */
+  @DocsEditable
+  @DomName('TextTrackCue.getCueAsHTML')
   DocumentFragment getCueAsHtml() native "TextTrackCue_getCueAsHTML_Callback";
 
-
-  /** @domName TextTrackCue.removeEventListener */
+  @DocsEditable
+  @DomName('TextTrackCue.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_removeEventListener_Callback";
 
   Stream<Event> get onEnter => enterEvent.forTarget(this);
@@ -22964,15 +22955,15 @@ class TextTrackCue extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class TextTrackCueEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   TextTrackCueEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get enter => this['enter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get exit => this['exit'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22982,12 +22973,13 @@ class TextTrackCueEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TextTrackCueList
+@DocsEditable
+@DomName('TextTrackCueList')
 class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrackCue> {
   TextTrackCueList.internal();
 
-
-  /** @domName TextTrackCueList.length */
+  @DocsEditable
+  @DomName('TextTrackCueList.length')
   int get length native "TextTrackCueList_length_Getter";
 
   TextTrackCue operator[](int index) native "TextTrackCueList_item_Callback";
@@ -23008,50 +23000,50 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(TextTrackCue element) => Collections.contains(this, element);
+  bool contains(TextTrackCue element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(TextTrackCue element)) => Collections.forEach(this, f);
+  void forEach(void f(TextTrackCue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrackCue element)) => new MappedList<TextTrackCue, dynamic>(this, f);
+  List mappedBy(f(TextTrackCue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) => new WhereIterable<TextTrackCue>(this, f);
+  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(TextTrackCue element)) => Collections.every(this, f);
+  bool every(bool f(TextTrackCue element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(TextTrackCue element)) => Collections.any(this, f);
+  bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
 
   List<TextTrackCue> toList() => new List<TextTrackCue>.from(this);
   Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrackCue> take(int n) => new ListView<TextTrackCue>(this, 0, n);
+  List<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrackCue> takeWhile(bool test(TextTrackCue value)) {
-    return new TakeWhileIterable<TextTrackCue>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrackCue> skip(int n) => new ListView<TextTrackCue>(this, n, null);
+  List<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrackCue> skipWhile(bool test(TextTrackCue value)) {
-    return new SkipWhileIterable<TextTrackCue>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   TextTrackCue firstMatching(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   TextTrackCue lastMatching(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   TextTrackCue singleMatching(bool test(TextTrackCue value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   TextTrackCue elementAt(int index) {
@@ -23109,16 +23101,36 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new StateError("More than one element");
   }
 
-  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.min(this, compare);
+  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => IterableMixinWorkaround.min(this, compare);
 
-  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => Collections.max(this, compare);
+  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => IterableMixinWorkaround.max(this, compare);
 
   TextTrackCue removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   TextTrackCue removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(TextTrackCue element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(TextTrackCue element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
@@ -23138,12 +23150,12 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
   // -- end List<TextTrackCue> mixins.
 
-
-  /** @domName TextTrackCueList.getCueById */
+  @DocsEditable
+  @DomName('TextTrackCueList.getCueById')
   TextTrackCue getCueById(String id) native "TextTrackCueList_getCueById_Callback";
 
-
-  /** @domName TextTrackCueList.item */
+  @DocsEditable
+  @DomName('TextTrackCueList.item')
   TextTrackCue item(int index) native "TextTrackCueList_item_Callback";
 
 }
@@ -23154,18 +23166,20 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TextTrackList
+@DocsEditable
+@DomName('TextTrackList')
 class TextTrackList extends EventTarget implements List<TextTrack> {
   TextTrackList.internal() : super.internal();
 
   static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
 
-
-  /** @domName TextTrackList.length */
+  @DocsEditable
+  @DomName('TextTrackList.length')
   int get length native "TextTrackList_length_Getter";
 
   TextTrack operator[](int index) native "TextTrackList_item_Callback";
@@ -23186,50 +23200,50 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(TextTrack element) => Collections.contains(this, element);
+  bool contains(TextTrack element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(TextTrack element)) => Collections.forEach(this, f);
+  void forEach(void f(TextTrack element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrack element)) => new MappedList<TextTrack, dynamic>(this, f);
+  List mappedBy(f(TextTrack element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<TextTrack> where(bool f(TextTrack element)) => new WhereIterable<TextTrack>(this, f);
+  Iterable<TextTrack> where(bool f(TextTrack element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(TextTrack element)) => Collections.every(this, f);
+  bool every(bool f(TextTrack element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(TextTrack element)) => Collections.any(this, f);
+  bool any(bool f(TextTrack element)) => IterableMixinWorkaround.any(this, f);
 
   List<TextTrack> toList() => new List<TextTrack>.from(this);
   Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrack> take(int n) => new ListView<TextTrack>(this, 0, n);
+  List<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrack> takeWhile(bool test(TextTrack value)) {
-    return new TakeWhileIterable<TextTrack>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrack> skip(int n) => new ListView<TextTrack>(this, n, null);
+  List<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrack> skipWhile(bool test(TextTrack value)) {
-    return new SkipWhileIterable<TextTrack>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   TextTrack firstMatching(bool test(TextTrack value), { TextTrack orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   TextTrack lastMatching(bool test(TextTrack value), {TextTrack orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   TextTrack singleMatching(bool test(TextTrack value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   TextTrack elementAt(int index) {
@@ -23287,16 +23301,36 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new StateError("More than one element");
   }
 
-  TextTrack min([int compare(TextTrack a, TextTrack b)]) => Collections.min(this, compare);
+  TextTrack min([int compare(TextTrack a, TextTrack b)]) => IterableMixinWorkaround.min(this, compare);
 
-  TextTrack max([int compare(TextTrack a, TextTrack b)]) => Collections.max(this, compare);
+  TextTrack max([int compare(TextTrack a, TextTrack b)]) => IterableMixinWorkaround.max(this, compare);
 
   TextTrack removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   TextTrack removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(TextTrack element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(TextTrack element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
@@ -23316,32 +23350,32 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   // -- end List<TextTrack> mixins.
 
-
-  /** @domName TextTrackList.addEventListener */
+  @DocsEditable
+  @DomName('TextTrackList.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_addEventListener_Callback";
 
-
-  /** @domName TextTrackList.dispatchEvent */
+  @DocsEditable
+  @DomName('TextTrackList.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "TextTrackList_dispatchEvent_Callback";
 
-
-  /** @domName TextTrackList.item */
+  @DocsEditable
+  @DomName('TextTrackList.item')
   TextTrack item(int index) native "TextTrackList_item_Callback";
 
-
-  /** @domName TextTrackList.removeEventListener */
+  @DocsEditable
+  @DomName('TextTrackList.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_removeEventListener_Callback";
 
   Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class TextTrackListEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   TextTrackListEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23351,20 +23385,21 @@ class TextTrackListEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TimeRanges
+@DocsEditable
+@DomName('TimeRanges')
 class TimeRanges extends NativeFieldWrapperClass1 {
   TimeRanges.internal();
 
-
-  /** @domName TimeRanges.length */
+  @DocsEditable
+  @DomName('TimeRanges.length')
   int get length native "TimeRanges_length_Getter";
 
-
-  /** @domName TimeRanges.end */
+  @DocsEditable
+  @DomName('TimeRanges.end')
   num end(int index) native "TimeRanges_end_Callback";
 
-
-  /** @domName TimeRanges.start */
+  @DocsEditable
+  @DomName('TimeRanges.start')
   num start(int index) native "TimeRanges_start_Callback";
 
 }
@@ -23383,11 +23418,12 @@ typedef void TimeoutHandler();
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLTitleElement
+@DocsEditable
+@DomName('HTMLTitleElement')
 class TitleElement extends _Element_Merged {
   TitleElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory TitleElement() => document.$dom_createElement("title");
 
 }
@@ -23398,56 +23434,57 @@ class TitleElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Touch
+@DocsEditable
+@DomName('Touch')
 class Touch extends NativeFieldWrapperClass1 {
   Touch.internal();
 
-
-  /** @domName Touch.clientX */
+  @DocsEditable
+  @DomName('Touch.clientX')
   int get clientX native "Touch_clientX_Getter";
 
-
-  /** @domName Touch.clientY */
+  @DocsEditable
+  @DomName('Touch.clientY')
   int get clientY native "Touch_clientY_Getter";
 
-
-  /** @domName Touch.identifier */
+  @DocsEditable
+  @DomName('Touch.identifier')
   int get identifier native "Touch_identifier_Getter";
 
-
-  /** @domName Touch.pageX */
+  @DocsEditable
+  @DomName('Touch.pageX')
   int get pageX native "Touch_pageX_Getter";
 
-
-  /** @domName Touch.pageY */
+  @DocsEditable
+  @DomName('Touch.pageY')
   int get pageY native "Touch_pageY_Getter";
 
-
-  /** @domName Touch.screenX */
+  @DocsEditable
+  @DomName('Touch.screenX')
   int get screenX native "Touch_screenX_Getter";
 
-
-  /** @domName Touch.screenY */
+  @DocsEditable
+  @DomName('Touch.screenY')
   int get screenY native "Touch_screenY_Getter";
 
-
-  /** @domName Touch.target */
+  @DocsEditable
+  @DomName('Touch.target')
   EventTarget get target native "Touch_target_Getter";
 
-
-  /** @domName Touch.webkitForce */
+  @DocsEditable
+  @DomName('Touch.webkitForce')
   num get webkitForce native "Touch_webkitForce_Getter";
 
-
-  /** @domName Touch.webkitRadiusX */
+  @DocsEditable
+  @DomName('Touch.webkitRadiusX')
   int get webkitRadiusX native "Touch_webkitRadiusX_Getter";
 
-
-  /** @domName Touch.webkitRadiusY */
+  @DocsEditable
+  @DomName('Touch.webkitRadiusY')
   int get webkitRadiusY native "Touch_webkitRadiusY_Getter";
 
-
-  /** @domName Touch.webkitRotationAngle */
+  @DocsEditable
+  @DomName('Touch.webkitRotationAngle')
   num get webkitRotationAngle native "Touch_webkitRotationAngle_Getter";
 
 }
@@ -23458,40 +23495,41 @@ class Touch extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TouchEvent
+@DocsEditable
+@DomName('TouchEvent')
 class TouchEvent extends UIEvent {
   TouchEvent.internal() : super.internal();
 
-
-  /** @domName TouchEvent.altKey */
+  @DocsEditable
+  @DomName('TouchEvent.altKey')
   bool get altKey native "TouchEvent_altKey_Getter";
 
-
-  /** @domName TouchEvent.changedTouches */
+  @DocsEditable
+  @DomName('TouchEvent.changedTouches')
   TouchList get changedTouches native "TouchEvent_changedTouches_Getter";
 
-
-  /** @domName TouchEvent.ctrlKey */
+  @DocsEditable
+  @DomName('TouchEvent.ctrlKey')
   bool get ctrlKey native "TouchEvent_ctrlKey_Getter";
 
-
-  /** @domName TouchEvent.metaKey */
+  @DocsEditable
+  @DomName('TouchEvent.metaKey')
   bool get metaKey native "TouchEvent_metaKey_Getter";
 
-
-  /** @domName TouchEvent.shiftKey */
+  @DocsEditable
+  @DomName('TouchEvent.shiftKey')
   bool get shiftKey native "TouchEvent_shiftKey_Getter";
 
-
-  /** @domName TouchEvent.targetTouches */
+  @DocsEditable
+  @DomName('TouchEvent.targetTouches')
   TouchList get targetTouches native "TouchEvent_targetTouches_Getter";
 
-
-  /** @domName TouchEvent.touches */
+  @DocsEditable
+  @DomName('TouchEvent.touches')
   TouchList get touches native "TouchEvent_touches_Getter";
 
-
-  /** @domName TouchEvent.initTouchEvent */
+  @DocsEditable
+  @DomName('TouchEvent.initTouchEvent')
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
 }
@@ -23502,12 +23540,13 @@ class TouchEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TouchList
+@DocsEditable
+@DomName('TouchList')
 class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   TouchList.internal();
 
-
-  /** @domName TouchList.length */
+  @DocsEditable
+  @DomName('TouchList.length')
   int get length native "TouchList_length_Getter";
 
   Touch operator[](int index) native "TouchList_item_Callback";
@@ -23528,50 +23567,50 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Touch element) => Collections.contains(this, element);
+  bool contains(Touch element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Touch element)) => Collections.forEach(this, f);
+  void forEach(void f(Touch element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Touch element)) => new MappedList<Touch, dynamic>(this, f);
+  List mappedBy(f(Touch element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Touch> where(bool f(Touch element)) => new WhereIterable<Touch>(this, f);
+  Iterable<Touch> where(bool f(Touch element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Touch element)) => Collections.every(this, f);
+  bool every(bool f(Touch element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Touch element)) => Collections.any(this, f);
+  bool any(bool f(Touch element)) => IterableMixinWorkaround.any(this, f);
 
   List<Touch> toList() => new List<Touch>.from(this);
   Set<Touch> toSet() => new Set<Touch>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Touch> take(int n) => new ListView<Touch>(this, 0, n);
+  List<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Touch> takeWhile(bool test(Touch value)) {
-    return new TakeWhileIterable<Touch>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Touch> skip(int n) => new ListView<Touch>(this, n, null);
+  List<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Touch> skipWhile(bool test(Touch value)) {
-    return new SkipWhileIterable<Touch>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Touch firstMatching(bool test(Touch value), { Touch orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Touch lastMatching(bool test(Touch value), {Touch orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Touch singleMatching(bool test(Touch value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Touch elementAt(int index) {
@@ -23629,16 +23668,36 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new StateError("More than one element");
   }
 
-  Touch min([int compare(Touch a, Touch b)]) => Collections.min(this, compare);
+  Touch min([int compare(Touch a, Touch b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Touch max([int compare(Touch a, Touch b)]) => Collections.max(this, compare);
+  Touch max([int compare(Touch a, Touch b)]) => IterableMixinWorkaround.max(this, compare);
 
   Touch removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Touch removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Touch element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Touch element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
@@ -23658,8 +23717,8 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   // -- end List<Touch> mixins.
 
-
-  /** @domName TouchList.item */
+  @DocsEditable
+  @DomName('TouchList.item')
   Touch item(int index) native "TouchList_item_Callback";
 
 }
@@ -23670,14 +23729,15 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLTrackElement
+@DocsEditable
+@DomName('HTMLTrackElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class TrackElement extends _Element_Merged {
   TrackElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory TrackElement() => document.$dom_createElement("track");
 
   /// Checks if this type is supported on the current platform.
@@ -23691,52 +23751,52 @@ class TrackElement extends _Element_Merged {
 
   static const int NONE = 0;
 
-
-  /** @domName HTMLTrackElement.default */
+  @DocsEditable
+  @DomName('HTMLTrackElement.default')
   bool get defaultValue native "HTMLTrackElement_default_Getter";
 
-
-  /** @domName HTMLTrackElement.default */
+  @DocsEditable
+  @DomName('HTMLTrackElement.default')
   void set defaultValue(bool value) native "HTMLTrackElement_default_Setter";
 
-
-  /** @domName HTMLTrackElement.kind */
+  @DocsEditable
+  @DomName('HTMLTrackElement.kind')
   String get kind native "HTMLTrackElement_kind_Getter";
 
-
-  /** @domName HTMLTrackElement.kind */
+  @DocsEditable
+  @DomName('HTMLTrackElement.kind')
   void set kind(String value) native "HTMLTrackElement_kind_Setter";
 
-
-  /** @domName HTMLTrackElement.label */
+  @DocsEditable
+  @DomName('HTMLTrackElement.label')
   String get label native "HTMLTrackElement_label_Getter";
 
-
-  /** @domName HTMLTrackElement.label */
+  @DocsEditable
+  @DomName('HTMLTrackElement.label')
   void set label(String value) native "HTMLTrackElement_label_Setter";
 
-
-  /** @domName HTMLTrackElement.readyState */
+  @DocsEditable
+  @DomName('HTMLTrackElement.readyState')
   int get readyState native "HTMLTrackElement_readyState_Getter";
 
-
-  /** @domName HTMLTrackElement.src */
+  @DocsEditable
+  @DomName('HTMLTrackElement.src')
   String get src native "HTMLTrackElement_src_Getter";
 
-
-  /** @domName HTMLTrackElement.src */
+  @DocsEditable
+  @DomName('HTMLTrackElement.src')
   void set src(String value) native "HTMLTrackElement_src_Setter";
 
-
-  /** @domName HTMLTrackElement.srclang */
+  @DocsEditable
+  @DomName('HTMLTrackElement.srclang')
   String get srclang native "HTMLTrackElement_srclang_Getter";
 
-
-  /** @domName HTMLTrackElement.srclang */
+  @DocsEditable
+  @DomName('HTMLTrackElement.srclang')
   void set srclang(String value) native "HTMLTrackElement_srclang_Setter";
 
-
-  /** @domName HTMLTrackElement.track */
+  @DocsEditable
+  @DomName('HTMLTrackElement.track')
   TextTrack get track native "HTMLTrackElement_track_Getter";
 
 }
@@ -23747,12 +23807,13 @@ class TrackElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TrackEvent
+@DocsEditable
+@DomName('TrackEvent')
 class TrackEvent extends Event {
   TrackEvent.internal() : super.internal();
 
-
-  /** @domName TrackEvent.track */
+  @DocsEditable
+  @DomName('TrackEvent.track')
   Object get track native "TrackEvent_track_Getter";
 
 }
@@ -23763,16 +23824,17 @@ class TrackEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitTransitionEvent
+@DocsEditable
+@DomName('WebKitTransitionEvent')
 class TransitionEvent extends Event {
   TransitionEvent.internal() : super.internal();
 
-
-  /** @domName WebKitTransitionEvent.elapsedTime */
+  @DocsEditable
+  @DomName('WebKitTransitionEvent.elapsedTime')
   num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
 
-
-  /** @domName WebKitTransitionEvent.propertyName */
+  @DocsEditable
+  @DomName('WebKitTransitionEvent.propertyName')
   String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
 
 }
@@ -23783,60 +23845,61 @@ class TransitionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName TreeWalker
+@DocsEditable
+@DomName('TreeWalker')
 class TreeWalker extends NativeFieldWrapperClass1 {
   TreeWalker.internal();
 
-
-  /** @domName TreeWalker.currentNode */
+  @DocsEditable
+  @DomName('TreeWalker.currentNode')
   Node get currentNode native "TreeWalker_currentNode_Getter";
 
-
-  /** @domName TreeWalker.currentNode */
+  @DocsEditable
+  @DomName('TreeWalker.currentNode')
   void set currentNode(Node value) native "TreeWalker_currentNode_Setter";
 
-
-  /** @domName TreeWalker.expandEntityReferences */
+  @DocsEditable
+  @DomName('TreeWalker.expandEntityReferences')
   bool get expandEntityReferences native "TreeWalker_expandEntityReferences_Getter";
 
-
-  /** @domName TreeWalker.filter */
+  @DocsEditable
+  @DomName('TreeWalker.filter')
   NodeFilter get filter native "TreeWalker_filter_Getter";
 
-
-  /** @domName TreeWalker.root */
+  @DocsEditable
+  @DomName('TreeWalker.root')
   Node get root native "TreeWalker_root_Getter";
 
-
-  /** @domName TreeWalker.whatToShow */
+  @DocsEditable
+  @DomName('TreeWalker.whatToShow')
   int get whatToShow native "TreeWalker_whatToShow_Getter";
 
-
-  /** @domName TreeWalker.firstChild */
+  @DocsEditable
+  @DomName('TreeWalker.firstChild')
   Node firstChild() native "TreeWalker_firstChild_Callback";
 
-
-  /** @domName TreeWalker.lastChild */
+  @DocsEditable
+  @DomName('TreeWalker.lastChild')
   Node lastChild() native "TreeWalker_lastChild_Callback";
 
-
-  /** @domName TreeWalker.nextNode */
+  @DocsEditable
+  @DomName('TreeWalker.nextNode')
   Node nextNode() native "TreeWalker_nextNode_Callback";
 
-
-  /** @domName TreeWalker.nextSibling */
+  @DocsEditable
+  @DomName('TreeWalker.nextSibling')
   Node nextSibling() native "TreeWalker_nextSibling_Callback";
 
-
-  /** @domName TreeWalker.parentNode */
+  @DocsEditable
+  @DomName('TreeWalker.parentNode')
   Node parentNode() native "TreeWalker_parentNode_Callback";
 
-
-  /** @domName TreeWalker.previousNode */
+  @DocsEditable
+  @DomName('TreeWalker.previousNode')
   Node previousNode() native "TreeWalker_previousNode_Callback";
 
-
-  /** @domName TreeWalker.previousSibling */
+  @DocsEditable
+  @DomName('TreeWalker.previousSibling')
   Node previousSibling() native "TreeWalker_previousSibling_Callback";
 
 }
@@ -23847,7 +23910,8 @@ class TreeWalker extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName UIEvent; @docsEditable true
+@DocsEditable
+@DomName('UIEvent')
 class UIEvent extends Event {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
@@ -23863,44 +23927,44 @@ class UIEvent extends Event {
   }
   UIEvent.internal() : super.internal();
 
-
-  /** @domName UIEvent.charCode */
+  @DocsEditable
+  @DomName('UIEvent.charCode')
   int get $dom_charCode native "UIEvent_charCode_Getter";
 
-
-  /** @domName UIEvent.detail */
+  @DocsEditable
+  @DomName('UIEvent.detail')
   int get detail native "UIEvent_detail_Getter";
 
-
-  /** @domName UIEvent.keyCode */
+  @DocsEditable
+  @DomName('UIEvent.keyCode')
   int get $dom_keyCode native "UIEvent_keyCode_Getter";
 
-
-  /** @domName UIEvent.layerX */
+  @DocsEditable
+  @DomName('UIEvent.layerX')
   int get layerX native "UIEvent_layerX_Getter";
 
-
-  /** @domName UIEvent.layerY */
+  @DocsEditable
+  @DomName('UIEvent.layerY')
   int get layerY native "UIEvent_layerY_Getter";
 
-
-  /** @domName UIEvent.pageX */
+  @DocsEditable
+  @DomName('UIEvent.pageX')
   int get pageX native "UIEvent_pageX_Getter";
 
-
-  /** @domName UIEvent.pageY */
+  @DocsEditable
+  @DomName('UIEvent.pageY')
   int get pageY native "UIEvent_pageY_Getter";
 
-
-  /** @domName UIEvent.view */
+  @DocsEditable
+  @DomName('UIEvent.view')
   WindowBase get view native "UIEvent_view_Getter";
 
-
-  /** @domName UIEvent.which */
+  @DocsEditable
+  @DomName('UIEvent.which')
   int get which native "UIEvent_which_Getter";
 
-
-  /** @domName UIEvent.initUIEvent */
+  @DocsEditable
+  @DomName('UIEvent.initUIEvent')
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native "UIEvent_initUIEvent_Callback";
 
 }
@@ -23911,11 +23975,12 @@ class UIEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLUListElement
+@DocsEditable
+@DomName('HTMLUListElement')
 class UListElement extends _Element_Merged {
   UListElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory UListElement() => document.$dom_createElement("ul");
 
 }
@@ -23926,7 +23991,8 @@ class UListElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Uint16Array
+@DocsEditable
+@DomName('Uint16Array')
 class Uint16Array extends ArrayBufferView implements List<int> {
   Uint16Array.internal() : super.internal();
 
@@ -23941,16 +24007,16 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 2;
 
-
-  /** @domName Uint16Array.length */
+  @DocsEditable
+  @DomName('Uint16Array.length')
   int get length native "Uint16Array_length_Getter";
 
-
-  /** @domName Uint16Array.numericIndexGetter */
+  @DocsEditable
+  @DomName('Uint16Array.numericIndexGetter')
   int operator[](int index) native "Uint16Array_numericIndexGetter_Callback";
 
-
-  /** @domName Uint16Array.numericIndexSetter */
+  @DocsEditable
+  @DomName('Uint16Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Uint16Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
   // int is the element type.
@@ -23965,50 +24031,50 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -24066,16 +24132,36 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -24095,23 +24181,23 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
-
-  /** @domName Uint16Array.setElements */
+  @DocsEditable
+  @DomName('Uint16Array.setElements')
   void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
 
-  Uint16Array subarray(/*long*/ start, [/*long*/ end]) {
+  Uint16Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
     return _subarray_2(start);
   }
 
-
-  /** @domName Uint16Array.subarray_1 */
+  @DocsEditable
+  @DomName('Uint16Array.subarray_1')
   Uint16Array _subarray_1(start, end) native "Uint16Array_subarray_1_Callback";
 
-
-  /** @domName Uint16Array.subarray_2 */
+  @DocsEditable
+  @DomName('Uint16Array.subarray_2')
   Uint16Array _subarray_2(start) native "Uint16Array_subarray_2_Callback";
 
 }
@@ -24122,7 +24208,8 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Uint32Array
+@DocsEditable
+@DomName('Uint32Array')
 class Uint32Array extends ArrayBufferView implements List<int> {
   Uint32Array.internal() : super.internal();
 
@@ -24137,16 +24224,16 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 4;
 
-
-  /** @domName Uint32Array.length */
+  @DocsEditable
+  @DomName('Uint32Array.length')
   int get length native "Uint32Array_length_Getter";
 
-
-  /** @domName Uint32Array.numericIndexGetter */
+  @DocsEditable
+  @DomName('Uint32Array.numericIndexGetter')
   int operator[](int index) native "Uint32Array_numericIndexGetter_Callback";
 
-
-  /** @domName Uint32Array.numericIndexSetter */
+  @DocsEditable
+  @DomName('Uint32Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Uint32Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
   // int is the element type.
@@ -24161,50 +24248,50 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -24262,16 +24349,36 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -24291,23 +24398,23 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
-
-  /** @domName Uint32Array.setElements */
+  @DocsEditable
+  @DomName('Uint32Array.setElements')
   void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
 
-  Uint32Array subarray(/*long*/ start, [/*long*/ end]) {
+  Uint32Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
     return _subarray_2(start);
   }
 
-
-  /** @domName Uint32Array.subarray_1 */
+  @DocsEditable
+  @DomName('Uint32Array.subarray_1')
   Uint32Array _subarray_1(start, end) native "Uint32Array_subarray_1_Callback";
 
-
-  /** @domName Uint32Array.subarray_2 */
+  @DocsEditable
+  @DomName('Uint32Array.subarray_2')
   Uint32Array _subarray_2(start) native "Uint32Array_subarray_2_Callback";
 
 }
@@ -24318,7 +24425,8 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Uint8Array
+@DocsEditable
+@DomName('Uint8Array')
 class Uint8Array extends ArrayBufferView implements List<int> {
   Uint8Array.internal() : super.internal();
 
@@ -24333,16 +24441,16 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   static const int BYTES_PER_ELEMENT = 1;
 
-
-  /** @domName Uint8Array.length */
+  @DocsEditable
+  @DomName('Uint8Array.length')
   int get length native "Uint8Array_length_Getter";
 
-
-  /** @domName Uint8Array.numericIndexGetter */
+  @DocsEditable
+  @DomName('Uint8Array.numericIndexGetter')
   int operator[](int index) native "Uint8Array_numericIndexGetter_Callback";
 
-
-  /** @domName Uint8Array.numericIndexSetter */
+  @DocsEditable
+  @DomName('Uint8Array.numericIndexSetter')
   void operator[]=(int index, int value) native "Uint8Array_numericIndexSetter_Callback";
   // -- start List<int> mixins.
   // int is the element type.
@@ -24357,50 +24465,50 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(int element) => Collections.contains(this, element);
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(int element)) => Collections.forEach(this, f);
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => new MappedList<int, dynamic>(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(int element)) => Collections.every(this, f);
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(int element)) => Collections.any(this, f);
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
 
   List<int> toList() => new List<int>.from(this);
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => new ListView<int>(this, 0, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
-    return new TakeWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => new ListView<int>(this, n, null);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
-    return new SkipWhileIterable<int>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   int firstMatching(bool test(int value), { int orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   int lastMatching(bool test(int value), {int orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   int singleMatching(bool test(int value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   int elementAt(int index) {
@@ -24458,16 +24566,36 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => Collections.min(this, compare);
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => Collections.max(this, compare);
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   int removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
@@ -24487,23 +24615,23 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   // -- end List<int> mixins.
 
-
-  /** @domName Uint8Array.setElements */
+  @DocsEditable
+  @DomName('Uint8Array.setElements')
   void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
 
-  Uint8Array subarray(/*long*/ start, [/*long*/ end]) {
+  Uint8Array subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
     return _subarray_2(start);
   }
 
-
-  /** @domName Uint8Array.subarray_1 */
+  @DocsEditable
+  @DomName('Uint8Array.subarray_1')
   Uint8Array _subarray_1(start, end) native "Uint8Array_subarray_1_Callback";
 
-
-  /** @domName Uint8Array.subarray_2 */
+  @DocsEditable
+  @DomName('Uint8Array.subarray_2')
   Uint8Array _subarray_2(start) native "Uint8Array_subarray_2_Callback";
 
 }
@@ -24514,8 +24642,9 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Uint8ClampedArray
-class Uint8ClampedArray extends Uint8Array {
+@DocsEditable
+@DomName('Uint8ClampedArray')
+class Uint8ClampedArray extends Uint8Array implements List<int> {
   Uint8ClampedArray.internal() : super.internal();
 
   factory Uint8ClampedArray(int length) =>
@@ -24527,35 +24656,197 @@ class Uint8ClampedArray extends Uint8Array {
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
-
-  /** @domName Uint8ClampedArray.length */
+  @DocsEditable
+  @DomName('Uint8ClampedArray.length')
   int get length native "Uint8ClampedArray_length_Getter";
 
-
-  /** @domName Uint8ClampedArray.numericIndexGetter */
+  @DocsEditable
+  @DomName('Uint8ClampedArray.numericIndexGetter')
   int operator[](int index) native "Uint8ClampedArray_numericIndexGetter_Callback";
 
-
-  /** @domName Uint8ClampedArray.numericIndexSetter */
+  @DocsEditable
+  @DomName('Uint8ClampedArray.numericIndexSetter')
   void operator[]=(int index, int value) native "Uint8ClampedArray_numericIndexSetter_Callback";
+  // -- start List<int> mixins.
+  // int is the element type.
 
+  // From Iterable<int>:
 
-  /** @domName Uint8ClampedArray.setElements */
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+
+  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
+
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
+
+  List<int> toList() => new List<int>.from(this);
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  int firstMatching(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  }
+
+  int lastMatching(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  }
+
+  int singleMatching(bool test(int value)) {
+    return IterableMixinWorkaround.singleMatching(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+
+  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<int> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <int>[]);
+
+  // -- end List<int> mixins.
+
+  @DocsEditable
+  @DomName('Uint8ClampedArray.setElements')
   void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
 
-  Uint8ClampedArray subarray(/*long*/ start, [/*long*/ end]) {
+  Uint8ClampedArray subarray(int start, [int end]) {
     if (?end) {
       return _subarray_1(start, end);
     }
     return _subarray_2(start);
   }
 
-
-  /** @domName Uint8ClampedArray.subarray_1 */
+  @DocsEditable
+  @DomName('Uint8ClampedArray.subarray_1')
   Uint8ClampedArray _subarray_1(start, end) native "Uint8ClampedArray_subarray_1_Callback";
 
-
-  /** @domName Uint8ClampedArray.subarray_2 */
+  @DocsEditable
+  @DomName('Uint8ClampedArray.subarray_2')
   Uint8ClampedArray _subarray_2(start) native "Uint8ClampedArray_subarray_2_Callback";
 
 }
@@ -24566,7 +24857,8 @@ class Uint8ClampedArray extends Uint8Array {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLUnknownElement
+@DocsEditable
+@DomName('HTMLUnknownElement')
 class UnknownElement extends _Element_Merged {
   UnknownElement.internal() : super.internal();
 
@@ -24578,7 +24870,8 @@ class UnknownElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName URL
+@DocsEditable
+@DomName('URL')
 class Url extends NativeFieldWrapperClass1 {
   Url.internal();
 
@@ -24595,20 +24888,20 @@ class Url extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName DOMURL.createObjectURL_1 */
+  @DocsEditable
+  @DomName('DOMURL.createObjectURL_1')
   static String _createObjectURL_1(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_1_Callback";
 
-
-  /** @domName DOMURL.createObjectURL_2 */
+  @DocsEditable
+  @DomName('DOMURL.createObjectURL_2')
   static String _createObjectURL_2(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_2_Callback";
 
-
-  /** @domName DOMURL.createObjectURL_3 */
+  @DocsEditable
+  @DomName('DOMURL.createObjectURL_3')
   static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_3_Callback";
 
-
-  /** @domName DOMURL.revokeObjectURL */
+  @DocsEditable
+  @DomName('DOMURL.revokeObjectURL')
   static void revokeObjectUrl(String url) native "DOMURL_revokeObjectURL_Callback";
 
 }
@@ -24619,48 +24912,49 @@ class Url extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ValidityState
+@DocsEditable
+@DomName('ValidityState')
 class ValidityState extends NativeFieldWrapperClass1 {
   ValidityState.internal();
 
-
-  /** @domName ValidityState.badInput */
+  @DocsEditable
+  @DomName('ValidityState.badInput')
   bool get badInput native "ValidityState_badInput_Getter";
 
-
-  /** @domName ValidityState.customError */
+  @DocsEditable
+  @DomName('ValidityState.customError')
   bool get customError native "ValidityState_customError_Getter";
 
-
-  /** @domName ValidityState.patternMismatch */
+  @DocsEditable
+  @DomName('ValidityState.patternMismatch')
   bool get patternMismatch native "ValidityState_patternMismatch_Getter";
 
-
-  /** @domName ValidityState.rangeOverflow */
+  @DocsEditable
+  @DomName('ValidityState.rangeOverflow')
   bool get rangeOverflow native "ValidityState_rangeOverflow_Getter";
 
-
-  /** @domName ValidityState.rangeUnderflow */
+  @DocsEditable
+  @DomName('ValidityState.rangeUnderflow')
   bool get rangeUnderflow native "ValidityState_rangeUnderflow_Getter";
 
-
-  /** @domName ValidityState.stepMismatch */
+  @DocsEditable
+  @DomName('ValidityState.stepMismatch')
   bool get stepMismatch native "ValidityState_stepMismatch_Getter";
 
-
-  /** @domName ValidityState.tooLong */
+  @DocsEditable
+  @DomName('ValidityState.tooLong')
   bool get tooLong native "ValidityState_tooLong_Getter";
 
-
-  /** @domName ValidityState.typeMismatch */
+  @DocsEditable
+  @DomName('ValidityState.typeMismatch')
   bool get typeMismatch native "ValidityState_typeMismatch_Getter";
 
-
-  /** @domName ValidityState.valid */
+  @DocsEditable
+  @DomName('ValidityState.valid')
   bool get valid native "ValidityState_valid_Getter";
 
-
-  /** @domName ValidityState.valueMissing */
+  @DocsEditable
+  @DomName('ValidityState.valueMissing')
   bool get valueMissing native "ValidityState_valueMissing_Getter";
 
 }
@@ -24671,75 +24965,76 @@ class ValidityState extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLVideoElement
+@DocsEditable
+@DomName('HTMLVideoElement')
 class VideoElement extends MediaElement {
   VideoElement.internal() : super.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory VideoElement() => document.$dom_createElement("video");
 
-
-  /** @domName HTMLVideoElement.height */
+  @DocsEditable
+  @DomName('HTMLVideoElement.height')
   int get height native "HTMLVideoElement_height_Getter";
 
-
-  /** @domName HTMLVideoElement.height */
+  @DocsEditable
+  @DomName('HTMLVideoElement.height')
   void set height(int value) native "HTMLVideoElement_height_Setter";
 
-
-  /** @domName HTMLVideoElement.poster */
+  @DocsEditable
+  @DomName('HTMLVideoElement.poster')
   String get poster native "HTMLVideoElement_poster_Getter";
 
-
-  /** @domName HTMLVideoElement.poster */
+  @DocsEditable
+  @DomName('HTMLVideoElement.poster')
   void set poster(String value) native "HTMLVideoElement_poster_Setter";
 
-
-  /** @domName HTMLVideoElement.videoHeight */
+  @DocsEditable
+  @DomName('HTMLVideoElement.videoHeight')
   int get videoHeight native "HTMLVideoElement_videoHeight_Getter";
 
-
-  /** @domName HTMLVideoElement.videoWidth */
+  @DocsEditable
+  @DomName('HTMLVideoElement.videoWidth')
   int get videoWidth native "HTMLVideoElement_videoWidth_Getter";
 
-
-  /** @domName HTMLVideoElement.webkitDecodedFrameCount */
+  @DocsEditable
+  @DomName('HTMLVideoElement.webkitDecodedFrameCount')
   int get webkitDecodedFrameCount native "HTMLVideoElement_webkitDecodedFrameCount_Getter";
 
-
-  /** @domName HTMLVideoElement.webkitDisplayingFullscreen */
+  @DocsEditable
+  @DomName('HTMLVideoElement.webkitDisplayingFullscreen')
   bool get webkitDisplayingFullscreen native "HTMLVideoElement_webkitDisplayingFullscreen_Getter";
 
-
-  /** @domName HTMLVideoElement.webkitDroppedFrameCount */
+  @DocsEditable
+  @DomName('HTMLVideoElement.webkitDroppedFrameCount')
   int get webkitDroppedFrameCount native "HTMLVideoElement_webkitDroppedFrameCount_Getter";
 
-
-  /** @domName HTMLVideoElement.webkitSupportsFullscreen */
+  @DocsEditable
+  @DomName('HTMLVideoElement.webkitSupportsFullscreen')
   bool get webkitSupportsFullscreen native "HTMLVideoElement_webkitSupportsFullscreen_Getter";
 
-
-  /** @domName HTMLVideoElement.width */
+  @DocsEditable
+  @DomName('HTMLVideoElement.width')
   int get width native "HTMLVideoElement_width_Getter";
 
-
-  /** @domName HTMLVideoElement.width */
+  @DocsEditable
+  @DomName('HTMLVideoElement.width')
   void set width(int value) native "HTMLVideoElement_width_Setter";
 
-
-  /** @domName HTMLVideoElement.webkitEnterFullScreen */
+  @DocsEditable
+  @DomName('HTMLVideoElement.webkitEnterFullScreen')
   void webkitEnterFullScreen() native "HTMLVideoElement_webkitEnterFullScreen_Callback";
 
-
-  /** @domName HTMLVideoElement.webkitEnterFullscreen */
+  @DocsEditable
+  @DomName('HTMLVideoElement.webkitEnterFullscreen')
   void webkitEnterFullscreen() native "HTMLVideoElement_webkitEnterFullscreen_Callback";
 
-
-  /** @domName HTMLVideoElement.webkitExitFullScreen */
+  @DocsEditable
+  @DomName('HTMLVideoElement.webkitExitFullScreen')
   void webkitExitFullScreen() native "HTMLVideoElement_webkitExitFullScreen_Callback";
 
-
-  /** @domName HTMLVideoElement.webkitExitFullscreen */
+  @DocsEditable
+  @DomName('HTMLVideoElement.webkitExitFullscreen')
   void webkitExitFullscreen() native "HTMLVideoElement_webkitExitFullscreen_Callback";
 
 }
@@ -24758,20 +25053,21 @@ typedef void VoidCallback();
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLActiveInfo
+@DocsEditable
+@DomName('WebGLActiveInfo')
 class WebGLActiveInfo extends NativeFieldWrapperClass1 {
   WebGLActiveInfo.internal();
 
-
-  /** @domName WebGLActiveInfo.name */
+  @DocsEditable
+  @DomName('WebGLActiveInfo.name')
   String get name native "WebGLActiveInfo_name_Getter";
 
-
-  /** @domName WebGLActiveInfo.size */
+  @DocsEditable
+  @DomName('WebGLActiveInfo.size')
   int get size native "WebGLActiveInfo_size_Getter";
 
-
-  /** @domName WebGLActiveInfo.type */
+  @DocsEditable
+  @DomName('WebGLActiveInfo.type')
   int get type native "WebGLActiveInfo_type_Getter";
 
 }
@@ -24782,7 +25078,8 @@ class WebGLActiveInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLBuffer
+@DocsEditable
+@DomName('WebGLBuffer')
 class WebGLBuffer extends NativeFieldWrapperClass1 {
   WebGLBuffer.internal();
 
@@ -24794,7 +25091,8 @@ class WebGLBuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLCompressedTextureS3TC
+@DocsEditable
+@DomName('WebGLCompressedTextureS3TC')
 class WebGLCompressedTextureS3TC extends NativeFieldWrapperClass1 {
   WebGLCompressedTextureS3TC.internal();
 
@@ -24814,56 +25112,57 @@ class WebGLCompressedTextureS3TC extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLContextAttributes
+@DocsEditable
+@DomName('WebGLContextAttributes')
 class WebGLContextAttributes extends NativeFieldWrapperClass1 {
   WebGLContextAttributes.internal();
 
-
-  /** @domName WebGLContextAttributes.alpha */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.alpha')
   bool get alpha native "WebGLContextAttributes_alpha_Getter";
 
-
-  /** @domName WebGLContextAttributes.alpha */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.alpha')
   void set alpha(bool value) native "WebGLContextAttributes_alpha_Setter";
 
-
-  /** @domName WebGLContextAttributes.antialias */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.antialias')
   bool get antialias native "WebGLContextAttributes_antialias_Getter";
 
-
-  /** @domName WebGLContextAttributes.antialias */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.antialias')
   void set antialias(bool value) native "WebGLContextAttributes_antialias_Setter";
 
-
-  /** @domName WebGLContextAttributes.depth */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.depth')
   bool get depth native "WebGLContextAttributes_depth_Getter";
 
-
-  /** @domName WebGLContextAttributes.depth */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.depth')
   void set depth(bool value) native "WebGLContextAttributes_depth_Setter";
 
-
-  /** @domName WebGLContextAttributes.premultipliedAlpha */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.premultipliedAlpha')
   bool get premultipliedAlpha native "WebGLContextAttributes_premultipliedAlpha_Getter";
 
-
-  /** @domName WebGLContextAttributes.premultipliedAlpha */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.premultipliedAlpha')
   void set premultipliedAlpha(bool value) native "WebGLContextAttributes_premultipliedAlpha_Setter";
 
-
-  /** @domName WebGLContextAttributes.preserveDrawingBuffer */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   bool get preserveDrawingBuffer native "WebGLContextAttributes_preserveDrawingBuffer_Getter";
 
-
-  /** @domName WebGLContextAttributes.preserveDrawingBuffer */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   void set preserveDrawingBuffer(bool value) native "WebGLContextAttributes_preserveDrawingBuffer_Setter";
 
-
-  /** @domName WebGLContextAttributes.stencil */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.stencil')
   bool get stencil native "WebGLContextAttributes_stencil_Getter";
 
-
-  /** @domName WebGLContextAttributes.stencil */
+  @DocsEditable
+  @DomName('WebGLContextAttributes.stencil')
   void set stencil(bool value) native "WebGLContextAttributes_stencil_Setter";
 
 }
@@ -24874,12 +25173,13 @@ class WebGLContextAttributes extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLContextEvent
+@DocsEditable
+@DomName('WebGLContextEvent')
 class WebGLContextEvent extends Event {
   WebGLContextEvent.internal() : super.internal();
 
-
-  /** @domName WebGLContextEvent.statusMessage */
+  @DocsEditable
+  @DomName('WebGLContextEvent.statusMessage')
   String get statusMessage native "WebGLContextEvent_statusMessage_Getter";
 
 }
@@ -24890,7 +25190,8 @@ class WebGLContextEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLDebugRendererInfo
+@DocsEditable
+@DomName('WebGLDebugRendererInfo')
 class WebGLDebugRendererInfo extends NativeFieldWrapperClass1 {
   WebGLDebugRendererInfo.internal();
 
@@ -24906,12 +25207,13 @@ class WebGLDebugRendererInfo extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLDebugShaders
+@DocsEditable
+@DomName('WebGLDebugShaders')
 class WebGLDebugShaders extends NativeFieldWrapperClass1 {
   WebGLDebugShaders.internal();
 
-
-  /** @domName WebGLDebugShaders.getTranslatedShaderSource */
+  @DocsEditable
+  @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   String getTranslatedShaderSource(WebGLShader shader) native "WebGLDebugShaders_getTranslatedShaderSource_Callback";
 
 }
@@ -24922,7 +25224,8 @@ class WebGLDebugShaders extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLDepthTexture
+@DocsEditable
+@DomName('WebGLDepthTexture')
 class WebGLDepthTexture extends NativeFieldWrapperClass1 {
   WebGLDepthTexture.internal();
 
@@ -24936,7 +25239,8 @@ class WebGLDepthTexture extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLFramebuffer
+@DocsEditable
+@DomName('WebGLFramebuffer')
 class WebGLFramebuffer extends NativeFieldWrapperClass1 {
   WebGLFramebuffer.internal();
 
@@ -24948,16 +25252,17 @@ class WebGLFramebuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLLoseContext
+@DocsEditable
+@DomName('WebGLLoseContext')
 class WebGLLoseContext extends NativeFieldWrapperClass1 {
   WebGLLoseContext.internal();
 
-
-  /** @domName WebGLLoseContext.loseContext */
+  @DocsEditable
+  @DomName('WebGLLoseContext.loseContext')
   void loseContext() native "WebGLLoseContext_loseContext_Callback";
 
-
-  /** @domName WebGLLoseContext.restoreContext */
+  @DocsEditable
+  @DomName('WebGLLoseContext.restoreContext')
   void restoreContext() native "WebGLLoseContext_restoreContext_Callback";
 
 }
@@ -24968,7 +25273,8 @@ class WebGLLoseContext extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLProgram
+@DocsEditable
+@DomName('WebGLProgram')
 class WebGLProgram extends NativeFieldWrapperClass1 {
   WebGLProgram.internal();
 
@@ -24980,7 +25286,8 @@ class WebGLProgram extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLRenderbuffer
+@DocsEditable
+@DomName('WebGLRenderbuffer')
 class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
   WebGLRenderbuffer.internal();
 
@@ -24992,7 +25299,8 @@ class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLRenderingContext
+@DocsEditable
+@DomName('WebGLRenderingContext')
 class WebGLRenderingContext extends CanvasRenderingContext {
   WebGLRenderingContext.internal() : super.internal();
 
@@ -25586,63 +25894,63 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 
   static const int ZERO = 0;
 
-
-  /** @domName WebGLRenderingContext.drawingBufferHeight */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.drawingBufferHeight')
   int get drawingBufferHeight native "WebGLRenderingContext_drawingBufferHeight_Getter";
 
-
-  /** @domName WebGLRenderingContext.drawingBufferWidth */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.drawingBufferWidth')
   int get drawingBufferWidth native "WebGLRenderingContext_drawingBufferWidth_Getter";
 
-
-  /** @domName WebGLRenderingContext.activeTexture */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.activeTexture')
   void activeTexture(int texture) native "WebGLRenderingContext_activeTexture_Callback";
 
-
-  /** @domName WebGLRenderingContext.attachShader */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.attachShader')
   void attachShader(WebGLProgram program, WebGLShader shader) native "WebGLRenderingContext_attachShader_Callback";
 
-
-  /** @domName WebGLRenderingContext.bindAttribLocation */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bindAttribLocation')
   void bindAttribLocation(WebGLProgram program, int index, String name) native "WebGLRenderingContext_bindAttribLocation_Callback";
 
-
-  /** @domName WebGLRenderingContext.bindBuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bindBuffer')
   void bindBuffer(int target, WebGLBuffer buffer) native "WebGLRenderingContext_bindBuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.bindFramebuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bindFramebuffer')
   void bindFramebuffer(int target, WebGLFramebuffer framebuffer) native "WebGLRenderingContext_bindFramebuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.bindRenderbuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bindRenderbuffer')
   void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer) native "WebGLRenderingContext_bindRenderbuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.bindTexture */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bindTexture')
   void bindTexture(int target, WebGLTexture texture) native "WebGLRenderingContext_bindTexture_Callback";
 
-
-  /** @domName WebGLRenderingContext.blendColor */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.blendColor')
   void blendColor(num red, num green, num blue, num alpha) native "WebGLRenderingContext_blendColor_Callback";
 
-
-  /** @domName WebGLRenderingContext.blendEquation */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.blendEquation')
   void blendEquation(int mode) native "WebGLRenderingContext_blendEquation_Callback";
 
-
-  /** @domName WebGLRenderingContext.blendEquationSeparate */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.blendEquationSeparate')
   void blendEquationSeparate(int modeRGB, int modeAlpha) native "WebGLRenderingContext_blendEquationSeparate_Callback";
 
-
-  /** @domName WebGLRenderingContext.blendFunc */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.blendFunc')
   void blendFunc(int sfactor, int dfactor) native "WebGLRenderingContext_blendFunc_Callback";
 
-
-  /** @domName WebGLRenderingContext.blendFuncSeparate */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.blendFuncSeparate')
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
-  void bufferData(/*unsigned long*/ target, data_OR_size, /*unsigned long*/ usage) {
+  void bufferData(int target, data_OR_size, int usage) {
     if ((target is int || target == null) && (data_OR_size is ArrayBuffer || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
@@ -25658,19 +25966,19 @@ class WebGLRenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName WebGLRenderingContext.bufferData_1 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bufferData_1')
   void _bufferData_1(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_1_Callback";
 
-
-  /** @domName WebGLRenderingContext.bufferData_2 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bufferData_2')
   void _bufferData_2(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_2_Callback";
 
-
-  /** @domName WebGLRenderingContext.bufferData_3 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bufferData_3')
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_3_Callback";
 
-  void bufferSubData(/*unsigned long*/ target, /*long long*/ offset, data) {
+  void bufferSubData(int target, int offset, data) {
     if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBuffer || data == null)) {
       _bufferSubData_1(target, offset, data);
       return;
@@ -25682,367 +25990,367 @@ class WebGLRenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName WebGLRenderingContext.bufferSubData_1 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bufferSubData_1')
   void _bufferSubData_1(target, offset, data) native "WebGLRenderingContext_bufferSubData_1_Callback";
 
-
-  /** @domName WebGLRenderingContext.bufferSubData_2 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.bufferSubData_2')
   void _bufferSubData_2(target, offset, data) native "WebGLRenderingContext_bufferSubData_2_Callback";
 
-
-  /** @domName WebGLRenderingContext.checkFramebufferStatus */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.checkFramebufferStatus')
   int checkFramebufferStatus(int target) native "WebGLRenderingContext_checkFramebufferStatus_Callback";
 
-
-  /** @domName WebGLRenderingContext.clear */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.clear')
   void clear(int mask) native "WebGLRenderingContext_clear_Callback";
 
-
-  /** @domName WebGLRenderingContext.clearColor */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.clearColor')
   void clearColor(num red, num green, num blue, num alpha) native "WebGLRenderingContext_clearColor_Callback";
 
-
-  /** @domName WebGLRenderingContext.clearDepth */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.clearDepth')
   void clearDepth(num depth) native "WebGLRenderingContext_clearDepth_Callback";
 
-
-  /** @domName WebGLRenderingContext.clearStencil */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.clearStencil')
   void clearStencil(int s) native "WebGLRenderingContext_clearStencil_Callback";
 
-
-  /** @domName WebGLRenderingContext.colorMask */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.colorMask')
   void colorMask(bool red, bool green, bool blue, bool alpha) native "WebGLRenderingContext_colorMask_Callback";
 
-
-  /** @domName WebGLRenderingContext.compileShader */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.compileShader')
   void compileShader(WebGLShader shader) native "WebGLRenderingContext_compileShader_Callback";
 
-
-  /** @domName WebGLRenderingContext.compressedTexImage2D */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.compressedTexImage2D')
   void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native "WebGLRenderingContext_compressedTexImage2D_Callback";
 
-
-  /** @domName WebGLRenderingContext.compressedTexSubImage2D */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native "WebGLRenderingContext_compressedTexSubImage2D_Callback";
 
-
-  /** @domName WebGLRenderingContext.copyTexImage2D */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.copyTexImage2D')
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native "WebGLRenderingContext_copyTexImage2D_Callback";
 
-
-  /** @domName WebGLRenderingContext.copyTexSubImage2D */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.copyTexSubImage2D')
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native "WebGLRenderingContext_copyTexSubImage2D_Callback";
 
-
-  /** @domName WebGLRenderingContext.createBuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.createBuffer')
   WebGLBuffer createBuffer() native "WebGLRenderingContext_createBuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.createFramebuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.createFramebuffer')
   WebGLFramebuffer createFramebuffer() native "WebGLRenderingContext_createFramebuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.createProgram */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.createProgram')
   WebGLProgram createProgram() native "WebGLRenderingContext_createProgram_Callback";
 
-
-  /** @domName WebGLRenderingContext.createRenderbuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.createRenderbuffer')
   WebGLRenderbuffer createRenderbuffer() native "WebGLRenderingContext_createRenderbuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.createShader */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.createShader')
   WebGLShader createShader(int type) native "WebGLRenderingContext_createShader_Callback";
 
-
-  /** @domName WebGLRenderingContext.createTexture */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.createTexture')
   WebGLTexture createTexture() native "WebGLRenderingContext_createTexture_Callback";
 
-
-  /** @domName WebGLRenderingContext.cullFace */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.cullFace')
   void cullFace(int mode) native "WebGLRenderingContext_cullFace_Callback";
 
-
-  /** @domName WebGLRenderingContext.deleteBuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.deleteBuffer')
   void deleteBuffer(WebGLBuffer buffer) native "WebGLRenderingContext_deleteBuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.deleteFramebuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.deleteFramebuffer')
   void deleteFramebuffer(WebGLFramebuffer framebuffer) native "WebGLRenderingContext_deleteFramebuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.deleteProgram */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.deleteProgram')
   void deleteProgram(WebGLProgram program) native "WebGLRenderingContext_deleteProgram_Callback";
 
-
-  /** @domName WebGLRenderingContext.deleteRenderbuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.deleteRenderbuffer')
   void deleteRenderbuffer(WebGLRenderbuffer renderbuffer) native "WebGLRenderingContext_deleteRenderbuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.deleteShader */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.deleteShader')
   void deleteShader(WebGLShader shader) native "WebGLRenderingContext_deleteShader_Callback";
 
-
-  /** @domName WebGLRenderingContext.deleteTexture */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.deleteTexture')
   void deleteTexture(WebGLTexture texture) native "WebGLRenderingContext_deleteTexture_Callback";
 
-
-  /** @domName WebGLRenderingContext.depthFunc */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.depthFunc')
   void depthFunc(int func) native "WebGLRenderingContext_depthFunc_Callback";
 
-
-  /** @domName WebGLRenderingContext.depthMask */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.depthMask')
   void depthMask(bool flag) native "WebGLRenderingContext_depthMask_Callback";
 
-
-  /** @domName WebGLRenderingContext.depthRange */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.depthRange')
   void depthRange(num zNear, num zFar) native "WebGLRenderingContext_depthRange_Callback";
 
-
-  /** @domName WebGLRenderingContext.detachShader */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.detachShader')
   void detachShader(WebGLProgram program, WebGLShader shader) native "WebGLRenderingContext_detachShader_Callback";
 
-
-  /** @domName WebGLRenderingContext.disable */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.disable')
   void disable(int cap) native "WebGLRenderingContext_disable_Callback";
 
-
-  /** @domName WebGLRenderingContext.disableVertexAttribArray */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.disableVertexAttribArray')
   void disableVertexAttribArray(int index) native "WebGLRenderingContext_disableVertexAttribArray_Callback";
 
-
-  /** @domName WebGLRenderingContext.drawArrays */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.drawArrays')
   void drawArrays(int mode, int first, int count) native "WebGLRenderingContext_drawArrays_Callback";
 
-
-  /** @domName WebGLRenderingContext.drawElements */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.drawElements')
   void drawElements(int mode, int count, int type, int offset) native "WebGLRenderingContext_drawElements_Callback";
 
-
-  /** @domName WebGLRenderingContext.enable */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.enable')
   void enable(int cap) native "WebGLRenderingContext_enable_Callback";
 
-
-  /** @domName WebGLRenderingContext.enableVertexAttribArray */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.enableVertexAttribArray')
   void enableVertexAttribArray(int index) native "WebGLRenderingContext_enableVertexAttribArray_Callback";
 
-
-  /** @domName WebGLRenderingContext.finish */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.finish')
   void finish() native "WebGLRenderingContext_finish_Callback";
 
-
-  /** @domName WebGLRenderingContext.flush */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.flush')
   void flush() native "WebGLRenderingContext_flush_Callback";
 
-
-  /** @domName WebGLRenderingContext.framebufferRenderbuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.framebufferRenderbuffer')
   void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer) native "WebGLRenderingContext_framebufferRenderbuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.framebufferTexture2D */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.framebufferTexture2D')
   void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level) native "WebGLRenderingContext_framebufferTexture2D_Callback";
 
-
-  /** @domName WebGLRenderingContext.frontFace */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.frontFace')
   void frontFace(int mode) native "WebGLRenderingContext_frontFace_Callback";
 
-
-  /** @domName WebGLRenderingContext.generateMipmap */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.generateMipmap')
   void generateMipmap(int target) native "WebGLRenderingContext_generateMipmap_Callback";
 
-
-  /** @domName WebGLRenderingContext.getActiveAttrib */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getActiveAttrib')
   WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index) native "WebGLRenderingContext_getActiveAttrib_Callback";
 
-
-  /** @domName WebGLRenderingContext.getActiveUniform */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getActiveUniform')
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) native "WebGLRenderingContext_getActiveUniform_Callback";
 
-
-  /** @domName WebGLRenderingContext.getAttachedShaders */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getAttachedShaders')
   void getAttachedShaders(WebGLProgram program) native "WebGLRenderingContext_getAttachedShaders_Callback";
 
-
-  /** @domName WebGLRenderingContext.getAttribLocation */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getAttribLocation')
   int getAttribLocation(WebGLProgram program, String name) native "WebGLRenderingContext_getAttribLocation_Callback";
 
-
-  /** @domName WebGLRenderingContext.getBufferParameter */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getBufferParameter')
   Object getBufferParameter(int target, int pname) native "WebGLRenderingContext_getBufferParameter_Callback";
 
-
-  /** @domName WebGLRenderingContext.getContextAttributes */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getContextAttributes')
   WebGLContextAttributes getContextAttributes() native "WebGLRenderingContext_getContextAttributes_Callback";
 
-
-  /** @domName WebGLRenderingContext.getError */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getError')
   int getError() native "WebGLRenderingContext_getError_Callback";
 
-
-  /** @domName WebGLRenderingContext.getExtension */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getExtension')
   Object getExtension(String name) native "WebGLRenderingContext_getExtension_Callback";
 
-
-  /** @domName WebGLRenderingContext.getFramebufferAttachmentParameter */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native "WebGLRenderingContext_getFramebufferAttachmentParameter_Callback";
 
-
-  /** @domName WebGLRenderingContext.getParameter */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getParameter')
   Object getParameter(int pname) native "WebGLRenderingContext_getParameter_Callback";
 
-
-  /** @domName WebGLRenderingContext.getProgramInfoLog */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getProgramInfoLog')
   String getProgramInfoLog(WebGLProgram program) native "WebGLRenderingContext_getProgramInfoLog_Callback";
 
-
-  /** @domName WebGLRenderingContext.getProgramParameter */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getProgramParameter')
   Object getProgramParameter(WebGLProgram program, int pname) native "WebGLRenderingContext_getProgramParameter_Callback";
 
-
-  /** @domName WebGLRenderingContext.getRenderbufferParameter */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getRenderbufferParameter')
   Object getRenderbufferParameter(int target, int pname) native "WebGLRenderingContext_getRenderbufferParameter_Callback";
 
-
-  /** @domName WebGLRenderingContext.getShaderInfoLog */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getShaderInfoLog')
   String getShaderInfoLog(WebGLShader shader) native "WebGLRenderingContext_getShaderInfoLog_Callback";
 
-
-  /** @domName WebGLRenderingContext.getShaderParameter */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getShaderParameter')
   Object getShaderParameter(WebGLShader shader, int pname) native "WebGLRenderingContext_getShaderParameter_Callback";
 
-
-  /** @domName WebGLRenderingContext.getShaderPrecisionFormat */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) native "WebGLRenderingContext_getShaderPrecisionFormat_Callback";
 
-
-  /** @domName WebGLRenderingContext.getShaderSource */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getShaderSource')
   String getShaderSource(WebGLShader shader) native "WebGLRenderingContext_getShaderSource_Callback";
 
-
-  /** @domName WebGLRenderingContext.getSupportedExtensions */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getSupportedExtensions')
   List<String> getSupportedExtensions() native "WebGLRenderingContext_getSupportedExtensions_Callback";
 
-
-  /** @domName WebGLRenderingContext.getTexParameter */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getTexParameter')
   Object getTexParameter(int target, int pname) native "WebGLRenderingContext_getTexParameter_Callback";
 
-
-  /** @domName WebGLRenderingContext.getUniform */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getUniform')
   Object getUniform(WebGLProgram program, WebGLUniformLocation location) native "WebGLRenderingContext_getUniform_Callback";
 
-
-  /** @domName WebGLRenderingContext.getUniformLocation */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getUniformLocation')
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) native "WebGLRenderingContext_getUniformLocation_Callback";
 
-
-  /** @domName WebGLRenderingContext.getVertexAttrib */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getVertexAttrib')
   Object getVertexAttrib(int index, int pname) native "WebGLRenderingContext_getVertexAttrib_Callback";
 
-
-  /** @domName WebGLRenderingContext.getVertexAttribOffset */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.getVertexAttribOffset')
   int getVertexAttribOffset(int index, int pname) native "WebGLRenderingContext_getVertexAttribOffset_Callback";
 
-
-  /** @domName WebGLRenderingContext.hint */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.hint')
   void hint(int target, int mode) native "WebGLRenderingContext_hint_Callback";
 
-
-  /** @domName WebGLRenderingContext.isBuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.isBuffer')
   bool isBuffer(WebGLBuffer buffer) native "WebGLRenderingContext_isBuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.isContextLost */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.isContextLost')
   bool isContextLost() native "WebGLRenderingContext_isContextLost_Callback";
 
-
-  /** @domName WebGLRenderingContext.isEnabled */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.isEnabled')
   bool isEnabled(int cap) native "WebGLRenderingContext_isEnabled_Callback";
 
-
-  /** @domName WebGLRenderingContext.isFramebuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.isFramebuffer')
   bool isFramebuffer(WebGLFramebuffer framebuffer) native "WebGLRenderingContext_isFramebuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.isProgram */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.isProgram')
   bool isProgram(WebGLProgram program) native "WebGLRenderingContext_isProgram_Callback";
 
-
-  /** @domName WebGLRenderingContext.isRenderbuffer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.isRenderbuffer')
   bool isRenderbuffer(WebGLRenderbuffer renderbuffer) native "WebGLRenderingContext_isRenderbuffer_Callback";
 
-
-  /** @domName WebGLRenderingContext.isShader */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.isShader')
   bool isShader(WebGLShader shader) native "WebGLRenderingContext_isShader_Callback";
 
-
-  /** @domName WebGLRenderingContext.isTexture */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.isTexture')
   bool isTexture(WebGLTexture texture) native "WebGLRenderingContext_isTexture_Callback";
 
-
-  /** @domName WebGLRenderingContext.lineWidth */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.lineWidth')
   void lineWidth(num width) native "WebGLRenderingContext_lineWidth_Callback";
 
-
-  /** @domName WebGLRenderingContext.linkProgram */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.linkProgram')
   void linkProgram(WebGLProgram program) native "WebGLRenderingContext_linkProgram_Callback";
 
-
-  /** @domName WebGLRenderingContext.pixelStorei */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.pixelStorei')
   void pixelStorei(int pname, int param) native "WebGLRenderingContext_pixelStorei_Callback";
 
-
-  /** @domName WebGLRenderingContext.polygonOffset */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.polygonOffset')
   void polygonOffset(num factor, num units) native "WebGLRenderingContext_polygonOffset_Callback";
 
-
-  /** @domName WebGLRenderingContext.readPixels */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.readPixels')
   void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) native "WebGLRenderingContext_readPixels_Callback";
 
-
-  /** @domName WebGLRenderingContext.releaseShaderCompiler */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.releaseShaderCompiler')
   void releaseShaderCompiler() native "WebGLRenderingContext_releaseShaderCompiler_Callback";
 
-
-  /** @domName WebGLRenderingContext.renderbufferStorage */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.renderbufferStorage')
   void renderbufferStorage(int target, int internalformat, int width, int height) native "WebGLRenderingContext_renderbufferStorage_Callback";
 
-
-  /** @domName WebGLRenderingContext.sampleCoverage */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.sampleCoverage')
   void sampleCoverage(num value, bool invert) native "WebGLRenderingContext_sampleCoverage_Callback";
 
-
-  /** @domName WebGLRenderingContext.scissor */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.scissor')
   void scissor(int x, int y, int width, int height) native "WebGLRenderingContext_scissor_Callback";
 
-
-  /** @domName WebGLRenderingContext.shaderSource */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.shaderSource')
   void shaderSource(WebGLShader shader, String string) native "WebGLRenderingContext_shaderSource_Callback";
 
-
-  /** @domName WebGLRenderingContext.stencilFunc */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.stencilFunc')
   void stencilFunc(int func, int ref, int mask) native "WebGLRenderingContext_stencilFunc_Callback";
 
-
-  /** @domName WebGLRenderingContext.stencilFuncSeparate */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.stencilFuncSeparate')
   void stencilFuncSeparate(int face, int func, int ref, int mask) native "WebGLRenderingContext_stencilFuncSeparate_Callback";
 
-
-  /** @domName WebGLRenderingContext.stencilMask */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.stencilMask')
   void stencilMask(int mask) native "WebGLRenderingContext_stencilMask_Callback";
 
-
-  /** @domName WebGLRenderingContext.stencilMaskSeparate */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.stencilMaskSeparate')
   void stencilMaskSeparate(int face, int mask) native "WebGLRenderingContext_stencilMaskSeparate_Callback";
 
-
-  /** @domName WebGLRenderingContext.stencilOp */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.stencilOp')
   void stencilOp(int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOp_Callback";
 
-
-  /** @domName WebGLRenderingContext.stencilOpSeparate */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.stencilOpSeparate')
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
-  void texImage2D(/*unsigned long*/ target, /*long*/ level, /*unsigned long*/ internalformat, /*long*/ format_OR_width, /*long*/ height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [/*unsigned long*/ format, /*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
     if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (format is int || format == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
@@ -26066,35 +26374,35 @@ class WebGLRenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName WebGLRenderingContext.texImage2D_1 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texImage2D_1')
   void _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext_texImage2D_1_Callback";
 
-
-  /** @domName WebGLRenderingContext.texImage2D_2 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texImage2D_2')
   void _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_2_Callback";
 
-
-  /** @domName WebGLRenderingContext.texImage2D_3 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texImage2D_3')
   void _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_3_Callback";
 
-
-  /** @domName WebGLRenderingContext.texImage2D_4 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texImage2D_4')
   void _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_4_Callback";
 
-
-  /** @domName WebGLRenderingContext.texImage2D_5 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texImage2D_5')
   void _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_5_Callback";
 
-
-  /** @domName WebGLRenderingContext.texParameterf */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texParameterf')
   void texParameterf(int target, int pname, num param) native "WebGLRenderingContext_texParameterf_Callback";
 
-
-  /** @domName WebGLRenderingContext.texParameteri */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texParameteri')
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
-  void texSubImage2D(/*unsigned long*/ target, /*long*/ level, /*long*/ xoffset, /*long*/ yoffset, /*long*/ format_OR_width, /*long*/ height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [/*unsigned long*/ type, /*ArrayBufferView*/ pixels]) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
     if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
@@ -26118,148 +26426,148 @@ class WebGLRenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-
-  /** @domName WebGLRenderingContext.texSubImage2D_1 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texSubImage2D_1')
   void _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext_texSubImage2D_1_Callback";
 
-
-  /** @domName WebGLRenderingContext.texSubImage2D_2 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texSubImage2D_2')
   void _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_2_Callback";
 
-
-  /** @domName WebGLRenderingContext.texSubImage2D_3 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texSubImage2D_3')
   void _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_3_Callback";
 
-
-  /** @domName WebGLRenderingContext.texSubImage2D_4 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texSubImage2D_4')
   void _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_4_Callback";
 
-
-  /** @domName WebGLRenderingContext.texSubImage2D_5 */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.texSubImage2D_5')
   void _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_5_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform1f */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform1f')
   void uniform1f(WebGLUniformLocation location, num x) native "WebGLRenderingContext_uniform1f_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform1fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform1fv')
   void uniform1fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform1fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform1i */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform1i')
   void uniform1i(WebGLUniformLocation location, int x) native "WebGLRenderingContext_uniform1i_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform1iv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform1iv')
   void uniform1iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform1iv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform2f */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform2f')
   void uniform2f(WebGLUniformLocation location, num x, num y) native "WebGLRenderingContext_uniform2f_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform2fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform2fv')
   void uniform2fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform2fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform2i */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform2i')
   void uniform2i(WebGLUniformLocation location, int x, int y) native "WebGLRenderingContext_uniform2i_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform2iv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform2iv')
   void uniform2iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform2iv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform3f */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform3f')
   void uniform3f(WebGLUniformLocation location, num x, num y, num z) native "WebGLRenderingContext_uniform3f_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform3fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform3fv')
   void uniform3fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform3fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform3i */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform3i')
   void uniform3i(WebGLUniformLocation location, int x, int y, int z) native "WebGLRenderingContext_uniform3i_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform3iv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform3iv')
   void uniform3iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform3iv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform4f */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform4f')
   void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w) native "WebGLRenderingContext_uniform4f_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform4fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform4fv')
   void uniform4fv(WebGLUniformLocation location, Float32Array v) native "WebGLRenderingContext_uniform4fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform4i */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform4i')
   void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w) native "WebGLRenderingContext_uniform4i_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniform4iv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniform4iv')
   void uniform4iv(WebGLUniformLocation location, Int32Array v) native "WebGLRenderingContext_uniform4iv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniformMatrix2fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniformMatrix2fv')
   void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniformMatrix3fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniformMatrix3fv')
   void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.uniformMatrix4fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.uniformMatrix4fv')
   void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.useProgram */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.useProgram')
   void useProgram(WebGLProgram program) native "WebGLRenderingContext_useProgram_Callback";
 
-
-  /** @domName WebGLRenderingContext.validateProgram */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.validateProgram')
   void validateProgram(WebGLProgram program) native "WebGLRenderingContext_validateProgram_Callback";
 
-
-  /** @domName WebGLRenderingContext.vertexAttrib1f */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.vertexAttrib1f')
   void vertexAttrib1f(int indx, num x) native "WebGLRenderingContext_vertexAttrib1f_Callback";
 
-
-  /** @domName WebGLRenderingContext.vertexAttrib1fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.vertexAttrib1fv')
   void vertexAttrib1fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.vertexAttrib2f */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.vertexAttrib2f')
   void vertexAttrib2f(int indx, num x, num y) native "WebGLRenderingContext_vertexAttrib2f_Callback";
 
-
-  /** @domName WebGLRenderingContext.vertexAttrib2fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.vertexAttrib2fv')
   void vertexAttrib2fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.vertexAttrib3f */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.vertexAttrib3f')
   void vertexAttrib3f(int indx, num x, num y, num z) native "WebGLRenderingContext_vertexAttrib3f_Callback";
 
-
-  /** @domName WebGLRenderingContext.vertexAttrib3fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.vertexAttrib3fv')
   void vertexAttrib3fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.vertexAttrib4f */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.vertexAttrib4f')
   void vertexAttrib4f(int indx, num x, num y, num z, num w) native "WebGLRenderingContext_vertexAttrib4f_Callback";
 
-
-  /** @domName WebGLRenderingContext.vertexAttrib4fv */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.vertexAttrib4fv')
   void vertexAttrib4fv(int indx, Float32Array values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
 
-
-  /** @domName WebGLRenderingContext.vertexAttribPointer */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.vertexAttribPointer')
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) native "WebGLRenderingContext_vertexAttribPointer_Callback";
 
-
-  /** @domName WebGLRenderingContext.viewport */
+  @DocsEditable
+  @DomName('WebGLRenderingContext.viewport')
   void viewport(int x, int y, int width, int height) native "WebGLRenderingContext_viewport_Callback";
 
 }
@@ -26270,7 +26578,8 @@ class WebGLRenderingContext extends CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLShader
+@DocsEditable
+@DomName('WebGLShader')
 class WebGLShader extends NativeFieldWrapperClass1 {
   WebGLShader.internal();
 
@@ -26282,20 +26591,21 @@ class WebGLShader extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLShaderPrecisionFormat
+@DocsEditable
+@DomName('WebGLShaderPrecisionFormat')
 class WebGLShaderPrecisionFormat extends NativeFieldWrapperClass1 {
   WebGLShaderPrecisionFormat.internal();
 
-
-  /** @domName WebGLShaderPrecisionFormat.precision */
+  @DocsEditable
+  @DomName('WebGLShaderPrecisionFormat.precision')
   int get precision native "WebGLShaderPrecisionFormat_precision_Getter";
 
-
-  /** @domName WebGLShaderPrecisionFormat.rangeMax */
+  @DocsEditable
+  @DomName('WebGLShaderPrecisionFormat.rangeMax')
   int get rangeMax native "WebGLShaderPrecisionFormat_rangeMax_Getter";
 
-
-  /** @domName WebGLShaderPrecisionFormat.rangeMin */
+  @DocsEditable
+  @DomName('WebGLShaderPrecisionFormat.rangeMin')
   int get rangeMin native "WebGLShaderPrecisionFormat_rangeMin_Getter";
 
 }
@@ -26306,7 +26616,8 @@ class WebGLShaderPrecisionFormat extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLTexture
+@DocsEditable
+@DomName('WebGLTexture')
 class WebGLTexture extends NativeFieldWrapperClass1 {
   WebGLTexture.internal();
 
@@ -26318,7 +26629,8 @@ class WebGLTexture extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLUniformLocation
+@DocsEditable
+@DomName('WebGLUniformLocation')
 class WebGLUniformLocation extends NativeFieldWrapperClass1 {
   WebGLUniformLocation.internal();
 
@@ -26330,7 +26642,8 @@ class WebGLUniformLocation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebGLVertexArrayObjectOES
+@DocsEditable
+@DomName('WebGLVertexArrayObjectOES')
 class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
   WebGLVertexArrayObject.internal();
 
@@ -26342,7 +26655,8 @@ class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitCSSFilterValue
+@DocsEditable
+@DomName('WebKitCSSFilterValue')
 class WebKitCssFilterValue extends _CssValueList {
   WebKitCssFilterValue.internal() : super.internal();
 
@@ -26370,8 +26684,8 @@ class WebKitCssFilterValue extends _CssValueList {
 
   static const int CSS_FILTER_SEPIA = 3;
 
-
-  /** @domName WebKitCSSFilterValue.operationType */
+  @DocsEditable
+  @DomName('WebKitCSSFilterValue.operationType')
   int get operationType native "WebKitCSSFilterValue_operationType_Getter";
 
 }
@@ -26382,7 +26696,8 @@ class WebKitCssFilterValue extends _CssValueList {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitCSSMixFunctionValue
+@DocsEditable
+@DomName('WebKitCSSMixFunctionValue')
 class WebKitCssMixFunctionValue extends _CssValueList {
   WebKitCssMixFunctionValue.internal() : super.internal();
 
@@ -26394,44 +26709,45 @@ class WebKitCssMixFunctionValue extends _CssValueList {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebKitNamedFlow
+@DocsEditable
+@DomName('WebKitNamedFlow')
 class WebKitNamedFlow extends EventTarget {
   WebKitNamedFlow.internal() : super.internal();
 
-
-  /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
+  @DocsEditable
+  @DomName('WebKitNamedFlow.firstEmptyRegionIndex')
   int get firstEmptyRegionIndex native "WebKitNamedFlow_firstEmptyRegionIndex_Getter";
 
-
-  /** @domName WebKitNamedFlow.name */
+  @DocsEditable
+  @DomName('WebKitNamedFlow.name')
   String get name native "WebKitNamedFlow_name_Getter";
 
-
-  /** @domName WebKitNamedFlow.overset */
+  @DocsEditable
+  @DomName('WebKitNamedFlow.overset')
   bool get overset native "WebKitNamedFlow_overset_Getter";
 
-
-  /** @domName WebKitNamedFlow.addEventListener */
+  @DocsEditable
+  @DomName('WebKitNamedFlow.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
 
-
-  /** @domName WebKitNamedFlow.dispatchEvent */
+  @DocsEditable
+  @DomName('WebKitNamedFlow.dispatchEvent')
   bool $dom_dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
 
-
-  /** @domName WebKitNamedFlow.getContent */
+  @DocsEditable
+  @DomName('WebKitNamedFlow.getContent')
   List<Node> getContent() native "WebKitNamedFlow_getContent_Callback";
 
-
-  /** @domName WebKitNamedFlow.getRegions */
+  @DocsEditable
+  @DomName('WebKitNamedFlow.getRegions')
   List<Node> getRegions() native "WebKitNamedFlow_getRegions_Callback";
 
-
-  /** @domName WebKitNamedFlow.getRegionsByContent */
+  @DocsEditable
+  @DomName('WebKitNamedFlow.getRegionsByContent')
   List<Node> getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
 
-
-  /** @domName WebKitNamedFlow.removeEventListener */
+  @DocsEditable
+  @DomName('WebKitNamedFlow.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
 
 }
@@ -26442,7 +26758,8 @@ class WebKitNamedFlow extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WebSocket
+@DocsEditable
+@DomName('WebSocket')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -26458,14 +26775,15 @@ class WebSocket extends EventTarget {
 
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  ///@docsEditable true
+  @DocsEditable
   factory WebSocket(String url) => WebSocket._create(url);
   static WebSocket _create(String url) native "WebSocket_constructor_Callback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WebSocketEvents get on =>
     new WebSocketEvents(this);
 
@@ -26477,43 +26795,43 @@ class WebSocket extends EventTarget {
 
   static const int OPEN = 1;
 
-
-  /** @domName WebSocket.URL */
+  @DocsEditable
+  @DomName('WebSocket.URL')
   String get Url native "WebSocket_URL_Getter";
 
-
-  /** @domName WebSocket.binaryType */
+  @DocsEditable
+  @DomName('WebSocket.binaryType')
   String get binaryType native "WebSocket_binaryType_Getter";
 
-
-  /** @domName WebSocket.binaryType */
+  @DocsEditable
+  @DomName('WebSocket.binaryType')
   void set binaryType(String value) native "WebSocket_binaryType_Setter";
 
-
-  /** @domName WebSocket.bufferedAmount */
+  @DocsEditable
+  @DomName('WebSocket.bufferedAmount')
   int get bufferedAmount native "WebSocket_bufferedAmount_Getter";
 
-
-  /** @domName WebSocket.extensions */
+  @DocsEditable
+  @DomName('WebSocket.extensions')
   String get extensions native "WebSocket_extensions_Getter";
 
-
-  /** @domName WebSocket.protocol */
+  @DocsEditable
+  @DomName('WebSocket.protocol')
   String get protocol native "WebSocket_protocol_Getter";
 
-
-  /** @domName WebSocket.readyState */
+  @DocsEditable
+  @DomName('WebSocket.readyState')
   int get readyState native "WebSocket_readyState_Getter";
 
-
-  /** @domName WebSocket.url */
+  @DocsEditable
+  @DomName('WebSocket.url')
   String get url native "WebSocket_url_Getter";
 
-
-  /** @domName WebSocket.addEventListener */
+  @DocsEditable
+  @DomName('WebSocket.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
 
-  void close([/*unsigned short*/ code, /*DOMString*/ reason]) {
+  void close([int code, String reason]) {
     if (?reason) {
       _close_1(code, reason);
       return;
@@ -26525,28 +26843,28 @@ class WebSocket extends EventTarget {
     _close_3();
   }
 
-
-  /** @domName WebSocket.close_1 */
+  @DocsEditable
+  @DomName('WebSocket.close_1')
   void _close_1(code, reason) native "WebSocket_close_1_Callback";
 
-
-  /** @domName WebSocket.close_2 */
+  @DocsEditable
+  @DomName('WebSocket.close_2')
   void _close_2(code) native "WebSocket_close_2_Callback";
 
-
-  /** @domName WebSocket.close_3 */
+  @DocsEditable
+  @DomName('WebSocket.close_3')
   void _close_3() native "WebSocket_close_3_Callback";
 
-
-  /** @domName WebSocket.dispatchEvent */
+  @DocsEditable
+  @DomName('WebSocket.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "WebSocket_dispatchEvent_Callback";
 
-
-  /** @domName WebSocket.removeEventListener */
+  @DocsEditable
+  @DomName('WebSocket.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
-
-  /** @domName WebSocket.send */
+  @DocsEditable
+  @DomName('WebSocket.send')
   void send(data) native "WebSocket_send_Callback";
 
   Stream<CloseEvent> get onClose => closeEvent.forTarget(this);
@@ -26559,21 +26877,21 @@ class WebSocket extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class WebSocketEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   WebSocketEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get close => this['close'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26581,32 +26899,58 @@ class WebSocketEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName WheelEvent
+@DocsEditable
+@DomName('WheelEvent')
 class WheelEvent extends MouseEvent {
+
+  factory WheelEvent(String type, Window view, int wheelDeltaX, int wheelDeltaY,
+      int detail, int screenX, int screenY, int clientX, int clientY,
+      int button,
+      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) {
+
+    var eventType = 'WheelEvent';
+    if (_Device.isFirefox) {
+      eventType = 'MouseScrollEvents';
+    }
+    final event = document.$dom_createEvent(eventType);
+      // Fallthrough for Dartium.
+      event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+          screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey, button, relatedTarget);
+      event.$dom_initWebKitWheelEvent(wheelDeltaX,
+          wheelDeltaY ~/ 120, // Chrome does an auto-convert to pixels.
+          view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
+          metaKey);
+
+    return event;
+  }
+
   WheelEvent.internal() : super.internal();
 
-
-  /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
+  @DocsEditable
+  @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   bool get webkitDirectionInvertedFromDevice native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
 
-
-  /** @domName WheelEvent.wheelDeltaX */
+  @DocsEditable
+  @DomName('WheelEvent.wheelDeltaX')
   int get $dom_wheelDeltaX native "WheelEvent_wheelDeltaX_Getter";
 
-
-  /** @domName WheelEvent.wheelDeltaY */
+  @DocsEditable
+  @DomName('WheelEvent.wheelDeltaY')
   int get $dom_wheelDeltaY native "WheelEvent_wheelDeltaY_Getter";
 
+  @DocsEditable
+  @DomName('WheelEvent.initWebKitWheelEvent')
+  void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
-  /** @domName WheelEvent.initWebKitWheelEvent */
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
-
-  /** @domName WheelEvent.deltaX */
+  @DomName('WheelEvent.deltaX')
   num get deltaX => $dom_wheelDeltaX;
-  /** @domName WheelEvent.deltaY */
+  @DomName('WheelEvent.deltaY')
   num get deltaY => $dom_wheelDeltaY;
-  /** @domName WheelEvent.deltaMode */
+  @DomName('WheelEvent.deltaMode')
   int get deltaMode => 0;
 
 }
@@ -26615,7 +26959,8 @@ class WheelEvent extends MouseEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName Window
+@DocsEditable
+@DomName('Window')
 class Window extends EventTarget implements WindowBase {
 
   /**
@@ -26650,85 +26995,15 @@ class Window extends EventTarget implements WindowBase {
 
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
-  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
-
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
-
-  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
-
-  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
-
-  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
-
-  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
-
-  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
-
-  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
-
-  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
-  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
-
-  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
-
-  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
-
-  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
-
-  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
-
-  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
-
-  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
-
-  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
-
-  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
-
-  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
-
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
-
   static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
 
-  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
-
-  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
-
-  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
-
-  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
-
-  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
-
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
-
-  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
-
-  static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
-
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
-
-  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
-
-  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
-
-  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
-
-  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
-
-  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
 
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
@@ -26738,55 +27013,13 @@ class Window extends EventTarget implements WindowBase {
 
   static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
 
-  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
-
-  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
-
-  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
-
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
-
-  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
-
-  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
-
-  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
-
-  static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
-
-  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
-
-  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
-
-  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
-
-  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
-
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
-  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
-
-  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
-
-  static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
-
-  static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
-
-  static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
-
-  static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
-
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
-
-  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
@@ -26794,9 +27027,8 @@ class Window extends EventTarget implements WindowBase {
 
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
-  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
-
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WindowEvents get on =>
     new WindowEvents(this);
 
@@ -26804,466 +27036,453 @@ class Window extends EventTarget implements WindowBase {
 
   static const int TEMPORARY = 0;
 
-
-  /** @domName DOMWindow.applicationCache */
+  @DocsEditable
+  @DomName('DOMWindow.applicationCache')
   ApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
 
-
-  /** @domName DOMWindow.closed */
+  @DocsEditable
+  @DomName('DOMWindow.closed')
   bool get closed native "DOMWindow_closed_Getter";
 
-
-  /** @domName DOMWindow.console */
+  @DocsEditable
+  @DomName('DOMWindow.console')
   Console get console native "DOMWindow_console_Getter";
 
-
-  /** @domName DOMWindow.crypto */
+  @DocsEditable
+  @DomName('DOMWindow.crypto')
   Crypto get crypto native "DOMWindow_crypto_Getter";
 
-
-  /** @domName DOMWindow.defaultStatus */
+  @DocsEditable
+  @DomName('DOMWindow.defaultStatus')
   String get defaultStatus native "DOMWindow_defaultStatus_Getter";
 
-
-  /** @domName DOMWindow.defaultStatus */
+  @DocsEditable
+  @DomName('DOMWindow.defaultStatus')
   void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
 
-
-  /** @domName DOMWindow.defaultstatus */
+  @DocsEditable
+  @DomName('DOMWindow.defaultstatus')
   String get defaultstatus native "DOMWindow_defaultstatus_Getter";
 
-
-  /** @domName DOMWindow.defaultstatus */
+  @DocsEditable
+  @DomName('DOMWindow.defaultstatus')
   void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
 
-
-  /** @domName DOMWindow.devicePixelRatio */
+  @DocsEditable
+  @DomName('DOMWindow.devicePixelRatio')
   num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
 
-
-  /** @domName DOMWindow.document */
+  @DocsEditable
+  @DomName('DOMWindow.document')
   Document get document native "DOMWindow_document_Getter";
 
-
-  /** @domName DOMWindow.event */
+  @DocsEditable
+  @DomName('DOMWindow.event')
   Event get event native "DOMWindow_event_Getter";
 
-
-  /** @domName DOMWindow.history */
+  @DocsEditable
+  @DomName('DOMWindow.history')
   History get history native "DOMWindow_history_Getter";
 
-
-  /** @domName DOMWindow.indexedDB */
+  @DocsEditable
+  @DomName('DOMWindow.indexedDB')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @Experimental()
   IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
 
-
-  /** @domName DOMWindow.innerHeight */
+  @DocsEditable
+  @DomName('DOMWindow.innerHeight')
   int get innerHeight native "DOMWindow_innerHeight_Getter";
 
-
-  /** @domName DOMWindow.innerWidth */
+  @DocsEditable
+  @DomName('DOMWindow.innerWidth')
   int get innerWidth native "DOMWindow_innerWidth_Getter";
 
-
-  /** @domName DOMWindow.localStorage */
+  @DocsEditable
+  @DomName('DOMWindow.localStorage')
   Storage get localStorage native "DOMWindow_localStorage_Getter";
 
-
-  /** @domName DOMWindow.location */
+  @DocsEditable
+  @DomName('DOMWindow.location')
   Location get location native "DOMWindow_location_Getter";
 
-
-  /** @domName DOMWindow.location */
+  @DocsEditable
+  @DomName('DOMWindow.location')
   void set location(Location value) native "DOMWindow_location_Setter";
 
-
-  /** @domName DOMWindow.locationbar */
+  @DocsEditable
+  @DomName('DOMWindow.locationbar')
   BarInfo get locationbar native "DOMWindow_locationbar_Getter";
 
-
-  /** @domName DOMWindow.menubar */
+  @DocsEditable
+  @DomName('DOMWindow.menubar')
   BarInfo get menubar native "DOMWindow_menubar_Getter";
 
-
-  /** @domName DOMWindow.name */
+  @DocsEditable
+  @DomName('DOMWindow.name')
   String get name native "DOMWindow_name_Getter";
 
-
-  /** @domName DOMWindow.name */
+  @DocsEditable
+  @DomName('DOMWindow.name')
   void set name(String value) native "DOMWindow_name_Setter";
 
-
-  /** @domName DOMWindow.navigator */
+  @DocsEditable
+  @DomName('DOMWindow.navigator')
   Navigator get navigator native "DOMWindow_navigator_Getter";
 
-
-  /** @domName DOMWindow.offscreenBuffering */
+  @DocsEditable
+  @DomName('DOMWindow.offscreenBuffering')
   bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
 
-
-  /** @domName DOMWindow.opener */
+  @DocsEditable
+  @DomName('DOMWindow.opener')
   WindowBase get opener native "DOMWindow_opener_Getter";
 
-
-  /** @domName DOMWindow.outerHeight */
+  @DocsEditable
+  @DomName('DOMWindow.outerHeight')
   int get outerHeight native "DOMWindow_outerHeight_Getter";
 
-
-  /** @domName DOMWindow.outerWidth */
+  @DocsEditable
+  @DomName('DOMWindow.outerWidth')
   int get outerWidth native "DOMWindow_outerWidth_Getter";
 
-
-  /** @domName DOMWindow.pagePopupController */
+  @DocsEditable
+  @DomName('DOMWindow.pagePopupController')
   PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
 
-
-  /** @domName DOMWindow.pageXOffset */
+  @DocsEditable
+  @DomName('DOMWindow.pageXOffset')
   int get pageXOffset native "DOMWindow_pageXOffset_Getter";
 
-
-  /** @domName DOMWindow.pageYOffset */
+  @DocsEditable
+  @DomName('DOMWindow.pageYOffset')
   int get pageYOffset native "DOMWindow_pageYOffset_Getter";
 
-
-  /** @domName DOMWindow.parent */
+  @DocsEditable
+  @DomName('DOMWindow.parent')
   WindowBase get parent native "DOMWindow_parent_Getter";
 
-
-  /** @domName DOMWindow.performance */
+  @DocsEditable
+  @DomName('DOMWindow.performance')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE)
   Performance get performance native "DOMWindow_performance_Getter";
 
-
-  /** @domName DOMWindow.personalbar */
+  @DocsEditable
+  @DomName('DOMWindow.personalbar')
   BarInfo get personalbar native "DOMWindow_personalbar_Getter";
 
-
-  /** @domName DOMWindow.screen */
+  @DocsEditable
+  @DomName('DOMWindow.screen')
   Screen get screen native "DOMWindow_screen_Getter";
 
-
-  /** @domName DOMWindow.screenLeft */
+  @DocsEditable
+  @DomName('DOMWindow.screenLeft')
   int get screenLeft native "DOMWindow_screenLeft_Getter";
 
-
-  /** @domName DOMWindow.screenTop */
+  @DocsEditable
+  @DomName('DOMWindow.screenTop')
   int get screenTop native "DOMWindow_screenTop_Getter";
 
-
-  /** @domName DOMWindow.screenX */
+  @DocsEditable
+  @DomName('DOMWindow.screenX')
   int get screenX native "DOMWindow_screenX_Getter";
 
-
-  /** @domName DOMWindow.screenY */
+  @DocsEditable
+  @DomName('DOMWindow.screenY')
   int get screenY native "DOMWindow_screenY_Getter";
 
-
-  /** @domName DOMWindow.scrollX */
+  @DocsEditable
+  @DomName('DOMWindow.scrollX')
   int get scrollX native "DOMWindow_scrollX_Getter";
 
-
-  /** @domName DOMWindow.scrollY */
+  @DocsEditable
+  @DomName('DOMWindow.scrollY')
   int get scrollY native "DOMWindow_scrollY_Getter";
 
-
-  /** @domName DOMWindow.scrollbars */
+  @DocsEditable
+  @DomName('DOMWindow.scrollbars')
   BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
 
-
-  /** @domName DOMWindow.self */
+  @DocsEditable
+  @DomName('DOMWindow.self')
   WindowBase get self native "DOMWindow_self_Getter";
 
-
-  /** @domName DOMWindow.sessionStorage */
+  @DocsEditable
+  @DomName('DOMWindow.sessionStorage')
   Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
 
-
-  /** @domName DOMWindow.status */
+  @DocsEditable
+  @DomName('DOMWindow.status')
   String get status native "DOMWindow_status_Getter";
 
-
-  /** @domName DOMWindow.status */
+  @DocsEditable
+  @DomName('DOMWindow.status')
   void set status(String value) native "DOMWindow_status_Setter";
 
-
-  /** @domName DOMWindow.statusbar */
+  @DocsEditable
+  @DomName('DOMWindow.statusbar')
   BarInfo get statusbar native "DOMWindow_statusbar_Getter";
 
-
-  /** @domName DOMWindow.styleMedia */
+  @DocsEditable
+  @DomName('DOMWindow.styleMedia')
   StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
 
-
-  /** @domName DOMWindow.toolbar */
+  @DocsEditable
+  @DomName('DOMWindow.toolbar')
   BarInfo get toolbar native "DOMWindow_toolbar_Getter";
 
-
-  /** @domName DOMWindow.top */
+  @DocsEditable
+  @DomName('DOMWindow.top')
   WindowBase get top native "DOMWindow_top_Getter";
 
+  @DocsEditable
+  @DomName('DOMWindow.webkitNotifications')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  NotificationCenter get notifications native "DOMWindow_webkitNotifications_Getter";
 
-  /** @domName DOMWindow.webkitNotifications */
-  NotificationCenter get webkitNotifications native "DOMWindow_webkitNotifications_Getter";
-
-
-  /** @domName DOMWindow.webkitStorageInfo */
+  @DocsEditable
+  @DomName('DOMWindow.webkitStorageInfo')
   StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
 
-
-  /** @domName DOMWindow.window */
+  @DocsEditable
+  @DomName('DOMWindow.window')
   WindowBase get window native "DOMWindow_window_Getter";
 
-
-  /** @domName DOMWindow.addEventListener */
+  @DocsEditable
+  @DomName('DOMWindow.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
 
-
-  /** @domName DOMWindow.alert */
+  @DocsEditable
+  @DomName('DOMWindow.alert')
   void alert(String message) native "DOMWindow_alert_Callback";
 
-
-  /** @domName DOMWindow.atob */
+  @DocsEditable
+  @DomName('DOMWindow.atob')
   String atob(String string) native "DOMWindow_atob_Callback";
 
-
-  /** @domName DOMWindow.btoa */
+  @DocsEditable
+  @DomName('DOMWindow.btoa')
   String btoa(String string) native "DOMWindow_btoa_Callback";
 
-
-  /** @domName DOMWindow.cancelAnimationFrame */
+  @DocsEditable
+  @DomName('DOMWindow.cancelAnimationFrame')
   void cancelAnimationFrame(int id) native "DOMWindow_cancelAnimationFrame_Callback";
 
-
-  /** @domName DOMWindow.captureEvents */
+  @DocsEditable
+  @DomName('DOMWindow.captureEvents')
   void captureEvents() native "DOMWindow_captureEvents_Callback";
 
-
-  /** @domName DOMWindow.clearInterval */
+  @DocsEditable
+  @DomName('DOMWindow.clearInterval')
   void clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
 
-
-  /** @domName DOMWindow.clearTimeout */
+  @DocsEditable
+  @DomName('DOMWindow.clearTimeout')
   void clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
 
-
-  /** @domName DOMWindow.close */
+  @DocsEditable
+  @DomName('DOMWindow.close')
   void close() native "DOMWindow_close_Callback";
 
-
-  /** @domName DOMWindow.confirm */
+  @DocsEditable
+  @DomName('DOMWindow.confirm')
   bool confirm(String message) native "DOMWindow_confirm_Callback";
 
-
-  /** @domName DOMWindow.dispatchEvent */
+  @DocsEditable
+  @DomName('DOMWindow.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
 
-
-  /** @domName DOMWindow.find */
+  @DocsEditable
+  @DomName('DOMWindow.find')
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
 
-
-  /** @domName DOMWindow.getComputedStyle */
+  @DocsEditable
+  @DomName('DOMWindow.getComputedStyle')
   CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
 
-
-  /** @domName DOMWindow.getMatchedCSSRules */
+  @DocsEditable
+  @DomName('DOMWindow.getMatchedCSSRules')
   List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
 
-
-  /** @domName DOMWindow.getSelection */
+  @DocsEditable
+  @DomName('DOMWindow.getSelection')
   DomSelection getSelection() native "DOMWindow_getSelection_Callback";
 
-
-  /** @domName DOMWindow.matchMedia */
+  @DocsEditable
+  @DomName('DOMWindow.matchMedia')
   MediaQueryList matchMedia(String query) native "DOMWindow_matchMedia_Callback";
 
-
-  /** @domName DOMWindow.moveBy */
+  @DocsEditable
+  @DomName('DOMWindow.moveBy')
   void moveBy(num x, num y) native "DOMWindow_moveBy_Callback";
 
-
-  /** @domName DOMWindow.moveTo */
+  @DocsEditable
+  @DomName('DOMWindow.moveTo')
   void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
 
-
-  /** @domName DOMWindow.open */
+  @DocsEditable
+  @DomName('DOMWindow.open')
   WindowBase open(String url, String name, [String options]) native "DOMWindow_open_Callback";
 
-
-  /** @domName DOMWindow.openDatabase */
+  @DocsEditable
+  @DomName('DOMWindow.openDatabase')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
 
-
-  /** @domName DOMWindow.postMessage */
+  @DocsEditable
+  @DomName('DOMWindow.postMessage')
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
-
-  /** @domName DOMWindow.print */
+  @DocsEditable
+  @DomName('DOMWindow.print')
   void print() native "DOMWindow_print_Callback";
 
-
-  /** @domName DOMWindow.releaseEvents */
+  @DocsEditable
+  @DomName('DOMWindow.releaseEvents')
   void releaseEvents() native "DOMWindow_releaseEvents_Callback";
 
-
-  /** @domName DOMWindow.removeEventListener */
+  @DocsEditable
+  @DomName('DOMWindow.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
 
-
-  /** @domName DOMWindow.requestAnimationFrame */
+  @DocsEditable
+  @DomName('DOMWindow.requestAnimationFrame')
   int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_requestAnimationFrame_Callback";
 
-
-  /** @domName DOMWindow.resizeBy */
+  @DocsEditable
+  @DomName('DOMWindow.resizeBy')
   void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
 
-
-  /** @domName DOMWindow.resizeTo */
+  @DocsEditable
+  @DomName('DOMWindow.resizeTo')
   void resizeTo(num width, num height) native "DOMWindow_resizeTo_Callback";
 
-
-  /** @domName DOMWindow.scroll */
+  @DocsEditable
+  @DomName('DOMWindow.scroll')
   void scroll(int x, int y) native "DOMWindow_scroll_Callback";
 
-
-  /** @domName DOMWindow.scrollBy */
+  @DocsEditable
+  @DomName('DOMWindow.scrollBy')
   void scrollBy(int x, int y) native "DOMWindow_scrollBy_Callback";
 
-
-  /** @domName DOMWindow.scrollTo */
+  @DocsEditable
+  @DomName('DOMWindow.scrollTo')
   void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
 
-
-  /** @domName DOMWindow.setInterval */
+  @DocsEditable
+  @DomName('DOMWindow.setInterval')
   int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
 
-
-  /** @domName DOMWindow.setTimeout */
+  @DocsEditable
+  @DomName('DOMWindow.setTimeout')
   int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
 
-
-  /** @domName DOMWindow.showModalDialog */
+  @DocsEditable
+  @DomName('DOMWindow.showModalDialog')
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
 
-
-  /** @domName DOMWindow.stop */
+  @DocsEditable
+  @DomName('DOMWindow.stop')
   void stop() native "DOMWindow_stop_Callback";
 
-
-  /** @domName DOMWindow.webkitCancelAnimationFrame */
+  @DocsEditable
+  @DomName('DOMWindow.webkitCancelAnimationFrame')
   void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
 
-
-  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
+  @DocsEditable
+  @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
-
-  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
+  @DocsEditable
+  @DomName('DOMWindow.webkitConvertPointFromPageToNode')
   Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
-
-  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  @DocsEditable
+  @DomName('DOMWindow.webkitRequestAnimationFrame')
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
 
-
-  /** @domName DOMWindow.webkitRequestFileSystem */
+  @DocsEditable
+  @DomName('DOMWindow.webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 
-
-  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
+  @DocsEditable
+  @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
-  Stream<Event> get onAbort => abortEvent.forTarget(this);
+  Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
-  Stream<Event> get onBlur => blurEvent.forTarget(this);
+  Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
+  Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
+  Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  Stream<Event> get onChange => changeEvent.forTarget(this);
+  Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
-
-  Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
-
-  Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
+  Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
+  Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
+  Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
+  Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
+  Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
+  Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
+  Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
+  Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
-
-  Stream<Event> get onEnded => endedEvent.forTarget(this);
-
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-  Stream<Event> get onFocus => focusEvent.forTarget(this);
+  Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
   Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
 
-  Stream<Event> get onInput => inputEvent.forTarget(this);
+  Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  Stream<Event> get onInvalid => invalidEvent.forTarget(this);
+  Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
+  Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
-
-  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
-
-  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
-
-  Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
+  Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
+  Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
+  Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
@@ -27273,55 +27492,31 @@ class Window extends EventTarget implements WindowBase {
 
   Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
 
-  Stream<Event> get onPause => pauseEvent.forTarget(this);
-
-  Stream<Event> get onPlay => playEvent.forTarget(this);
-
-  Stream<Event> get onPlaying => playingEvent.forTarget(this);
-
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
-  Stream<Event> get onProgress => progressEvent.forTarget(this);
-
-  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
-
-  Stream<Event> get onReset => resetEvent.forTarget(this);
+  Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  Stream<Event> get onScroll => scrollEvent.forTarget(this);
+  Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  Stream<Event> get onSearch => searchEvent.forTarget(this);
+  Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
-
-  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
-
-  Stream<Event> get onSelect => selectEvent.forTarget(this);
-
-  Stream<Event> get onStalled => stalledEvent.forTarget(this);
+  Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
-  Stream<Event> get onSubmit => submitEvent.forTarget(this);
+  Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
-
-  Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
-
-  Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
+  Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
-
-  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
-
-  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
 
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
@@ -27329,235 +27524,235 @@ class Window extends EventTarget implements WindowBase {
 
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
-  Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
+  Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class WindowEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   WindowEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get contentLoaded => this['DOMContentLoaded'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get abort => this['abort'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get beforeUnload => this['beforeunload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get blur => this['blur'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlay => this['canplay'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get canPlayThrough => this['canplaythrough'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get change => this['change'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get click => this['click'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get contextMenu => this['contextmenu'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get doubleClick => this['dblclick'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get deviceMotion => this['devicemotion'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get deviceOrientation => this['deviceorientation'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drag => this['drag'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnd => this['dragend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragEnter => this['dragenter'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragLeave => this['dragleave'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragOver => this['dragover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get dragStart => this['dragstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get drop => this['drop'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get durationChange => this['durationchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get emptied => this['emptied'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get ended => this['ended'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get focus => this['focus'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get hashChange => this['hashchange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get input => this['input'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get invalid => this['invalid'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyDown => this['keydown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyPress => this['keypress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get keyUp => this['keyup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get load => this['load'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedData => this['loadeddata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadedMetadata => this['loadedmetadata'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get loadStart => this['loadstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseDown => this['mousedown'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseMove => this['mousemove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOut => this['mouseout'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseOver => this['mouseover'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseUp => this['mouseup'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get mouseWheel => this['mousewheel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get offline => this['offline'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get online => this['online'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pageHide => this['pagehide'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pageShow => this['pageshow'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get pause => this['pause'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get play => this['play'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get playing => this['playing'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get popState => this['popstate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get progress => this['progress'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get rateChange => this['ratechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get reset => this['reset'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get resize => this['resize'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get scroll => this['scroll'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get search => this['search'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeked => this['seeked'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get seeking => this['seeking'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get select => this['select'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get stalled => this['stalled'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get storage => this['storage'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get submit => this['submit'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get suspend => this['suspend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get timeUpdate => this['timeupdate'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchCancel => this['touchcancel'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchEnd => this['touchend'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchMove => this['touchmove'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get touchStart => this['touchstart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get unload => this['unload'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get volumeChange => this['volumechange'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get waiting => this['waiting'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get animationEnd => this['webkitAnimationEnd'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get animationIteration => this['webkitAnimationIteration'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get animationStart => this['webkitAnimationStart'];
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27567,38 +27762,40 @@ class WindowEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName Worker
+@DocsEditable
+@DomName('Worker')
 class Worker extends AbstractWorker {
   Worker.internal() : super.internal();
 
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  ///@docsEditable true
+  @DocsEditable
   factory Worker(String scriptUrl) => Worker._create(scriptUrl);
   static Worker _create(String scriptUrl) native "Worker_constructor_Callback";
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WorkerEvents get on =>
     new WorkerEvents(this);
 
-
-  /** @domName Worker.postMessage */
+  @DocsEditable
+  @DomName('Worker.postMessage')
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) native "Worker_postMessage_Callback";
 
-
-  /** @domName Worker.terminate */
+  @DocsEditable
+  @DomName('Worker.terminate')
   void terminate() native "Worker_terminate_Callback";
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class WorkerEvents extends AbstractWorkerEvents {
-  /// @docsEditable true
+  @DocsEditable
   WorkerEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27608,13 +27805,15 @@ class WorkerEvents extends AbstractWorkerEvents {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WorkerContext
+@DocsEditable
+@DomName('WorkerContext')
 class WorkerContext extends EventTarget {
   WorkerContext.internal() : super.internal();
 
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  /// @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent; @docsEditable true
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   WorkerContextEvents get on =>
     new WorkerContextEvents(this);
 
@@ -27622,94 +27821,94 @@ class WorkerContext extends EventTarget {
 
   static const int TEMPORARY = 0;
 
-
-  /** @domName WorkerContext.indexedDB */
+  @DocsEditable
+  @DomName('WorkerContext.indexedDB')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @Experimental()
   IdbFactory get indexedDB native "WorkerContext_indexedDB_Getter";
 
-
-  /** @domName WorkerContext.location */
+  @DocsEditable
+  @DomName('WorkerContext.location')
   WorkerLocation get location native "WorkerContext_location_Getter";
 
-
-  /** @domName WorkerContext.navigator */
+  @DocsEditable
+  @DomName('WorkerContext.navigator')
   WorkerNavigator get navigator native "WorkerContext_navigator_Getter";
 
-
-  /** @domName WorkerContext.self */
+  @DocsEditable
+  @DomName('WorkerContext.self')
   WorkerContext get self native "WorkerContext_self_Getter";
 
-
-  /** @domName WorkerContext.webkitNotifications */
+  @DocsEditable
+  @DomName('WorkerContext.webkitNotifications')
   NotificationCenter get webkitNotifications native "WorkerContext_webkitNotifications_Getter";
 
-
-  /** @domName WorkerContext.addEventListener */
+  @DocsEditable
+  @DomName('WorkerContext.addEventListener')
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerContext_addEventListener_Callback";
 
-
-  /** @domName WorkerContext.clearInterval */
+  @DocsEditable
+  @DomName('WorkerContext.clearInterval')
   void clearInterval(int handle) native "WorkerContext_clearInterval_Callback";
 
-
-  /** @domName WorkerContext.clearTimeout */
+  @DocsEditable
+  @DomName('WorkerContext.clearTimeout')
   void clearTimeout(int handle) native "WorkerContext_clearTimeout_Callback";
 
-
-  /** @domName WorkerContext.close */
+  @DocsEditable
+  @DomName('WorkerContext.close')
   void close() native "WorkerContext_close_Callback";
 
-
-  /** @domName WorkerContext.dispatchEvent */
+  @DocsEditable
+  @DomName('WorkerContext.dispatchEvent')
   bool $dom_dispatchEvent(Event evt) native "WorkerContext_dispatchEvent_Callback";
 
-
-  /** @domName WorkerContext.importScripts */
+  @DocsEditable
+  @DomName('WorkerContext.importScripts')
   void importScripts() native "WorkerContext_importScripts_Callback";
 
-
-  /** @domName WorkerContext.openDatabase */
+  @DocsEditable
+  @DomName('WorkerContext.openDatabase')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabase_Callback";
 
-
-  /** @domName WorkerContext.openDatabaseSync */
+  @DocsEditable
+  @DomName('WorkerContext.openDatabaseSync')
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabaseSync_Callback";
 
-
-  /** @domName WorkerContext.removeEventListener */
+  @DocsEditable
+  @DomName('WorkerContext.removeEventListener')
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerContext_removeEventListener_Callback";
 
-
-  /** @domName WorkerContext.setInterval */
+  @DocsEditable
+  @DomName('WorkerContext.setInterval')
   int setInterval(TimeoutHandler handler, int timeout) native "WorkerContext_setInterval_Callback";
 
-
-  /** @domName WorkerContext.setTimeout */
+  @DocsEditable
+  @DomName('WorkerContext.setTimeout')
   int setTimeout(TimeoutHandler handler, int timeout) native "WorkerContext_setTimeout_Callback";
 
-
-  /** @domName WorkerContext.webkitRequestFileSystem */
+  @DocsEditable
+  @DomName('WorkerContext.webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
 
-
-  /** @domName WorkerContext.webkitRequestFileSystemSync */
+  @DocsEditable
+  @DomName('WorkerContext.webkitRequestFileSystemSync')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   FileSystemSync requestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
 
-
-  /** @domName WorkerContext.webkitResolveLocalFileSystemSyncURL */
+  @DocsEditable
+  @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   EntrySync resolveLocalFileSystemSyncUrl(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
 
-
-  /** @domName WorkerContext.webkitResolveLocalFileSystemURL */
+  @DocsEditable
+  @DomName('WorkerContext.webkitResolveLocalFileSystemURL')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
@@ -27718,12 +27917,12 @@ class WorkerContext extends EventTarget {
 
 }
 
-/// @docsEditable true
+@DocsEditable
 class WorkerContextEvents extends Events {
-  /// @docsEditable true
+  @DocsEditable
   WorkerContextEvents(EventTarget _ptr) : super(_ptr);
 
-  /// @docsEditable true
+  @DocsEditable
   EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27733,44 +27932,45 @@ class WorkerContextEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WorkerLocation
+@DocsEditable
+@DomName('WorkerLocation')
 class WorkerLocation extends NativeFieldWrapperClass1 {
   WorkerLocation.internal();
 
-
-  /** @domName WorkerLocation.hash */
+  @DocsEditable
+  @DomName('WorkerLocation.hash')
   String get hash native "WorkerLocation_hash_Getter";
 
-
-  /** @domName WorkerLocation.host */
+  @DocsEditable
+  @DomName('WorkerLocation.host')
   String get host native "WorkerLocation_host_Getter";
 
-
-  /** @domName WorkerLocation.hostname */
+  @DocsEditable
+  @DomName('WorkerLocation.hostname')
   String get hostname native "WorkerLocation_hostname_Getter";
 
-
-  /** @domName WorkerLocation.href */
+  @DocsEditable
+  @DomName('WorkerLocation.href')
   String get href native "WorkerLocation_href_Getter";
 
-
-  /** @domName WorkerLocation.pathname */
+  @DocsEditable
+  @DomName('WorkerLocation.pathname')
   String get pathname native "WorkerLocation_pathname_Getter";
 
-
-  /** @domName WorkerLocation.port */
+  @DocsEditable
+  @DomName('WorkerLocation.port')
   String get port native "WorkerLocation_port_Getter";
 
-
-  /** @domName WorkerLocation.protocol */
+  @DocsEditable
+  @DomName('WorkerLocation.protocol')
   String get protocol native "WorkerLocation_protocol_Getter";
 
-
-  /** @domName WorkerLocation.search */
+  @DocsEditable
+  @DomName('WorkerLocation.search')
   String get search native "WorkerLocation_search_Getter";
 
-
-  /** @domName WorkerLocation.toString */
+  @DocsEditable
+  @DomName('WorkerLocation.toString')
   String toString() native "WorkerLocation_toString_Callback";
 
 }
@@ -27781,28 +27981,29 @@ class WorkerLocation extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName WorkerNavigator
+@DocsEditable
+@DomName('WorkerNavigator')
 class WorkerNavigator extends NativeFieldWrapperClass1 {
   WorkerNavigator.internal();
 
-
-  /** @domName WorkerNavigator.appName */
+  @DocsEditable
+  @DomName('WorkerNavigator.appName')
   String get appName native "WorkerNavigator_appName_Getter";
 
-
-  /** @domName WorkerNavigator.appVersion */
+  @DocsEditable
+  @DomName('WorkerNavigator.appVersion')
   String get appVersion native "WorkerNavigator_appVersion_Getter";
 
-
-  /** @domName WorkerNavigator.onLine */
+  @DocsEditable
+  @DomName('WorkerNavigator.onLine')
   bool get onLine native "WorkerNavigator_onLine_Getter";
 
-
-  /** @domName WorkerNavigator.platform */
+  @DocsEditable
+  @DomName('WorkerNavigator.platform')
   String get platform native "WorkerNavigator_platform_Getter";
 
-
-  /** @domName WorkerNavigator.userAgent */
+  @DocsEditable
+  @DomName('WorkerNavigator.userAgent')
   String get userAgent native "WorkerNavigator_userAgent_Getter";
 
 }
@@ -27813,24 +28014,25 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XPathEvaluator
+@DocsEditable
+@DomName('XPathEvaluator')
 class XPathEvaluator extends NativeFieldWrapperClass1 {
   XPathEvaluator.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory XPathEvaluator() => XPathEvaluator._create();
   static XPathEvaluator _create() native "XPathEvaluator_constructor_Callback";
 
-
-  /** @domName XPathEvaluator.createExpression */
+  @DocsEditable
+  @DomName('XPathEvaluator.createExpression')
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native "XPathEvaluator_createExpression_Callback";
 
-
-  /** @domName XPathEvaluator.createNSResolver */
+  @DocsEditable
+  @DomName('XPathEvaluator.createNSResolver')
   XPathNSResolver createNSResolver(Node nodeResolver) native "XPathEvaluator_createNSResolver_Callback";
 
-
-  /** @domName XPathEvaluator.evaluate */
+  @DocsEditable
+  @DomName('XPathEvaluator.evaluate')
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native "XPathEvaluator_evaluate_Callback";
 
 }
@@ -27841,7 +28043,8 @@ class XPathEvaluator extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XPathException
+@DocsEditable
+@DomName('XPathException')
 class XPathException extends NativeFieldWrapperClass1 {
   XPathException.internal();
 
@@ -27849,20 +28052,20 @@ class XPathException extends NativeFieldWrapperClass1 {
 
   static const int TYPE_ERR = 52;
 
-
-  /** @domName XPathException.code */
+  @DocsEditable
+  @DomName('XPathException.code')
   int get code native "XPathException_code_Getter";
 
-
-  /** @domName XPathException.message */
+  @DocsEditable
+  @DomName('XPathException.message')
   String get message native "XPathException_message_Getter";
 
-
-  /** @domName XPathException.name */
+  @DocsEditable
+  @DomName('XPathException.name')
   String get name native "XPathException_name_Getter";
 
-
-  /** @domName XPathException.toString */
+  @DocsEditable
+  @DomName('XPathException.toString')
   String toString() native "XPathException_toString_Callback";
 
 }
@@ -27873,12 +28076,13 @@ class XPathException extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XPathExpression
+@DocsEditable
+@DomName('XPathExpression')
 class XPathExpression extends NativeFieldWrapperClass1 {
   XPathExpression.internal();
 
-
-  /** @domName XPathExpression.evaluate */
+  @DocsEditable
+  @DomName('XPathExpression.evaluate')
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native "XPathExpression_evaluate_Callback";
 
 }
@@ -27889,12 +28093,13 @@ class XPathExpression extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XPathNSResolver
+@DocsEditable
+@DomName('XPathNSResolver')
 class XPathNSResolver extends NativeFieldWrapperClass1 {
   XPathNSResolver.internal();
 
-
-  /** @domName XPathNSResolver.lookupNamespaceURI */
+  @DocsEditable
+  @DomName('XPathNSResolver.lookupNamespaceURI')
   String lookupNamespaceUri(String prefix) native "XPathNSResolver_lookupNamespaceURI_Callback";
 
 }
@@ -27905,7 +28110,8 @@ class XPathNSResolver extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XPathResult
+@DocsEditable
+@DomName('XPathResult')
 class XPathResult extends NativeFieldWrapperClass1 {
   XPathResult.internal();
 
@@ -27929,40 +28135,40 @@ class XPathResult extends NativeFieldWrapperClass1 {
 
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-
-  /** @domName XPathResult.booleanValue */
+  @DocsEditable
+  @DomName('XPathResult.booleanValue')
   bool get booleanValue native "XPathResult_booleanValue_Getter";
 
-
-  /** @domName XPathResult.invalidIteratorState */
+  @DocsEditable
+  @DomName('XPathResult.invalidIteratorState')
   bool get invalidIteratorState native "XPathResult_invalidIteratorState_Getter";
 
-
-  /** @domName XPathResult.numberValue */
+  @DocsEditable
+  @DomName('XPathResult.numberValue')
   num get numberValue native "XPathResult_numberValue_Getter";
 
-
-  /** @domName XPathResult.resultType */
+  @DocsEditable
+  @DomName('XPathResult.resultType')
   int get resultType native "XPathResult_resultType_Getter";
 
-
-  /** @domName XPathResult.singleNodeValue */
+  @DocsEditable
+  @DomName('XPathResult.singleNodeValue')
   Node get singleNodeValue native "XPathResult_singleNodeValue_Getter";
 
-
-  /** @domName XPathResult.snapshotLength */
+  @DocsEditable
+  @DomName('XPathResult.snapshotLength')
   int get snapshotLength native "XPathResult_snapshotLength_Getter";
 
-
-  /** @domName XPathResult.stringValue */
+  @DocsEditable
+  @DomName('XPathResult.stringValue')
   String get stringValue native "XPathResult_stringValue_Getter";
 
-
-  /** @domName XPathResult.iterateNext */
+  @DocsEditable
+  @DomName('XPathResult.iterateNext')
   Node iterateNext() native "XPathResult_iterateNext_Callback";
 
-
-  /** @domName XPathResult.snapshotItem */
+  @DocsEditable
+  @DomName('XPathResult.snapshotItem')
   Node snapshotItem(int index) native "XPathResult_snapshotItem_Callback";
 
 }
@@ -27973,16 +28179,17 @@ class XPathResult extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XMLSerializer
+@DocsEditable
+@DomName('XMLSerializer')
 class XmlSerializer extends NativeFieldWrapperClass1 {
   XmlSerializer.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory XmlSerializer() => XmlSerializer._create();
   static XmlSerializer _create() native "XMLSerializer_constructor_Callback";
 
-
-  /** @domName XMLSerializer.serializeToString */
+  @DocsEditable
+  @DomName('XMLSerializer.serializeToString')
   String serializeToString(Node node) native "XMLSerializer_serializeToString_Callback";
 
 }
@@ -27993,44 +28200,45 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName XSLTProcessor
+@DocsEditable
+@DomName('XSLTProcessor')
 class XsltProcessor extends NativeFieldWrapperClass1 {
   XsltProcessor.internal();
 
-  ///@docsEditable true
+  @DocsEditable
   factory XsltProcessor() => XsltProcessor._create();
   static XsltProcessor _create() native "XSLTProcessor_constructor_Callback";
 
-
-  /** @domName XSLTProcessor.clearParameters */
+  @DocsEditable
+  @DomName('XSLTProcessor.clearParameters')
   void clearParameters() native "XSLTProcessor_clearParameters_Callback";
 
-
-  /** @domName XSLTProcessor.getParameter */
+  @DocsEditable
+  @DomName('XSLTProcessor.getParameter')
   String getParameter(String namespaceURI, String localName) native "XSLTProcessor_getParameter_Callback";
 
-
-  /** @domName XSLTProcessor.importStylesheet */
+  @DocsEditable
+  @DomName('XSLTProcessor.importStylesheet')
   void importStylesheet(Node stylesheet) native "XSLTProcessor_importStylesheet_Callback";
 
-
-  /** @domName XSLTProcessor.removeParameter */
+  @DocsEditable
+  @DomName('XSLTProcessor.removeParameter')
   void removeParameter(String namespaceURI, String localName) native "XSLTProcessor_removeParameter_Callback";
 
-
-  /** @domName XSLTProcessor.reset */
+  @DocsEditable
+  @DomName('XSLTProcessor.reset')
   void reset() native "XSLTProcessor_reset_Callback";
 
-
-  /** @domName XSLTProcessor.setParameter */
+  @DocsEditable
+  @DomName('XSLTProcessor.setParameter')
   void setParameter(String namespaceURI, String localName, String value) native "XSLTProcessor_setParameter_Callback";
 
-
-  /** @domName XSLTProcessor.transformToDocument */
+  @DocsEditable
+  @DomName('XSLTProcessor.transformToDocument')
   Document transformToDocument(Node source) native "XSLTProcessor_transformToDocument_Callback";
 
-
-  /** @domName XSLTProcessor.transformToFragment */
+  @DocsEditable
+  @DomName('XSLTProcessor.transformToFragment')
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
 
 }
@@ -28041,12 +28249,39 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName ClientRectList
+@DocsEditable
+@DomName('HTMLAppletElement')
+class _AppletElement extends _Element_Merged {
+  _AppletElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLBaseFontElement')
+class _BaseFontElement extends _Element_Merged {
+  _BaseFontElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('ClientRectList')
 class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRect> {
   _ClientRectList.internal();
 
-
-  /** @domName ClientRectList.length */
+  @DocsEditable
+  @DomName('ClientRectList.length')
   int get length native "ClientRectList_length_Getter";
 
   ClientRect operator[](int index) native "ClientRectList_item_Callback";
@@ -28067,50 +28302,50 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ClientRect)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(ClientRect element) => Collections.contains(this, element);
+  bool contains(ClientRect element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(ClientRect element)) => Collections.forEach(this, f);
+  void forEach(void f(ClientRect element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(ClientRect element)) => new MappedList<ClientRect, dynamic>(this, f);
+  List mappedBy(f(ClientRect element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<ClientRect> where(bool f(ClientRect element)) => new WhereIterable<ClientRect>(this, f);
+  Iterable<ClientRect> where(bool f(ClientRect element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(ClientRect element)) => Collections.every(this, f);
+  bool every(bool f(ClientRect element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(ClientRect element)) => Collections.any(this, f);
+  bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
 
   List<ClientRect> toList() => new List<ClientRect>.from(this);
   Set<ClientRect> toSet() => new Set<ClientRect>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<ClientRect> take(int n) => new ListView<ClientRect>(this, 0, n);
+  List<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
-    return new TakeWhileIterable<ClientRect>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<ClientRect> skip(int n) => new ListView<ClientRect>(this, n, null);
+  List<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
-    return new SkipWhileIterable<ClientRect>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   ClientRect firstMatching(bool test(ClientRect value), { ClientRect orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   ClientRect lastMatching(bool test(ClientRect value), {ClientRect orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   ClientRect singleMatching(bool test(ClientRect value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   ClientRect elementAt(int index) {
@@ -28168,16 +28403,36 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new StateError("More than one element");
   }
 
-  ClientRect min([int compare(ClientRect a, ClientRect b)]) => Collections.min(this, compare);
+  ClientRect min([int compare(ClientRect a, ClientRect b)]) => IterableMixinWorkaround.min(this, compare);
 
-  ClientRect max([int compare(ClientRect a, ClientRect b)]) => Collections.max(this, compare);
+  ClientRect max([int compare(ClientRect a, ClientRect b)]) => IterableMixinWorkaround.max(this, compare);
 
   ClientRect removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   ClientRect removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(ClientRect element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(ClientRect element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<ClientRect> from, [int startFrom]) {
@@ -28197,8 +28452,8 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 
   // -- end List<ClientRect> mixins.
 
-
-  /** @domName ClientRectList.item */
+  @DocsEditable
+  @DomName('ClientRectList.item')
   ClientRect item(int index) native "ClientRectList_item_Callback";
 
 }
@@ -28209,12 +28464,13 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSRuleList
+@DocsEditable
+@DomName('CSSRuleList')
 class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   _CssRuleList.internal();
 
-
-  /** @domName CSSRuleList.length */
+  @DocsEditable
+  @DomName('CSSRuleList.length')
   int get length native "CSSRuleList_length_Getter";
 
   CssRule operator[](int index) native "CSSRuleList_item_Callback";
@@ -28235,50 +28491,50 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(CssRule element) => Collections.contains(this, element);
+  bool contains(CssRule element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(CssRule element)) => Collections.forEach(this, f);
+  void forEach(void f(CssRule element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssRule element)) => new MappedList<CssRule, dynamic>(this, f);
+  List mappedBy(f(CssRule element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<CssRule> where(bool f(CssRule element)) => new WhereIterable<CssRule>(this, f);
+  Iterable<CssRule> where(bool f(CssRule element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(CssRule element)) => Collections.every(this, f);
+  bool every(bool f(CssRule element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(CssRule element)) => Collections.any(this, f);
+  bool any(bool f(CssRule element)) => IterableMixinWorkaround.any(this, f);
 
   List<CssRule> toList() => new List<CssRule>.from(this);
   Set<CssRule> toSet() => new Set<CssRule>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<CssRule> take(int n) => new ListView<CssRule>(this, 0, n);
+  List<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssRule> takeWhile(bool test(CssRule value)) {
-    return new TakeWhileIterable<CssRule>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssRule> skip(int n) => new ListView<CssRule>(this, n, null);
+  List<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssRule> skipWhile(bool test(CssRule value)) {
-    return new SkipWhileIterable<CssRule>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   CssRule firstMatching(bool test(CssRule value), { CssRule orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   CssRule lastMatching(bool test(CssRule value), {CssRule orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   CssRule singleMatching(bool test(CssRule value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   CssRule elementAt(int index) {
@@ -28336,16 +28592,36 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new StateError("More than one element");
   }
 
-  CssRule min([int compare(CssRule a, CssRule b)]) => Collections.min(this, compare);
+  CssRule min([int compare(CssRule a, CssRule b)]) => IterableMixinWorkaround.min(this, compare);
 
-  CssRule max([int compare(CssRule a, CssRule b)]) => Collections.max(this, compare);
+  CssRule max([int compare(CssRule a, CssRule b)]) => IterableMixinWorkaround.max(this, compare);
 
   CssRule removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   CssRule removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(CssRule element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(CssRule element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CssRule> from, [int startFrom]) {
@@ -28365,8 +28641,8 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
   // -- end List<CssRule> mixins.
 
-
-  /** @domName CSSRuleList.item */
+  @DocsEditable
+  @DomName('CSSRuleList.item')
   CssRule item(int index) native "CSSRuleList_item_Callback";
 
 }
@@ -28377,12 +28653,13 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName CSSValueList
+@DocsEditable
+@DomName('CSSValueList')
 class _CssValueList extends CssValue implements List<CssValue> {
   _CssValueList.internal() : super.internal();
 
-
-  /** @domName CSSValueList.length */
+  @DocsEditable
+  @DomName('CSSValueList.length')
   int get length native "CSSValueList_length_Getter";
 
   CssValue operator[](int index) native "CSSValueList_item_Callback";
@@ -28403,50 +28680,50 @@ class _CssValueList extends CssValue implements List<CssValue> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(CssValue element) => Collections.contains(this, element);
+  bool contains(CssValue element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(CssValue element)) => Collections.forEach(this, f);
+  void forEach(void f(CssValue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssValue element)) => new MappedList<CssValue, dynamic>(this, f);
+  List mappedBy(f(CssValue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<CssValue> where(bool f(CssValue element)) => new WhereIterable<CssValue>(this, f);
+  Iterable<CssValue> where(bool f(CssValue element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(CssValue element)) => Collections.every(this, f);
+  bool every(bool f(CssValue element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(CssValue element)) => Collections.any(this, f);
+  bool any(bool f(CssValue element)) => IterableMixinWorkaround.any(this, f);
 
   List<CssValue> toList() => new List<CssValue>.from(this);
   Set<CssValue> toSet() => new Set<CssValue>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<CssValue> take(int n) => new ListView<CssValue>(this, 0, n);
+  List<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssValue> takeWhile(bool test(CssValue value)) {
-    return new TakeWhileIterable<CssValue>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssValue> skip(int n) => new ListView<CssValue>(this, n, null);
+  List<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssValue> skipWhile(bool test(CssValue value)) {
-    return new SkipWhileIterable<CssValue>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   CssValue firstMatching(bool test(CssValue value), { CssValue orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   CssValue lastMatching(bool test(CssValue value), {CssValue orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   CssValue singleMatching(bool test(CssValue value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   CssValue elementAt(int index) {
@@ -28504,16 +28781,36 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new StateError("More than one element");
   }
 
-  CssValue min([int compare(CssValue a, CssValue b)]) => Collections.min(this, compare);
+  CssValue min([int compare(CssValue a, CssValue b)]) => IterableMixinWorkaround.min(this, compare);
 
-  CssValue max([int compare(CssValue a, CssValue b)]) => Collections.max(this, compare);
+  CssValue max([int compare(CssValue a, CssValue b)]) => IterableMixinWorkaround.max(this, compare);
 
   CssValue removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   CssValue removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(CssValue element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(CssValue element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<CssValue> from, [int startFrom]) {
@@ -28533,8 +28830,8 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   // -- end List<CssValue> mixins.
 
-
-  /** @domName CSSValueList.item */
+  @DocsEditable
+  @DomName('CSSValueList.item')
   CssValue item(int index) native "CSSValueList_item_Callback";
 
 }
@@ -28545,132 +28842,146 @@ class _CssValueList extends CssValue implements List<CssValue> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName HTMLElement
+@DocsEditable
+@DomName('HTMLDirectoryElement')
+class _DirectoryElement extends _Element_Merged {
+  _DirectoryElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLElement')
 class _Element_Merged extends Element {
   _Element_Merged.internal() : super.internal();
 
-
-  /** @domName HTMLElement.children */
+  @DocsEditable
+  @DomName('HTMLElement.children')
   HtmlCollection get $dom_children native "HTMLElement_children_Getter";
 
-
-  /** @domName HTMLElement.contentEditable */
+  @DocsEditable
+  @DomName('HTMLElement.contentEditable')
   String get contentEditable native "HTMLElement_contentEditable_Getter";
 
-
-  /** @domName HTMLElement.contentEditable */
+  @DocsEditable
+  @DomName('HTMLElement.contentEditable')
   void set contentEditable(String value) native "HTMLElement_contentEditable_Setter";
 
-
-  /** @domName HTMLElement.dir */
+  @DocsEditable
+  @DomName('HTMLElement.dir')
   String get dir native "HTMLElement_dir_Getter";
 
-
-  /** @domName HTMLElement.dir */
+  @DocsEditable
+  @DomName('HTMLElement.dir')
   void set dir(String value) native "HTMLElement_dir_Setter";
 
-
-  /** @domName HTMLElement.draggable */
+  @DocsEditable
+  @DomName('HTMLElement.draggable')
   bool get draggable native "HTMLElement_draggable_Getter";
 
-
-  /** @domName HTMLElement.draggable */
+  @DocsEditable
+  @DomName('HTMLElement.draggable')
   void set draggable(bool value) native "HTMLElement_draggable_Setter";
 
-
-  /** @domName HTMLElement.hidden */
+  @DocsEditable
+  @DomName('HTMLElement.hidden')
   bool get hidden native "HTMLElement_hidden_Getter";
 
-
-  /** @domName HTMLElement.hidden */
+  @DocsEditable
+  @DomName('HTMLElement.hidden')
   void set hidden(bool value) native "HTMLElement_hidden_Setter";
 
-
-  /** @domName HTMLElement.id */
+  @DocsEditable
+  @DomName('HTMLElement.id')
   String get id native "HTMLElement_id_Getter";
 
-
-  /** @domName HTMLElement.id */
+  @DocsEditable
+  @DomName('HTMLElement.id')
   void set id(String value) native "HTMLElement_id_Setter";
 
-
-  /** @domName HTMLElement.innerHTML */
+  @DocsEditable
+  @DomName('HTMLElement.innerHTML')
   String get innerHtml native "HTMLElement_innerHTML_Getter";
 
-
-  /** @domName HTMLElement.innerHTML */
+  @DocsEditable
+  @DomName('HTMLElement.innerHTML')
   void set innerHtml(String value) native "HTMLElement_innerHTML_Setter";
 
-
-  /** @domName HTMLElement.isContentEditable */
+  @DocsEditable
+  @DomName('HTMLElement.isContentEditable')
   bool get isContentEditable native "HTMLElement_isContentEditable_Getter";
 
-
-  /** @domName HTMLElement.lang */
+  @DocsEditable
+  @DomName('HTMLElement.lang')
   String get lang native "HTMLElement_lang_Getter";
 
-
-  /** @domName HTMLElement.lang */
+  @DocsEditable
+  @DomName('HTMLElement.lang')
   void set lang(String value) native "HTMLElement_lang_Setter";
 
-
-  /** @domName HTMLElement.outerHTML */
+  @DocsEditable
+  @DomName('HTMLElement.outerHTML')
   String get outerHtml native "HTMLElement_outerHTML_Getter";
 
-
-  /** @domName HTMLElement.spellcheck */
+  @DocsEditable
+  @DomName('HTMLElement.spellcheck')
   bool get spellcheck native "HTMLElement_spellcheck_Getter";
 
-
-  /** @domName HTMLElement.spellcheck */
+  @DocsEditable
+  @DomName('HTMLElement.spellcheck')
   void set spellcheck(bool value) native "HTMLElement_spellcheck_Setter";
 
-
-  /** @domName HTMLElement.tabIndex */
+  @DocsEditable
+  @DomName('HTMLElement.tabIndex')
   int get tabIndex native "HTMLElement_tabIndex_Getter";
 
-
-  /** @domName HTMLElement.tabIndex */
+  @DocsEditable
+  @DomName('HTMLElement.tabIndex')
   void set tabIndex(int value) native "HTMLElement_tabIndex_Setter";
 
-
-  /** @domName HTMLElement.title */
+  @DocsEditable
+  @DomName('HTMLElement.title')
   String get title native "HTMLElement_title_Getter";
 
-
-  /** @domName HTMLElement.title */
+  @DocsEditable
+  @DomName('HTMLElement.title')
   void set title(String value) native "HTMLElement_title_Setter";
 
-
-  /** @domName HTMLElement.translate */
+  @DocsEditable
+  @DomName('HTMLElement.translate')
   bool get translate native "HTMLElement_translate_Getter";
 
-
-  /** @domName HTMLElement.translate */
+  @DocsEditable
+  @DomName('HTMLElement.translate')
   void set translate(bool value) native "HTMLElement_translate_Setter";
 
-
-  /** @domName HTMLElement.webkitdropzone */
+  @DocsEditable
+  @DomName('HTMLElement.webkitdropzone')
   String get webkitdropzone native "HTMLElement_webkitdropzone_Getter";
 
-
-  /** @domName HTMLElement.webkitdropzone */
+  @DocsEditable
+  @DomName('HTMLElement.webkitdropzone')
   void set webkitdropzone(String value) native "HTMLElement_webkitdropzone_Setter";
 
-
-  /** @domName HTMLElement.click */
+  @DocsEditable
+  @DomName('HTMLElement.click')
   void click() native "HTMLElement_click_Callback";
 
-
-  /** @domName HTMLElement.insertAdjacentElement */
+  @DocsEditable
+  @DomName('HTMLElement.insertAdjacentElement')
   Element insertAdjacentElement(String where, Element element) native "HTMLElement_insertAdjacentElement_Callback";
 
-
-  /** @domName HTMLElement.insertAdjacentHTML */
+  @DocsEditable
+  @DomName('HTMLElement.insertAdjacentHTML')
   void insertAdjacentHtml(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
 
-
-  /** @domName HTMLElement.insertAdjacentText */
+  @DocsEditable
+  @DomName('HTMLElement.insertAdjacentText')
   void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
 
 }
@@ -28681,12 +28992,13 @@ class _Element_Merged extends Element {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName EntryArray
+@DocsEditable
+@DomName('EntryArray')
 class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   _EntryArray.internal();
 
-
-  /** @domName EntryArray.length */
+  @DocsEditable
+  @DomName('EntryArray.length')
   int get length native "EntryArray_length_Getter";
 
   Entry operator[](int index) native "EntryArray_item_Callback";
@@ -28707,50 +29019,50 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Entry element) => Collections.contains(this, element);
+  bool contains(Entry element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Entry element)) => Collections.forEach(this, f);
+  void forEach(void f(Entry element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Entry element)) => new MappedList<Entry, dynamic>(this, f);
+  List mappedBy(f(Entry element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Entry> where(bool f(Entry element)) => new WhereIterable<Entry>(this, f);
+  Iterable<Entry> where(bool f(Entry element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Entry element)) => Collections.every(this, f);
+  bool every(bool f(Entry element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Entry element)) => Collections.any(this, f);
+  bool any(bool f(Entry element)) => IterableMixinWorkaround.any(this, f);
 
   List<Entry> toList() => new List<Entry>.from(this);
   Set<Entry> toSet() => new Set<Entry>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Entry> take(int n) => new ListView<Entry>(this, 0, n);
+  List<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Entry> takeWhile(bool test(Entry value)) {
-    return new TakeWhileIterable<Entry>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Entry> skip(int n) => new ListView<Entry>(this, n, null);
+  List<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Entry> skipWhile(bool test(Entry value)) {
-    return new SkipWhileIterable<Entry>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Entry firstMatching(bool test(Entry value), { Entry orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Entry lastMatching(bool test(Entry value), {Entry orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Entry singleMatching(bool test(Entry value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Entry elementAt(int index) {
@@ -28808,16 +29120,36 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new StateError("More than one element");
   }
 
-  Entry min([int compare(Entry a, Entry b)]) => Collections.min(this, compare);
+  Entry min([int compare(Entry a, Entry b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Entry max([int compare(Entry a, Entry b)]) => Collections.max(this, compare);
+  Entry max([int compare(Entry a, Entry b)]) => IterableMixinWorkaround.max(this, compare);
 
   Entry removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Entry removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Entry element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Entry element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
@@ -28837,8 +29169,8 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
   // -- end List<Entry> mixins.
 
-
-  /** @domName EntryArray.item */
+  @DocsEditable
+  @DomName('EntryArray.item')
   Entry item(int index) native "EntryArray_item_Callback";
 
 }
@@ -28849,12 +29181,13 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName EntryArraySync
+@DocsEditable
+@DomName('EntryArraySync')
 class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync> {
   _EntryArraySync.internal();
 
-
-  /** @domName EntryArraySync.length */
+  @DocsEditable
+  @DomName('EntryArraySync.length')
   int get length native "EntryArraySync_length_Getter";
 
   EntrySync operator[](int index) native "EntryArraySync_item_Callback";
@@ -28875,50 +29208,50 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(EntrySync element) => Collections.contains(this, element);
+  bool contains(EntrySync element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(EntrySync element)) => Collections.forEach(this, f);
+  void forEach(void f(EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(EntrySync element)) => new MappedList<EntrySync, dynamic>(this, f);
+  List mappedBy(f(EntrySync element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<EntrySync> where(bool f(EntrySync element)) => new WhereIterable<EntrySync>(this, f);
+  Iterable<EntrySync> where(bool f(EntrySync element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(EntrySync element)) => Collections.every(this, f);
+  bool every(bool f(EntrySync element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(EntrySync element)) => Collections.any(this, f);
+  bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
 
   List<EntrySync> toList() => new List<EntrySync>.from(this);
   Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<EntrySync> take(int n) => new ListView<EntrySync>(this, 0, n);
+  List<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
-    return new TakeWhileIterable<EntrySync>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<EntrySync> skip(int n) => new ListView<EntrySync>(this, n, null);
+  List<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
-    return new SkipWhileIterable<EntrySync>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   EntrySync firstMatching(bool test(EntrySync value), { EntrySync orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   EntrySync lastMatching(bool test(EntrySync value), {EntrySync orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   EntrySync singleMatching(bool test(EntrySync value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   EntrySync elementAt(int index) {
@@ -28976,16 +29309,36 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new StateError("More than one element");
   }
 
-  EntrySync min([int compare(EntrySync a, EntrySync b)]) => Collections.min(this, compare);
+  EntrySync min([int compare(EntrySync a, EntrySync b)]) => IterableMixinWorkaround.min(this, compare);
 
-  EntrySync max([int compare(EntrySync a, EntrySync b)]) => Collections.max(this, compare);
+  EntrySync max([int compare(EntrySync a, EntrySync b)]) => IterableMixinWorkaround.max(this, compare);
 
   EntrySync removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   EntrySync removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(EntrySync element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(EntrySync element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
@@ -29005,8 +29358,8 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
   // -- end List<EntrySync> mixins.
 
-
-  /** @domName EntryArraySync.item */
+  @DocsEditable
+  @DomName('EntryArraySync.item')
   EntrySync item(int index) native "EntryArraySync_item_Callback";
 
 }
@@ -29017,12 +29370,102 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 // WARNING: Do not edit - generated code.
 
 
-/// @domName GamepadList
+@DocsEditable
+@DomName('HTMLFontElement')
+class _FontElement extends _Element_Merged {
+  _FontElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLFrameElement')
+class _FrameElement extends _Element_Merged {
+  _FrameElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLFrameSetElement')
+class _FrameSetElement extends _Element_Merged {
+  _FrameSetElement.internal() : super.internal();
+
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  _FrameSetElementEvents get on =>
+    new _FrameSetElementEvents(this);
+
+}
+
+@DocsEditable
+class _FrameSetElementEvents extends ElementEvents {
+  @DocsEditable
+  _FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
+
+  @DocsEditable
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  @DocsEditable
+  EventListenerList get blur => this['blur'];
+
+  @DocsEditable
+  EventListenerList get error => this['error'];
+
+  @DocsEditable
+  EventListenerList get focus => this['focus'];
+
+  @DocsEditable
+  EventListenerList get hashChange => this['hashchange'];
+
+  @DocsEditable
+  EventListenerList get load => this['load'];
+
+  @DocsEditable
+  EventListenerList get message => this['message'];
+
+  @DocsEditable
+  EventListenerList get offline => this['offline'];
+
+  @DocsEditable
+  EventListenerList get online => this['online'];
+
+  @DocsEditable
+  EventListenerList get popState => this['popstate'];
+
+  @DocsEditable
+  EventListenerList get resize => this['resize'];
+
+  @DocsEditable
+  EventListenerList get storage => this['storage'];
+
+  @DocsEditable
+  EventListenerList get unload => this['unload'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('GamepadList')
 class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   _GamepadList.internal();
 
-
-  /** @domName GamepadList.length */
+  @DocsEditable
+  @DomName('GamepadList.length')
   int get length native "GamepadList_length_Getter";
 
   Gamepad operator[](int index) native "GamepadList_item_Callback";
@@ -29043,50 +29486,50 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(Gamepad element) => Collections.contains(this, element);
+  bool contains(Gamepad element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(Gamepad element)) => Collections.forEach(this, f);
+  void forEach(void f(Gamepad element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Gamepad element)) => new MappedList<Gamepad, dynamic>(this, f);
+  List mappedBy(f(Gamepad element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Gamepad> where(bool f(Gamepad element)) => new WhereIterable<Gamepad>(this, f);
+  Iterable<Gamepad> where(bool f(Gamepad element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(Gamepad element)) => Collections.every(this, f);
+  bool every(bool f(Gamepad element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(Gamepad element)) => Collections.any(this, f);
+  bool any(bool f(Gamepad element)) => IterableMixinWorkaround.any(this, f);
 
   List<Gamepad> toList() => new List<Gamepad>.from(this);
   Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<Gamepad> take(int n) => new ListView<Gamepad>(this, 0, n);
+  List<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Gamepad> takeWhile(bool test(Gamepad value)) {
-    return new TakeWhileIterable<Gamepad>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Gamepad> skip(int n) => new ListView<Gamepad>(this, n, null);
+  List<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Gamepad> skipWhile(bool test(Gamepad value)) {
-    return new SkipWhileIterable<Gamepad>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Gamepad firstMatching(bool test(Gamepad value), { Gamepad orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   Gamepad lastMatching(bool test(Gamepad value), {Gamepad orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   Gamepad singleMatching(bool test(Gamepad value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   Gamepad elementAt(int index) {
@@ -29144,16 +29587,36 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new StateError("More than one element");
   }
 
-  Gamepad min([int compare(Gamepad a, Gamepad b)]) => Collections.min(this, compare);
+  Gamepad min([int compare(Gamepad a, Gamepad b)]) => IterableMixinWorkaround.min(this, compare);
 
-  Gamepad max([int compare(Gamepad a, Gamepad b)]) => Collections.max(this, compare);
+  Gamepad max([int compare(Gamepad a, Gamepad b)]) => IterableMixinWorkaround.max(this, compare);
 
   Gamepad removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   Gamepad removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Gamepad element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Gamepad element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
@@ -29173,8 +29636,8 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   // -- end List<Gamepad> mixins.
 
-
-  /** @domName GamepadList.item */
+  @DocsEditable
+  @DomName('GamepadList.item')
   Gamepad item(int index) native "GamepadList_item_Callback";
 
 }
@@ -29185,12 +29648,26 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 // WARNING: Do not edit - generated code.
 
 
-/// @domName MediaStreamList
+@DocsEditable
+@DomName('HTMLMarqueeElement')
+class _MarqueeElement extends _Element_Merged {
+  _MarqueeElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('MediaStreamList')
 class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStream> {
   _MediaStreamList.internal();
 
-
-  /** @domName MediaStreamList.length */
+  @DocsEditable
+  @DomName('MediaStreamList.length')
   int get length native "MediaStreamList_length_Getter";
 
   MediaStream operator[](int index) native "MediaStreamList_item_Callback";
@@ -29211,50 +29688,50 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, MediaStream)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(MediaStream element) => Collections.contains(this, element);
+  bool contains(MediaStream element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(MediaStream element)) => Collections.forEach(this, f);
+  void forEach(void f(MediaStream element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(MediaStream element)) => new MappedList<MediaStream, dynamic>(this, f);
+  List mappedBy(f(MediaStream element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<MediaStream> where(bool f(MediaStream element)) => new WhereIterable<MediaStream>(this, f);
+  Iterable<MediaStream> where(bool f(MediaStream element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(MediaStream element)) => Collections.every(this, f);
+  bool every(bool f(MediaStream element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(MediaStream element)) => Collections.any(this, f);
+  bool any(bool f(MediaStream element)) => IterableMixinWorkaround.any(this, f);
 
   List<MediaStream> toList() => new List<MediaStream>.from(this);
   Set<MediaStream> toSet() => new Set<MediaStream>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<MediaStream> take(int n) => new ListView<MediaStream>(this, 0, n);
+  List<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
-    return new TakeWhileIterable<MediaStream>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<MediaStream> skip(int n) => new ListView<MediaStream>(this, n, null);
+  List<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
-    return new SkipWhileIterable<MediaStream>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   MediaStream firstMatching(bool test(MediaStream value), { MediaStream orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   MediaStream lastMatching(bool test(MediaStream value), {MediaStream orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   MediaStream singleMatching(bool test(MediaStream value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   MediaStream elementAt(int index) {
@@ -29312,16 +29789,36 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     throw new StateError("More than one element");
   }
 
-  MediaStream min([int compare(MediaStream a, MediaStream b)]) => Collections.min(this, compare);
+  MediaStream min([int compare(MediaStream a, MediaStream b)]) => IterableMixinWorkaround.min(this, compare);
 
-  MediaStream max([int compare(MediaStream a, MediaStream b)]) => Collections.max(this, compare);
+  MediaStream max([int compare(MediaStream a, MediaStream b)]) => IterableMixinWorkaround.max(this, compare);
 
   MediaStream removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   MediaStream removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(MediaStream element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(MediaStream element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<MediaStream> from, [int startFrom]) {
@@ -29341,8 +29838,8 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
 
   // -- end List<MediaStream> mixins.
 
-
-  /** @domName MediaStreamList.item */
+  @DocsEditable
+  @DomName('MediaStreamList.item')
   MediaStream item(int index) native "MediaStreamList_item_Callback";
 
 }
@@ -29353,12 +29850,13 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechInputResultList
+@DocsEditable
+@DomName('SpeechInputResultList')
 class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<SpeechInputResult> {
   _SpeechInputResultList.internal();
 
-
-  /** @domName SpeechInputResultList.length */
+  @DocsEditable
+  @DomName('SpeechInputResultList.length')
   int get length native "SpeechInputResultList_length_Getter";
 
   SpeechInputResult operator[](int index) native "SpeechInputResultList_item_Callback";
@@ -29379,50 +29877,50 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SpeechInputResult element) => Collections.contains(this, element);
+  bool contains(SpeechInputResult element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SpeechInputResult element)) => Collections.forEach(this, f);
+  void forEach(void f(SpeechInputResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechInputResult element)) => new MappedList<SpeechInputResult, dynamic>(this, f);
+  List mappedBy(f(SpeechInputResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) => new WhereIterable<SpeechInputResult>(this, f);
+  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SpeechInputResult element)) => Collections.every(this, f);
+  bool every(bool f(SpeechInputResult element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SpeechInputResult element)) => Collections.any(this, f);
+  bool any(bool f(SpeechInputResult element)) => IterableMixinWorkaround.any(this, f);
 
   List<SpeechInputResult> toList() => new List<SpeechInputResult>.from(this);
   Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechInputResult> take(int n) => new ListView<SpeechInputResult>(this, 0, n);
+  List<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechInputResult> takeWhile(bool test(SpeechInputResult value)) {
-    return new TakeWhileIterable<SpeechInputResult>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechInputResult> skip(int n) => new ListView<SpeechInputResult>(this, n, null);
+  List<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechInputResult> skipWhile(bool test(SpeechInputResult value)) {
-    return new SkipWhileIterable<SpeechInputResult>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SpeechInputResult firstMatching(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SpeechInputResult lastMatching(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SpeechInputResult singleMatching(bool test(SpeechInputResult value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SpeechInputResult elementAt(int index) {
@@ -29480,16 +29978,36 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new StateError("More than one element");
   }
 
-  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.min(this, compare);
+  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => Collections.max(this, compare);
+  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => IterableMixinWorkaround.max(this, compare);
 
   SpeechInputResult removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   SpeechInputResult removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(SpeechInputResult element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(SpeechInputResult element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
@@ -29509,8 +30027,8 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 
   // -- end List<SpeechInputResult> mixins.
 
-
-  /** @domName SpeechInputResultList.item */
+  @DocsEditable
+  @DomName('SpeechInputResultList.item')
   SpeechInputResult item(int index) native "SpeechInputResultList_item_Callback";
 
 }
@@ -29521,12 +30039,13 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 // WARNING: Do not edit - generated code.
 
 
-/// @domName SpeechRecognitionResultList
+@DocsEditable
+@DomName('SpeechRecognitionResultList')
 class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements List<SpeechRecognitionResult> {
   _SpeechRecognitionResultList.internal();
 
-
-  /** @domName SpeechRecognitionResultList.length */
+  @DocsEditable
+  @DomName('SpeechRecognitionResultList.length')
   int get length native "SpeechRecognitionResultList_length_Getter";
 
   SpeechRecognitionResult operator[](int index) native "SpeechRecognitionResultList_item_Callback";
@@ -29547,50 +30066,50 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(SpeechRecognitionResult element) => Collections.contains(this, element);
+  bool contains(SpeechRecognitionResult element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(SpeechRecognitionResult element)) => Collections.forEach(this, f);
+  void forEach(void f(SpeechRecognitionResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechRecognitionResult element)) => new MappedList<SpeechRecognitionResult, dynamic>(this, f);
+  List mappedBy(f(SpeechRecognitionResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) => new WhereIterable<SpeechRecognitionResult>(this, f);
+  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(SpeechRecognitionResult element)) => Collections.every(this, f);
+  bool every(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(SpeechRecognitionResult element)) => Collections.any(this, f);
+  bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
 
   List<SpeechRecognitionResult> toList() => new List<SpeechRecognitionResult>.from(this);
   Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechRecognitionResult> take(int n) => new ListView<SpeechRecognitionResult>(this, 0, n);
+  List<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechRecognitionResult> takeWhile(bool test(SpeechRecognitionResult value)) {
-    return new TakeWhileIterable<SpeechRecognitionResult>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechRecognitionResult> skip(int n) => new ListView<SpeechRecognitionResult>(this, n, null);
+  List<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechRecognitionResult> skipWhile(bool test(SpeechRecognitionResult value)) {
-    return new SkipWhileIterable<SpeechRecognitionResult>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   SpeechRecognitionResult firstMatching(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   SpeechRecognitionResult lastMatching(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   SpeechRecognitionResult singleMatching(bool test(SpeechRecognitionResult value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   SpeechRecognitionResult elementAt(int index) {
@@ -29648,16 +30167,36 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new StateError("More than one element");
   }
 
-  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.min(this, compare);
+  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => IterableMixinWorkaround.min(this, compare);
 
-  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => Collections.max(this, compare);
+  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => IterableMixinWorkaround.max(this, compare);
 
   SpeechRecognitionResult removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   SpeechRecognitionResult removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(SpeechRecognitionResult element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(SpeechRecognitionResult element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
@@ -29677,8 +30216,8 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 
   // -- end List<SpeechRecognitionResult> mixins.
 
-
-  /** @domName SpeechRecognitionResultList.item */
+  @DocsEditable
+  @DomName('SpeechRecognitionResultList.item')
   SpeechRecognitionResult item(int index) native "SpeechRecognitionResultList_item_Callback";
 
 }
@@ -29689,12 +30228,13 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 // WARNING: Do not edit - generated code.
 
 
-/// @domName StyleSheetList
+@DocsEditable
+@DomName('StyleSheetList')
 class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleSheet> {
   _StyleSheetList.internal();
 
-
-  /** @domName StyleSheetList.length */
+  @DocsEditable
+  @DomName('StyleSheetList.length')
   int get length native "StyleSheetList_length_Getter";
 
   StyleSheet operator[](int index) native "StyleSheetList_item_Callback";
@@ -29715,50 +30255,50 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   }
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
-    return Collections.reduce(this, initialValue, combine);
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  bool contains(StyleSheet element) => Collections.contains(this, element);
+  bool contains(StyleSheet element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(StyleSheet element)) => Collections.forEach(this, f);
+  void forEach(void f(StyleSheet element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => Collections.joinList(this, separator);
+  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(StyleSheet element)) => new MappedList<StyleSheet, dynamic>(this, f);
+  List mappedBy(f(StyleSheet element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<StyleSheet> where(bool f(StyleSheet element)) => new WhereIterable<StyleSheet>(this, f);
+  Iterable<StyleSheet> where(bool f(StyleSheet element)) => IterableMixinWorkaround.where(this, f);
 
-  bool every(bool f(StyleSheet element)) => Collections.every(this, f);
+  bool every(bool f(StyleSheet element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(StyleSheet element)) => Collections.any(this, f);
+  bool any(bool f(StyleSheet element)) => IterableMixinWorkaround.any(this, f);
 
   List<StyleSheet> toList() => new List<StyleSheet>.from(this);
   Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  List<StyleSheet> take(int n) => new ListView<StyleSheet>(this, 0, n);
+  List<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<StyleSheet> takeWhile(bool test(StyleSheet value)) {
-    return new TakeWhileIterable<StyleSheet>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<StyleSheet> skip(int n) => new ListView<StyleSheet>(this, n, null);
+  List<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<StyleSheet> skipWhile(bool test(StyleSheet value)) {
-    return new SkipWhileIterable<StyleSheet>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   StyleSheet firstMatching(bool test(StyleSheet value), { StyleSheet orElse() }) {
-    return Collections.firstMatching(this, test, orElse);
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
   }
 
   StyleSheet lastMatching(bool test(StyleSheet value), {StyleSheet orElse()}) {
-    return Collections.lastMatchingInList(this, test, orElse);
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
   }
 
   StyleSheet singleMatching(bool test(StyleSheet value)) {
-    return Collections.singleMatching(this, test);
+    return IterableMixinWorkaround.singleMatching(this, test);
   }
 
   StyleSheet elementAt(int index) {
@@ -29816,16 +30356,36 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new StateError("More than one element");
   }
 
-  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => Collections.min(this, compare);
+  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => IterableMixinWorkaround.min(this, compare);
 
-  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => Collections.max(this, compare);
+  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => IterableMixinWorkaround.max(this, compare);
 
   StyleSheet removeAt(int pos) {
-    throw new UnsupportedError("Cannot removeAt on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   StyleSheet removeLast() {
-    throw new UnsupportedError("Cannot removeLast on immutable List.");
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(StyleSheet element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(StyleSheet element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
   void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
@@ -29845,8 +30405,8 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   // -- end List<StyleSheet> mixins.
 
-
-  /** @domName StyleSheetList.item */
+  @DocsEditable
+  @DomName('StyleSheetList.item')
   StyleSheet item(int index) native "StyleSheetList_item_Callback";
 
 }
@@ -30268,11 +30828,12 @@ abstract class CssClassSet implements Set<String> {
 
   void add(String value) {
     // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough
+    // or if the browser natively does enough.
     _modify((s) => s.add(value));
   }
 
-  bool remove(String value) {
+  bool remove(Object value) {
+    if (value is! String) return false;
     Set<String> s = readClasses();
     bool result = s.remove(value);
     writeClasses(s);
@@ -30280,12 +30841,24 @@ abstract class CssClassSet implements Set<String> {
   }
 
   void addAll(Iterable<String> iterable) {
-    // TODO - see comment above about validation
+    // TODO - see comment above about validation.
     _modify((s) => s.addAll(iterable));
   }
 
   void removeAll(Iterable<String> iterable) {
     _modify((s) => s.removeAll(iterable));
+  }
+
+  void retainAll(Iterable<String> iterable) {
+    _modify((s) => s.retainAll(iterable));
+  }
+
+  void removeMatching(bool test(String name)) {
+    _modify((s) => s.removeMatching(test));
+  }
+
+  void retainMatching(bool test(String name)) {
+    _modify((s) => s.retainMatching(test));
   }
 
   bool isSubsetOf(Collection<String> collection) =>
@@ -30494,6 +31067,21 @@ class EventStreamProvider<T extends Event> {
    */
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventType, useCapture);
+  }
+}
+
+/**
+ * A factory to expose DOM events as streams, where the DOM event name has to
+ * be determined on the fly (for example, mouse wheel events).
+ */
+class _CustomEventStreamProvider<T extends Event>
+    implements EventStreamProvider<T> {
+
+  final _eventTypeGetter;
+  const _CustomEventStreamProvider(this._eventTypeGetter);
+
+  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+    return new _EventStream(e, _eventTypeGetter(e), useCapture);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31799,7 +32387,7 @@ class _CssStyleDeclarationFactoryProvider {
 }
 
 class _DocumentFragmentFactoryProvider {
-  /** @domName Document.createDocumentFragment */
+  @DomName('Document.createDocumentFragment')
   static DocumentFragment createDocumentFragment() =>
       document.createDocumentFragment();
 

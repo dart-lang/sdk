@@ -2,6 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+var warning = [
+  'WARNING: This page is using a deprecated dart.js file. ',
+  'Please update this page as described here: ',
+  'http://news.dartlang.org/2013/01/big-breaking-change-dartjs-bootstrap-file-moving-to-pub.html'
+].join('');
+console.error(warning);
+
 // Bootstrap support for Dart scripts on the page as this script.
 if (navigator.webkitStartDart) {
   if (!navigator.webkitStartDart()) {

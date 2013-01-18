@@ -5,24 +5,23 @@
 // WARNING: Do not edit - generated code.
 
 part of html;
-
-/// @domName $DOMNAME
+$ANNOTATIONS
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
-  /** @domName Document.body */
+  @DomName('Document.body')
   BodyElement get body => document.$dom_body;
 
-  /** @domName Document.body */
+  @DomName('Document.body')
   void set body(BodyElement value) {
     document.$dom_body = value;
   }
 
-  /** @domName Document.caretRangeFromPoint */
+  @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {
     return document.$dom_caretRangeFromPoint(x, y);
   }
 
-  /** @domName Document.elementFromPoint */
+  @DomName('Document.elementFromPoint')
   Element elementFromPoint(int x, int y) {
     return document.$dom_elementFromPoint(x, y);
   }
@@ -65,71 +64,72 @@ $endif
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
+  @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
     return document.$dom_getCssCanvasContext(contextId, name, width, height);
   }
 
-  /** @domName Document.head */
+  @DomName('Document.head')
   HeadElement get head => document.$dom_head;
 
-  /** @domName Document.lastModified */
+  @DomName('Document.lastModified')
   String get lastModified => document.$dom_lastModified;
 
-  /** @domName Document.preferredStylesheetSet */
+  @DomName('Document.preferredStylesheetSet')
   String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
 
-  /** @domName Document.referrer */
+  @DomName('Document.referrer')
   String get referrer => document.$dom_referrer;
 
-  /** @domName Document.selectedStylesheetSet */
+  @DomName('Document.selectedStylesheetSet')
   String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
   void set selectedStylesheetSet(String value) {
     document.$dom_selectedStylesheetSet = value;
   }
 
-  /** @domName Document.styleSheets */
+  @DomName('Document.styleSheets')
   List<StyleSheet> get styleSheets => document.$dom_styleSheets;
 
-  /** @domName Document.title */
+  @DomName('Document.title')
   String get title => document.$dom_title;
 
-  /** @domName Document.title */
+  @DomName('Document.title')
   void set title(String value) {
     document.$dom_title = value;
   }
 
-  /** @domName Document.webkitCancelFullScreen */
+  @DomName('Document.webkitCancelFullScreen')
   void webkitCancelFullScreen() {
     document.$dom_webkitCancelFullScreen();
   }
 
-  /** @domName Document.webkitExitFullscreen */
+  @DomName('Document.webkitExitFullscreen')
   void webkitExitFullscreen() {
     document.$dom_webkitExitFullscreen();
   }
 
-  /** @domName Document.webkitExitPointerLock */
+  @DomName('Document.webkitExitPointerLock')
   void webkitExitPointerLock() {
     document.$dom_webkitExitPointerLock();
   }
 
-  /** @domName Document.webkitFullscreenElement */
+  @DomName('Document.webkitFullscreenElement')
   Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
 
-  /** @domName Document.webkitFullscreenEnabled */
+  @DomName('Document.webkitFullscreenEnabled')
   bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
 
-  /** @domName Document.webkitHidden */
+  @DomName('Document.webkitHidden')
   bool get webkitHidden => document.$dom_webkitHidden;
 
-  /** @domName Document.webkitIsFullScreen */
+  @DomName('Document.webkitIsFullScreen')
   bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
 
-  /** @domName Document.webkitPointerLockElement */
+  @DomName('Document.webkitPointerLockElement')
   Element get webkitPointerLockElement =>
       document.$dom_webkitPointerLockElement;
 
-  /** @domName Document.webkitVisibilityState */
+  @DomName('Document.webkitVisibilityState')
   String get webkitVisibilityState => document.$dom_webkitVisibilityState;
 }

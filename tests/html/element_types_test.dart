@@ -128,17 +128,8 @@ main() {
     test('fieldset', () {
       expect((new FieldSetElement()) is FieldSetElement, true);
     });
-    test('font', () {
-      expect((new Element.tag('font')) is FontElement, true);
-    });
     test('form', () {
       expect((new FormElement()) is FormElement, true);
-    });
-    test('frame', () {
-      expect((new Element.tag('frame')) is FrameElement, true);
-    });
-    test('frameset', () {
-      expect((new Element.tag('frameset')) is FrameSetElement, true);
     });
     test('head', () {
       expect((new HeadElement()) is HeadElement, true);
@@ -199,10 +190,6 @@ main() {
     });
     test('map', () {
       expect((new MapElement()) is MapElement, true);
-    });
-    test('marquee', () {
-      expect((new Element.tag('marquee')) is MarqueeElement,
-          MarqueeElement.supported);
     });
     test('menu', () {
       expect((new MenuElement()) is MenuElement, true);
