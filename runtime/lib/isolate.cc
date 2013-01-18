@@ -186,7 +186,7 @@ static bool CanonicalizeUri(Isolate* isolate,
   const Object& obj = Object::Handle(Api::UnwrapHandle(result));
   if (obj.IsError()) {
     Error& error_obj = Error::Handle();
-    error_obj |= obj.raw();
+    error_obj ^= obj.raw();
     *error = zone->PrintToString("Unable to canonicalize uri '%s': %s",
                                  uri.ToCString(), error_obj.ToErrorCString());
     return false;
