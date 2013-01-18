@@ -8,6 +8,7 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -71,6 +72,47 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
 }
 
 
+// Method extractors are used to create implicit closures from methods.
+// When an expression obj.M is evaluated for the first time and receiver obj
+// does not have a getter called M but has a method called M then an extractor
+// is created and injected as a getter (under the name get:M) into the class
+// ownining method M.
+static RawFunction* CreateMethodExtractor(const String& getter_name,
+                                          const Function& method) {
+  const Function& closure_function =
+      Function::Handle(method.ImplicitClosureFunction());
+
+  const Class& owner = Class::Handle(closure_function.Owner());
+  Function& extractor = Function::Handle(
+    Function::New(String::Handle(Symbols::New(getter_name)),
+                  RawFunction::kMethodExtractor,
+                  false,  // Not static.
+                  false,  // Not const.
+                  false,  // Not abstract.
+                  false,  // Not external.
+                  owner,
+                  0));  // No token position.
+
+  // Initialize signature: receiver is a single fixed parameter.
+  const intptr_t kNumParameters = 1;
+  extractor.set_num_fixed_parameters(kNumParameters);
+  extractor.SetNumOptionalParameters(0, 0);
+  extractor.set_parameter_types(Array::Handle(Array::New(kNumParameters,
+                                                         Heap::kOld)));
+  extractor.set_parameter_names(Array::Handle(Array::New(kNumParameters,
+                                                         Heap::kOld)));
+  extractor.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
+  extractor.SetParameterNameAt(0, Symbols::This());
+  extractor.set_result_type(Type::Handle(Type::DynamicType()));
+
+  extractor.set_extracted_method_closure(closure_function);
+
+  owner.AddFunction(extractor);
+
+  return extractor.raw();
+}
+
+
 RawFunction* Resolver::ResolveDynamicAnyArgs(
     const Class& receiver_class,
     const String& function_name) {
@@ -80,14 +122,30 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
               function_name.ToCString(),
               String::Handle(cls.Name()).ToCString());
   }
+
+  const bool is_getter = Field::IsGetterName(function_name);
+  String& field_name = String::Handle();
+  if (is_getter) {
+    field_name ^= Field::NameFromGetter(function_name);
+  }
+
   // Now look for an instance function whose name matches function_name
   // in the class.
-  Function& function =
-      Function::Handle(cls.LookupDynamicFunction(function_name));
-  while (function.IsNull()) {
+  Function& function = Function::Handle();
+  while (function.IsNull() && !cls.IsNull()) {
+    function ^= cls.LookupDynamicFunction(function_name);
+
+    // Getter invocation might actually be a method extraction.
+    if (is_getter && function.IsNull()) {
+      function ^= cls.LookupDynamicFunction(field_name);
+      if (!function.IsNull()) {
+        // We were looking for the getter but found a method with the same name.
+        // Create a method extractor and return it.
+        function ^= CreateMethodExtractor(function_name, function);
+      }
+    }
+
     cls = cls.SuperClass();
-    if (cls.IsNull()) break;
-    function = cls.LookupDynamicFunction(function_name);
   }
   return function.raw();
 }

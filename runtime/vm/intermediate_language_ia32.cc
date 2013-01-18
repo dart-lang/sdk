@@ -2474,6 +2474,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   ASSERT(ic_data().num_args_tested() == 1);
   if (!with_checks()) {
+    ASSERT(ic_data().HasOneTarget());
     const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
     compiler->GenerateStaticCall(instance_call()->deopt_id(),
                                  instance_call()->token_pos(),

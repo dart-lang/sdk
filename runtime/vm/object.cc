@@ -1449,6 +1449,7 @@ bool Class::HasInstanceFields() const {
   return false;
 }
 
+
 void Class::SetFunctions(const Array& value) const {
   ASSERT(!value.IsNull());
 #if defined(DEBUG)
@@ -1461,6 +1462,14 @@ void Class::SetFunctions(const Array& value) const {
   }
 #endif
   StorePointer(&raw_ptr()->functions_, value.raw());
+}
+
+
+void Class::AddFunction(const Function& function) const {
+  const Array& arr = Array::Handle(functions());
+  const Array& new_arr = Array::Handle(Array::Grow(arr, arr.Length() + 1));
+  new_arr.SetAt(arr.Length(), function);
+  SetFunctions(new_arr);
 }
 
 
@@ -3285,6 +3294,21 @@ void Function::set_closure_allocation_stub(const Code& value) const {
 }
 
 
+RawFunction* Function::extracted_method_closure() const {
+  ASSERT(kind() == RawFunction::kMethodExtractor);
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(obj.IsFunction());
+  return Function::Cast(obj).raw();
+}
+
+
+void Function::set_extracted_method_closure(const Function& value) const {
+  ASSERT(kind() == RawFunction::kMethodExtractor);
+  ASSERT(raw_ptr()->data_ == Object::null());
+  set_data(value);
+}
+
+
 RawFunction* Function::parent_function() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -4373,6 +4397,9 @@ const char* Function::ToCString() const {
       break;
     case RawFunction::kConstImplicitGetter:
       kind_str = " const-getter";
+      break;
+    case RawFunction::kMethodExtractor:
+      kind_str = " method-extractor";
       break;
     default:
       UNREACHABLE();

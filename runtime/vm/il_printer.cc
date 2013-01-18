@@ -378,7 +378,9 @@ void NativeCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", String::Handle(field().name()).ToCString());
+  f->Print("%s {%"Pd"}, ",
+           String::Handle(field().name()).ToCString(),
+           field().Offset());
   instance()->PrintTo(f);
   f->Print(", ");
   value()->PrintTo(f);

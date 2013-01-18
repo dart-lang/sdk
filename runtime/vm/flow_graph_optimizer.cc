@@ -662,10 +662,8 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         // Fall through.
       case kFloat32ArrayCid:
       case kFloat64ArrayCid: {
-        ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
-        InsertBefore(call, null_constant, NULL, Definition::kValue);
-        instantiator = new Value(null_constant);
-        type_args = new Value(null_constant);
+        instantiator = new Value(flow_graph_->constant_null());
+        type_args = new Value(flow_graph_->constant_null());
         ASSERT((class_id != kFloat32ArrayCid && class_id != kFloat64ArrayCid) ||
                value_type.IsDoubleType());
         ASSERT(value_type.IsInstantiated());
@@ -1025,6 +1023,23 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
 }
 
 
+bool FlowGraphOptimizer::MethodExtractorNeedsClassCheck(
+    InstanceCallInstr* call) const {
+  if (!FLAG_use_cha) return true;
+  Definition* callee_receiver = call->ArgumentAt(0)->value()->definition();
+  ASSERT(callee_receiver != NULL);
+  const Function& function = flow_graph_->parsed_function().function();
+  if (function.IsDynamicFunction() &&
+      callee_receiver->IsParameter() &&
+      (callee_receiver->AsParameter()->index() == 0)) {
+    const String& field_name =
+      String::Handle(Field::NameFromGetter(call->function_name()));
+    return CHA::HasOverride(Class::Handle(function.Owner()), field_name);
+  }
+  return true;
+}
+
+
 void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1172,6 +1187,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     }
     InlineImplicitInstanceGetter(call);
     return true;
+  } else if (target.kind() == RawFunction::kMethodExtractor) {
+    return false;
   }
 
   // Not an implicit getter.
@@ -1424,6 +1441,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   const ICData& unary_checks =
       ICData::ZoneHandle(instr->ic_data()->AsUnaryClassChecks());
+
   if ((unary_checks.NumberOfChecks() > FLAG_max_polymorphic_checks) &&
       InstanceCallNeedsClassCheck(instr)) {
     // Too many checks, it will be megamorphic which needs unary checks.
@@ -1456,17 +1474,27 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (TryInlineInstanceMethod(instr)) {
     return;
   }
-  if (!InstanceCallNeedsClassCheck(instr)) {
-    const bool call_with_checks = false;
-    PolymorphicInstanceCallInstr* call =
-        new PolymorphicInstanceCallInstr(instr, unary_checks,
-                                         call_with_checks);
-    instr->ReplaceWith(call, current_iterator());
-    return;
+
+  const bool has_one_target = unary_checks.HasOneTarget();
+
+  if (has_one_target) {
+    const bool is_method_extraction =
+        Function::Handle(unary_checks.GetTargetAt(0)).IsMethodExtractor();
+
+    if ((is_method_extraction && !MethodExtractorNeedsClassCheck(instr)) ||
+        (!is_method_extraction && !InstanceCallNeedsClassCheck(instr))) {
+      const bool call_with_checks = false;
+      PolymorphicInstanceCallInstr* call =
+          new PolymorphicInstanceCallInstr(instr, unary_checks,
+                                           call_with_checks);
+      instr->ReplaceWith(call, current_iterator());
+      return;
+    }
   }
+
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
     bool call_with_checks;
-    if (unary_checks.HasOneTarget()) {
+    if (has_one_target) {
       // Type propagation has not run yet, we cannot eliminate the check.
       AddCheckClass(instr, instr->ArgumentAt(0)->value()->Copy());
       // Call can still deoptimize, do not detach environment from instr.

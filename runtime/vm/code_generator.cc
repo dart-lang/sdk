@@ -1127,39 +1127,6 @@ DEFINE_RUNTIME_ENTRY(InvokeNonClosure, 3) {
 }
 
 
-// An instance call could not be resolved by an IC miss handler.  Check if
-// it was a getter call and if there is an instance function with the same
-// name.  If so, create and return an implicit closure from the function.
-// Otherwise return null.
-static RawInstance* ResolveImplicitClosure(const Instance& receiver,
-                                           const Class& receiver_class,
-                                           const String& target_name) {
-  // 1. Check if was a getter call.
-  if (!Field::IsGetterName(target_name)) return Instance::null();
-
-  // 2. Check if there is an instance function with the same name.
-  String& function_name = String::Handle(Field::NameFromGetter(target_name));
-  function_name = Symbols::New(function_name);
-  const Function& function = Function::Handle(
-      Resolver::ResolveDynamicAnyArgs(receiver_class, function_name));
-  if (function.IsNull()) return Instance::null();
-
-  // Create a closure object for the implicit closure function.
-  const Function& closure_function =
-      Function::Handle(function.ImplicitClosureFunction());
-  const Context& context = Context::Handle(Context::New(1));
-  context.SetAt(0, receiver);
-  const Instance& closure =
-      Instance::Handle(Closure::New(closure_function, context));
-  if (receiver_class.HasTypeArguments()) {
-    const AbstractTypeArguments& type_arguments =
-        AbstractTypeArguments::Handle(receiver.GetTypeArguments());
-    closure.SetTypeArguments(type_arguments);
-  }
-  return closure.raw();
-}
-
-
 // An instance call of the form o.f(...) could not be resolved.  Check if
 // there is a getter with the same name.  If so, invoke it.  If the value is
 // a closure, invoke it with the given arguments.  If the value is a
@@ -1179,7 +1146,9 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                                getter_name,
                                                kNumArguments,
                                                kNumNamedArguments));
-  if (getter.IsNull()) return false;
+  if (getter.IsNull() || getter.IsMethodExtractor()) {
+    return false;
+  }
 
   // 2. Invoke the getter.
   const Array& args = Array::Handle(Array::New(kNumArguments));
@@ -1230,14 +1199,6 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
     receiver_class = isolate->object_store()->object_class();
   }
   const String& target_name = String::Handle(ic_data.target_name());
-
-  Instance& closure = Instance::Handle(ResolveImplicitClosure(receiver,
-                                                              receiver_class,
-                                                              target_name));
-  if (!closure.IsNull()) {
-    arguments.SetReturn(closure);
-    return;
-  }
 
   Object& result = Object::Handle();
   if (!ResolveCallThroughGetter(receiver,

@@ -710,6 +710,7 @@ class Class : public Object {
 
   RawArray* functions() const { return raw_ptr()->functions_; }
   void SetFunctions(const Array& value) const;
+  void AddFunction(const Function& function) const;
 
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(intptr_t token_pos) const;
@@ -1209,6 +1210,13 @@ class Function : public Object {
   RawCode* closure_allocation_stub() const;
   void set_closure_allocation_stub(const Code& value) const;
 
+  void set_extracted_method_closure(const Function& function) const;
+  RawFunction* extracted_method_closure() const;
+
+  bool IsMethodExtractor() const {
+    return kind() == RawFunction::kMethodExtractor;
+  }
+
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
@@ -1251,6 +1259,7 @@ class Function : public Object {
       case RawFunction::kSetterFunction:
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
+      case RawFunction::kMethodExtractor:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:

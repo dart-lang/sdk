@@ -540,6 +540,7 @@ class RawFunction : public RawObject {
     kImplicitGetter,     // represents an implicit getter for fields.
     kImplicitSetter,     // represents an implicit setter for fields.
     kConstImplicitGetter,  // represents an implicit const getter for fields.
+    kMethodExtractor,  // converts method into implicit closure on the receiver.
   };
 
  private:

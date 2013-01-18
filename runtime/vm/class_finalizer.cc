@@ -918,7 +918,9 @@ static RawClass* FindSuperOwnerOfFunction(const Class& cls,
   super_class = cls.SuperClass();
   while (!super_class.IsNull()) {
     function = super_class.LookupFunction(name);
-    if (!function.IsNull() && !function.is_static()) {
+    if (!function.IsNull() &&
+        !function.is_static() &&
+        !function.IsMethodExtractor()) {
       return super_class.raw();
     }
     super_class = super_class.SuperClass();

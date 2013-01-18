@@ -104,6 +104,10 @@ class FlowGraph : public ZoneAllocated {
     return graph_entry_;
   }
 
+  ConstantInstr* constant_null() const {
+    return constant_null_;
+  }
+
   intptr_t alloc_ssa_temp_index() { return current_ssa_temp_index_++; }
 
   intptr_t InstructionCount() const;
@@ -183,6 +187,7 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
   bool invalid_dominator_tree_;
+  ConstantInstr* constant_null_;
 };
 
 }  // namespace dart

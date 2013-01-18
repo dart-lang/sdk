@@ -3050,16 +3050,18 @@ class CreateArrayInstr : public TemplateDefinition<1> {
 
 class CreateClosureInstr : public TemplateDefinition<0> {
  public:
-  CreateClosureInstr(ClosureNode* node,
-                     ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : ast_node_(*node),
-        arguments_(arguments) { }
+  CreateClosureInstr(const Function& function,
+                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                     intptr_t token_pos)
+      : function_(function),
+        arguments_(arguments),
+        token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(CreateClosure)
   virtual RawAbstractType* CompileType() const;
 
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
-  const Function& function() const { return ast_node_.function(); }
+  intptr_t token_pos() const { return token_pos_; }
+  const Function& function() const { return function_; }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
@@ -3075,8 +3077,9 @@ class CreateClosureInstr : public TemplateDefinition<0> {
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
-  const ClosureNode& ast_node_;
+  const Function& function_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
+  intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureInstr);
 };

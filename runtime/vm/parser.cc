@@ -752,6 +752,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kConstImplicitGetter:
       node_sequence = parser.ParseStaticConstGetter(func);
       break;
+    case RawFunction::kMethodExtractor:
+      node_sequence = parser.ParseMethodExtractor(func);
+      break;
     default:
       UNREACHABLE();
   }
@@ -976,6 +979,37 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
 
   current_block_->statements->Add(store_field);
   current_block_->statements->Add(new ReturnNode(ident_pos));
+  return CloseBlock();
+}
+
+
+SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
+  TRACE_PARSER("ParseMethodExtractor");
+  ParamList params;
+
+  const intptr_t ident_pos = func.token_pos();
+  ASSERT(func.token_pos() == 0);
+  ASSERT(current_class().raw() == func.Owner());
+  params.AddReceiver(ReceiverType(ident_pos));
+  ASSERT(func.num_fixed_parameters() == 1);  // Receiver.
+  ASSERT(!func.HasOptionalParameters());
+
+  // Build local scope for function and populate with the formal parameters.
+  OpenFunctionBlock(func);
+  AddFormalParamsToScope(&params, current_block_->scope);
+
+  // Receiver is local 0.
+  LocalVariable* receiver = current_block_->scope->VariableAt(0);
+  LoadLocalNode* load_receiver = new LoadLocalNode(ident_pos, receiver);
+
+  ClosureNode* closure = new ClosureNode(
+      ident_pos,
+      Function::ZoneHandle(func.extracted_method_closure()),
+      load_receiver,
+      NULL);
+
+  ReturnNode* return_node = new ReturnNode(ident_pos, closure);
+  current_block_->statements->Add(return_node);
   return CloseBlock();
 }
 

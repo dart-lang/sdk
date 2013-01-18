@@ -1633,7 +1633,8 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   }
   PushArgumentInstr* push_type_arguments = PushArgument(type_arguments);
   arguments->Add(push_type_arguments);
-  ReturnDefinition(new CreateClosureInstr(node, arguments));
+  ReturnDefinition(
+      new CreateClosureInstr(node->function(), arguments, node->token_pos()));
 }
 
 

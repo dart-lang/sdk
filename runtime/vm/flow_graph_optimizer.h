@@ -92,6 +92,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                         Instruction* deopt_target);
 
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call) const;
+  bool MethodExtractorNeedsClassCheck(InstanceCallInstr* call) const;
 
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
   void InlineArrayLengthGetter(InstanceCallInstr* call,
