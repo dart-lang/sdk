@@ -2921,6 +2921,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (supertype != null) {
       if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
         // Error has already been reported.
+        return null;
       } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
         // TODO(johnniwinther): Handle dynamic.
         error(superclass.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
