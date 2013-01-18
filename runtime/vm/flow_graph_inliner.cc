@@ -792,7 +792,7 @@ class CallSiteInliner : public ValueObject {
     GrowableArray<NamedArgument> named_args(argument_names_count);
     for (intptr_t i = 0; i < argument_names.Length(); ++i) {
       String& arg_name = String::Handle(Isolate::Current());
-      arg_name ^= argument_names.At(i);
+      arg_name |= argument_names.At(i);
       named_args.Add(
           NamedArgument(&arg_name, (*arguments)[i + fixed_param_count]));
     }

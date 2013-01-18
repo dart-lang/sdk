@@ -79,7 +79,7 @@ RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
 
 RawStackmap* StackmapTableBuilder::MapAt(int index) const {
   Stackmap& map = Stackmap::Handle();
-  map ^= list_.At(index);
+  map |= list_.At(index);
   return map.raw();
 }
 

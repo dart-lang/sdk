@@ -95,7 +95,7 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
       double new_value = (dbl.value() == 0.0) ? -0.0 : (0.0 - dbl.value());
       Double& double_instance =
           Double::ZoneHandle(Double::New(new_value, Heap::kOld));
-      double_instance ^= double_instance.Canonicalize();
+      double_instance |= double_instance.Canonicalize();
       return new LiteralNode(this->token_pos(), double_instance);
     }
   }

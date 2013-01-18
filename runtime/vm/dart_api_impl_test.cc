@@ -1248,7 +1248,7 @@ UNIT_TEST_CASE(EnterExitScope) {
     const String& str1 = String::Handle(String::New("Test String"));
     Dart_Handle ref = Api::NewHandle(isolate, str1.raw());
     String& str2 = String::Handle();
-    str2 ^= Api::UnwrapHandle(ref);
+    str2 |= Api::UnwrapHandle(ref);
     EXPECT(str1.Equals(str2));
   }
   Dart_ExitScope();
@@ -1297,22 +1297,22 @@ UNIT_TEST_CASE(PersistentHandles) {
     DARTSCOPE_NOCHECKS(isolate);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapHandle(handles[i]);
+      str |= Api::UnwrapHandle(handles[i]);
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 500; i < 1000; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapHandle(handles[i]);
+      str |= Api::UnwrapHandle(handles[i]);
       EXPECT(str.Equals(kTestString2));
     }
     for (int i = 1000; i < 1500; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapHandle(handles[i]);
+      str |= Api::UnwrapHandle(handles[i]);
       EXPECT(str.Equals(kTestString1));
     }
     for (int i = 1500; i < 2000; i++) {
       String& str = String::Handle();
-      str ^= Api::UnwrapHandle(handles[i]);
+      str |= Api::UnwrapHandle(handles[i]);
       EXPECT(str.Equals(kTestString2));
     }
   }
@@ -2255,7 +2255,7 @@ UNIT_TEST_CASE(LocalHandles) {
     }
     EXPECT_EQ(100, state->CountLocalHandles());
     for (int i = 0; i < 100; i++) {
-      val ^= Api::UnwrapHandle(handles[i]);
+      val |= Api::UnwrapHandle(handles[i]);
       EXPECT_EQ(i, val.Value());
     }
     // Start another scope and allocate some more local handles.
@@ -2266,7 +2266,7 @@ UNIT_TEST_CASE(LocalHandles) {
       }
       EXPECT_EQ(200, state->CountLocalHandles());
       for (int i = 100; i < 200; i++) {
-        val ^= Api::UnwrapHandle(handles[i]);
+        val |= Api::UnwrapHandle(handles[i]);
         EXPECT_EQ(i, val.Value());
       }
 
@@ -2278,7 +2278,7 @@ UNIT_TEST_CASE(LocalHandles) {
         }
         EXPECT_EQ(300, state->CountLocalHandles());
         for (int i = 200; i < 300; i++) {
-          val ^= Api::UnwrapHandle(handles[i]);
+          val |= Api::UnwrapHandle(handles[i]);
           EXPECT_EQ(i, val.Value());
         }
         EXPECT_EQ(300, state->CountLocalHandles());
@@ -7078,7 +7078,7 @@ TEST_CASE(OnePromotedPeer) {
   {
     DARTSCOPE_NOCHECKS(isolate);
     String& handle = String::Handle();
-    handle ^= Api::UnwrapHandle(str);
+    handle |= Api::UnwrapHandle(str);
     EXPECT(handle.IsOld());
   }
   EXPECT_VALID(Dart_GetPeer(str, &out));
