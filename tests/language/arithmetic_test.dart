@@ -209,11 +209,14 @@ class ArithmeticTest {
     Expect.equals(0.0, (0.0).ceil());
     Expect.equals(false, (0.0).ceil().isNegative);
     Expect.equals(1.0, (0.1).ceil());
+    Expect.equals(1.0, double.MIN_POSITIVE.ceil());
+    Expect.equals(1.0, (0.49999999999999994).ceil());
     Expect.equals(-0.0, (-0.0).ceil());
     Expect.equals(-0.0, (-0.3).ceil());
-    // TODO(srdjan): enable the following tests once isNegative works.
-    // Expect.equals(true, (-0.0).ceil().isNegative);
-    // Expect.equals(true, (-0.3).ceil().isNegative);
+    Expect.isTrue((-0.0).ceil().isNegative);
+    Expect.isTrue((-0.3).ceil().isNegative);
+    Expect.equals(-0.0, (-0.49999999999999994).ceil());
+    Expect.isTrue((-0.49999999999999994).ceil().isNegative);
     Expect.equals(3.0, (2.1).ceil());
     Expect.equals(-2.0, (-2.1).ceil());
 
@@ -228,14 +231,18 @@ class ArithmeticTest {
     // Double.
     Expect.equals(0.0, (0.0).floor());
     Expect.equals(0.0, (0.1).floor());
+    Expect.equals(0.0, (0.49999999999999994).floor());
+    Expect.equals(0.0, double.MIN_POSITIVE.floor());
     Expect.equals(false, (0.0).floor().isNegative);
     Expect.equals(false, (0.1).floor().isNegative);
     Expect.equals(-0.0, (-0.0).floor());
-    // TODO(srdjan): enable the following tests once isNegative works.
-    // Expect.equals(true, (-0.0).floor().isNegative);
+    Expect.equals(true, (-0.0).floor().isNegative);
     Expect.equals(-1.0, (-0.1).floor());
+    Expect.equals(-1.0, (-0.49999999999999994).floor());
     Expect.equals(2.0, (2.1).floor());
     Expect.equals(-3.0, (-2.1).floor());
+    Expect.equals(-3.0, (-2.1).floor());
+
 
     // -- truncate --.
     // Smi.
@@ -252,9 +259,8 @@ class ArithmeticTest {
     Expect.equals(false, (0.1).truncate().isNegative);
     Expect.equals(-0.0, (-0.0).truncate());
     Expect.equals(-0.0, (-0.3).truncate());
-    // TODO(srdjan): enable the following tests once isNegative works.
-    // Expect.equals(true, (-0.0).truncate().isNegative);
-    // Expect.equals(true, (-0.3).truncate().isNegative);
+    Expect.equals(true, (-0.0).truncate().isNegative);
+    Expect.equals(true, (-0.3).truncate().isNegative);
     Expect.equals(2.0, (2.1).truncate());
     Expect.equals(-2.0, (-2.1).truncate());
 

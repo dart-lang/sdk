@@ -1339,7 +1339,9 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       return true;
     }
     if ((recognized_kind == MethodRecognizer::kDoubleTruncate) ||
-        (recognized_kind == MethodRecognizer::kDoubleRound)) {
+        (recognized_kind == MethodRecognizer::kDoubleRound) ||
+        (recognized_kind == MethodRecognizer::kDoubleFloor) ||
+        (recognized_kind == MethodRecognizer::kDoubleCeil)) {
       if (!CPUFeatures::double_truncate_round_supported()) {
         return false;
       }

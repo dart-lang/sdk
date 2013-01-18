@@ -46,6 +46,8 @@ class FlowGraphOptimizer;
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
   V(_Double, truncate, DoubleTruncate, 620870996)                              \
   V(_Double, round, DoubleRound, 620870996)                                    \
+  V(_Double, floor, DoubleFloor, 620870996)                                    \
+  V(_Double, ceil, DoubleCeil, 620870996)                                      \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
 
 // Class that recognizes the name and owner of a function and returns the

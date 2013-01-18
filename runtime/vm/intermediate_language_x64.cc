@@ -2295,11 +2295,23 @@ LocationSummary* DoubleToDoubleInstr::MakeLocationSummary() const {
 void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   XmmRegister result = locs()->out().fpu_reg();
-  if (recognized_kind() == MethodRecognizer::kDoubleTruncate) {
-    __ roundsd(result, value,  Assembler::kRoundToZero);
-  } else {
-    XmmRegister temp = locs()->temp(0).fpu_reg();
-    __ DoubleRound(result, value, temp);
+  switch (recognized_kind()) {
+    case MethodRecognizer::kDoubleTruncate:
+      __ roundsd(result, value,  Assembler::kRoundToZero);
+      break;
+    case MethodRecognizer::kDoubleFloor:
+      __ roundsd(result, value,  Assembler::kRoundDown);
+      break;
+    case MethodRecognizer::kDoubleCeil:
+      __ roundsd(result, value,  Assembler::kRoundUp);
+      break;
+    case MethodRecognizer::kDoubleRound: {
+      XmmRegister temp = locs()->temp(0).fpu_reg();
+      __ DoubleRound(result, value, temp);
+      break;
+    }
+    default:
+      UNREACHABLE();
   }
 }
 
