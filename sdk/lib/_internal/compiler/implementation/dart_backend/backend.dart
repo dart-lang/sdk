@@ -168,15 +168,26 @@ class DartBackend extends Backend {
       if (type is TypedefType) return false;
       if (type is InterfaceType) {
         ClassElement element = type.element;
+        // TODO(kasperl): Deal with mixin applications.
+        if (element.isMixinApplication) continue;
         ClassNode node = element.parseNode(compiler);
         // Check class type args.
         processTypeArguments(element, node.typeParameters);
         // Check superclass type args.
         if (node.superclass != null) {
-          // TODO(kasperl): Deal with mixin applications.
-          TypeAnnotation superclass = node.superclass;
-          NodeList typeArguments = superclass.typeArguments;
-          processTypeArguments(element, typeArguments);
+          MixinApplication superMixin = node.superclass.asMixinApplication();
+          if (superMixin != null) {
+            for (Link<Node> link = superMixin.mixins.nodes;
+                 !link.isEmpty;
+                 link = link.tail) {
+              TypeAnnotation currentMixin = link.head;
+              processTypeArguments(element, currentMixin.typeArguments);
+            }
+          } else {
+            TypeAnnotation superclass = node.superclass;
+            NodeList typeArguments = superclass.typeArguments;
+            processTypeArguments(element, typeArguments);
+          }
         }
         // Check interfaces type args.
         for (Node interfaceNode in node.interfaces) {
@@ -299,7 +310,10 @@ class DartBackend extends Backend {
       topLevelElements.add(element);
       processElement(element, elementAst);
     }
+
     addClass(classElement) {
+      // TODO(kasperl): Deal with mixin applications.
+      if (classElement.isMixinApplication) return;
       addTopLevel(classElement,
                   new ElementAst.forClassLike(parse(classElement)));
       classMembers.putIfAbsent(classElement, () => new Set());
