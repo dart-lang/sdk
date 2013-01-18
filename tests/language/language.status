@@ -61,6 +61,10 @@ mixin_is_test: Fail
 mixin_method_test: Fail
 mixin_naming_test: Fail
 
+mixin_extends_field_test: Fail
+mixin_extends_is_test: Fail
+mixin_extends_method_test: Fail
+
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
 
@@ -346,10 +350,14 @@ many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, te
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 
 # Mixins aren't unparsed the right way yet.
-mixin_field_test: Fail
-mixin_is_test: Fail
-mixin_method_test: Fail
-mixin_naming_test: Fail
+mixin_field_test: Fail # http://dartbug.com/7972
+mixin_is_test: Fail # http://dartbug.com/7972
+mixin_method_test: Fail # http://dartbug.com/7972
+mixin_naming_test: Fail # http://dartbug.com/7972
+
+mixin_extends_field_test: Fail # http://dartbug.com/7972
+mixin_extends_is_test: Fail # http://dartbug.com/7972
+mixin_extends_method_test: Fail # http://dartbug.com/7972
 
 # Malformed types not handled as unresolved:
 import_core_prefix_test: Fail

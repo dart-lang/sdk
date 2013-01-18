@@ -418,17 +418,6 @@ class ResolverTask extends CompilerTask {
   ClassElement currentlyResolvedClass;
   Queue<ClassElement> pendingClassesToBeResolved = new Queue<ClassElement>();
 
-  void resolveMixinApplication(MixinApplicationElement element) {
-    // TODO(kasperl): Implement this.
-    assert(element.resolutionState == STATE_NOT_STARTED);
-    element.resolutionState = STATE_STARTED;
-    compiler.reportMessage(
-        compiler.spanFromSpannable(element.cachedNode),
-        MessageKind.GENERIC.error(['unimplemented mixin application']),
-        Diagnostic.ERROR);
-    element.resolutionState = STATE_DONE;
-  }
-
   /**
    * Resolve the class [element].
    *
@@ -2748,8 +2737,24 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // resolve this class again.
     resolveTypeVariableBounds(node.typeParameters);
 
-    // Resolve super type and deal with the Object class nicely.
-    element.supertype = resolveSupertype(element, node.superclass);
+    // Setup the supertype for the element.
+    assert(element.supertype == null);
+    if (node.superclass != null) {
+      MixinApplication superMixin = node.superclass.asMixinApplication();
+      if (superMixin != null) {
+        DartType supertype = resolveSupertype(element, superMixin.superclass);
+        Link<Node> link = superMixin.mixins.nodes;
+        while (!link.isEmpty) {
+          supertype = applyMixin(supertype, visit(link.head));
+          link = link.tail;
+        }
+        element.supertype = supertype;
+      } else {
+        element.supertype = resolveSupertype(element, node.superclass);
+      }
+    }
+
+    // If the super type isn't specified, we make it Object.
     final objectElement = compiler.objectClass;
     if (!identical(element, objectElement) && element.supertype == null) {
       if (objectElement == null) {
@@ -2828,23 +2833,18 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   DartType applyMixin(DartType supertype, DartType mixinType) {
     String superName = supertype.name.slowToString();
     String mixinName = mixinType.name.slowToString();
-    // TODO(kasperl): This is a little bit weird. Maybe we should
-    // restructure the parsed nodes for mixin applications to better
-    // match the nesting implied by the list of mixins so that each
-    // mixin application element could get it's own proper node.
-    MixinApplication fakeTree = element.parseNode(compiler);
     ClassElement mixinApplication = new MixinApplicationElementX(
         new SourceString("${superName}_${mixinName}"),
         element.getCompilationUnit(),
         compiler.getNextFreeClassId(),
-        fakeTree);
+        element.parseNode(compiler));
     doApplyMixinTo(mixinApplication, supertype, mixinType);
     mixinApplication.resolutionState = STATE_DONE;
     mixinApplication.supertypeLoadState = STATE_DONE;
     return mixinApplication.computeType(compiler);
   }
 
-  void doApplyMixinTo(ClassElement mixinApplication,
+  void doApplyMixinTo(MixinApplicationElement mixinApplication,
                       DartType supertype,
                       DartType mixinType) {
     assert(mixinApplication.supertype == null);
@@ -2857,7 +2857,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     assert(mixinApplication.interfaces == null);
     mixinApplication.interfaces = interfaces;
 
-    assert(element.mixin == null);
+    assert(mixinApplication.mixin == null);
     mixinApplication.mixin = mixinType.element;
     mixinApplication.mixin.ensureResolved(compiler);
     mixinApplication.addDefaultConstructorIfNeeded(compiler);
@@ -2916,11 +2916,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   DartType resolveSupertype(ClassElement cls, TypeAnnotation superclass) {
-    DartType supertype;
-    if (superclass != null) {
-      supertype = typeResolver.resolveTypeAnnotation(
-          superclass, scope, cls, onFailure: error);
-    }
+    DartType supertype = typeResolver.resolveTypeAnnotation(
+        superclass, scope, cls, onFailure: error);
     if (supertype != null) {
       if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
         // Error has already been reported.

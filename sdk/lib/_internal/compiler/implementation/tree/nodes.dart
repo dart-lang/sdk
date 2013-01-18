@@ -201,7 +201,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
 class ClassNode extends Node {
   final Modifiers modifiers;
   final Identifier name;
-  final TypeAnnotation superclass;
+  final Node superclass;
   final NodeList interfaces;
   final NodeList typeParameters;
   final NodeList body;

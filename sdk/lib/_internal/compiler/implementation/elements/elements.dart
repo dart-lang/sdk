@@ -713,6 +713,11 @@ abstract class ClassElement extends TypeDeclarationElement
   void forEachBackendMember(void f(Element member));
 }
 
+abstract class MixinApplicationElement extends ClassElement {
+  ClassElement get mixin;
+  void set mixin(ClassElement value);
+}
+
 abstract class LabelElement extends Element {
   Label get label;
   String get labelName;

@@ -1777,8 +1777,9 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 }
 
-class MixinApplicationElementX extends BaseClassElementX {
-  final MixinApplication cachedNode;
+class MixinApplicationElementX extends BaseClassElementX
+    implements MixinApplicationElement {
+  final Node cachedNode;
 
   FunctionElement constructor;
   ClassElement mixin;

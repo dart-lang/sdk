@@ -772,7 +772,7 @@ class ElementListener extends Listener {
     SourceString nativeTagInfo = native.checkForNativeClass(this);
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
-    TypeAnnotation supertype = popNode();
+    Node supertype = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     int id = idGenerator();
@@ -1188,7 +1188,7 @@ class NodeListener extends ElementListener {
     NodeList body = popNode();
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
-    TypeAnnotation supertype = popNode();
+    Node supertype = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     Modifiers modifiers = popNode();

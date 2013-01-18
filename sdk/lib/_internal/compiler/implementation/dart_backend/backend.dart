@@ -173,8 +173,10 @@ class DartBackend extends Backend {
         processTypeArguments(element, node.typeParameters);
         // Check superclass type args.
         if (node.superclass != null) {
-          NodeList typeArguments = node.superclass.typeArguments;
-          processTypeArguments(element, node.superclass.typeArguments);
+          // TODO(kasperl): Deal with mixin applications.
+          TypeAnnotation superclass = node.superclass;
+          NodeList typeArguments = superclass.typeArguments;
+          processTypeArguments(element, typeArguments);
         }
         // Check interfaces type args.
         for (Node interfaceNode in node.interfaces) {

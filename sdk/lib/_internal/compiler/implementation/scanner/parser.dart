@@ -484,7 +484,12 @@ class Parser {
     Token extendsKeyword;
     if (optional('extends', token)) {
       extendsKeyword = token;
-      token = parseType(token.next);
+      if (optional('with', token.next.next)) {
+        // TODO(kasperl): Disallow modifiers here.
+        token = parseMixinApplication(token.next);
+      } else {
+        token = parseType(token.next);
+      }
     } else {
       extendsKeyword = null;
       listener.handleNoType(token);
