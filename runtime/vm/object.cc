@@ -955,15 +955,6 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
-  const Script& collection_dev_script =
-      Script::Handle(Bootstrap::LoadCollectionDevScript(false));
-  const Library& collection_dev_lib =
-      Library::Handle(Library::CollectionDevLibrary());
-  ASSERT(!collection_dev_lib.IsNull());
-  error = Bootstrap::Compile(collection_dev_lib, collection_dev_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
   const Script& math_script = Script::Handle(Bootstrap::LoadMathScript(false));
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
@@ -6158,14 +6149,8 @@ void Library::InitCoreLibrary(Isolate* isolate) {
       Library::Handle(Library::CollectionLibrary());
   const Namespace& collection_ns = Namespace::Handle(
       Namespace::New(collection_lib, Array::Handle(), Array::Handle()));
-  Library::InitCollectionDevLibrary(isolate);
-  const Library& collection_dev_lib =
-      Library::Handle(Library::CollectionDevLibrary());
-  const Namespace& collection_dev_ns = Namespace::Handle(
-      Namespace::New(collection_dev_lib, Array::Handle(), Array::Handle()));
   core_lib.AddImport(math_ns);
   core_lib.AddImport(collection_ns);
-  core_lib.AddImport(collection_dev_ns);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -6185,14 +6170,6 @@ void Library::InitCollectionLibrary(Isolate* isolate) {
       Namespace::New(math_lib, Array::Handle(), Array::Handle()));
   lib.AddImport(math_ns);
   isolate->object_store()->set_collection_library(lib);
-}
-
-
-void Library::InitCollectionDevLibrary(Isolate* isolate) {
-  const String& url = String::Handle(Symbols::New("dart:collection-dev"));
-  const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
-  lib.Register();
-  isolate->object_store()->set_collection_dev_library(lib);
 }
 
 
@@ -6381,11 +6358,6 @@ RawLibrary* Library::CoreLibrary() {
 
 RawLibrary* Library::CollectionLibrary() {
   return Isolate::Current()->object_store()->collection_library();
-}
-
-
-RawLibrary* Library::CollectionDevLibrary() {
-  return Isolate::Current()->object_store()->collection_dev_library();
 }
 
 

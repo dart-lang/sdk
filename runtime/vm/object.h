@@ -2064,7 +2064,6 @@ class Library : public Object {
   static void InitASyncLibrary(Isolate* isolate);
   static void InitCoreLibrary(Isolate* isolate);
   static void InitCollectionLibrary(Isolate* isolate);
-  static void InitCollectionDevLibrary(Isolate* isolate);
   static void InitMathLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
   static void InitMirrorsLibrary(Isolate* isolate);
@@ -2074,7 +2073,6 @@ class Library : public Object {
   static RawLibrary* ASyncLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
-  static RawLibrary* CollectionDevLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MirrorsLibrary();

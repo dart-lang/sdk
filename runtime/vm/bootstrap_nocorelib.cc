@@ -33,12 +33,6 @@ RawScript* Bootstrap::LoadCollectionScript(bool is_patch) {
 }
 
 
-RawScript* Bootstrap::LoadCollectionDevScript(bool is_patch) {
-  UNREACHABLE();
-  return Script::null();
-}
-
-
 RawScript* Bootstrap::LoadMathScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
