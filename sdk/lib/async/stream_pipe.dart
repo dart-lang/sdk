@@ -38,111 +38,155 @@ _cancelAndError(StreamSubscription subscription, _FutureImpl future) =>
 
 
 /**
- * A [StreamTransformer] that forwards events and subscriptions.
+ * A [Stream] that forwards subscriptions to another stream.
  *
- * By default this transformer subscribes to [_source] and forwards all events
- * to [_stream]. It does not subscribe to [_source] until there is a subscriber,
- * on [_stream] and unsubscribes again when there are no subscribers left.
- *
- * The events are passed through the [_handleData], [_handleError] and
- * [_handleDone] methods. Subclasses are supposed to add handling of some of
- * the events by overriding these methods.
- *
- * Handles backwards propagation of subscription and pause.
+ * This stream implements [Stream], but forwards all subscriptions
+ * to an underlying stream, and wraps the returned subscription to
+ * modify the events on the way.
  *
  * This class is intended for internal use only.
  */
-class _ForwardingStreamTransformer<S, T> implements StreamTransformer<S, T> {
-  Stream<T> _stream;
-  Stream<S> _source;
+abstract class _ForwardingStream<S, T> extends Stream<T> {
+  final Stream<S> _source;
+
+  _ForwardingStream(this._source);
+
+  bool get isSingleSubscription => _source.isSingleSubscription;
+
+  StreamSubscription listen(void onData(T value),
+                            { void onError(AsyncError error),
+                              void onDone(),
+                              bool unsubscribeOnError }) {
+    if (onData == null) onData = _nullDataHandler;
+    if (onError == null) onError = _nullErrorHandler;
+    if (onDone == null) onDone = _nullDoneHandler;
+    unsubscribeOnError = identical(true, unsubscribeOnError);
+    StreamSubscription subscription =
+        new _ForwardingStreamSubscription<S, T>(
+            this, onData, onError, onDone, unsubscribeOnError);
+    return subscription;
+  }
+
+  // Override the following methods in subclasses to change the behavior.
+
+  void _handleData(S data, _StreamOutputSink<T> sink) {
+    var outputData = data;
+    sink._sendData(outputData);
+  }
+
+  void _handleError(AsyncError error, _StreamOutputSink<T> sink) {
+    sink._sendError(error);
+  }
+
+  void _handleDone(_StreamOutputSink<T> sink) {
+    sink._sendDone();
+  }
+}
+
+/**
+ * Abstract superclass for subscriptions that forward to other subscriptions.
+ */
+class _ForwardingStreamSubscription<S, T>
+    implements StreamSubscription<T>, _StreamOutputSink<T> {
+  final _ForwardingStream<S, T> _stream;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode. http://dartbug.com/7733
+  var /* _DataHandler<T> */ _onData;
+  _ErrorHandler _onError;
+  _DoneHandler _onDone;
+
   StreamSubscription<S> _subscription;
 
-  Stream<T> _createOutputStream() {
-    if (_source.isSingleSubscription) {
-      return new _ForwardingSingleStream<T>(this);
-    }
-    return new _ForwardingMultiStream<T>(this);
+  _ForwardingStreamSubscription(this._stream,
+                                this._onData,
+                                this._onError,
+                                this._onDone,
+                                bool unsubscribeOnError) {
+    _subscription =
+        _stream._source.listen(_handleData,
+                               onError: _handleError,
+                               onDone: _handleDone,
+                               unsubscribeOnError: unsubscribeOnError);
   }
 
-  Stream<T> bind(Stream<S> source) {
-    if (_source != null) {
-      throw new StateError("Transformer source already bound");
+  // StreamSubscription interface.
+
+  void onData(void handleData(T event)) {
+    if (handleData == null) {
+      handleData = _StreamSubscriptionImpl._nullDataHandler;
     }
-    _source = source;
-    _stream = _createOutputStream();
-    return _stream;
+    _onData = handleData;
   }
 
-  void _onPauseStateChange(bool isPaused) {
-    if (isPaused) {
-      if (_subscription != null) {
-        _subscription.pause();
-      }
-    } else {
-      if (_subscription != null) {
-        _subscription.resume();
-      }
+  void onError(void handleError(AsyncError error)) {
+    if (handleError == null) {
+      handleError = _StreamSubscriptionImpl._nullErrorHandler;
     }
+    _onError = handleError;
   }
 
-  /**
-    * Subscribe or unsubscribe on [_source] depending on whether
-    * [_stream] has subscribers.
-    */
-  void _onSubscriptionStateChange(bool hasSubscribers) {
-    if (hasSubscribers) {
-      assert(_subscription == null);
-      _subscription = _source.listen(this._handleData,
-                                     onError: this._handleError,
-                                     onDone: this._handleDone);
-    } else {
-      // TODO(lrn): Check why this can happen.
-      if (_subscription == null) return;
+  void onDone(void handleDone()) {
+    if (handleDone == null) {
+      handleDone = _StreamSubscriptionImpl._nullDoneHandler;
+    }
+    _onDone = handleDone;
+  }
+
+  void pause([Future resumeSignal]) {
+    if (_subscription == null) {
+      throw new StateError("Subscription has been unsubscribed");
+    }
+    _subscription.pause(resumeSignal);
+  }
+
+  void resume() {
+    if (_subscription == null) {
+      throw new StateError("Subscription has been unsubscribed");
+    }
+    _subscription.resume();
+  }
+
+  void cancel() {
+    if (_subscription == null) {
+      throw new StateError("Subscription has been unsubscribed");
+    }
+    _subscription.cancel();
+    _subscription = null;
+  }
+
+  // _StreamOutputSink interface. Sends data to this subscription.
+
+  void _sendData(T data) {
+    _onData(data);
+  }
+
+  void _sendError(AsyncError error) {
+    _onError(error);
+  }
+
+  void _sendDone() {
+    // If the transformation sends a done signal, we stop the subscription.
+    if (_subscription != null) {
       _subscription.cancel();
       _subscription = null;
     }
+    _onDone();
   }
 
-  void _handleData(S inputEvent) {
-    var outputEvent = inputEvent;
-    _stream._add(outputEvent);
+  // Methods used as listener on source subscription.
+
+  void _handleData(S data) {
+    _stream._handleData(data, this);
   }
 
   void _handleError(AsyncError error) {
-    _stream._signalError(error);
+    _stream._handleError(error, this);
   }
 
   void _handleDone() {
-    _stream._close();
+    _stream._handleDone(this);
   }
 }
-
-class _ForwardingMultiStream<T> extends _MultiStreamImpl<T> {
-  _ForwardingStreamTransformer _transformer;
-  _ForwardingMultiStream(this._transformer);
-
-  _onSubscriptionStateChange() {
-    _transformer._onSubscriptionStateChange(_hasSubscribers);
-  }
-
-  _onPauseStateChange() {
-    _transformer._onPauseStateChange(_isPaused);
-  }
-}
-
-class _ForwardingSingleStream<T> extends _SingleStreamImpl<T> {
-  _ForwardingStreamTransformer _transformer;
-  _ForwardingSingleStream(this._transformer);
-
-  _onSubscriptionStateChange() {
-    _transformer._onSubscriptionStateChange(_hasSubscribers);
-  }
-
-  _onPauseStateChange() {
-    _transformer._onPauseStateChange(_isPaused);
-  }
-}
-
 
 // -------------------------------------------------------------------
 // Stream transformers used by the default Stream implementation.
@@ -150,22 +194,22 @@ class _ForwardingSingleStream<T> extends _SingleStreamImpl<T> {
 
 typedef bool _Predicate<T>(T value);
 
-class WhereTransformer<T> extends _ForwardingStreamTransformer<T, T> {
+class WhereStream<T> extends _ForwardingStream<T, T> {
   final _Predicate<T> _test;
 
-  WhereTransformer(bool test(T value))
-      : this._test = test;
+  WhereStream(Stream<T> source, bool test(T value))
+      : _test = test, super(source);
 
-  void _handleData(T inputEvent) {
+  void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
     bool satisfies;
     try {
       satisfies = _test(inputEvent);
     } catch (e, s) {
-      _stream._signalError(_asyncError(e, s));
+      sink._sendError(_asyncError(e, s));
       return;
     }
     if (satisfies) {
-      _stream._add(inputEvent);
+      sink._sendData(inputEvent);
     }
   }
 }
@@ -176,42 +220,42 @@ typedef T _Transformation<S, T>(S value);
 /**
  * A stream pipe that converts data events before passing them on.
  */
-class MapTransformer<S, T> extends _ForwardingStreamTransformer<S, T> {
+class MapStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation _transform;
 
-  MapTransformer(T transform(S event))
-      : this._transform = transform;
+  MapStream(Stream<S> source, T transform(S event))
+      : this._transform = transform, super(source);
 
-  void _handleData(S inputEvent) {
+  void _handleData(S inputEvent, _StreamOutputSink<T> sink) {
     T outputEvent;
     try {
       outputEvent = _transform(inputEvent);
     } catch (e, s) {
-      _stream._signalError(_asyncError(e, s));
+      sink._sendError(_asyncError(e, s));
       return;
     }
-    _stream._add(outputEvent);
+    sink._sendData(outputEvent);
   }
 }
 
 /**
  * A stream pipe that converts data events before passing them on.
  */
-class ExpandTransformer<S, T> extends _ForwardingStreamTransformer<S, T> {
+class ExpandStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation<S, Iterable<T>> _expand;
 
-  ExpandTransformer(Iterable<T> expand(S event))
-      : this._expand = expand;
+  ExpandStream(Stream<S> source, Iterable<T> expand(S event))
+      : this._expand = expand, super(source);
 
-  void _handleData(S inputEvent) {
+  void _handleData(S inputEvent, _StreamOutputSink<T> sink) {
     try {
       for (T value in _expand(inputEvent)) {
-        _stream._add(value);
+        sink._sendData(value);
       }
     } catch (e, s) {
       // If either _expand or iterating the generated iterator throws,
       // we abort the iteration.
-      _stream._signalError(_asyncError(e, s));
+      sink._sendError(_asyncError(e, s));
     }
   }
 }
@@ -224,20 +268,22 @@ typedef bool _ErrorTest(error);
  * A stream pipe that converts or disposes error events
  * before passing them on.
  */
-class HandleErrorTransformer<T> extends _ForwardingStreamTransformer<T, T> {
+class HandleErrorStream<T> extends _ForwardingStream<T, T> {
   final _ErrorTransformation _transform;
   final _ErrorTest _test;
 
-  HandleErrorTransformer(void transform(AsyncError event), bool test(error))
-      : this._transform = transform, this._test = test;
+  HandleErrorStream(Stream<T> source,
+                    void transform(AsyncError event),
+                    bool test(error))
+      : this._transform = transform, this._test = test, super(source);
 
-  void _handleError(AsyncError error) {
+  void _handleError(AsyncError error, _StreamOutputSink<T> sink) {
     bool matches = true;
     if (_test != null) {
       try {
         matches = _test(error.error);
       } catch (e, s) {
-        _stream._signalError(_asyncError(e, s, error));
+        sink._sendError(_asyncError(e, s, error));
         return;
       }
     }
@@ -245,11 +291,141 @@ class HandleErrorTransformer<T> extends _ForwardingStreamTransformer<T, T> {
       try {
         _transform(error);
       } catch (e, s) {
-        _stream._signalError(_asyncError(e, s, error));
+        sink._sendError(_asyncError(e, s, error));
         return;
       }
     } else {
-      _stream._signalError(error);
+      sink._sendError(error);
+    }
+  }
+}
+
+
+class TakeStream<T> extends _ForwardingStream<T, T> {
+  int _remaining;
+
+  TakeStream(Stream<T> source, int count)
+      : this._remaining = count, super(source) {
+    // This test is done early to avoid handling an async error
+    // in the _handleData method.
+    if (count is! int) throw new ArgumentError(count);
+  }
+
+  void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
+    if (_remaining > 0) {
+      sink._sendData(inputEvent);
+      _remaining -= 1;
+      if (_remaining == 0) {
+        // Closing also unsubscribes all subscribers, which unsubscribes
+        // this from source.
+        sink._sendDone();
+      }
+    }
+  }
+}
+
+
+class TakeWhileStream<T> extends _ForwardingStream<T, T> {
+  final _Predicate<T> _test;
+
+  TakeWhileStream(Stream<T> source, bool test(T value))
+      : this._test = test, super(source);
+
+  void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
+    bool satisfies;
+    try {
+      satisfies = _test(inputEvent);
+    } catch (e, s) {
+      sink._sendError(_asyncError(e, s));
+      // The test didn't say true. Didn't say false either, but we stop anyway.
+      sink._sendDone();
+      return;
+    }
+    if (satisfies) {
+      sink._sendData(inputEvent);
+    } else {
+      sink._sendDone();
+    }
+  }
+}
+
+class SkipStream<T> extends _ForwardingStream<T, T> {
+  int _remaining;
+
+  SkipStream(Stream<T> source, int count)
+      : this._remaining = count, super(source) {
+    // This test is done early to avoid handling an async error
+    // in the _handleData method.
+    if (count is! int || count < 0) throw new ArgumentError(count);
+  }
+
+  void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
+    if (_remaining > 0) {
+      _remaining--;
+      return;
+    }
+    return sink._sendData(inputEvent);
+  }
+}
+
+class SkipWhileStream<T> extends _ForwardingStream<T, T> {
+  final _Predicate<T> _test;
+  bool _hasFailed = false;
+
+  SkipWhileStream(Stream<T> source, bool test(T value))
+      : this._test = test, super(source);
+
+  void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
+    if (_hasFailed) {
+      sink._sendData(inputEvent);
+    }
+    bool satisfies;
+    try {
+      satisfies = _test(inputEvent);
+    } catch (e, s) {
+      sink._sendError(_asyncError(e, s));
+      // A failure to return a boolean is considered "not matching".
+      _hasFailed = true;
+      return;
+    }
+    if (!satisfies) {
+      _hasFailed = true;
+      sink._sendData(inputEvent);
+    }
+  }
+}
+
+typedef bool _Equality<T>(T a, T b);
+
+class DistinctStream<T> extends _ForwardingStream<T, T> {
+  static var _SENTINEL = new Object();
+
+  _Equality<T> _equals;
+  var _previous = _SENTINEL;
+
+  DistinctStream(Stream<T> source, bool equals(T a, T b))
+      : _equals = equals, super(source);
+
+  void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
+    if (identical(_previous, _SENTINEL)) {
+      _previous = inputEvent;
+      return sink._sendData(inputEvent);
+    } else {
+      bool isEqual;
+      try {
+        if (_equals == null) {
+          isEqual = (_previous == inputEvent);
+        } else {
+          isEqual = _equals(_previous, inputEvent);
+        }
+      } catch (e, s) {
+        sink._sendError(_asyncError(e, s));
+        return null;
+      }
+      if (!isEqual) {
+        sink._sendData(inputEvent);
+        _previous = inputEvent;
+      }
     }
   }
 }
@@ -260,7 +436,7 @@ typedef void _TransformErrorHandler<T>(AsyncError data, StreamSink<T> sink);
 typedef void _TransformDoneHandler<T>(StreamSink<T> sink);
 
 /**
- * A stream transfomer that intercepts all events and can generate any event as
+ * A stream transformer that intercepts all events and can generate any event as
  * output.
  *
  * Each incoming event on the source stream is passed to the corresponding
@@ -268,7 +444,7 @@ typedef void _TransformDoneHandler<T>(StreamSink<T> sink);
  * Stream.
  * The handler can then decide exactly which events to send to the output.
  */
-class _StreamTransformerImpl<S, T> extends _ForwardingStreamTransformer<S, T> {
+class _StreamTransformerImpl<S, T> implements StreamTransformer<S, T> {
   final _TransformDataHandler<S, T> _onData;
   final _TransformErrorHandler<T> _onError;
   final _TransformDoneHandler<T> _onDone;
@@ -282,9 +458,10 @@ class _StreamTransformerImpl<S, T> extends _ForwardingStreamTransformer<S, T> {
         this._onDone = (onDone == null ? _defaultHandleDone : onDone);
 
   Stream<T> bind(Stream<S> source) {
-    Stream<T> stream = super.bind(source);
+    Stream<T> stream = new _SingleStreamImpl<T>();
     // Cache a Sink object to avoid creating a new one for each event.
     _sink = new _StreamImplSink(stream);
+    source.listen(_handleData, onError: _handleError, onDone: _handleDone);
     return stream;
   }
 
@@ -336,131 +513,3 @@ class _StreamImplSink<T> implements StreamSink<T> {
 }
 
 
-class TakeTransformer<T> extends _ForwardingStreamTransformer<T, T> {
-  int _remaining;
-
-  TakeTransformer(int count)
-      : this._remaining = count {
-    // This test is done early to avoid handling an async error
-    // in the _handleData method.
-    if (count is! int) throw new ArgumentError(count);
-  }
-
-  void _handleData(T inputEvent) {
-    if (_remaining > 0) {
-      _stream._add(inputEvent);
-      _remaining -= 1;
-      if (_remaining == 0) {
-        // Closing also unsubscribes all subscribers, which unsubscribes
-        // this from source.
-        _stream._close();
-      }
-    }
-  }
-}
-
-
-class TakeWhileTransformer<T> extends _ForwardingStreamTransformer<T, T> {
-  final _Predicate<T> _test;
-
-  TakeWhileTransformer(bool test(T value))
-      : this._test = test;
-
-  void _handleData(T inputEvent) {
-    bool satisfies;
-    try {
-      satisfies = _test(inputEvent);
-    } catch (e, s) {
-      _stream._signalError(_asyncError(e, s));
-      // The test didn't say true. Didn't say false either, but we stop anyway.
-      _stream._close();
-      return;
-    }
-    if (satisfies) {
-      _stream._add(inputEvent);
-    } else {
-      _stream._close();
-    }
-  }
-}
-
-class SkipTransformer<T> extends _ForwardingStreamTransformer<T, T> {
-  int _remaining;
-
-  SkipTransformer(int count)
-      : this._remaining = count{
-    // This test is done early to avoid handling an async error
-    // in the _handleData method.
-    if (count is! int || count < 0) throw new ArgumentError(count);
-  }
-
-  void _handleData(T inputEvent) {
-    if (_remaining > 0) {
-      _remaining--;
-      return;
-    }
-    return _stream._add(inputEvent);
-  }
-}
-
-class SkipWhileTransformer<T> extends _ForwardingStreamTransformer<T, T> {
-  final _Predicate<T> _test;
-  bool _hasFailed = false;
-
-  SkipWhileTransformer(bool test(T value))
-      : this._test = test;
-
-  void _handleData(T inputEvent) {
-    if (_hasFailed) {
-      _stream._add(inputEvent);
-    }
-    bool satisfies;
-    try {
-      satisfies = _test(inputEvent);
-    } catch (e, s) {
-      _stream._signalError(_asyncError(e, s));
-      // A failure to return a boolean is considered "not matching".
-      _hasFailed = true;
-      return;
-    }
-    if (!satisfies) {
-      _hasFailed = true;
-      _stream._add(inputEvent);
-    }
-  }
-}
-
-typedef bool _Equality<T>(T a, T b);
-
-class DistinctTransformer<T> extends _ForwardingStreamTransformer<T, T> {
-  static var _SENTINEL = new Object();
-
-  _Equality<T> _equals;
-  var _previous = _SENTINEL;
-
-  DistinctTransformer(bool equals(T a, T b))
-      : _equals = equals;
-
-  void _handleData(T inputEvent) {
-    if (identical(_previous, _SENTINEL)) {
-      _previous = inputEvent;
-      return _stream._add(inputEvent);
-    } else {
-      bool isEqual;
-      try {
-        if (_equals == null) {
-          isEqual = (_previous == inputEvent);
-        } else {
-          isEqual = _equals(_previous, inputEvent);
-        }
-      } catch (e, s) {
-        _stream._signalError(_asyncError(e, s));
-        return null;
-      }
-      if (!isEqual) {
-        _stream._add(inputEvent);
-        _previous = inputEvent;
-      }
-    }
-  }
-}

@@ -149,7 +149,7 @@ abstract class Stream<T> {
    * but it only sends the data events that satisfy the [test].
    */
   Stream<T> where(bool test(T event)) {
-    return this.transform(new WhereTransformer<T>(test));
+    return new WhereStream<T>(this, test);
   }
 
   /**
@@ -157,7 +157,7 @@ abstract class Stream<T> {
    * to a new value using the [convert] function.
    */
   Stream mappedBy(convert(T event)) {
-    return this.transform(new MapTransformer<T, dynamic>(convert));
+    return new MapStream<T, dynamic>(this, convert);
   }
 
   /**
@@ -175,7 +175,7 @@ abstract class Stream<T> {
    */
    // TODO(lrn): Say what to do if you want to convert the error to a value.
   Stream<T> handleError(void handle(AsyncError error), { bool test(error) }) {
-    return this.transform(new HandleErrorTransformer<T>(handle, test));
+    return new HandleErrorStream<T>(this, handle, test);
   }
 
   /**
@@ -187,8 +187,7 @@ abstract class Stream<T> {
    * in order.
    */
   Stream expand(Iterable convert(T value)) {
-    return this.transform(
-        new ExpandTransformer<T, dynamic>(convert));
+    return new ExpandStream<T, dynamic>(this, convert);
   }
 
   /**
@@ -490,7 +489,7 @@ abstract class Stream<T> {
    * so will the returned stream.
    */
   Stream<T> take(int count) {
-    return this.transform(new TakeTransformer<T>(count));
+    return new TakeStream(this, count);
   }
 
   /**
@@ -502,14 +501,14 @@ abstract class Stream<T> {
    * a value that [test] doesn't accept.
    */
   Stream<T> takeWhile(bool test(T value)) {
-    return this.transform(new TakeWhileTransformer<T>(test));
+    return new TakeWhileStream(this, test);
   }
 
   /**
    * Skips the first [count] data events from this stream.
    */
   Stream<T> skip(int count) {
-    return this.transform(new SkipTransformer<T>(count));
+    return new SkipStream(this, count);
   }
 
   /**
@@ -521,7 +520,7 @@ abstract class Stream<T> {
    * event data, the returned stream will have the same events as this stream.
    */
   Stream<T> skipWhile(bool test(T value)) {
-    return this.transform(new SkipWhileTransformer<T>(test));
+    return new SkipWhileStream(this, test);
   }
 
   /**
@@ -534,7 +533,7 @@ abstract class Stream<T> {
    * omitted, the '==' operator on the last provided data element is used.
    */
   Stream<T> distinct([bool equals(T previous, T next)]) {
-    return this.transform(new DistinctTransformer<T>(equals));
+    return new DistinctStream(this, equals);
   }
 
   /**
@@ -892,7 +891,7 @@ abstract class StreamTransformer<S, T> {
    * If a parameter is omitted, a default handler is used that forwards the
    * event directly to the sink.
    *
-   * Pauses on the are forwarded to the input stream as well.
+   * Pauses on the returned stream are forwarded to the input stream as well.
    */
   factory StreamTransformer.from({
       void onData(S data, StreamSink<T> sink),

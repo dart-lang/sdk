@@ -931,7 +931,15 @@ abstract class _InternalLinkList extends _InternalLink {
   }
 }
 
-abstract class _StreamListener<T> extends _InternalLink {
+/** Abstract type for an internal interface for sending events. */
+abstract class _StreamOutputSink<T> {
+  _sendData(T data);
+  _sendError(AsyncError error);
+  _sendDone();
+}
+
+abstract class _StreamListener<T> extends _InternalLink
+                                  implements _StreamOutputSink<T> {
   final _StreamImpl _source;
   int _state = _LISTENER_UNSUBSCRIBED;
 
