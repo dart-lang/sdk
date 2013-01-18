@@ -5,6 +5,7 @@
 library test_progress;
 
 import "dart:io";
+import "dart:io" as io;
 import "http_server.dart" as http_server;
 import "status_file_parser.dart";
 import "test_runner.dart";
@@ -110,7 +111,9 @@ class ProgressIndicator {
     _printTimingInformation();
     stdout.close();
     stderr.close();
-    if (_failedTests > 0) exit(1);
+    if (_failedTests > 0) {
+      io.exitCode = 1;
+    }
   }
 
   void _printStartProgress(TestCase test) {}
@@ -287,7 +290,9 @@ abstract class CompactIndicator extends ProgressIndicator {
     }
     stdout.close();
     stderr.close();
-    if (_failedTests > 0) exit(1);
+    if (_failedTests > 0) {
+      io.exitCode = 1;
+    }
   }
 
   void allTestsKnown() {
