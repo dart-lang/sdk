@@ -40,11 +40,6 @@ class DartiumBackend(HtmlDartGenerator):
 
     cpp_impl_includes = set()
     cpp_header_handlers_emitter = emitter.Emitter()
-    # TODO(antonm): FIX IT
-    if self._interface.id == 'MutationCallback':
-      cpp_header_handlers_emitter.Emit(
-          '\n'
-          '    virtual ScriptExecutionContext* scriptExecutionContext() const;\n')
     cpp_impl_handlers_emitter = emitter.Emitter()
     class_name = 'Dart%s' % self._interface.id
     for operation in self._interface.operations:

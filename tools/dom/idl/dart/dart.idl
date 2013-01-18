@@ -291,7 +291,7 @@ interface SVGNumber {
   [StrictTypeChecking, Custom] attribute float value;
 };
 
-// TODO(antonm): get rid of it to follow V8 bindings.
+// Keep it in to generate Dart code, C++ implementation is filterd out in generator.
 [
   Callback
 ] interface MutationCallback {

@@ -17,6 +17,7 @@ _pure_interfaces = set([
     'ElementTraversal',
     'EventListener',
     'MediaQueryListListener',
+    'MutationCallback',
     'NodeSelector',
     'SVGExternalResourcesRequired',
     'SVGFilterPrimitiveStandardAttributes',
