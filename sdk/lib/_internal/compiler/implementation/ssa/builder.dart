@@ -1166,9 +1166,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     element = element.implementation;
     // TODO(floitsch): we should be able to inline inside lazy initializers.
     if (!currentElement.isFunction()) return false;
-    // TODO(floitsch): we should be able to inline getters, setters and
-    // constructor bodies.
-    if (!element.isFunction()) return false;
     // TODO(floitsch): find a cleaner way to know if the element is a function
     // containing nodes.
     // [PartialFunctionElement]s are [FunctionElement]s that have [Node]s.
@@ -1181,9 +1178,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     for (int i = 0; i < inliningStack.length; i++) {
       if (inliningStack[i].function == element) return false;
     }
-    // TODO(ngeoffray): Inlining currently does not work in the presence of
-    // private calls.
-    if (currentLibrary != element.getLibrary()) return false;
     PartialFunctionElement function = element;
     int sourceSize =
         function.endToken.charOffset - function.beginToken.charOffset;
@@ -2484,6 +2478,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else if (element.isField() && isLazilyInitialized(element)) {
         push(new HLazyStatic(element));
       } else {
+        if (element.isGetter()) {
+          Selector selector = elements.getSelector(send);
+          if (tryInlineMethod(element, selector, const Link<Node>())) {
+            return;
+          }
+        }
         // TODO(5346): Try to avoid the need for calling [declaration] before
         // creating an [HStatic].
         push(new HStatic(element.declaration));

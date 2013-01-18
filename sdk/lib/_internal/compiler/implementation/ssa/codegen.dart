@@ -224,7 +224,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>();
 
-  LibraryElement get currentLibrary => work.element.getLibrary();
   Compiler get compiler => backend.compiler;
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
   CodegenEnqueuer get world => backend.compiler.enqueuer.codegen;

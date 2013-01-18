@@ -3225,6 +3225,12 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                Diagnostic.ERROR);
       }
     }
+    if (element.isGetter() && (requiredParameterCount != 0
+                               || visitor.optionalParameterCount != 0)) {
+      compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
+                             MessageKind.EXTRA_FORMALS.error([]),
+                             Diagnostic.ERROR);
+    }
     return new FunctionSignatureX(parameters,
                                   visitor.optionalParameters,
                                   requiredParameterCount,

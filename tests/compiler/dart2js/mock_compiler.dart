@@ -152,6 +152,10 @@ class MockCompiler extends Compiler {
     // the interfaces of the Object class which would be 'null' if the class
     // wasn't resolved.
     objectClass.ensureResolved(this);
+
+    // Our unit tests check code generation output that is affected by
+    // inlining support.
+    disableInlining = true;
   }
 
   /**
