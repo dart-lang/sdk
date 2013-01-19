@@ -250,6 +250,7 @@ class Debugger {
   SourceBreakpoint* SetBreakpointAtEntry(const Function& target_function);
   SourceBreakpoint* SetBreakpointAtLine(const String& script_url,
                                         intptr_t line_number);
+  void OneTimeBreakAtEntry(const Function& target_function);
 
   void RemoveBreakpoint(intptr_t bp_id);
   SourceBreakpoint* GetBreakpointById(intptr_t id);

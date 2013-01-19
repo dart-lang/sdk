@@ -1126,6 +1126,11 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 }
 
 
+void Debugger::OneTimeBreakAtEntry(const Function& target_function) {
+  InstrumentForStepping(target_function);
+}
+
+
 SourceBreakpoint* Debugger::SetBreakpointAtEntry(
       const Function& target_function) {
   ASSERT(!target_function.IsNull());

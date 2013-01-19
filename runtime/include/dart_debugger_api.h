@@ -222,9 +222,9 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
 
 
 /**
- * Sets a breakpoint at the entry of the given function. If class_name
- * is the empty string, looks for a library function with the given
- * name.
+ * Sets a one-time breakpoint at the entry of the given function.
+ * If class_name is the empty string, looks for a library function
+ * with the given name.
  *
  * Requires there to be a current isolate.
  *
@@ -238,6 +238,21 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Handle class_name,
                             Dart_Handle function_name,
                             Dart_Breakpoint* breakpoint);
+
+
+/**
+ * Sets a breakpoint at the entry of the given function. If class_name
+ * is the empty string, looks for a library function with the given
+ * name.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
+                            Dart_Handle library,
+                            Dart_Handle class_name,
+                            Dart_Handle function_name);
 
 
 /**

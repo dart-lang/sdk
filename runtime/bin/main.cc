@@ -545,9 +545,7 @@ static Dart_Handle SetBreakpoint(const char* breakpoint_at,
       function_name = DartUtils::NewString(dot + 1);
     }
     free(bpt_function);
-    Dart_Breakpoint bpt;
-    result = Dart_SetBreakpointAtEntry(
-                 library, class_name, function_name, &bpt);
+    result = Dart_OneTimeBreakAtEntry(library, class_name, function_name);
   }
   return result;
 }
