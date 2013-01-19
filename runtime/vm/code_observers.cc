@@ -49,7 +49,7 @@ void CodeObservers::DeleteAll() {
   for (intptr_t i = 0; i < observers_length_; i++) {
     delete observers_[i];
   }
-  delete[] observers_;
+  free(observers_);
 }
 
 
