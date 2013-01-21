@@ -518,6 +518,45 @@ testCompleteWithAsyncError() {
   completer.completeError(error);
 }
 
+testChainedFutureValue() {
+  final completer = new Completer();
+  final future = completer.future;
+  var port = new ReceivePort();
+
+  future.then((v) => new Future.immediate(v * 2))
+        .then((v) {
+          Expect.equals(42, v);
+          port.close();
+        });
+  completer.complete(21);
+}
+
+testChainedFutureValueDelay() {
+  final completer = new Completer();
+  final future = completer.future;
+  var port = new ReceivePort();
+
+  future.then((v) => new Future.delayed(10, () => v * 2))
+        .then((v) {
+          Expect.equals(42, v);
+          port.close();
+        });
+  completer.complete(21);
+}
+
+testChainedFutureError() {
+  final completer = new Completer();
+  final future = completer.future;
+  var port = new ReceivePort();
+
+  future.then((v) => new Future.immediateError("Fehler"))
+        .then((v) { Expect.fail("unreachable!"); }, onError: (e) {
+          Expect.equals("Fehler", e.error);
+          port.close();
+        });
+  completer.complete(21);
+}
+
 main() {
   testImmediate();
   testNeverComplete();
@@ -554,5 +593,9 @@ main() {
   testFutureCatchThrowsAsync();
   testFutureWhenThrowsAsync();
   testFutureCatchRethrowsAsync();
+
+  testChainedFutureValue();
+  testChainedFutureValueDelay();
+  testChainedFutureError();
 }
 
