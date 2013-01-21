@@ -134,8 +134,9 @@ void renamePlaceholders(
   }
 
   Function makeElementRenamer(rename, generateUniqueName) => (element) {
-    assert(Elements.isStaticOrTopLevel(element)
-           || element is TypeVariableElement);
+    assert(Elements.isErroneousElement(element) ||
+           Elements.isStaticOrTopLevel(element) ||
+           element is TypeVariableElement);
     // TODO(smok): We may want to reuse class static field and method names.
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
