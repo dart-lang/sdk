@@ -250,7 +250,7 @@ class DartBackend extends Backend {
     for (final library in compiler.libraries.values) {
       if (!library.isPlatformLibrary) continue;
       library.implementation.forEachLocalMember((Element element) {
-        if (element is ClassElement) {
+        if (element.isClass()) {
           ClassElement classElement = element;
           // Make sure we parsed the class to initialize its local members.
           // TODO(smok): Figure out if there is a better way to fill local
@@ -410,7 +410,7 @@ class DartBackend extends Backend {
     collector.unresolvedNodes.add(synthesizedIdentifier);
     makePlaceholders(element) {
       collector.collect(element);
-      if (element is ClassElement) {
+      if (element.isClass()) {
         classMembers[element].forEach(makePlaceholders);
       }
     }
@@ -440,7 +440,7 @@ class DartBackend extends Backend {
 
       // Emit XML for AST instead of the program.
       for (final topLevel in sortedTopLevels) {
-        if (topLevel is ClassElement) {
+        if (topLevel.isClass()) {
           // TODO(antonm): add some class info.
           sortedClassMembers[topLevel].forEach(outputElement);
         } else {
@@ -455,7 +455,7 @@ class DartBackend extends Backend {
     final memberNodes = new Map<ClassNode, List<Node>>();
     for (final element in sortedTopLevels) {
       topLevelNodes.add(elementAsts[element].ast);
-      if (element is ClassElement && element is !MixinApplicationElement) {
+      if (element.isClass() && !element.isMixinApplication) {
         final members = <Node>[];
         for (final member in sortedClassMembers[element]) {
           members.add(elementAsts[member].ast);

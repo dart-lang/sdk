@@ -172,6 +172,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   MixinApplication asMixinApplication() => null;
   Modifiers asModifiers() => null;
   NamedArgument asNamedArgument() => null;
+  NamedMixinApplication asNamedMixinApplication() => null;
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;

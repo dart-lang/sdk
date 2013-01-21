@@ -1826,10 +1826,10 @@ class MixinApplicationElementX extends BaseClassElementX
   }
 
   Link<DartType> computeTypeParameters(Compiler compiler) {
-    if (node is !NamedMixinApplication) return const Link<DartType>();
-    NamedMixinApplication namedMixinNode = node;
+    NamedMixinApplication named = node.asNamedMixinApplication();
+    if (named == null) return const Link<DartType>();
     return TypeDeclarationElementX.createTypeVariables(
-        this, namedMixinNode.typeParameters);
+        this, named.typeParameters);
   }
 }
 

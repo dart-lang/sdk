@@ -502,12 +502,11 @@ class ResolverTask extends CompilerTask {
     int illegalFlags = modifiers.flags & ~Modifiers.FLAG_ABSTRACT;
     if (illegalFlags != 0) {
       Modifiers illegalModifiers = new Modifiers.withFlags(null, illegalFlags);
-      MessageKind messageKind =
+      CompilationError error =
           MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS.error(
               [illegalModifiers]);
       compiler.reportMessage(compiler.spanFromSpannable(modifiers),
-                             messageKind,
-                             Diagnostic.ERROR);
+                             error, Diagnostic.ERROR);
     }
   }
 
