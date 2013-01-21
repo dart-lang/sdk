@@ -254,7 +254,7 @@ class _FutureImpl<T> implements Future<T> {
         _clearUnhandledError();
         AsyncError error = _resultOrListeners;
         print("Uncaught Error: ${error.error}");
-        if (stackTrace != null) {
+        if (error.stackTrace != null) {
           print("Stack Trace:\n${error.stackTrace}\n");
         }
         throw error.error;
@@ -299,6 +299,7 @@ class _FutureImpl<T> implements Future<T> {
       future._setValue(_resultOrListeners);
     } else {
       assert(_hasError);
+      _clearUnhandledError();
       future._setError(_resultOrListeners);
     }
   }
