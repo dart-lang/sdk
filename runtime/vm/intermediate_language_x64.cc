@@ -1702,16 +1702,15 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   }
 
   if (op_kind() == Token::kTRUNCDIV) {
-    const intptr_t kNumTemps = 3;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    // Both inputs must be writable because they will be untagged.
     summary->set_in(0, Location::RegisterLocation(RAX));
-    summary->set_in(1, Location::RegisterLocation(RCX));
+    summary->set_in(1, Location::WritableRegister());
     summary->set_out(Location::SameAsFirstInput());
-    summary->set_temp(0, Location::RegisterLocation(RBX));
-    // Will be used for for sign extension.
-    summary->set_temp(1, Location::RegisterLocation(RDX));
-    summary->set_temp(2, Location::RequiresRegister());
+    // Will be used for sign extension and division.
+    summary->set_temp(0, Location::RegisterLocation(RDX));
     return summary;
   } else if (op_kind() == Token::kSHR) {
     const intptr_t kNumTemps = 0;
@@ -1875,22 +1874,17 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      Register temp = locs()->temp(0).reg();
       // Handle divide by zero in runtime.
-      // Deoptimization requires that temp and right are preserved.
       __ testq(right, right);
       __ j(ZERO, deopt);
       ASSERT(left == RAX);
       ASSERT((right != RDX) && (right != RAX));
-      ASSERT((temp != RDX) && (temp != RAX));
-      ASSERT(locs()->temp(1).reg() == RDX);
+      ASSERT(locs()->temp(0).reg() == RDX);
       ASSERT(result == RAX);
-      Register right_temp = locs()->temp(2).reg();
-      __ movq(right_temp, right);
       __ SmiUntag(left);
-      __ SmiUntag(right_temp);
+      __ SmiUntag(right);
       __ cqo();  // Sign extend RAX -> RDX:RAX.
-      __ idivq(right_temp);  //  RAX: quotient, RDX: remainder.
+      __ idivq(right);  //  RAX: quotient, RDX: remainder.
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
       __ cmpq(result, Immediate(0x4000000000000000));

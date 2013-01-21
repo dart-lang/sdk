@@ -1823,16 +1823,15 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   if (op_kind() == Token::kTRUNCDIV) {
-    const intptr_t kNumTemps = 3;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    // Both inputs must be writable because they will be untagged.
     summary->set_in(0, Location::RegisterLocation(EAX));
-    summary->set_in(1, Location::RegisterLocation(ECX));
+    summary->set_in(1, Location::WritableRegister());
     summary->set_out(Location::SameAsFirstInput());
-    summary->set_temp(0, Location::RegisterLocation(EBX));
-    // Will be used for for sign extension.
-    summary->set_temp(1, Location::RegisterLocation(EDX));
-    summary->set_temp(2, Location::RequiresRegister());
+    // Will be used for sign extension and division.
+    summary->set_temp(0, Location::RegisterLocation(EDX));
     return summary;
   } else if (op_kind() == Token::kSHR) {
     const intptr_t kNumTemps = 0;
@@ -1994,22 +1993,17 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      Register temp = locs()->temp(0).reg();
       // Handle divide by zero in runtime.
-      // Deoptimization requires that temp and right are preserved.
       __ testl(right, right);
       __ j(ZERO, deopt);
       ASSERT(left == EAX);
       ASSERT((right != EDX) && (right != EAX));
-      ASSERT((temp != EDX) && (temp != EAX));
-      ASSERT(locs()->temp(1).reg() == EDX);
+      ASSERT(locs()->temp(0).reg() == EDX);
       ASSERT(result == EAX);
-      Register right_temp = locs()->temp(2).reg();
-      __ movl(right_temp, right);
       __ SmiUntag(left);
-      __ SmiUntag(right_temp);
+      __ SmiUntag(right);
       __ cdq();  // Sign extend EAX -> EDX:EAX.
-      __ idivl(right_temp);  //  EAX: quotient, EDX: remainder.
+      __ idivl(right);  //  EAX: quotient, EDX: remainder.
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
       __ cmpl(result, Immediate(0x40000000));
