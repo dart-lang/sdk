@@ -12,114 +12,8 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 
-// Performance critical helper methods.
-gt(var a, var b) => (a is num && b is num)
-    ? JS('bool', r'# > #', a, b)
-    : gt$slow(a, b);
-
-ge(var a, var b) => (a is num && b is num)
-    ? JS('bool', r'# >= #', a, b)
-    : ge$slow(a, b);
-
-lt(var a, var b) => (a is num && b is num)
-    ? JS('bool', r'# < #', a, b)
-    : lt$slow(a, b);
-
-le(var a, var b) => (a is num && b is num)
-    ? JS('bool', r'# <= #', a, b)
-    : le$slow(a, b);
-
-gtB(var a, var b) => (a is num && b is num)
-    ? JS('bool', r'# > #', a, b)
-    : identical(gt$slow(a, b), true);
-
-geB(var a, var b) => (a is num && b is num)
-    ? JS('bool', r'# >= #', a, b)
-    : identical(ge$slow(a, b), true);
-
-ltB(var a, var b) => (a is num && b is num)
-    ? JS('bool', r'# < #', a, b)
-    : identical(lt$slow(a, b), true);
-
-leB(var a, var b) => (a is num && b is num)
-    ? JS('bool', r'# <= #', a, b)
-    : identical(le$slow(a, b), true);
-
-/**
- * Returns true if both arguments are numbers.
- *
- * If only the first argument is a number, an
- * [ArgumentError] with the other argument is thrown.
- */
-bool checkNumbers(var a, var b) {
-  if (a is num) {
-    if (b is num) {
-      return true;
-    } else {
-      throw new ArgumentError(b);
-    }
-  }
-  return false;
-}
-
 bool isJsArray(var value) {
   return value != null && JS('bool', r'#.constructor === Array', value);
-}
-
-eq(var a, var b) {
-  if (JS('bool', r'# == null', a)) return JS('bool', r'# == null', b);
-  if (JS('bool', r'# == null', b)) return false;
-  if (JS('bool', r'typeof # === "object"', a)) {
-    if (JS_HAS_EQUALS(a)) {
-      return UNINTERCEPTED(a == b);
-    }
-  }
-  // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
-  return JS('bool', r'# === #', a, b);
-}
-
-bool eqB(var a, var b) {
-  if (JS('bool', r'# == null', a)) return JS('bool', r'# == null', b);
-  if (JS('bool', r'# == null', b)) return false;
-  if (JS('bool', r'typeof # === "object"', a)) {
-    if (JS_HAS_EQUALS(a)) {
-      return identical(UNINTERCEPTED(a == b), true);
-    }
-  }
-  // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
-  return JS('bool', r'# === #', a, b);
-}
-
-eqq(var a, var b) {
-  return JS('bool', r'# === #', a, b);
-}
-
-gt$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('bool', r'# > #', a, b);
-  }
-  return UNINTERCEPTED(a > b);
-}
-
-ge$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('bool', r'# >= #', a, b);
-  }
-  return UNINTERCEPTED(a >= b);
-}
-
-lt$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('bool', r'# < #', a, b);
-  }
-  return UNINTERCEPTED(a < b);
-}
-
-le$slow(var a, var b) {
-  if (checkNumbers(a, b)) {
-    return JS('bool', r'# <= #', a, b);
-  }
-  return UNINTERCEPTED(a <= b);
 }
 
 checkMutable(list, reason) {
@@ -1572,9 +1466,9 @@ String getRuntimeTypeString(var object) {
  */
 bool isSubtype(var s, var t) {
   // If either type is dynamic, [s] is a subtype of [t].
-  if (s == null || t == null) return true;
+  if (JS('bool', '# == null', s) || JS('bool', '# == null', t)) return true;
   // Subtyping is reflexive.
-  if (s == t) return true;
+  if (JS('bool', '# === #', s, t)) return true;
   // Get the object describing the class and check for the subtyping flag
   // constructed from the type of [t].
   var typeOfS = isJsArray(s) ? s[0] : s;

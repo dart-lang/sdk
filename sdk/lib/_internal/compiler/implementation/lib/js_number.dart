@@ -231,6 +231,26 @@ class JSNumber {
     if (other is !num) throw new ArgumentError(other);
     return JS('num', r'(# ^ #) >>> 0', this, other);    
   }
+
+  bool operator <(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# < #', this, other);
+  }
+
+  bool operator >(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# > #', this, other);
+  }
+
+  bool operator <=(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# <= #', this, other);
+  }
+
+  bool operator >=(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# >= #', this, other);
+  }
 }
 
 class JSInt extends JSNumber {

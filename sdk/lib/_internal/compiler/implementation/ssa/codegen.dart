@@ -1263,16 +1263,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary(op, jsLeft, pop()), node);
   }
 
-  visitRelational(HRelational node, String op) {
-    if (node.isBuiltin(types)) {
-      use(node.left);
-      js.Expression jsLeft = pop();
-      use(node.right);
-      push(new js.Binary(op, jsLeft, pop()), node);
-    } else {
-      visitInvokeStatic(node);
-    }
-  }
+  visitRelational(HRelational node, String op) => visitInvokeBinary(node, op);
 
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
@@ -1320,16 +1311,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  visitEquals(HEquals node) {
-    if (node.isBuiltin(types)) {
-      emitIdentityComparison(node.left, node.right);
-    } else {
-      visitInvokeStatic(node);
-    }
-  }
-
   visitIdentity(HIdentity node) {
-    assert(node.isBuiltin(types));
     emitIdentityComparison(node.left, node.right);
   }
 
@@ -1855,7 +1837,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     attachLocationToLast(node);
   }
 
-
   void generateNot(HInstruction input) {
     bool canGenerateOptimizedComparison(HInstruction instruction) {
       if (instruction is !HRelational) return false;
@@ -1864,8 +1845,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       HInstruction right = relational.right;
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return relational.isBuiltin(types)
-          && types[left].isUseful() && left.isInteger(types)
+      return types[left].isUseful() && left.isInteger(types)
           && types[right].isUseful() && right.isInteger(types);
     }
 

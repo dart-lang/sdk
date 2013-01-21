@@ -41,6 +41,11 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypeConversionInserter(compiler),
           new SsaTypePropagator(compiler, types),
           new SsaConstantFolder(constantSystem, backend, work, types),
+          // The constant folder affects the types of instructions, so
+          // we run the type propagator again. Note that this would
+          // not be necessary if types were directly stored on
+          // instructions.
+          new SsaTypePropagator(compiler, types),
           new SsaCheckInserter(backend, work, types, context.boundsChecked),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
@@ -220,20 +225,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         && node.selector.name == const SourceString('toString')) {
       return node.inputs[1];
     }
-    // Check if this call does not need to be intercepted.
-    HType type = types[input];
-    var interceptor = node.inputs[0];
-    if (interceptor is !HThis && !type.canBePrimitive()) {
-      // If the type can be null, and the intercepted method can be in
-      // the object class, keep the interceptor.
-      if (type.canBeNull()
-          && interceptor.interceptedClasses.contains(compiler.objectClass)) {
-        return node;
-      }
-      // Change the call to a regular invoke dynamic call.
-      return new HInvokeDynamicMethod(
-          node.selector, node.inputs.getRange(1, node.inputs.length - 1));
-    }
 
     // Try constant folding the instruction.
     Operation operation = node.specializer.operation(constantSystem);
@@ -248,6 +239,21 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction instruction =
         node.specializer.tryConvertToBuiltin(node, types);
     if (instruction != null) return instruction;
+
+    // Check if this call does not need to be intercepted.
+    HType type = types[input];
+    var interceptor = node.inputs[0];
+    if (interceptor is !HThis && !type.canBePrimitive()) {
+      // If the type can be null, and the intercepted method can be in
+      // the object class, keep the interceptor.
+      if (type.canBeNull()
+          && interceptor.interceptedClasses.contains(compiler.objectClass)) {
+        return node;
+      }
+      // Change the call to a regular invoke dynamic call.
+      return new HInvokeDynamicMethod(
+          node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+    }
 
     Selector selector = node.selector;
     SourceString selectorName = selector.name;
@@ -384,14 +390,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     BinaryOperation operation = node.operation(constantSystem);
     HConstant folded = foldBinary(operation, left, right);
     if (folded != null) return folded;
-
-    if (!left.canBePrimitive(types)
-        && operation.isUserDefinable()
-        // The equals operation is being optimized in visitEquals.
-        && node is! HEquals) {
-      Selector selector = new Selector.binaryOperator(operation.name);
-      return fromPrimitiveInstructionToDynamicInvocation(node, selector);
-    }
     return node;
   }
 
@@ -407,24 +405,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitRelational(HRelational node) {
     if (allUsersAreBoolifies(node)) {
       Interceptors interceptors = backend.builder.interceptors;
-      HStatic oldTarget = node.target;
-      Element boolifiedInterceptor =
-          interceptors.getBoolifiedVersionOf(oldTarget.element);
-      if (boolifiedInterceptor != null) {
-        HStatic boolifiedTarget = new HStatic(boolifiedInterceptor);
-        // We don't remove the [oldTarget] in case it is used by other
-        // instructions. If it is unused it will be treated as dead code and
-        // discarded.
-        oldTarget.block.addAfter(oldTarget, boolifiedTarget);
-        // Remove us as user from the [oldTarget].
-        oldTarget.removeUser(node);
-        // Replace old target with boolified target.
-        assert(node.target == node.inputs[0]);
-        node.inputs[0] = boolifiedTarget;
-        boolifiedTarget.usedBy.add(node);
-        node.usesBoolifiedInterceptor = true;
-        types[node] = HType.BOOLEAN;
-      }
       // This node stays the same, but the Boolify node will go away.
     }
     // Note that we still have to call [super] to make sure that we end up
@@ -468,61 +448,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIdentity(HIdentity node) {
     HInstruction newInstruction = handleIdentityCheck(node);
     return newInstruction == null ? super.visitIdentity(node) : newInstruction;
-  }
-
-  HInstruction foldBuiltinEqualsCheck(HEquals node) {
-    // TODO(floitsch): cache interceptors.
-    HInstruction newInstruction = handleIdentityCheck(node);
-    if (newInstruction == null) {
-      HStatic target = new HStatic(
-          backend.builder.interceptors.getTripleEqualsInterceptor());
-      node.block.addBefore(node, target);
-      return new HIdentity(target, node.left, node.right);
-    } else {
-      return newInstruction;
-    }
-  }
-
-  HInstruction visitEquals(HEquals node) {
-    HInstruction left = node.left;
-    HInstruction right = node.right;
-
-    if (node.isBuiltin(types)) {
-      return foldBuiltinEqualsCheck(node);
-    }
-
-    if (left.isConstant() && right.isConstant()) {
-      return super.visitEquals(node);
-    }
-
-    HType leftType = types[left];
-    if (leftType.isExact()) {
-      HBoundedType type = leftType;
-      Element element = type.lookupMember(const SourceString('=='));
-      if (element != null) {
-        // If the left-hand side is guaranteed to be a non-primitive
-        // type and and it defines operator==, we emit a call to that
-        // operator.
-        return super.visitEquals(node);
-      } else if (right.isConstantNull()) {
-        return graph.addConstantBool(false, constantSystem);
-      } else {
-        // We can just emit an identity check because the type does
-        // not implement operator=.
-        return foldBuiltinEqualsCheck(node);
-      }
-    }
-
-    if (right.isConstantNull()) {
-      if (leftType.isPrimitive()) {
-        return graph.addConstantBool(false, constantSystem);
-      }
-    }
-
-    // All other cases are dealt with by the [visitRelational] and
-    // [visitInvokeBinary], which are visited by invoking the [super]'s
-    // visit method.
-    return super.visitEquals(node);
   }
 
   HInstruction visitTypeGuard(HTypeGuard node) {

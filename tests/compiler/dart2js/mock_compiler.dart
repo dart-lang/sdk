@@ -77,6 +77,11 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator |(other) {}
     operator &(other) {}
     operator ^(other) {}
+    operator >(other) {}
+    operator >=(other) {}
+    operator <(other) {}
+    operator <=(other) {}
+    operator ==(other) {}
   }
   class JSInt {
   }
@@ -99,7 +104,9 @@ const String DEFAULT_CORELIB = r'''
   abstract class double extends num { }
   class bool {}
   class String {}
-  class Object {}
+  class Object {
+    operator ==(other) {}
+  }
   class Type {}
   class Function {}
   class List<E> {}

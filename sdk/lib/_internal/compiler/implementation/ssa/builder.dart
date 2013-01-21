@@ -1023,6 +1023,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(!function.modifiers.isExternal());
     assert(elements[function] != null);
     openFunction(functionElement, function);
+    SourceString name = functionElement.name;
+    // If [functionElement] is operator== we explicitely add a null
+    // check at the beginning of the method. This is to avoid having
+    // call sites do the null check.
+    if (name == const SourceString('==')) {
+      handleIf(
+          function,
+          () {
+            HParameterValue parameter = parameters.values.first;
+            push(new HIdentity(
+                parameter, graph.addConstantNull(constantSystem)));
+          },
+          () {
+            HReturn ret = new HReturn(
+                graph.addConstantBool(false, constantSystem));
+            close(ret).addSuccessor(graph.exit);
+          },
+          null);
+    }
     function.body.accept(this);
     return closeFunction();
   }
@@ -1547,10 +1566,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Emit the equality check with the sentinel.
       HConstant sentinel = graph.addConstant(SentinelConstant.SENTINEL);
       Element equalsHelper = interceptors.getTripleEqualsInterceptor();
-      HInstruction target = new HStatic(equalsHelper);
-      add(target);
       HInstruction operand = parameters[element];
-      check = new HIdentity(target, sentinel, operand);
+      check = new HIdentity(sentinel, operand);
       add(check);
 
       // If the check succeeds, we must update the parameter with the
@@ -2362,6 +2379,30 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       case "^=":
         selector = new Selector.binaryOperator(const SourceString('^'));
         break;
+      case "==":
+      case "!=":
+        selector = new Selector.binaryOperator(const SourceString('=='));
+        break;
+      case "<":
+        selector = new Selector.binaryOperator(const SourceString('<'));
+        break;
+      case "<=":
+        selector = new Selector.binaryOperator(const SourceString('<='));
+        break;
+      case ">":
+        selector = new Selector.binaryOperator(const SourceString('>'));
+        break;
+      case ">=":
+        selector = new Selector.binaryOperator(const SourceString('>='));
+        break;
+      case "===":
+        pushWithPosition(new HIdentity(left, right), op);
+        return;
+      case "!==":
+        HIdentity eq = new HIdentity(left, right);
+        add(eq);
+        pushWithPosition(new HNot(eq), op);
+        return;
       default:
         break;
     }
@@ -2370,6 +2411,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       pushWithPosition(
             buildInvokeDynamic(send, selector, left, [right]),
             op);
+      if (op.source.stringValue == '!=') {
+        HBoolify bl = new HBoolify(pop());
+        add(bl);
+        pushWithPosition(new HNot(bl), op);
+      }
       return;
     }
     Element element = interceptors.getOperatorInterceptor(op);
@@ -2377,36 +2423,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction target = new HStatic(element);
     add(target);
     switch (op.source.stringValue) {
-      case "==":
-        pushWithPosition(new HEquals(target, left, right), op);
-        break;
-      case "===":
-        pushWithPosition(new HIdentity(target, left, right), op);
-        break;
-      case "!==":
-        HIdentity eq = new HIdentity(target, left, right);
-        add(eq);
-        pushWithPosition(new HNot(eq), op);
-        break;
-      case "<":
-        pushWithPosition(new HLess(target, left, right), op);
-        break;
-      case "<=":
-        pushWithPosition(new HLessEqual(target, left, right), op);
-        break;
-      case ">":
-        pushWithPosition(new HGreater(target, left, right), op);
-        break;
-      case ">=":
-        pushWithPosition(new HGreaterEqual(target, left, right), op);
-        break;
-      case "!=":
-        HEquals eq = new HEquals(target, left, right);
-        add(eq);
-        HBoolify bl = new HBoolify(eq);
-        add(bl);
-        pushWithPosition(new HNot(bl), op);
-        break;
       default: compiler.unimplemented("SsaBuilder.visitBinary");
     }
   }
@@ -3479,7 +3495,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       if (isIdenticalFunction) {
-        pushWithPosition(new HIdentity(target, inputs[1], inputs[2]), node);
+        pushWithPosition(new HIdentity(inputs[1], inputs[2]), node);
         return;
       }
 
@@ -4456,9 +4472,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     void buildTests(Link<Node> remainingCases) {
       // Build comparison for one case expression.
       void left() {
-        Element equalsHelper = interceptors.getEqualsInterceptor();
-        HInstruction target = new HStatic(equalsHelper);
-        add(target);
         CaseMatch match = remainingCases.head;
         // TODO(lrn): Move the constant resolution to the resolver, so
         // we can report an error before reaching the backend.
@@ -4470,7 +4483,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         } else {
           visit(match.expression);
         }
-        push(new HEquals(target, pop(), expression));
+        push(new HIdentity(pop(), expression));
       }
 
       // If this is the last expression, just return it.

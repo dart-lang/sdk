@@ -65,6 +65,16 @@ class InvokeDynamicSpecializer {
         return const BitOrSpecializer();
       } else if (selector.name == const SourceString('^')) {
         return const BitXorSpecializer();
+      } else if (selector.name == const SourceString('==')) {
+        return const EqualsSpecializer();
+      } else if (selector.name == const SourceString('<')) {
+        return const LessSpecializer();
+      } else if (selector.name == const SourceString('<=')) {
+        return const LessEqualSpecializer();
+      } else if (selector.name == const SourceString('>')) {
+        return const GreaterSpecializer();
+      } else if (selector.name == const SourceString('>=')) {
+        return const GreaterEqualSpecializer();
       }
     }
     return const InvokeDynamicSpecializer();
@@ -474,5 +484,144 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
 
   HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
     return new HBitXor(left, right);
+  }
+}
+
+class RelationalSpecializer extends InvokeDynamicSpecializer {
+  const RelationalSpecializer();
+
+  HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
+                                  HTypeMap types,
+                                  Compiler compiler) {
+    if (types[instruction.inputs[1]].isPrimitiveOrNull()) return HType.BOOLEAN;
+    return HType.UNKNOWN;
+  }
+
+  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+                                   HInstruction input,
+                                   HTypeMap types,
+                                   Compiler compiler) {
+    if (input == instruction.inputs[0]) return HType.UNKNOWN;
+    HType propagatedType = types[instruction];
+    // For all relational operations except HIdentity, we expect to get numbers
+    // only. With numbers the outgoing type is a boolean. If something else
+    // is desired, then numbers are incorrect, though.
+    if (propagatedType.isUnknown() || propagatedType.isBoolean()) {
+      HInstruction left = instruction.inputs[1];
+      if (left.isTypeUnknown(types) || left.isNumber(types)) {
+        return HType.NUMBER;
+      }
+    }
+    return HType.UNKNOWN;
+  }
+
+  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+                                   HTypeMap types) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    if (left.isNumber(types) && right.isNumber(types)) {
+      return newBuiltinVariant(left, right);
+    }
+    return null;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right);
+}
+
+class EqualsSpecializer extends RelationalSpecializer {
+  const EqualsSpecializer();
+
+  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+                                   HInstruction input,
+                                   HTypeMap types,
+                                   Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    HType propagatedType = types[instruction];
+    if (input == left && types[right].isUseful()) {
+      // All our useful types have 'identical' semantics. But we don't want to
+      // speculatively test for all possible types. Therefore we try to match
+      // the two types. That is, if we see x == 3, then we speculatively test
+      // if x is a number and bailout if it isn't.
+      // If right is a number we don't need more than a number (no need to match
+      // the exact type of right).
+      if (right.isNumber(types)) return HType.NUMBER;
+      return types[right];
+    }
+    // String equality testing is much more common than array equality testing.
+    if (input == left && left.isIndexablePrimitive(types)) {
+      return HType.READABLE_ARRAY;
+    }
+    // String equality testing is much more common than array equality testing.
+    if (input == right && right.isIndexablePrimitive(types)) {
+      return HType.STRING;
+    }
+    return HType.UNKNOWN;
+  }
+
+  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+                                   HTypeMap types) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    if (types[left].isPrimitiveOrNull() || right.isConstantNull()) {
+      return newBuiltinVariant(left, right);
+    }
+    return null;
+  }
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.equal;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HIdentity(left, right);
+  }
+}
+
+class LessSpecializer extends RelationalSpecializer {
+  const LessSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.less;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HLess(left, right);
+  }
+}
+
+class GreaterSpecializer extends RelationalSpecializer {
+  const GreaterSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.greater;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HGreater(left, right);
+  }
+}
+
+class GreaterEqualSpecializer extends RelationalSpecializer {
+  const GreaterEqualSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.greaterEqual;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HGreaterEqual(left, right);
+  }
+}
+
+class LessEqualSpecializer extends RelationalSpecializer {
+  const LessEqualSpecializer();
+
+  BinaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.lessEqual;
+  }
+
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+    return new HLessEqual(left, right);
   }
 }

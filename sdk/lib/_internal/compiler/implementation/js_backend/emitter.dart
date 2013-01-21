@@ -765,6 +765,22 @@ $lazyInitializerLogic
         emitNoSuchMethodHandlers(builder.addProperty);
       }
     }
+
+    if (backend.isInterceptorClass(classElement)) {
+      // The operator== method in [:Object:] does not take the same
+      // number of arguments as an intercepted method, therefore we
+      // explicitely add one to all interceptor classes. Note that we
+      // would not have do do that if all intercepted methods had
+      // a calling convention where the receiver is the first
+      // parameter.
+      String name = backend.namer.publicInstanceMethodNameByArity(
+          const SourceString('=='), 1);
+      Function kind = (classElement == backend.jsNullClass)
+          ? js.equals
+          : js.strictEquals;
+      builder.addProperty(name, js.fun(['receiver', 'a'],
+          js.block1(js.return_(kind(js.use('receiver'), js.use('a'))))));
+    }
   }
 
   void emitRuntimeClassesAndTests(CodeBuffer buffer) {

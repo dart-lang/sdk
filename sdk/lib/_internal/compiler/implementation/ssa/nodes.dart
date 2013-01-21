@@ -17,7 +17,6 @@ abstract class HVisitor<R> {
   R visitConstant(HConstant node);
   R visitContinue(HContinue node);
   R visitDivide(HDivide node);
-  R visitEquals(HEquals node);
   R visitExit(HExit node);
   R visitExitTry(HExitTry node);
   R visitFieldGet(HFieldGet node);
@@ -263,7 +262,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitConditionalBranch(HConditionalBranch node) => visitControlFlow(node);
   visitControlFlow(HControlFlow node) => visitInstruction(node);
   visitFieldAccess(HFieldAccess node) => visitInstruction(node);
-  visitRelational(HRelational node) => visitInvokeStatic(node);
+  visitRelational(HRelational node) => visitInvokeBinary(node);
 
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
   visitBailoutTarget(HBailoutTarget node) => visitInstruction(node);
@@ -278,7 +277,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitCheck(HCheck node) => visitInstruction(node);
   visitConstant(HConstant node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
-  visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
   visitExitTry(HExitTry node) => visitControlFlow(node);
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
@@ -1549,6 +1547,11 @@ abstract class HInvokeBinary extends HInstruction {
   HInvokeBinary(HInstruction left, HInstruction right)
       : super(<HInstruction>[left, right]);
 
+  void prepareGvn(HTypeMap types) {
+    clearAllSideEffects();
+    setUseGvn();
+  }
+
   HInstruction get left => inputs[0];
   HInstruction get right => inputs[1];
 
@@ -1557,11 +1560,6 @@ abstract class HInvokeBinary extends HInstruction {
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
   HBinaryArithmetic(HInstruction left, HInstruction right) : super(left, right);
-
-  void prepareGvn(HTypeMap types) {
-    clearAllSideEffects();
-    setUseGvn();
-  }
 
   HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
     if (left.isInteger(types) && right.isInteger(types)) return HType.INTEGER;
@@ -1998,124 +1996,15 @@ class HPhi extends HInstruction {
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }
 
-abstract class HRelational extends HInvokeStatic {
+abstract class HRelational extends HInvokeBinary {
   bool usesBoolifiedInterceptor = false;
-  HRelational(HStatic target, HInstruction left, HInstruction right)
-      : super(<HInstruction>[target, left, right]);
-
-  void prepareGvn(HTypeMap types) {
-    clearAllSideEffects();
-    // Relational expressions can take part in global value numbering
-    // and do not have any side-effects if we know all the inputs are
-    // numbers. This can be improved for at least equality.
-    if (isBuiltin(types)) {
-      setUseGvn();
-    } else {
-      setAllSideEffects();
-    }
-  }
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    if (left.isNumber(types) || usesBoolifiedInterceptor) return HType.BOOLEAN;
-    return HType.UNKNOWN;
-  }
-
-  HType get guaranteedType {
-    if (usesBoolifiedInterceptor) return HType.BOOLEAN;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    HType propagatedType = types[this];
-    // For all relational operations except HEquals, we expect to get numbers
-    // only. With numbers the outgoing type is a boolean. If something else
-    // is desired, then numbers are incorrect, though.
-    if (propagatedType.isUnknown() || propagatedType.isBoolean()) {
-      if (left.isTypeUnknown(types) || left.isNumber(types)) {
-        return HType.NUMBER;
-      }
-    }
-    return HType.UNKNOWN;
-  }
-
-  HType computeLikelyType(HTypeMap types, Compiler compiler) => HType.BOOLEAN;
-
-  bool isBuiltin(HTypeMap types)
-      => left.isNumber(types) && right.isNumber(types);
-
-  HInstruction get left => inputs[1];
-  HInstruction get right => inputs[2];      
-
-  BinaryOperation operation(ConstantSystem constantSystem);
-}
-
-class HEquals extends HRelational {
-  HEquals(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
-  accept(HVisitor visitor) => visitor.visitEquals(this);
-
-  bool isBuiltin(HTypeMap types) {
-    // All primitive types have 'identical' semantics.
-    // Note that this includes all constants except the user-constructed
-    // objects.
-    return types[left].isPrimitiveOrNull() || right.isConstantNull();
-  }
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    if (isBuiltin(types) || usesBoolifiedInterceptor) return HType.BOOLEAN;
-    return HType.UNKNOWN;
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    HType propagatedType = types[this];
-    if (input == left && types[right].isUseful()) {
-      // All our useful types have 'identical' semantics. But we don't want to
-      // speculatively test for all possible types. Therefore we try to match
-      // the two types. That is, if we see x == 3, then we speculatively test
-      // if x is a number and bailout if it isn't.
-      // If right is a number we don't need more than a number (no need to match
-      // the exact type of right).
-      if (right.isNumber(types)) return HType.NUMBER;
-      return types[right];
-    }
-    // String equality testing is much more common than array equality testing.
-    if (input == left && left.isIndexablePrimitive(types)) {
-      return HType.READABLE_ARRAY;
-    }
-    // String equality testing is much more common than array equality testing.
-    if (input == right && right.isIndexablePrimitive(types)) {
-      return HType.STRING;
-    }
-    return HType.UNKNOWN;
-  }
-
-  BinaryOperation operation(ConstantSystem constantSystem)
-      => constantSystem.equal;
-  int typeCode() => HInstruction.EQUALS_TYPECODE;
-  bool typeEquals(other) => other is HEquals;
-  bool dataEquals(HInstruction other) => true;
+  HRelational(HInstruction left, HInstruction right) : super(left, right);
+  HType get guaranteedType => HType.BOOLEAN;
 }
 
 class HIdentity extends HRelational {
-  HIdentity(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HIdentity(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitIdentity(this);
-
-  bool isBuiltin(HTypeMap types) => true;
-
-  HType get guaranteedType => HType.BOOLEAN;
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler)
-      => HType.BOOLEAN;
-  // Note that the identity operator really does not care for its input types.
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    return HType.UNKNOWN;
-  }
 
   BinaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.identity;
@@ -2125,8 +2014,7 @@ class HIdentity extends HRelational {
 }
 
 class HGreater extends HRelational {
-  HGreater(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HGreater(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -2137,8 +2025,7 @@ class HGreater extends HRelational {
 }
 
 class HGreaterEqual extends HRelational {
-  HGreaterEqual(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HGreaterEqual(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -2149,8 +2036,7 @@ class HGreaterEqual extends HRelational {
 }
 
 class HLess extends HRelational {
-  HLess(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HLess(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitLess(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -2161,8 +2047,7 @@ class HLess extends HRelational {
 }
 
 class HLessEqual extends HRelational {
-  HLessEqual(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right);
+  HLessEqual(HInstruction left, HInstruction right) : super(left, right);
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)

@@ -865,6 +865,10 @@ Binary equals(Expression left, Expression right) {
   return new Binary('==', left, right);
 }
 
+Binary strictEquals(Expression left, Expression right) {
+  return new Binary('===', left, right);
+}
+
 LiteralString string(String value) => new LiteralString('"$value"');
 
 If if_(Expression condition, Node then, [Node otherwise]) {

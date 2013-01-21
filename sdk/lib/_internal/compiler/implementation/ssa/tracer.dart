@@ -270,8 +270,6 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitDivide(HDivide node) => handleBinaryArithmetic(node, '/');
 
-  String visitEquals(HEquals node) => visitInvokeStatic(node);
-
   String visitExit(HExit node) => "exit";
 
   String visitFieldGet(HFieldGet node) {
@@ -293,10 +291,11 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Goto: (B${target.id})";
   }
 
-  String visitGreater(HGreater node) => visitInvokeStatic(node);
-  String visitGreaterEqual(HGreaterEqual node) => visitInvokeStatic(node);
-
-  String visitIdentity(HIdentity node) => visitInvokeStatic(node);
+  String visitGreater(HGreater node) => handleBinaryArithmetic(node, '>');
+  String visitGreaterEqual(HGreaterEqual node) {
+    handleBinaryArithmetic(node, '>=');
+  }
+  String visitIdentity(HIdentity node) => handleBinaryArithmetic(node, '===');
 
   String visitIf(HIf node) {
     HBasicBlock thenBlock = currentBlock.successors[0];
@@ -384,8 +383,8 @@ class HInstructionStringifier implements HVisitor<String> {
                               node.inputs);
   }
 
-  String visitLess(HLess node) => visitInvokeStatic(node);
-  String visitLessEqual(HLessEqual node) => visitInvokeStatic(node);
+  String visitLess(HLess node) => handleBinaryArithmetic(node, '<');
+  String visitLessEqual(HLessEqual node) => handleBinaryArithmetic(node, '<=');
 
   String visitLiteralList(HLiteralList node) {
     StringBuffer elementsString = new StringBuffer();

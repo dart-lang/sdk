@@ -707,7 +707,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range rightRange = ranges[relational.right];
     Range leftRange = ranges[relational.left];
 
-    if (relational is HEquals || relational is HIdentity) {
+    if (relational is HIdentity) {
       handleEqualityCheck(relational);
     } else if (operation.apply(leftRange, rightRange)) {
       relational.block.rewrite(
@@ -830,7 +830,6 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     var condition = branch.condition;
     // TODO(ngeoffray): Handle complex conditions.
     if (condition is !HRelational) return info.newUnboundRange();
-    if (condition is HEquals) return info.newUnboundRange();
     if (condition is HIdentity) return info.newUnboundRange();
     HInstruction right = condition.right;
     HInstruction left = condition.left;

@@ -66,19 +66,6 @@ class SsaInstructionMerger extends HBaseVisitor {
   // they would not be alive.
   void visitTypeGuard(HTypeGuard instruction) {}
 
-  // If an equality operation is builtin it must only have its inputs generated
-  // at use site if it does not require an expression with repeated uses
-  // (because of null / undefined).
-  void visitEquals(HEquals instruction) {
-    HInstruction left = instruction.left;
-    HInstruction right = instruction.right;
-    if (!instruction.isBuiltin(types) ||
-        singleIdentityComparison(left, right, types) != null) {
-      super.visitEquals(instruction);
-    }
-    // Do nothing.
-  }
-
   // An identity operation must only have its inputs generated at use site if
   // does not require an expression with multiple uses (because of null /
   // undefined).
