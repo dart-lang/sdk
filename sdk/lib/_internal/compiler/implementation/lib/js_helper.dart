@@ -5,7 +5,6 @@
 library _js_helper;
 
 import 'dart:collection';
-import 'dart:collection-dev';
 
 part 'constant_map.dart';
 part 'native_helper.dart';

@@ -176,20 +176,20 @@ class FilteredElementList implements List {
     return _filtered.lastIndexOf(element, start);
   }
 
-  Iterable<Element> take(int n) {
-    return new TakeIterable<Element>(this, n);
+  List<Element> take(int n) {
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Element> skip(int n) {
-    return new SkipIterable<Element>(this, n);
+  List<Element> skip(int n) {
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element get first => _filtered.first;

@@ -2,7 +2,6 @@ library html;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:collection-dev';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -19676,14 +19675,16 @@ class SelectElement extends Element native "*HTMLSelectElement" {
   // does not operate as a List.
   List<OptionElement> get options {
     var options = this.children.where((e) => e is OptionElement).toList();
-    return new ListView(options, 0, options.length);
+    // TODO(floitsch): find better way to create a read-only list view.
+    return options.take(options.length);
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
       var options = this.options.where((o) => o.selected).toList();
-      return new ListView(options, 0, options.length);
+      // TODO(floitsch): find better way to create a read-only list view.
+      return options.take(options.length);
     } else {
       return [this.options[this.selectedIndex]];
     }

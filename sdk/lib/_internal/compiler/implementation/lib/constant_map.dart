@@ -35,7 +35,8 @@ class ConstantMap<V> implements Map<String, V> {
   }
 
   Iterable<V> get values {
-    return new MappedIterable<String, V>(_keys, (String key) => this[key]);
+    // TODO(floitsch): don't wrap the map twice.
+    return keys.mappedBy((String key) => this[key]);
   }
 
   bool get isEmpty => length == 0;
