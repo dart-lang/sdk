@@ -5040,6 +5040,8 @@ public class DartParser extends CompletionHooksParserBase {
     boolean warnedUnreachable = false;
     while (true) {
       switch (peek(0)) {
+        case CLASS:
+          // exit loop to report error condition
         case CASE:
         case DEFAULT:
         case RBRACE:

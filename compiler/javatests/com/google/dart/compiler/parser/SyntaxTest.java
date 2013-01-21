@@ -193,6 +193,27 @@ public class SyntaxTest extends AbstractParserTest {
   }
 
   /**
+   * There was bug that class instead of case in switch caused infinite parsing loop.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7999
+   */
+  public void test_switch_class_inCase() {
+    DartParserRunner runner = parseSource(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void main() {",
+        "  print((e) {",
+        "    switch (e) {",
+        "      case 'Up': cursor.(); break;",
+        "      class LoopClass { var myData; }",
+        "      case 'Down':",
+        "    }",
+        "  }); ",
+        "}",
+        ""));
+    assertTrue(runner.getErrorCount() > 0);
+  }
+
+  /**
    * There was bug that handling missing identifier (method name) after "cursor." in switch caused
    * infinite parsing loop.
    * <p>
