@@ -356,6 +356,7 @@ closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
+arithmetic_test: Fail # Issue: 7414
 
 [ $runtime == opera ]
 null_access_error_test: Fail # Issue: 7413

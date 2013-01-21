@@ -40,6 +40,9 @@ dart/inline_stack_frame_test: Fail # Issue 7953.
 [ $runtime == ff || $runtime == ie9 ]
 dart/inline_stack_frame_test: Skip
 
+[ $runtime == safari ]
+dart/inline_stack_frame_test: Fail # Issue: 7414
+
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip

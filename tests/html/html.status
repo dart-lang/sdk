@@ -166,6 +166,32 @@ media_stream_test/supported: Fail
 node_test: Skip # Issue 6457
 shadow_dom_test/supported: Fail
 
+# The following failures are on MacOS 10.7
+datalistelement_test: Fail # Issue: 7414
+element_types_test/constructors: Fail # Issue: 7414
+element_types_test/supported_details: Fail # Issue: 7414
+element_types_test/supported_embed: Fail # Issue: 7414
+element_types_test/supported_keygen: Fail # Issue: 7414
+element_types_test/supported_meter: Fail # Issue: 7414
+element_types_test/supported_object: Fail # Issue: 7414
+element_types_test/supported_output: Fail # Issue: 7414
+element_types_test/supported_progress: Fail # Issue: 7414
+element_types_test/supported_track: Pass, Fail # Issue: 7414
+fileapi_test/getDirectory: Fail # Issue: 7414
+fileapi_test/getFile: Fail # Issue: 7414
+fileapi_test/unsupported: Fail # Issue: 7414
+input_element_test/constructors: Fail # Issue: 7414
+input_element_test/supported_number: Fail # Issue: 7414
+input_element_test/supported_tel: Fail # Issue: 7414
+input_element_test/supported_url: Fail # Issue: 7414
+notifications_test/supported: Fail # Issue: 7414
+notifications_test/unsupported: Fail # Issue: 7414
+notifications_test/webkitNotifications: Fail # Issue: 7414
+performance_api_test/performance: Fail # Issue: 7414
+shadow_dom_test/ShadowDOM: Fail # Issue: 7414
+wheelevent_test: Fail # Issue: 7414
+
+
 [ $runtime == opera ]
 document_test/supports_cssCanvasContext: Fail
 document_test/document: Fail # Issue: 7413
