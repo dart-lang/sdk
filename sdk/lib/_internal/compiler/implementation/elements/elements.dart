@@ -665,7 +665,6 @@ abstract class ClassElement extends TypeDeclarationElement
   bool implementsInterface(ClassElement intrface);
   bool isShadowedByField(Element fieldMember);
 
-  ClassNode parseNode(Compiler compiler);
   ClassElement ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);

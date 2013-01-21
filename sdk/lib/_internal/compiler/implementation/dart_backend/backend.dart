@@ -161,6 +161,26 @@ class DartBackend extends Backend {
       }
     }
 
+    void processTypeAnnotationList(Element classElement, NodeList annotations) {
+      for (Link link = annotations.nodes; !link.isEmpty; link = link.tail) {
+        TypeAnnotation typeAnnotation = link.head;
+        NodeList typeArguments = typeAnnotation.typeArguments;
+        processTypeArguments(classElement, typeArguments);
+      }
+    }
+
+    void processSuperclassTypeArguments(Element classElement, Node superclass) {
+      if (superclass == null) return;
+      MixinApplication superMixinApplication = superclass.asMixinApplication();
+      if (superMixinApplication != null) {
+        processTypeAnnotationList(classElement, superMixinApplication.mixins);
+      } else {
+        TypeAnnotation typeAnnotation = superclass;
+        NodeList typeArguments = typeAnnotation.typeArguments;
+        processTypeArguments(classElement, typeArguments);
+      }
+    }
+
     while (!workQueue.isEmpty) {
       DartType type = workQueue.removeLast();
       if (processedTypes.contains(type)) continue;
@@ -168,31 +188,19 @@ class DartBackend extends Backend {
       if (type is TypedefType) return false;
       if (type is InterfaceType) {
         ClassElement element = type.element;
-        // TODO(kasperl): Deal with mixin applications.
-        if (element.isMixinApplication) continue;
-        ClassNode node = element.parseNode(compiler);
-        // Check class type args.
-        processTypeArguments(element, node.typeParameters);
-        // Check superclass type args.
-        if (node.superclass != null) {
-          MixinApplication superMixin = node.superclass.asMixinApplication();
-          if (superMixin != null) {
-            for (Link<Node> link = superMixin.mixins.nodes;
-                 !link.isEmpty;
-                 link = link.tail) {
-              TypeAnnotation currentMixin = link.head;
-              processTypeArguments(element, currentMixin.typeArguments);
-            }
-          } else {
-            TypeAnnotation superclass = node.superclass;
-            NodeList typeArguments = superclass.typeArguments;
-            processTypeArguments(element, typeArguments);
+        Node node = element.parseNode(compiler);
+        if (node is ClassNode) {
+          ClassNode classNode = node;
+          processTypeArguments(element, classNode.typeParameters);
+          processSuperclassTypeArguments(element, classNode.superclass);
+          processTypeAnnotationList(element, classNode.interfaces);
+        } else {
+          MixinApplication mixinNode = node;
+          processSuperclassTypeArguments(element, mixinNode.superclass);
+          if (mixinNode is NamedMixinApplication) {
+            NamedMixinApplication namedMixinNode = mixinNode;
+            processTypeArguments(element, namedMixinNode.typeParameters);
           }
-        }
-        // Check interfaces type args.
-        for (Node interfaceNode in node.interfaces) {
-          processTypeArguments(
-              element, (interfaceNode as TypeAnnotation).typeArguments);
         }
         // Check all supertypes.
         if (element.allSupertypes != null) {
@@ -312,8 +320,6 @@ class DartBackend extends Backend {
     }
 
     addClass(classElement) {
-      // TODO(kasperl): Deal with mixin applications.
-      if (classElement.isMixinApplication) return;
       addTopLevel(classElement,
                   new ElementAst.forClassLike(parse(classElement)));
       classMembers.putIfAbsent(classElement, () => new Set());
@@ -377,14 +383,14 @@ class DartBackend extends Backend {
       // TODO(antonm): check with AAR team if there is better approach.
       // As an idea: provide template as a Dart code---class C { C.name(); }---
       // and then overwrite necessary parts.
+      ClassNode classNode = classElement.parseNode(compiler);
       SynthesizedConstructorElementX constructor =
           new SynthesizedConstructorElementX(classElement);
       constructor.type = new FunctionType(
           compiler.types.voidType, const Link<DartType>(),
           constructor);
       constructor.cachedNode = new FunctionExpression(
-          new Send(classElement.parseNode(compiler).name,
-                   synthesizedIdentifier),
+          new Send(classNode.name, synthesizedIdentifier),
           new NodeList(new StringToken(OPEN_PAREN_INFO, '(', -1),
                        const Link<Node>(),
                        new StringToken(CLOSE_PAREN_INFO, ')', -1)),
@@ -449,7 +455,7 @@ class DartBackend extends Backend {
     final memberNodes = new Map<ClassNode, List<Node>>();
     for (final element in sortedTopLevels) {
       topLevelNodes.add(elementAsts[element].ast);
-      if (element is ClassElement) {
+      if (element is ClassElement && element is !MixinApplicationElement) {
         final members = <Node>[];
         for (final member in sortedClassMembers[element]) {
           members.add(elementAsts[member].ast);

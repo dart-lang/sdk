@@ -828,12 +828,15 @@ class ElementListener extends Listener {
 
   void endNamedMixinApplication(Token typedefKeyword, Token endToken) {
     MixinApplication mixinApplication = popNode();
-    NodeList typeVariables = popNode();
+    NodeList typeParameters = popNode();
     Identifier name = popNode();
+    NamedMixinApplication namedMixinApplication = new NamedMixinApplication(
+        name, typeParameters, mixinApplication, typedefKeyword, endToken);
+
     int id = idGenerator();
     Element enclosing = compilationUnitElement;
     pushElement(new MixinApplicationElementX(
-        name.source, enclosing, id, mixinApplication));
+        name.source, enclosing, id, namedMixinApplication));
     rejectBuiltInIdentifier(name);
   }
 

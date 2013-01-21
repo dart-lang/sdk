@@ -1367,17 +1367,10 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   bool get hasBackendMembers => !backendMembers.isEmpty;
 
-  InterfaceType computeType(compiler) {
+  InterfaceType computeType(Compiler compiler) {
     if (thisType == null) {
       if (origin == null) {
-        Link<DartType> parameters = const Link<DartType>();
-        // TODO(kasperl): Figure out how to get the type parameters
-        // for a mixin application.
-        if (!isMixinApplication) {
-          ClassNode node = parseNode(compiler);
-          parameters = TypeDeclarationElementX.createTypeVariables(
-              this, node.typeParameters);
-        }
+        Link<DartType> parameters = computeTypeParameters(compiler);
         thisType = new InterfaceType(this, parameters);
         if (parameters.isEmpty) {
           rawType = thisType;
@@ -1396,6 +1389,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
     }
     return thisType;
   }
+
+  Link<DartType> computeTypeParameters(Compiler compiler);
 
   /**
    * Return [:true:] if this element is the [:Object:] class for the [compiler].
@@ -1764,6 +1759,12 @@ abstract class ClassElementX extends BaseClassElementX {
     addToScope(constructor, compiler);
   }
 
+  Link<DartType> computeTypeParameters(Compiler compiler) {
+    ClassNode node = parseNode(compiler);
+    return TypeDeclarationElementX.createTypeVariables(
+        this, node.typeParameters);
+  }
+
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
 
   String toString() {
@@ -1779,7 +1780,7 @@ abstract class ClassElementX extends BaseClassElementX {
 
 class MixinApplicationElementX extends BaseClassElementX
     implements MixinApplicationElement {
-  final Node cachedNode;
+  final Node node;
 
   FunctionElement constructor;
   ClassElement mixin;
@@ -1790,16 +1791,16 @@ class MixinApplicationElementX extends BaseClassElementX
   final ClassElement origin = null;
 
   MixinApplicationElementX(SourceString name, Element enclosing, int id,
-                           this.cachedNode)
+                           this.node)
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
   bool get isMixinApplication => true;
   bool get hasConstructor => constructor != null;
   bool get hasLocalScopeMembers => false;
 
-  Token position() => cachedNode.getBeginToken();
+  Token position() => node.getBeginToken();
 
-  Node parseNode(DiagnosticListener listener) => cachedNode;
+  Node parseNode(DiagnosticListener listener) => node;
 
   Element localLookup(SourceString name) {
     if (this.name == name) return constructor;
@@ -1821,6 +1822,13 @@ class MixinApplicationElementX extends BaseClassElementX
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
     assert(!hasConstructor);
     this.constructor = constructor;
+  }
+
+  Link<DartType> computeTypeParameters(Compiler compiler) {
+    if (node is !NamedMixinApplication) return const Link<DartType>();
+    NamedMixinApplication namedMixinNode = node;
+    return TypeDeclarationElementX.createTypeVariables(
+        this, namedMixinNode.typeParameters);
   }
 }
 

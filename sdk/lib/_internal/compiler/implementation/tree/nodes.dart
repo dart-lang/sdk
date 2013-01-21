@@ -51,7 +51,9 @@ abstract class Visitor<R> {
   R visitMixinApplication(MixinApplication node) => visitNode(node);
   R visitModifiers(Modifiers node) => visitNode(node);
   R visitNamedArgument(NamedArgument node) => visitExpression(node);
-  R visitNamedMixinApplication(NamedMixinApplication node) => visitNode(node);
+  R visitNamedMixinApplication(NamedMixinApplication node) {
+    return visitMixinApplication(node);
+  }
   R visitNewExpression(NewExpression node) => visitExpression(node);
   R visitNodeList(NodeList node) => visitNode(node);
   R visitOperator(Operator node) => visitIdentifier(node);
@@ -261,7 +263,7 @@ class MixinApplication extends Node {
 
 // TODO(kasperl): Let this share some structure with the typedef for function
 // type aliases?
-class NamedMixinApplication extends Node {
+class NamedMixinApplication extends Node implements MixinApplication {
   final Identifier name;
   final NodeList typeParameters;
   final MixinApplication mixinApplication;
@@ -272,6 +274,11 @@ class NamedMixinApplication extends Node {
   NamedMixinApplication(this.name, this.typeParameters, this.mixinApplication,
                         this.typedefKeyword, this.endToken);
 
+  Modifiers get modifiers => mixinApplication.modifiers;
+  TypeAnnotation get superclass => mixinApplication.superclass;
+  NodeList get mixins => mixinApplication.mixins;
+
+  MixinApplication asMixinApplication() => this;
   NamedMixinApplication asNamedMixinApplication() => this;
 
   accept(Visitor visitor) => visitor.visitNamedMixinApplication(this);
