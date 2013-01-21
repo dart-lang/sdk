@@ -653,6 +653,4 @@ LibTest/core/Queue/removeFirst_A02_t01: Fail # Moved collection classes from cor
 LibTest/core/Queue/removeLast_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 LibTest/core/Queue/removeLast_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-
-[ $compiler == dart2dart && $checked ]
 Language/14_Types/4_Interface_Types_A08_t06: Fail # Moved collection classes from core to collection. co19 issue 371.
