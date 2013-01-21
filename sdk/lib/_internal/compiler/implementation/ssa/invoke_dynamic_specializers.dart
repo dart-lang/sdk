@@ -487,7 +487,7 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
   }
 }
 
-class RelationalSpecializer extends InvokeDynamicSpecializer {
+abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
   const RelationalSpecializer();
 
   HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
