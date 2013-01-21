@@ -8,6 +8,7 @@
 
 #library("dart:io");
 #import("dart:async");
+#import("dart:collection");
 #import("dart:crypto");
 #import("dart:isolate");
 #import("dart:math");

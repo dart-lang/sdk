@@ -5,6 +5,7 @@
 library tree;
 
 import 'dart:math';
+import 'dart:collection';
 
 import '../scanner/scannerlib.dart';
 import '../util/util.dart';

@@ -4,6 +4,8 @@
 
 library js_backend;
 
+import 'dart:collection' show LinkedHashMap;
+
 import '../closure.dart';
 import '../../compiler.dart' as api;
 import '../elements/elements.dart';

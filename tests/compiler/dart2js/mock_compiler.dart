@@ -4,6 +4,7 @@
 
 library mock_compiler;
 
+import 'dart:collection';
 import 'dart:uri';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;

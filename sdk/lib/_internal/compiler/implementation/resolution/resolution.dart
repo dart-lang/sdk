@@ -4,6 +4,8 @@
 
 library resolution;
 
+import 'dart:collection' show Queue, LinkedHashMap;
+
 import '../dart2jslib.dart' hide Diagnostic;
 import '../../compiler.dart' show Diagnostic;
 import '../tree/tree.dart';

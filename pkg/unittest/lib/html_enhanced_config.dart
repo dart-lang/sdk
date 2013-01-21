@@ -10,6 +10,7 @@
  */
 library unittest_html_enhanced_config;
 
+import 'dart:collection' show LinkedHashMap;
 import 'dart:html';
 import 'unittest.dart';
 

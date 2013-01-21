@@ -5,6 +5,7 @@
 library _isolate_helper;
 
 import 'dart:async';
+import 'dart:collection' show Queue, HashMap;
 import 'dart:isolate';
 
 ReceivePort lazyPort;

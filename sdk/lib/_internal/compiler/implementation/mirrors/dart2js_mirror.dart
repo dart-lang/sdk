@@ -5,6 +5,7 @@
 library mirrors_dart2js;
 
 import 'dart:async';
+import 'dart:collection' show LinkedHashMap;
 import 'dart:io';
 import 'dart:uri';
 

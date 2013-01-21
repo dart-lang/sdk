@@ -9,6 +9,7 @@
 library test_pub;
 
 import 'dart:async';
+import 'dart:collection' show Queue;
 import 'dart:io';
 import 'dart:json' as json;
 import 'dart:math';

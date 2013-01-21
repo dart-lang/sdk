@@ -183,6 +183,7 @@ import 'src/mirrors_helpers.dart';
 import 'src/serialization_helpers.dart';
 import 'dart:async';
 import 'dart:json' as json;
+import 'dart:collection' show Queue;
 
 part 'src/reader_writer.dart';
 part 'src/serialization_rule.dart';

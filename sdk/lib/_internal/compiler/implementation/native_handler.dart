@@ -4,6 +4,7 @@
 
 library native;
 
+import 'dart:collection' show Queue;
 import 'dart:uri';
 import 'dart2jslib.dart' hide SourceString;
 import 'elements/elements.dart';

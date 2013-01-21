@@ -5,6 +5,7 @@
 library dart2js;
 
 import 'dart:async';
+import 'dart:collection' show Queue, LinkedHashMap;
 import 'dart:io';
 import 'dart:uri';
 import 'dart:utf';

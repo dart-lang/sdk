@@ -36,6 +36,7 @@
 library version_solver;
 
 import 'dart:async';
+import 'dart:collection' show Queue;
 import 'dart:json' as json;
 import 'dart:math';
 import 'lock_file.dart';

@@ -12,6 +12,7 @@
 library test_runner;
 
 import "dart:async";
+import "dart:collection" show Queue;
 // We need to use the 'io' prefix here, otherwise io.exitCode will shadow
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import "dart:io" as io;

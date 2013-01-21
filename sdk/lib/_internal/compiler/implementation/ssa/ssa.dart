@@ -4,6 +4,8 @@
 
 library ssa;
 
+import 'dart:collection';
+
 import '../closure.dart';
 import '../js/js.dart' as js;
 import '../dart2jslib.dart' hide Selector;

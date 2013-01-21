@@ -8,6 +8,10 @@ import 'dart:collection-dev';
 
 part 'arrays.dart';
 part 'collections.dart';
+part 'iterator.dart';
+part 'map.dart';
 part 'maps.dart';
+part 'queue.dart';
+part 'set.dart';
 part 'sort.dart';
 part 'splay_tree.dart';

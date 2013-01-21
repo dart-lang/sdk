@@ -611,3 +611,48 @@ LibTest/core/Futures/wait_A02_t02: Fail # Future is in async library. co19 issue
 
 LibTest/core/Future/chain_A02_t05: Fail # Future is in async library. co19 issue 367
 LibTest/core/Future/transform_A02_t04: Fail # Future is in async library. co19 issue 367
+
+LibTest/core/Expect/setEquals_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Expect/setEquals_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashMap/HashMap.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashMap/HashMap_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashSet/HashSet.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashSet/HashSet_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/LinkedHashMap/LinkedHashMap.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/LinkedHashMap/LinkedHashMap_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/List/List.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/List/addAll_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/Queue.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/Queue_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addAll_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addAll_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addFirst_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addFirst_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addLast_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addLast_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/add_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/add_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/clear_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t03: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t04: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t05: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/first_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/first_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/forEach_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/forEach_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/forEach_A01_t03: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/forEach_A01_t05: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/isEmpty_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/last_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/last_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/length_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/removeFirst_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/removeFirst_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/removeLast_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/removeLast_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+
+[ $compiler == dart2dart && $checked ]
+Language/14_Types/4_Interface_Types_A08_t06: Fail # Moved collection classes from core to collection. co19 issue 371.

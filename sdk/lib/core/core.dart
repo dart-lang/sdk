@@ -30,7 +30,6 @@ part "object.dart";
 part "options.dart";
 part "pattern.dart";
 part "print.dart";
-part "queue.dart";
 part "regexp.dart";
 part "set.dart";
 part "sink.dart";
