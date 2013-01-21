@@ -266,7 +266,7 @@ class Parser {
       token = parseIdentifier(token.next);
       token = parseTypeVariablesOpt(token);
       token = expect('=', token);
-      token = parseMixinApplication(token);
+      token = parseMixinApplication(token, true);
       listener.endNamedMixinApplication(typedefKeyword, token);
     } else {
       listener.beginFunctionTypeAlias(token);
@@ -279,9 +279,13 @@ class Parser {
     return expect(';', token);
   }
 
-  Token parseMixinApplication(Token token) {
+  Token parseMixinApplication(Token token, bool isTypedef) {
     listener.beginMixinApplication(token);
-    token = parseModifiers(token);
+    if (isTypedef) {
+      token = parseModifiers(token);
+    } else {
+      listener.handleModifiers(0);
+    }
     token = parseType(token);
     token = expect('with', token);
     token = parseTypeList(token);
@@ -485,8 +489,7 @@ class Parser {
     if (optional('extends', token)) {
       extendsKeyword = token;
       if (optional('with', token.next.next)) {
-        // TODO(kasperl): Disallow modifiers here.
-        token = parseMixinApplication(token.next);
+        token = parseMixinApplication(token.next, false);
       } else {
         token = parseType(token.next);
       }

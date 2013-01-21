@@ -489,7 +489,29 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  void checkMembers(ClassElement cls) {
+  void checkClass(ClassElement element) {
+    if (element.isMixinApplication) {
+      checkMixinApplication(element);
+    } else {
+      checkClassMembers(element);
+    }
+  }
+
+  void checkMixinApplication(MixinApplicationElement mixin) {
+    Modifiers modifiers = mixin.modifiers;
+    int illegalFlags = modifiers.flags & ~Modifiers.FLAG_ABSTRACT;
+    if (illegalFlags != 0) {
+      Modifiers illegalModifiers = new Modifiers.withFlags(null, illegalFlags);
+      MessageKind messageKind =
+          MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS.error(
+              [illegalModifiers]);
+      compiler.reportMessage(compiler.spanFromSpannable(modifiers),
+                             messageKind,
+                             Diagnostic.ERROR);
+    }
+  }
+
+  void checkClassMembers(ClassElement cls) {
     assert(invariant(cls, cls.isDeclaration));
     if (cls.isObject(compiler)) return;
     // TODO(johnniwinther): Should this be done on the implementation element as
@@ -2837,7 +2859,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         new SourceString("${superName}_${mixinName}"),
         element.getCompilationUnit(),
         compiler.getNextFreeClassId(),
-        element.parseNode(compiler));
+        element.parseNode(compiler),
+        Modifiers.EMPTY);  // TODO(kasperl): Should this be abstract?
     doApplyMixinTo(mixinApplication, supertype, mixinType);
     mixinApplication.resolutionState = STATE_DONE;
     mixinApplication.supertypeLoadState = STATE_DONE;

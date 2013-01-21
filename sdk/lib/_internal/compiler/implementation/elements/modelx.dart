@@ -1781,6 +1781,7 @@ abstract class ClassElementX extends BaseClassElementX {
 class MixinApplicationElementX extends BaseClassElementX
     implements MixinApplicationElement {
   final Node node;
+  final Modifiers modifiers;
 
   FunctionElement constructor;
   ClassElement mixin;
@@ -1791,7 +1792,7 @@ class MixinApplicationElementX extends BaseClassElementX
   final ClassElement origin = null;
 
   MixinApplicationElementX(SourceString name, Element enclosing, int id,
-                           this.node)
+                           this.node, this.modifiers)
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
   bool get isMixinApplication => true;

@@ -303,6 +303,9 @@ class MessageKind {
   static const ILLEGAL_CONSTRUCTOR_MODIFIERS = const MessageKind(
       "Error: illegal constructor modifiers: #{1}.");
 
+  static const ILLEGAL_MIXIN_APPLICATION_MODIFIERS = const MessageKind(
+      "Error: illegal mixin application modifiers: #{1}.");
+
   static const PARAMETER_NAME_EXPECTED = const MessageKind(
       "Error: parameter name expected.");
 

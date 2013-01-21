@@ -60,10 +60,11 @@ mixin_field_test: Fail
 mixin_is_test: Fail
 mixin_method_test: Fail
 mixin_naming_test: Fail
-
 mixin_extends_field_test: Fail
 mixin_extends_is_test: Fail
 mixin_extends_method_test: Fail
+mixin_mixin_test: Fail
+mixin_illegal_syntax_test/none: Fail
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
@@ -349,15 +350,16 @@ type_variable_scope_test: Fail # type arguments on redirecting factory not imple
 many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 
-# Mixins aren't unparsed the right way yet.
-mixin_field_test: Fail # http://dartbug.com/7972
-mixin_is_test: Fail # http://dartbug.com/7972
-mixin_method_test: Fail # http://dartbug.com/7972
-mixin_naming_test: Fail # http://dartbug.com/7972
-
-mixin_extends_field_test: Fail # http://dartbug.com/7972
-mixin_extends_is_test: Fail # http://dartbug.com/7972
-mixin_extends_method_test: Fail # http://dartbug.com/7972
+# Mixins fail on the VM.
+mixin_field_test: Fail                # VM issue
+mixin_is_test: Fail                   # VM issue
+mixin_method_test: Fail               # VM issue
+mixin_naming_test: Fail               # VM issue
+mixin_extends_field_test: Fail        # VM issue
+mixin_extends_is_test: Fail           # VM issue
+mixin_extends_method_test: Fail       # VM issue
+mixin_mixin_test: Fail                # VM issue
+mixin_illegal_syntax_test/none: Fail  # VM issue
 
 # Malformed types not handled as unresolved:
 import_core_prefix_test: Fail

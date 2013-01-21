@@ -198,7 +198,7 @@ abstract class Enqueuer {
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
         if (isResolutionQueue) {
-          compiler.resolver.checkMembers(cls);
+          compiler.resolver.checkClass(cls);
         }
 
         if (compiler.enableTypeAssertions) {

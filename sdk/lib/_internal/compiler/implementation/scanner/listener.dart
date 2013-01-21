@@ -835,8 +835,9 @@ class ElementListener extends Listener {
 
     int id = idGenerator();
     Element enclosing = compilationUnitElement;
-    pushElement(new MixinApplicationElementX(
-        name.source, enclosing, id, namedMixinApplication));
+    pushElement(new MixinApplicationElementX(name.source, enclosing, id,
+                                             namedMixinApplication,
+                                             mixinApplication.modifiers));
     rejectBuiltInIdentifier(name);
   }
 
