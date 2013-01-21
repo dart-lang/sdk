@@ -556,12 +556,6 @@ void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void InvokeMathCFunctionInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, ", MethodRecognizer::KindToCString(recognized_kind_));
-  Definition::PrintOperandsTo(f);
-}
-
-
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   const GrowableArray<Definition*>& defns = initial_definitions_;
   f->Print("B%"Pd"[graph]", block_id());

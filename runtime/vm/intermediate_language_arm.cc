@@ -495,17 +495,6 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;

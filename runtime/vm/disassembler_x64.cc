@@ -1509,13 +1509,6 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         data += 3;
         break;
 
-      case 0xC8:
-        AppendToBuffer("enter %d, %d",
-                       *reinterpret_cast<uint16_t*>(data + 1),
-                       data[3]);
-        data += 4;
-        break;
-
       case 0x69:  // fall through
       case 0x6B: {
         int mod, regop, rm;

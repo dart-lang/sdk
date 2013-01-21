@@ -48,7 +48,6 @@ class FlowGraphOptimizer;
   V(_Double, round, DoubleRound, 620870996)                                    \
   V(_Double, floor, DoubleFloor, 620870996)                                    \
   V(_Double, ceil, DoubleCeil, 620870996)                                      \
-  V(_Double, pow, DoublePow, 1131958048)                                       \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
 
 // Class that recognizes the name and owner of a function and returns the
@@ -275,8 +274,7 @@ class EmbeddedArray<T, 0> {
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
-  M(StringFromCharCode)                                                        \
-  M(InvokeMathCFunction)                                                       \
+  M(StringFromCharCode)
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -517,7 +515,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class LICM;
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
-  friend class InvokeMathCFunctionInstr;
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
@@ -4056,76 +4053,6 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind recognized_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
-};
-
-
-class InvokeMathCFunctionInstr : public Definition {
- public:
-  InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
-                           InstanceCallInstr* instance_call,
-                           MethodRecognizer::Kind recognized_kind)
-    : inputs_(inputs), locs_(NULL), recognized_kind_(recognized_kind) {
-    ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
-    deopt_id_ = instance_call->deopt_id();
-  }
-
-  static intptr_t ArgumentCountFor(MethodRecognizer::Kind recognized_kind_);
-
-  const RuntimeEntry& TargetFunction() const;
-
-  MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
-
-  DECLARE_INSTRUCTION(InvokeMathCFunction)
-  virtual RawAbstractType* CompileType() const;
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual intptr_t ResultCid() const { return kDoubleCid; }
-
-  virtual Representation representation() const {
-    return kUnboxedDouble;
-  }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT((0 <= idx) && (idx < InputCount()));
-    return kUnboxedDouble;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
-
-  virtual intptr_t InputCount() const {
-    return inputs_->length();
-  }
-
-  virtual Value* InputAt(intptr_t i) const {
-    return (*inputs_)[i];
-  }
-
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    ASSERT(value != NULL);
-    (*inputs_)[i] = value;
-  }
-
-  // Returns a structure describing the location constraints required
-  // to emit native code for this definition.
-  LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
-
- private:
-  ZoneGrowableArray<Value*>* inputs_;
-
-  LocationSummary* locs_;
-
-  const MethodRecognizer::Kind recognized_kind_;
-
-  DISALLOW_COPY_AND_ASSIGN(InvokeMathCFunctionInstr);
 };
 
 

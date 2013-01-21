@@ -1550,11 +1550,6 @@ RawAbstractType* DoubleToDoubleInstr::CompileType() const {
 }
 
 
-RawAbstractType* InvokeMathCFunctionInstr::CompileType() const {
-  return Type::Double();
-}
-
-
 RawAbstractType* CheckClassInstr::CompileType() const {
   return AbstractType::null();
 }
@@ -2620,61 +2615,6 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
       return -1;
   }
 }
-
-
-intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
-    MethodRecognizer::Kind kind) {
-  switch (kind) {
-    case MethodRecognizer::kDoubleTruncate:
-    case MethodRecognizer::kDoubleRound:
-    case MethodRecognizer::kDoubleFloor:
-    case MethodRecognizer::kDoubleCeil: {
-      ASSERT(!CPUFeatures::double_truncate_round_supported());
-      return 1;
-    }
-    case MethodRecognizer::kDoublePow:
-      return 2;
-    default:
-      UNREACHABLE();
-  }
-  return 0;
-}
-
-
-extern const RuntimeEntry kPowRuntimeEntry(
-    "libc_pow", reinterpret_cast<RuntimeFunction>(&pow), 0, true);
-
-extern const RuntimeEntry kFloorRuntimeEntry(
-    "libc_floor", reinterpret_cast<RuntimeFunction>(&floor), 0, true);
-
-extern const RuntimeEntry kCeilRuntimeEntry(
-    "libc_ceil", reinterpret_cast<RuntimeFunction>(&ceil), 0, true);
-
-extern const RuntimeEntry kTruncRuntimeEntry(
-    "libc_trunc", reinterpret_cast<RuntimeFunction>(&trunc), 0, true);
-
-extern const RuntimeEntry kRoundRuntimeEntry(
-    "libc_round", reinterpret_cast<RuntimeFunction>(&round), 0, true);
-
-
-const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
-  switch (recognized_kind_) {
-    case MethodRecognizer::kDoubleTruncate:
-      return kTruncRuntimeEntry;
-    case MethodRecognizer::kDoubleRound:
-      return kRoundRuntimeEntry;
-    case MethodRecognizer::kDoubleFloor:
-      return kFloorRuntimeEntry;
-    case MethodRecognizer::kDoubleCeil:
-      return kCeilRuntimeEntry;
-    case MethodRecognizer::kDoublePow:
-      return kPowRuntimeEntry;
-    default:
-      UNREACHABLE();
-  }
-  return kPowRuntimeEntry;
-}
-
 
 #undef __
 

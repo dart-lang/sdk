@@ -106,8 +106,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   RawBool* InstanceOfAsBool(const ICData& ic_data,
                             const AbstractType& type) const;
 
-  void ReplaceWithMathCFunction(InstanceCallInstr* call,
-                                MethodRecognizer::Kind recognized_kind);
 
   FlowGraph* flow_graph_;
 

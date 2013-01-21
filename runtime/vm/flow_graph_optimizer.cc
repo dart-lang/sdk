@@ -1289,22 +1289,6 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
 }
 
 
-void FlowGraphOptimizer::ReplaceWithMathCFunction(
-  InstanceCallInstr* call,
-  MethodRecognizer::Kind recognized_kind) {
-  AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-  ZoneGrowableArray<Value*>* args =
-      new ZoneGrowableArray<Value*>(call->ArgumentCount());
-  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-    args->Add(call->ArgumentAt(i)->value());
-  }
-  InvokeMathCFunctionInstr* invoke =
-      new InvokeMathCFunctionInstr(args, call, recognized_kind);
-  call->ReplaceWith(invoke, current_iterator());
-  RemovePushArguments(call);
-}
-
-
 // Inline only simple, frequently called core library methods.
 bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -1352,46 +1336,38 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   if (class_ids[0] == kDoubleCid) {
-    switch (recognized_kind) {
-      case MethodRecognizer::kDoubleToInteger: {
-        AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-        ASSERT(call->HasICData());
-        const ICData& ic_data = *call->ic_data();
-        Definition* d2i_instr = NULL;
-        if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
-          // Do not repeatedly deoptimize because result didn't fit into Smi.
-          d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(),
-                                               call);
-        } else {
-          // Optimistically assume result fits into Smi.
-          d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
-        }
-        call->ReplaceWith(d2i_instr, current_iterator());
-        RemovePushArguments(call);
-        return true;
+    if (recognized_kind == MethodRecognizer::kDoubleToInteger) {
+      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+      ASSERT(call->HasICData());
+      const ICData& ic_data = *call->ic_data();
+      Definition* d2i_instr = NULL;
+      if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
+        // Do not repeatedly deoptimize because result didn't fit into Smi.
+        d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(),
+                                             call);
+      } else {
+        // Optimistically assume result fits into Smi.
+        d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
       }
-      case MethodRecognizer::kDoublePow:
-        ReplaceWithMathCFunction(call, recognized_kind);
-        return true;
-      case MethodRecognizer::kDoubleTruncate:
-      case MethodRecognizer::kDoubleRound:
-      case MethodRecognizer::kDoubleFloor:
-      case MethodRecognizer::kDoubleCeil:
-        if (!CPUFeatures::double_truncate_round_supported()) {
-          ReplaceWithMathCFunction(call, recognized_kind);
-        } else {
-          AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-          DoubleToDoubleInstr* d2d_instr =
-              new DoubleToDoubleInstr(call->ArgumentAt(0)->value(),
-                                      call,
-                                      recognized_kind);
-          call->ReplaceWith(d2d_instr, current_iterator());
-          RemovePushArguments(call);
-        }
-        return true;
-      default:
-        // Unsupported method.
+      call->ReplaceWith(d2i_instr, current_iterator());
+      RemovePushArguments(call);
+      return true;
+    }
+    if ((recognized_kind == MethodRecognizer::kDoubleTruncate) ||
+        (recognized_kind == MethodRecognizer::kDoubleRound) ||
+        (recognized_kind == MethodRecognizer::kDoubleFloor) ||
+        (recognized_kind == MethodRecognizer::kDoubleCeil)) {
+      if (!CPUFeatures::double_truncate_round_supported()) {
         return false;
+      }
+      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+      DoubleToDoubleInstr* d2d_instr =
+          new DoubleToDoubleInstr(call->ArgumentAt(0)->value(),
+                                  call,
+                                  recognized_kind);
+      call->ReplaceWith(d2d_instr, current_iterator());
+      RemovePushArguments(call);
+      return true;
     }
   }
 
@@ -4373,12 +4349,6 @@ void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-
-void ConstantPropagator::VisitInvokeMathCFunction(
-    InvokeMathCFunctionInstr* instr) {
-  // TODO(kmillikin): Handle conversion.
-  SetValue(instr, non_constant_);
-}
 
 void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
   SetValue(instr, instr->value());

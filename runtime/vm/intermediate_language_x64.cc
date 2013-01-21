@@ -2402,40 +2402,6 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
-  // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
-  // double arguments and XMM0 to return the result. Unfortunately
-  // currently we can't specify these registers because ParallelMoveResolver
-  // assumes that XMM0 is free at all times.
-  // TODO(vegorov): allow XMM0 to be used.
-  ASSERT((InputCount() == 1) || (InputCount() == 2));
-  const intptr_t kNumTemps = 0;
-  LocationSummary* result =
-      new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
-  result->set_in(0, Location::FpuRegisterLocation(XMM1, Location::kDouble));
-  if (InputCount() == 2) {
-    result->set_in(1, Location::FpuRegisterLocation(XMM2, Location::kDouble));
-  }
-  result->set_out(Location::FpuRegisterLocation(XMM1, Location::kDouble));
-  return result;
-}
-
-
-void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(locs()->in(0).fpu_reg() == XMM1);
-  __ enter(Immediate(0));
-  __ ReserveAlignedFrameSpace(kDoubleSize * InputCount());
-  __ movaps(XMM0, locs()->in(0).fpu_reg());
-  if (InputCount() == 2) {
-    ASSERT(locs()->in(1).fpu_reg() == XMM2);
-    __ movaps(XMM1, locs()->in(1).fpu_reg());
-  }
-  __ CallRuntime(TargetFunction());
-  __ movaps(locs()->out().fpu_reg(), XMM0);
-  __ leave();
-}
-
-
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
   return MakeCallSummary();
 }
