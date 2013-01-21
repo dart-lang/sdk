@@ -12,7 +12,7 @@ main() {
     });
   });
 
-  group('unsupported throws', () {
+  group('unsupported_throws', () {
     test('createNotification', () {
       var expectation = NotificationCenter.supported ? returnsNormally : throws;
       expect(() { window.notifications.createNotification; }, expectation);
