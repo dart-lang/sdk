@@ -597,7 +597,28 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         return false;
       }
       break;
-
+    case kInt32ArrayCid:
+    case kUint32ArrayCid: {
+      // Check if elements fit into a smi or the platform supports unboxed
+      // mints.
+      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
+        return false;
+      }
+      // Check that value is always smi or mint, if the platform has unboxed
+      // mints (ia32 with at least SSE 4.1).
+      value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      for (intptr_t i = 0; i < value_check.NumberOfChecks(); i++) {
+        intptr_t cid = value_check.GetReceiverClassIdAt(i);
+        if (FlowGraphCompiler::SupportsUnboxedMints()) {
+          if ((cid != kSmiCid) && (cid != kMintCid)) {
+            return false;
+          }
+        } else if (cid != kSmiCid) {
+          return false;
+        }
+      }
+      break;
+    }
     case kFloat32ArrayCid:
     case kFloat64ArrayCid: {
       // Check that value is always double.
@@ -645,6 +666,8 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       case kUint8ClampedArrayCid:
       case kInt16ArrayCid:
       case kUint16ArrayCid:
+      case kInt32ArrayCid:
+      case kUint32ArrayCid:
         ASSERT(value_type.IsIntType());
         // Fall through.
       case kFloat32ArrayCid:
@@ -677,22 +700,20 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   // Check if store barrier is needed.
   bool needs_store_barrier = true;
   if (!value_check.IsNull()) {
-    ASSERT(value_check.NumberOfChecks() == 1);
-    if (value_check.GetReceiverClassIdAt(0) == kSmiCid) {
+    needs_store_barrier = false;
+    if (value_check.NumberOfChecks() == 1 &&
+        value_check.GetReceiverClassIdAt(0) == kSmiCid) {
       InsertBefore(call,
                    new CheckSmiInstr(value->Copy(), call->deopt_id()),
                    call->env(),
                    Definition::kEffect);
-      needs_store_barrier = false;
     } else {
-      ASSERT(value_check.GetReceiverClassIdAt(0) == kDoubleCid);
       InsertBefore(call,
                    new CheckClassInstr(value->Copy(),
                                        call->deopt_id(),
                                        value_check),
                    call->env(),
                    Definition::kEffect);
-      needs_store_barrier = false;
     }
   }
 
@@ -720,7 +741,14 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kExternalUint8ArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
-      // Acceptable load index classes.
+      break;
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      // Check if elements fit into a smi or the platform supports unboxed
+      // mints.
+      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
+        return false;
+      }
       break;
     default:
       return false;

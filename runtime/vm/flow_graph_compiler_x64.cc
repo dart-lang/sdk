@@ -1527,6 +1527,10 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
       return FieldAddress(array, index, TIMES_1, Int16Array::data_offset());
     case kUint16ArrayCid:
       return FieldAddress(array, index, TIMES_1, Uint16Array::data_offset());
+    case kInt32ArrayCid:
+      return FieldAddress(array, index, TIMES_2, Int32Array::data_offset());
+    case kUint32ArrayCid:
+      return FieldAddress(array, index, TIMES_2, Uint32Array::data_offset());
     case kOneByteStringCid:
       return FieldAddress(array, index, TIMES_1, OneByteString::data_offset());
     case kTwoByteStringCid:

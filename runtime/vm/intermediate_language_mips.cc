@@ -172,6 +172,18 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+intptr_t LoadIndexedInstr::ResultCid() const {
+  UNIMPLEMENTED();
+  return kDynamicCid;
+}
+
+
+Representation LoadIndexedInstr::representation() const {
+  UNIMPLEMENTED();
+  return kTagged;
+}
+
+
 LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
@@ -180,6 +192,13 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
+}
+
+
+Representation StoreIndexedInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  UNIMPLEMENTED();
+  return kTagged;
 }
 
 

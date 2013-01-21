@@ -1091,6 +1091,60 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+intptr_t LoadIndexedInstr::ResultCid() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return kDynamicCid;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kDoubleCid;
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return kSmiCid;
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      // Result can be smi or mint when boxed.
+      return kDynamicCid;
+    default:
+      UNIMPLEMENTED();
+      return kDynamicCid;
+  }
+}
+
+
+Representation LoadIndexedInstr::representation() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return kTagged;
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      return kUnboxedMint;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
+}
+
+
 LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -1144,16 +1198,26 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       : FlowGraphCompiler::ElementAddressForIntIndex(
           class_id(), array, Smi::Cast(index.constant()).Value());
 
-  if (representation() == kUnboxedDouble) {
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedMint)) {
     XmmRegister result = locs()->out().fpu_reg();
-    if (class_id() == kFloat32ArrayCid) {
-      // Load single precision float.
-      __ movss(result, element_address);
-      // Promote to double.
-      __ cvtss2sd(result, locs()->out().fpu_reg());
-    } else {
-      ASSERT(class_id() == kFloat64ArrayCid);
-      __ movsd(result, element_address);
+    switch (class_id()) {
+      case kInt32ArrayCid:
+        __ movss(result, element_address);
+        __ pmovsxdq(result, result);
+        break;
+      case kUint32ArrayCid:
+        __ xorpd(result, result);
+        __ movss(result, element_address);
+        break;
+      case kFloat32ArrayCid:
+        // Load single precision float and promote to double.
+        __ movss(result, element_address);
+        __ cvtss2sd(result, locs()->out().fpu_reg());
+        break;
+      case kFloat64ArrayCid:
+        __ movsd(result, element_address);
+        break;
     }
     return;
   }
@@ -1194,6 +1258,31 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+Representation StoreIndexedInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  if ((idx == 0) || (idx == 1)) return kTagged;
+  ASSERT(idx == 2);
+  switch (class_id_) {
+    case kArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+      return kTagged;
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      return kUnboxedMint;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
+}
+
+
 LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 0;
@@ -1228,6 +1317,8 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       // Need temp register for float-to-double conversion.
       locs->AddTemp(Location::RequiresFpuRegister());
       // Fall through.
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
     case kFloat64ArrayCid:
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
@@ -1318,11 +1409,15 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kInt16ArrayCid:
     case kUint16ArrayCid: {
-        Register value = locs()->in(2).reg();
-        __ SmiUntag(value);
-        __ movw(element_address, value);
-        break;
-      }
+      Register value = locs()->in(2).reg();
+      __ SmiUntag(value);
+      __ movw(element_address, value);
+      break;
+    }
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      __ movss(element_address, locs()->in(2).fpu_reg());
+      break;
     case kFloat32ArrayCid:
       // Convert to single precision.
       __ cvtsd2ss(locs()->temp(0).fpu_reg(), locs()->in(2).fpu_reg());

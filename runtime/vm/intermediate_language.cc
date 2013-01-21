@@ -1128,87 +1128,20 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
     case kExternalUint8ArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
       return Type::IntType();
     default:
       UNIMPLEMENTED();
       return Type::IntType();
-  }
-}
-
-
-intptr_t LoadIndexedInstr::ResultCid() const {
-  switch (class_id_) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return kDynamicCid;
-    case kFloat32ArrayCid :
-    case kFloat64ArrayCid :
-      return kDoubleCid;
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-      return kSmiCid;
-    default:
-      UNIMPLEMENTED();
-      return kSmiCid;
-  }
-}
-
-
-Representation LoadIndexedInstr::representation() const {
-  switch (class_id_) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-      return kTagged;
-    case kFloat32ArrayCid :
-    case kFloat64ArrayCid :
-      return kUnboxedDouble;
-    default:
-      UNIMPLEMENTED();
-      return kTagged;
   }
 }
 
 
 RawAbstractType* StoreIndexedInstr::CompileType() const {
   return AbstractType::null();
-}
-
-
-Representation StoreIndexedInstr::RequiredInputRepresentation(
-    intptr_t idx) const {
-  if ((idx == 0) || (idx == 1)) return kTagged;
-  ASSERT(idx == 2);
-  switch (class_id_) {
-    case kArrayCid:
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-      return kTagged;
-    case kFloat32ArrayCid :
-    case kFloat64ArrayCid :
-      return kUnboxedDouble;
-    default:
-      UNIMPLEMENTED();
-      return kTagged;
-  }
 }
 
 
