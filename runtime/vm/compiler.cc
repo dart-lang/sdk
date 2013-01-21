@@ -211,19 +211,21 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // Do optimizations that depend on the propagated type information.
       optimizer.Canonicalize();
 
-      // Unbox doubles.
       flow_graph->ComputeUseLists();
-      optimizer.SelectRepresentations();
 
-      if (FLAG_constant_propagation ||
-          FLAG_common_subexpression_elimination) {
-        flow_graph->ComputeUseLists();
-      }
       if (FLAG_constant_propagation) {
         ConstantPropagator::Optimize(flow_graph);
         // A canonicalization pass to remove e.g. smi checks on smi constants.
         optimizer.Canonicalize();
       }
+
+      // Unbox doubles. Performed after constant propagation to minimize
+      // interference from phis merging double values and tagged
+      // values comming from dead paths.
+      flow_graph->ComputeUseLists();
+      optimizer.SelectRepresentations();
+      flow_graph->ComputeUseLists();
+
       if (FLAG_common_subexpression_elimination) {
         if (DominatorBasedCSE::Optimize(flow_graph)) {
           // Do another round of CSE to take secondary effects into account:
