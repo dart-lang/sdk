@@ -5,7 +5,7 @@
 library options_test;
 
 import 'package:unittest/unittest.dart';
-import 'package:analyzer/options.dart';
+import 'package:analyzer-experimental/options.dart';
 
 main() {
 
