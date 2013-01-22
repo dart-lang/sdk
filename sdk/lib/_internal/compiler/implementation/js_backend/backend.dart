@@ -14,7 +14,7 @@ class ReturnInfo {
       : compiledFunctions = new List<Element>();
 
   ReturnInfo.unknownType()
-      : this.returnType = null,
+      : this.returnType = HType.UNKNOWN,
         compiledFunctions = new List<Element>();
 
   void update(HType type, Recompile recompile, Compiler compiler) {
@@ -128,6 +128,7 @@ class HTypeList {
   bool get hasNamedArguments => namedArguments != null;
   int get length => types.length;
   HType operator[](int index) => types[index];
+  void operator[]=(int index, HType type) { types[index] = type; }
 
   HTypeList union(HTypeList other, Compiler compiler) {
     if (allUnknown) return this;
@@ -482,9 +483,7 @@ class ArgumentTypesRegistry {
     staticTypeMap[element] = HTypeList.ALL_UNKNOWN;
   }
 
-  void registerDynamicInvocation(HInvokeDynamic node,
-                                 Selector selector,
-                                 HTypeMap types) {
+  void registerDynamicInvocation(HTypeList providedTypes, Selector selector) {
     if (selector.isClosureCall()) {
       // We cannot use the current framework to do optimizations based
       // on the 'call' selector because we are also generating closure
@@ -492,8 +491,6 @@ class ArgumentTypesRegistry {
       // track parameter types, nor invalidates optimized methods.
       return;
     }
-    HTypeList providedTypes =
-        new HTypeList.fromDynamicInvocation(node, selector, types);
     if (!selectorTypeMap.containsKey(selector)) {
       selectorTypeMap[selector] = providedTypes;
     } else {
@@ -643,7 +640,7 @@ class JavaScriptBackend extends Backend {
   Element jsStringConcat;
   Element getInterceptorMethod;
   Element fixedLengthListConstructor;
-  bool _interceptorsAreInitialized = false;
+  bool seenAnyClass = false;
 
   final Namer namer;
 
@@ -843,12 +840,25 @@ class JavaScriptBackend extends Backend {
     }
   }
 
+  void initializeNoSuchMethod() {
+    // In case the emitter generates noSuchMethod calls, we need to
+    // make sure all [noSuchMethod] methods know they might take a
+    // [JsInvocationMirror] as parameter.
+    HTypeList types = new HTypeList(1);
+    types[0] = new HType.fromBoundedType(
+        compiler.jsInvocationMirrorClass.computeType(compiler),
+        compiler,
+        false);
+    argumentTypes.registerDynamicInvocation(types, new Selector.noSuchMethod());
+  }
+
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
-    ClassElement result = null;
-    if (!_interceptorsAreInitialized) {
+    if (!seenAnyClass) {
       initializeInterceptorElements();
-      _interceptorsAreInitialized = true;
+      initializeNoSuchMethod();
+      seenAnyClass = true;
     }
+    ClassElement result = null;
     if (cls == compiler.stringClass) {
       addInterceptors(jsStringClass, enqueuer);
     } else if (cls == compiler.listClass) {
@@ -964,7 +974,9 @@ class JavaScriptBackend extends Backend {
   void registerDynamicInvocation(HInvokeDynamic node,
                                  Selector selector,
                                  HTypeMap types) {
-    argumentTypes.registerDynamicInvocation(node, selector, types);
+    HTypeList providedTypes =
+        new HTypeList.fromDynamicInvocation(node, selector, types);
+    argumentTypes.registerDynamicInvocation(providedTypes, selector);
   }
 
   /**
