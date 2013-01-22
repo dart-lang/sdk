@@ -314,13 +314,16 @@ public class ResolutionContext implements ResolutionErrorListener {
    * Interpret this node as a name reference,
    */
   Element resolveName(DartNode node) {
-    if (Elements.isIdentifierName(node, "void")) {
-      return typeProvider.getVoidType().getElement();
+    Element result = node.accept(new Selector());
+    if (result == null) {
+      if (Elements.isIdentifierName(node, "void")) {
+        return typeProvider.getVoidType().getElement();
+      }
+      if (Elements.isIdentifierName(node, "dynamic")) {
+        return typeProvider.getDynamicType().getElement();
+      }
     }
-    if (Elements.isIdentifierName(node, "dynamic")) {
-      return typeProvider.getDynamicType().getElement();
-    }
-    return node.accept(new Selector());
+    return result;
   }
 
   MethodElement declareFunction(DartFunctionExpression node) {

@@ -3496,6 +3496,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7980
+   */
+  public void test_whenVariableNamedDynamic() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var dynamic = 42;",
+        "  new List<dynamic>();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NOT_A_TYPE, 4, 12, 7));
+  }
+
+  /**
    * It is a static warning if the return type of the user-declared operator == is explicitly
    * declared and not bool.
    */
