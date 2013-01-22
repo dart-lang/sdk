@@ -10699,25 +10699,8 @@ class Event extends NativeFieldWrapperClass1 {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  factory Event(String type,
-      [bool canBubble = true, bool cancelable = true]) {
-    return new Event.type('Event', type, canBubble, cancelable);
-  }
-
-  /**
-   * Creates a new Event object of the specified type.
-   *
-   * This is analogous to document.createEvent.
-   * Normally events should be created via their constructors, if available.
-   *
-   *     var e = new Event.type('MouseEvent', 'mousedown', true, true);
-   */
-  factory Event.type(String eventType, String name, [bool canBubble = true,
-      bool cancelable = true]) {
-    final Event e = document.$dom_createEvent(eventType);
-    e.$dom_initEvent(name, canBubble, cancelable);
-    return e;
-  }
+  factory Event(String type, [bool canBubble = true, bool cancelable = true]) =>
+      _EventFactoryProvider.createEvent(type, canBubble, cancelable);
   Event.internal();
 
   static const int AT_TARGET = 2;
@@ -22079,8 +22062,6 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SpeechRecognition')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
 class SpeechRecognition extends EventTarget {
   SpeechRecognition.internal() : super.internal();
 
@@ -22131,9 +22112,6 @@ class SpeechRecognition extends EventTarget {
   @DocsEditable
   factory SpeechRecognition() => SpeechRecognition._create();
   static SpeechRecognition _create() native "SpeechRecognition_constructor_Callback";
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -22297,8 +22275,6 @@ class SpeechRecognitionEvents extends Events {
 
 @DocsEditable
 @DomName('SpeechRecognitionAlternative')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
 class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
   SpeechRecognitionAlternative.internal();
 
@@ -22320,8 +22296,6 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SpeechRecognitionError')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
 class SpeechRecognitionError extends Event {
   SpeechRecognitionError.internal() : super.internal();
 
@@ -22343,8 +22317,6 @@ class SpeechRecognitionError extends Event {
 
 @DocsEditable
 @DomName('SpeechRecognitionEvent')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
 class SpeechRecognitionEvent extends Event {
   SpeechRecognitionEvent.internal() : super.internal();
 
@@ -22374,8 +22346,6 @@ class SpeechRecognitionEvent extends Event {
 
 @DocsEditable
 @DomName('SpeechRecognitionResult')
-@SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
 class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
   SpeechRecognitionResult.internal();
 
