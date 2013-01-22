@@ -367,7 +367,7 @@ class HInstructionList {
     return first == null;
   }
 
-  void addAfter(HInstruction cursor, HInstruction instruction) {
+  void internalAddAfter(HInstruction cursor, HInstruction instruction) {
     if (cursor == null) {
       assert(isEmpty);
       first = last = instruction;
@@ -383,7 +383,7 @@ class HInstructionList {
     }
   }
 
-  void addBefore(HInstruction cursor, HInstruction instruction) {
+  void internalAddBefore(HInstruction cursor, HInstruction instruction) {
     if (cursor == null) {
       assert(isEmpty);
       first = last = instruction;
@@ -501,7 +501,7 @@ class HBasicBlock extends HInstructionList {
 
   void addAtEntry(HInstruction instruction) {
     assert(instruction is !HPhi);
-    super.addBefore(first, instruction);
+    internalAddBefore(first, instruction);
     instruction.notifyAddedToBlock(this);
   }
 
@@ -509,7 +509,7 @@ class HBasicBlock extends HInstructionList {
     assert(isClosed());
     assert(last is HControlFlow);
     assert(instruction is !HPhi);
-    super.addBefore(last, instruction);
+    internalAddBefore(last, instruction);
     instruction.notifyAddedToBlock(this);
   }
 
@@ -518,7 +518,7 @@ class HBasicBlock extends HInstructionList {
     assert(instruction.isInBasicBlock());
     assert(isClosed());
     assert(last is HControlFlow);
-    super.addBefore(last, instruction);
+    internalAddBefore(last, instruction);
     instruction.block = this;
     assert(isValid());
   }
@@ -526,12 +526,12 @@ class HBasicBlock extends HInstructionList {
   void add(HInstruction instruction) {
     assert(instruction is !HControlFlow);
     assert(instruction is !HPhi);
-    super.addAfter(last, instruction);
+    internalAddAfter(last, instruction);
     instruction.notifyAddedToBlock(this);
   }
 
   void addPhi(HPhi phi) {
-    phis.addAfter(phis.last, phi);
+    phis.internalAddAfter(phis.last, phi);
     phi.notifyAddedToBlock(this);
   }
 
@@ -545,7 +545,7 @@ class HBasicBlock extends HInstructionList {
     assert(cursor is !HPhi);
     assert(instruction is !HPhi);
     assert(isOpen() || isClosed());
-    super.addAfter(cursor, instruction);
+    internalAddAfter(cursor, instruction);
     instruction.notifyAddedToBlock(this);
   }
 
@@ -553,7 +553,7 @@ class HBasicBlock extends HInstructionList {
     assert(cursor is !HPhi);
     assert(instruction is !HPhi);
     assert(isOpen() || isClosed());
-    super.addBefore(cursor, instruction);
+    internalAddBefore(cursor, instruction);
     instruction.notifyAddedToBlock(this);
   }
 
@@ -746,8 +746,7 @@ abstract class HInstruction implements Spannable {
   static const int FLAG_CHANGES_INSTANCE_PROPERTY = FLAG_CHANGES_INDEX + 1;
   static const int FLAG_CHANGES_STATIC_PROPERTY
       = FLAG_CHANGES_INSTANCE_PROPERTY + 1;
-  static const int FLAG_CHANGES_SOMETHING = FLAG_CHANGES_STATIC_PROPERTY + 1;
-  static const int FLAG_CHANGES_COUNT = FLAG_CHANGES_SOMETHING + 1;
+  static const int FLAG_CHANGES_COUNT = FLAG_CHANGES_STATIC_PROPERTY + 1;
 
   // Depends flags (one for each changes flag).
   static const int FLAG_DEPENDS_ON_INDEX_STORE = FLAG_CHANGES_COUNT;
@@ -755,11 +754,11 @@ abstract class HInstruction implements Spannable {
       FLAG_DEPENDS_ON_INDEX_STORE + 1;
   static const int FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE =
       FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE + 1;
-  static const int FLAG_DEPENDS_ON_SOMETHING =
+  static const int FLAG_DEPENDS_ON_COUNT =
       FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE + 1;
 
   // Other flags.
-  static const int FLAG_USE_GVN = FLAG_DEPENDS_ON_SOMETHING + 1;
+  static const int FLAG_USE_GVN = FLAG_DEPENDS_ON_COUNT;
 
   // Type codes.
   static const int UNDEFINED_TYPECODE = -1;
@@ -807,14 +806,25 @@ abstract class HInstruction implements Spannable {
   static int computeDependsOnFlags(int flags) => flags << FLAG_CHANGES_COUNT;
 
   int getChangesFlags() => flags & ((1 << FLAG_CHANGES_COUNT) - 1);
-  bool hasSideEffects(HTypeMap types) => getChangesFlags() != 0;
-  void prepareGvn(HTypeMap types) { setAllSideEffects(); }
+  int getDependsOnFlags() {
+    return (flags & ((1 << FLAG_DEPENDS_ON_COUNT) - 1)) >> FLAG_CHANGES_COUNT;
+  }
+
+  bool hasSideEffects() => getChangesFlags() != 0;
+  bool dependsOnSomething() => getDependsOnFlags() != 0;
+
+  void prepareGvn(HTypeMap types) {
+    setAllSideEffects();
+    setDependsOnSomething();
+  }
 
   void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
 
-  bool dependsOnSomething() => getFlag(FLAG_DEPENDS_ON_SOMETHING);
-  void setDependsOnSomething() { setFlag(FLAG_DEPENDS_ON_SOMETHING); }
+  void setDependsOnSomething() {
+    int count = FLAG_DEPENDS_ON_COUNT - FLAG_CHANGES_COUNT;
+    flags |= (((1 << count) - 1) << FLAG_CHANGES_COUNT);
+  }
 
   bool dependsOnStaticPropertyStore() {
     return getFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
@@ -838,6 +848,14 @@ abstract class HInstruction implements Spannable {
 
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
+
+  /**
+   * A pure instruction is an instruction that does not have any side
+   * effect, nor any dependency. They can be moved anywhere in the
+   * graph.
+   */
+  bool isPure() => !hasSideEffects() && !dependsOnSomething();
+
   // Does this node potentially affect control flow.
   bool isControlFlow() => false;
 
@@ -1069,6 +1087,15 @@ abstract class HInstruction implements Spannable {
     return users;
   }
 
+  void moveBefore(HInstruction other) {
+    assert(this is !HControlFlow);
+    assert(this is !HPhi);
+    assert(other is !HPhi);
+    block.detach(this);
+    other.block.internalAddBefore(other, this);
+    block = other.block;
+  }
+
   bool isConstant() => false;
   bool isConstantBoolean() => false;
   bool isConstantNull() => false;
@@ -1095,7 +1122,7 @@ abstract class HInstruction implements Spannable {
    */
   bool isCodeMotionInvariant() => false;
 
-  bool isJsStatement(HTypeMap types) => false;
+  bool isJsStatement() => false;
 
   bool dominates(HInstruction other) {
     // An instruction does not dominates itself.
@@ -1134,7 +1161,7 @@ abstract class HInstruction implements Spannable {
 class HBoolify extends HInstruction {
   HBoolify(HInstruction value) : super(<HInstruction>[value]);
   void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects(types));
+    assert(!hasSideEffects());
     setUseGvn();
   }
 
@@ -1156,9 +1183,9 @@ class HBoolify extends HInstruction {
 abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
   HInstruction get checkedInput => inputs[0];
-  bool isJsStatement(HTypeMap types) => true;
+  bool isJsStatement() => true;
   void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects(types));
+    assert(!hasSideEffects());
     setUseGvn();
   }
 }
@@ -1168,12 +1195,12 @@ class HBailoutTarget extends HInstruction {
   bool isEnabled = true;
   HBailoutTarget(this.state) : super(<HInstruction>[]);
   void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects(types));
+    assert(!hasSideEffects());
     setUseGvn();
   }
 
   bool isControlFlow() => isEnabled;
-  bool isJsStatement(HTypeMap types) => isEnabled;
+  bool isJsStatement() => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
   int typeCode() => HInstruction.BAILOUT_TARGET_TYPECODE;
@@ -1200,7 +1227,7 @@ class HTypeGuard extends HCheck {
   HType get guaranteedType => isEnabled ? guardedType : HType.UNKNOWN;
 
   bool isControlFlow() => true;
-  bool isJsStatement(HTypeMap types) => isEnabled;
+  bool isJsStatement() => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => HInstruction.TYPE_GUARD_TYPECODE;
@@ -1273,7 +1300,7 @@ abstract class HControlFlow extends HInstruction {
     // Control flow does not have side-effects.
   }
   bool isControlFlow() => true;
-  bool isJsStatement(HTypeMap types) => true;
+  bool isJsStatement() => true;
 }
 
 abstract class HInvoke extends HInstruction {
@@ -1363,6 +1390,7 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
       setUseGvn();
       setDependsOnInstancePropertyStore();
     } else {
+      setDependsOnSomething();
       setAllSideEffects();
     }
   }
@@ -1384,6 +1412,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
       setChangesInstanceProperty();
     } else {
       setAllSideEffects();
+      setDependsOnSomething();
     }
   }
 }
@@ -1478,7 +1507,7 @@ class HFieldSet extends HFieldAccess {
     setChangesInstanceProperty();
   }
 
-  bool isJsStatement(HTypeMap types) => true;
+  bool isJsStatement() => true;
   String toString() => "FieldSet $element";
 }
 
@@ -1532,7 +1561,7 @@ class HForeign extends HInstruction {
 
   HType get guaranteedType => foreignType;
 
-  bool isJsStatement(HTypeMap types) => _isStatement;
+  bool isJsStatement() => _isStatement;
 }
 
 class HForeignNew extends HForeign {
@@ -1827,7 +1856,7 @@ class HConstant extends HInstruction {
       : super(<HInstruction>[]);
 
   void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects(types));
+    assert(!hasSideEffects());
   }
 
   toString() => 'literal: $constant';
@@ -1854,7 +1883,7 @@ class HConstant extends HInstruction {
 class HNot extends HInstruction {
   HNot(HInstruction value) : super(<HInstruction>[value]);
   void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects(types));
+    assert(!hasSideEffects());
     setUseGvn();
   }
 
@@ -1884,7 +1913,7 @@ class HLocalValue extends HInstruction {
   }
 
   void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects(types));
+    assert(!hasSideEffects());
   }
   toString() => 'local ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitLocalValue(this);
@@ -2142,6 +2171,7 @@ class HLazyStatic extends HStatic {
     // TODO(4931): The first access has side-effects, but we afterwards we
     // should be able to GVN.
     setAllSideEffects();
+    setDependsOnSomething();
   }
 
   toString() => 'lazy static ${element.name}';
@@ -2161,7 +2191,7 @@ class HStaticStore extends HInstruction {
   int typeCode() => HInstruction.STATIC_STORE_TYPECODE;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
-  bool isJsStatement(HTypeMap types) => true;
+  bool isJsStatement() => true;
 
   void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
@@ -2177,7 +2207,7 @@ class HLiteralList extends HInstruction {
   HType get guaranteedType => HType.EXTENDABLE_ARRAY;
 
   void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects(types));
+    assert(!hasSideEffects());
   }
 }
 
@@ -2279,7 +2309,7 @@ class HTypeConversion extends HCheck {
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
-  bool isJsStatement(HTypeMap types) => kind == ARGUMENT_TYPE_CHECK;
+  bool isJsStatement() => kind == ARGUMENT_TYPE_CHECK;
   bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
 
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;

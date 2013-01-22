@@ -16,11 +16,21 @@ part of ssa;
  */
 class SsaInstructionMerger extends HBaseVisitor {
   HTypeMap types;
+  /**
+   * List of [HInstruction] that the instruction merger expects in
+   * order when visiting the inputs of an instruction.
+   */
   List<HInstruction> expectedInputs;
+  /**
+   * Set of pure [HInstruction] that the instruction merger expects to
+   * find. The order of pure instructions do not matter, as they will
+   * not be affected by side effects.
+   */
+  Set<HInstruction> pureInputs;
   Set<HInstruction> generateAtUseSite;
 
   void markAsGenerateAtUseSite(HInstruction instruction) {
-    assert(!instruction.isJsStatement(types));
+    assert(!instruction.isJsStatement());
     generateAtUseSite.add(instruction);
   }
 
@@ -30,20 +40,48 @@ class SsaInstructionMerger extends HBaseVisitor {
     visitDominatorTree(graph);
   }
 
-  void analyzeInput(HInstruction input) {
-    if (!generateAtUseSite.contains(input)
-        && !input.isCodeMotionInvariant()
-        && input.usedBy.length == 1
-        && input is !HPhi
-        && input is !HLocalValue) {
-      expectedInputs.add(input);
+  /**
+   * Return whether the instructions do not belong to a loop or
+   * belong to the same loop.
+   */
+  bool notInLoopOrInSameLoop(HInstruction one, HInstruction two) {
+    return one.block.enclosingLoopHeader == two.block.enclosingLoopHeader;
+  }
+
+  void analyzeInputs(HInstruction user, int start) {
+    List<HInstruction> inputs = user.inputs;
+    for (int i = start; i < inputs.length; i++) {
+      HInstruction input = inputs[i];
+      if (!generateAtUseSite.contains(input)
+          && !input.isCodeMotionInvariant()
+          && input.usedBy.length == 1
+          && input is !HPhi
+          && input is !HLocalValue
+          && !input.isJsStatement()) {
+        if (input.isPure()) {
+          // Only consider a pure input if it is in the same loop.
+          // Otherwise, we might move GVN'ed instruction back into the
+          // loop.
+          if (notInLoopOrInSameLoop(user, input)) {
+            // Move it closer to [user], so that instructions in
+            // between do not prevent making it generate at use site.
+            input.moveBefore(user);
+            pureInputs.add(input);
+            // Visit the pure input now so that the expected inputs
+            // are after the expected inputs of [user].
+            input.accept(this);
+          }
+        } else {
+          expectedInputs.add(input);
+        }
+      }
     }
   }
 
   void visitInstruction(HInstruction instruction) {
     // A code motion invariant instruction is dealt before visiting it.
     assert(!instruction.isCodeMotionInvariant());
-    instruction.inputs.forEach(analyzeInput);
+    analyzeInputs(instruction, 0);
   }
 
   // The codegen might use the input multiple times, so it must not be
@@ -53,9 +91,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   // A bounds check method must not have its first input generated at use site,
   // because it's using it twice.
   void visitBoundsCheck(HBoundsCheck instruction) {
-    for (int i = 1; i < instruction.inputs.length; i++) {
-      analyzeInput(instruction.inputs[i]);
-    }
+    analyzeInputs(instruction, 1);
   }
 
   // An integer check method must not have its input generated at use site,
@@ -118,10 +154,12 @@ class SsaInstructionMerger extends HBaseVisitor {
     // The expectedInputs list holds non-trivial instructions that may
     // be generated at their use site, if they occur in the correct order.
     if (expectedInputs == null) expectedInputs = new List<HInstruction>();
+    if (pureInputs == null) pureInputs = new Set<HInstruction>();
 
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
     bool findInInputsAndPopNonMatching(HInstruction instruction) {
+      assert(!instruction.isPure());
       while (!expectedInputs.isEmpty) {
         HInstruction nextInput = expectedInputs.removeLast();
         assert(!generateAtUseSite.contains(nextInput));
@@ -134,6 +172,7 @@ class SsaInstructionMerger extends HBaseVisitor {
     }
 
     block.last.accept(this);
+    bool dontVisitPure = false;
     for (HInstruction instruction = block.last.previous;
          instruction != null;
          instruction = instruction.previous) {
@@ -144,17 +183,27 @@ class SsaInstructionMerger extends HBaseVisitor {
         markAsGenerateAtUseSite(instruction);
         continue;
       }
-      if (instruction.isJsStatement(types)) {
+      if (instruction.isJsStatement()) {
         expectedInputs.clear();
       }
-      // See if the current instruction is the next non-trivial
-      // expected input.
-      if (findInInputsAndPopNonMatching(instruction)) {
-        tryGenerateAtUseSite(instruction);
+      if (instruction.isPure()) {
+        if (pureInputs.contains(instruction)) {
+          tryGenerateAtUseSite(instruction);
+        } else {
+          // If the input is not in the [pureInputs] set, it has not
+          // been visited.
+          instruction.accept(this);
+        }
       } else {
-        assert(expectedInputs.isEmpty);
+        if (findInInputsAndPopNonMatching(instruction)) {
+          // The current instruction is the next non-trivial
+          // expected input.
+          tryGenerateAtUseSite(instruction);
+        } else {
+          assert(expectedInputs.isEmpty);
+        }
+        instruction.accept(this);
       }
-      instruction.accept(this);
     }
 
     if (block.predecessors.length == 1
@@ -163,6 +212,7 @@ class SsaInstructionMerger extends HBaseVisitor {
       tryMergingExpressions(block.predecessors[0]);
     } else {
       expectedInputs = null;
+      pureInputs = null;
     }
   }
 }
@@ -178,7 +228,7 @@ class SsaConditionMerger extends HGraphVisitor {
   Set<HInstruction> controlFlowOperators;
 
   void markAsGenerateAtUseSite(HInstruction instruction) {
-    assert(!instruction.isJsStatement(types));
+    assert(!instruction.isJsStatement());
     generateAtUseSite.add(instruction);
   }
 
@@ -274,8 +324,7 @@ class SsaConditionMerger extends HGraphVisitor {
     HPhi phi = end.phis.first;
     HInstruction thenInput = phi.inputs[0];
     HInstruction elseInput = phi.inputs[1];
-    if (thenInput.isJsStatement(types) ||
-        elseInput.isJsStatement(types)) return;
+    if (thenInput.isJsStatement() || elseInput.isJsStatement()) return;
 
     if (hasAnyStatement(elseBlock, elseInput)) return;
     assert(elseBlock.successors.length == 1);
