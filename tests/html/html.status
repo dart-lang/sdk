@@ -149,48 +149,45 @@ xhr_test: Skip              # BUG(4016)
 xhr_cross_origin_test: Fail # Issue 6016.
 
 [ $runtime == safari ]
-# TODO(ahe, efortuna): These tests need to be retriaged now that we're testing
-# with Safari 6.
-audiocontext_test: Crash, Fail # Issue: 7414
-element_test/elements: Crash, Fail # Issue: 7414
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
+element_types_test/supported_details: Fail
+element_types_test/supported_embed: Fail
+element_types_test/supported_keygen: Fail
+element_types_test/supported_meter: Fail
+element_types_test/supported_object: Fail
+element_types_test/supported_output: Fail
+element_types_test/supported_progress: Fail
 element_types_test/supported_shadow: Fail
-performance_api_test/supported: Fail
+element_types_test/supported_track: Pass, Fail
+fileapi_test/supported: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
-input_element_test/supported_datetime: Fail
 input_element_test/supported_datetime-local: Fail
+input_element_test/supported_datetime: Fail
+input_element_test/supported_email: Fail
 input_element_test/supported_month: Fail, Crash
+input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please triage this failure.
+input_element_test/supported_tel: Fail
 input_element_test/supported_time: Fail, Crash
+input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail, Crash
-fileapi_test/supported: Fail
 media_stream_test/supported: Fail
-node_test: Skip # Issue 6457
+notifications_test/supported: Fail # Issue: 7414
+performance_api_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 
-# The following failures are on MacOS 10.7
+audiocontext_test: Crash, Fail # Issue: 7414
 datalistelement_test: Fail # Issue: 7414
-element_types_test/constructors: Fail # Issue: 7414
-element_types_test/supported_details: Fail # Issue: 7414
-element_types_test/supported_embed: Fail # Issue: 7414
-element_types_test/supported_keygen: Fail # Issue: 7414
-element_types_test/supported_meter: Fail # Issue: 7414
-element_types_test/supported_object: Fail # Issue: 7414
-element_types_test/supported_output: Fail # Issue: 7414
-element_types_test/supported_progress: Fail # Issue: 7414
-element_types_test/supported_track: Pass, Fail # Issue: 7414
+element_test/elements: Crash, Fail # Issue: 7414
+element_types_test/constructors: Fail
 fileapi_test/getDirectory: Fail # Issue: 7414
 fileapi_test/getFile: Pass, Fail # Issue: 7414
 fileapi_test/unsupported_throws: Fail # Issue: 7414
 input_element_test/constructors: Fail # Issue: 7414
-input_element_test/supported_email: Fail # Issue: 7414
-input_element_test/supported_number: Fail # Issue: 7414
-input_element_test/supported_tel: Fail # Issue: 7414
-input_element_test/supported_url: Fail # Issue: 7414
-notifications_test/supported: Fail # Issue: 7414
+node_test: Skip # Issue 6457
 notifications_test/unsupported_throws: Fail # Issue: 7414
 notifications_test/webkitNotifications: Fail # Issue: 7414
 performance_api_test/performance: Fail # Issue: 7414
