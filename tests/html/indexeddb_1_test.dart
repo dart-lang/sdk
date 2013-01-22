@@ -165,6 +165,7 @@ tests_dynamic() {
   test('test2', testReadWrite(123, 12345, equals(12345)));
   test('test3', testReadWrite(123, [1, 2, 3], equals([1, 2, 3])));
   test('test4', testReadWrite(123, [2, 3, 4], equals([2, 3, 4])));
+  test('test4', testReadWrite(123, false, equals(false)));
 }
 
 tests_typed() {
@@ -172,6 +173,7 @@ tests_typed() {
   test('test2', testReadWriteTyped(123, 12345, equals(12345)));
   test('test3', testReadWriteTyped(123, [1, 2, 3], equals([1, 2, 3])));
   test('test4', testReadWriteTyped(123, [2, 3, 4], equals([2, 3, 4])));
+  test('test4', testReadWriteTyped(123, false, equals(false)));
 }
 
 main() {
