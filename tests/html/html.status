@@ -69,7 +69,7 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 isolates_test: Skip
 measurement_test: Fail, Pass
-media_stream_test/supported: Fail
+media_stream_test/supported_MediaStream: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 messageevent_test: Fail
@@ -133,7 +133,7 @@ input_element_test/supported_tel: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail
-media_stream_test/supported: Fail
+media_stream_test/supported_MediaStream: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 messageevent_test: Fail
@@ -179,7 +179,7 @@ input_element_test/supported_tel: Fail
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail, Crash
-media_stream_test/supported: Fail
+media_stream_test/supported_MediaStream: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 notifications_test/supported: Fail # Issue: 7414

@@ -10,7 +10,7 @@ import 'dart:html';
 main() {
   useHtmlIndividualConfiguration();
 
-  group('supported', () {
+  group('supported_media', () {
     test('supported', () {
       expect(MediaStream.supported, true);
     });
