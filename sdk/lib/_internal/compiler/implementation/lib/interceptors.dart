@@ -5,6 +5,7 @@
 library _interceptors;
 
 import 'dart:collection';
+import 'dart:collection-dev';
 
 part 'js_array.dart';
 part 'js_number.dart';
