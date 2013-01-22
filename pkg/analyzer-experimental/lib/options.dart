@@ -158,12 +158,12 @@ class _CommandLineParser {
 
   List<String> _filterUnknowns(args) {
 
-    //Only filter if the ignore flag is specified
+    // Only filter args if the ignore flag is specified.
     if (!args.contains('--ignore_unrecognized_flags')) {
       return args;
     }
 
-    //Filter all unrecognized flags and options
+    // Filter all unrecognized flags and options.
     var filtered = <String>[];
     for (var i=0; i < args.length; ++i) {
       var arg = args[i];
