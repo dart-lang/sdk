@@ -26,6 +26,7 @@ path/test/*: Skip
 intl/test/date_time_format_file_even_test: Skip
 intl/test/date_time_format_file_odd_test: Skip
 intl/test/find_default_locale_standalone_test: Skip
+analyzer-experimental/test/options_test: Skip # Imports dart:io.
 
 [ $runtime == opera && $compiler == dart2js ]
 intl/test/find_default_locale_browser_test: Fail
