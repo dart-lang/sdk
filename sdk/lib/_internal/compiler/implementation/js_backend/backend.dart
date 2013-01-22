@@ -660,8 +660,6 @@ class JavaScriptBackend extends Backend {
   ArgumentTypesRegistry argumentTypes;
   FieldTypesRegistry fieldTypes;
 
-  final Interceptors interceptors;
-
   /**
    * A collection of selectors of intercepted method calls. The
    * emitter uses this set to generate the [:ObjectInterceptor:] class
@@ -703,7 +701,6 @@ class JavaScriptBackend extends Backend {
       : namer = determineNamer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
-        interceptors = new Interceptors(compiler),
         usedInterceptors = new Set<Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypeInformation(compiler),
@@ -1158,5 +1155,43 @@ class JavaScriptBackend extends Backend {
     print("------------------------");
     fieldTypes.dump();
     print("");
+  }
+
+  Element getExceptionUnwrapper() {
+    return compiler.findHelper(const SourceString('unwrapException'));
+  }
+
+  Element getThrowRuntimeError() {
+    return compiler.findHelper(const SourceString('throwRuntimeError'));
+  }
+
+  Element getThrowMalformedSubtypeError() {
+    return compiler.findHelper(
+        const SourceString('throwMalformedSubtypeError'));
+  }
+
+  Element getThrowAbstractClassInstantiationError() {
+    return compiler.findHelper(
+        const SourceString('throwAbstractClassInstantiationError'));
+  }
+
+  Element getClosureConverter() {
+    return compiler.findHelper(const SourceString('convertDartClosureToJS'));
+  }
+
+  Element getTraceFromException() {
+    return compiler.findHelper(const SourceString('getTraceFromException'));
+  }
+
+  Element getMapMaker() {
+    return compiler.findHelper(const SourceString('makeLiteralMap'));
+  }
+
+  Element getSetRuntimeTypeInfo() {
+    return compiler.findHelper(const SourceString('setRuntimeTypeInfo'));
+  }
+
+  Element getGetRuntimeTypeInfo() {
+    return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
   }
 }

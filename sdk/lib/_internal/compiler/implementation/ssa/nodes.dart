@@ -778,7 +778,6 @@ abstract class HInstruction implements Spannable {
   static const int NEGATE_TYPECODE = 16;
   static const int BIT_NOT_TYPECODE = 17;
   static const int NOT_TYPECODE = 18;
-  static const int EQUALS_TYPECODE = 19;
   static const int IDENTITY_TYPECODE = 20;
   static const int GREATER_TYPECODE = 21;
   static const int GREATER_EQUAL_TYPECODE = 22;

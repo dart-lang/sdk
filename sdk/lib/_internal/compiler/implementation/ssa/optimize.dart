@@ -404,7 +404,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitRelational(HRelational node) {
     if (allUsersAreBoolifies(node)) {
-      Interceptors interceptors = backend.builder.interceptors;
+      // TODO(ngeoffray): Call a boolified selector.
       // This node stays the same, but the Boolify node will go away.
     }
     // Note that we still have to call [super] to make sure that we end up

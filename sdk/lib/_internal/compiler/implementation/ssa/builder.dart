@@ -19,136 +19,7 @@ class InterceptedElement extends ElementX {
   DartType computeType(Compiler compiler) => ssaType.computeType(compiler);
 }
 
-class Interceptors {
-  Compiler compiler;
-  Interceptors(Compiler this.compiler);
-
-  SourceString mapOperatorToMethodName(Operator op) {
-    String name = op.source.stringValue;
-    if (identical(name, '+')) return const SourceString('add');
-    if (identical(name, '-')) return const SourceString('sub');
-    if (identical(name, '*')) return const SourceString('mul');
-    if (identical(name, '/')) return const SourceString('div');
-    if (identical(name, '~/')) return const SourceString('tdiv');
-    if (identical(name, '%')) return const SourceString('mod');
-    if (identical(name, '<<')) return const SourceString('shl');
-    if (identical(name, '>>')) return const SourceString('shr');
-    if (identical(name, '|')) return const SourceString('or');
-    if (identical(name, '&')) return const SourceString('and');
-    if (identical(name, '^')) return const SourceString('xor');
-    if (identical(name, '<')) return const SourceString('lt');
-    if (identical(name, '<=')) return const SourceString('le');
-    if (identical(name, '>')) return const SourceString('gt');
-    if (identical(name, '>=')) return const SourceString('ge');
-    if (identical(name, '==')) return const SourceString('eq');
-    if (identical(name, '!=')) return const SourceString('eq');
-    if (identical(name, '===')) return const SourceString('eqq');
-    if (identical(name, '!==')) return const SourceString('eqq');
-    if (identical(name, '+=')) return const SourceString('add');
-    if (identical(name, '-=')) return const SourceString('sub');
-    if (identical(name, '*=')) return const SourceString('mul');
-    if (identical(name, '/=')) return const SourceString('div');
-    if (identical(name, '~/=')) return const SourceString('tdiv');
-    if (identical(name, '%=')) return const SourceString('mod');
-    if (identical(name, '<<=')) return const SourceString('shl');
-    if (identical(name, '>>=')) return const SourceString('shr');
-    if (identical(name, '|=')) return const SourceString('or');
-    if (identical(name, '&=')) return const SourceString('and');
-    if (identical(name, '^=')) return const SourceString('xor');
-    if (identical(name, '++')) return const SourceString('add');
-    if (identical(name, '--')) return const SourceString('sub');
-    compiler.unimplemented('Unknown operator', node: op);
-  }
-
-  /**
-   * Returns a set of interceptor classes that contain a member whose
-   * signature matches the given [selector].
-   */
-  Set<ClassElement> getInterceptedClassesOn(Selector selector) {
-    JavaScriptBackend backend = compiler.backend;
-    return backend.getInterceptedClassesOn(selector);
-  }
-
-  Element getOperatorInterceptor(Operator op) {
-    SourceString name = mapOperatorToMethodName(op);
-    return compiler.findHelper(name);
-  }
-
-  Element getBoolifiedVersionOf(Element interceptor) {
-    if (interceptor == null) return interceptor;
-    String boolifiedName = "${interceptor.name.slowToString()}B";
-    return compiler.findHelper(new SourceString(boolifiedName));
-  }
-
-  Element getPrefixOperatorInterceptor(Operator op) {
-    String name = op.source.stringValue;
-    if (identical(name, '~')) {
-      return compiler.findHelper(const SourceString('not'));
-    }
-    if (identical(name, '-')) {
-      return compiler.findHelper(const SourceString('neg'));
-    }
-    compiler.unimplemented('Unknown operator', node: op);
-  }
-
-  Element getIndexInterceptor() {
-    return compiler.findHelper(const SourceString('index'));
-  }
-
-  Element getIndexAssignmentInterceptor() {
-    return compiler.findHelper(const SourceString('indexSet'));
-  }
-
-  Element getExceptionUnwrapper() {
-    return compiler.findHelper(const SourceString('unwrapException'));
-  }
-
-  Element getThrowRuntimeError() {
-    return compiler.findHelper(const SourceString('throwRuntimeError'));
-  }
-
-  Element getThrowMalformedSubtypeError() {
-    return compiler.findHelper(
-        const SourceString('throwMalformedSubtypeError'));
-  }
-
-  Element getThrowAbstractClassInstantiationError() {
-    return compiler.findHelper(
-        const SourceString('throwAbstractClassInstantiationError'));
-  }
-
-  Element getClosureConverter() {
-    return compiler.findHelper(const SourceString('convertDartClosureToJS'));
-  }
-
-  Element getTraceFromException() {
-    return compiler.findHelper(const SourceString('getTraceFromException'));
-  }
-
-  Element getEqualsInterceptor() {
-    return compiler.findHelper(const SourceString('eq'));
-  }
-
-  Element getTripleEqualsInterceptor() {
-    return compiler.findHelper(const SourceString('eqq'));
-  }
-
-  Element getMapMaker() {
-    return compiler.findHelper(const SourceString('makeLiteralMap'));
-  }
-
-  // TODO(karlklose): move these to different class or rename class?
-  Element getSetRuntimeTypeInfo() {
-    return compiler.findHelper(const SourceString('setRuntimeTypeInfo'));
-  }
-
-  Element getGetRuntimeTypeInfo() {
-    return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
-  }
-}
-
 class SsaBuilderTask extends CompilerTask {
-  final Interceptors interceptors;
   final CodeEmitterTask emitter;
   // Loop tracking information.
   final Set<FunctionElement> functionsCalledInLoop;
@@ -158,8 +29,7 @@ class SsaBuilderTask extends CompilerTask {
   String get name => 'SSA builder';
 
   SsaBuilderTask(JavaScriptBackend backend)
-    : interceptors = new Interceptors(backend.compiler),
-      emitter = backend.emitter,
+    : emitter = backend.emitter,
       functionsCalledInLoop = new Set<FunctionElement>(),
       selectorsCalledInLoop = new Map<SourceString, Selector>(),
       backend = backend,
@@ -920,10 +790,8 @@ class TargetJumpHandler implements JumpHandler {
 class SsaBuilder extends ResolvedVisitor implements Visitor {
   final SsaBuilderTask builder;
   final JavaScriptBackend backend;
-  final Interceptors interceptors;
   final CodegenWorkItem work;
   final ConstantSystem constantSystem;
-  bool methodInterceptionEnabled;
   HGraph graph;
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
@@ -962,8 +830,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     : this.builder = builder,
       this.backend = builder.backend,
       this.work = work,
-      interceptors = builder.interceptors,
-      methodInterceptionEnabled = true,
       graph = new HGraph(),
       stack = new List<HInstruction>(),
       activationVariables = new Map<Element, HLocalValue>(),
@@ -982,16 +848,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   Element returnElement;
   DartType returnType;
   bool inTryStatement = false;
-
-  void disableMethodInterception() {
-    assert(methodInterceptionEnabled);
-    methodInterceptionEnabled = false;
-  }
-
-  void enableMethodInterception() {
-    assert(!methodInterceptionEnabled);
-    methodInterceptionEnabled = true;
-  }
 
   /**
    * Compiles compile-time constants. Never returns [:null:]. If the
@@ -1565,7 +1421,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       // Emit the equality check with the sentinel.
       HConstant sentinel = graph.addConstant(SentinelConstant.SENTINEL);
-      Element equalsHelper = interceptors.getTripleEqualsInterceptor();
       HInstruction operand = parameters[element];
       check = new HIdentity(sentinel, operand);
       add(check);
@@ -2404,26 +2259,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         pushWithPosition(new HNot(eq), op);
         return;
       default:
+        compiler.internalError("Unexpected operator $op", node: op);
         break;
     }
 
-    if (selector != null) {
-      pushWithPosition(
-            buildInvokeDynamic(send, selector, left, [right]),
-            op);
-      if (op.source.stringValue == '!=') {
-        HBoolify bl = new HBoolify(pop());
-        add(bl);
-        pushWithPosition(new HNot(bl), op);
-      }
-      return;
-    }
-    Element element = interceptors.getOperatorInterceptor(op);
-    assert(element != null);
-    HInstruction target = new HStatic(element);
-    add(target);
-    switch (op.source.stringValue) {
-      default: compiler.unimplemented("SsaBuilder.visitBinary");
+    pushWithPosition(
+          buildInvokeDynamic(send, selector, left, [right]),
+          op);
+    if (op.source.stringValue == '!=') {
+      HBoolify bl = new HBoolify(pop());
+      add(bl);
+      pushWithPosition(new HNot(bl), op);
     }
   }
 
@@ -2444,9 +2290,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return result;
   }
 
+  /**
+   * Returns a set of interceptor classes that contain a member whose
+   * signature matches the given [selector].
+   */
   Set<ClassElement> getInterceptedClassesOn(Selector selector) {
-    if (!methodInterceptionEnabled) return null;
-    return interceptors.getInterceptedClassesOn(selector);
+    return backend.getInterceptedClassesOn(selector);
   }
 
   void generateInstanceGetterWithCompiledReceiver(Send send,
@@ -2656,7 +2505,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction getRuntimeTypeInfo(HInstruction target) {
-    pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(), target);
+    pushInvokeHelper1(backend.getGetRuntimeTypeInfo(), target);
     return pop();
   }
 
@@ -2704,12 +2553,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitOperatorSend(node) {
-    assert(node.selector is Operator);
-    if (!methodInterceptionEnabled) {
-      visitDynamicSend(node);
-      return;
-    }
-
     Operator op = node.selector;
     if (const SourceString("[]") == op.source) {
       visitDynamicSend(node);
@@ -3026,32 +2869,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.cancel('JS code must be a string literal', node: code);
   }
 
-  void handleForeignUnintercepted(Send node) {
-    Link<Node> link = node.arguments;
-    if (!link.tail.isEmpty) {
-      compiler.cancel(
-          'More than one expression in UNINTERCEPTED()', node: node);
-    }
-    Expression expression = link.head;
-    disableMethodInterception();
-    visit(expression);
-    enableMethodInterception();
-  }
-
-  void handleForeignJsHasEquals(Send node) {
-    List<HInstruction> inputs = <HInstruction>[];
-    if (!node.arguments.tail.isEmpty) {
-      compiler.cancel(
-          'More than one expression in JS_HAS_EQUALS()', node: node);
-    }
-    addGenericSendArgumentsToList(node.arguments, inputs);
-    String name = backend.namer.publicInstanceMethodNameByArity(
-        const SourceString('=='), 1);
-    push(new HForeign(new DartString.literal('!!#.$name'),
-                      const LiteralDartString('bool'),
-                      inputs));
-  }
-
   void handleForeignJsCurrentIsolate(Send node) {
     if (!node.arguments.isEmpty) {
       compiler.cancel(
@@ -3168,10 +2985,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     SourceString name = selector.name;
     if (name == const SourceString('JS')) {
       handleForeignJs(node);
-    } else if (name == const SourceString('UNINTERCEPTED')) {
-      handleForeignUnintercepted(node);
-    } else if (name == const SourceString('JS_HAS_EQUALS')) {
-      handleForeignJsHasEquals(node);
     } else if (name == const SourceString('JS_CURRENT_ISOLATE')) {
       handleForeignJsCurrentIsolate(node);
     } else if (name == const SourceString('JS_CALL_IN_ISOLATE')) {
@@ -3323,7 +3136,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                  || member.isGenerativeConstructor()) {
         // The type variable is stored in [this].
         if (typeInfo == null) {
-          pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(),
+          pushInvokeHelper1(backend.getGetRuntimeTypeInfo(),
                             localsHandler.readThis());
           typeInfo = pop();
         }
@@ -3371,7 +3184,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     add(typeInfo);
 
     // Set the runtime type information on the object.
-    Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
+    Element typeInfoSetterElement = backend.getSetRuntimeTypeInfo();
     HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
     add(typeInfoSetter);
     add(new HInvokeStatic(
@@ -3564,13 +3377,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void generateRuntimeError(Node node, String message) {
-    generateError(node, message, interceptors.getThrowRuntimeError());
+    generateError(node, message, backend.getThrowRuntimeError());
   }
 
   void generateAbstractClassInstantiationError(Node node, String message) {
     generateError(node,
                   message,
-                  interceptors.getThrowAbstractClassInstantiationError());
+                  backend.getThrowAbstractClassInstantiationError());
   }
 
   void generateThrowNoSuchMethod(Node diagnosticNode,
@@ -3637,7 +3450,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                      DartType type, String reasons) {
     HInstruction typeString = addConstantString(node, type.toString());
     HInstruction reasonsString = addConstantString(node, reasons);
-    Element helper = interceptors.getThrowMalformedSubtypeError();
+    Element helper = backend.getThrowMalformedSubtypeError();
     pushInvokeHelper3(helper, value, typeString, reasonsString);
   }
 
@@ -3715,10 +3528,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       push(new HInvokeSuper(inputs, isSetter: true));
     } else if (node.isIndex) {
-      if (!methodInterceptionEnabled) {
-        assert(identical(op.source.stringValue, '='));
-        visitDynamicSend(node);
-      } else if (const SourceString("=") == op.source) {
+      if (const SourceString("=") == op.source) {
         visitDynamicSend(node);
         HInvokeDynamicMethod method = pop();
         // Push the value.
@@ -4038,8 +3848,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       SourceString iteratorName = const SourceString("iterator");
       Selector selector =
           new Selector.getter(iteratorName, work.element.getLibrary());
-      Set<ClassElement> interceptedClasses =
-          interceptors.getInterceptedClassesOn(selector);
+      Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
       visit(node.expression);
       HInstruction receiver = pop();
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
@@ -4163,7 +3972,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HLiteralList keyValuePairs = new HLiteralList(inputs);
     add(keyValuePairs);
-    pushInvokeHelper1(interceptors.getMapMaker(), keyValuePairs);
+    pushInvokeHelper1(backend.getMapMaker(), keyValuePairs);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
@@ -4577,7 +4386,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
 
-      pushInvokeHelper1(interceptors.getExceptionUnwrapper(), exception);
+      pushInvokeHelper1(backend.getExceptionUnwrapper(), exception);
       HInvokeStatic unwrappedException = pop();
       tryInstruction.exception = exception;
       Link<Node> link = node.catchBlocks.nodes;
@@ -4622,7 +4431,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         Node trace = catchBlock.trace;
         if (trace != null) {
-          pushInvokeHelper1(interceptors.getTraceFromException(), exception);
+          pushInvokeHelper1(backend.getTraceFromException(), exception);
           HInstruction traceInstruction = pop();
           localsHandler.updateLocal(elements[trace], traceInstruction);
         }
