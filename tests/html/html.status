@@ -180,7 +180,7 @@ element_types_test/supported_output: Fail # Issue: 7414
 element_types_test/supported_progress: Fail # Issue: 7414
 element_types_test/supported_track: Pass, Fail # Issue: 7414
 fileapi_test/getDirectory: Fail # Issue: 7414
-fileapi_test/getFile: Fail # Issue: 7414
+fileapi_test/getFile: Pass, Fail # Issue: 7414
 fileapi_test/unsupported_throws: Fail # Issue: 7414
 input_element_test/constructors: Fail # Issue: 7414
 input_element_test/supported_email: Fail # Issue: 7414
