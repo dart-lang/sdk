@@ -721,17 +721,17 @@ class _IterablePendingEvents<T> extends _PendingEvents {
 /**
  * The subscription class that the [StreamController] uses.
  *
- * The [StreamController.createSubscription] method should
+ * The [_StreamImpl.createSubscription] method should
  * create an object of this type, or another subclass of [_StreamListener].
- * A subclass of [StreamController] can specify which subclass
+ * A subclass of [_StreamImpl] can specify which subclass
  * of [_StreamSubscriptionImpl] it uses by overriding
- * [StreamController.createSubscription].
+ * [_StreamImpl.createSubscription].
  *
  * The subscription is in one of three states:
  * * Subscribed.
  * * Paused-and-subscribed.
  * * Unsubscribed.
- * Unsubscribing also unpauses.
+ * Unsubscribing also resumes any pauses started by the subscription.
  */
 class _StreamSubscriptionImpl<T> extends _StreamListener<T>
                                  implements StreamSubscription<T> {

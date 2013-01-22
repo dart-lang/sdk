@@ -27,8 +27,17 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
 
   /**
    * A controller with a [stream] that supports multiple subscribers.
+   *
+   * The [onPauseStateChange] function is called when the stream becomes
+   * paused or resumes after being paused. The current pause state can
+   * be read from [isPaused]. Ignored if [:null:].
+   *
+   * The [onSubscriptionStateChange] function is called when the stream
+   * receives its first listener or loses its last. The current subscription
+   * state can be read from [hasSubscribers]. Ignored if [:null:].
    */
-  StreamController.multiSubscription() {
+  StreamController.multiSubscription({void onPauseStateChange(),
+                                      void onSubscriptionStateChange()}) {
     _stream = new _MultiControllerStream<T>(onSubscriptionStateChange,
                                             onPauseStateChange);
   }
@@ -36,8 +45,17 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
    * A controller with a [stream] that supports only one single subscriber.
    * The controller will buffer all incoming events until the subscriber is
    * registered.
+   *
+   * The [onPauseStateChange] function is called when the stream becomes
+   * paused or resumes after being paused. The current pause state can
+   * be read from [isPaused]. Ignored if [:null:].
+   *
+   * The [onSubscriptionStateChange] function is called when the stream
+   * receives its first listener or loses its last. The current subscription
+   * state can be read from [hasSubscribers]. Ignored if [:null:].
    */
-  StreamController() {
+  StreamController({void onPauseStateChange(),
+                    void onSubscriptionStateChange()}) {
     _stream = new _SingleControllerStream<T>(onSubscriptionStateChange,
                                              onPauseStateChange);
   }
@@ -102,20 +120,6 @@ class StreamController<T> extends Stream<T> implements StreamSink<T> {
    */
   void close() { _stream._close(); }
 
-  /**
-   * Called when the first subscriber requests a pause or the last a resume.
-   *
-   * Read [isPaused] to see the new state.
-   */
-  void onPauseStateChange() {}
-
-  /**
-   * Called when the first listener subscribes or the last unsubscribes.
-   *
-   * Read [hasSubscribers] to see what the new state is.
-   */
-  void onSubscriptionStateChange() {}
-
   void forEachSubscriber(void action(_StreamSubscriptionImpl<T> subscription)) {
     _stream._forEachSubscriber(() {
       try {
@@ -138,11 +142,11 @@ class _MultiControllerStream<T> extends _MultiStreamImpl<T> {
   _MultiControllerStream(this._subscriptionHandler, this._pauseHandler);
 
   void _onSubscriptionStateChange() {
-    _subscriptionHandler();
+    if (_subscriptionHandler != null) _subscriptionHandler();
   }
 
   void _onPauseStateChange() {
-    _pauseHandler();
+    if (_pauseHandler != null) _pauseHandler();
   }
 }
 
@@ -153,10 +157,10 @@ class _SingleControllerStream<T> extends _SingleStreamImpl<T> {
   _SingleControllerStream(this._subscriptionHandler, this._pauseHandler);
 
   void _onSubscriptionStateChange() {
-    _subscriptionHandler();
+    if (_subscriptionHandler != null) _subscriptionHandler();
   }
 
   void _onPauseStateChange() {
-    _pauseHandler();
+    if (_pauseHandler != null) _pauseHandler();
   }
 }
