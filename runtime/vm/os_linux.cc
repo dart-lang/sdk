@@ -112,11 +112,11 @@ class PprofCodeObserver : public CodeObserver {
     pprof_symbol_generator_->WriteToMemory(debug_region);
     int buffer_size = debug_region->size();
     void* buffer = debug_region->data();
-    delete debug_region;
     if (buffer_size > 0) {
       ASSERT(buffer != NULL);
       (*file_write)(buffer, buffer_size, out_file);
     }
+    delete debug_region;
     (*file_close)(out_file);
     DebugInfo::UnregisterAllSections();
   }
