@@ -116,20 +116,11 @@
     {
       'target_name': 'samples',
       'type': 'none',
+      'dependencies': [
+        'samples/openglui/openglui.gyp:openglui_sample',
+      ],
       'conditions': [
-        ['OS=="android"', {
-           'dependencies': [
-             'samples/android_sample/android_sample.gyp:android_sample',
-           ],
-          },
-        ],
-        ['OS=="win"', {
-           'dependencies': [
-             'samples/sample_extension/sample_extension.gyp:sample_extension',
-           ],
-          },
-        ],
-        ['OS=="mac" or OS=="linux"', {
+        ['OS!="android"', {
            'dependencies': [
              'samples/sample_extension/sample_extension.gyp:sample_extension',
            ],
