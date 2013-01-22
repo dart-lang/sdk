@@ -30,8 +30,12 @@ Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t06: Fail
 # co19 issue 344 ('null' is constant, so can be used in 'case')
 Language/12_Statements/09_Switch_A02_t03: Fail
 
-# co19 343 (invalid unicode NFC)
-Language/15_Reference/1_Lexical_Rules_A01_t10: Fail
+# Test framework issue 8045 (dies)
+Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Skip
+Language/15_Reference/1_Lexical_Rules_A01_t09: Skip
+Language/15_Reference/1_Lexical_Rules_A01_t10: Skip
+Language/15_Reference/1_Lexical_Rules_A01_t11: Skip
+Language/15_Reference/1_Lexical_Rules_A02_t06: Skip
 
 
 # co19 issue 339 (type variable is not constant)
