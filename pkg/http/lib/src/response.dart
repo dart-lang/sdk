@@ -31,7 +31,7 @@ class Response extends BaseResponse {
       String body,
       int statusCode,
       {BaseRequest request,
-       Map<String, String> headers: const <String, String>{},
+       Map<String, String> headers: const {},
        bool isRedirect: false,
        bool persistentConnection: true,
        String reasonPhrase})
@@ -49,7 +49,7 @@ class Response extends BaseResponse {
       List<int> bodyBytes,
       int statusCode,
       {BaseRequest request,
-       Map<String, String> headers: const <String, String>{},
+       Map<String, String> headers: const {},
        bool isRedirect: false,
        bool persistentConnection: true,
        String reasonPhrase})

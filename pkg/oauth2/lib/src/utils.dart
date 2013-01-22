@@ -20,7 +20,7 @@ Uri addQueryParameters(Uri url, Map<String, String> parameters) {
 /// Convert a URL query string (or `application/x-www-form-urlencoded` body)
 /// into a [Map] from parameter names to values.
 Map<String, String> queryToMap(String queryList) {
-  var map = <String, String>{};
+  var map = {};
   for (var pair in queryList.split("&")) {
     var split = split1(pair, "=");
     if (split.isEmpty) continue;

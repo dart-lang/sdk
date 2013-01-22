@@ -105,7 +105,7 @@ void startServer() {
       var content = {
         'method': request.method,
         'path': request.path,
-        'headers': <String, String>{}
+        'headers': {}
       };
       if (requestBody != null) content['body'] = requestBody;
       request.headers.forEach((name, values) {

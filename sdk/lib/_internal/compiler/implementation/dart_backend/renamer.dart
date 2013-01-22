@@ -155,7 +155,7 @@ void renamePlaceholders(
 
   Function makeRenamer(generateUniqueName) =>
       (library, originalName) =>
-          renamed.putIfAbsent(library, () => <String, String>{})
+          renamed.putIfAbsent(library, () => {})
               .putIfAbsent(originalName,
                   () => generateUniqueName(originalName));
 
