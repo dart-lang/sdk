@@ -66,6 +66,7 @@ mixin_extends_method_test: Fail
 mixin_mixin_test: Fail
 mixin_illegal_syntax_test/none: Fail
 mixin_illegal_superclass_test/none: Fail
+mixin_illegal_static_access_test: Fail
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.

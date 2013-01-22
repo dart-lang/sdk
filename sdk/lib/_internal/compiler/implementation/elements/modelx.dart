@@ -1805,11 +1805,16 @@ class MixinApplicationElementX extends BaseClassElementX
 
   Element localLookup(SourceString name) {
     if (this.name == name) return constructor;
-    if (mixin != null) return mixin.localLookup(name);
+    if (mixin == null) return null;
+    Element mixedInElement = mixin.localLookup(name);
+    if (mixedInElement == null) return null;
+    return mixedInElement.isInstanceMember() ? mixedInElement : null;
   }
 
   void forEachLocalMember(void f(Element member)) {
-    if (mixin != null) mixin.forEachLocalMember(f);
+    if (mixin != null) mixin.forEachLocalMember((Element mixedInElement) {
+      if (mixedInElement.isInstanceMember()) f(mixedInElement);
+    });
   }
 
   void addMember(Element element, DiagnosticListener listener) {
