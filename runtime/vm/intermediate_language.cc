@@ -200,7 +200,7 @@ const Object& Value::BoundConstant() const {
 
 
 GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
-    : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex, 0),
+    : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
       normal_entry_(normal_entry),
       catch_entries_(),
       initial_definitions_(),

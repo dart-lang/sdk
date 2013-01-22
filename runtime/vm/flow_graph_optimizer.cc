@@ -4556,16 +4556,12 @@ void ConstantPropagator::Transform() {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
-        join = new JoinEntryInstr(if_false->block_id(),
-                                  if_false->try_index(),
-                                  if_false->loop_depth());
+        join = new JoinEntryInstr(if_false->block_id(), if_false->try_index());
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
-        join = new JoinEntryInstr(if_true->block_id(),
-                                  if_true->try_index(),
-                                  if_true->loop_depth());
+        join = new JoinEntryInstr(if_true->block_id(), if_true->try_index());
         next = if_true->next();
       }
 

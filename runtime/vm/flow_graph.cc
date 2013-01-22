@@ -925,9 +925,7 @@ void FlowGraph::InlineCall(Definition* call,
   } else {
     // Create a join of the returns.
     JoinEntryInstr* join =
-        new JoinEntryInstr(++max_block_id_,
-                           CatchClauseNode::kInvalidTryIndex,
-                           caller_entry->loop_depth());
+        new JoinEntryInstr(++max_block_id_, CatchClauseNode::kInvalidTryIndex);
     intptr_t count = inlining_context->NumExits();
     for (intptr_t i = 0; i < count; ++i) {
       inlining_context->LastInstructionAt(i)->Goto(join);
