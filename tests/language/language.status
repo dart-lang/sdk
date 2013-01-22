@@ -290,37 +290,6 @@ mixin_illegal_syntax_test/03: Pass # issue 8006
 mixin_illegal_syntax_test/13: Fail # issue 8006
 mixin_illegal_syntax_test/none: Fail # issue 8006
 
-mixin_illegal_superclass_test/01: Fail # issue 8022
-mixin_illegal_superclass_test/02: Fail # issue 8022
-mixin_illegal_superclass_test/03: Fail # issue 8022
-mixin_illegal_superclass_test/04: Fail # issue 8022
-mixin_illegal_superclass_test/05: Fail # issue 8022
-mixin_illegal_superclass_test/06: Fail # issue 8022
-mixin_illegal_superclass_test/07: Fail # issue 8022
-mixin_illegal_superclass_test/08: Fail # issue 8022
-mixin_illegal_superclass_test/09: Fail # issue 8022
-mixin_illegal_superclass_test/10: Fail # issue 8022
-mixin_illegal_superclass_test/11: Fail # issue 8022
-mixin_illegal_superclass_test/12: Fail # issue 8022
-mixin_illegal_superclass_test/13: Fail # issue 8022
-mixin_illegal_superclass_test/14: Fail # issue 8022
-mixin_illegal_superclass_test/15: Fail # issue 8022
-mixin_illegal_superclass_test/16: Fail # issue 8022
-mixin_illegal_superclass_test/17: Fail # issue 8022
-mixin_illegal_superclass_test/18: Fail # issue 8022
-mixin_illegal_superclass_test/19: Fail # issue 8022
-mixin_illegal_superclass_test/20: Fail # issue 8022
-mixin_illegal_superclass_test/21: Fail # issue 8022
-mixin_illegal_superclass_test/22: Fail # issue 8022
-mixin_illegal_superclass_test/23: Fail # issue 8022
-mixin_illegal_superclass_test/24: Fail # issue 8022
-mixin_illegal_superclass_test/25: Fail # issue 8022
-mixin_illegal_superclass_test/26: Fail # issue 8022
-mixin_illegal_superclass_test/27: Fail # issue 8022
-mixin_illegal_superclass_test/28: Fail # issue 8022
-mixin_illegal_superclass_test/29: Fail # issue 8022
-mixin_illegal_superclass_test/30: Fail # issue 8022
-
 mixin_illegal_constructor_test/01: Fail # issue 8025
 mixin_illegal_constructor_test/02: Fail # issue 8025
 mixin_illegal_constructor_test/03: Fail # issue 8025
@@ -340,10 +309,6 @@ mixin_illegal_constructor_test/16: Fail # issue 8025
 
 mixin_illegal_cycles_test/01: Fail # issue 8027
 mixin_illegal_cycles_test/02: Fail # issue 8027
-mixin_illegal_cycles_test/03: Fail # issue 8027
-mixin_illegal_cycles_test/04: Fail # issue 8027
-mixin_illegal_cycles_test/05: Fail # issue 8027
-mixin_illegal_cycles_test/06: Fail # issue 8027
 
 #
 # Add new dartc annotations above in alphabetical order

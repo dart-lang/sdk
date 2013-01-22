@@ -178,6 +178,7 @@ public enum ResolverErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test (reachable code?)
   NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
   NOT_GENERATIVE_SUPER_CONSTRUCTOR("Constructor '%s' in class '%s' is not generative."),
+  ONLY_OBJECT_MIXIN_SUPERCLASS("Only Object is allowed to be a superclass of a mixin."),
   OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER("Optional parameters cannot start with an '_' character"),
   PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),
   SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER(

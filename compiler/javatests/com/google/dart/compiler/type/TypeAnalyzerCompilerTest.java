@@ -6262,7 +6262,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
   
-  public void test_mixin_dontAddSupertypes() throws Exception {
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=8022
+   */
+  public void test_mixin_notObjectSuperclass() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A {}",
+        "typedef C = Object with B;",
+        "class D extends Object with B {}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS, 4, 25, 1),
+        errEx(ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS, 5, 29, 1));
+  }
+  
+  /**
+   * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
+   */
+  public void _test_mixin_dontAddSupertypes() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -6312,7 +6333,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 15, 5, 7));
   }
   
-  public void test_mixin_dontAddSupertypes3() throws Exception {
+  /**
+   * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
+   */
+  public void _test_mixin_dontAddSupertypes3() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -6331,7 +6355,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 10, 7, 1));
   }
 
-  public void test_mixin_dontLookSupertype_getter() throws Exception {
+  /**
+   * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
+   */
+  public void _test_mixin_dontLookSupertype_getter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -6353,7 +6380,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NOT_A_MEMBER_OF, 13, 11, 2));
   }
   
-  public void test_mixin_dontLookSupertype_setter() throws Exception {
+  /**
+   * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
+   */
+  public void _test_mixin_dontLookSupertype_setter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
