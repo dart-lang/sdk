@@ -3,18 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Provides client-side behavior for generated docs using the static mode. */
-library client_static;
+library client;
 
 import 'dart:html';
 import 'dart:json';
 import '../../../../compiler/implementation/source_file.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../classify.dart';
+import '../dartdoc/nav.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 part 'dropdown.dart';
 part 'search.dart';
-part '../dartdoc/nav.dart';
 part 'client-shared.dart';
 part '../../../tmp/nav.dart';
 

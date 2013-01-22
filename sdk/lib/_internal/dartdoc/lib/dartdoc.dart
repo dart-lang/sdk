@@ -31,10 +31,8 @@ import 'markdown.dart' as md;
 import 'src/json_serializer.dart' as json_serializer;
 import '../../compiler/implementation/scanner/scannerlib.dart' as dart2js;
 import '../../libraries.dart';
+import 'src/dartdoc/nav.dart';
 
-
-// TODO(rnystrom): Use "package:" URL (#4968).
-part 'src/dartdoc/nav.dart';
 part 'src/dartdoc/utils.dart';
 
 /**
@@ -563,7 +561,8 @@ class Dartdoc {
     String dartString = jsonString.replaceAll(r"$", r"\$");
     final filePath = tmpPath.append('nav.dart');
     writeString(new File.fromPath(filePath),
-        'get json => $dartString;');
+        '''part of client;
+           get json => $dartString;''');
   }
 
   Path get tmpPath => dartdocPath.append('tmp');
