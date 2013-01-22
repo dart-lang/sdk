@@ -286,10 +286,6 @@ prefix2_negative_test: Fail
 # test issue 7523 (const declared without type, so not-a-function warning should not be reported)
 call_through_getter_test: Fail
 
-mixin_illegal_syntax_test/03: Pass # issue 8006
-mixin_illegal_syntax_test/13: Fail # issue 8006
-mixin_illegal_syntax_test/none: Fail # issue 8006
-
 mixin_illegal_constructor_test/01: Fail # issue 8025
 mixin_illegal_constructor_test/02: Fail # issue 8025
 mixin_illegal_constructor_test/03: Fail # issue 8025

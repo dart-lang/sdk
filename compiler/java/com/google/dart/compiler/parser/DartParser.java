@@ -1246,11 +1246,6 @@ public class DartParser extends CompletionHooksParserBase {
   private DartClassTypeAlias parseClassTypeAlias() {
     beginClassTypeInterface();
 
-    Modifiers modifiers = Modifiers.NONE;
-    if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
-      modifiers = modifiers.makeAbstract();
-    }
-
     DartIdentifier name = parseIdentifier();
     if (PSEUDO_KEYWORDS_SET.contains(name.getName())) {
       reportError(name, ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
@@ -1258,6 +1253,11 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
     
     expect(Token.ASSIGN);
+
+    Modifiers modifiers = Modifiers.NONE;
+    if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
+      modifiers = modifiers.makeAbstract();
+    }
 
     DartTypeNode superType = parseTypeAnnotation();
 

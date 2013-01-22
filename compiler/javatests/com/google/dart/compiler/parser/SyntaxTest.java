@@ -14,6 +14,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
@@ -113,6 +114,33 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals(2, mixins.size());
     assertEquals("C", mixins.get(0).toString());
     assertEquals("D", mixins.get(1).toString());
+  }
+
+  public void test_parseTypedefMixin() throws Exception {
+    parseUnit(
+        "test.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "typedef C = A with B;",
+            ""));
+    DartClassTypeAlias typedef = findNode(DartClassTypeAlias.class, "typedef C");
+    assertEquals("A", typedef.getSuperclass().toString());
+    {
+      NodeList<DartTypeNode> mixins = typedef.getMixins();
+      assertEquals(1, mixins.size());
+      assertEquals("B", mixins.get(0).toString());
+    }
+  }
+  
+  public void test_parseTypedefMixin_abstract() throws Exception {
+    parseUnit(
+        "test.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "typedef C = abstract A with B;",
+            ""));
+    DartClassTypeAlias typedef = findNode(DartClassTypeAlias.class, "typedef C");
+    assertTrue(typedef.getModifiers().isAbstract());
   }
 
   /**
