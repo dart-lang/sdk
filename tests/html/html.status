@@ -28,6 +28,7 @@ audiocontext_test: Pass, Timeout  # Issue 8021.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+transferables_test: Pass, Fail # Issue 8026
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
