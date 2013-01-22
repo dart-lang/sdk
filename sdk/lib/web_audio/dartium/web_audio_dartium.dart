@@ -200,16 +200,16 @@ class AudioBufferSourceNode extends AudioSourceNode {
   }
 
   @DocsEditable
-  @DomName('AudioBufferSourceNode.start_1')
-  void _start_1(when) native "AudioBufferSourceNode_start_1_Callback";
+  @DomName('AudioBufferSourceNode._start_1')
+  void _start_1(when) native "AudioBufferSourceNode__start_1_Callback";
 
   @DocsEditable
-  @DomName('AudioBufferSourceNode.start_2')
-  void _start_2(when, grainOffset) native "AudioBufferSourceNode_start_2_Callback";
+  @DomName('AudioBufferSourceNode._start_2')
+  void _start_2(when, grainOffset) native "AudioBufferSourceNode__start_2_Callback";
 
   @DocsEditable
-  @DomName('AudioBufferSourceNode.start_3')
-  void _start_3(when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_3_Callback";
+  @DomName('AudioBufferSourceNode._start_3')
+  void _start_3(when, grainOffset, grainDuration) native "AudioBufferSourceNode__start_3_Callback";
 
   @DocsEditable
   @DomName('AudioBufferSourceNode.stop')
@@ -278,12 +278,12 @@ class AudioContext extends EventTarget {
   }
 
   @DocsEditable
-  @DomName('AudioContext.createBuffer_1')
-  AudioBuffer _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) native "AudioContext_createBuffer_1_Callback";
+  @DomName('AudioContext._createBuffer_1')
+  AudioBuffer _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) native "AudioContext__createBuffer_1_Callback";
 
   @DocsEditable
-  @DomName('AudioContext.createBuffer_2')
-  AudioBuffer _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native "AudioContext_createBuffer_2_Callback";
+  @DomName('AudioContext._createBuffer_2')
+  AudioBuffer _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native "AudioContext__createBuffer_2_Callback";
 
   @DocsEditable
   @DomName('AudioContext.createBufferSource')
@@ -297,12 +297,12 @@ class AudioContext extends EventTarget {
   }
 
   @DocsEditable
-  @DomName('AudioContext.createChannelMerger_1')
-  ChannelMergerNode _createChannelMerger_1(numberOfInputs) native "AudioContext_createChannelMerger_1_Callback";
+  @DomName('AudioContext._createChannelMerger_1')
+  ChannelMergerNode _createChannelMerger_1(numberOfInputs) native "AudioContext__createChannelMerger_1_Callback";
 
   @DocsEditable
-  @DomName('AudioContext.createChannelMerger_2')
-  ChannelMergerNode _createChannelMerger_2() native "AudioContext_createChannelMerger_2_Callback";
+  @DomName('AudioContext._createChannelMerger_2')
+  ChannelMergerNode _createChannelMerger_2() native "AudioContext__createChannelMerger_2_Callback";
 
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
     if (?numberOfOutputs) {
@@ -312,12 +312,12 @@ class AudioContext extends EventTarget {
   }
 
   @DocsEditable
-  @DomName('AudioContext.createChannelSplitter_1')
-  ChannelSplitterNode _createChannelSplitter_1(numberOfOutputs) native "AudioContext_createChannelSplitter_1_Callback";
+  @DomName('AudioContext._createChannelSplitter_1')
+  ChannelSplitterNode _createChannelSplitter_1(numberOfOutputs) native "AudioContext__createChannelSplitter_1_Callback";
 
   @DocsEditable
-  @DomName('AudioContext.createChannelSplitter_2')
-  ChannelSplitterNode _createChannelSplitter_2() native "AudioContext_createChannelSplitter_2_Callback";
+  @DomName('AudioContext._createChannelSplitter_2')
+  ChannelSplitterNode _createChannelSplitter_2() native "AudioContext__createChannelSplitter_2_Callback";
 
   @DocsEditable
   @DomName('AudioContext.createConvolver')
@@ -331,12 +331,12 @@ class AudioContext extends EventTarget {
   }
 
   @DocsEditable
-  @DomName('AudioContext.createDelay_1')
-  DelayNode _createDelay_1(maxDelayTime) native "AudioContext_createDelay_1_Callback";
+  @DomName('AudioContext._createDelay_1')
+  DelayNode _createDelay_1(maxDelayTime) native "AudioContext__createDelay_1_Callback";
 
   @DocsEditable
-  @DomName('AudioContext.createDelay_2')
-  DelayNode _createDelay_2() native "AudioContext_createDelay_2_Callback";
+  @DomName('AudioContext._createDelay_2')
+  DelayNode _createDelay_2() native "AudioContext__createDelay_2_Callback";
 
   @DocsEditable
   @DomName('AudioContext.createDynamicsCompressor')
@@ -377,16 +377,16 @@ class AudioContext extends EventTarget {
   }
 
   @DocsEditable
-  @DomName('AudioContext.createScriptProcessor_1')
-  ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createScriptProcessor_1_Callback";
+  @DomName('AudioContext._createScriptProcessor_1')
+  ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createScriptProcessor_1_Callback";
 
   @DocsEditable
-  @DomName('AudioContext.createScriptProcessor_2')
-  ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) native "AudioContext_createScriptProcessor_2_Callback";
+  @DomName('AudioContext._createScriptProcessor_2')
+  ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) native "AudioContext__createScriptProcessor_2_Callback";
 
   @DocsEditable
-  @DomName('AudioContext.createScriptProcessor_3')
-  ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext_createScriptProcessor_3_Callback";
+  @DomName('AudioContext._createScriptProcessor_3')
+  ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext__createScriptProcessor_3_Callback";
 
   @DocsEditable
   @DomName('AudioContext.createWaveShaper')
@@ -526,12 +526,12 @@ class AudioNode extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('AudioNode.connect_1')
-  void _connect_1(destination, output, input) native "AudioNode_connect_1_Callback";
+  @DomName('AudioNode._connect_1')
+  void _connect_1(destination, output, input) native "AudioNode__connect_1_Callback";
 
   @DocsEditable
-  @DomName('AudioNode.connect_2')
-  void _connect_2(destination, output) native "AudioNode_connect_2_Callback";
+  @DomName('AudioNode._connect_2')
+  void _connect_2(destination, output) native "AudioNode__connect_2_Callback";
 
   @DocsEditable
   @DomName('AudioNode.disconnect')

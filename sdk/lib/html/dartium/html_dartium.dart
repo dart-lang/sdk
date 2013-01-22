@@ -568,12 +568,12 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('ArrayBuffer.slice_1')
-  ArrayBuffer _slice_1(begin, end) native "ArrayBuffer_slice_1_Callback";
+  @DomName('ArrayBuffer._slice_1')
+  ArrayBuffer _slice_1(begin, end) native "ArrayBuffer__slice_1_Callback";
 
   @DocsEditable
-  @DomName('ArrayBuffer.slice_2')
-  ArrayBuffer _slice_2(begin) native "ArrayBuffer_slice_2_Callback";
+  @DomName('ArrayBuffer._slice_2')
+  ArrayBuffer _slice_2(begin) native "ArrayBuffer__slice_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -862,20 +862,20 @@ class Blob extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('Blob.slice_1')
-  Blob _slice_1(start, end, contentType) native "Blob_slice_1_Callback";
+  @DomName('Blob._slice_1')
+  Blob _slice_1(start, end, contentType) native "Blob__slice_1_Callback";
 
   @DocsEditable
-  @DomName('Blob.slice_2')
-  Blob _slice_2(start, end) native "Blob_slice_2_Callback";
+  @DomName('Blob._slice_2')
+  Blob _slice_2(start, end) native "Blob__slice_2_Callback";
 
   @DocsEditable
-  @DomName('Blob.slice_3')
-  Blob _slice_3(start) native "Blob_slice_3_Callback";
+  @DomName('Blob._slice_3')
+  Blob _slice_3(start) native "Blob__slice_3_Callback";
 
   @DocsEditable
-  @DomName('Blob.slice_4')
-  Blob _slice_4() native "Blob_slice_4_Callback";
+  @DomName('Blob._slice_4')
+  Blob _slice_4() native "Blob__slice_4_Callback";
 
 }
 
@@ -1483,12 +1483,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.createImageData_1')
-  ImageData _createImageData_1(imagedata_OR_sw) native "CanvasRenderingContext2D_createImageData_1_Callback";
+  @DomName('CanvasRenderingContext2D._createImageData_1')
+  ImageData _createImageData_1(imagedata_OR_sw) native "CanvasRenderingContext2D__createImageData_1_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.createImageData_2')
-  ImageData _createImageData_2(imagedata_OR_sw, sh) native "CanvasRenderingContext2D_createImageData_2_Callback";
+  @DomName('CanvasRenderingContext2D._createImageData_2')
+  ImageData _createImageData_2(imagedata_OR_sw, sh) native "CanvasRenderingContext2D__createImageData_2_Callback";
 
   @DocsEditable
   @DomName('CanvasRenderingContext2D.createLinearGradient')
@@ -1505,12 +1505,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.createPattern_1')
-  CanvasPattern _createPattern_1(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_1_Callback";
+  @DomName('CanvasRenderingContext2D._createPattern_1')
+  CanvasPattern _createPattern_1(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D__createPattern_1_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.createPattern_2')
-  CanvasPattern _createPattern_2(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D_createPattern_2_Callback";
+  @DomName('CanvasRenderingContext2D._createPattern_2')
+  CanvasPattern _createPattern_2(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D__createPattern_2_Callback";
 
   @DocsEditable
   @DomName('CanvasRenderingContext2D.createRadialGradient')
@@ -1557,40 +1557,40 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.drawImage_1')
-  void _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_1_Callback";
+  @DomName('CanvasRenderingContext2D._drawImage_1')
+  void _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_1_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.drawImage_2')
-  void _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_2_Callback";
+  @DomName('CanvasRenderingContext2D._drawImage_2')
+  void _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_2_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.drawImage_3')
-  void _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_3_Callback";
+  @DomName('CanvasRenderingContext2D._drawImage_3')
+  void _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_3_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.drawImage_4')
-  void _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_4_Callback";
+  @DomName('CanvasRenderingContext2D._drawImage_4')
+  void _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_4_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.drawImage_5')
-  void _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_5_Callback";
+  @DomName('CanvasRenderingContext2D._drawImage_5')
+  void _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_5_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.drawImage_6')
-  void _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_6_Callback";
+  @DomName('CanvasRenderingContext2D._drawImage_6')
+  void _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_6_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.drawImage_7')
-  void _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_7_Callback";
+  @DomName('CanvasRenderingContext2D._drawImage_7')
+  void _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_7_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.drawImage_8')
-  void _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D_drawImage_8_Callback";
+  @DomName('CanvasRenderingContext2D._drawImage_8')
+  void _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_8_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.drawImage_9')
-  void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
+  @DomName('CanvasRenderingContext2D._drawImage_9')
+  void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_9_Callback";
 
   @DocsEditable
   @DomName('CanvasRenderingContext2D.fill')
@@ -1609,12 +1609,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.fillText_1')
-  void _fillText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_1_Callback";
+  @DomName('CanvasRenderingContext2D._fillText_1')
+  void _fillText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D__fillText_1_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.fillText_2')
-  void _fillText_2(text, x, y) native "CanvasRenderingContext2D_fillText_2_Callback";
+  @DomName('CanvasRenderingContext2D._fillText_2')
+  void _fillText_2(text, x, y) native "CanvasRenderingContext2D__fillText_2_Callback";
 
   @DocsEditable
   @DomName('CanvasRenderingContext2D.getImageData')
@@ -1653,12 +1653,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.putImageData_1')
-  void _putImageData_1(imagedata, dx, dy) native "CanvasRenderingContext2D_putImageData_1_Callback";
+  @DomName('CanvasRenderingContext2D._putImageData_1')
+  void _putImageData_1(imagedata, dx, dy) native "CanvasRenderingContext2D__putImageData_1_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.putImageData_2')
-  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_putImageData_2_Callback";
+  @DomName('CanvasRenderingContext2D._putImageData_2')
+  void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D__putImageData_2_Callback";
 
   @DocsEditable
   @DomName('CanvasRenderingContext2D.quadraticCurveTo')
@@ -1705,12 +1705,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.strokeRect_1')
-  void _strokeRect_1(x, y, width, height, lineWidth) native "CanvasRenderingContext2D_strokeRect_1_Callback";
+  @DomName('CanvasRenderingContext2D._strokeRect_1')
+  void _strokeRect_1(x, y, width, height, lineWidth) native "CanvasRenderingContext2D__strokeRect_1_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.strokeRect_2')
-  void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_2_Callback";
+  @DomName('CanvasRenderingContext2D._strokeRect_2')
+  void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D__strokeRect_2_Callback";
 
   void strokeText(String text, num x, num y, [num maxWidth]) {
     if (?maxWidth) {
@@ -1721,12 +1721,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.strokeText_1')
-  void _strokeText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_1_Callback";
+  @DomName('CanvasRenderingContext2D._strokeText_1')
+  void _strokeText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D__strokeText_1_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.strokeText_2')
-  void _strokeText_2(text, x, y) native "CanvasRenderingContext2D_strokeText_2_Callback";
+  @DomName('CanvasRenderingContext2D._strokeText_2')
+  void _strokeText_2(text, x, y) native "CanvasRenderingContext2D__strokeText_2_Callback";
 
   @DocsEditable
   @DomName('CanvasRenderingContext2D.transform')
@@ -1753,12 +1753,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD_1')
-  void _webkitPutImageDataHD_1(imagedata, dx, dy) native "CanvasRenderingContext2D_webkitPutImageDataHD_1_Callback";
+  @DomName('CanvasRenderingContext2D._webkitPutImageDataHD_1')
+  void _webkitPutImageDataHD_1(imagedata, dx, dy) native "CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback";
 
   @DocsEditable
-  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD_2')
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D_webkitPutImageDataHD_2_Callback";
+  @DomName('CanvasRenderingContext2D._webkitPutImageDataHD_2')
+  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback";
 
 
   /**
@@ -6089,12 +6089,12 @@ class CssStyleSheet extends StyleSheet {
   }
 
   @DocsEditable
-  @DomName('CSSStyleSheet.addRule_1')
-  int _addRule_1(selector, style, index) native "CSSStyleSheet_addRule_1_Callback";
+  @DomName('CSSStyleSheet._addRule_1')
+  int _addRule_1(selector, style, index) native "CSSStyleSheet__addRule_1_Callback";
 
   @DocsEditable
-  @DomName('CSSStyleSheet.addRule_2')
-  int _addRule_2(selector, style) native "CSSStyleSheet_addRule_2_Callback";
+  @DomName('CSSStyleSheet._addRule_2')
+  int _addRule_2(selector, style) native "CSSStyleSheet__addRule_2_Callback";
 
   @DocsEditable
   @DomName('CSSStyleSheet.deleteRule')
@@ -6343,12 +6343,12 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('DataTransferItemList.add_1')
-  void _add_1(data_OR_file) native "DataTransferItemList_add_1_Callback";
+  @DomName('DataTransferItemList._add_1')
+  void _add_1(data_OR_file) native "DataTransferItemList__add_1_Callback";
 
   @DocsEditable
-  @DomName('DataTransferItemList.add_2')
-  void _add_2(data_OR_file, type) native "DataTransferItemList_add_2_Callback";
+  @DomName('DataTransferItemList._add_2')
+  void _add_2(data_OR_file, type) native "DataTransferItemList__add_2_Callback";
 
   @DocsEditable
   @DomName('DataTransferItemList.clear')
@@ -6391,12 +6391,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.getFloat32_1')
-  num _getFloat32_1(byteOffset, littleEndian) native "DataView_getFloat32_1_Callback";
+  @DomName('DataView._getFloat32_1')
+  num _getFloat32_1(byteOffset, littleEndian) native "DataView__getFloat32_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.getFloat32_2')
-  num _getFloat32_2(byteOffset) native "DataView_getFloat32_2_Callback";
+  @DomName('DataView._getFloat32_2')
+  num _getFloat32_2(byteOffset) native "DataView__getFloat32_2_Callback";
 
   num getFloat64(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6406,12 +6406,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.getFloat64_1')
-  num _getFloat64_1(byteOffset, littleEndian) native "DataView_getFloat64_1_Callback";
+  @DomName('DataView._getFloat64_1')
+  num _getFloat64_1(byteOffset, littleEndian) native "DataView__getFloat64_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.getFloat64_2')
-  num _getFloat64_2(byteOffset) native "DataView_getFloat64_2_Callback";
+  @DomName('DataView._getFloat64_2')
+  num _getFloat64_2(byteOffset) native "DataView__getFloat64_2_Callback";
 
   int getInt16(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6421,12 +6421,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.getInt16_1')
-  int _getInt16_1(byteOffset, littleEndian) native "DataView_getInt16_1_Callback";
+  @DomName('DataView._getInt16_1')
+  int _getInt16_1(byteOffset, littleEndian) native "DataView__getInt16_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.getInt16_2')
-  int _getInt16_2(byteOffset) native "DataView_getInt16_2_Callback";
+  @DomName('DataView._getInt16_2')
+  int _getInt16_2(byteOffset) native "DataView__getInt16_2_Callback";
 
   int getInt32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6436,12 +6436,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.getInt32_1')
-  int _getInt32_1(byteOffset, littleEndian) native "DataView_getInt32_1_Callback";
+  @DomName('DataView._getInt32_1')
+  int _getInt32_1(byteOffset, littleEndian) native "DataView__getInt32_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.getInt32_2')
-  int _getInt32_2(byteOffset) native "DataView_getInt32_2_Callback";
+  @DomName('DataView._getInt32_2')
+  int _getInt32_2(byteOffset) native "DataView__getInt32_2_Callback";
 
   @DocsEditable
   @DomName('DataView.getInt8')
@@ -6455,12 +6455,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.getUint16_1')
-  int _getUint16_1(byteOffset, littleEndian) native "DataView_getUint16_1_Callback";
+  @DomName('DataView._getUint16_1')
+  int _getUint16_1(byteOffset, littleEndian) native "DataView__getUint16_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.getUint16_2')
-  int _getUint16_2(byteOffset) native "DataView_getUint16_2_Callback";
+  @DomName('DataView._getUint16_2')
+  int _getUint16_2(byteOffset) native "DataView__getUint16_2_Callback";
 
   int getUint32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6470,12 +6470,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.getUint32_1')
-  int _getUint32_1(byteOffset, littleEndian) native "DataView_getUint32_1_Callback";
+  @DomName('DataView._getUint32_1')
+  int _getUint32_1(byteOffset, littleEndian) native "DataView__getUint32_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.getUint32_2')
-  int _getUint32_2(byteOffset) native "DataView_getUint32_2_Callback";
+  @DomName('DataView._getUint32_2')
+  int _getUint32_2(byteOffset) native "DataView__getUint32_2_Callback";
 
   @DocsEditable
   @DomName('DataView.getUint8')
@@ -6490,12 +6490,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.setFloat32_1')
-  void _setFloat32_1(byteOffset, value, littleEndian) native "DataView_setFloat32_1_Callback";
+  @DomName('DataView._setFloat32_1')
+  void _setFloat32_1(byteOffset, value, littleEndian) native "DataView__setFloat32_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.setFloat32_2')
-  void _setFloat32_2(byteOffset, value) native "DataView_setFloat32_2_Callback";
+  @DomName('DataView._setFloat32_2')
+  void _setFloat32_2(byteOffset, value) native "DataView__setFloat32_2_Callback";
 
   void setFloat64(int byteOffset, num value, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6506,12 +6506,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.setFloat64_1')
-  void _setFloat64_1(byteOffset, value, littleEndian) native "DataView_setFloat64_1_Callback";
+  @DomName('DataView._setFloat64_1')
+  void _setFloat64_1(byteOffset, value, littleEndian) native "DataView__setFloat64_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.setFloat64_2')
-  void _setFloat64_2(byteOffset, value) native "DataView_setFloat64_2_Callback";
+  @DomName('DataView._setFloat64_2')
+  void _setFloat64_2(byteOffset, value) native "DataView__setFloat64_2_Callback";
 
   void setInt16(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6522,12 +6522,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.setInt16_1')
-  void _setInt16_1(byteOffset, value, littleEndian) native "DataView_setInt16_1_Callback";
+  @DomName('DataView._setInt16_1')
+  void _setInt16_1(byteOffset, value, littleEndian) native "DataView__setInt16_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.setInt16_2')
-  void _setInt16_2(byteOffset, value) native "DataView_setInt16_2_Callback";
+  @DomName('DataView._setInt16_2')
+  void _setInt16_2(byteOffset, value) native "DataView__setInt16_2_Callback";
 
   void setInt32(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6538,12 +6538,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.setInt32_1')
-  void _setInt32_1(byteOffset, value, littleEndian) native "DataView_setInt32_1_Callback";
+  @DomName('DataView._setInt32_1')
+  void _setInt32_1(byteOffset, value, littleEndian) native "DataView__setInt32_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.setInt32_2')
-  void _setInt32_2(byteOffset, value) native "DataView_setInt32_2_Callback";
+  @DomName('DataView._setInt32_2')
+  void _setInt32_2(byteOffset, value) native "DataView__setInt32_2_Callback";
 
   @DocsEditable
   @DomName('DataView.setInt8')
@@ -6558,12 +6558,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.setUint16_1')
-  void _setUint16_1(byteOffset, value, littleEndian) native "DataView_setUint16_1_Callback";
+  @DomName('DataView._setUint16_1')
+  void _setUint16_1(byteOffset, value, littleEndian) native "DataView__setUint16_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.setUint16_2')
-  void _setUint16_2(byteOffset, value) native "DataView_setUint16_2_Callback";
+  @DomName('DataView._setUint16_2')
+  void _setUint16_2(byteOffset, value) native "DataView__setUint16_2_Callback";
 
   void setUint32(int byteOffset, int value, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6574,12 +6574,12 @@ class DataView extends ArrayBufferView {
   }
 
   @DocsEditable
-  @DomName('DataView.setUint32_1')
-  void _setUint32_1(byteOffset, value, littleEndian) native "DataView_setUint32_1_Callback";
+  @DomName('DataView._setUint32_1')
+  void _setUint32_1(byteOffset, value, littleEndian) native "DataView__setUint32_1_Callback";
 
   @DocsEditable
-  @DomName('DataView.setUint32_2')
-  void _setUint32_2(byteOffset, value) native "DataView_setUint32_2_Callback";
+  @DomName('DataView._setUint32_2')
+  void _setUint32_2(byteOffset, value) native "DataView__setUint32_2_Callback";
 
   @DocsEditable
   @DomName('DataView.setUint8')
@@ -8659,12 +8659,12 @@ class DomTokenList extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('DOMTokenList.toggle_1')
-  bool _toggle_1(token, force) native "DOMTokenList_toggle_1_Callback";
+  @DomName('DOMTokenList._toggle_1')
+  bool _toggle_1(token, force) native "DOMTokenList__toggle_1_Callback";
 
   @DocsEditable
-  @DomName('DOMTokenList.toggle_2')
-  bool _toggle_2(token) native "DOMTokenList_toggle_2_Callback";
+  @DomName('DOMTokenList._toggle_2')
+  bool _toggle_2(token) native "DOMTokenList__toggle_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9869,12 +9869,12 @@ abstract class Element extends Node implements ElementTraversal {
   }
 
   @DocsEditable
-  @DomName('Element.scrollIntoViewIfNeeded_1')
-  void _scrollIntoViewIfNeeded_1(centerIfNeeded) native "Element_scrollIntoViewIfNeeded_1_Callback";
+  @DomName('Element._scrollIntoViewIfNeeded_1')
+  void _scrollIntoViewIfNeeded_1(centerIfNeeded) native "Element__scrollIntoViewIfNeeded_1_Callback";
 
   @DocsEditable
-  @DomName('Element.scrollIntoViewIfNeeded_2')
-  void _scrollIntoViewIfNeeded_2() native "Element_scrollIntoViewIfNeeded_2_Callback";
+  @DomName('Element._scrollIntoViewIfNeeded_2')
+  void _scrollIntoViewIfNeeded_2() native "Element__scrollIntoViewIfNeeded_2_Callback";
 
   @DocsEditable
   @DomName('Element.setAttribute')
@@ -10545,12 +10545,12 @@ class Entry extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('Entry.copyTo_1')
-  void _copyTo_1(parent, name, successCallback, errorCallback) native "Entry_copyTo_1_Callback";
+  @DomName('Entry._copyTo_1')
+  void _copyTo_1(parent, name, successCallback, errorCallback) native "Entry__copyTo_1_Callback";
 
   @DocsEditable
-  @DomName('Entry.copyTo_2')
-  void _copyTo_2(parent) native "Entry_copyTo_2_Callback";
+  @DomName('Entry._copyTo_2')
+  void _copyTo_2(parent) native "Entry__copyTo_2_Callback";
 
   @DocsEditable
   @DomName('Entry.getMetadata')
@@ -10569,12 +10569,12 @@ class Entry extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('Entry.moveTo_1')
-  void _moveTo_1(parent, name, successCallback, errorCallback) native "Entry_moveTo_1_Callback";
+  @DomName('Entry._moveTo_1')
+  void _moveTo_1(parent, name, successCallback, errorCallback) native "Entry__moveTo_1_Callback";
 
   @DocsEditable
-  @DomName('Entry.moveTo_2')
-  void _moveTo_2(parent) native "Entry_moveTo_2_Callback";
+  @DomName('Entry._moveTo_2')
+  void _moveTo_2(parent) native "Entry__moveTo_2_Callback";
 
   @DocsEditable
   @DomName('Entry.remove')
@@ -11575,12 +11575,12 @@ class FileReader extends EventTarget {
   }
 
   @DocsEditable
-  @DomName('FileReader.readAsText_1')
-  void _readAsText_1(blob, encoding) native "FileReader_readAsText_1_Callback";
+  @DomName('FileReader._readAsText_1')
+  void _readAsText_1(blob, encoding) native "FileReader__readAsText_1_Callback";
 
   @DocsEditable
-  @DomName('FileReader.readAsText_2')
-  void _readAsText_2(blob) native "FileReader_readAsText_2_Callback";
+  @DomName('FileReader._readAsText_2')
+  void _readAsText_2(blob) native "FileReader__readAsText_2_Callback";
 
   @DocsEditable
   @DomName('FileReader.removeEventListener')
@@ -11671,12 +11671,12 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('FileReaderSync.readAsText_1')
-  String _readAsText_1(blob, encoding) native "FileReaderSync_readAsText_1_Callback";
+  @DomName('FileReaderSync._readAsText_1')
+  String _readAsText_1(blob, encoding) native "FileReaderSync__readAsText_1_Callback";
 
   @DocsEditable
-  @DomName('FileReaderSync.readAsText_2')
-  String _readAsText_2(blob) native "FileReaderSync_readAsText_2_Callback";
+  @DomName('FileReaderSync._readAsText_2')
+  String _readAsText_2(blob) native "FileReaderSync__readAsText_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12122,12 +12122,12 @@ class Float32Array extends ArrayBufferView implements List<num> {
   }
 
   @DocsEditable
-  @DomName('Float32Array.subarray_1')
-  Float32Array _subarray_1(start, end) native "Float32Array_subarray_1_Callback";
+  @DomName('Float32Array._subarray_1')
+  Float32Array _subarray_1(start, end) native "Float32Array__subarray_1_Callback";
 
   @DocsEditable
-  @DomName('Float32Array.subarray_2')
-  Float32Array _subarray_2(start) native "Float32Array_subarray_2_Callback";
+  @DomName('Float32Array._subarray_2')
+  Float32Array _subarray_2(start) native "Float32Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12339,12 +12339,12 @@ class Float64Array extends ArrayBufferView implements List<num> {
   }
 
   @DocsEditable
-  @DomName('Float64Array.subarray_1')
-  Float64Array _subarray_1(start, end) native "Float64Array_subarray_1_Callback";
+  @DomName('Float64Array._subarray_1')
+  Float64Array _subarray_1(start, end) native "Float64Array__subarray_1_Callback";
 
   @DocsEditable
-  @DomName('Float64Array.subarray_2')
-  Float64Array _subarray_2(start) native "Float64Array_subarray_2_Callback";
+  @DomName('Float64Array._subarray_2')
+  Float64Array _subarray_2(start) native "Float64Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14335,12 +14335,12 @@ class InputElement extends _Element_Merged implements
   }
 
   @DocsEditable
-  @DomName('HTMLInputElement.setRangeText_1')
-  void _setRangeText_1(replacement) native "HTMLInputElement_setRangeText_1_Callback";
+  @DomName('HTMLInputElement._setRangeText_1')
+  void _setRangeText_1(replacement) native "HTMLInputElement__setRangeText_1_Callback";
 
   @DocsEditable
-  @DomName('HTMLInputElement.setRangeText_2')
-  void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLInputElement_setRangeText_2_Callback";
+  @DomName('HTMLInputElement._setRangeText_2')
+  void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLInputElement__setRangeText_2_Callback";
 
   @DocsEditable
   @DomName('HTMLInputElement.setSelectionRange')
@@ -14355,12 +14355,12 @@ class InputElement extends _Element_Merged implements
   }
 
   @DocsEditable
-  @DomName('HTMLInputElement.stepDown_1')
-  void _stepDown_1(n) native "HTMLInputElement_stepDown_1_Callback";
+  @DomName('HTMLInputElement._stepDown_1')
+  void _stepDown_1(n) native "HTMLInputElement__stepDown_1_Callback";
 
   @DocsEditable
-  @DomName('HTMLInputElement.stepDown_2')
-  void _stepDown_2() native "HTMLInputElement_stepDown_2_Callback";
+  @DomName('HTMLInputElement._stepDown_2')
+  void _stepDown_2() native "HTMLInputElement__stepDown_2_Callback";
 
   void stepUp([int n]) {
     if (?n) {
@@ -14371,12 +14371,12 @@ class InputElement extends _Element_Merged implements
   }
 
   @DocsEditable
-  @DomName('HTMLInputElement.stepUp_1')
-  void _stepUp_1(n) native "HTMLInputElement_stepUp_1_Callback";
+  @DomName('HTMLInputElement._stepUp_1')
+  void _stepUp_1(n) native "HTMLInputElement__stepUp_1_Callback";
 
   @DocsEditable
-  @DomName('HTMLInputElement.stepUp_2')
-  void _stepUp_2() native "HTMLInputElement_stepUp_2_Callback";
+  @DomName('HTMLInputElement._stepUp_2')
+  void _stepUp_2() native "HTMLInputElement__stepUp_2_Callback";
 
   @DocsEditable
   @DomName('HTMLInputElement.webkitSpeechChange')
@@ -15183,12 +15183,12 @@ class Int16Array extends ArrayBufferView implements List<int> {
   }
 
   @DocsEditable
-  @DomName('Int16Array.subarray_1')
-  Int16Array _subarray_1(start, end) native "Int16Array_subarray_1_Callback";
+  @DomName('Int16Array._subarray_1')
+  Int16Array _subarray_1(start, end) native "Int16Array__subarray_1_Callback";
 
   @DocsEditable
-  @DomName('Int16Array.subarray_2')
-  Int16Array _subarray_2(start) native "Int16Array_subarray_2_Callback";
+  @DomName('Int16Array._subarray_2')
+  Int16Array _subarray_2(start) native "Int16Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15400,12 +15400,12 @@ class Int32Array extends ArrayBufferView implements List<int> {
   }
 
   @DocsEditable
-  @DomName('Int32Array.subarray_1')
-  Int32Array _subarray_1(start, end) native "Int32Array_subarray_1_Callback";
+  @DomName('Int32Array._subarray_1')
+  Int32Array _subarray_1(start, end) native "Int32Array__subarray_1_Callback";
 
   @DocsEditable
-  @DomName('Int32Array.subarray_2')
-  Int32Array _subarray_2(start) native "Int32Array_subarray_2_Callback";
+  @DomName('Int32Array._subarray_2')
+  Int32Array _subarray_2(start) native "Int32Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15617,12 +15617,12 @@ class Int8Array extends ArrayBufferView implements List<int> {
   }
 
   @DocsEditable
-  @DomName('Int8Array.subarray_1')
-  Int8Array _subarray_1(start, end) native "Int8Array_subarray_1_Callback";
+  @DomName('Int8Array._subarray_1')
+  Int8Array _subarray_1(start, end) native "Int8Array__subarray_1_Callback";
 
   @DocsEditable
-  @DomName('Int8Array.subarray_2')
-  Int8Array _subarray_2(start) native "Int8Array_subarray_2_Callback";
+  @DomName('Int8Array._subarray_2')
+  Int8Array _subarray_2(start) native "Int8Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16591,16 +16591,16 @@ class MediaElement extends _Element_Merged {
   }
 
   @DocsEditable
-  @DomName('HTMLMediaElement.addTextTrack_1')
-  TextTrack _addTextTrack_1(kind, label, language) native "HTMLMediaElement_addTextTrack_1_Callback";
+  @DomName('HTMLMediaElement._addTextTrack_1')
+  TextTrack _addTextTrack_1(kind, label, language) native "HTMLMediaElement__addTextTrack_1_Callback";
 
   @DocsEditable
-  @DomName('HTMLMediaElement.addTextTrack_2')
-  TextTrack _addTextTrack_2(kind, label) native "HTMLMediaElement_addTextTrack_2_Callback";
+  @DomName('HTMLMediaElement._addTextTrack_2')
+  TextTrack _addTextTrack_2(kind, label) native "HTMLMediaElement__addTextTrack_2_Callback";
 
   @DocsEditable
-  @DomName('HTMLMediaElement.addTextTrack_3')
-  TextTrack _addTextTrack_3(kind) native "HTMLMediaElement_addTextTrack_3_Callback";
+  @DomName('HTMLMediaElement._addTextTrack_3')
+  TextTrack _addTextTrack_3(kind) native "HTMLMediaElement__addTextTrack_3_Callback";
 
   @DocsEditable
   @DomName('HTMLMediaElement.canPlayType')
@@ -16627,12 +16627,12 @@ class MediaElement extends _Element_Merged {
   }
 
   @DocsEditable
-  @DomName('HTMLMediaElement.webkitAddKey_1')
-  void _webkitAddKey_1(keySystem, key, initData, sessionId) native "HTMLMediaElement_webkitAddKey_1_Callback";
+  @DomName('HTMLMediaElement._webkitAddKey_1')
+  void _webkitAddKey_1(keySystem, key, initData, sessionId) native "HTMLMediaElement__webkitAddKey_1_Callback";
 
   @DocsEditable
-  @DomName('HTMLMediaElement.webkitAddKey_2')
-  void _webkitAddKey_2(keySystem, key) native "HTMLMediaElement_webkitAddKey_2_Callback";
+  @DomName('HTMLMediaElement._webkitAddKey_2')
+  void _webkitAddKey_2(keySystem, key) native "HTMLMediaElement__webkitAddKey_2_Callback";
 
   @DocsEditable
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
@@ -16647,12 +16647,12 @@ class MediaElement extends _Element_Merged {
   }
 
   @DocsEditable
-  @DomName('HTMLMediaElement.webkitGenerateKeyRequest_1')
-  void _webkitGenerateKeyRequest_1(keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_1_Callback";
+  @DomName('HTMLMediaElement._webkitGenerateKeyRequest_1')
+  void _webkitGenerateKeyRequest_1(keySystem, initData) native "HTMLMediaElement__webkitGenerateKeyRequest_1_Callback";
 
   @DocsEditable
-  @DomName('HTMLMediaElement.webkitGenerateKeyRequest_2')
-  void _webkitGenerateKeyRequest_2(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
+  @DomName('HTMLMediaElement._webkitGenerateKeyRequest_2')
+  void _webkitGenerateKeyRequest_2(keySystem) native "HTMLMediaElement__webkitGenerateKeyRequest_2_Callback";
 
   @DocsEditable
   @DomName('HTMLMediaElement.canplay')
@@ -20505,20 +20505,20 @@ class RtcDataChannel extends EventTarget {
   }
 
   @DocsEditable
-  @DomName('RTCDataChannel.send_1')
-  void _send_1(data) native "RTCDataChannel_send_1_Callback";
+  @DomName('RTCDataChannel._send_1')
+  void _send_1(data) native "RTCDataChannel__send_1_Callback";
 
   @DocsEditable
-  @DomName('RTCDataChannel.send_2')
-  void _send_2(data) native "RTCDataChannel_send_2_Callback";
+  @DomName('RTCDataChannel._send_2')
+  void _send_2(data) native "RTCDataChannel__send_2_Callback";
 
   @DocsEditable
-  @DomName('RTCDataChannel.send_3')
-  void _send_3(data) native "RTCDataChannel_send_3_Callback";
+  @DomName('RTCDataChannel._send_3')
+  void _send_3(data) native "RTCDataChannel__send_3_Callback";
 
   @DocsEditable
-  @DomName('RTCDataChannel.send_4')
-  void _send_4(data) native "RTCDataChannel_send_4_Callback";
+  @DomName('RTCDataChannel._send_4')
+  void _send_4(data) native "RTCDataChannel__send_4_Callback";
 
   @DocsEditable
   @DomName('RTCDataChannel.close')
@@ -21987,12 +21987,12 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   }
 
   @DocsEditable
-  @DomName('SpeechGrammarList.addFromString_1')
-  void _addFromString_1(string, weight) native "SpeechGrammarList_addFromString_1_Callback";
+  @DomName('SpeechGrammarList._addFromString_1')
+  void _addFromString_1(string, weight) native "SpeechGrammarList__addFromString_1_Callback";
 
   @DocsEditable
-  @DomName('SpeechGrammarList.addFromString_2')
-  void _addFromString_2(string) native "SpeechGrammarList_addFromString_2_Callback";
+  @DomName('SpeechGrammarList._addFromString_2')
+  void _addFromString_2(string) native "SpeechGrammarList__addFromString_2_Callback";
 
   void addFromUri(String src, [num weight]) {
     if (?weight) {
@@ -22003,12 +22003,12 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   }
 
   @DocsEditable
-  @DomName('SpeechGrammarList.addFromUri_1')
-  void _addFromUri_1(src, weight) native "SpeechGrammarList_addFromUri_1_Callback";
+  @DomName('SpeechGrammarList._addFromUri_1')
+  void _addFromUri_1(src, weight) native "SpeechGrammarList__addFromUri_1_Callback";
 
   @DocsEditable
-  @DomName('SpeechGrammarList.addFromUri_2')
-  void _addFromUri_2(src) native "SpeechGrammarList_addFromUri_2_Callback";
+  @DomName('SpeechGrammarList._addFromUri_2')
+  void _addFromUri_2(src) native "SpeechGrammarList__addFromUri_2_Callback";
 
   @DocsEditable
   @DomName('SpeechGrammarList.item')
@@ -23438,12 +23438,12 @@ class TextAreaElement extends _Element_Merged {
   }
 
   @DocsEditable
-  @DomName('HTMLTextAreaElement.setRangeText_1')
-  void _setRangeText_1(replacement) native "HTMLTextAreaElement_setRangeText_1_Callback";
+  @DomName('HTMLTextAreaElement._setRangeText_1')
+  void _setRangeText_1(replacement) native "HTMLTextAreaElement__setRangeText_1_Callback";
 
   @DocsEditable
-  @DomName('HTMLTextAreaElement.setRangeText_2')
-  void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLTextAreaElement_setRangeText_2_Callback";
+  @DomName('HTMLTextAreaElement._setRangeText_2')
+  void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLTextAreaElement__setRangeText_2_Callback";
 
   void setSelectionRange(int start, int end, [String direction]) {
     if (?direction) {
@@ -23454,12 +23454,12 @@ class TextAreaElement extends _Element_Merged {
   }
 
   @DocsEditable
-  @DomName('HTMLTextAreaElement.setSelectionRange_1')
-  void _setSelectionRange_1(start, end, direction) native "HTMLTextAreaElement_setSelectionRange_1_Callback";
+  @DomName('HTMLTextAreaElement._setSelectionRange_1')
+  void _setSelectionRange_1(start, end, direction) native "HTMLTextAreaElement__setSelectionRange_1_Callback";
 
   @DocsEditable
-  @DomName('HTMLTextAreaElement.setSelectionRange_2')
-  void _setSelectionRange_2(start, end) native "HTMLTextAreaElement_setSelectionRange_2_Callback";
+  @DomName('HTMLTextAreaElement._setSelectionRange_2')
+  void _setSelectionRange_2(start, end) native "HTMLTextAreaElement__setSelectionRange_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24972,12 +24972,12 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   }
 
   @DocsEditable
-  @DomName('Uint16Array.subarray_1')
-  Uint16Array _subarray_1(start, end) native "Uint16Array_subarray_1_Callback";
+  @DomName('Uint16Array._subarray_1')
+  Uint16Array _subarray_1(start, end) native "Uint16Array__subarray_1_Callback";
 
   @DocsEditable
-  @DomName('Uint16Array.subarray_2')
-  Uint16Array _subarray_2(start) native "Uint16Array_subarray_2_Callback";
+  @DomName('Uint16Array._subarray_2')
+  Uint16Array _subarray_2(start) native "Uint16Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25189,12 +25189,12 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   }
 
   @DocsEditable
-  @DomName('Uint32Array.subarray_1')
-  Uint32Array _subarray_1(start, end) native "Uint32Array_subarray_1_Callback";
+  @DomName('Uint32Array._subarray_1')
+  Uint32Array _subarray_1(start, end) native "Uint32Array__subarray_1_Callback";
 
   @DocsEditable
-  @DomName('Uint32Array.subarray_2')
-  Uint32Array _subarray_2(start) native "Uint32Array_subarray_2_Callback";
+  @DomName('Uint32Array._subarray_2')
+  Uint32Array _subarray_2(start) native "Uint32Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25406,12 +25406,12 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   }
 
   @DocsEditable
-  @DomName('Uint8Array.subarray_1')
-  Uint8Array _subarray_1(start, end) native "Uint8Array_subarray_1_Callback";
+  @DomName('Uint8Array._subarray_1')
+  Uint8Array _subarray_1(start, end) native "Uint8Array__subarray_1_Callback";
 
   @DocsEditable
-  @DomName('Uint8Array.subarray_2')
-  Uint8Array _subarray_2(start) native "Uint8Array_subarray_2_Callback";
+  @DomName('Uint8Array._subarray_2')
+  Uint8Array _subarray_2(start) native "Uint8Array__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25621,12 +25621,12 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
   }
 
   @DocsEditable
-  @DomName('Uint8ClampedArray.subarray_1')
-  Uint8ClampedArray _subarray_1(start, end) native "Uint8ClampedArray_subarray_1_Callback";
+  @DomName('Uint8ClampedArray._subarray_1')
+  Uint8ClampedArray _subarray_1(start, end) native "Uint8ClampedArray__subarray_1_Callback";
 
   @DocsEditable
-  @DomName('Uint8ClampedArray.subarray_2')
-  Uint8ClampedArray _subarray_2(start) native "Uint8ClampedArray_subarray_2_Callback";
+  @DomName('Uint8ClampedArray._subarray_2')
+  Uint8ClampedArray _subarray_2(start) native "Uint8ClampedArray__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25668,16 +25668,16 @@ class Url extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('DOMURL.createObjectURL_1')
-  static String _createObjectURL_1(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_1_Callback";
+  @DomName('DOMURL._createObjectURL_1')
+  static String _createObjectURL_1(blob_OR_source_OR_stream) native "DOMURL__createObjectURL_1_Callback";
 
   @DocsEditable
-  @DomName('DOMURL.createObjectURL_2')
-  static String _createObjectURL_2(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_2_Callback";
+  @DomName('DOMURL._createObjectURL_2')
+  static String _createObjectURL_2(blob_OR_source_OR_stream) native "DOMURL__createObjectURL_2_Callback";
 
   @DocsEditable
-  @DomName('DOMURL.createObjectURL_3')
-  static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_3_Callback";
+  @DomName('DOMURL._createObjectURL_3')
+  static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL__createObjectURL_3_Callback";
 
   @DocsEditable
   @DomName('DOMURL.revokeObjectURL')
@@ -26746,16 +26746,16 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.bufferData_1')
-  void _bufferData_1(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_1_Callback";
+  @DomName('WebGLRenderingContext._bufferData_1')
+  void _bufferData_1(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_1_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.bufferData_2')
-  void _bufferData_2(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_2_Callback";
+  @DomName('WebGLRenderingContext._bufferData_2')
+  void _bufferData_2(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_2_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.bufferData_3')
-  void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_3_Callback";
+  @DomName('WebGLRenderingContext._bufferData_3')
+  void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_3_Callback";
 
   void bufferSubData(int target, int offset, data) {
     if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBuffer || data == null)) {
@@ -26770,12 +26770,12 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.bufferSubData_1')
-  void _bufferSubData_1(target, offset, data) native "WebGLRenderingContext_bufferSubData_1_Callback";
+  @DomName('WebGLRenderingContext._bufferSubData_1')
+  void _bufferSubData_1(target, offset, data) native "WebGLRenderingContext__bufferSubData_1_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.bufferSubData_2')
-  void _bufferSubData_2(target, offset, data) native "WebGLRenderingContext_bufferSubData_2_Callback";
+  @DomName('WebGLRenderingContext._bufferSubData_2')
+  void _bufferSubData_2(target, offset, data) native "WebGLRenderingContext__bufferSubData_2_Callback";
 
   @DocsEditable
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
@@ -27154,24 +27154,24 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texImage2D_1')
-  void _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext_texImage2D_1_Callback";
+  @DomName('WebGLRenderingContext._texImage2D_1')
+  void _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext__texImage2D_1_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texImage2D_2')
-  void _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_2_Callback";
+  @DomName('WebGLRenderingContext._texImage2D_2')
+  void _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_2_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texImage2D_3')
-  void _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_3_Callback";
+  @DomName('WebGLRenderingContext._texImage2D_3')
+  void _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_3_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texImage2D_4')
-  void _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_4_Callback";
+  @DomName('WebGLRenderingContext._texImage2D_4')
+  void _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_4_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texImage2D_5')
-  void _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_5_Callback";
+  @DomName('WebGLRenderingContext._texImage2D_5')
+  void _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_5_Callback";
 
   @DocsEditable
   @DomName('WebGLRenderingContext.texParameterf')
@@ -27206,24 +27206,24 @@ class WebGLRenderingContext extends CanvasRenderingContext {
   }
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texSubImage2D_1')
-  void _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext_texSubImage2D_1_Callback";
+  @DomName('WebGLRenderingContext._texSubImage2D_1')
+  void _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext__texSubImage2D_1_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texSubImage2D_2')
-  void _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_2_Callback";
+  @DomName('WebGLRenderingContext._texSubImage2D_2')
+  void _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_2_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texSubImage2D_3')
-  void _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_3_Callback";
+  @DomName('WebGLRenderingContext._texSubImage2D_3')
+  void _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_3_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texSubImage2D_4')
-  void _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_4_Callback";
+  @DomName('WebGLRenderingContext._texSubImage2D_4')
+  void _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_4_Callback";
 
   @DocsEditable
-  @DomName('WebGLRenderingContext.texSubImage2D_5')
-  void _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texSubImage2D_5_Callback";
+  @DomName('WebGLRenderingContext._texSubImage2D_5')
+  void _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_5_Callback";
 
   @DocsEditable
   @DomName('WebGLRenderingContext.uniform1f')
@@ -27631,16 +27631,16 @@ class WebSocket extends EventTarget {
   }
 
   @DocsEditable
-  @DomName('WebSocket.close_1')
-  void _close_1(code, reason) native "WebSocket_close_1_Callback";
+  @DomName('WebSocket._close_1')
+  void _close_1(code, reason) native "WebSocket__close_1_Callback";
 
   @DocsEditable
-  @DomName('WebSocket.close_2')
-  void _close_2(code) native "WebSocket_close_2_Callback";
+  @DomName('WebSocket._close_2')
+  void _close_2(code) native "WebSocket__close_2_Callback";
 
   @DocsEditable
-  @DomName('WebSocket.close_3')
-  void _close_3() native "WebSocket_close_3_Callback";
+  @DomName('WebSocket._close_3')
+  void _close_3() native "WebSocket__close_3_Callback";
 
   @DocsEditable
   @DomName('WebSocket.dispatchEvent')

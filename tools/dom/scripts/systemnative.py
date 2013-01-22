@@ -471,13 +471,13 @@ class DartiumBackend(HtmlDartGenerator):
         else:
           template = '    $CALL;\n'
 
-      overload_name = '%s_%s' % (operation.id, version[0])
+      overload_name = '_%s_%s' % (operation.id, version[0])
       version[0] += 1
       argument_list = ', '.join(parameter_names[:argument_count])
-      call = '_%s(%s)' % (overload_name, argument_list)
+      call = '%s(%s)' % (overload_name, argument_list)
       body.Emit(template, CHECKS=' && '.join(checks), CALL=call)
 
-      dart_declaration = '%s%s _%s(%s)' % (
+      dart_declaration = '%s%s %s(%s)' % (
           'static ' if operation.is_static else '',
           self.SecureOutputType(operation.type.id),
           overload_name, argument_list)

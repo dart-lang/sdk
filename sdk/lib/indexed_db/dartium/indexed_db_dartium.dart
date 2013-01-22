@@ -74,12 +74,12 @@ class Cursor extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBCursor.continue_1')
-  void _continue_1(key) native "IDBCursor_continue_1_Callback";
+  @DomName('IDBCursor._continue_1')
+  void _continue_1(key) native "IDBCursor__continue_1_Callback";
 
   @DocsEditable
-  @DomName('IDBCursor.continue_2')
-  void _continue_2() native "IDBCursor_continue_2_Callback";
+  @DomName('IDBCursor._continue_2')
+  void _continue_2() native "IDBCursor__continue_2_Callback";
 
   @DocsEditable
   @DomName('IDBCursor.delete')
@@ -190,16 +190,16 @@ class Database extends EventTarget {
   }
 
   @DocsEditable
-  @DomName('IDBDatabase.transaction_1')
-  Transaction _transaction_1(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_1_Callback";
+  @DomName('IDBDatabase._transaction_1')
+  Transaction _transaction_1(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_1_Callback";
 
   @DocsEditable
-  @DomName('IDBDatabase.transaction_2')
-  Transaction _transaction_2(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_2_Callback";
+  @DomName('IDBDatabase._transaction_2')
+  Transaction _transaction_2(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_2_Callback";
 
   @DocsEditable
-  @DomName('IDBDatabase.transaction_3')
-  Transaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_3_Callback";
+  @DomName('IDBDatabase._transaction_3')
+  Transaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_3_Callback";
 
   @DocsEditable
   @DomName('IDBDatabase.abort')
@@ -266,12 +266,12 @@ class IdbFactory extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBFactory.open_1')
-  OpenDBRequest _open_1(name, version) native "IDBFactory_open_1_Callback";
+  @DomName('IDBFactory._open_1')
+  OpenDBRequest _open_1(name, version) native "IDBFactory__open_1_Callback";
 
   @DocsEditable
-  @DomName('IDBFactory.open_2')
-  OpenDBRequest _open_2(name) native "IDBFactory_open_2_Callback";
+  @DomName('IDBFactory._open_2')
+  OpenDBRequest _open_2(name) native "IDBFactory__open_2_Callback";
 
   @DocsEditable
   @DomName('IDBFactory.webkitGetDatabaseNames')
@@ -324,16 +324,16 @@ class Index extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBIndex.count_1')
-  Request _count_1() native "IDBIndex_count_1_Callback";
+  @DomName('IDBIndex._count_1')
+  Request _count_1() native "IDBIndex__count_1_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.count_2')
-  Request _count_2(key_OR_range) native "IDBIndex_count_2_Callback";
+  @DomName('IDBIndex._count_2')
+  Request _count_2(key_OR_range) native "IDBIndex__count_2_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.count_3')
-  Request _count_3(key_OR_range) native "IDBIndex_count_3_Callback";
+  @DomName('IDBIndex._count_3')
+  Request _count_3(key_OR_range) native "IDBIndex__count_3_Callback";
 
   Request get(key) {
     if ((key is KeyRange || key == null)) {
@@ -346,12 +346,12 @@ class Index extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBIndex.get_1')
-  Request _get_1(key) native "IDBIndex_get_1_Callback";
+  @DomName('IDBIndex._get_1')
+  Request _get_1(key) native "IDBIndex__get_1_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.get_2')
-  Request _get_2(key) native "IDBIndex_get_2_Callback";
+  @DomName('IDBIndex._get_2')
+  Request _get_2(key) native "IDBIndex__get_2_Callback";
 
   Request getKey(key) {
     if ((key is KeyRange || key == null)) {
@@ -364,12 +364,12 @@ class Index extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBIndex.getKey_1')
-  Request _getKey_1(key) native "IDBIndex_getKey_1_Callback";
+  @DomName('IDBIndex._getKey_1')
+  Request _getKey_1(key) native "IDBIndex__getKey_1_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.getKey_2')
-  Request _getKey_2(key) native "IDBIndex_getKey_2_Callback";
+  @DomName('IDBIndex._getKey_2')
+  Request _getKey_2(key) native "IDBIndex__getKey_2_Callback";
 
   Request openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range && !?direction) {
@@ -391,24 +391,24 @@ class Index extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBIndex.openCursor_1')
-  Request _openCursor_1() native "IDBIndex_openCursor_1_Callback";
+  @DomName('IDBIndex._openCursor_1')
+  Request _openCursor_1() native "IDBIndex__openCursor_1_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.openCursor_2')
-  Request _openCursor_2(key_OR_range) native "IDBIndex_openCursor_2_Callback";
+  @DomName('IDBIndex._openCursor_2')
+  Request _openCursor_2(key_OR_range) native "IDBIndex__openCursor_2_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.openCursor_3')
-  Request _openCursor_3(key_OR_range, direction) native "IDBIndex_openCursor_3_Callback";
+  @DomName('IDBIndex._openCursor_3')
+  Request _openCursor_3(key_OR_range, direction) native "IDBIndex__openCursor_3_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.openCursor_4')
-  Request _openCursor_4(key_OR_range) native "IDBIndex_openCursor_4_Callback";
+  @DomName('IDBIndex._openCursor_4')
+  Request _openCursor_4(key_OR_range) native "IDBIndex__openCursor_4_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.openCursor_5')
-  Request _openCursor_5(key_OR_range, direction) native "IDBIndex_openCursor_5_Callback";
+  @DomName('IDBIndex._openCursor_5')
+  Request _openCursor_5(key_OR_range, direction) native "IDBIndex__openCursor_5_Callback";
 
   Request openKeyCursor([key_OR_range, String direction]) {
     if (!?key_OR_range && !?direction) {
@@ -430,24 +430,24 @@ class Index extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBIndex.openKeyCursor_1')
-  Request _openKeyCursor_1() native "IDBIndex_openKeyCursor_1_Callback";
+  @DomName('IDBIndex._openKeyCursor_1')
+  Request _openKeyCursor_1() native "IDBIndex__openKeyCursor_1_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.openKeyCursor_2')
-  Request _openKeyCursor_2(key_OR_range) native "IDBIndex_openKeyCursor_2_Callback";
+  @DomName('IDBIndex._openKeyCursor_2')
+  Request _openKeyCursor_2(key_OR_range) native "IDBIndex__openKeyCursor_2_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.openKeyCursor_3')
-  Request _openKeyCursor_3(key_OR_range, direction) native "IDBIndex_openKeyCursor_3_Callback";
+  @DomName('IDBIndex._openKeyCursor_3')
+  Request _openKeyCursor_3(key_OR_range, direction) native "IDBIndex__openKeyCursor_3_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.openKeyCursor_4')
-  Request _openKeyCursor_4(key_OR_range) native "IDBIndex_openKeyCursor_4_Callback";
+  @DomName('IDBIndex._openKeyCursor_4')
+  Request _openKeyCursor_4(key_OR_range) native "IDBIndex__openKeyCursor_4_Callback";
 
   @DocsEditable
-  @DomName('IDBIndex.openKeyCursor_5')
-  Request _openKeyCursor_5(key_OR_range, direction) native "IDBIndex_openKeyCursor_5_Callback";
+  @DomName('IDBIndex._openKeyCursor_5')
+  Request _openKeyCursor_5(key_OR_range, direction) native "IDBIndex__openKeyCursor_5_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -518,16 +518,16 @@ class KeyRange extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBKeyRange.bound_1')
-  static KeyRange _bound_1(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange_bound_1_Callback";
+  @DomName('IDBKeyRange._bound_1')
+  static KeyRange _bound_1(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange__bound_1_Callback";
 
   @DocsEditable
-  @DomName('IDBKeyRange.bound_2')
-  static KeyRange _bound_2(lower, upper, lowerOpen) native "IDBKeyRange_bound_2_Callback";
+  @DomName('IDBKeyRange._bound_2')
+  static KeyRange _bound_2(lower, upper, lowerOpen) native "IDBKeyRange__bound_2_Callback";
 
   @DocsEditable
-  @DomName('IDBKeyRange.bound_3')
-  static KeyRange _bound_3(lower, upper) native "IDBKeyRange_bound_3_Callback";
+  @DomName('IDBKeyRange._bound_3')
+  static KeyRange _bound_3(lower, upper) native "IDBKeyRange__bound_3_Callback";
 
   static KeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
     if (?open) {
@@ -537,12 +537,12 @@ class KeyRange extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBKeyRange.lowerBound_1')
-  static KeyRange _lowerBound_1(bound, open) native "IDBKeyRange_lowerBound_1_Callback";
+  @DomName('IDBKeyRange._lowerBound_1')
+  static KeyRange _lowerBound_1(bound, open) native "IDBKeyRange__lowerBound_1_Callback";
 
   @DocsEditable
-  @DomName('IDBKeyRange.lowerBound_2')
-  static KeyRange _lowerBound_2(bound) native "IDBKeyRange_lowerBound_2_Callback";
+  @DomName('IDBKeyRange._lowerBound_2')
+  static KeyRange _lowerBound_2(bound) native "IDBKeyRange__lowerBound_2_Callback";
 
   @DocsEditable
   @DomName('IDBKeyRange.only_')
@@ -556,12 +556,12 @@ class KeyRange extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBKeyRange.upperBound_1')
-  static KeyRange _upperBound_1(bound, open) native "IDBKeyRange_upperBound_1_Callback";
+  @DomName('IDBKeyRange._upperBound_1')
+  static KeyRange _upperBound_1(bound, open) native "IDBKeyRange__upperBound_1_Callback";
 
   @DocsEditable
-  @DomName('IDBKeyRange.upperBound_2')
-  static KeyRange _upperBound_2(bound) native "IDBKeyRange_upperBound_2_Callback";
+  @DomName('IDBKeyRange._upperBound_2')
+  static KeyRange _upperBound_2(bound) native "IDBKeyRange__upperBound_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -604,12 +604,12 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBObjectStore.add_1')
-  Request _add_1(value, key) native "IDBObjectStore_add_1_Callback";
+  @DomName('IDBObjectStore._add_1')
+  Request _add_1(value, key) native "IDBObjectStore__add_1_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.add_2')
-  Request _add_2(value) native "IDBObjectStore_add_2_Callback";
+  @DomName('IDBObjectStore._add_2')
+  Request _add_2(value) native "IDBObjectStore__add_2_Callback";
 
   @DocsEditable
   @DomName('IDBObjectStore.clear')
@@ -629,16 +629,16 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBObjectStore.count_1')
-  Request _count_1() native "IDBObjectStore_count_1_Callback";
+  @DomName('IDBObjectStore._count_1')
+  Request _count_1() native "IDBObjectStore__count_1_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.count_2')
-  Request _count_2(key_OR_range) native "IDBObjectStore_count_2_Callback";
+  @DomName('IDBObjectStore._count_2')
+  Request _count_2(key_OR_range) native "IDBObjectStore__count_2_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.count_3')
-  Request _count_3(key_OR_range) native "IDBObjectStore_count_3_Callback";
+  @DomName('IDBObjectStore._count_3')
+  Request _count_3(key_OR_range) native "IDBObjectStore__count_3_Callback";
 
   Index createIndex(String name, keyPath, [Map options]) {
     if ((name is String || name == null) && (keyPath is List<String> || keyPath == null) && (options is Map || options == null)) {
@@ -651,12 +651,12 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBObjectStore.createIndex_1')
-  Index _createIndex_1(name, keyPath, options) native "IDBObjectStore_createIndex_1_Callback";
+  @DomName('IDBObjectStore._createIndex_1')
+  Index _createIndex_1(name, keyPath, options) native "IDBObjectStore__createIndex_1_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.createIndex_2')
-  Index _createIndex_2(name, keyPath, options) native "IDBObjectStore_createIndex_2_Callback";
+  @DomName('IDBObjectStore._createIndex_2')
+  Index _createIndex_2(name, keyPath, options) native "IDBObjectStore__createIndex_2_Callback";
 
   Request delete(key_OR_keyRange) {
     if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
@@ -669,12 +669,12 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBObjectStore.delete_1')
-  Request _delete_1(key_OR_keyRange) native "IDBObjectStore_delete_1_Callback";
+  @DomName('IDBObjectStore._delete_1')
+  Request _delete_1(key_OR_keyRange) native "IDBObjectStore__delete_1_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.delete_2')
-  Request _delete_2(key_OR_keyRange) native "IDBObjectStore_delete_2_Callback";
+  @DomName('IDBObjectStore._delete_2')
+  Request _delete_2(key_OR_keyRange) native "IDBObjectStore__delete_2_Callback";
 
   @DocsEditable
   @DomName('IDBObjectStore.deleteIndex')
@@ -691,12 +691,12 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBObjectStore.get_1')
-  Request _get_1(key) native "IDBObjectStore_get_1_Callback";
+  @DomName('IDBObjectStore._get_1')
+  Request _get_1(key) native "IDBObjectStore__get_1_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.get_2')
-  Request _get_2(key) native "IDBObjectStore_get_2_Callback";
+  @DomName('IDBObjectStore._get_2')
+  Request _get_2(key) native "IDBObjectStore__get_2_Callback";
 
   @DocsEditable
   @DomName('IDBObjectStore.index')
@@ -722,24 +722,24 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBObjectStore.openCursor_1')
-  Request _openCursor_1() native "IDBObjectStore_openCursor_1_Callback";
+  @DomName('IDBObjectStore._openCursor_1')
+  Request _openCursor_1() native "IDBObjectStore__openCursor_1_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.openCursor_2')
-  Request _openCursor_2(key_OR_range) native "IDBObjectStore_openCursor_2_Callback";
+  @DomName('IDBObjectStore._openCursor_2')
+  Request _openCursor_2(key_OR_range) native "IDBObjectStore__openCursor_2_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.openCursor_3')
-  Request _openCursor_3(key_OR_range, direction) native "IDBObjectStore_openCursor_3_Callback";
+  @DomName('IDBObjectStore._openCursor_3')
+  Request _openCursor_3(key_OR_range, direction) native "IDBObjectStore__openCursor_3_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.openCursor_4')
-  Request _openCursor_4(key_OR_range) native "IDBObjectStore_openCursor_4_Callback";
+  @DomName('IDBObjectStore._openCursor_4')
+  Request _openCursor_4(key_OR_range) native "IDBObjectStore__openCursor_4_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.openCursor_5')
-  Request _openCursor_5(key_OR_range, direction) native "IDBObjectStore_openCursor_5_Callback";
+  @DomName('IDBObjectStore._openCursor_5')
+  Request _openCursor_5(key_OR_range, direction) native "IDBObjectStore__openCursor_5_Callback";
 
   Request put(Object value, [/*IDBKey*/ key]) {
     if (?key) {
@@ -749,12 +749,12 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   }
 
   @DocsEditable
-  @DomName('IDBObjectStore.put_1')
-  Request _put_1(value, key) native "IDBObjectStore_put_1_Callback";
+  @DomName('IDBObjectStore._put_1')
+  Request _put_1(value, key) native "IDBObjectStore__put_1_Callback";
 
   @DocsEditable
-  @DomName('IDBObjectStore.put_2')
-  Request _put_2(value) native "IDBObjectStore_put_2_Callback";
+  @DomName('IDBObjectStore._put_2')
+  Request _put_2(value) native "IDBObjectStore__put_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
