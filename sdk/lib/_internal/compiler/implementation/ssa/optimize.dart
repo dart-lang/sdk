@@ -794,7 +794,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   SsaDeadCodeEliminator(this.types);
 
   bool isDeadCode(HInstruction instruction) {
-    return !instruction.hasSideEffects(types)
+    return !instruction.hasSideEffects()
            && instruction.usedBy.isEmpty
            // A dynamic getter that has no side effect can still throw
            // a NoSuchMethodError.

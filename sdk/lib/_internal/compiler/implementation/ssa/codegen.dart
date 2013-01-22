@@ -1731,7 +1731,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
-    if (node.isJsStatement(types)) {
+    if (node.isJsStatement()) {
       if (!inputs.isEmpty) {
         compiler.internalError("foreign statement with inputs: $code",
                                instruction: node);
