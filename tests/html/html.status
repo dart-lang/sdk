@@ -76,6 +76,7 @@ native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 notifications_test/supported: Fail
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
+speechrecognition_test/supported: Fail
 storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -137,6 +138,7 @@ notifications_test/supported: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
+speechrecognition_test/supported: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -177,6 +179,7 @@ media_stream_test/supported: Fail
 notifications_test/supported: Fail # Issue: 7414
 performance_api_test/supported: Fail
 shadow_dom_test/supported: Fail
+speechrecognition_test/supported: Fail
 
 audiocontext_test: Crash, Fail # Issue: 7414
 datalistelement_test: Fail # Issue: 7414
@@ -223,6 +226,7 @@ mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 performance_api_test/supported: Fail
 serialized_script_value_test: Fail
+speechrecognition_test/supported: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -260,6 +264,7 @@ input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
 notifications_test/supported: Fail
 shadow_dom_test/supported: Fail
+speechrecognition_test/supported: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail

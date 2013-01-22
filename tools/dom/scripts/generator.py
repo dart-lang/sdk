@@ -692,6 +692,11 @@ _performance_annotations = [
   "@SupportedBrowser(SupportedBrowser.IE)",
 ]
 
+_speech_recognition_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
+  "@Experimental()",
+]
+
 # Annotations to be placed on generated members.
 # The table is indexed as:
 #   INTERFACE:     annotations to be added to the interface declaration
@@ -770,6 +775,11 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",
   ],
+  'SpeechRecognition': _speech_recognition_annotations,
+  'SpeechRecognitionAlternative': _speech_recognition_annotations,
+  'SpeechRecognitionError': _speech_recognition_annotations,
+  'SpeechRecognitionEvent': _speech_recognition_annotations,
+  'SpeechRecognitionResult': _speech_recognition_annotations,
   'WebSocket': _all_but_ie9_annotations,
   'WorkerContext.indexedDB': _indexed_db_annotations,
   'WorkerContext.webkitRequestFileSystem': _file_system_annotations,
