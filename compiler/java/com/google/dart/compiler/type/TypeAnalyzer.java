@@ -2818,7 +2818,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
               // A subtype of interface Function.
               return dynamicType;
             } else if (name == null || currentClass == null) {
-              return typeError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE, type);
+              if (reportNoMemberWhenHasInterceptor || !(type instanceof InterfaceType)
+                  || !Elements.handlesNoSuchMethod((InterfaceType) type)) {
+                return typeError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE, type);
+              }
+              return dynamicType;
             } else {
               return typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, currentClass);
             }

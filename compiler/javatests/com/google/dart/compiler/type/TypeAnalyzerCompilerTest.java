@@ -5350,6 +5350,50 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * Don't report "is not a function type" if class implements "noSuchMethod" method.
+   */
+  public void test_dontReport_ifHas_noSuchMember_isNotFunction() throws Exception {
+    String[] lines = {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  noSuchMethod(InvocationMirror invocation) {}",
+        "}",
+        "class B extends A {}",
+        "class C {}",
+        "main() {",
+        "  A a = new A();",
+        "  B b = new B();",
+        "  C c = new C();",
+        "  a();",
+        "  b();",
+        "  c();",
+        "}",
+        ""};
+    // report by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 11, 3, 1),
+          errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 12, 3, 1),
+          errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 13, 3, 1));
+    }
+    // don't report
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean reportNoMemberWhenHasInterceptor() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 13, 3, 1));
+    }
+  }
+
+  /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=5084
    */
