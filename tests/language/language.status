@@ -338,6 +338,13 @@ mixin_illegal_constructor_test/14: Fail # issue 8025
 mixin_illegal_constructor_test/15: Fail # issue 8025
 mixin_illegal_constructor_test/16: Fail # issue 8025
 
+mixin_illegal_cycles_test/01: Fail # issue 8027
+mixin_illegal_cycles_test/02: Fail # issue 8027
+mixin_illegal_cycles_test/03: Fail # issue 8027
+mixin_illegal_cycles_test/04: Fail # issue 8027
+mixin_illegal_cycles_test/05: Fail # issue 8027
+mixin_illegal_cycles_test/06: Fail # issue 8027
+
 #
 # Add new dartc annotations above in alphabetical order
 #

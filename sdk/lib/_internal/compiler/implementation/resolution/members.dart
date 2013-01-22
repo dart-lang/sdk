@@ -509,8 +509,13 @@ class ResolverTask extends CompilerTask {
                              error, Diagnostic.ERROR);
     }
 
-    // Check that the mixed in class has Object as its superclass.
+    // In case of cyclic mixin applications, the mixin chain will have
+    // been cut. If so, we have already reported the error to the
+    // user so we just return from here.
     ClassElement mixin = mixinApplication.mixin;
+    if (mixin == null) return;
+
+    // Check that the mixed in class has Object as its superclass.
     if (!mixin.superclass.isObject(compiler)) {
       CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPERCLASS.error();
       compiler.reportMessage(compiler.spanFromElement(mixin),
@@ -2897,12 +2902,36 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     mixinApplication.interfaces = interfaces;
 
     assert(mixinApplication.mixin == null);
-    mixinApplication.mixin = mixinType.element;
-    mixinApplication.mixin.ensureResolved(compiler);
+    mixinApplication.mixin = resolveMixinFor(mixinApplication, mixinType);
     mixinApplication.addDefaultConstructorIfNeeded(compiler);
     calculateAllSupertypes(mixinApplication);
   }
 
+  ClassElement resolveMixinFor(MixinApplicationElement mixinApplication,
+                               DartType mixinType) {
+    ClassElement mixin = mixinType.element;
+    mixin.ensureResolved(compiler);
+
+    // Check for cycles in the mixin chain.
+    ClassElement previous = mixinApplication;  // For better error messages.
+    ClassElement current = mixin;
+    while (current != null && current.isMixinApplication) {
+      MixinApplicationElement currentMixinApplication = current;
+      if (currentMixinApplication == mixinApplication) {
+        CompilationError error = MessageKind.ILLEGAL_MIXIN_CYCLE.error(
+            [current.name, previous.name]);
+        compiler.reportMessage(compiler.spanFromElement(mixinApplication),
+                               error, Diagnostic.ERROR);
+        // We have found a cycle in the mixin chain. Return null as
+        // the mixin for this application to avoid getting into
+        // infinite recursion when traversing members.
+        return null;
+      }
+      previous = current;
+      current = currentMixinApplication.mixin;
+    }
+    return mixin;
+  }
 
   // TODO(johnniwinther): Remove when default class is no longer supported.
   DartType visitTypeAnnotation(TypeAnnotation node) {

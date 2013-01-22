@@ -312,6 +312,9 @@ class MessageKind {
   static const ILLEGAL_MIXIN_CONSTRUCTOR = const MessageKind(
       "Error: class used as mixin cannot have non-factory constructor.");
 
+  static const ILLEGAL_MIXIN_CYCLE = const MessageKind(
+      "Error: class used as mixin introduces mixin cycle: #{1} <-> #{2}.");
+
   static const PARAMETER_NAME_EXPECTED = const MessageKind(
       "Error: parameter name expected.");
 
