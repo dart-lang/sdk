@@ -497,8 +497,8 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  void checkMixinApplication(MixinApplicationElement mixin) {
-    Modifiers modifiers = mixin.modifiers;
+  void checkMixinApplication(MixinApplicationElement mixinApplication) {
+    Modifiers modifiers = mixinApplication.modifiers;
     int illegalFlags = modifiers.flags & ~Modifiers.FLAG_ABSTRACT;
     if (illegalFlags != 0) {
       Modifiers illegalModifiers = new Modifiers.withFlags(null, illegalFlags);
@@ -506,6 +506,13 @@ class ResolverTask extends CompilerTask {
           MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS.error(
               [illegalModifiers]);
       compiler.reportMessage(compiler.spanFromSpannable(modifiers),
+                             error, Diagnostic.ERROR);
+    }
+
+    ClassElement mixin = mixinApplication.mixin;
+    if (!mixin.superclass.isObject(compiler)) {
+      CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPERCLASS.error();
+      compiler.reportMessage(compiler.spanFromElement(mixin),
                              error, Diagnostic.ERROR);
     }
   }

@@ -306,6 +306,9 @@ class MessageKind {
   static const ILLEGAL_MIXIN_APPLICATION_MODIFIERS = const MessageKind(
       "Error: illegal mixin application modifiers: #{1}.");
 
+  static const ILLEGAL_MIXIN_SUPERCLASS = const MessageKind(
+      "Error: class used as mixin must have Object as superclass.");
+
   static const PARAMETER_NAME_EXPECTED = const MessageKind(
       "Error: parameter name expected.");
 

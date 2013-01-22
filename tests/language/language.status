@@ -65,6 +65,7 @@ mixin_extends_is_test: Fail
 mixin_extends_method_test: Fail
 mixin_mixin_test: Fail
 mixin_illegal_syntax_test/none: Fail
+mixin_illegal_superclass_test/none: Fail
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
@@ -286,6 +287,36 @@ call_through_getter_test: Fail
 mixin_illegal_syntax_test/03: Pass # issue 8006
 mixin_illegal_syntax_test/13: Fail # issue 8006
 mixin_illegal_syntax_test/none: Fail # issue 8006
+mixin_illegal_superclass_test/01: Fail # issue 8022
+mixin_illegal_superclass_test/02: Fail # issue 8022
+mixin_illegal_superclass_test/03: Fail # issue 8022
+mixin_illegal_superclass_test/04: Fail # issue 8022
+mixin_illegal_superclass_test/05: Fail # issue 8022
+mixin_illegal_superclass_test/06: Fail # issue 8022
+mixin_illegal_superclass_test/07: Fail # issue 8022
+mixin_illegal_superclass_test/08: Fail # issue 8022
+mixin_illegal_superclass_test/09: Fail # issue 8022
+mixin_illegal_superclass_test/10: Fail # issue 8022
+mixin_illegal_superclass_test/11: Fail # issue 8022
+mixin_illegal_superclass_test/12: Fail # issue 8022
+mixin_illegal_superclass_test/13: Fail # issue 8022
+mixin_illegal_superclass_test/14: Fail # issue 8022
+mixin_illegal_superclass_test/15: Fail # issue 8022
+mixin_illegal_superclass_test/16: Fail # issue 8022
+mixin_illegal_superclass_test/17: Fail # issue 8022
+mixin_illegal_superclass_test/18: Fail # issue 8022
+mixin_illegal_superclass_test/19: Fail # issue 8022
+mixin_illegal_superclass_test/20: Fail # issue 8022
+mixin_illegal_superclass_test/21: Fail # issue 8022
+mixin_illegal_superclass_test/22: Fail # issue 8022
+mixin_illegal_superclass_test/23: Fail # issue 8022
+mixin_illegal_superclass_test/24: Fail # issue 8022
+mixin_illegal_superclass_test/25: Fail # issue 8022
+mixin_illegal_superclass_test/26: Fail # issue 8022
+mixin_illegal_superclass_test/27: Fail # issue 8022
+mixin_illegal_superclass_test/28: Fail # issue 8022
+mixin_illegal_superclass_test/29: Fail # issue 8022
+mixin_illegal_superclass_test/30: Fail # issue 8022
 
 
 #
@@ -354,15 +385,16 @@ many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, te
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 
 # Mixins fail on the VM.
-mixin_field_test: Fail                # VM issue
-mixin_is_test: Fail                   # VM issue
-mixin_method_test: Fail               # VM issue
-mixin_naming_test: Fail               # VM issue
-mixin_extends_field_test: Fail        # VM issue
-mixin_extends_is_test: Fail           # VM issue
-mixin_extends_method_test: Fail       # VM issue
-mixin_mixin_test: Fail                # VM issue
-mixin_illegal_syntax_test/none: Fail  # VM issue
+mixin_field_test: Fail                    # VM issue
+mixin_is_test: Fail                       # VM issue
+mixin_method_test: Fail                   # VM issue
+mixin_naming_test: Fail                   # VM issue
+mixin_extends_field_test: Fail            # VM issue
+mixin_extends_is_test: Fail               # VM issue
+mixin_extends_method_test: Fail           # VM issue
+mixin_mixin_test: Fail                    # VM issue
+mixin_illegal_syntax_test/none: Fail      # VM issue
+mixin_illegal_superclass_test/none: Fail  # VM issue
 
 # Malformed types not handled as unresolved:
 import_core_prefix_test: Fail

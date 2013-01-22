@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class S { }
 class M1 { foo() => 42; }
-typedef M2 = S with M1;
+typedef M2 = Object with M1;
+
+class S { }
 typedef C = S with M2;
 
 main() {
