@@ -112,23 +112,17 @@ class _ForwardingStreamSubscription<S, T>
   // StreamSubscription interface.
 
   void onData(void handleData(T event)) {
-    if (handleData == null) {
-      handleData = _StreamSubscriptionImpl._nullDataHandler;
-    }
+    if (handleData == null) handleData = _nullDataHandler;
     _onData = handleData;
   }
 
   void onError(void handleError(AsyncError error)) {
-    if (handleError == null) {
-      handleError = _StreamSubscriptionImpl._nullErrorHandler;
-    }
+    if (handleError == null) handleError = _nullErrorHandler;
     _onError = handleError;
   }
 
   void onDone(void handleDone()) {
-    if (handleDone == null) {
-      handleDone = _StreamSubscriptionImpl._nullDoneHandler;
-    }
+    if (handleDone == null) handleDone = _nullDoneHandler;
     _onDone = handleDone;
   }
 
