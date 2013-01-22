@@ -10215,6 +10215,18 @@ class Event native "*Event" {
   @DomName('Event.stopPropagation')
   void stopPropagation() native;
 
+
+  /**
+   * Checks to see if the event class is supported by the current platform.
+   */
+  static bool _isTypeSupported(String eventType) {
+    // Browsers throw for unsupported event names.
+    try {
+      var e = document.$dom_createEvent(eventType);
+      return e is Event;
+    } catch (_) { }
+    return false;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15842,6 +15854,9 @@ class MediaStreamEvents extends Events {
 @DomName('MediaStreamEvent')
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => Event._isTypeSupported('MediaStreamEvent');
+
   @DocsEditable
   @DomName('MediaStreamEvent.stream')
   final MediaStream stream;
@@ -15950,6 +15965,9 @@ class MediaStreamTrackEvents extends Events {
 @DocsEditable
 @DomName('MediaStreamTrackEvent')
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => Event._isTypeSupported('MediaStreamTrackEvent');
 
   @DocsEditable
   @DomName('MediaStreamTrackEvent.track')

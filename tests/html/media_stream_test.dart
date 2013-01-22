@@ -16,6 +16,34 @@ main() {
     });
   });
 
-  // No additional tests right now since this API prompts for user input to
-  // continue.
+  group('supported_MediaStreamEvent', () {
+    test('supported', () {
+      expect(MediaStreamEvent.supported, true);
+    });
+  });
+
+  group('supported_MediaStreamTrackEvent', () {
+    test('supported', () {
+      expect(MediaStreamTrackEvent.supported, true);
+    });
+  });
+
+  group('constructors', () {
+    test('MediaStreamEvent', () {
+      var expectation = MediaStreamEvent.supported ? returnsNormally : throws;
+      expect(() {
+        var event = new Event.eventType('MediaStreamEvent', 'media');
+        expect(event is MediaStreamEvent, isTrue);
+      }, expectation);
+    });
+
+    test('MediaStreamTrackEvent', () {
+      var expectation =
+          MediaStreamTrackEvent.supported ? returnsNormally : throws;
+      expect(() {
+        var event = new Event.eventType('MediaStreamTrackEvent', 'media');
+        expect(event is MediaStreamTrackEvent, isTrue);
+      }, expectation);
+    });
+  });
 }

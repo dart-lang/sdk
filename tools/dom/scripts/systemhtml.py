@@ -87,6 +87,8 @@ js_support_checks = {
   'HTMLProgressElement': "Element.isTagSupported('progress')",
   'HTMLShadowElement': "Element.isTagSupported('shadow')",
   'HTMLTrackElement': "Element.isTagSupported('track')",
+  'MediaStreamEvent': "Event._isTypeSupported('MediaStreamEvent')",
+  'MediaStreamTrackEvent': "Event._isTypeSupported('MediaStreamTrackEvent')",
   'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
   'Performance': "JS('bool', '!!(window.performance)')",
   'SpeechRecognition': "JS('bool', '!!(window.SpeechRecognition || "
