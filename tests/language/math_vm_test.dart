@@ -37,8 +37,15 @@ class MathTest {
     Expect.equals(false, testSqrt(const FakeNumber()));
   }
 }
+
+testDoublePow() {
+  Expect.equals((1 << 32).toDouble(), pow(2.0, 32));
+}
+
+
 main() {
   for (int i = 0; i < 200; i++) {
     MathTest.testMain();
+    testDoublePow();
   }
 }

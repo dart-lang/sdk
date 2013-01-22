@@ -2515,6 +2515,33 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
+  ASSERT((InputCount() == 1) || (InputCount() == 2));
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
+  result->set_in(0, Location::FpuRegisterLocation(XMM1, Location::kDouble));
+  if (InputCount() == 2) {
+    result->set_in(1, Location::FpuRegisterLocation(XMM2, Location::kDouble));
+  }
+  result->set_out(Location::FpuRegisterLocation(XMM1, Location::kDouble));
+  return result;
+}
+
+
+void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(kDoubleSize * InputCount());
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    __ movsd(Address(ESP, kDoubleSize * i), locs()->in(i).fpu_reg());
+  }
+  __ CallRuntime(TargetFunction());
+  __ fstpl(Address(ESP, 0));
+  __ movsd(locs()->out().fpu_reg(), Address(ESP, 0));
+  __ leave();
+}
+
+
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
   return MakeCallSummary();
 }
