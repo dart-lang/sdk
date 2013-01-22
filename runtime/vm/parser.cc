@@ -1748,6 +1748,9 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   // "this" must not be accessible in initializer expressions.
   receiver->set_invisible(true);
   AstNode* init_expr = ParseConditionalExpr();
+  if (CurrentToken() == Token::kCASCADE) {
+    init_expr = ParseCascades(init_expr);
+  }
   receiver->set_invisible(false);
   SetAllowFunctionLiterals(saved_mode);
   Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
