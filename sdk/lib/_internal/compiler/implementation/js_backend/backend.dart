@@ -13,9 +13,7 @@ class ReturnInfo {
   ReturnInfo(HType this.returnType)
       : compiledFunctions = new List<Element>();
 
-  ReturnInfo.unknownType()
-      : this.returnType = HType.UNKNOWN,
-        compiledFunctions = new List<Element>();
+  ReturnInfo.unknownType() : this(null);
 
   void update(HType type, Recompile recompile, Compiler compiler) {
     HType newType =
@@ -1064,7 +1062,8 @@ class JavaScriptBackend extends Backend {
     assert(invariant(callee, callee.isDeclaration));
     returnInfo.putIfAbsent(callee, () => new ReturnInfo.unknownType());
     ReturnInfo info = returnInfo[callee];
-    if (info.returnType != HType.UNKNOWN && caller != null) {
+    HType returnType = info.returnType;
+    if (returnType != HType.UNKNOWN && returnType != null && caller != null) {
       assert(invariant(caller, caller.isDeclaration));
       info.addCompiledFunction(caller);
     }
