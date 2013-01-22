@@ -190,7 +190,7 @@ main() {
     var expectation = idb.IdbFactory.supported ? returnsNormally : throws;
 
     expect(() {
-      var db = window.indexedDB;
+      var db = html.window.indexedDB;
     }, expectation);
   });
 
