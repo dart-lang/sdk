@@ -89,6 +89,8 @@ js_support_checks = {
   'HTMLTrackElement': "Element.isTagSupported('track')",
   'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
   'Performance': "JS('bool', '!!(window.performance)')",
+  'SpeechRecognition': "JS('bool', '!!(window.SpeechRecognition || "
+      "window.webkitSpeechRecognition)')",
   'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
 }
 
@@ -512,6 +514,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         'AudioContext',
         'Blob',
         'MutationObserver',
+        'SpeechRecognition',
     ]
 
     if self._interface.doc_js_name in WITH_CUSTOM_STATIC_FACTORY:

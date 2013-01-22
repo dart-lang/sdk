@@ -10086,8 +10086,25 @@ class Event native "*Event" {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  factory Event(String type, [bool canBubble = true, bool cancelable = true]) =>
-      _EventFactoryProvider.createEvent(type, canBubble, cancelable);
+  factory Event(String type,
+      [bool canBubble = true, bool cancelable = true]) {
+    return new Event.type('Event', type, canBubble, cancelable);
+  }
+
+  /**
+   * Creates a new Event object of the specified type.
+   *
+   * This is analogous to document.createEvent.
+   * Normally events should be created via their constructors, if available.
+   *
+   *     var e = Event.type('MouseEvent', 'mousedown', true, true);
+   */
+  factory Event.type(String eventType, String type, [bool canBubble = true,
+      bool cancelable = true]) {
+    final Event e = document.$dom_createEvent(eventType);
+    e.$dom_initEvent(type, canBubble, cancelable);
+    return e;
+  }
 
   static const int AT_TARGET = 2;
 
@@ -20361,14 +20378,15 @@ class SpeechInputResult native "*SpeechInputResult" {
   @DomName('SpeechInputResult.utterance')
   final String utterance;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SpeechRecognition')
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   @DocsEditable
@@ -20417,7 +20435,9 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   @DocsEditable
   factory SpeechRecognition() => SpeechRecognition._create();
-  static SpeechRecognition _create() => JS('SpeechRecognition', 'new SpeechRecognition()');
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.SpeechRecognition || window.webkitSpeechRecognition)');
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -20514,6 +20534,11 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
   @DocsEditable
   @DomName('SpeechRecognition.start')
   Stream<Event> get onStart => startEvent.forTarget(this);
+
+  static SpeechRecognition _create() {
+    return JS('SpeechRecognition',
+        'new (window.SpeechRecognition || window.webkitSpeechRecognition)()');
+  }
 }
 
 @DocsEditable
@@ -20562,6 +20587,8 @@ class SpeechRecognitionEvents extends Events {
 
 @DocsEditable
 @DomName('SpeechRecognitionAlternative')
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 
   @DocsEditable
@@ -20580,6 +20607,8 @@ class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 
 @DocsEditable
 @DomName('SpeechRecognitionError')
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 
   @DocsEditable
@@ -20598,6 +20627,8 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 
 @DocsEditable
 @DomName('SpeechRecognitionEvent')
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 
   @DocsEditable
@@ -20628,6 +20659,8 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 
 @DocsEditable
 @DomName('SpeechRecognitionResult')
+@SupportedBrowser(SupportedBrowser.CHROME, '25')
+@Experimental()
 class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 
   @DocsEditable

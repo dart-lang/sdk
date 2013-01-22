@@ -13,7 +13,24 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  factory $CLASSNAME(String type, [bool canBubble = true, bool cancelable = true]) =>
-      _$(CLASSNAME)FactoryProvider.create$CLASSNAME(type, canBubble, cancelable);
+  factory $CLASSNAME(String type,
+      [bool canBubble = true, bool cancelable = true]) {
+    return new Event.type('Event', type, canBubble, cancelable);
+  }
+
+  /**
+   * Creates a new Event object of the specified type.
+   *
+   * This is analogous to document.createEvent.
+   * Normally events should be created via their constructors, if available.
+   *
+   *     var e = new Event.type('MouseEvent', 'mousedown', true, true);
+   */
+  factory Event.type(String eventType, String type, [bool canBubble = true,
+      bool cancelable = true]) {
+    final Event e = document.$dom_createEvent(eventType);
+    e.$dom_initEvent(type, canBubble, cancelable);
+    return e;
+  }
 $!MEMBERS
 }
