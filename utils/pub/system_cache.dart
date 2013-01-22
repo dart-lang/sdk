@@ -43,9 +43,9 @@ class SystemCache {
     sources = new SourceRegistry();
 
   /// Creates a system cache and registers the standard set of sources.
-  factory SystemCache.withSources(String rootDir, String sdkDir) {
+  factory SystemCache.withSources(String rootDir) {
     var cache = new SystemCache(rootDir);
-    cache.register(new SdkSource(sdkDir));
+    cache.register(new SdkSource());
     cache.register(new GitSource());
     cache.register(new HostedSource());
     cache.sources.setDefault('hosted');

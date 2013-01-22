@@ -387,7 +387,7 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
         source = new HostedSource();
         break;
       case "sdk":
-        source = new SdkSource('');
+        source = new SdkSource();
         break;
       default:
         throw 'Unknown source "$sourceName"';
@@ -1167,8 +1167,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     ValidatorCreator fn) {
   return _scheduleValue((sandboxDir) {
     var cache = new SystemCache.withSources(
-        join(sandboxDir, cachePath),
-        join(sandboxDir, sdkPath));
+        join(sandboxDir, cachePath));
 
     return Entrypoint.load(join(sandboxDir, appPath), cache)
         .then((entrypoint) {

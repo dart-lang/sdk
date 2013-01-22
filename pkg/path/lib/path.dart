@@ -163,6 +163,29 @@ String relative(String path, {String from}) =>
 ///     withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
 String withoutExtension(String path) => _builder.withoutExtension(path);
 
+/// Validates that there are no non-null arguments following a null one and
+/// throws an appropriate [ArgumentError] on failure.
+_validateArgList(String method, List<String> args) {
+  for (var i = 1; i < args.length; i++) {
+    // Ignore nulls hanging off the end.
+    if (args[i] == null || args[i - 1] != null) continue;
+
+    var numArgs;
+    for (numArgs = args.length; numArgs >= 1; numArgs--) {
+      if (args[numArgs - 1] != null) break;
+    }
+
+    // Show the arguments.
+    var message = new StringBuffer();
+    message.add("$method(");
+    message.add(args.take(numArgs)
+        .mappedBy((arg) => arg == null ? "null" : '"$arg"')
+        .join(", "));
+    message.add("): part ${i - 1} was null, but part $i was not.");
+    throw new ArgumentError(message.toString());
+  }
+}
+
 /// An instantiable class for manipulating paths. Unlike the top-level
 /// functions, this lets you explicitly select what platform the paths will use.
 class Builder {
@@ -302,12 +325,7 @@ class Builder {
     var needsSeparator = false;
 
     var parts = [part1, part2, part3, part4, part5, part6, part7, part8];
-    for (var i = 1; i < parts.length; i++) {
-      if (parts[i] != null && parts[i - 1] == null) {
-        throw new ArgumentError("join(): part ${i - 1} was null, but part $i "
-            "was not.");
-      }
-    }
+    _validateArgList("join", parts);
 
     for (var part in parts) {
       if (part == null) continue;
@@ -380,12 +398,6 @@ class Builder {
   ///     builder.resolve('path', 'to', 'foo'); // -> 'root/path/to/foo'
   String resolve(String part1, [String part2, String part3, String part4,
               String part5, String part6, String part7]) {
-    if (!?part2) return join(root, part1);
-    if (!?part3) return join(root, part1, part2);
-    if (!?part4) return join(root, part1, part2, part3);
-    if (!?part5) return join(root, part1, part2, part3, part4);
-    if (!?part6) return join(root, part1, part2, part3, part4, part5);
-    if (!?part7) return join(root, part1, part2, part3, part4, part5, part6);
     return join(root, part1, part2, part3, part4, part5, part6, part7);
   }
 

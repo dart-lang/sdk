@@ -11,7 +11,4 @@ set SCRIPTPATH=%~dp0
 :: Does the string have a trailing slash? If so, remove it.
 if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
-:: Set DART_SDK so pub can find SDK packages.
-set DART_SDK=%SCRIPTPATH%\..\
-
 "%SCRIPTPATH%\dart.exe" "%SCRIPTPATH%\..\util\pub\pub.dart" %*

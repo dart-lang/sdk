@@ -9,7 +9,7 @@ import 'dart:io';
 import '../../test_pub.dart';
 
 main() {
-  integration('checks out a package from a pub server', () {
+  integration('installs a package from a pub server', () {
     servePackages([package("foo", "1.2.3")]);
 
     appDir([dependency("foo", "1.2.3")]).scheduleCreate();

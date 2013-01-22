@@ -110,9 +110,6 @@ main() {
       break;
   }
 
-  // TODO(nweiz): Have a fallback for this this out automatically once 1145 is
-  // fixed.
-  var sdkDir = Platform.environment['DART_SDK'];
   var cacheDir;
   if (Platform.environment.containsKey('PUB_CACHE')) {
     cacheDir = Platform.environment['PUB_CACHE'];
@@ -123,7 +120,7 @@ main() {
     cacheDir = '${Platform.environment['HOME']}/.pub-cache';
   }
 
-  var cache = new SystemCache.withSources(cacheDir, sdkDir);
+  var cache = new SystemCache.withSources(cacheDir);
 
   // Select the command.
   var command = pubCommands[globalOptions.rest[0]];
@@ -139,7 +136,7 @@ main() {
   command.run(cache, globalOptions, commandArgs);
 }
 
-/// Displays usage information for the app. 
+/// Displays usage information for the app.
 void printUsage([String description = 'Pub is a package manager for Dart.']) {
   // Build up a buffer so it shows up as a single log entry.
   var buffer = new StringBuffer();
@@ -283,7 +280,7 @@ abstract class PubCommand {
   /// command is synchronous, it may return `null`.
   Future onRun();
 
-  /// Displays usage information for this command. 
+  /// Displays usage information for this command.
   void printUsage([String description]) {
     if (description == null) description = this.description;
 

@@ -4,6 +4,7 @@
 
 library root_source;
 
+import 'dart:async';
 import 'package.dart';
 import 'pubspec.dart';
 import 'source.dart';
