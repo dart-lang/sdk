@@ -19,8 +19,10 @@ input_element_test/supported_datetime: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_week: Fail
+speechrecognition_test/supported: Pass, Fail       # Chrome stable does not support it.
 shadow_dom_test/supported: Fail
 css_test: Pass, Fail # Issue 7978
+speechrecognition_test/types: Pass, Fail
 
 [ $runtime == chrome || $runtime == drt]
 audiobuffersourcenode_test: Pass, Fail, Timeout # AudiobufferSourceNode is flaky on Chrome and Dartium - filed issue 8021 for the timeout.
@@ -193,6 +195,7 @@ notifications_test/webkitNotifications: Fail # Issue: 7414
 performance_api_test/performance: Fail # Issue: 7414
 shadow_dom_test/ShadowDOM_tests: Fail # Issue: 7414
 wheelevent_test: Fail # Issue: 7414
+speechrecognition_test/types: Pass, Fail
 
 
 [ $runtime == opera ]

@@ -10097,12 +10097,12 @@ class Event native "*Event" {
    * This is analogous to document.createEvent.
    * Normally events should be created via their constructors, if available.
    *
-   *     var e = Event.type('MouseEvent', 'mousedown', true, true);
+   *     var e = new Event.type('MouseEvent', 'mousedown', true, true);
    */
-  factory Event.type(String eventType, String type, [bool canBubble = true,
+  factory Event.type(String eventType, String name, [bool canBubble = true,
       bool cancelable = true]) {
     final Event e = document.$dom_createEvent(eventType);
-    e.$dom_initEvent(type, canBubble, cancelable);
+    e.$dom_initEvent(name, canBubble, cancelable);
     return e;
   }
 

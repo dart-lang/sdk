@@ -26,10 +26,10 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    *
    *     var e = new Event.type('MouseEvent', 'mousedown', true, true);
    */
-  factory Event.type(String eventType, String type, [bool canBubble = true,
+  factory Event.type(String eventType, String name, [bool canBubble = true,
       bool cancelable = true]) {
     final Event e = document.$dom_createEvent(eventType);
-    e.$dom_initEvent(type, canBubble, cancelable);
+    e.$dom_initEvent(name, canBubble, cancelable);
     return e;
   }
 $!MEMBERS
