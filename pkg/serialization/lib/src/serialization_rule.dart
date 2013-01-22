@@ -456,4 +456,5 @@ class _LazyList extends Iterable implements List {
   removeRange(x, y) => _throw();
   insertRange(x, y, [z]) => _throw();
   void set length(x) => _throw();
+  List get reversed => _throw();
 }

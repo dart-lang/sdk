@@ -5,6 +5,7 @@
 class ListIteratorsTest {
   static void checkListIterator(List a) {
     Iterator it = a.iterator;
+    Expect.isNull(it.current);
     for (int i = 0; i < a.length; i++) {
       Expect.isTrue(it.moveNext());
       var elem = it.current;
@@ -27,27 +28,15 @@ class ListIteratorsTest {
     // This is mostly undefined behavior.
     Iterator it = g.iterator;
     Expect.isTrue(it.moveNext());
-    g.removeLast();
     Expect.equals(1, it.current);
     Expect.isTrue(it.moveNext());
     g[1] = 49;
     // The iterator keeps the last value.
     Expect.equals(2, it.current);
+    Expect.isTrue(it.moveNext());
     g.removeLast();
     // The iterator keeps the last value.
-    Expect.equals(2, it.current);
-    Expect.isFalse(it.moveNext());
-    Expect.isNull(it.current);
-
-    g.clear();
-    g.addAll([10, 20]);
-    int sum = 0;
-    for (var elem in g) {
-      sum += elem;
-      // Iterator must realize that g has no more elements.
-      g.removeLast();
-    }
-    Expect.equals(10, sum);
+    Expect.equals(3, it.current);
   }
 }
 

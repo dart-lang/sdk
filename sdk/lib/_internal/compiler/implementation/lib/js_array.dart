@@ -221,6 +221,8 @@ class JSArray<E> implements List<E> {
 
   bool every(bool f(E element)) => IterableMixinWorkaround.every(this, f);
 
+  List<E> get reversed => new ReversedListView<E>(this, 0, null);
+
   void sort([int compare(E a, E b)]) {
     checkMutable(this, 'sort');
     IterableMixinWorkaround.sortList(this, compare);

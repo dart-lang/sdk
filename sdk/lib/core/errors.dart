@@ -93,6 +93,10 @@ class RangeError extends ArgumentError {
   /** Create a new [RangeError] with a message for the given [value]. */
   RangeError.value(num value) : super("value $value");
 
+  /** Create a new [RangeError] with a message for a value and a range. */
+  RangeError.range(num value, num start, num end)
+      : super("value $value not in range $start..$end");
+
   String toString() => "RangeError: $message";
 }
 
@@ -235,6 +239,29 @@ class StateError implements Error {
   final String message;
   StateError(this.message);
   String toString() => "Bad state: $message";
+}
+
+
+/**
+ * Error occurring when a collection is modified during iteration.
+ *
+ * Some modifications may be allowed for some collections, so each collection
+ * ([Iterable] or similar collection of values) should declare which operations
+ * are allowed during an iteration.
+ */
+class ConcurrentModificationError implements Error {
+  /** The object that was modified in an incompatible way. */
+  final Object modifiedObject;
+
+  const ConcurrentModificationError([this.modifiedObject]);
+
+  String toString() {
+    if (modifiedObject == null) {
+      return "Concurrent modification during iteration.";
+    }
+    return "Concurrent modification during iteration: "
+           "${Error.safeToString(modifiedObject)}.";
+  }
 }
 
 

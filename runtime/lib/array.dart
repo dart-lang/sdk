@@ -154,6 +154,8 @@ class _ObjectArray<E> implements List<E> {
     return this.length == 0;
   }
 
+  List<E> get reversed => new ReversedListView<E>(this, 0, null);
+
   void sort([int compare(E a, E b)]) {
     IterableMixinWorkaround.sortList(this, compare);
   }
@@ -381,6 +383,8 @@ class _ImmutableArray<E> implements List<E> {
   bool get isEmpty {
     return this.length == 0;
   }
+
+  List<E> get reversed => new ReversedListView<E>(this, 0, null);
 
   void sort([int compare(E a, E b)]) {
     throw new UnsupportedError(

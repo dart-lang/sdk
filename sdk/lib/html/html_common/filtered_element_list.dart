@@ -69,6 +69,8 @@ class FilteredElementList implements List {
     return element is Element && _childNodes.contains(element);
   }
 
+  List<E> get reversed => new ReversedListView<E>(_filtered, 0, null);
+
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }

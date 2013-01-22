@@ -85,6 +85,15 @@ abstract class List<E> implements Collection<E> {
   void addAll(Iterable<E> iterable);
 
   /**
+   * Returns a reversed fixed-length view of this [List].
+   *
+   * The reversed list has elements in the opposite order of this list.
+   * It is backed by this list, but will stop working if this list
+   * becomes shorter than its current length.
+   */
+  List<T> get reversed => new ReversedList(this, 0, length);
+
+  /**
    * Sorts the list according to the order specified by the [compare] function.
    *
    * The [compare] function must act as a [Comparator].
