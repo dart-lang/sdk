@@ -23,7 +23,8 @@ shadow_dom_test/supported: Fail
 css_test: Pass, Fail # Issue 7978
 
 [ $runtime == chrome || $runtime == drt]
-audiobuffersourcenode_test: Pass, Fail  # AudiobufferSourceNode is flaky on Chrome and Dartium.
+audiobuffersourcenode_test: Pass, Fail, Timeout # AudiobufferSourceNode is flaky on Chrome and Dartium - filed issue 8021 for the timeout.
+audiocontext_test: Pass, Timeout  # Issue 8021.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
