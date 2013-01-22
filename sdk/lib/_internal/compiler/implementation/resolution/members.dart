@@ -509,12 +509,22 @@ class ResolverTask extends CompilerTask {
                              error, Diagnostic.ERROR);
     }
 
+    // Check that the mixed in class has Object as its superclass.
     ClassElement mixin = mixinApplication.mixin;
     if (!mixin.superclass.isObject(compiler)) {
       CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPERCLASS.error();
       compiler.reportMessage(compiler.spanFromElement(mixin),
                              error, Diagnostic.ERROR);
     }
+
+    // Check that the mixed in class doesn't have any constructors.
+    mixin.forEachLocalMember((Element member) {
+      if (member.isGenerativeConstructor() && !member.isSynthesized) {
+        CompilationError error = MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR.error();
+        compiler.reportMessage(compiler.spanFromElement(member),
+                               error, Diagnostic.ERROR);
+      }
+    });
   }
 
   void checkClassMembers(ClassElement cls) {
