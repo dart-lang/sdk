@@ -82,7 +82,7 @@ class MultipartRequest extends BaseRequest {
   /// Creates a new [MultipartRequest].
   MultipartRequest(String method, Uri url)
     : super(method, url),
-      fields = <String>{},
+      fields = <String, String>{},
       _files = new CollectionSink<MultipartFile>(<MultipartFile>[]);
 
   /// Freezes all mutable fields and returns a single-subscription [ByteStream]

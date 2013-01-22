@@ -26,7 +26,7 @@ class StreamedResponse extends BaseResponse {
       int statusCode,
       int contentLength,
       {BaseRequest request,
-       Map<String, String> headers: const <String>{},
+       Map<String, String> headers: const <String, String>{},
        bool isRedirect: false,
        bool persistentConnection: true,
        String reasonPhrase})

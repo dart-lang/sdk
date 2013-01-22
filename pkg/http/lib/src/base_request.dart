@@ -82,7 +82,7 @@ abstract class BaseRequest {
 
   /// Creates a new HTTP request.
   BaseRequest(this.method, this.url)
-    : headers = <String>{};
+    : headers = <String, String>{};
 
   /// Finalizes the HTTP request in preparation for it being sent. This freezes
   /// all mutable fields and returns a single-subscription [ByteStream] that

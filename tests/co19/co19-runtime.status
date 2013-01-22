@@ -79,6 +79,7 @@ Language/11_Expressions/30_Identifier_Reference_A08_t02: Fail # Dart issue 5802
 Language/11_Expressions/31_Type_Test_A01_t02: Fail # Dart issue 7258
 Language/11_Expressions/31_Type_Test_A01_t04: Fail # Dart issue 7258
 Language/11_Expressions/32_Type_Cast_A01_t04: Fail # co19 issue 356
+Language/12_Statements/02_Expression_Statements_A01_t08: Fail # co19 issue 370 (map literals need 2 type args)
 Language/12_Statements/03_Variable_Declaration_A04_t07: Fail # Dart issue 7305
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # Dart issue 5773
 Language/12_Statements/06_For_A01_t11: Fail # Dart issue 5675

@@ -43,7 +43,7 @@ abstract class BaseResponse {
       this.statusCode,
       this.contentLength,
       {this.request,
-       this.headers: const <String>{},
+       this.headers: const <String, String>{},
        this.isRedirect: false,
        this.persistentConnection: true,
        this.reasonPhrase});

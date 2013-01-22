@@ -32,6 +32,7 @@ Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # http://dartbug.c
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # http://dartbug.com/7202
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # http://dartbug.com/7202
 
+Language/12_Statements/02_Expression_Statements_A01_t08: Fail # co 19 issue 370
 
 # Calling unresolved class constructor:
 Language/03_Overview/2_Privacy_A01_t19: Fail

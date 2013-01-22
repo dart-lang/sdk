@@ -19,7 +19,7 @@ import 'byte_stream.dart';
 ///     queryToMap("foo=bar&baz=bang&qux");
 ///     //=> {"foo": "bar", "baz": "bang", "qux": ""}
 Map<String, String> queryToMap(String queryList) {
-  var map = <String>{};
+  var map = <String, String>{};
   for (var pair in queryList.split("&")) {
     var split = split1(pair, "=");
     if (split.isEmpty) continue;

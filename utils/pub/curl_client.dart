@@ -161,7 +161,7 @@ class CurlClient extends http.BaseClient {
     var isRedirect = status >= 300 && status < 400;
     var reasonPhrase =
         Strings.join(statusParts.getRange(2, statusParts.length - 2), " ");
-    var headers = <String>{};
+    var headers = <String, String>{};
     for (var line in lines) {
       if (line.isEmpty) continue;
       var split = split1(line, ":");
