@@ -769,28 +769,29 @@ abstract class HInstruction implements Spannable {
   static const int INTERCEPTOR_TYPECODE = 4;
   static const int ADD_TYPECODE = 5;
   static const int DIVIDE_TYPECODE = 6;
-  static const int MULTIPLY_TYPECODE = 8;
-  static const int SUBTRACT_TYPECODE = 9;
-  static const int SHIFT_LEFT_TYPECODE = 11;
-  static const int BIT_OR_TYPECODE = 13;
-  static const int BIT_AND_TYPECODE = 14;
-  static const int BIT_XOR_TYPECODE = 15;
-  static const int NEGATE_TYPECODE = 16;
-  static const int BIT_NOT_TYPECODE = 17;
-  static const int NOT_TYPECODE = 18;
-  static const int IDENTITY_TYPECODE = 20;
-  static const int GREATER_TYPECODE = 21;
-  static const int GREATER_EQUAL_TYPECODE = 22;
-  static const int LESS_TYPECODE = 23;
-  static const int LESS_EQUAL_TYPECODE = 24;
-  static const int STATIC_TYPECODE = 25;
-  static const int STATIC_STORE_TYPECODE = 26;
-  static const int FIELD_GET_TYPECODE = 27;
-  static const int TYPE_CONVERSION_TYPECODE = 28;
-  static const int BAILOUT_TARGET_TYPECODE = 29;
-  static const int INVOKE_STATIC_TYPECODE = 30;
-  static const int INVOKE_DYNAMIC_GETTER_TYPECODE = 31;
-  static const int INDEX_TYPECODE = 32;
+  static const int MULTIPLY_TYPECODE = 7;
+  static const int SUBTRACT_TYPECODE = 8;
+  static const int SHIFT_LEFT_TYPECODE = 9;
+  static const int BIT_OR_TYPECODE = 10;
+  static const int BIT_AND_TYPECODE = 11;
+  static const int BIT_XOR_TYPECODE = 12;
+  static const int NEGATE_TYPECODE = 13;
+  static const int BIT_NOT_TYPECODE = 14;
+  static const int NOT_TYPECODE = 15;
+  static const int IDENTITY_TYPECODE = 16;
+  static const int GREATER_TYPECODE = 17;
+  static const int GREATER_EQUAL_TYPECODE = 18;
+  static const int LESS_TYPECODE = 19;
+  static const int LESS_EQUAL_TYPECODE = 20;
+  static const int STATIC_TYPECODE = 21;
+  static const int STATIC_STORE_TYPECODE = 22;
+  static const int FIELD_GET_TYPECODE = 23;
+  static const int TYPE_CONVERSION_TYPECODE = 24;
+  static const int BAILOUT_TARGET_TYPECODE = 25;
+  static const int INVOKE_STATIC_TYPECODE = 26;
+  static const int INDEX_TYPECODE = 27;
+  static const int IS_TYPECODE = 28;
+  static const int INVOKE_DYNAMIC_TYPECODE = 29;
 
   HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
 
@@ -1327,6 +1328,13 @@ abstract class HInvokeDynamic extends HInvoke {
     // parameter to the call.
     return inputs.length - 2 == selector.argumentCount;
   }
+
+  int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
+  bool typeEquals(other) => other is HInvokeDynamic;
+  bool dataEquals(HInvokeDynamic other) {
+    return selector == other.selector
+        && element == other.element;
+  }
 }
 
 class HInvokeClosure extends HInvokeDynamic {
@@ -1390,10 +1398,6 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
   }
   toString() => 'invoke dynamic getter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
-
-  int typeCode() => HInstruction.INVOKE_DYNAMIC_GETTER_TYPECODE;
-  bool typeEquals(other) => other is HInvokeDynamicGetter;
-  bool dataEquals(HInvokeDynamicGetter other) => selector == other.selector;
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
@@ -2237,6 +2241,13 @@ class HIs extends HInstruction {
   accept(HVisitor visitor) => visitor.visitIs(this);
 
   toString() => "$expression is $typeExpression";
+
+  int typeCode() => HInstruction.IS_TYPECODE;
+  bool typeEquals(HInstruction other) => other is HIs;
+  bool dataEquals(HIs other) {
+    return typeExpression == other.typeExpression
+        && nullOk == other.nullOk;
+  }
 }
 
 class HTypeConversion extends HCheck {
