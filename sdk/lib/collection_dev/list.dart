@@ -489,7 +489,7 @@ class ReversedListView<E> extends SubListView<E> {
     return _createReversedListView(newStart, _end);
   }
 
-  Iterable<E> get iterator => new ReverseListIterator<E>(
+  Iterator<E> get iterator => new ReverseListIterator<E>(
       _list, _absoluteIndex(_start), _absoluteIndex(_end));
 
   List<E> get reversed {
@@ -514,7 +514,7 @@ class ReverseListIterator<E> implements Iterator<E> {
         _originalLength = list.length;
 
   bool moveNext() {
-    if (list.length != _originalLength) {
+    if (_list.length != _originalLength) {
       throw new ConcurrentModificationError(list);
     }
     if (_index <= _start) return false;
