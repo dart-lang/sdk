@@ -66,5 +66,12 @@ main() {
         expect(window.location.href.endsWith('foo=baz'), isTrue);
       }, expectation);
     });
+
+    test('hashchangeevent', () {
+      var event = new HashChangeEvent('change', oldUrl:'old', newUrl: 'new');
+      expect(event is HashChangeEvent, true);
+      expect(event.oldUrl, 'old');
+      expect(event.newUrl, 'new');
+    });
   });
 }

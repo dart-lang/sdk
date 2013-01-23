@@ -1,0 +1,21 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of html;
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  factory $CLASSNAME(String type,
+      {bool canBubble: false, bool cancelable: false, Node relatedNode,
+      String prevValue, String newValue, String attrName, int attrChange: 0}) {
+
+    var event = document.$dom_createEvent('MutationEvent');
+    event.$dom_initMutationEvent(type, canBubble, cancelable, relatedNode,
+        prevValue, newValue, attrName, attrChange);
+    return event;
+  }
+$!MEMBERS
+}
+
+
+

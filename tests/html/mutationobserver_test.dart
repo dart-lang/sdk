@@ -129,5 +129,10 @@ main() {
         div1.nodes.add(div2);
       }, expectation);
     });
+
+    test('mutation event', () {
+      var event = new MutationEvent('something');
+      expect(event is MutationEvent, isTrue);
+    });
   });
 }

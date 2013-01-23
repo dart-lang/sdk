@@ -16,4 +16,11 @@ main() {
     final stored = window.localStorage[key];
     expect(stored, value);
   });
+
+  test('event', () {
+    var event = new StorageEvent('something', oldValue: 'old', newValue: 'new');
+    expect(event is StorageEvent, isTrue);
+    expect(event.oldValue, 'old');
+    expect(event.newValue, 'new');
+  });
 }

@@ -14,8 +14,9 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
   factory $CLASSNAME(String type,
-      [bool canBubble = true, bool cancelable = true]) {
-    return new Event.eventType('Event', type, canBubble, cancelable);
+      {bool canBubble: true, bool cancelable: true}) {
+    return new Event.eventType('Event', type, canBubble: canBubble,
+        cancelable: canBubble);
   }
 
   /**
@@ -26,8 +27,8 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    *
    *     var e = new Event.type('MouseEvent', 'mousedown', true, true);
    */
-  factory Event.eventType(String type, String name, [bool canBubble = true,
-      bool cancelable = true]) {
+  factory Event.eventType(String type, String name, {bool canBubble: true,
+      bool cancelable: true}) {
     final Event e = document.$dom_createEvent(type);
     e.$dom_initEvent(name, canBubble, cancelable);
     return e;

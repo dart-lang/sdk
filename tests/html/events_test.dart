@@ -54,7 +54,6 @@ main() {
   });
   test('InitMouseEvent', () {
     DivElement div = new Element.tag('div');
-    MouseEvent event = document.$dom_createEvent('MouseEvent');
-    event.$dom_initMouseEvent('zebra', true, true, window, 0, 1, 2, 3, 4, false, false, false, false, 0, div);
+    MouseEvent event = new MouseEvent('zebra', relatedTarget: div);
   });
 }

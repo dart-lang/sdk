@@ -1975,16 +1975,25 @@ class Comment extends CharacterData {
   Comment.internal() : super.internal();
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('CompositionEvent')
 class CompositionEvent extends UIEvent {
+  factory CompositionEvent(String type,
+      {bool canBubble: false, bool cancelable: false, Window view,
+      String data}) {
+    if (view == null) {
+      view = window;
+    }
+    var e = document.$dom_createEvent("CompositionEvent");
+    e.$dom_initCompositionEvent(type, canBubble, cancelable, view, data);
+    return e;
+  }
   CompositionEvent.internal() : super.internal();
 
   @DomName('CompositionEvent.data')
@@ -1993,7 +2002,7 @@ class CompositionEvent extends UIEvent {
 
   @DomName('CompositionEvent.initCompositionEvent')
   @DocsEditable
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
+  void $dom_initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "CompositionEvent_initCompositionEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6219,9 +6228,14 @@ class CssValue extends NativeFieldWrapperClass1 {
 
 @DomName('CustomEvent')
 class CustomEvent extends Event {
-  factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
-      Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
-      type, canBubble, cancelable, detail);
+  factory CustomEvent(String type,
+      {bool canBubble: true, bool cancelable: true, Object detail}) {
+
+    final CustomEvent e = document.$dom_createEvent("CustomEvent");
+    e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
+
+    return e;
+  }
   CustomEvent.internal() : super.internal();
 
   @DomName('CustomEvent.detail')
@@ -6737,16 +6751,23 @@ class DeviceMotionEvent extends Event {
   num get interval native "DeviceMotionEvent_interval_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('DeviceOrientationEvent')
+
 class DeviceOrientationEvent extends Event {
+  factory DeviceOrientationEvent(String type,
+      {bool canBubble: true, bool cancelable: true, num alpha: 0, num beta: 0,
+      num gamma: 0, bool absolute: false}) {
+    var e = document.$dom_createEvent("DeviceOrientationEvent");
+    e.$dom_initDeviceOrientationEvent(type, canBubble, cancelable, alpha, beta,
+        gamma, absolute);
+    return e;
+  }
   DeviceOrientationEvent.internal() : super.internal();
 
   @DomName('DeviceOrientationEvent.absolute')
@@ -6767,7 +6788,7 @@ class DeviceOrientationEvent extends Event {
 
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   @DocsEditable
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
+  void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10691,8 +10712,9 @@ class Event extends NativeFieldWrapperClass1 {
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
   factory Event(String type,
-      [bool canBubble = true, bool cancelable = true]) {
-    return new Event.eventType('Event', type, canBubble, cancelable);
+      {bool canBubble: true, bool cancelable: true}) {
+    return new Event.eventType('Event', type, canBubble: canBubble,
+        cancelable: canBubble);
   }
 
   /**
@@ -10703,8 +10725,8 @@ class Event extends NativeFieldWrapperClass1 {
    *
    *     var e = new Event.type('MouseEvent', 'mousedown', true, true);
    */
-  factory Event.eventType(String type, String name, [bool canBubble = true,
-      bool cancelable = true]) {
+  factory Event.eventType(String type, String name, {bool canBubble: true,
+      bool cancelable: true}) {
     final Event e = document.$dom_createEvent(type);
     e.$dom_initEvent(name, canBubble, cancelable);
     return e;
@@ -12591,16 +12613,22 @@ class HRElement extends _Element_Merged {
   factory HRElement() => document.$dom_createElement("hr");
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('HashChangeEvent')
+
 class HashChangeEvent extends Event {
+  factory HashChangeEvent(String type,
+      {bool canBubble: true, bool cancelable: true, String oldUrl,
+      String newUrl}) {
+    var event = document.$dom_createEvent("HashChangeEvent");
+    event.$dom_initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
+    return event;
+  }
   HashChangeEvent.internal() : super.internal();
 
   @DomName('HashChangeEvent.newURL')
@@ -12613,7 +12641,7 @@ class HashChangeEvent extends Event {
 
   @DomName('HashChangeEvent.initHashChangeEvent')
   @DocsEditable
-  void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
+  void $dom_initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native "HashChangeEvent_initHashChangeEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17392,16 +17420,27 @@ class MessageChannel extends NativeFieldWrapperClass1 {
   MessagePort get port2 native "MessageChannel_port2_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('MessageEvent')
 class MessageEvent extends Event {
+  factory MessageEvent(String type,
+      {bool canBubble: false, bool cancelable: false, Object data,
+      String origin, String lastEventId,
+      Window source, List messagePorts}) {
+    if (source == null) {
+      source = window;
+    }
+    var event = document.$dom_createEvent("MessageEvent");
+    event.$dom_initMessageEvent(type, canBubble, cancelable, data, origin,
+        lastEventId, source, messagePorts);
+    return event;
+  }
   MessageEvent.internal() : super.internal();
 
   @DomName('MessageEvent.data')
@@ -17426,11 +17465,7 @@ class MessageEvent extends Event {
 
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
-
-  @DomName('MessageEvent.webkitInitMessageEvent')
-  @DocsEditable
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native "MessageEvent_webkitInitMessageEvent_Callback";
+  void $dom_initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native "MessageEvent_initMessageEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17670,16 +17705,21 @@ class ModElement extends _Element_Merged {
 
 @DomName('MouseEvent')
 class MouseEvent extends UIEvent {
-  factory MouseEvent(String type, Window view, int detail, int screenX,
-      int screenY, int clientX, int clientY, int button, [bool canBubble = true,
-      bool cancelable = true, bool ctrlKey = false, bool altKey = false,
-      bool shiftKey = false, bool metaKey = false,
-      EventTarget relatedTarget = null]) =>
-      _MouseEventFactoryProvider.createMouseEvent(
-          type, view, detail, screenX, screenY,
-          clientX, clientY, button, canBubble, cancelable,
-          ctrlKey, altKey, shiftKey, metaKey,
-          relatedTarget);
+  factory MouseEvent(String type,
+      {Window view, int detail: 0, int screenX: 0, int screenY: 0,
+      int clientX: 0, int clientY: 0, int button: 0, bool canBubble: true,
+      bool cancelable: true, bool ctrlKey: false, bool altKey: false,
+      bool shiftKey: false, bool metaKey: false, EventTarget relatedTarget}) {
+
+    if (view == null) {
+      view = window;
+    }
+    var event = document.$dom_createEvent('MouseEvent');
+    event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
+        screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
+        button, relatedTarget);
+    return event;
+  }
   MouseEvent.internal() : super.internal();
 
   @DomName('MouseEvent.altKey')
@@ -17775,12 +17815,18 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('MutationEvent')
 class MutationEvent extends Event {
+  factory MutationEvent(String type,
+      {bool canBubble: false, bool cancelable: false, Node relatedNode,
+      String prevValue, String newValue, String attrName, int attrChange: 0}) {
+
+    var event = document.$dom_createEvent('MutationEvent');
+    event.$dom_initMutationEvent(type, canBubble, cancelable, relatedNode,
+        prevValue, newValue, attrName, attrChange);
+    return event;
+  }
   MutationEvent.internal() : super.internal();
 
   static const int ADDITION = 2;
@@ -17811,9 +17857,12 @@ class MutationEvent extends Event {
 
   @DomName('MutationEvent.initMutationEvent')
   @DocsEditable
-  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
+  void $dom_initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native "MutationEvent_initMutationEvent_Callback";
 
 }
+
+
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22791,16 +22840,24 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
   void $dom_setItem(String key, String data) native "Storage_setItem_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('StorageEvent')
 class StorageEvent extends Event {
+  factory StorageEvent(String type,
+    {bool canBubble: false, bool cancelable: false, String key, String oldValue,
+    String newValue, String url, Storage storageArea}) {
+
+    var e = document.$dom_createEvent("StorageEvent");
+    e.$dom_initStorageEvent(type, canBubble, cancelable, key, oldValue,
+        newValue, url, storageArea);
+    return e;
+  }
   StorageEvent.internal() : super.internal();
 
   @DomName('StorageEvent.key')
@@ -22825,7 +22882,7 @@ class StorageEvent extends Event {
 
   @DomName('StorageEvent.initStorageEvent')
   @DocsEditable
-  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
+  void $dom_initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native "StorageEvent_initStorageEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23485,16 +23542,24 @@ class TextAreaElement extends _Element_Merged {
   void _setSelectionRange_2(start, end) native "HTMLTextAreaElement__setSelectionRange_2_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('TextEvent')
 class TextEvent extends UIEvent {
+  factory TextEvent(String type,
+    {bool canBubble: false, bool cancelable: false, Window view, String data}) {
+    if (view == null) {
+      view = window;
+    }
+    var e = document.$dom_createEvent("TextEvent");
+    e.$dom_initTextEvent(type, canBubble, cancelable, view, data);
+    return e;
+  }
   TextEvent.internal() : super.internal();
 
   @DomName('TextEvent.data')
@@ -23503,7 +23568,7 @@ class TextEvent extends UIEvent {
 
   @DomName('TextEvent.initTextEvent')
   @DocsEditable
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
+  void $dom_initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native "TextEvent_initTextEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24290,16 +24355,28 @@ class Touch extends NativeFieldWrapperClass1 {
   num get webkitRotationAngle native "Touch_webkitRotationAngle_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('TouchEvent')
 class TouchEvent extends UIEvent {
+  factory TouchEvent(TouchList touches, TouchList targetTouches,
+      TouchList changedTouches, String type,
+      {Window view, int screenX: 0, int screenY: 0, int clientX: 0,
+      int clientY: 0, bool ctrlKey: false, bool altKey: false,
+      bool shiftKey: false, bool metaKey: false}) {
+    if (view == null) {
+      view = window;
+    }
+    var e = document.$dom_createEvent("TouchEvent");
+    e.$dom_initTouchEvent(touches, targetTouches, changedTouches, type, view,
+        screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+    return e;
+  }
   TouchEvent.internal() : super.internal();
 
   @DomName('TouchEvent.altKey')
@@ -24332,7 +24409,7 @@ class TouchEvent extends UIEvent {
 
   @DomName('TouchEvent.initTouchEvent')
   @DocsEditable
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
+  void $dom_initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24720,8 +24797,12 @@ class UIEvent extends Event {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  factory UIEvent(String type, Window view, int detail,
-      [bool canBubble = true, bool cancelable = true]) {
+  factory UIEvent(String type,
+      {Window view, int detail: 0, bool canBubble: true,
+      bool cancelable: true}) {
+    if (view == null) {
+      view = window;
+    }
     final e = document.$dom_createEvent("UIEvent");
     e.$dom_initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
@@ -27719,13 +27800,16 @@ class WebSocketEvents extends Events {
 @DomName('WheelEvent')
 class WheelEvent extends MouseEvent {
 
-  factory WheelEvent(String type, Window view, int wheelDeltaX, int wheelDeltaY,
-      int detail, int screenX, int screenY, int clientX, int clientY,
-      int button,
-      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
-      bool altKey = false, bool shiftKey = false, bool metaKey = false,
-      EventTarget relatedTarget = null]) {
+  factory WheelEvent(String type,
+      {Window view, int deltaX: 0, int deltaY: 0,
+      int detail: 0, int screenX: 0, int screenY: 0, int clientX: 0,
+      int clientY: 0, int button: 0, bool canBubble: true,
+      bool cancelable: true, bool ctrlKey: false, bool altKey: false,
+      bool shiftKey: false, bool metaKey: false, EventTarget relatedTarget}) {
 
+    if (view == null) {
+      view = window;
+    }
     var eventType = 'WheelEvent';
     if (_Device.isFirefox) {
       eventType = 'MouseScrollEvents';
@@ -27735,8 +27819,8 @@ class WheelEvent extends MouseEvent {
       event.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
           screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey, button, relatedTarget);
-      event.$dom_initWebKitWheelEvent(wheelDeltaX,
-          wheelDeltaY ~/ 120, // Chrome does an auto-convert to pixels.
+      event.$dom_initWebKitWheelEvent(deltaX,
+          deltaY ~/ 120, // Chrome does an auto-convert to pixels.
           view, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey,
           metaKey);
 
@@ -33307,38 +33391,6 @@ class _HttpRequestUtils {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _CustomEventFactoryProvider {
-  static CustomEvent createCustomEvent(String type, [bool canBubble = true,
-      bool cancelable = true, Object detail = null]) {
-    final CustomEvent e = document.$dom_createEvent("CustomEvent");
-    e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
-    return e;
-  }
-}
-
-class _EventFactoryProvider {
-  static Event createEvent(String type, [bool canBubble = true,
-      bool cancelable = true]) {
-    final Event e = document.$dom_createEvent("Event");
-    e.$dom_initEvent(type, canBubble, cancelable);
-    return e;
-  }
-}
-
-class _MouseEventFactoryProvider {
-  static MouseEvent createMouseEvent(String type, Window view, int detail,
-      int screenX, int screenY, int clientX, int clientY, int button,
-      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
-      bool altKey = false, bool shiftKey = false, bool metaKey = false,
-      EventTarget relatedTarget = null]) {
-    final e = document.$dom_createEvent("MouseEvent");
-    e.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
-        screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
-        button, relatedTarget);
-    return e;
-  }
-}
-
 class _CssStyleDeclarationFactoryProvider {
   static CssStyleDeclaration createCssStyleDeclaration_css(String css) {
     final style = new Element.tag('div').style;
@@ -33836,7 +33888,8 @@ class ReceivePortSync {
 get _isolateId => ReceivePortSync._isolateId;
 
 void _dispatchEvent(String receiver, var message) {
-  var event = new CustomEvent(receiver, false, false, json.stringify(message));
+  var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
+    detail: json.stringify(message));
   window.$dom_dispatchEvent(event);
 }
 

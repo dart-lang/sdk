@@ -13,8 +13,12 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   //
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
-  factory $CLASSNAME(String type, Window view, int detail,
-      [bool canBubble = true, bool cancelable = true]) {
+  factory $CLASSNAME(String type,
+      {Window view, int detail: 0, bool canBubble: true,
+      bool cancelable: true}) {
+    if (view == null) {
+      view = window;
+    }
     final e = document.$dom_createEvent("UIEvent");
     e.$dom_initUIEvent(type, canBubble, cancelable, view, detail);
     return e;

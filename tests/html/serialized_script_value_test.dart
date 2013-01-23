@@ -6,8 +6,7 @@ import 'utils.dart';
 
 serializationTest(name, value) => test(name, () {
       // To check how value is serialized and deserialized, we create a MessageEvent.
-    final event = document.$dom_createEvent('MessageEvent');
-    event.initMessageEvent('', false, false, value, '', '', window, []);
+    final event = new MessageEvent('', data:value);
     verifyGraph(value, event.data);
 });
 
