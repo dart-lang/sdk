@@ -722,6 +722,11 @@ dart_annotations = {
   ],
   'FileSystem': _file_system_annotations,
   'FileSystemSync': _file_system_annotations,
+  'HashChangeEvent': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
   'History.pushState': _history_annotations,
   'History.replaceState': _history_annotations,
   'HTMLContentElement': [

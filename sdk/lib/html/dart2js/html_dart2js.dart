@@ -759,7 +759,7 @@ class BodyElement extends Element native "*HTMLBodyElement" {
 
   @DomName('HTMLBodyElement.hashchange')
   @DocsEditable
-  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+  static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
   @DomName('HTMLBodyElement.load')
   @DocsEditable
@@ -819,7 +819,7 @@ class BodyElement extends Element native "*HTMLBodyElement" {
 
   @DomName('HTMLBodyElement.hashchange')
   @DocsEditable
-  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+  Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
 
   @DomName('HTMLBodyElement.load')
   @DocsEditable
@@ -11765,6 +11765,9 @@ class HRElement extends Element native "*HTMLHRElement" {
 // WARNING: Do not edit - generated code.
 
 @DomName('HashChangeEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 
 class HashChangeEvent extends Event native "*HashChangeEvent" {
   factory HashChangeEvent(String type,
@@ -11774,6 +11777,9 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
     event.$dom_initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
     return event;
   }
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => Event._isTypeSupported('HashChangeEvent');
 
   @JSName('newURL')
   @DomName('HashChangeEvent.newURL')
@@ -25688,7 +25694,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   @DomName('DOMWindow.hashchange')
   @DocsEditable
-  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+  static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
   @DomName('DOMWindow.message')
   @DocsEditable
@@ -26198,7 +26204,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   @DomName('DOMWindow.hashchange')
   @DocsEditable
-  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+  Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
 
   @DomName('DOMWindow.input')
   @DocsEditable

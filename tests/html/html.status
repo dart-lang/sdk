@@ -60,6 +60,7 @@ element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
 form_data_test: Fail # TODO(efortuna): Issue 7875.
 fileapi_test/supported: Fail
+history_test/supported_HashChangeEvent: Fail
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime: Fail
@@ -119,6 +120,7 @@ css_test: Fail
 dom_constructors_test: Fail
 element_test/matches: Fail # IE9 does not support matches
 fileapi_test/supported: Fail
+history_test/supported_HashChangeEvent: Fail
 history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail

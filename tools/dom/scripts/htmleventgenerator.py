@@ -210,7 +210,8 @@ _html_event_types = {
   '*.ended': ('ended', 'Event'),
   '*.error': ('error', 'Event'),
   '*.focus': ('focus', 'Event'),
-  '*.hashchange': ('hashChange', 'HashChangeEvent'),
+  # Should be HashChangeEvent, but IE does not support it.
+  '*.hashchange': ('hashChange', 'Event'),
   '*.input': ('input', 'Event'),
   '*.invalid': ('invalid', 'Event'),
   '*.keydown': ('keyDown', 'KeyboardEvent'),

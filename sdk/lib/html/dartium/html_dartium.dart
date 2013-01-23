@@ -908,7 +908,7 @@ class BodyElement extends _Element_Merged {
 
   @DomName('HTMLBodyElement.hashchange')
   @DocsEditable
-  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+  static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
   @DomName('HTMLBodyElement.load')
   @DocsEditable
@@ -968,7 +968,7 @@ class BodyElement extends _Element_Merged {
 
   @DomName('HTMLBodyElement.hashchange')
   @DocsEditable
-  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+  Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
 
   @DomName('HTMLBodyElement.load')
   @DocsEditable
@@ -12620,6 +12620,9 @@ class HRElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 @DomName('HashChangeEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 
 class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
@@ -12630,6 +12633,9 @@ class HashChangeEvent extends Event {
     return event;
   }
   HashChangeEvent.internal() : super.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('HashChangeEvent.newURL')
   @DocsEditable
@@ -27910,7 +27916,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.hashchange')
   @DocsEditable
-  static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
+  static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
   @DomName('DOMWindow.message')
   @DocsEditable
@@ -28429,7 +28435,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.hashchange')
   @DocsEditable
-  Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
+  Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
 
   @DomName('DOMWindow.input')
   @DocsEditable

@@ -74,6 +74,7 @@ js_support_checks = {
   'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
   'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
   'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
+  'HashChangeEvent': "Event._isTypeSupported('HashChangeEvent')",
   'HTMLContentElement': "Element.isTagSupported('content')",
   'HTMLDataListElement': "Element.isTagSupported('datalist')",
   'HTMLDetailsElement': "Element.isTagSupported('details')",

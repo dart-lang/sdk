@@ -22,6 +22,12 @@ main() {
     });
   });
 
+  group('supported_HashChangeEvent', () {
+    test('supported', () {
+      expect(HashChangeEvent.supported, true);
+    });
+  });
+
   var expectation = History.supportsState ? returnsNormally : throws;
 
   group('history', () {
@@ -68,6 +74,7 @@ main() {
     });
 
     test('hashchangeevent', () {
+      var expectation = HashChangeEvent.supported ? returnsNormally : throws;
       expect(() {
         var event = new HashChangeEvent('change', oldUrl:'old', newUrl: 'new');
         expect(event is HashChangeEvent, true);
