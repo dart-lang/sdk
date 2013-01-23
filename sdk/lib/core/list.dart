@@ -91,7 +91,7 @@ abstract class List<E> implements Collection<E> {
    * It is backed by this list, but will stop working if this list
    * becomes shorter than its current length.
    */
-  List<T> get reversed => new ReversedList(this, 0, length);
+  List<E> get reversed;
 
   /**
    * Sorts the list according to the order specified by the [compare] function.
