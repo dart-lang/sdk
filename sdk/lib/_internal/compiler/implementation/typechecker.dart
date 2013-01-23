@@ -240,48 +240,6 @@ class VoidType extends DartType {
   String toString() => name.slowToString();
 }
 
-/**
- * Helper method for performing substitution of a linked list of types.
- *
- * If no types are changed by the substitution, the [types] is returned instead
- * of a newly created linked list.
- */
-Link<DartType> substTypes(Link<DartType> types,
-                          Link<DartType> arguments, Link<DartType> parameters) {
-  bool changed = false;
-  var builder = new LinkBuilder<DartType>();
-  Link<DartType> typeLink = types;
-  while (!typeLink.isEmpty) {
-    var argument = typeLink.head.subst(arguments, parameters);
-    if (!changed && !identical(argument, typeLink.head)) {
-      changed = true;
-    }
-    builder.addLast(argument);
-    typeLink = typeLink.tail;
-  }
-  if (changed) {
-    // Create a new link only if necessary.
-    return builder.toLink();
-  }
-  return types;
-}
-
-/**
- * Combine error messages in a malformed type to a single message string.
- */
-String fetchReasonsFromMalformedType(DartType type) {
-  // TODO(johnniwinther): Figure out how to produce good error message in face
-  // of multiple errors, and how to ensure non-localized error messages.
-  var reasons = new List<String>();
-  type.forEachMalformedType((MalformedType malformedType) {
-    ErroneousElement error = malformedType.element;
-    Message message = error.messageKind.message(error.messageArguments);
-    reasons.add(message.toString());
-    return true;
-  });
-  return Strings.join(reasons, ', ');
-}
-
 class MalformedType extends DartType {
   final ErroneousElement element;
 
@@ -379,7 +337,7 @@ class InterfaceType extends DartType {
       return this;
     }
     Link<DartType> newTypeArguments =
-        substTypes(typeArguments, arguments, parameters);
+        Types.substTypes(typeArguments, arguments, parameters);
     if (!identical(typeArguments, newTypeArguments)) {
       // Create a new type only if necessary.
       return new InterfaceType(element, newTypeArguments);
@@ -394,6 +352,24 @@ class InterfaceType extends DartType {
       }
     }
     return true;
+  }
+
+  /**
+   * Returns the type as an instance of class [other], if possible, null
+   * otherwise.
+   */
+  DartType asInstanceOf(ClassElement other) {
+    if (element == other) return this;
+    for (InterfaceType supertype in element.allSupertypes) {
+      ClassElement superclass = supertype.element;
+      if (superclass == other) {
+        Link<DartType> arguments = Types.substTypes(supertype.typeArguments,
+                                                    typeArguments,
+                                                    element.typeVariables);
+        return new InterfaceType(superclass, arguments);
+      }
+    }
+    return null;
   }
 
   DartType unalias(Compiler compiler) => this;
@@ -456,7 +432,8 @@ class FunctionType extends DartType {
     }
     var newReturnType = returnType.subst(arguments, parameters);
     bool changed = !identical(newReturnType, returnType);
-    var newParameterTypes = substTypes(parameterTypes, arguments, parameters);
+    var newParameterTypes = Types.substTypes(parameterTypes, arguments,
+                                             parameters);
     if (!changed && !identical(parameterTypes, newParameterTypes)) {
       changed = true;
     }
@@ -546,8 +523,8 @@ class TypedefType extends DartType {
       // Return fast on empty substitutions.
       return this;
     }
-    Link<DartType> newTypeArguments =
-        substTypes(typeArguments, arguments, parameters);
+    Link<DartType> newTypeArguments = Types.substTypes(typeArguments, arguments,
+                                                       parameters);
     if (!identical(typeArguments, newTypeArguments)) {
       // Create a new type only if necessary.
       return new TypedefType(element, newTypeArguments);
@@ -673,6 +650,50 @@ class Types {
 
   bool isAssignable(DartType r, DartType s) {
     return isSubtype(r, s) || isSubtype(s, r);
+  }
+
+
+  /**
+   * Helper method for performing substitution of a linked list of types.
+   *
+   * If no types are changed by the substitution, the [types] is returned
+   * instead of a newly created linked list.
+   */
+  static Link<DartType> substTypes(Link<DartType> types,
+                                   Link<DartType> arguments,
+                                   Link<DartType> parameters) {
+    bool changed = false;
+    var builder = new LinkBuilder<DartType>();
+    Link<DartType> typeLink = types;
+    while (!typeLink.isEmpty) {
+      var argument = typeLink.head.subst(arguments, parameters);
+      if (!changed && !identical(argument, typeLink.head)) {
+        changed = true;
+      }
+      builder.addLast(argument);
+      typeLink = typeLink.tail;
+    }
+    if (changed) {
+      // Create a new link only if necessary.
+      return builder.toLink();
+    }
+    return types;
+  }
+
+  /**
+   * Combine error messages in a malformed type to a single message string.
+   */
+  static String fetchReasonsFromMalformedType(DartType type) {
+    // TODO(johnniwinther): Figure out how to produce good error message in face
+    // of multiple errors, and how to ensure non-localized error messages.
+    var reasons = new List<String>();
+    type.forEachMalformedType((MalformedType malformedType) {
+      ErroneousElement error = malformedType.element;
+      Message message = error.messageKind.message(error.messageArguments);
+      reasons.add(message.toString());
+      return true;
+    });
+    return Strings.join(reasons, ', ');
   }
 }
 

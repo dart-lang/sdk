@@ -2461,7 +2461,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (parameterCount == 3) {
         // 3 arguments implies that the method is [malformedTypeCheck].
         assert(type.isMalformed);
-        String reasons = fetchReasonsFromMalformedType(type);
+        String reasons = Types.fetchReasonsFromMalformedType(type);
         arguments.add(js.string('$type'));
         // TODO(johnniwinther): Handle escaping correctly.
         arguments.add(js.string(reasons));

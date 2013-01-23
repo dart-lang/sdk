@@ -2577,7 +2577,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       DartType type = elements.getType(typeAnnotation);
       if (type.isMalformed) {
-        String reasons = fetchReasonsFromMalformedType(type);
+        String reasons = Types.fetchReasonsFromMalformedType(type);
         if (compiler.enableTypeAssertions) {
           generateMalformedSubtypeError(node, expression, type, reasons);
         } else {
@@ -3478,7 +3478,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       DartType type = elements.getType(node);
       if (compiler.enableTypeAssertions && type.isMalformed) {
-        String reasons = fetchReasonsFromMalformedType(type);
+        String reasons = Types.fetchReasonsFromMalformedType(type);
         // TODO(johnniwinther): Change to resemble type errors from bounds check
         // on type arguments.
         generateRuntimeError(node, '$type is malformed: $reasons');
