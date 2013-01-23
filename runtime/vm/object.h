@@ -1392,6 +1392,11 @@ class Function : public Object {
   bool IsInlineable() const;
   void set_is_inlinable(bool value) const;
 
+  bool is_visible() const {
+    return VisibleBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_visible(bool value) const;
+
   enum IntrinsicKind {
     kUnknownIntrinsic = 0,  // Initial value.
     kIsIntrinsic,
@@ -1547,9 +1552,10 @@ class Function : public Object {
     kNativeBit = 5,
     kAbstractBit = 6,
     kExternalBit = 7,
-    kIntrinsicTagBit = 8,
+    kVisibleBit = 8,
+    kIntrinsicTagBit = 9,
     kIntrinsicTagSize = 2,
-    kKindTagBit = 10,
+    kKindTagBit = 11,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -1560,6 +1566,7 @@ class Function : public Object {
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
+  class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
   class IntrinsicKindBits :
     public BitField<Function::IntrinsicKind,
                     kIntrinsicTagBit, kIntrinsicTagSize> {};  // NOLINT

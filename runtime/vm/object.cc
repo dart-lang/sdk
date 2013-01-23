@@ -117,6 +117,46 @@ RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 const double MegamorphicCache::kLoadFactor = 0.75;
 
 
+// The following functions are marked as invisible, meaning they will be hidden
+// in the stack trace.
+// (Library, class name, method name)
+#define INVISIBLE_LIST(V)                                                      \
+  V(CoreLibrary, Object, _noSuchMethod)                                        \
+  V(CoreLibrary, List, _throwArgumentError)                                    \
+  V(CoreLibrary, AssertionErrorImplementation, _throwNew)                      \
+  V(CoreLibrary, TypeErrorImplementation, _throwNew)                           \
+  V(CoreLibrary, FallThroughErrorImplementation, _throwNew)                    \
+  V(CoreLibrary, AbstractClassInstantiationErrorImplementation, _throwNew)     \
+  V(CoreLibrary, NoSuchMethodError, _throwNew)                                 \
+  V(CoreLibrary, int, _throwFormatException)                                   \
+  V(CoreLibrary, int, _parse)                                                  \
+
+
+static void MarkFunctionAsInvisible(const Library& lib,
+                                    const char* class_name,
+                                    const char* function_name) {
+  ASSERT(!lib.IsNull());
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(String::New(class_name))));
+  ASSERT(!cls.IsNull());
+  const Function& function =
+      Function::Handle(
+          cls.LookupFunctionAllowPrivate(
+              String::Handle(String::New(function_name))));
+  ASSERT(!function.IsNull());
+  function.set_is_visible(false);
+}
+
+
+static void MarkInvisibleFunctions() {
+#define MARK_FUNCTION(lib, class_name, function_name)                          \
+  MarkFunctionAsInvisible(Library::Handle(Library::lib()),                     \
+      #class_name, #function_name);                                            \
+
+INVISIBLE_LIST(MARK_FUNCTION)
+#undef MARK_FUNCTION
+}
+
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -1039,6 +1079,7 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_super_type(Type::Handle());
 
   ClassFinalizer::VerifyBootstrapClasses();
+  MarkInvisibleFunctions();
   return Error::null();
 }
 
@@ -3638,6 +3679,11 @@ bool Function::IsInlineable() const {
 }
 
 
+void Function::set_is_visible(bool value) const {
+  set_kind_tag(VisibleBit::update(value, raw_ptr()->kind_tag_));
+}
+
+
 intptr_t Function::NumParameters() const {
   return num_fixed_parameters() + NumOptionalParameters();
 }
@@ -4047,6 +4093,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_const(is_const);
   result.set_is_abstract(is_abstract);
   result.set_is_external(is_external);
+  result.set_is_visible(true);  // Will be computed later.
   result.set_intrinsic_kind(kUnknownIntrinsic);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
