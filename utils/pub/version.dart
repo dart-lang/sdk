@@ -110,7 +110,9 @@ class Version implements Comparable, VersionConstraint {
     if (other is VersionRange) return other.intersect(this);
 
     // Intersecting two versions only works if they are the same.
-    if (other is Version) return this == other ? this : const _EmptyVersion();
+    if (other is Version) {
+      return this == other ? this : VersionConstraint.empty;
+    }
 
     throw new ArgumentError(
         'Unknown VersionConstraint type $other.');
@@ -206,8 +208,11 @@ class Version implements Comparable, VersionConstraint {
 /// version that is "2.0.0" or greater. Version objects themselves implement
 /// this to match a specific version.
 abstract class VersionConstraint {
+  /// A [VersionConstraint] that allows all versions.
+  static VersionConstraint any = new VersionRange();
+
   /// A [VersionConstraint] that allows no versions: i.e. the empty set.
-  factory VersionConstraint.empty() => const _EmptyVersion();
+  static VersionConstraint empty = const _EmptyVersion();
 
   /// Parses a version constraint. This string is a space-separated series of
   /// version parts. Each part can be one of:
@@ -333,7 +338,9 @@ class VersionRange implements VersionConstraint {
     if (other.isEmpty) return other;
 
     // A range and a Version just yields the version if it's in the range.
-    if (other is Version) return allows(other) ? other : const _EmptyVersion();
+    if (other is Version) {
+      return allows(other) ? other : VersionConstraint.empty;
+    }
 
     if (other is VersionRange) {
       // Intersect the two ranges.
@@ -373,13 +380,13 @@ class VersionRange implements VersionConstraint {
         if (intersectIncludeMin && intersectIncludeMax) return intersectMin;
 
         // Otherwise, no versions.
-        return const _EmptyVersion();
+        return VersionConstraint.empty;
       }
 
       if (intersectMin != null && intersectMax != null &&
           intersectMin > intersectMax) {
         // Non-overlapping ranges, so empty.
-        return const _EmptyVersion();
+        return VersionConstraint.empty;
       }
 
       // If we got here, there is an actual range.

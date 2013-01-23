@@ -25,7 +25,8 @@ class SdkSource extends Source {
       return Package.load(id.name, packageDir, systemCache.sources);
     }).then((package) {
       // Ignore the pubspec's version, and use the SDK's.
-      return new Pubspec(id.name, sdk.version, package.pubspec.dependencies);
+      return new Pubspec(id.name, sdk.version, package.pubspec.dependencies,
+          package.pubspec.environment);
     });
   }
 

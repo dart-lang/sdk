@@ -5,6 +5,7 @@
 library pubspec_test;
 
 import '../../../pkg/unittest/lib/unittest.dart';
+import 'test_pub.dart';
 import '../../pub/pubspec.dart';
 import '../../pub/source.dart';
 import '../../pub/source_registry.dart';
@@ -111,6 +112,49 @@ dependencies:
 ''', sources);
         expect(pubspec.version, equals(Version.none));
         expect(pubspec.dependencies, isEmpty);
+      });
+
+      group("environment", () {
+        test("defaults to any SDK constraint if environment is omitted", () {
+          var pubspec = new Pubspec.parse('', sources);
+          expect(pubspec.environment.sdkVersion, equals(VersionConstraint.any));
+        });
+
+        test("allows an empty environment map", () {
+          var pubspec = new Pubspec.parse('''
+environment:
+''', sources);
+          expect(pubspec.environment.sdkVersion, equals(VersionConstraint.any));
+        });
+
+        test("throws if the environment value isn't a map", () {
+          expectFormatError('''
+environment: []
+''');
+        });
+
+        test("allows a version constraint for the sdk", () {
+          var pubspec = new Pubspec.parse('''
+environment:
+  sdk: ">=1.2.3 <2.3.4"
+''', sources);
+          expect(pubspec.environment.sdkVersion,
+              equals(new VersionConstraint.parse(">=1.2.3 <2.3.4")));
+        });
+
+        test("throws if the sdk isn't a string", () {
+          expectFormatError('''
+environment:
+  sdk: []
+''');
+        });
+
+        test("throws if the sdk isn't a valid version constraint", () {
+          expectFormatError('''
+environment:
+  sdk: "oopies"
+''');
+        });
       });
     });
   });

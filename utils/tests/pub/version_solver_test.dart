@@ -495,7 +495,8 @@ class MockSource extends Source {
     });
 
     var pubspec = new Pubspec(
-        description, new Version.parse(version), dependencies);
+        description, new Version.parse(version), dependencies,
+        new PubspecEnvironment());
     return new Package.inMemory(pubspec);
   }
 

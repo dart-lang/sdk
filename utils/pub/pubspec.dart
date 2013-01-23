@@ -22,11 +22,14 @@ class Pubspec {
   /// The packages this package depends on.
   final List<PackageRef> dependencies;
 
+  /// The environment-related metadata.
+  final PubspecEnvironment environment;
+
   /// All pubspec fields. This includes the fields from which other properties
   /// are derived.
   final Map<String, Object> fields;
 
-  Pubspec(this.name, this.version, this.dependencies,
+  Pubspec(this.name, this.version, this.dependencies, this.environment,
       [Map<String, Object> fields])
     : this.fields = fields == null ? {} : fields;
 
@@ -34,9 +37,10 @@ class Pubspec {
     : name = null,
       version = Version.none,
       dependencies = <PackageRef>[],
+      environment = new PubspecEnvironment(),
       fields = {};
 
-  /// Whether or not the pubspec has no contents. 
+  /// Whether or not the pubspec has no contents.
   bool get isEmpty =>
     name == null && version == Version.none && dependencies.isEmpty;
 
@@ -69,6 +73,26 @@ class Pubspec {
 
     var dependencies = _parseDependencies(sources,
         parsedPubspec['dependencies']);
+
+    var environmentYaml = parsedPubspec['environment'];
+    var sdkConstraint = VersionConstraint.any;
+    if (environmentYaml != null) {
+      if (environmentYaml is! Map) {
+        throw new FormatException(
+            'The pubspec "environment" field should be a map, but was '
+            '"$environmentYaml".');
+      }
+
+      var sdkYaml = environmentYaml['sdk'];
+      if (sdkYaml is! String) {
+        throw new FormatException(
+            'The "sdk" field of "environment" should be a string, but was '
+            '"$sdkYaml".');
+      }
+
+      sdkConstraint = new VersionConstraint.parse(sdkYaml);
+    }
+    var environment = new PubspecEnvironment(sdkConstraint);
 
     // Even though the pub app itself doesn't use these fields, we validate
     // them here so that users find errors early before they try to upload to
@@ -123,7 +147,7 @@ class Pubspec {
       }
     }
 
-    return new Pubspec(name, version, dependencies, parsedPubspec);
+    return new Pubspec(name, version, dependencies, environment, parsedPubspec);
   }
 }
 
@@ -180,4 +204,15 @@ List<PackageRef> _parseDependencies(SourceRegistry sources, yaml) {
   });
 
   return dependencies;
+}
+
+/// The environment-related metadata in the pubspec. Corresponds to the data
+/// under the "environment:" key in the pubspec.
+class PubspecEnvironment {
+  /// The version constraint specifying which SDK versions this package works
+  /// with.
+  final VersionConstraint sdkVersion;
+
+  PubspecEnvironment([VersionConstraint sdk])
+      : sdkVersion = sdk != null ? sdk : VersionConstraint.any;
 }
