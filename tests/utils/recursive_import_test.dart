@@ -81,14 +81,19 @@ main() {
     }
   }
 
-  String code = compile(new Uri.fromComponents(scheme: 'main'),
-                        new Uri.fromComponents(scheme: 'lib', path: '/'),
-                        new Uri.fromComponents(scheme: 'package', path: '/'),
-                        provider, handler).value;
-  Expect.isNull(code);
-  Expect.isTrue(10 < count);
-  // Two warnings for each time RECURSIVE_MAIN is read, except the
-  // first time.
-  Expect.equals(2 * (count - 1), warningCount);
-  Expect.equals(1, errorCount);
+  Future<String> result =
+      compile(new Uri.fromComponents(scheme: 'main'),
+              new Uri.fromComponents(scheme: 'lib', path: '/'),
+              new Uri.fromComponents(scheme: 'package', path: '/'),
+              provider, handler);
+  result.then((String code) {
+    Expect.isNull(code);
+    Expect.isTrue(10 < count);
+    // Two warnings for each time RECURSIVE_MAIN is read, except the
+    // first time.
+    Expect.equals(2 * (count - 1), warningCount);
+    Expect.equals(1, errorCount);
+  }, onError: (AsyncError e) {
+      throw 'Compilation failed';
+  });
 }
