@@ -2623,9 +2623,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           checks.add(call);
           index++;
         });
-        instruction = new HIs.withArgumentChecks(type, expression, checks);
+        instruction = new HIs(type, <HInstruction>[expression]..addAll(checks));
       } else {
-        instruction = new HIs(type, expression);
+        instruction = new HIs(type, <HInstruction>[expression]);
       }
       if (isNot) {
         add(instruction);
@@ -4398,7 +4398,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             compiler.cancel('On with unresolved type',
                             node: catchBlock.type);
           }
-          HInstruction condition = new HIs(type, unwrappedException);
+          HInstruction condition =
+              new HIs(type, <HInstruction>[unwrappedException]);
           push(condition);
         }
         else {
@@ -4416,7 +4417,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             if (type == null) {
               compiler.cancel('Catch with unresolved type', node: catchBlock);
             }
-            condition = new HIs(type, unwrappedException, nullOk: true);
+            condition =
+                new HIs(type, <HInstruction>[unwrappedException], nullOk: true);
             push(condition);
           }
         }

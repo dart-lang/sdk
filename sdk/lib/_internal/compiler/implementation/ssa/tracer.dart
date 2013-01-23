@@ -274,17 +274,25 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitFieldGet(HFieldGet node) {
     String fieldName = node.element.name.slowToString();
-    return 'get ${temporaryId(node.receiver)}.$fieldName';
+    return 'field get ${temporaryId(node.receiver)}.$fieldName';
   }
 
   String visitFieldSet(HFieldSet node) {
     String valueId = temporaryId(node.value);
     String fieldName = node.element.name.slowToString();
-    return 'set ${temporaryId(node.receiver)}.$fieldName to $valueId';
+    return 'field set ${temporaryId(node.receiver)}.$fieldName to $valueId';
   }
 
-  String visitLocalGet(HLocalGet node) => visitFieldGet(node);
-  String visitLocalSet(HLocalSet node) => visitFieldSet(node);
+  String visitLocalGet(HLocalGet node) {
+    String localName = node.element.name.slowToString();
+    return 'local get ${temporaryId(node.local)}.$localName';
+  }
+
+  String visitLocalSet(HLocalSet node) {
+    String valueId = temporaryId(node.value);
+    String localName = node.element.name.slowToString();
+    return 'local set ${temporaryId(node.local)}.$localName to $valueId';
+  }
 
   String visitGoto(HGoto node) {
     HBasicBlock target = currentBlock.successors[0];

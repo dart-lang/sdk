@@ -303,12 +303,12 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
   visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
   visitJump(HJump node) => visitControlFlow(node);
-  visitLazyStatic(HLazyStatic node) => visitStatic(node);
+  visitLazyStatic(HLazyStatic node) => visitInstruction(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
-  visitLocalGet(HLocalGet node) => visitFieldGet(node);
-  visitLocalSet(HLocalSet node) => visitFieldSet(node);
+  visitLocalGet(HLocalGet node) => visitFieldAccess(node);
+  visitLocalSet(HLocalSet node) => visitFieldAccess(node);
   visitLocalValue(HLocalValue node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitNegate(HNegate node) => visitInvokeUnary(node);
@@ -792,9 +792,7 @@ abstract class HInstruction implements Spannable {
   static const int INVOKE_DYNAMIC_GETTER_TYPECODE = 31;
   static const int INDEX_TYPECODE = 32;
 
-  HInstruction(this.inputs)
-      : id = idCounter++,
-        usedBy = <HInstruction>[];
+  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
 
   int get hashCode => id;
 
@@ -812,17 +810,16 @@ abstract class HInstruction implements Spannable {
   bool hasSideEffects() => getChangesFlags() != 0;
   bool dependsOnSomething() => getDependsOnFlags() != 0;
 
-  void prepareGvn(HTypeMap types) {
-    setAllSideEffects();
-    setDependsOnSomething();
-  }
-
   void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
 
   void setDependsOnSomething() {
     int count = FLAG_DEPENDS_ON_COUNT - FLAG_CHANGES_COUNT;
     flags |= (((1 << count) - 1) << FLAG_CHANGES_COUNT);
+  }
+  void clearAllDependencies() {
+    int count = FLAG_DEPENDS_ON_COUNT - FLAG_CHANGES_COUNT;
+    flags &= ~(((1 << count) - 1) << FLAG_CHANGES_COUNT);
   }
 
   bool dependsOnStaticPropertyStore() {
@@ -1161,8 +1158,7 @@ abstract class HInstruction implements Spannable {
 }
 
 class HBoolify extends HInstruction {
-  HBoolify(HInstruction value) : super(<HInstruction>[value]);
-  void prepareGvn(HTypeMap types) {
+  HBoolify(HInstruction value) : super(<HInstruction>[value]) {
     assert(!hasSideEffects());
     setUseGvn();
   }
@@ -1183,21 +1179,19 @@ class HBoolify extends HInstruction {
  * instruction itself.
  */
 abstract class HCheck extends HInstruction {
-  HCheck(inputs) : super(inputs);
-  HInstruction get checkedInput => inputs[0];
-  bool isJsStatement() => true;
-  void prepareGvn(HTypeMap types) {
+  HCheck(inputs) : super(inputs) {
     assert(!hasSideEffects());
     setUseGvn();
   }
+  HInstruction get checkedInput => inputs[0];
+  bool isJsStatement() => true;
   bool canThrow() => true;
 }
 
 class HBailoutTarget extends HInstruction {
   final int state;
   bool isEnabled = true;
-  HBailoutTarget(this.state) : super(<HInstruction>[]);
-  void prepareGvn(HTypeMap types) {
+  HBailoutTarget(this.state) : super(<HInstruction>[]) {
     assert(!hasSideEffects());
     setUseGvn();
   }
@@ -1300,9 +1294,6 @@ abstract class HConditionalBranch extends HControlFlow {
 
 abstract class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
-  void prepareGvn(HTypeMap types) {
-    // Control flow does not have side-effects.
-  }
   bool isControlFlow() => true;
   bool isJsStatement() => true;
 }
@@ -1313,7 +1304,10 @@ abstract class HInvoke extends HInstruction {
     * the receiver of a method-call. The remaining inputs are the arguments
     * to the invocation.
     */
-  HInvoke(List<HInstruction> inputs) : super(inputs);
+  HInvoke(List<HInstruction> inputs) : super(inputs) {
+    setAllSideEffects();
+    setDependsOnSomething();
+  }
   static const int ARGUMENTS_OFFSET = 1;
   bool canThrow() => true;
 }
@@ -1383,13 +1377,8 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(
-      selector, element, receiver, isSideEffectFree)
-    : super(selector, element, [receiver], isSideEffectFree);
-  toString() => 'invoke dynamic getter: $selector';
-  accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
-
-  void prepareGvn(HTypeMap types) {
+  HInvokeDynamicGetter(selector, element, receiver, isSideEffectFree)
+    : super(selector, element, [receiver], isSideEffectFree) {
     clearAllSideEffects();
     if (isSideEffectFree) {
       setUseGvn();
@@ -1399,6 +1388,8 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
       setAllSideEffects();
     }
   }
+  toString() => 'invoke dynamic getter: $selector';
+  accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 
   int typeCode() => HInstruction.INVOKE_DYNAMIC_GETTER_TYPECODE;
   bool typeEquals(other) => other is HInvokeDynamicGetter;
@@ -1407,11 +1398,7 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
   HInvokeDynamicSetter(selector, element, receiver, value, isSideEffectFree)
-    : super(selector, element, [receiver, value], isSideEffectFree);
-  toString() => 'invoke dynamic setter: $selector';
-  accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
-
-  void prepareGvn(HTypeMap types) {
+    : super(selector, element, [receiver, value], isSideEffectFree) {
     clearAllSideEffects();
     if (isSideEffectFree) {
       setChangesInstanceProperty();
@@ -1420,6 +1407,8 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
       setDependsOnSomething();
     }
   }
+  toString() => 'invoke dynamic setter: $selector';
+  accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
 
 class HInvokeStatic extends HInvoke {
@@ -1433,20 +1422,6 @@ class HInvokeStatic extends HInvoke {
   int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
   Element get element => target.element;
   HStatic get target => inputs[0];
-
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    return computeDesiredTypeForNonTargetInput(input, types, compiler);
-  }
-
-  HType computeDesiredTypeForNonTargetInput(HInstruction input,
-                                            HTypeMap types,
-                                            Compiler compiler) {
-    return HType.UNKNOWN;
-  }
 }
 
 class HInvokeSuper extends HInvokeStatic {
@@ -1466,11 +1441,9 @@ abstract class HFieldAccess extends HInstruction {
   final Element element;
 
   HFieldAccess(Element element, List<HInstruction> inputs)
-      : this.element = element,
-        super(inputs);
+      : this.element = element, super(inputs);
 
-  // TODO(ngeoffray): Only if input can be null.
-  bool canThrow() => true;
+  HInstruction get receiver => inputs[0];
 }
 
 class HFieldGet extends HFieldAccess {
@@ -1480,19 +1453,18 @@ class HFieldGet extends HFieldAccess {
       : this.isAssignable = (isAssignable != null)
             ? isAssignable
             : element.isAssignable(),
-        super(element, <HInstruction>[receiver]);
-
-  HInstruction get receiver => inputs[0];
-
-  accept(HVisitor visitor) => visitor.visitFieldGet(this);
-
-  void prepareGvn(HTypeMap types) {
+        super(element, <HInstruction>[receiver]) {
     clearAllSideEffects();
     setUseGvn();
-    if (isAssignable) {
+    if (this.isAssignable) {
       setDependsOnInstancePropertyStore();
     }
   }
+
+  // TODO(ngeoffray): Only if input can be null.
+  bool canThrow() => true;
+
+  accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   int typeCode() => HInstruction.FIELD_GET_TYPECODE;
   bool typeEquals(other) => other is HFieldGet;
@@ -1504,57 +1476,61 @@ class HFieldSet extends HFieldAccess {
   HFieldSet(Element element,
             HInstruction receiver,
             HInstruction value)
-      : super(element, <HInstruction>[receiver, value]);
-
-  HInstruction get receiver => inputs[0];
-  HInstruction get value => inputs[1];
-  accept(HVisitor visitor) => visitor.visitFieldSet(this);
-
-  void prepareGvn(HTypeMap types) {
+      : super(element, <HInstruction>[receiver, value]) {
     clearAllSideEffects();
     setChangesInstanceProperty();
   }
+
+  // TODO(ngeoffray): Only if input can be null.
+  bool canThrow() => true;
+
+  HInstruction get value => inputs[1];
+  accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
   bool isJsStatement() => true;
   String toString() => "FieldSet $element";
 }
 
-class HLocalGet extends HFieldGet {
-  HLocalGet(Element element, HLocalValue local) : super(element, local);
+class HLocalGet extends HFieldAccess {
+  // No need to use GVN for a [HLocalGet], it is just a local
+  // access.
+  HLocalGet(Element element, HLocalValue local)
+      : super(element, <HInstruction>[local]);
 
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
-
-  void prepareGvn(HTypeMap types) {
-    // No need to use GVN for a [HLocalGet], it is just a local
-    // access.
-    clearAllSideEffects();
-  }
 }
 
-class HLocalSet extends HFieldSet {
+class HLocalSet extends HFieldAccess {
   HLocalSet(Element element, HLocalValue local, HInstruction value)
-      : super(element, local, value);
+      : super(element, <HInstruction>[local, value]);
 
   accept(HVisitor visitor) => visitor.visitLocalSet(this);
 
   HLocalValue get local => inputs[0];
+  HInstruction get value => inputs[1];
+  bool isJsStatement() => true;
 }
 
 class HForeign extends HInstruction {
   final DartString code;
   final HType foreignType;
-  final bool _isStatement;
+  final bool isStatement;
 
-  HForeign(this.code, DartString declaredType, List<HInstruction> inputs)
+  HForeign(this.code,
+           DartString declaredType,
+           List<HInstruction> inputs,
+           {this.isStatement: false})
       : foreignType = computeTypeFromDeclaredType(declaredType),
-        _isStatement = false,
-        super(inputs);
-  HForeign.statement(this.code, List<HInstruction> inputs)
-      : foreignType = HType.UNKNOWN,
-        _isStatement = true,
-        super(inputs);
+        super(inputs) {
+    setAllSideEffects();
+    setDependsOnSomething();
+  }
+
+  HForeign.statement(code, List<HInstruction> inputs)
+      : this(code, const LiteralDartString('var'), input, isStatement: true);
+
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
   static HType computeTypeFromDeclaredType(DartString declaredType) {
@@ -1569,7 +1545,7 @@ class HForeign extends HInstruction {
 
   HType get guaranteedType => foreignType;
 
-  bool isJsStatement() => _isStatement;
+  bool isJsStatement() => isStatement;
   bool canThrow() => true;
 
 }
@@ -1584,9 +1560,7 @@ class HForeignNew extends HForeign {
 
 abstract class HInvokeBinary extends HInstruction {
   HInvokeBinary(HInstruction left, HInstruction right)
-      : super(<HInstruction>[left, right]);
-
-  void prepareGvn(HTypeMap types) {
+      : super(<HInstruction>[left, right]) {
     clearAllSideEffects();
     setUseGvn();
   }
@@ -1730,14 +1704,12 @@ class HBitXor extends HBinaryBitOp {
 }
 
 abstract class HInvokeUnary extends HInstruction {
-  HInvokeUnary(HInstruction input) : super(<HInstruction>[input]);
-
-  HInstruction get operand => inputs[0];
-
-  void prepareGvn(HTypeMap types) {
+  HInvokeUnary(HInstruction input) : super(<HInstruction>[input]) {
     clearAllSideEffects();
     setUseGvn();
   }
+
+  HInstruction get operand => inputs[0];
 
   UnaryOperation operation(ConstantSystem constantSystem);
 }
@@ -1865,10 +1837,6 @@ class HConstant extends HInstruction {
   HConstant.internal(this.constant, HType this.constantType)
       : super(<HInstruction>[]);
 
-  void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects());
-  }
-
   toString() => 'literal: $constant';
   accept(HVisitor visitor) => visitor.visitConstant(this);
 
@@ -1891,9 +1859,7 @@ class HConstant extends HInstruction {
 }
 
 class HNot extends HInstruction {
-  HNot(HInstruction value) : super(<HInstruction>[value]);
-  void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects());
+  HNot(HInstruction value) : super(<HInstruction>[value]) {
     setUseGvn();
   }
 
@@ -1922,9 +1888,6 @@ class HLocalValue extends HInstruction {
     sourceElement = element;
   }
 
-  void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects());
-  }
   toString() => 'local ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitLocalValue(this);
 }
@@ -2114,9 +2077,6 @@ class HStatic extends HInstruction {
   HStatic(this.element) : super(<HInstruction>[]) {
     assert(element != null);
     assert(invariant(this, element.isDeclaration));
-  }
-
-  void prepareGvn(HTypeMap types) {
     clearAllSideEffects();
     if (element.isAssignable()) {
       setDependsOnStaticPropertyStore();
@@ -2136,15 +2096,13 @@ class HStatic extends HInstruction {
 class HInterceptor extends HInstruction {
   Set<ClassElement> interceptedClasses;
   HInterceptor(this.interceptedClasses, HInstruction receiver)
-      : super(<HInstruction>[receiver]);
-  String toString() => 'interceptor on $interceptedClasses';
-  accept(HVisitor visitor) => visitor.visitInterceptor(this);
-  HInstruction get receiver => inputs[0];
-
-  void prepareGvn(HTypeMap types) {
+      : super(<HInstruction>[receiver]) {
     clearAllSideEffects();
     setUseGvn();
   }
+  String toString() => 'interceptor on $interceptedClasses';
+  accept(HVisitor visitor) => visitor.visitInterceptor(this);
+  HInstruction get receiver => inputs[0];
 
   HType computeDesiredTypeForInput(HInstruction input,
                                    HTypeMap types,
@@ -2174,10 +2132,9 @@ class HInterceptor extends HInstruction {
 }
 
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */
-class HLazyStatic extends HStatic {
-  HLazyStatic(Element element) : super(element);
-
-  void prepareGvn(HTypeMap types) {
+class HLazyStatic extends HInstruction {
+  final Element element;
+  HLazyStatic(this.element) : super(<HInstruction>[]) {
     // TODO(4931): The first access has side-effects, but we afterwards we
     // should be able to GVN.
     setAllSideEffects();
@@ -2195,7 +2152,11 @@ class HLazyStatic extends HStatic {
 
 class HStaticStore extends HInstruction {
   Element element;
-  HStaticStore(this.element, HInstruction value) : super(<HInstruction>[value]);
+  HStaticStore(this.element, HInstruction value)
+      : super(<HInstruction>[value]) {
+    clearAllSideEffects();
+    setChangesStaticProperty();
+  }
   toString() => 'static store ${element.name}';
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
 
@@ -2203,11 +2164,6 @@ class HStaticStore extends HInstruction {
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
   bool isJsStatement() => true;
-
-  void prepareGvn(HTypeMap types) {
-    clearAllSideEffects();
-    setChangesStaticProperty();
-  }
 }
 
 class HLiteralList extends HInstruction {
@@ -2216,10 +2172,6 @@ class HLiteralList extends HInstruction {
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
 
   HType get guaranteedType => HType.EXTENDABLE_ARRAY;
-
-  void prepareGvn(HTypeMap types) {
-    assert(!hasSideEffects());
-  }
 }
 
 /**
@@ -2228,15 +2180,14 @@ class HLiteralList extends HInstruction {
  */
 class HIndex extends HInstruction {
   HIndex(HInstruction receiver, HInstruction index)
-      : super(<HInstruction>[receiver, index]);
-  String toString() => 'index operator';
-  accept(HVisitor visitor) => visitor.visitIndex(this);
-
-  void prepareGvn(HTypeMap types) {
+      : super(<HInstruction>[receiver, index]) {
     clearAllSideEffects();
     setDependsOnIndexStore();
     setUseGvn();
   }
+
+  String toString() => 'index operator';
+  accept(HVisitor visitor) => visitor.visitIndex(this);
 
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
@@ -2254,32 +2205,26 @@ class HIndexAssign extends HInstruction {
   HIndexAssign(HInstruction receiver,
                HInstruction index,
                HInstruction value)
-      : super(<HInstruction>[receiver, index, value]);
+      : super(<HInstruction>[receiver, index, value]) {
+    clearAllSideEffects();
+    setChangesIndex();
+  }
   String toString() => 'index assign operator';
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
 
   HInstruction get receiver => inputs[0];
   HInstruction get index => inputs[1];
   HInstruction get value => inputs[2];
-
-  void prepareGvn(HTypeMap types) {
-    clearAllSideEffects();
-    setChangesIndex();
-  }
 }
 
 class HIs extends HInstruction {
   final DartType typeExpression;
   final bool nullOk;
 
-  HIs.withArgumentChecks(this.typeExpression,
-                         HInstruction expression,
-                         List<HInstruction> checks,
-                         [this.nullOk = false])
-    : super(<HInstruction>[expression]..addAll(checks));
-
-  HIs(this.typeExpression, HInstruction expression, {this.nullOk: false})
-     : super(<HInstruction>[expression]);
+  HIs(this.typeExpression, List<HInstruction> inputs, {this.nullOk: false})
+     : super(inputs) {
+    setUseGvn();
+  }
 
   HInstruction get expression => inputs[0];
   HInstruction getCheck(int index) => inputs[index + 1];
@@ -2352,7 +2297,10 @@ class HRangeConversion extends HCheck {
 class HStringConcat extends HInstruction {
   final Node node;
   HStringConcat(HInstruction left, HInstruction right, this.node)
-      : super(<HInstruction>[left, right]);
+      : super(<HInstruction>[left, right]) {
+    setAllSideEffects();
+    setDependsOnSomething();
+  }
   HType get guaranteedType => HType.STRING;
 
   HInstruction get left => inputs[0];

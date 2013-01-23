@@ -83,6 +83,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator <(other) {}
     operator <=(other) {}
     operator ==(other) {}
+    operator %(other) {}
   }
   class JSInt {
   }

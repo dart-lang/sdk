@@ -802,6 +802,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
            && instruction is !HCheck
            && instruction is !HTypeGuard
            && instruction is !HParameterValue
+           && instruction is !HLocalSet
            && !instruction.isControlFlow();
   }
 
@@ -1062,7 +1063,6 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       int changesFlags = 0;
       HInstruction instruction = block.first;
       while (instruction != null) {
-        instruction.prepareGvn(types);
         changesFlags |= instruction.getChangesFlags();
         instruction = instruction.next;
       }

@@ -267,7 +267,15 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
                                    HTypeMap types) {
     if (isBuiltin(instruction, types)) {
-      return newBuiltinVariant(instruction.inputs[1], instruction.inputs[2]);
+      HInstruction builtin =
+          newBuiltinVariant(instruction.inputs[1], instruction.inputs[2]);
+      if (builtin != null) return builtin;
+      // Even if there is no builtin equivalent instruction, we know
+      // the instruction does not have any side effect, and that it
+      // can be GVN'ed.
+      instruction.clearAllSideEffects();
+      instruction.clearAllDependencies();
+      instruction.setUseGvn();
     }
     return null;
   }
@@ -325,14 +333,9 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.modulo;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
-                                   HTypeMap types) {
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
     // Modulo cannot be mapped to the native operator (different semantics).    
     return null;
-  }
-
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    throw 'Modulo has no builtin variant';
   }
 }
 
@@ -367,14 +370,9 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.truncatingDivide;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
-                                   HTypeMap types) {
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
     // Truncating divide does not have a JS equivalent.    
     return null;
-  }
-
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    throw 'Truncating divide has no builtin variant';
   }
 }
 
@@ -436,14 +434,9 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
 class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   const ShiftRightSpecializer();
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
-                                   HTypeMap types) {
+  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
     // Shift right cannot be mapped to the native operator easily.    
     return null;
-  }
-
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    throw 'Shift right has no builtin variant';
   }
 
   BinaryOperation operation(ConstantSystem constantSystem) {
