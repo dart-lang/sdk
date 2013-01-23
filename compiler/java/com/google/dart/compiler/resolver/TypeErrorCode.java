@@ -49,6 +49,7 @@ public enum TypeErrorCode implements ErrorCode {
   MEMBER_IS_A_CONSTRUCTOR("%s is a constructor in %s"),
   MISSING_ARGUMENT("missing argument of type %s"),
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),
+  NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NO_SUCH_NAMED_PARAMETER("no such named parameter \"%s\" defined"),
   NO_SUCH_TYPE("no such type \"%s\"", true),
   NOT_A_FUNCTION_TYPE("\"%s\" is not a function type"),

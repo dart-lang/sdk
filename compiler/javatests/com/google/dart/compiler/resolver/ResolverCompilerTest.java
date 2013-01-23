@@ -216,7 +216,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 11, 3));
+        errEx(TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 11, 3));
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNodeBySource(unit, "new A.foo()");
     ConstructorElement constructorElement = newExpression.getElement();

@@ -372,6 +372,7 @@ public class Resolver {
         }
         onError(errorTarget, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
       }
+      checkMixinNoConstructors(cls.getMixins());
       return classElement;
     }
 
@@ -487,10 +488,30 @@ public class Resolver {
         }
       }
 
+      // check that mixin types don't have constructors
+      checkMixinNoConstructors(cls.getMixins());
+
       context = previousContext;
       currentHolder = previousHolder;
       enclosingElement = previousEnclosingElement;
       return classElement;
+    }
+
+    /**
+     * Checks that the types of the given mixin type node don't have explicit constructors.
+     */
+    private void checkMixinNoConstructors(List<DartTypeNode> mixins) {
+      for (DartTypeNode mixNode : mixins) {
+        if (mixNode.getType() instanceof InterfaceType) {
+          InterfaceType mixType = (InterfaceType) mixNode.getType();
+          for (ConstructorElement constructor : mixType.getElement().getConstructors()) {
+            if (!constructor.getModifiers().isFactory()) {
+              topLevelContext.onError(mixNode, ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR);
+              break;
+            }
+          }
+        }
+      }
     }
 
     private void constVerifyMembers(Iterable<? extends Element> members, ClassElement originalClass,
@@ -2220,9 +2241,9 @@ public class Resolver {
 
     private ConstructorElement checkIsConstructor(DartNewExpression node, Element element) {
       if (!ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
-        ResolverErrorCode errorCode = node.isConst()
+        ErrorCode errorCode = node.isConst()
             ? ResolverErrorCode.NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR
-            : ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR;
+            : TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR;
         onError(ASTNodes.getConstructorNameNode(node), errorCode);
         return null;
       }

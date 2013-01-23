@@ -286,23 +286,6 @@ prefix2_negative_test: Fail
 # test issue 7523 (const declared without type, so not-a-function warning should not be reported)
 call_through_getter_test: Fail
 
-mixin_illegal_constructor_test/01: Fail # issue 8025
-mixin_illegal_constructor_test/02: Fail # issue 8025
-mixin_illegal_constructor_test/03: Fail # issue 8025
-mixin_illegal_constructor_test/04: Fail # issue 8025
-mixin_illegal_constructor_test/05: Fail # issue 8025
-mixin_illegal_constructor_test/06: Fail # issue 8025
-mixin_illegal_constructor_test/07: Fail # issue 8025
-mixin_illegal_constructor_test/08: Fail # issue 8025
-mixin_illegal_constructor_test/09: Fail # issue 8025
-mixin_illegal_constructor_test/10: Fail # issue 8025
-mixin_illegal_constructor_test/11: Fail # issue 8025
-mixin_illegal_constructor_test/12: Fail # issue 8025
-mixin_illegal_constructor_test/13: Fail # issue 8025
-mixin_illegal_constructor_test/14: Fail # issue 8025
-mixin_illegal_constructor_test/15: Fail # issue 8025
-mixin_illegal_constructor_test/16: Fail # issue 8025
-
 mixin_illegal_cycles_test/01: Fail # issue 8027
 mixin_illegal_cycles_test/02: Fail # issue 8027
 

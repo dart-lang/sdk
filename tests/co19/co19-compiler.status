@@ -122,6 +122,17 @@ LibTest/isolate/SendPort/send_A01_t01: Fail
 Language/07_Classes/6_Constructors/2_Factories_A01_t02: Fail
 
 
+# co19 issue 372 (@static-clean where type warnings are expected)
+Language/07_Classes/6_Constructors_A03_t03: Fail
+Language/11_Expressions/11_Instance_Creation/1_New_A06_t04: Fail
+Language/11_Expressions/11_Instance_Creation/1_New_A06_t05: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail
+
+
+
+
 # testing framework or VM issue 7388 (dies on Turkish character)
 Language/11_Expressions/30_Identifier_Reference_A01_t08: Skip
 

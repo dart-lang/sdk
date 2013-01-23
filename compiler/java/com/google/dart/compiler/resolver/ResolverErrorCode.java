@@ -32,6 +32,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "Cannot declare a non-factory named constructor of another class."),
   CANNOT_HIDE_IMPORT_PREFIX("Cannot hide import prefix '%s'"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
+  CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR("Cannot use class with constructor as a mixin."),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
       "cannot override method %s from %s, wrong number of required parameters"),
@@ -162,8 +163,6 @@ public enum ResolverErrorCode implements ErrorCode {
   METHOD_MUST_HAVE_BODY(ErrorSeverity.WARNING, "Method must have a body in a non-abstract class"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR(ErrorSeverity.WARNING, "New expression cannot be invoked on type variable"),
-  NEW_EXPRESSION_NOT_CONSTRUCTOR(
-      ErrorSeverity.WARNING, "New expression does not resolve to a constructor"),
   NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR("New expression does not resolve to a const constructor"),
   NO_SUCH_TYPE("no such type \"%s\""),
   NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),

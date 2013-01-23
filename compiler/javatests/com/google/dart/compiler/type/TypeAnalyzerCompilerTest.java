@@ -4831,10 +4831,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 17),
+        errEx(TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 17),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 6, 7, 1),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 7, 1),
-        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 9, 17));
+        errEx(TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 9, 17));
   }
   
   /**
@@ -6278,6 +6278,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS, 4, 25, 1),
         errEx(ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS, 5, 29, 1));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=8025
+   */
+  public void test_mixin_withConstructor() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class M { M(); }",
+        "typedef A = Object with M;",
+        "class B extends Object with M {}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR, 3, 25, 1),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR, 4, 29, 1));
   }
   
   /**
