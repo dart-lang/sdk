@@ -40,12 +40,13 @@ class OS {
   // from midnight January 1, 1970 UTC.
   static int64_t GetCurrentTimeMicros();
 
-  // Returns an aligned array of type T with n entries.
+  // Returns a cleared aligned array of type T with n entries.
   // Alignment must be >= 16 and a power of two.
   template<typename T>
   static T* AllocateAlignedArray(intptr_t n, intptr_t alignment) {
     T* result = reinterpret_cast<T*>(OS::AlignedAllocate(n * sizeof(*result),
                                                          alignment));
+    memset(result, 0, n * sizeof(*result));
     return result;
   }
 

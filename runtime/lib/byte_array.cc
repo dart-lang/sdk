@@ -22,7 +22,7 @@ static void RangeCheck(const ByteArray& array,
   if (!Utils::RangeCheck(index, num_bytes, array.ByteLength())) {
     const String& error = String::Handle(String::NewFormatted(
         "index (%"Pd") must be in the range [0..%"Pd")",
-        index, (array.ByteLength() / num_bytes)));
+        (index / num_bytes), (array.ByteLength() / num_bytes)));
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kRange, args);
@@ -83,6 +83,23 @@ static void LengthCheck(intptr_t len, intptr_t max) {
   RangeCheck(array, index.Value(), sizeof(ValueT));                            \
   ValueT src = value_object.Getter();                                          \
   ByteArray::Copy(array, index.Value(), &src, sizeof(ValueT));                 \
+  return Integer::New(index.Value() + sizeof(ValueT));
+
+
+#define SCALED_UNALIGNED_GETTER(ArrayT, ObjectT, ValueT)                       \
+  GETTER_ARGUMENTS(ArrayT, ValueT);                                            \
+  RangeCheck(array, index.Value() * sizeof(ValueT), sizeof(ValueT));           \
+  ValueT result;                                                               \
+  ByteArray::Copy(&result, array,                                              \
+      index.Value() * sizeof(ValueT), sizeof(ValueT));                         \
+  return ObjectT::New(result);
+
+
+#define SCALED_UNALIGNED_SETTER(ArrayT, ObjectT, Getter, ValueT)               \
+  SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT);                                   \
+  RangeCheck(array, index.Value() * sizeof(ValueT), sizeof(ValueT));           \
+  ValueT src = value_object.Getter();                                          \
+  ByteArray::Copy(array, index.Value() * sizeof(ValueT), &src, sizeof(ValueT));\
   return Integer::New(index.Value() + sizeof(ValueT));
 
 
@@ -665,24 +682,24 @@ DEFINE_NATIVE_ENTRY(ExternalInt8Array_setIndexed, 3) {
 // ExternalUint8Array
 
 DEFINE_NATIVE_ENTRY(ExternalUint8Array_getIndexed, 2) {
-  UNALIGNED_GETTER(ExternalUint8Array, Smi, uint8_t);
+  SCALED_UNALIGNED_GETTER(ExternalUint8Array, Smi, uint8_t);
 }
 
 
 DEFINE_NATIVE_ENTRY(ExternalUint8Array_setIndexed, 3) {
-  UNALIGNED_SETTER(ExternalUint8Array, Smi, Value, uint8_t);
+  SCALED_UNALIGNED_SETTER(ExternalUint8Array, Smi, Value, uint8_t);
 }
 
 
 // ExternalUint8ClampedArray
 
 DEFINE_NATIVE_ENTRY(ExternalUint8ClampedArray_getIndexed, 2) {
-  UNALIGNED_GETTER(ExternalUint8ClampedArray, Smi, uint8_t);
+  SCALED_UNALIGNED_GETTER(ExternalUint8ClampedArray, Smi, uint8_t);
 }
 
 
 DEFINE_NATIVE_ENTRY(ExternalUint8ClampedArray_setIndexed, 3) {
-  UNALIGNED_SETTER(ExternalUint8ClampedArray, Smi, Value, uint8_t);
+  SCALED_UNALIGNED_SETTER(ExternalUint8ClampedArray, Smi, Value, uint8_t);
 }
 
 
@@ -701,12 +718,12 @@ DEFINE_NATIVE_ENTRY(ExternalInt16Array_setIndexed, 3) {
 // ExternalUint16Array
 
 DEFINE_NATIVE_ENTRY(ExternalUint16Array_getIndexed, 2) {
-  UNALIGNED_GETTER(ExternalUint16Array, Smi, uint16_t);
+  SCALED_UNALIGNED_GETTER(ExternalUint16Array, Smi, uint16_t);
 }
 
 
 DEFINE_NATIVE_ENTRY(ExternalUint16Array_setIndexed, 3) {
-  UNALIGNED_SETTER(ExternalUint16Array, Smi, Value, uint16_t);
+  SCALED_UNALIGNED_SETTER(ExternalUint16Array, Smi, Value, uint16_t);
 }
 
 
@@ -725,12 +742,12 @@ DEFINE_NATIVE_ENTRY(ExternalInt32Array_setIndexed, 3) {
 // ExternalUint32Array
 
 DEFINE_NATIVE_ENTRY(ExternalUint32Array_getIndexed, 2) {
-  UNALIGNED_GETTER(ExternalUint32Array, Integer, uint32_t);
+  SCALED_UNALIGNED_GETTER(ExternalUint32Array, Integer, uint32_t);
 }
 
 
 DEFINE_NATIVE_ENTRY(ExternalUint32Array_setIndexed, 3) {
-  UNALIGNED_SETTER(ExternalUint32Array, Integer, AsInt64Value, uint32_t);
+  SCALED_UNALIGNED_SETTER(ExternalUint32Array, Integer, AsInt64Value, uint32_t);
 }
 
 
