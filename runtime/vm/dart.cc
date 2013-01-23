@@ -213,6 +213,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     isolate->heap()->ProfileToFile("initialize");
   }
 
+  Object::VerifyBuiltinVtables();
+
   StubCode::Init(isolate);
   // TODO(regis): Reenable this code for arm and mips when possible.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)

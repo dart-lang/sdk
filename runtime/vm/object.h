@@ -353,6 +353,8 @@ class Object {
     return RoundedAllocationSize(sizeof(RawObject));
   }
 
+  static void VerifyBuiltinVtables();
+
   static const ClassId kClassId = kObjectCid;
 
   // Different kinds of type tests.
@@ -6181,15 +6183,13 @@ void Object::SetRaw(RawObject* value) {
   }
   set_vtable(builtin_vtables_[cid]);
 #if defined(DEBUG)
-  Isolate* isolate = Isolate::Current();
   if (FLAG_verify_handles) {
+    Isolate* isolate = Isolate::Current();
     Heap* isolate_heap = isolate->heap();
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
     ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
            vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
   }
-  ASSERT(builtin_vtables_[cid] ==
-         isolate->class_table()->At(cid)->ptr()->handle_vtable_);
 #endif
 }
 

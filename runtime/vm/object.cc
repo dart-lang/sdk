@@ -542,6 +542,21 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 }
 
 
+void Object::VerifyBuiltinVtables() {
+#if defined(DEBUG)
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  Class& cls = Class::Handle(isolate, Class::null());
+  for (intptr_t cid = (kIllegalCid + 1); cid < kNumPredefinedCids; cid++) {
+    if (isolate->class_table()->HasValidClassAt(cid)) {
+      cls |= isolate->class_table()->At(cid);
+      ASSERT(builtin_vtables_[cid] == cls.raw_ptr()->handle_vtable_);
+    }
+  }
+#endif
+}
+
+
 void Object::RegisterClass(const Class& cls,
                            const String& name,
                            const Library& lib) {
@@ -1208,15 +1223,13 @@ void Object::CheckHandle() const {
       cid = kInstanceCid;
     }
     ASSERT(vtable() == builtin_vtables_[cid]);
-    Isolate* isolate = Isolate::Current();
     if (FLAG_verify_handles) {
+      Isolate* isolate = Isolate::Current();
       Heap* isolate_heap = isolate->heap();
       Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
       ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
              vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
     }
-    ASSERT(builtin_vtables_[cid] ==
-           isolate->class_table()->At(cid)->ptr()->handle_vtable_);
   }
 #endif
 }
