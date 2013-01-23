@@ -31,7 +31,7 @@ String absolute(String path) => join(current, path);
 ///
 /// Trailing separators are ignored.
 ///
-///     builder.dirname('path/to/'); // -> 'to'
+///     builder.basename('path/to/'); // -> 'to'
 String basename(String path) => _builder.basename(path);
 
 /// Gets the part of [path] after the last separator, and without any trailing
@@ -41,7 +41,7 @@ String basename(String path) => _builder.basename(path);
 ///
 /// Trailing separators are ignored.
 ///
-///     builder.dirname('path/to/foo.dart/'); // -> 'foo'
+///     builder.basenameWithoutExtension('path/to/foo.dart/'); // -> 'foo'
 String basenameWithoutExtension(String path) =>
     _builder.basenameWithoutExtension(path);
 
