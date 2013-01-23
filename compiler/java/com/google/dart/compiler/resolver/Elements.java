@@ -971,16 +971,6 @@ static FieldElementImplementation fieldFromNode(DartField node,
       MethodElement method = (MethodElement) element;
       return !method.hasBody();
     }
-    if (ElementKind.of(element) == ElementKind.FIELD) {
-      FieldElement field = (FieldElement) element;
-      if (isAbstractElement(field.getGetter())) {
-        return true;
-      }
-      if (isAbstractElement(field.getSetter())) {
-        return true;
-      }
-      return false;
-    }
     return false;
   }
   

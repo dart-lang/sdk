@@ -1614,7 +1614,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (!node.getModifiers().isAbstract() && !unimplementedMembers.isEmpty() &&
             (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(type))) {
           StringBuilder sb = getUnimplementedMembersMessage(element, unimplementedMembers);
-          onError(node.getName(), TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
+          onError(node.getName(), TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
               node.getName(), sb.toString());
         }
       }
@@ -3220,16 +3220,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             while (supertype != null) {
               ClassElement superclass = supertype.getElement();
               for (Element member : superclass.getMembers()) {
-                String name = member.getName();
-                if (!Elements.isAbstractElement(member)) {
-                  superMembers.removeAll(name);
-                }
-                if (member instanceof FieldElement) {
-                  FieldElement field = (FieldElement) member;
-                  if (field.getSetter() != null) {
-                    superMembers.removeAll("setter " + name);
-                  }
-                }
+                removeSuperMemberIfNotAbstract(member);
               }
               supertype = supertype.getElement().getSupertype();
             }
@@ -3240,16 +3231,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         for (InterfaceType mixType : currentClass.getElement().getMixins()) {
           ClassElement mixElement = mixType.getElement();
           for (Element member : mixElement.getMembers()) {
-            String name = member.getName();
-            if (!Elements.isAbstractElement(member)) {
-              superMembers.removeAll(name);
-            }
-            if (member instanceof FieldElement) {
-              FieldElement field = (FieldElement) member;
-              if (field.getSetter() != null) {
-                superMembers.removeAll("setter " + name);
-              }
-            }
+            removeSuperMemberIfNotAbstract(member);
           }
         }
         
@@ -3273,12 +3255,43 @@ public class TypeAnalyzer implements DartCompilationPhase {
         
         // add abstract members of current class
         for (Element member : currentClass.getElement().getMembers()) {
-          if (Elements.isAbstractElement(member)) {
+          if (ElementKind.of(member) == ElementKind.FIELD && member.getModifiers().isAbstractField()) {
+            FieldElement field = (FieldElement) member;
+            MethodElement getter = field.getGetter();
+            MethodElement setter = field.getSetter();
+            if (getter != null && Elements.isAbstractElement(getter)) {
+              unimplementedElements.add(getter);
+            }
+            if (setter != null && Elements.isAbstractElement(setter)) {
+              unimplementedElements.add(setter);
+            }
+          } else if (Elements.isAbstractElement(member)) {
             unimplementedElements.add(member);
           }
         }
         
         return null;
+      }
+
+      private void removeSuperMemberIfNotAbstract(Element member) {
+        String name = member.getName();
+        if (ElementKind.of(member) == ElementKind.FIELD && member.getModifiers().isAbstractField()) {
+          FieldElement field = (FieldElement) member;
+          MethodElement getter = field.getGetter();
+          MethodElement setter = field.getSetter();
+          if (getter != null && !Elements.isAbstractElement(getter)) {
+            superMembers.removeAll(name);
+          }
+          if (setter != null && !Elements.isAbstractElement(setter)) {
+            if (!name.startsWith("setter ")) {
+              superMembers.removeAll("setter " + name);
+            } else {
+              superMembers.removeAll(name);
+            }
+          }
+        } else if (!Elements.isAbstractElement(member)) {
+          superMembers.removeAll(name);
+        }
       }
 
       @Override

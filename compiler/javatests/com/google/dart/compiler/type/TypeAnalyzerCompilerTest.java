@@ -596,7 +596,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 7, 1));
     {
       DartCompilationError typeError = libraryResult.getErrors().get(0);
       String message = typeError.getMessage();
@@ -626,7 +626,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 4, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 4, 7, 1));
     {
       DartCompilationError typeError = libraryResult.getErrors().get(0);
       String message = typeError.getMessage();
@@ -651,7 +651,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
     {
       DartCompilationError typeError = libraryResult.getErrors().get(0);
       String message = typeError.getMessage();
@@ -680,7 +680,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
               "}");
       assertErrors(
           libraryResult.getErrors(),
-          errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
+          errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
     }
     // disable warnings if has "noSuchMethod"
     {
@@ -715,7 +715,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
   }
 
   public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplemented_mixin() throws Exception {
@@ -729,7 +729,26 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         result.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
+  }
+
+  /**
+   * Class "B" has implementation for "bVal" and "bVal=", so we don't need any warning.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7605
+   */
+  public void test_warnAbstract_onConcreteClassDeclaration_inheritedGetter_abstractGetter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  get bVal {}",
+        "  set bVal(var val);",
+        "}",
+        "class B extends A {",
+        "  set bVal(var val) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
   }
 
   /**
@@ -770,7 +789,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
   }
   
   /**
@@ -6369,7 +6388,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         result.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 10, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 10, 7, 1));
   }
 
   /**

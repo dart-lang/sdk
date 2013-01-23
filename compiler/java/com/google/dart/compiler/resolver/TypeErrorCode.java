@@ -17,7 +17,7 @@ public enum TypeErrorCode implements ErrorCode {
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE("cannot override method '%s', default value doesn't match '%s'"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
-  CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS("Concrete class %s has unimplemented member(s) %s"),
+  CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS("Concrete class %s has unimplemented member(s) %s"),
   CYCLIC_REFERENCE_TO_TYPE_VARIABLE(
       "Invalid type expression, cyclic reference to type variable '%s'"),
   DEPRECATED_ELEMENT(ErrorSeverity.INFO, "%s is deprecated"),
