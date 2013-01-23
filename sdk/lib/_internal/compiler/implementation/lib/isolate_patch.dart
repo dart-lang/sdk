@@ -4,22 +4,23 @@
 
 // Patch file for the dart:isolate library.
 
-patch ReceivePort get port {
-  if (lazyPort == null) {
-    lazyPort = new ReceivePort();
+patch class _Isolate {
+  patch ReceivePort get port {
+    if (lazyPort == null) {
+      lazyPort = new ReceivePort();
+    }
+    return lazyPort;
   }
-  return lazyPort;
-}
 
-patch SendPort spawnFunction(void topLevelFunction(),
-    [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) {
-  return IsolateNatives.spawnFunction(topLevelFunction);
-}
+  patch SendPort spawnFunction(void topLevelFunction(),
+      [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) {
+    return IsolateNatives.spawnFunction(topLevelFunction);
+  }
 
-patch SendPort spawnUri(String uri) {
-  return IsolateNatives.spawn(null, uri, false);
+  patch SendPort spawnUri(String uri) {
+    return IsolateNatives.spawn(null, uri, false);
+  }
 }
-
 
 /** Default factory for receive ports. */
 patch class ReceivePort {

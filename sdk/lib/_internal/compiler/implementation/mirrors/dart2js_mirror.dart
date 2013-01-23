@@ -305,9 +305,7 @@ class LibraryCompiler extends api.Compiler {
   void processQueueList(Enqueuer world, List<LibraryElement> elements) {
     world.nativeEnqueuer.processNativeClasses(libraries.values);
     for (var library in elements) {
-      library.forEachLocalMember((element) {
-        world.addToWorkList(element);
-      });
+      fullyEnqueueLibrary(library);
     }
     progress.reset();
     world.forEach((WorkItem work) {
