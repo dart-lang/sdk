@@ -566,6 +566,12 @@ class CommandOutputImpl implements CommandOutput {
       if (exitCode == 3) {
         return !timedOut;
       }
+      // If a program receives an uncaught system exception, the program
+      // terminates with the exception code as exit code.
+      // The 0x3FFFFF00 mask here tries to determine if an exception indicates
+      // a crash of the program.
+      // System exception codes can be found in 'winnt.h', for example
+      // "#define STATUS_ACCESS_VIOLATION  ((DWORD) 0xC0000005)"
       return (!timedOut && (exitCode < 0) && ((0x3FFFFF00 & exitCode) == 0));
     }
     return !timedOut && ((exitCode < 0));
