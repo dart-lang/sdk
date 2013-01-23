@@ -469,9 +469,11 @@ public class DartParser extends CompletionHooksParserBase {
   public LibraryUnit preProcessLibraryDirectives(LibrarySource source) {
     beginCompilationUnit();
     LibraryUnit libUnit = new LibraryUnit(source);
+    parseMetadata();
     if (peekPseudoKeyword(0, LIBRARY_KEYWORD)) {
       DartLibraryDirective libraryDirective = parseLibraryDirective();
       libUnit.setName(libraryDirective.getLibraryName());
+      parseMetadata();
     }
     while (peekPseudoKeyword(0, IMPORT_KEYWORD) || peekPseudoKeyword(0, EXPORT_KEYWORD)) {
       if (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
@@ -486,6 +488,7 @@ public class DartParser extends CompletionHooksParserBase {
         importPath.setSourceInfo(exportDirective.getSourceInfo());
         libUnit.addExportPath(importPath);
       }
+      parseMetadata();
     }
     while (peekPseudoKeyword(0, PART_KEYWORD)) {
       if (peekPseudoKeyword(1, OF_KEYWORD)) {
@@ -496,6 +499,7 @@ public class DartParser extends CompletionHooksParserBase {
         sourcePath.setSourceInfo(sourceDirective.getSourceInfo());
         libUnit.addSourcePath(sourcePath);
       }
+      parseMetadata();
     }
     //
     // The code below is obsolete. We do not make any effort to find duplications between the old
@@ -505,6 +509,7 @@ public class DartParser extends CompletionHooksParserBase {
       beginLibraryDirective();
       DartLibraryDirective libDirective = done(parseObsoleteLibraryDirective());
       libUnit.setName(libDirective.getLibraryName());
+      parseMetadata();
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
@@ -518,6 +523,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
       importPath.setSourceInfo(importDirective.getSourceInfo());
       libUnit.addImportPath(importPath);
+      parseMetadata();
     }
     while (peek(0) == Token.SOURCE) {
       beginSourceDirective();
@@ -525,9 +531,11 @@ public class DartParser extends CompletionHooksParserBase {
       LibraryNode sourcePath = new LibraryNode(sourceDirective.getSourceUri().getValue());
       sourcePath.setSourceInfo(sourceDirective.getSourceInfo());
       libUnit.addSourcePath(sourcePath);
+      parseMetadata();
     }
     while (peek(0) == Token.RESOURCE) {
       parseResourceDirective();
+      parseMetadata();
     }
     while (peek(0) == Token.NATIVE) {
       beginNativeDirective();
@@ -535,6 +543,7 @@ public class DartParser extends CompletionHooksParserBase {
       LibraryNode nativePath = new LibraryNode(nativeDirective.getNativeUri().getValue());
       nativePath.setSourceInfo(nativeDirective.getSourceInfo());
       libUnit.addNativePath(nativePath);
+      parseMetadata();
     }
 
     // add ourselves to the list of sources, so inline dart code will be parsed

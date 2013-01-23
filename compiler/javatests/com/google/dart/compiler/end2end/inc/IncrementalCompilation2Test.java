@@ -1512,6 +1512,40 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
 
   /**
    * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7598
+   */
+  public void test_newLibrarySyntax_export_withMetadata() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.A;",
+            "var a = 0;",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.B;",
+            "@meta export 'A.dart';",
+            "const meta = 'meta!';",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'B.dart';",
+            "main() {",
+            "  print(a);",
+            "}",
+            ""));
+    compile();
+    assertErrors(errors);
+  }
+
+  /**
+   * <p>
    * http://code.google.com/p/dart/issues/detail?id=4238
    */
   public void test_typesPropagation_html_query() throws Exception {
