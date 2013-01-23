@@ -105,7 +105,7 @@ char* MessageParser::GetStringParam(const char* name) const {
 }
 
 
-static void FormatEncodedString(dart::TextBuffer* buf, Dart_Handle str) {
+static void FormatEncodedChars(dart::TextBuffer* buf, Dart_Handle str) {
   intptr_t str_len = 0;
   Dart_Handle res = Dart_StringLength(str, &str_len);
   ASSERT_NOT_ERROR(res);
@@ -116,51 +116,83 @@ static void FormatEncodedString(dart::TextBuffer* buf, Dart_Handle str) {
   res = Dart_StringToUTF16(str, codepoints, &actual_len);
   ASSERT_NOT_ERROR(res);
   ASSERT(str_len == actual_len);
-  buf->AddChar('\"');
   for (int i = 0; i < str_len; i++) {
     buf->AddEscapedChar(codepoints[i]);
   }
-  buf->AddChar('\"');
   free(codepoints);
 }
 
 
-static void FormatErrorMsg(dart::TextBuffer* buf, Dart_Handle err) {
-  ASSERT(Dart_IsError(err));
-  const char* msg = Dart_GetError(err);
-  Dart_Handle str = Dart_NewStringFromCString(msg);
-  FormatEncodedString(buf, str);
+static void FormatEncodedString(dart::TextBuffer* buf, Dart_Handle str) {
+  buf->AddChar('\"');
+  FormatEncodedChars(buf, str);
+  buf->AddChar('\"');
 }
 
 
-static void FormatTextualValue(dart::TextBuffer* buf, Dart_Handle object) {
-  Dart_Handle text;
-  if (Dart_IsNull(object)) {
-    text = Dart_Null();
+static void FormatTextualListElement(dart::TextBuffer* buf,
+                                     Dart_Handle object) {
+  if (Dart_IsList(object)) {
+    buf->Printf("[...]");
+  } else if (Dart_IsNull(object)) {
+    buf->Printf("null");
+  } else if (Dart_IsError(object)) {
+    buf->Printf("#ERROR");
   } else {
-    Dart_ExceptionPauseInfo savedState = Dart_GetExceptionPauseInfo();
-
-    // TODO(hausner): Check whether recursive/reentrant pauses on exceptions
-    // should be prevented in Debugger::SignalExceptionThrown() instead.
-    if (savedState != kNoPauseOnExceptions) {
-      Dart_Handle res = Dart_SetExceptionPauseInfo(kNoPauseOnExceptions);
-      ASSERT_NOT_ERROR(res);
+    const bool need_quotes = Dart_IsString(object);
+    Dart_Handle text = Dart_ToString(object);
+    if (need_quotes) buf->Printf("\\\"");
+    if (Dart_IsNull(text)) {
+      buf->Printf("null");
+    } else if (Dart_IsError(text)) {
+      buf->Printf("#ERROR");
+    } else {
+      FormatEncodedChars(buf, text);
     }
+    if (need_quotes) buf->Printf("\\\"");
+  }
+}
 
-    text = Dart_ToString(object);
 
-    if (savedState != kNoPauseOnExceptions) {
-      Dart_Handle res = Dart_SetExceptionPauseInfo(savedState);
-      ASSERT_NOT_ERROR(res);
+static void FormatTextualListValue(dart::TextBuffer* buf, Dart_Handle list) {
+  intptr_t len = 0;
+  Dart_Handle res = Dart_ListLength(list, &len);
+  ASSERT_NOT_ERROR(res);
+  const intptr_t initial_buffer_length = buf->length();
+  // Maximum number of characters we print for array elements.
+  const intptr_t max_chars = 256;
+  const intptr_t max_buffer_length = initial_buffer_length + max_chars;
+  buf->Printf("[");
+  for (int i = 0; i < len; i++) {
+    if (i > 0) {
+      buf->Printf(", ");
+    }
+    Dart_Handle elem = Dart_ListGetAt(list, i);
+    FormatTextualListElement(buf, elem);
+    if (buf->length() > max_buffer_length) {
+      buf->Printf(", ...");
+      break;
     }
   }
-  buf->Printf("\"text\":");
-  if (Dart_IsNull(text)) {
+  buf->Printf("]");
+}
+
+
+static void FormatTextualValue(dart::TextBuffer* buf,
+                               Dart_Handle object) {
+  if (Dart_IsList(object)) {
+    FormatTextualListValue(buf, object);
+  } else if (Dart_IsNull(object)) {
     buf->Printf("null");
-  } else if (Dart_IsError(text)) {
-    FormatErrorMsg(buf, text);
   } else {
-    FormatEncodedString(buf, text);
+    Dart_Handle text = Dart_ToString(object);
+    if (Dart_IsNull(text)) {
+      buf->Printf("null");
+    } else if (Dart_IsError(text)) {
+      buf->Printf("#ERROR");
+    } else {
+      FormatEncodedChars(buf, text);
+    }
   }
 }
 
@@ -180,7 +212,9 @@ static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
   } else {
     buf->Printf("\"kind\":\"object\",");
   }
+  buf->Printf("\"text\":\"");
   FormatTextualValue(buf, object);
+  buf->Printf("\"");
 }
 
 
