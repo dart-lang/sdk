@@ -104,10 +104,7 @@
       },
 
       'DebugSIMARM': {
-        # Should not inherit from Dart_Debug because Dart_simarm_Base defines
-        # the optimization level to be -O3, as the simulator runs too slow
-        # otherwise.
-        'inherit_from': ['Dart_Base', 'Dart_simarm_Base'],
+        'inherit_from': ['Dart_Base', 'Dart_simarm_Base', 'Dart_Debug'],
         'defines': [
           'DEBUG',
         ],
@@ -126,10 +123,7 @@
       },
 
       'DebugSIMMIPS': {
-        # Should not inherit from Dart_Debug because Dart_simmips_Base defines
-        # the optimization level to be -O3, as the simulator runs too slow
-        # otherwise.
-        'inherit_from': ['Dart_Base', 'Dart_simmips_Base'],
+        'inherit_from': ['Dart_Base', 'Dart_simmips_Base', 'Dart_Debug'],
         'defines': [
           'DEBUG',
         ],
