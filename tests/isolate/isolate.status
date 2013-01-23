@@ -55,6 +55,8 @@ multiple_timer_test: Pass, Fail
 timer_isolate_test: Pass, Fail
 timer_test: Pass, Fail
 
+mandel_isolate_test: Pass, Timeout # http://dartbug.com/8069
+
 # TODO(ager): Update these.
 [ $runtime == ie9 && $system == windows ]
 v2*: Skip
