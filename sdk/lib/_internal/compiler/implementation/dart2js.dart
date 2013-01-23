@@ -11,8 +11,8 @@ import 'dart:uri';
 import 'dart:utf';
 
 import '../compiler.dart' as api;
-import 'colors.dart' as colors;
 import 'source_file.dart';
+import 'source_file_provider.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';
 
@@ -70,9 +70,6 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 void compile(List<String> argv) {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = getCurrentDirectory();
-  bool throwOnError = false;
-  bool showWarnings = true;
-  bool verbose = false;
   Uri libraryRoot = cwd;
   Uri out = cwd.resolve('out.js');
   Uri sourceMapOut = cwd.resolve('out.js.map');
@@ -80,9 +77,11 @@ void compile(List<String> argv) {
   List<String> options = new List<String>();
   bool explicitOut = false;
   bool wantHelp = false;
-  bool enableColors = false;
   String outputLanguage = 'JavaScript';
   bool stripArgumentSet = false;
+  SourceFileProvider inputProvider = new SourceFileProvider();
+  FormattingDiagnosticHandler diagnosticHandler =
+      new FormattingDiagnosticHandler(inputProvider);
 
   passThrough(String argument) => options.add(argument);
 
@@ -127,7 +126,7 @@ void compile(List<String> argv) {
     for (var shortOption in shortOptions) {
       switch (shortOption) {
         case 'v':
-          verbose = true;
+          diagnosticHandler.verbose = true;
           break;
         case 'h':
         case '?':
@@ -145,10 +144,12 @@ void compile(List<String> argv) {
   List<String> arguments = <String>[];
   List<OptionHandler> handlers = <OptionHandler>[
     new OptionHandler('-[chv?]+', handleShortOptions),
-    new OptionHandler('--throw-on-error', (_) => throwOnError = true),
-    new OptionHandler('--suppress-warnings', (_) => showWarnings = false),
+    new OptionHandler('--throw-on-error',
+                      (_) => diagnosticHandler.throwOnError = true),
+    new OptionHandler('--suppress-warnings',
+                      (_) => diagnosticHandler.showWarnings = false),
     new OptionHandler('--output-type=dart|--output-type=js', setOutputType),
-    new OptionHandler('--verbose', (_) => verbose = true),
+    new OptionHandler('--verbose', (_) => diagnosticHandler.verbose = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
@@ -156,8 +157,9 @@ void compile(List<String> argv) {
     new OptionHandler('--force-strip=.*', setStrip),
     // TODO(ahe): Remove the --no-colors option.
     new OptionHandler('--disable-diagnostic-colors',
-                      (_) => enableColors = false),
-    new OptionHandler('--enable-diagnostic-colors', (_) => enableColors = true),
+                      (_) => diagnosticHandler.enableColors = false),
+    new OptionHandler('--enable-diagnostic-colors',
+                      (_) => diagnosticHandler.enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => passThrough('--enable-checked-mode')),
     new OptionHandler('--enable-concrete-type-inference',
@@ -182,7 +184,7 @@ void compile(List<String> argv) {
   ];
 
   parseCommandLine(handlers, argv);
-  if (wantHelp) helpAndExit(verbose);
+  if (wantHelp) helpAndExit(diagnosticHandler.verbose);
 
   if (outputLanguage != OUTPUT_LANGUAGE_DART && stripArgumentSet) {
     helpAndFail('Error: --force-strip may only be used with '
@@ -196,41 +198,6 @@ void compile(List<String> argv) {
     helpAndFail('Error: Extra arguments: ${Strings.join(extra, " ")}');
   }
 
-  Map<String, SourceFile> sourceFiles = <String, SourceFile>{};
-  int dartBytesRead = 0;
-
-  Future<String> provider(Uri uri) {
-    if (uri.scheme != 'file') {
-      throw new ArgumentError(uri);
-    }
-    String source;
-    try {
-      source = readAll(uriPathToNative(uri.path));
-    } on FileIOException catch (ex) {
-      throw 'Error: Cannot read "${relativize(cwd, uri, isWindows)}" '
-            '(${ex.osError}).';
-    }
-    dartBytesRead += source.length;
-    sourceFiles[uri.toString()] =
-      new SourceFile(relativize(cwd, uri, isWindows), source);
-    return new Future.immediate(source);
-  }
-
-  void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
-    if (!verbose && identical(kind, api.Diagnostic.VERBOSE_INFO)) return;
-    if (enableColors) {
-      print('${colors.green("info:")} $message');
-    } else {
-      print('info: $message');
-    }
-  }
-
-  bool isAborting = false;
-
-  final int FATAL = api.Diagnostic.CRASH.ordinal | api.Diagnostic.ERROR.ordinal;
-  final int INFO =
-      api.Diagnostic.INFO.ordinal | api.Diagnostic.VERBOSE_INFO.ordinal;
-
   void handler(Uri uri, int begin, int end, String message,
                api.Diagnostic kind) {
     if (identical(kind.name, 'source map')) {
@@ -239,45 +206,7 @@ void compile(List<String> argv) {
       writeString(sourceMapOut, message);
       return;
     }
-
-    if (isAborting) return;
-    isAborting = identical(kind, api.Diagnostic.CRASH);
-    bool fatal = (kind.ordinal & FATAL) != 0;
-    bool isInfo = (kind.ordinal & INFO) != 0;
-    if (isInfo && uri == null && !identical(kind, api.Diagnostic.INFO)) {
-      info(message, kind);
-      return;
-    }
-    var color;
-    if (!enableColors) {
-      color = (x) => x;
-    } else if (identical(kind, api.Diagnostic.ERROR)) {
-      color = colors.red;
-    } else if (identical(kind, api.Diagnostic.WARNING)) {
-      color = colors.magenta;
-    } else if (identical(kind, api.Diagnostic.LINT)) {
-      color = colors.magenta;
-    } else if (identical(kind, api.Diagnostic.CRASH)) {
-      color = colors.red;
-    } else if (identical(kind, api.Diagnostic.INFO)) {
-      color = colors.green;
-    } else {
-      throw 'Unknown kind: $kind (${kind.ordinal})';
-    }
-    if (uri == null) {
-      assert(fatal);
-      print(color(message));
-    } else if (fatal || showWarnings) {
-      SourceFile file = sourceFiles[uri.toString()];
-      if (file == null) {
-        throw '$uri: file is null';
-      }
-      print(file.getLocationMessage(color(message), begin, end, true, color));
-    }
-    if (fatal && throwOnError) {
-      isAborting = true;
-      throw new AbortLeg(message);
-    }
+    diagnosticHandler.diagnosticHandler(uri, begin, end, message, kind);
   }
 
   Uri uri = cwd.resolve(arguments[0]);
@@ -285,12 +214,15 @@ void compile(List<String> argv) {
     packageRoot = uri.resolve('./packages/');
   }
 
-  info('package root is $packageRoot');
+  diagnosticHandler.info('package root is $packageRoot');
 
   // TODO(ahe): We expect the future to be complete and call value
   // directly. In effect, we don't support truly asynchronous API.
   String code = deprecatedFutureValue(
-      api.compile(uri, libraryRoot, packageRoot, provider, handler, options));
+      api.compile(uri, libraryRoot, packageRoot,
+                  inputProvider.readStringFromUri,
+                  handler,
+                  options));
   if (code == null) {
     fail('Error: Compilation failed.');
   }
@@ -298,10 +230,13 @@ void compile(List<String> argv) {
       sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
   code = '$code\n//@ sourceMappingURL=${sourceMapFileName}';
   writeString(out, code);
-  writeString(new Uri.fromString('$out.deps'), getDepsOutput(sourceFiles));
+  writeString(new Uri.fromString('$out.deps'),
+              getDepsOutput(inputProvider.sourceFiles));
+  int dartBytesRead = inputProvider.dartBytesRead;
   int bytesWritten = code.length;
-  info('compiled $dartBytesRead bytes Dart -> $bytesWritten bytes '
-       '$outputLanguage in ${relativize(cwd, out, isWindows)}');
+  diagnosticHandler.info(
+      'compiled $dartBytesRead bytes Dart -> $bytesWritten bytes '
+      '$outputLanguage in ${relativize(cwd, out, isWindows)}');
   if (!explicitOut) {
     String input = uriPathToNative(arguments[0]);
     String output = relativize(cwd, out, isWindows);
@@ -322,15 +257,6 @@ void writeString(Uri uri, String text) {
   var file = new File(uriPathToNative(uri.path)).openSync(FileMode.WRITE);
   file.writeStringSync(text);
   file.closeSync();
-}
-
-String readAll(String filename) {
-  var file = (new File(filename)).openSync(FileMode.READ);
-  var length = file.lengthSync();
-  var buffer = new List<int>.fixedLength(length);
-  var bytes = file.readListSync(buffer, 0, length);
-  file.closeSync();
-  return new String.fromCharCodes(new Utf8Decoder(buffer).decodeRest());
 }
 
 void fail(String message) {

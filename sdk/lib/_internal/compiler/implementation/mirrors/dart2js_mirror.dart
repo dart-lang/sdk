@@ -23,6 +23,7 @@ import '../util/util.dart';
 import '../util/uri_extras.dart';
 import '../dart2js.dart';
 import '../util/characters.dart';
+import '../source_file_provider.dart';
 
 import 'mirrors.dart';
 import 'mirrors_util.dart';
