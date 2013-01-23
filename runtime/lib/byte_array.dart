@@ -17,7 +17,7 @@ patch class Int8List {
   }
 
   static _ExternalInt8Array _newTransferable(int length)
-      native "Int8Array_newTransferable";
+      native "Int8List_newTransferable";
 }
 
 
@@ -36,7 +36,7 @@ patch class Uint8List {
   }
 
   static _ExternalUint8Array _newTransferable(int length)
-      native "Uint8Array_newTransferable";
+      native "Uint8List_newTransferable";
 }
 
 
@@ -55,7 +55,7 @@ patch class Uint8ClampedList {
   }
 
   static _ExternalUint8ClampedArray _newTransferable(int length)
-      native "Uint8ClampedArray_newTransferable";
+      native "Uint8ClampedList_newTransferable";
 }
 
 
@@ -74,7 +74,7 @@ patch class Int16List {
   }
 
   static _ExternalInt16Array _newTransferable(int length)
-      native "Int16Array_newTransferable";
+      native "Int16List_newTransferable";
 }
 
 
@@ -93,7 +93,7 @@ patch class Uint16List {
   }
 
   static _ExternalUint16Array _newTransferable(int length)
-      native "Uint16Array_newTransferable";
+      native "Uint16List_newTransferable";
 }
 
 
@@ -112,7 +112,7 @@ patch class Int32List {
   }
 
   static _ExternalInt32Array _newTransferable(int length)
-      native "Int32Array_newTransferable";
+      native "Int32List_newTransferable";
 }
 
 
@@ -131,7 +131,7 @@ patch class Uint32List {
   }
 
   static _ExternalUint32Array _newTransferable(int length)
-      native "Uint32Array_newTransferable";
+      native "Uint32List_newTransferable";
 }
 
 
@@ -150,7 +150,7 @@ patch class Int64List {
   }
 
   static _ExternalInt64Array _newTransferable(int length)
-      native "Int64Array_newTransferable";
+      native "Int64List_newTransferable";
 }
 
 
@@ -169,7 +169,7 @@ patch class Uint64List {
   }
 
   static _ExternalUint64Array _newTransferable(int length)
-      native "Uint64Array_newTransferable";
+      native "Uint64List_newTransferable";
 }
 
 
@@ -188,7 +188,7 @@ patch class Float32List {
   }
 
   static _ExternalFloat32Array _newTransferable(int length)
-      native "Float32Array_newTransferable";
+      native "Float32List_newTransferable";
 }
 
 
@@ -207,7 +207,7 @@ patch class Float64List {
   }
 
   static _ExternalFloat64Array _newTransferable(int length)
-      native "Float64Array_newTransferable";
+      native "Float64List_newTransferable";
 }
 
 
