@@ -74,7 +74,7 @@ class IterableMixinWorkaround {
     } else {
       setToRemove = elementsToRemove.toSet();
     }
-    collection.removeMatching(setToRemve.contains);
+    collection.removeMatching(setToRemove.contains);
   }
 
   /**
