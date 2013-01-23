@@ -1008,6 +1008,10 @@ public class DartCompiler {
     CompilerOptions topCompilerOptions = processCommandLineOptions(topArgs);
     boolean result = false;
     try {
+      // configure UTF-8 output
+      System.setOut(new PrintStream(System.out, true, "UTF-8"));
+      System.setErr(new PrintStream(System.err, true, "UTF-8"));
+
       if (topCompilerOptions.showVersion()) {
         showVersion(topCompilerOptions);
         System.exit(0);
