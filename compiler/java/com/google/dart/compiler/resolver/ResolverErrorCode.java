@@ -130,6 +130,7 @@ public enum ResolverErrorCode implements ErrorCode {
   ILLEGAL_ACCESS_TO_PRIVATE(ErrorSeverity.WARNING, "'%s' is private and not defined in this library"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("ErrorSeverity.WARNING, \"%s\" refers to \"%s\" which is in a different library"),
+  ILLEGAL_FIELD_ACCESS_FROM_FACTORY("Illegal access of instance field %s from factory"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
   INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR("Initializers are allowed only in non-redirecting generative constructors"),
