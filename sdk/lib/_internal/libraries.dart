@@ -35,7 +35,9 @@ const Map<String, LibraryInfo> LIBRARIES = const {
 
   "collection": const LibraryInfo("collection/collection.dart"),
 
-  "collection-dev": const LibraryInfo("collection_dev/collection_dev.dart"),
+  "collection-dev": const LibraryInfo(
+      "collection_dev/collection_dev.dart",
+      documented: false),
 
   "core": const LibraryInfo(
       "core/core.dart",
