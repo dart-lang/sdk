@@ -2192,7 +2192,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private void analyzeFactory(DartMethodDefinition node, DartExpression name,
-        final ConstructorElement methodElement) {
+        final ConstructorElement constructorElement) {
       ASTVisitor<Void> visitor = new ASTVisitor<Void>() {
         @Override
         public Void visitParameterizedTypeNode(DartParameterizedTypeNode node) {
@@ -2213,12 +2213,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       };
       name.accept(visitor);
       // redirecting factory constructor
-      if (methodElement instanceof ConstructorElement) {
-        ConstructorElement constructorElement = (ConstructorElement) methodElement;
+      {
         ConstructorElement targetElement = constructorElement.getRedirectingFactoryConstructor();
         if (targetElement != null) {
           ClassElement targetEnclosingClass = (ClassElement) targetElement.getEnclosingElement();
-          Type sourceMethodType = methodElement.getType();
+          Type sourceMethodType = constructorElement.getType();
           Type targetMethodType = targetElement.getType();
           InterfaceType targetClassType = (InterfaceType) node.getRedirectedTypeName().getType();
           targetMethodType = targetMethodType.subst(targetClassType.getArguments(),

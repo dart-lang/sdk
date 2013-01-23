@@ -748,7 +748,7 @@ public class Types {
     }
     Set<Class<?>> interfaceSet = getAllImplementedInterfaces(type.getClass());
     if (!interfaceSet.isEmpty()) {
-      Class<?>[] interfaces = (Class[]) interfaceSet.toArray(new Class[interfaceSet.size()]);
+      Class<?>[] interfaces = interfaceSet.toArray(new Class[interfaceSet.size()]);
       return makeInferred(type, interfaces, quality);
     }
     return type;
