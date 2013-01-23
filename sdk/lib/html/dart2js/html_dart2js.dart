@@ -54,13 +54,12 @@ spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('AbstractWorker')
 class AbstractWorker extends EventTarget native "*AbstractWorker" {
 
-  @DocsEditable
   @DomName('AbstractWorker.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DocsEditable
@@ -69,22 +68,22 @@ class AbstractWorker extends EventTarget native "*AbstractWorker" {
     new AbstractWorkerEvents(this);
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('AbstractWorker.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('AbstractWorker.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('AbstractWorker.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('AbstractWorker.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 }
 
@@ -101,7 +100,6 @@ class AbstractWorkerEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLAnchorElement')
 class AnchorElement extends Element native "*HTMLAnchorElement" {
@@ -113,72 +111,72 @@ class AnchorElement extends Element native "*HTMLAnchorElement" {
     return e;
   }
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.download')
+  @DocsEditable
   String download;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.hash')
+  @DocsEditable
   String hash;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.host')
+  @DocsEditable
   String host;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.hostname')
+  @DocsEditable
   String hostname;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.href')
+  @DocsEditable
   String href;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.hreflang')
+  @DocsEditable
   String hreflang;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.origin')
+  @DocsEditable
   final String origin;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.pathname')
+  @DocsEditable
   String pathname;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.ping')
+  @DocsEditable
   String ping;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.port')
+  @DocsEditable
   String port;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.protocol')
+  @DocsEditable
   String protocol;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.rel')
+  @DocsEditable
   String rel;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.search')
+  @DocsEditable
   String search;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.target')
+  @DocsEditable
   String target;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.type')
+  @DocsEditable
   String type;
 
-  @DocsEditable
   @DomName('HTMLAnchorElement.toString')
+  @DocsEditable
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -186,23 +184,21 @@ class AnchorElement extends Element native "*HTMLAnchorElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebKitAnimationEvent')
 class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 
-  @DocsEditable
   @DomName('WebKitAnimationEvent.animationName')
+  @DocsEditable
   final String animationName;
 
-  @DocsEditable
   @DomName('WebKitAnimationEvent.elapsedTime')
+  @DocsEditable
   final num elapsedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -214,36 +210,36 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
-  @DocsEditable
   @DomName('DOMApplicationCache.cached')
+  @DocsEditable
   static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
 
-  @DocsEditable
   @DomName('DOMApplicationCache.checking')
+  @DocsEditable
   static const EventStreamProvider<Event> checkingEvent = const EventStreamProvider<Event>('checking');
 
-  @DocsEditable
   @DomName('DOMApplicationCache.downloading')
+  @DocsEditable
   static const EventStreamProvider<Event> downloadingEvent = const EventStreamProvider<Event>('downloading');
 
-  @DocsEditable
   @DomName('DOMApplicationCache.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
   @DomName('DOMApplicationCache.noupdate')
+  @DocsEditable
   static const EventStreamProvider<Event> noUpdateEvent = const EventStreamProvider<Event>('noupdate');
 
-  @DocsEditable
   @DomName('DOMApplicationCache.obsolete')
+  @DocsEditable
   static const EventStreamProvider<Event> obsoleteEvent = const EventStreamProvider<Event>('obsolete');
 
-  @DocsEditable
   @DomName('DOMApplicationCache.progress')
+  @DocsEditable
   static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
 
-  @DocsEditable
   @DomName('DOMApplicationCache.updateready')
+  @DocsEditable
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
   /// Checks if this type is supported on the current platform.
@@ -266,67 +262,67 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
   static const int UPDATEREADY = 4;
 
-  @DocsEditable
   @DomName('DOMApplicationCache.status')
+  @DocsEditable
   final int status;
 
-  @DocsEditable
   @DomName('DOMApplicationCache.abort')
+  @DocsEditable
   void abort() native;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('DOMApplicationCache.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('DOMApplicationCache.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('DOMApplicationCache.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('DOMApplicationCache.swapCache')
+  @DocsEditable
   void swapCache() native;
 
-  @DocsEditable
   @DomName('DOMApplicationCache.update')
+  @DocsEditable
   void update() native;
 
-  @DocsEditable
   @DomName('DOMApplicationCache.cached')
+  @DocsEditable
   Stream<Event> get onCached => cachedEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMApplicationCache.checking')
+  @DocsEditable
   Stream<Event> get onChecking => checkingEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMApplicationCache.downloading')
+  @DocsEditable
   Stream<Event> get onDownloading => downloadingEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMApplicationCache.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMApplicationCache.noupdate')
+  @DocsEditable
   Stream<Event> get onNoUpdate => noUpdateEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMApplicationCache.obsolete')
+  @DocsEditable
   Stream<Event> get onObsolete => obsoleteEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMApplicationCache.progress')
+  @DocsEditable
   Stream<Event> get onProgress => progressEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMApplicationCache.updateready')
+  @DocsEditable
   Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
 }
 
@@ -364,7 +360,6 @@ class ApplicationCacheEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLAreaElement')
 class AreaElement extends Element native "*HTMLAreaElement" {
@@ -372,56 +367,56 @@ class AreaElement extends Element native "*HTMLAreaElement" {
   @DocsEditable
   factory AreaElement() => document.$dom_createElement("area");
 
-  @DocsEditable
   @DomName('HTMLAreaElement.alt')
+  @DocsEditable
   String alt;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.coords')
+  @DocsEditable
   String coords;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.hash')
+  @DocsEditable
   final String hash;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.host')
+  @DocsEditable
   final String host;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.hostname')
+  @DocsEditable
   final String hostname;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.href')
+  @DocsEditable
   String href;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.pathname')
+  @DocsEditable
   final String pathname;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.ping')
+  @DocsEditable
   String ping;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.port')
+  @DocsEditable
   final String port;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.protocol')
+  @DocsEditable
   final String protocol;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.search')
+  @DocsEditable
   final String search;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.shape')
+  @DocsEditable
   String shape;
 
-  @DocsEditable
   @DomName('HTMLAreaElement.target')
+  @DocsEditable
   String target;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -429,7 +424,6 @@ class AreaElement extends Element native "*HTMLAreaElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('ArrayBuffer')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -444,8 +438,8 @@ class ArrayBuffer native "*ArrayBuffer" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.ArrayBuffer != "undefined"');
 
-  @DocsEditable
   @DomName('ArrayBuffer.byteLength')
+  @DocsEditable
   final int byteLength;
 
   @DomName('ArrayBuffer.slice')
@@ -482,7 +476,6 @@ class ArrayBuffer native "*ArrayBuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ArrayBufferView')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -491,22 +484,21 @@ class ArrayBuffer native "*ArrayBuffer" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBufferView native "*ArrayBufferView" {
 
-  @DocsEditable
   @DomName('ArrayBufferView.buffer')
+  @DocsEditable
   final ArrayBuffer buffer;
 
-  @DocsEditable
   @DomName('ArrayBufferView.byteLength')
+  @DocsEditable
   final int byteLength;
 
-  @DocsEditable
   @DomName('ArrayBufferView.byteOffset')
+  @DocsEditable
   final int byteOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -516,7 +508,6 @@ class Attr extends Node native "*Attr" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -542,7 +533,6 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLBRElement')
 class BRElement extends Element native "*HTMLBRElement" {
@@ -555,19 +545,17 @@ class BRElement extends Element native "*HTMLBRElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('BarInfo')
 class BarInfo native "*BarInfo" {
 
-  @DocsEditable
   @DomName('BarInfo.visible')
+  @DocsEditable
   final bool visible;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -577,12 +565,12 @@ class BaseElement extends Element native "*HTMLBaseElement" {
   @DocsEditable
   factory BaseElement() => document.$dom_createElement("base");
 
-  @DocsEditable
   @DomName('HTMLBaseElement.href')
+  @DocsEditable
   String href;
 
-  @DocsEditable
   @DomName('HTMLBaseElement.target')
+  @DocsEditable
   String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -590,25 +578,24 @@ class BaseElement extends Element native "*HTMLBaseElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('BatteryManager')
 class BatteryManager extends EventTarget native "*BatteryManager" {
 
-  @DocsEditable
   @DomName('BatteryManager.chargingchange')
+  @DocsEditable
   static const EventStreamProvider<Event> chargingChangeEvent = const EventStreamProvider<Event>('chargingchange');
 
-  @DocsEditable
   @DomName('BatteryManager.chargingtimechange')
+  @DocsEditable
   static const EventStreamProvider<Event> chargingTimeChangeEvent = const EventStreamProvider<Event>('chargingtimechange');
 
-  @DocsEditable
   @DomName('BatteryManager.dischargingtimechange')
+  @DocsEditable
   static const EventStreamProvider<Event> dischargingTimeChangeEvent = const EventStreamProvider<Event>('dischargingtimechange');
 
-  @DocsEditable
   @DomName('BatteryManager.levelchange')
+  @DocsEditable
   static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
 
   @DocsEditable
@@ -616,51 +603,51 @@ class BatteryManager extends EventTarget native "*BatteryManager" {
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
 
-  @DocsEditable
   @DomName('BatteryManager.charging')
+  @DocsEditable
   final bool charging;
 
-  @DocsEditable
   @DomName('BatteryManager.chargingTime')
+  @DocsEditable
   final num chargingTime;
 
-  @DocsEditable
   @DomName('BatteryManager.dischargingTime')
+  @DocsEditable
   final num dischargingTime;
 
-  @DocsEditable
   @DomName('BatteryManager.level')
+  @DocsEditable
   final num level;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('BatteryManager.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('BatteryManager.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('BatteryManager.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('BatteryManager.chargingchange')
+  @DocsEditable
   Stream<Event> get onChargingChange => chargingChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('BatteryManager.chargingtimechange')
+  @DocsEditable
   Stream<Event> get onChargingTimeChange => chargingTimeChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('BatteryManager.dischargingtimechange')
+  @DocsEditable
   Stream<Event> get onDischargingTimeChange => dischargingTimeChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('BatteryManager.levelchange')
+  @DocsEditable
   Stream<Event> get onLevelChange => levelChangeEvent.forTarget(this);
 }
 
@@ -686,13 +673,12 @@ class BatteryManagerEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('BeforeLoadEvent')
 class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 
-  @DocsEditable
   @DomName('BeforeLoadEvent.url')
+  @DocsEditable
   final String url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -700,7 +686,6 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('Blob')
 class Blob native "*Blob" {
 
@@ -715,16 +700,16 @@ class Blob native "*Blob" {
     return Blob._create(blobParts, type, endings);
   }
 
-  @DocsEditable
   @DomName('Blob.size')
+  @DocsEditable
   final int size;
 
-  @DocsEditable
   @DomName('Blob.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('Blob.slice')
+  @DocsEditable
   Blob slice([int start, int end, String contentType]) native;
 
   static Blob _create([List blobParts = null, String type, String endings]) {
@@ -752,61 +737,60 @@ class Blob native "*Blob" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLBodyElement')
 class BodyElement extends Element native "*HTMLBodyElement" {
 
-  @DocsEditable
   @DomName('HTMLBodyElement.beforeunload')
+  @DocsEditable
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.blur')
+  @DocsEditable
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.focus')
+  @DocsEditable
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.hashchange')
+  @DocsEditable
   static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.load')
+  @DocsEditable
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.message')
+  @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.offline')
+  @DocsEditable
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.online')
+  @DocsEditable
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.popstate')
+  @DocsEditable
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.resize')
+  @DocsEditable
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.storage')
+  @DocsEditable
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
-  @DocsEditable
   @DomName('HTMLBodyElement.unload')
+  @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
   @DocsEditable
@@ -817,56 +801,56 @@ class BodyElement extends Element native "*HTMLBodyElement" {
   BodyElementEvents get on =>
     new BodyElementEvents(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.beforeunload')
+  @DocsEditable
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.blur')
+  @DocsEditable
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.focus')
+  @DocsEditable
   Stream<Event> get onFocus => focusEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.hashchange')
+  @DocsEditable
   Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.load')
+  @DocsEditable
   Stream<Event> get onLoad => loadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.message')
+  @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.offline')
+  @DocsEditable
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.online')
+  @DocsEditable
   Stream<Event> get onOnline => onlineEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.popstate')
+  @DocsEditable
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.resize')
+  @DocsEditable
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.storage')
+  @DocsEditable
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLBodyElement.unload')
+  @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
 
@@ -919,7 +903,6 @@ class BodyElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLButtonElement')
 class ButtonElement extends Element native "*HTMLButtonElement" {
@@ -927,80 +910,79 @@ class ButtonElement extends Element native "*HTMLButtonElement" {
   @DocsEditable
   factory ButtonElement() => document.$dom_createElement("button");
 
-  @DocsEditable
   @DomName('HTMLButtonElement.autofocus')
+  @DocsEditable
   bool autofocus;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.formAction')
+  @DocsEditable
   String formAction;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.formEnctype')
+  @DocsEditable
   String formEnctype;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.formMethod')
+  @DocsEditable
   String formMethod;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.formNoValidate')
+  @DocsEditable
   bool formNoValidate;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.formTarget')
+  @DocsEditable
   String formTarget;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.labels')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> labels;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.type')
+  @DocsEditable
   String type;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.validationMessage')
+  @DocsEditable
   final String validationMessage;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.validity')
+  @DocsEditable
   final ValidityState validity;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.value')
+  @DocsEditable
   String value;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.willValidate')
+  @DocsEditable
   final bool willValidate;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.checkValidity')
+  @DocsEditable
   bool checkValidity() native;
 
-  @DocsEditable
   @DomName('HTMLButtonElement.setCustomValidity')
+  @DocsEditable
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -1012,7 +994,6 @@ class CDataSection extends Text native "*CDATASection" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('HTMLCanvasElement')
 class CanvasElement extends Element native "*HTMLCanvasElement" {
 
@@ -1024,17 +1005,17 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
     return e;
   }
 
-  @DocsEditable
   @DomName('HTMLCanvasElement.height')
+  @DocsEditable
   int height;
 
-  @DocsEditable
   @DomName('HTMLCanvasElement.width')
+  @DocsEditable
   int width;
 
   @JSName('toDataURL')
-  @DocsEditable
   @DomName('HTMLCanvasElement.toDataURL')
+  @DocsEditable
   String toDataUrl(String type, [num quality]) native;
 
 
@@ -1046,19 +1027,17 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CanvasGradient')
 class CanvasGradient native "*CanvasGradient" {
 
-  @DocsEditable
   @DomName('CanvasGradient.addColorStop')
+  @DocsEditable
   void addColorStop(num offset, String color) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -1070,13 +1049,12 @@ class CanvasPattern native "*CanvasPattern" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CanvasRenderingContext')
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  @DocsEditable
   @DomName('CanvasRenderingContext.canvas')
+  @DocsEditable
   final CanvasElement canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1084,120 +1062,119 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('CanvasRenderingContext2D')
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.fillStyle')
+  @DocsEditable
   @Creates('String|CanvasGradient|CanvasPattern')
   @Returns('String|CanvasGradient|CanvasPattern')
   dynamic fillStyle;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.font')
+  @DocsEditable
   String font;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.globalAlpha')
+  @DocsEditable
   num globalAlpha;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.globalCompositeOperation')
+  @DocsEditable
   String globalCompositeOperation;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineCap')
+  @DocsEditable
   String lineCap;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineDashOffset')
+  @DocsEditable
   num lineDashOffset;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineJoin')
+  @DocsEditable
   String lineJoin;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineWidth')
+  @DocsEditable
   num lineWidth;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.miterLimit')
+  @DocsEditable
   num miterLimit;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowBlur')
+  @DocsEditable
   num shadowBlur;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowColor')
+  @DocsEditable
   String shadowColor;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowOffsetX')
+  @DocsEditable
   num shadowOffsetX;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.shadowOffsetY')
+  @DocsEditable
   num shadowOffsetY;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.strokeStyle')
+  @DocsEditable
   @Creates('String|CanvasGradient|CanvasPattern')
   @Returns('String|CanvasGradient|CanvasPattern')
   dynamic strokeStyle;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.textAlign')
+  @DocsEditable
   String textAlign;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.textBaseline')
+  @DocsEditable
   String textBaseline;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
+  @DocsEditable
   final num webkitBackingStorePixelRatio;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
+  @DocsEditable
   bool webkitImageSmoothingEnabled;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitLineDash')
+  @DocsEditable
   List webkitLineDash;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
+  @DocsEditable
   num webkitLineDashOffset;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.arc')
+  @DocsEditable
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.arcTo')
+  @DocsEditable
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.beginPath')
+  @DocsEditable
   void beginPath() native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.bezierCurveTo')
+  @DocsEditable
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.clearRect')
+  @DocsEditable
   void clearRect(num x, num y, num width, num height) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.clip')
+  @DocsEditable
   void clip() native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.closePath')
+  @DocsEditable
   void closePath() native;
 
   ImageData createImageData(imagedata_OR_sw, [num sh]) {
@@ -1212,71 +1189,71 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createImageData')
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.createImageData')
+  @DocsEditable
   @Creates('ImageData|=Object')
   _createImageData_1(imagedata) native;
   @JSName('createImageData')
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.createImageData')
+  @DocsEditable
   @Creates('ImageData|=Object')
   _createImageData_2(num sw, sh) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.createLinearGradient')
+  @DocsEditable
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.createPattern')
+  @DocsEditable
   CanvasPattern createPattern(canvas_OR_image, String repetitionType) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.createRadialGradient')
+  @DocsEditable
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.drawImage')
+  @DocsEditable
   void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.fill')
+  @DocsEditable
   void fill() native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.fillRect')
+  @DocsEditable
   void fillRect(num x, num y, num width, num height) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.fillText')
+  @DocsEditable
   void fillText(String text, num x, num y, [num maxWidth]) native;
 
   ImageData getImageData(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
   }
   @JSName('getImageData')
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.getImageData')
+  @DocsEditable
   @Creates('ImageData|=Object')
   _getImageData_1(sx, sy, sw, sh) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.getLineDash')
+  @DocsEditable
   List<num> getLineDash() native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.isPointInPath')
+  @DocsEditable
   bool isPointInPath(num x, num y) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.lineTo')
+  @DocsEditable
   void lineTo(num x, num y) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.measureText')
+  @DocsEditable
   TextMetrics measureText(String text) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.moveTo')
+  @DocsEditable
   void moveTo(num x, num y) native;
 
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
@@ -1294,72 +1271,72 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('putImageData')
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.putImageData')
+  @DocsEditable
   void _putImageData_1(imagedata, dx, dy) native;
   @JSName('putImageData')
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.putImageData')
+  @DocsEditable
   void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.quadraticCurveTo')
+  @DocsEditable
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.rect')
+  @DocsEditable
   void rect(num x, num y, num width, num height) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.restore')
+  @DocsEditable
   void restore() native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.rotate')
+  @DocsEditable
   void rotate(num angle) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.save')
+  @DocsEditable
   void save() native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.scale')
+  @DocsEditable
   void scale(num sx, num sy) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.setLineDash')
+  @DocsEditable
   void setLineDash(List<num> dash) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.setTransform')
+  @DocsEditable
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.stroke')
+  @DocsEditable
   void stroke() native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.strokeRect')
+  @DocsEditable
   void strokeRect(num x, num y, num width, num height, [num lineWidth]) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.strokeText')
+  @DocsEditable
   void strokeText(String text, num x, num y, [num maxWidth]) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.transform')
+  @DocsEditable
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.translate')
+  @DocsEditable
   void translate(num tx, num ty) native;
 
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
   }
   @JSName('webkitGetImageDataHD')
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
+  @DocsEditable
   @Creates('ImageData|=Object')
   _webkitGetImageDataHD_1(sx, sy, sw, sh) native;
 
@@ -1378,12 +1355,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('webkitPutImageDataHD')
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
+  @DocsEditable
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native;
   @JSName('webkitPutImageDataHD')
-  @DocsEditable
   @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
+  @DocsEditable
   void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
 
@@ -1428,41 +1405,40 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CharacterData')
 class CharacterData extends Node native "*CharacterData" {
 
-  @DocsEditable
   @DomName('CharacterData.data')
+  @DocsEditable
   String data;
 
-  @DocsEditable
   @DomName('CharacterData.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('CharacterData.appendData')
+  @DocsEditable
   void appendData(String data) native;
 
-  @DocsEditable
   @DomName('CharacterData.deleteData')
+  @DocsEditable
   void deleteData(int offset, int length) native;
 
-  @DocsEditable
   @DomName('CharacterData.insertData')
+  @DocsEditable
   void insertData(int offset, String data) native;
 
-  @DocsEditable
   @DomName('CharacterData.remove')
+  @DocsEditable
   void remove() native;
 
-  @DocsEditable
   @DomName('CharacterData.replaceData')
+  @DocsEditable
   void replaceData(int offset, int length, String data) native;
 
-  @DocsEditable
   @DomName('CharacterData.substringData')
+  @DocsEditable
   String substringData(int offset, int length) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1470,33 +1446,32 @@ class CharacterData extends Node native "*CharacterData" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ClientRect')
 class ClientRect native "*ClientRect" {
 
-  @DocsEditable
   @DomName('ClientRect.bottom')
+  @DocsEditable
   final num bottom;
 
-  @DocsEditable
   @DomName('ClientRect.height')
+  @DocsEditable
   final num height;
 
-  @DocsEditable
   @DomName('ClientRect.left')
+  @DocsEditable
   final num left;
 
-  @DocsEditable
   @DomName('ClientRect.right')
+  @DocsEditable
   final num right;
 
-  @DocsEditable
   @DomName('ClientRect.top')
+  @DocsEditable
   final num top;
 
-  @DocsEditable
   @DomName('ClientRect.width')
+  @DocsEditable
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1504,47 +1479,46 @@ class ClientRect native "*ClientRect" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Clipboard')
 class Clipboard native "*Clipboard" {
 
-  @DocsEditable
   @DomName('Clipboard.dropEffect')
+  @DocsEditable
   String dropEffect;
 
-  @DocsEditable
   @DomName('Clipboard.effectAllowed')
+  @DocsEditable
   String effectAllowed;
 
-  @DocsEditable
   @DomName('Clipboard.files')
+  @DocsEditable
   @Returns('FileList')
   @Creates('FileList')
   final List<File> files;
 
-  @DocsEditable
   @DomName('Clipboard.items')
+  @DocsEditable
   final DataTransferItemList items;
 
-  @DocsEditable
   @DomName('Clipboard.types')
+  @DocsEditable
   final List types;
 
-  @DocsEditable
   @DomName('Clipboard.clearData')
+  @DocsEditable
   void clearData([String type]) native;
 
-  @DocsEditable
   @DomName('Clipboard.getData')
+  @DocsEditable
   String getData(String type) native;
 
-  @DocsEditable
   @DomName('Clipboard.setData')
+  @DocsEditable
   bool setData(String type, String data) native;
 
-  @DocsEditable
   @DomName('Clipboard.setDragImage')
+  @DocsEditable
   void setDragImage(ImageElement image, int x, int y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1552,27 +1526,25 @@ class Clipboard native "*Clipboard" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CloseEvent')
 class CloseEvent extends Event native "*CloseEvent" {
 
-  @DocsEditable
   @DomName('CloseEvent.code')
+  @DocsEditable
   final int code;
 
-  @DocsEditable
   @DomName('CloseEvent.reason')
+  @DocsEditable
   final String reason;
 
-  @DocsEditable
   @DomName('CloseEvent.wasClean')
+  @DocsEditable
   final bool wasClean;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -1584,17 +1556,16 @@ class Comment extends CharacterData native "*Comment" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CompositionEvent')
 class CompositionEvent extends UIEvent native "*CompositionEvent" {
 
-  @DocsEditable
   @DomName('CompositionEvent.data')
+  @DocsEditable
   final String data;
 
-  @DocsEditable
   @DomName('CompositionEvent.initCompositionEvent')
+  @DocsEditable
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1602,7 +1573,6 @@ class CompositionEvent extends UIEvent native "*CompositionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('Console')
 class Console {
 
@@ -1694,15 +1664,14 @@ class Console {
   void warn(Object arg) => _isConsoleDefined ?
       JS('void', 'console.warn(#)', arg) : null;
 
-  @DocsEditable
   @DomName('Console.clear')
+  @DocsEditable
   void clear(Object arg) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -1717,16 +1686,16 @@ class ContentElement extends Element native "*HTMLContentElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('content');
 
-  @DocsEditable
   @DomName('HTMLContentElement.resetStyleInheritance')
+  @DocsEditable
   bool resetStyleInheritance;
 
-  @DocsEditable
   @DomName('HTMLContentElement.select')
+  @DocsEditable
   String select;
 
-  @DocsEditable
   @DomName('HTMLContentElement.getDistributedNodes')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getDistributedNodes() native;
@@ -1736,37 +1705,36 @@ class ContentElement extends Element native "*HTMLContentElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Coordinates')
 class Coordinates native "*Coordinates" {
 
-  @DocsEditable
   @DomName('Coordinates.accuracy')
+  @DocsEditable
   final num accuracy;
 
-  @DocsEditable
   @DomName('Coordinates.altitude')
+  @DocsEditable
   final num altitude;
 
-  @DocsEditable
   @DomName('Coordinates.altitudeAccuracy')
+  @DocsEditable
   final num altitudeAccuracy;
 
-  @DocsEditable
   @DomName('Coordinates.heading')
+  @DocsEditable
   final num heading;
 
-  @DocsEditable
   @DomName('Coordinates.latitude')
+  @DocsEditable
   final num latitude;
 
-  @DocsEditable
   @DomName('Coordinates.longitude')
+  @DocsEditable
   final num longitude;
 
-  @DocsEditable
   @DomName('Coordinates.speed')
+  @DocsEditable
   final num speed;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1774,21 +1742,20 @@ class Coordinates native "*Coordinates" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Counter')
 class Counter native "*Counter" {
 
-  @DocsEditable
   @DomName('Counter.identifier')
+  @DocsEditable
   final String identifier;
 
-  @DocsEditable
   @DomName('Counter.listStyle')
+  @DocsEditable
   final String listStyle;
 
-  @DocsEditable
   @DomName('Counter.separator')
+  @DocsEditable
   final String separator;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1796,13 +1763,12 @@ class Counter native "*Counter" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Crypto')
 class Crypto native "*Crypto" {
 
-  @DocsEditable
   @DomName('Crypto.getRandomValues')
+  @DocsEditable
   ArrayBufferView getRandomValues(ArrayBufferView array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1810,13 +1776,12 @@ class Crypto native "*Crypto" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CSSCharsetRule')
 class CssCharsetRule extends CssRule native "*CSSCharsetRule" {
 
-  @DocsEditable
   @DomName('CSSCharsetRule.encoding')
+  @DocsEditable
   String encoding;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1824,13 +1789,12 @@ class CssCharsetRule extends CssRule native "*CSSCharsetRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CSSFontFaceRule')
 class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
 
-  @DocsEditable
   @DomName('CSSFontFaceRule.style')
+  @DocsEditable
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1838,21 +1802,20 @@ class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CSSImportRule')
 class CssImportRule extends CssRule native "*CSSImportRule" {
 
-  @DocsEditable
   @DomName('CSSImportRule.href')
+  @DocsEditable
   final String href;
 
-  @DocsEditable
   @DomName('CSSImportRule.media')
+  @DocsEditable
   final MediaList media;
 
-  @DocsEditable
   @DomName('CSSImportRule.styleSheet')
+  @DocsEditable
   final CssStyleSheet styleSheet;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1860,17 +1823,16 @@ class CssImportRule extends CssRule native "*CSSImportRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebKitCSSKeyframeRule')
 class CssKeyframeRule extends CssRule native "*WebKitCSSKeyframeRule" {
 
-  @DocsEditable
   @DomName('WebKitCSSKeyframeRule.keyText')
+  @DocsEditable
   String keyText;
 
-  @DocsEditable
   @DomName('WebKitCSSKeyframeRule.style')
+  @DocsEditable
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1878,37 +1840,35 @@ class CssKeyframeRule extends CssRule native "*WebKitCSSKeyframeRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebKitCSSKeyframesRule')
 class CssKeyframesRule extends CssRule native "*WebKitCSSKeyframesRule" {
 
-  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.cssRules')
+  @DocsEditable
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
-  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.deleteRule')
+  @DocsEditable
   void deleteRule(String key) native;
 
-  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.findRule')
+  @DocsEditable
   CssKeyframeRule findRule(String key) native;
 
-  @DocsEditable
   @DomName('WebKitCSSKeyframesRule.insertRule')
+  @DocsEditable
   void insertRule(String rule) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -1929,132 +1889,132 @@ class CssMatrix native "*WebKitCSSMatrix" {
     return JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
   }
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.a')
+  @DocsEditable
   num a;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.b')
+  @DocsEditable
   num b;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.c')
+  @DocsEditable
   num c;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.d')
+  @DocsEditable
   num d;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.e')
+  @DocsEditable
   num e;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.f')
+  @DocsEditable
   num f;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m11')
+  @DocsEditable
   num m11;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m12')
+  @DocsEditable
   num m12;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m13')
+  @DocsEditable
   num m13;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m14')
+  @DocsEditable
   num m14;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m21')
+  @DocsEditable
   num m21;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m22')
+  @DocsEditable
   num m22;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m23')
+  @DocsEditable
   num m23;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m24')
+  @DocsEditable
   num m24;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m31')
+  @DocsEditable
   num m31;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m32')
+  @DocsEditable
   num m32;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m33')
+  @DocsEditable
   num m33;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m34')
+  @DocsEditable
   num m34;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m41')
+  @DocsEditable
   num m41;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m42')
+  @DocsEditable
   num m42;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m43')
+  @DocsEditable
   num m43;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.m44')
+  @DocsEditable
   num m44;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.inverse')
+  @DocsEditable
   CssMatrix inverse() native;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.multiply')
+  @DocsEditable
   CssMatrix multiply(CssMatrix secondMatrix) native;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.rotate')
+  @DocsEditable
   CssMatrix rotate(num rotX, num rotY, num rotZ) native;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.rotateAxisAngle')
+  @DocsEditable
   CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.scale')
+  @DocsEditable
   CssMatrix scale(num scaleX, num scaleY, num scaleZ) native;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.setMatrixValue')
+  @DocsEditable
   void setMatrixValue(String string) native;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.skewX')
+  @DocsEditable
   CssMatrix skewX(num angle) native;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.skewY')
+  @DocsEditable
   CssMatrix skewY(num angle) native;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.toString')
+  @DocsEditable
   String toString() native;
 
-  @DocsEditable
   @DomName('WebKitCSSMatrix.translate')
+  @DocsEditable
   CssMatrix translate(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2062,27 +2022,26 @@ class CssMatrix native "*WebKitCSSMatrix" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CSSMediaRule')
 class CssMediaRule extends CssRule native "*CSSMediaRule" {
 
-  @DocsEditable
   @DomName('CSSMediaRule.cssRules')
+  @DocsEditable
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
-  @DocsEditable
   @DomName('CSSMediaRule.media')
+  @DocsEditable
   final MediaList media;
 
-  @DocsEditable
   @DomName('CSSMediaRule.deleteRule')
+  @DocsEditable
   void deleteRule(int index) native;
 
-  @DocsEditable
   @DomName('CSSMediaRule.insertRule')
+  @DocsEditable
   int insertRule(String rule, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2090,23 +2049,21 @@ class CssMediaRule extends CssRule native "*CSSMediaRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CSSPageRule')
 class CssPageRule extends CssRule native "*CSSPageRule" {
 
-  @DocsEditable
   @DomName('CSSPageRule.selectorText')
+  @DocsEditable
   String selectorText;
 
-  @DocsEditable
   @DomName('CSSPageRule.style')
+  @DocsEditable
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -2171,43 +2128,42 @@ class CssPrimitiveValue extends CssValue native "*CSSPrimitiveValue" {
 
   static const int CSS_VW = 26;
 
-  @DocsEditable
   @DomName('CSSPrimitiveValue.primitiveType')
+  @DocsEditable
   final int primitiveType;
 
-  @DocsEditable
   @DomName('CSSPrimitiveValue.getCounterValue')
+  @DocsEditable
   Counter getCounterValue() native;
 
-  @DocsEditable
   @DomName('CSSPrimitiveValue.getFloatValue')
+  @DocsEditable
   num getFloatValue(int unitType) native;
 
   @JSName('getRGBColorValue')
-  @DocsEditable
   @DomName('CSSPrimitiveValue.getRGBColorValue')
+  @DocsEditable
   RgbColor getRgbColorValue() native;
 
-  @DocsEditable
   @DomName('CSSPrimitiveValue.getRectValue')
+  @DocsEditable
   Rect getRectValue() native;
 
-  @DocsEditable
   @DomName('CSSPrimitiveValue.getStringValue')
+  @DocsEditable
   String getStringValue() native;
 
-  @DocsEditable
   @DomName('CSSPrimitiveValue.setFloatValue')
+  @DocsEditable
   void setFloatValue(int unitType, num floatValue) native;
 
-  @DocsEditable
   @DomName('CSSPrimitiveValue.setStringValue')
+  @DocsEditable
   void setStringValue(int stringType, String stringValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -2232,20 +2188,20 @@ class CssRule native "*CSSRule" {
 
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
-  @DocsEditable
   @DomName('CSSRule.cssText')
+  @DocsEditable
   String cssText;
 
-  @DocsEditable
   @DomName('CSSRule.parentRule')
+  @DocsEditable
   final CssRule parentRule;
 
-  @DocsEditable
   @DomName('CSSRule.parentStyleSheet')
+  @DocsEditable
   final CssStyleSheet parentStyleSheet;
 
-  @DocsEditable
   @DomName('CSSRule.type')
+  @DocsEditable
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2270,7 +2226,6 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
-@DocsEditable
 @DomName('CSSStyleDeclaration')
 class CssStyleDeclaration native "*CSSStyleDeclaration" {
   factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
@@ -2278,46 +2233,46 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
       _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration_css(css);
 
 
-  @DocsEditable
   @DomName('CSSStyleDeclaration.cssText')
+  @DocsEditable
   String cssText;
 
-  @DocsEditable
   @DomName('CSSStyleDeclaration.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('CSSStyleDeclaration.parentRule')
+  @DocsEditable
   final CssRule parentRule;
 
   @JSName('getPropertyCSSValue')
-  @DocsEditable
   @DomName('CSSStyleDeclaration.getPropertyCSSValue')
+  @DocsEditable
   CssValue getPropertyCssValue(String propertyName) native;
 
-  @DocsEditable
   @DomName('CSSStyleDeclaration.getPropertyPriority')
+  @DocsEditable
   String getPropertyPriority(String propertyName) native;
 
-  @DocsEditable
   @DomName('CSSStyleDeclaration.getPropertyShorthand')
+  @DocsEditable
   String getPropertyShorthand(String propertyName) native;
 
   @JSName('getPropertyValue')
-  @DocsEditable
   @DomName('CSSStyleDeclaration.getPropertyValue')
+  @DocsEditable
   String _getPropertyValue(String propertyName) native;
 
-  @DocsEditable
   @DomName('CSSStyleDeclaration.isPropertyImplicit')
+  @DocsEditable
   bool isPropertyImplicit(String propertyName) native;
 
-  @DocsEditable
   @DomName('CSSStyleDeclaration.item')
+  @DocsEditable
   String item(int index) native;
 
-  @DocsEditable
   @DomName('CSSStyleDeclaration.removeProperty')
+  @DocsEditable
   String removeProperty(String propertyName) native;
 
 
@@ -5490,17 +5445,16 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CSSStyleRule')
 class CssStyleRule extends CssRule native "*CSSStyleRule" {
 
-  @DocsEditable
   @DomName('CSSStyleRule.selectorText')
+  @DocsEditable
   String selectorText;
 
-  @DocsEditable
   @DomName('CSSStyleRule.style')
+  @DocsEditable
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5508,47 +5462,45 @@ class CssStyleRule extends CssRule native "*CSSStyleRule" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CSSStyleSheet')
 class CssStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
-  @DocsEditable
   @DomName('CSSStyleSheet.cssRules')
+  @DocsEditable
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
-  @DocsEditable
   @DomName('CSSStyleSheet.ownerRule')
+  @DocsEditable
   final CssRule ownerRule;
 
-  @DocsEditable
   @DomName('CSSStyleSheet.rules')
+  @DocsEditable
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   final List<CssRule> rules;
 
-  @DocsEditable
   @DomName('CSSStyleSheet.addRule')
+  @DocsEditable
   int addRule(String selector, String style, [int index]) native;
 
-  @DocsEditable
   @DomName('CSSStyleSheet.deleteRule')
+  @DocsEditable
   void deleteRule(int index) native;
 
-  @DocsEditable
   @DomName('CSSStyleSheet.insertRule')
+  @DocsEditable
   int insertRule(String rule, int index) native;
 
-  @DocsEditable
   @DomName('CSSStyleSheet.removeRule')
+  @DocsEditable
   void removeRule(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -5597,14 +5549,13 @@ class CssTransformValue extends _CssValueList native "*WebKitCSSTransformValue" 
 
   static const int CSS_TRANSLATEZ = 12;
 
-  @DocsEditable
   @DomName('WebKitCSSTransformValue.operationType')
+  @DocsEditable
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -5614,7 +5565,6 @@ class CssUnknownRule extends CssRule native "*CSSUnknownRule" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -5629,12 +5579,12 @@ class CssValue native "*CSSValue" {
 
   static const int CSS_VALUE_LIST = 2;
 
-  @DocsEditable
   @DomName('CSSValue.cssText')
+  @DocsEditable
   String cssText;
 
-  @DocsEditable
   @DomName('CSSValue.cssValueType')
+  @DocsEditable
   final int cssValueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5644,27 +5594,25 @@ class CssValue native "*CSSValue" {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('CustomEvent')
 class CustomEvent extends Event native "*CustomEvent" {
   factory CustomEvent(String type, [bool canBubble = true, bool cancelable = true,
       Object detail]) => _CustomEventFactoryProvider.createCustomEvent(
       type, canBubble, cancelable, detail);
 
-  @DocsEditable
   @DomName('CustomEvent.detail')
+  @DocsEditable
   final Object detail;
 
   @JSName('initCustomEvent')
-  @DocsEditable
   @DomName('CustomEvent.initCustomEvent')
+  @DocsEditable
   void $dom_initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -5677,7 +5625,6 @@ class DListElement extends Element native "*HTMLDListElement" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -5694,8 +5641,8 @@ class DataListElement extends Element native "*HTMLDataListElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('datalist');
 
-  @DocsEditable
   @DomName('HTMLDataListElement.options')
+  @DocsEditable
   final HtmlCollection options;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5703,29 +5650,28 @@ class DataListElement extends Element native "*HTMLDataListElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DataTransferItem')
 class DataTransferItem native "*DataTransferItem" {
 
-  @DocsEditable
   @DomName('DataTransferItem.kind')
+  @DocsEditable
   final String kind;
 
-  @DocsEditable
   @DomName('DataTransferItem.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('DataTransferItem.getAsFile')
+  @DocsEditable
   Blob getAsFile() native;
 
-  @DocsEditable
   @DomName('DataTransferItem.getAsString')
+  @DocsEditable
   void getAsString([StringCallback callback]) native;
 
-  @DocsEditable
   @DomName('DataTransferItem.webkitGetAsEntry')
+  @DocsEditable
   Entry webkitGetAsEntry() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5733,31 +5679,29 @@ class DataTransferItem native "*DataTransferItem" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DataTransferItemList')
 class DataTransferItemList native "*DataTransferItemList" {
 
-  @DocsEditable
   @DomName('DataTransferItemList.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('DataTransferItemList.add')
+  @DocsEditable
   void add(data_OR_file, [String type]) native;
 
-  @DocsEditable
   @DomName('DataTransferItemList.clear')
+  @DocsEditable
   void clear() native;
 
-  @DocsEditable
   @DomName('DataTransferItemList.item')
+  @DocsEditable
   DataTransferItem item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -5784,68 +5728,68 @@ class DataView extends ArrayBufferView native "*DataView" {
     return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
   }
 
-  @DocsEditable
   @DomName('DataView.getFloat32')
+  @DocsEditable
   num getFloat32(int byteOffset, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.getFloat64')
+  @DocsEditable
   num getFloat64(int byteOffset, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.getInt16')
+  @DocsEditable
   int getInt16(int byteOffset, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.getInt32')
+  @DocsEditable
   int getInt32(int byteOffset, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.getInt8')
+  @DocsEditable
   int getInt8(int byteOffset) native;
 
-  @DocsEditable
   @DomName('DataView.getUint16')
+  @DocsEditable
   int getUint16(int byteOffset, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.getUint32')
+  @DocsEditable
   int getUint32(int byteOffset, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.getUint8')
+  @DocsEditable
   int getUint8(int byteOffset) native;
 
-  @DocsEditable
   @DomName('DataView.setFloat32')
+  @DocsEditable
   void setFloat32(int byteOffset, num value, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.setFloat64')
+  @DocsEditable
   void setFloat64(int byteOffset, num value, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.setInt16')
+  @DocsEditable
   void setInt16(int byteOffset, int value, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.setInt32')
+  @DocsEditable
   void setInt32(int byteOffset, int value, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.setInt8')
+  @DocsEditable
   void setInt8(int byteOffset, int value) native;
 
-  @DocsEditable
   @DomName('DataView.setUint16')
+  @DocsEditable
   void setUint16(int byteOffset, int value, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.setUint32')
+  @DocsEditable
   void setUint32(int byteOffset, int value, {bool littleEndian}) native;
 
-  @DocsEditable
   @DomName('DataView.setUint8')
+  @DocsEditable
   void setUint8(int byteOffset, int value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5853,25 +5797,24 @@ class DataView extends ArrayBufferView native "*DataView" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Database')
 class Database native "*Database" {
 
-  @DocsEditable
   @DomName('Database.version')
+  @DocsEditable
   final String version;
 
-  @DocsEditable
   @DomName('Database.changeVersion')
+  @DocsEditable
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  @DocsEditable
   @DomName('Database.readTransaction')
+  @DocsEditable
   void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  @DocsEditable
   @DomName('Database.transaction')
+  @DocsEditable
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5887,29 +5830,28 @@ typedef void DatabaseCallback(database);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DatabaseSync')
 class DatabaseSync native "*DatabaseSync" {
 
-  @DocsEditable
   @DomName('DatabaseSync.lastErrorMessage')
+  @DocsEditable
   final String lastErrorMessage;
 
-  @DocsEditable
   @DomName('DatabaseSync.version')
+  @DocsEditable
   final String version;
 
-  @DocsEditable
   @DomName('DatabaseSync.changeVersion')
+  @DocsEditable
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native;
 
-  @DocsEditable
   @DomName('DatabaseSync.readTransaction')
+  @DocsEditable
   void readTransaction(SqlTransactionSyncCallback callback) native;
 
-  @DocsEditable
   @DomName('DatabaseSync.transaction')
+  @DocsEditable
   void transaction(SqlTransactionSyncCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5917,13 +5859,12 @@ class DatabaseSync native "*DatabaseSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DedicatedWorkerContext')
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
-  @DocsEditable
   @DomName('DedicatedWorkerContext.message')
+  @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
   @DocsEditable
@@ -5942,16 +5883,16 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
     return;
   }
   @JSName('postMessage')
-  @DocsEditable
   @DomName('DedicatedWorkerContext.postMessage')
+  @DocsEditable
   void _postMessage_1(message, List messagePorts) native;
   @JSName('postMessage')
-  @DocsEditable
   @DomName('DedicatedWorkerContext.postMessage')
+  @DocsEditable
   void _postMessage_2(message) native;
 
-  @DocsEditable
   @DomName('DedicatedWorkerContext.message')
+  @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
@@ -5968,7 +5909,6 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -5982,8 +5922,8 @@ class DetailsElement extends Element native "*HTMLDetailsElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('details');
 
-  @DocsEditable
   @DomName('HTMLDetailsElement.open')
+  @DocsEditable
   bool open;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5991,13 +5931,12 @@ class DetailsElement extends Element native "*HTMLDetailsElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DeviceMotionEvent')
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 
-  @DocsEditable
   @DomName('DeviceMotionEvent.interval')
+  @DocsEditable
   final num interval;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6005,29 +5944,28 @@ class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DeviceOrientationEvent')
 class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
-  @DocsEditable
   @DomName('DeviceOrientationEvent.absolute')
+  @DocsEditable
   final bool absolute;
 
-  @DocsEditable
   @DomName('DeviceOrientationEvent.alpha')
+  @DocsEditable
   final num alpha;
 
-  @DocsEditable
   @DomName('DeviceOrientationEvent.beta')
+  @DocsEditable
   final num beta;
 
-  @DocsEditable
   @DomName('DeviceOrientationEvent.gamma')
+  @DocsEditable
   final num gamma;
 
-  @DocsEditable
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
+  @DocsEditable
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6035,13 +5973,12 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DirectoryEntry')
 class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
-  @DocsEditable
   @DomName('DirectoryEntry.createReader')
+  @DocsEditable
   DirectoryReader createReader() native;
 
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
@@ -6064,20 +6001,20 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
     return;
   }
   @JSName('getDirectory')
-  @DocsEditable
   @DomName('DirectoryEntry.getDirectory')
+  @DocsEditable
   void _getDirectory_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native;
   @JSName('getDirectory')
-  @DocsEditable
   @DomName('DirectoryEntry.getDirectory')
+  @DocsEditable
   void _getDirectory_2(path, options, EntryCallback successCallback) native;
   @JSName('getDirectory')
-  @DocsEditable
   @DomName('DirectoryEntry.getDirectory')
+  @DocsEditable
   void _getDirectory_3(path, options) native;
   @JSName('getDirectory')
-  @DocsEditable
   @DomName('DirectoryEntry.getDirectory')
+  @DocsEditable
   void _getDirectory_4(path) native;
 
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
@@ -6100,24 +6037,24 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
     return;
   }
   @JSName('getFile')
-  @DocsEditable
   @DomName('DirectoryEntry.getFile')
+  @DocsEditable
   void _getFile_1(path, options, EntryCallback successCallback, ErrorCallback errorCallback) native;
   @JSName('getFile')
-  @DocsEditable
   @DomName('DirectoryEntry.getFile')
+  @DocsEditable
   void _getFile_2(path, options, EntryCallback successCallback) native;
   @JSName('getFile')
-  @DocsEditable
   @DomName('DirectoryEntry.getFile')
+  @DocsEditable
   void _getFile_3(path, options) native;
   @JSName('getFile')
-  @DocsEditable
   @DomName('DirectoryEntry.getFile')
+  @DocsEditable
   void _getFile_4(path) native;
 
-  @DocsEditable
   @DomName('DirectoryEntry.removeRecursively')
+  @DocsEditable
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6125,13 +6062,12 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DirectoryEntrySync')
 class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
-  @DocsEditable
   @DomName('DirectoryEntrySync.createReader')
+  @DocsEditable
   DirectoryReaderSync createReader() native;
 
   DirectoryEntrySync getDirectory(String path, Map flags) {
@@ -6139,8 +6075,8 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
     return _getDirectory_1(path, flags_1);
   }
   @JSName('getDirectory')
-  @DocsEditable
   @DomName('DirectoryEntrySync.getDirectory')
+  @DocsEditable
   DirectoryEntrySync _getDirectory_1(path, flags) native;
 
   FileEntrySync getFile(String path, Map flags) {
@@ -6148,12 +6084,12 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
     return _getFile_1(path, flags_1);
   }
   @JSName('getFile')
-  @DocsEditable
   @DomName('DirectoryEntrySync.getFile')
+  @DocsEditable
   FileEntrySync _getFile_1(path, flags) native;
 
-  @DocsEditable
   @DomName('DirectoryEntrySync.removeRecursively')
+  @DocsEditable
   void removeRecursively() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6161,13 +6097,12 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DirectoryReader')
 class DirectoryReader native "*DirectoryReader" {
 
-  @DocsEditable
   @DomName('DirectoryReader.readEntries')
+  @DocsEditable
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6175,13 +6110,12 @@ class DirectoryReader native "*DirectoryReader" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DirectoryReaderSync')
 class DirectoryReaderSync native "*DirectoryReaderSync" {
 
-  @DocsEditable
   @DomName('DirectoryReaderSync.readEntries')
+  @DocsEditable
   @Returns('_EntryArraySync')
   @Creates('_EntryArraySync')
   List<EntrySync> readEntries() native;
@@ -6189,7 +6123,6 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -6213,26 +6146,25 @@ class DivElement extends Element native "*HTMLDivElement" {
  * If you aren't comfortable with DOM concepts, see the Dart tutorial
  * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
  */
-@DocsEditable
 @DomName('Document')
 class Document extends Node  native "*Document"
 {
 
 
-  @DocsEditable
   @DomName('Document.readystatechange')
+  @DocsEditable
   static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
 
-  @DocsEditable
   @DomName('Document.selectionchange')
+  @DocsEditable
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
 
-  @DocsEditable
   @DomName('Document.webkitpointerlockchange')
+  @DocsEditable
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
-  @DocsEditable
   @DomName('Document.webkitpointerlockerror')
+  @DocsEditable
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
   @DocsEditable
@@ -6241,146 +6173,146 @@ class Document extends Node  native "*Document"
     new DocumentEvents(this);
 
   @JSName('body')
-  @DocsEditable
   @DomName('Document.body')
+  @DocsEditable
   Element $dom_body;
 
-  @DocsEditable
   @DomName('Document.charset')
+  @DocsEditable
   String charset;
 
-  @DocsEditable
   @DomName('Document.cookie')
+  @DocsEditable
   String cookie;
 
   WindowBase get window => _convertNativeToDart_Window(this._window);
   @JSName('defaultView')
-  @DocsEditable
   @DomName('Document.window')
+  @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _window;
 
-  @DocsEditable
   @DomName('Document.documentElement')
+  @DocsEditable
   final Element documentElement;
 
-  @DocsEditable
   @DomName('Document.domain')
+  @DocsEditable
   final String domain;
 
   @JSName('head')
-  @DocsEditable
   @DomName('Document.head')
+  @DocsEditable
   final HeadElement $dom_head;
 
-  @DocsEditable
   @DomName('Document.implementation')
+  @DocsEditable
   final DomImplementation implementation;
 
   @JSName('lastModified')
-  @DocsEditable
   @DomName('Document.lastModified')
+  @DocsEditable
   final String $dom_lastModified;
 
   @JSName('preferredStylesheetSet')
-  @DocsEditable
   @DomName('Document.preferredStylesheetSet')
+  @DocsEditable
   final String $dom_preferredStylesheetSet;
 
-  @DocsEditable
   @DomName('Document.readyState')
+  @DocsEditable
   final String readyState;
 
   @JSName('referrer')
-  @DocsEditable
   @DomName('Document.referrer')
+  @DocsEditable
   final String $dom_referrer;
 
   @JSName('selectedStylesheetSet')
-  @DocsEditable
   @DomName('Document.selectedStylesheetSet')
+  @DocsEditable
   String $dom_selectedStylesheetSet;
 
   @JSName('styleSheets')
-  @DocsEditable
   @DomName('Document.styleSheets')
+  @DocsEditable
   @Returns('_StyleSheetList')
   @Creates('_StyleSheetList')
   final List<StyleSheet> $dom_styleSheets;
 
   @JSName('title')
-  @DocsEditable
   @DomName('Document.title')
+  @DocsEditable
   String $dom_title;
 
   @JSName('webkitFullscreenElement')
-  @DocsEditable
   @DomName('Document.webkitFullscreenElement')
+  @DocsEditable
   final Element $dom_webkitFullscreenElement;
 
   @JSName('webkitFullscreenEnabled')
-  @DocsEditable
   @DomName('Document.webkitFullscreenEnabled')
+  @DocsEditable
   final bool $dom_webkitFullscreenEnabled;
 
   @JSName('webkitHidden')
-  @DocsEditable
   @DomName('Document.webkitHidden')
+  @DocsEditable
   final bool $dom_webkitHidden;
 
   @JSName('webkitIsFullScreen')
-  @DocsEditable
   @DomName('Document.webkitIsFullScreen')
+  @DocsEditable
   final bool $dom_webkitIsFullScreen;
 
   @JSName('webkitPointerLockElement')
-  @DocsEditable
   @DomName('Document.webkitPointerLockElement')
+  @DocsEditable
   final Element $dom_webkitPointerLockElement;
 
   @JSName('webkitVisibilityState')
-  @DocsEditable
   @DomName('Document.webkitVisibilityState')
+  @DocsEditable
   final String $dom_webkitVisibilityState;
 
   @JSName('caretRangeFromPoint')
-  @DocsEditable
   @DomName('Document.caretRangeFromPoint')
+  @DocsEditable
   Range $dom_caretRangeFromPoint(int x, int y) native;
 
   @JSName('createCDATASection')
-  @DocsEditable
   @DomName('Document.createCDATASection')
+  @DocsEditable
   CDataSection createCDataSection(String data) native;
 
-  @DocsEditable
   @DomName('Document.createDocumentFragment')
+  @DocsEditable
   DocumentFragment createDocumentFragment() native;
 
   @JSName('createElement')
-  @DocsEditable
   @DomName('Document.createElement')
+  @DocsEditable
   Element $dom_createElement(String tagName) native;
 
   @JSName('createElementNS')
-  @DocsEditable
   @DomName('Document.createElementNS')
+  @DocsEditable
   Element $dom_createElementNS(String namespaceURI, String qualifiedName) native;
 
   @JSName('createEvent')
-  @DocsEditable
   @DomName('Document.createEvent')
+  @DocsEditable
   Event $dom_createEvent(String eventType) native;
 
   @JSName('createRange')
-  @DocsEditable
   @DomName('Document.createRange')
+  @DocsEditable
   Range $dom_createRange() native;
 
   @JSName('createTextNode')
-  @DocsEditable
   @DomName('Document.createTextNode')
+  @DocsEditable
   Text $dom_createTextNode(String data) native;
 
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
@@ -6388,296 +6320,296 @@ class Document extends Node  native "*Document"
     return _$dom_createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
   }
   @JSName('createTouch')
-  @DocsEditable
   @DomName('Document.createTouch')
+  @DocsEditable
   Touch _$dom_createTouch_1(Window window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
   @JSName('createTouchList')
-  @DocsEditable
   @DomName('Document.createTouchList')
+  @DocsEditable
   TouchList $dom_createTouchList() native;
 
   @JSName('elementFromPoint')
-  @DocsEditable
   @DomName('Document.elementFromPoint')
+  @DocsEditable
   Element $dom_elementFromPoint(int x, int y) native;
 
-  @DocsEditable
   @DomName('Document.execCommand')
+  @DocsEditable
   bool execCommand(String command, bool userInterface, String value) native;
 
   @JSName('getCSSCanvasContext')
-  @DocsEditable
   @DomName('Document.getCSSCanvasContext')
+  @DocsEditable
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native;
 
   @JSName('getElementById')
-  @DocsEditable
   @DomName('Document.getElementById')
+  @DocsEditable
   Element $dom_getElementById(String elementId) native;
 
   @JSName('getElementsByClassName')
-  @DocsEditable
   @DomName('Document.getElementsByClassName')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_getElementsByClassName(String tagname) native;
 
   @JSName('getElementsByName')
-  @DocsEditable
   @DomName('Document.getElementsByName')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_getElementsByName(String elementName) native;
 
   @JSName('getElementsByTagName')
-  @DocsEditable
   @DomName('Document.getElementsByTagName')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_getElementsByTagName(String tagname) native;
 
-  @DocsEditable
   @DomName('Document.queryCommandEnabled')
+  @DocsEditable
   bool queryCommandEnabled(String command) native;
 
-  @DocsEditable
   @DomName('Document.queryCommandIndeterm')
+  @DocsEditable
   bool queryCommandIndeterm(String command) native;
 
-  @DocsEditable
   @DomName('Document.queryCommandState')
+  @DocsEditable
   bool queryCommandState(String command) native;
 
-  @DocsEditable
   @DomName('Document.queryCommandSupported')
+  @DocsEditable
   bool queryCommandSupported(String command) native;
 
-  @DocsEditable
   @DomName('Document.queryCommandValue')
+  @DocsEditable
   String queryCommandValue(String command) native;
 
   @JSName('querySelector')
-  @DocsEditable
   @DomName('Document.querySelector')
+  @DocsEditable
   Element $dom_querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
-  @DocsEditable
   @DomName('Document.querySelectorAll')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native;
 
   @JSName('webkitCancelFullScreen')
-  @DocsEditable
   @DomName('Document.webkitCancelFullScreen')
+  @DocsEditable
   void $dom_webkitCancelFullScreen() native;
 
   @JSName('webkitExitFullscreen')
-  @DocsEditable
   @DomName('Document.webkitExitFullscreen')
+  @DocsEditable
   void $dom_webkitExitFullscreen() native;
 
   @JSName('webkitExitPointerLock')
-  @DocsEditable
   @DomName('Document.webkitExitPointerLock')
+  @DocsEditable
   void $dom_webkitExitPointerLock() native;
 
-  @DocsEditable
   @DomName('Document.abort')
+  @DocsEditable
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.beforecopy')
+  @DocsEditable
   Stream<Event> get onBeforeCopy => Element.beforeCopyEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.beforecut')
+  @DocsEditable
   Stream<Event> get onBeforeCut => Element.beforeCutEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.beforepaste')
+  @DocsEditable
   Stream<Event> get onBeforePaste => Element.beforePasteEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.blur')
+  @DocsEditable
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.change')
+  @DocsEditable
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.click')
+  @DocsEditable
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.contextmenu')
+  @DocsEditable
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.copy')
+  @DocsEditable
   Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.cut')
+  @DocsEditable
   Stream<Event> get onCut => Element.cutEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.dblclick')
+  @DocsEditable
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.drag')
+  @DocsEditable
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.dragend')
+  @DocsEditable
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.dragenter')
+  @DocsEditable
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.dragleave')
+  @DocsEditable
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.dragover')
+  @DocsEditable
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.dragstart')
+  @DocsEditable
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.drop')
+  @DocsEditable
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.error')
+  @DocsEditable
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.focus')
+  @DocsEditable
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.input')
+  @DocsEditable
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.invalid')
+  @DocsEditable
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.keydown')
+  @DocsEditable
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.keypress')
+  @DocsEditable
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.keyup')
+  @DocsEditable
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.load')
+  @DocsEditable
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.mousedown')
+  @DocsEditable
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.mousemove')
+  @DocsEditable
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.mouseout')
+  @DocsEditable
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.mouseover')
+  @DocsEditable
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.mouseup')
+  @DocsEditable
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.mousewheel')
+  @DocsEditable
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.paste')
+  @DocsEditable
   Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.readystatechange')
+  @DocsEditable
   Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.reset')
+  @DocsEditable
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.scroll')
+  @DocsEditable
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.search')
+  @DocsEditable
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.select')
+  @DocsEditable
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.selectionchange')
+  @DocsEditable
   Stream<Event> get onSelectionChange => selectionChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.selectstart')
+  @DocsEditable
   Stream<Event> get onSelectStart => Element.selectStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.submit')
+  @DocsEditable
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.touchcancel')
+  @DocsEditable
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.touchend')
+  @DocsEditable
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.touchmove')
+  @DocsEditable
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.touchstart')
+  @DocsEditable
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.webkitfullscreenchange')
+  @DocsEditable
   Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.webkitfullscreenerror')
+  @DocsEditable
   Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.webkitpointerlockchange')
+  @DocsEditable
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Document.webkitpointerlockerror')
+  @DocsEditable
   Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
 
 
@@ -6780,7 +6712,6 @@ class _FrozenCssClassSet extends CssClassSet {
   bool get frozen => true;
 }
 
-@DocsEditable
 @DomName('DocumentFragment')
 class DocumentFragment extends Node native "*DocumentFragment" {
   factory DocumentFragment() => _DocumentFragmentFactoryProvider.createDocumentFragment();
@@ -7035,13 +6966,13 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     new ElementEvents(this);
 
   @JSName('querySelector')
-  @DocsEditable
   @DomName('DocumentFragment.querySelector')
+  @DocsEditable
   Element $dom_querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
-  @DocsEditable
   @DomName('DocumentFragment.querySelectorAll')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native;
@@ -7050,7 +6981,6 @@ class DocumentFragment extends Node native "*DocumentFragment" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -7062,13 +6992,12 @@ class DocumentType extends Node native "*DocumentType" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DOMError')
 class DomError native "*DOMError" {
 
-  @DocsEditable
   @DomName('DOMError.name')
+  @DocsEditable
   final String name;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -7112,12 +7041,12 @@ class DomException native "*DOMException" {
     return errorName;
   }
 
-  @DocsEditable
   @DomName('DOMCoreException.message')
+  @DocsEditable
   final String message;
 
-  @DocsEditable
   @DomName('DOMCoreException.toString')
+  @DocsEditable
   String toString() native;
 
 }
@@ -7126,31 +7055,30 @@ class DomException native "*DOMException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DOMImplementation')
 class DomImplementation native "*DOMImplementation" {
 
   @JSName('createCSSStyleSheet')
-  @DocsEditable
   @DomName('DOMImplementation.createCSSStyleSheet')
+  @DocsEditable
   CssStyleSheet createCssStyleSheet(String title, String media) native;
 
-  @DocsEditable
   @DomName('DOMImplementation.createDocument')
+  @DocsEditable
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) native;
 
-  @DocsEditable
   @DomName('DOMImplementation.createDocumentType')
+  @DocsEditable
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
   @JSName('createHTMLDocument')
-  @DocsEditable
   @DomName('DOMImplementation.createHTMLDocument')
+  @DocsEditable
   HtmlDocument createHtmlDocument(String title) native;
 
-  @DocsEditable
   @DomName('DOMImplementation.hasFeature')
+  @DocsEditable
   bool hasFeature(String feature, String version) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7158,25 +7086,24 @@ class DomImplementation native "*DOMImplementation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MimeType')
 class DomMimeType native "*MimeType" {
 
-  @DocsEditable
   @DomName('DOMMimeType.description')
+  @DocsEditable
   final String description;
 
-  @DocsEditable
   @DomName('DOMMimeType.enabledPlugin')
+  @DocsEditable
   final DomPlugin enabledPlugin;
 
-  @DocsEditable
   @DomName('DOMMimeType.suffixes')
+  @DocsEditable
   final String suffixes;
 
-  @DocsEditable
   @DomName('DOMMimeType.type')
+  @DocsEditable
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7184,13 +7111,12 @@ class DomMimeType native "*MimeType" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MimeTypeArray')
 class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> native "*MimeTypeArray" {
 
-  @DocsEditable
   @DomName('DOMMimeTypeArray.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   DomMimeType operator[](int index) => JS("DomMimeType", "#[#]", this, index);
@@ -7361,18 +7287,17 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
   // -- end List<DomMimeType> mixins.
 
-  @DocsEditable
   @DomName('DOMMimeTypeArray.item')
+  @DocsEditable
   DomMimeType item(int index) native;
 
-  @DocsEditable
   @DomName('DOMMimeTypeArray.namedItem')
+  @DocsEditable
   DomMimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -7383,8 +7308,8 @@ class DomParser native "*DOMParser" {
   factory DomParser() => DomParser._create();
   static DomParser _create() => JS('DomParser', 'new DOMParser()');
 
-  @DocsEditable
   @DomName('DOMParser.parseFromString')
+  @DocsEditable
   Document parseFromString(String str, String contentType) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7392,33 +7317,32 @@ class DomParser native "*DOMParser" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Plugin')
 class DomPlugin native "*Plugin" {
 
-  @DocsEditable
   @DomName('DOMPlugin.description')
+  @DocsEditable
   final String description;
 
-  @DocsEditable
   @DomName('DOMPlugin.filename')
+  @DocsEditable
   final String filename;
 
-  @DocsEditable
   @DomName('DOMPlugin.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('DOMPlugin.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('DOMPlugin.item')
+  @DocsEditable
   DomMimeType item(int index) native;
 
-  @DocsEditable
   @DomName('DOMPlugin.namedItem')
+  @DocsEditable
   DomMimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7426,13 +7350,12 @@ class DomPlugin native "*Plugin" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('PluginArray')
 class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> native "*PluginArray" {
 
-  @DocsEditable
   @DomName('DOMPluginArray.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   DomPlugin operator[](int index) => JS("DomPlugin", "#[#]", this, index);
@@ -7603,16 +7526,16 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   // -- end List<DomPlugin> mixins.
 
-  @DocsEditable
   @DomName('DOMPluginArray.item')
+  @DocsEditable
   DomPlugin item(int index) native;
 
-  @DocsEditable
   @DomName('DOMPluginArray.namedItem')
+  @DocsEditable
   DomPlugin namedItem(String name) native;
 
-  @DocsEditable
   @DomName('DOMPluginArray.refresh')
+  @DocsEditable
   void refresh(bool reload) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7620,113 +7543,112 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Selection')
 class DomSelection native "*Selection" {
 
-  @DocsEditable
   @DomName('DOMSelection.anchorNode')
+  @DocsEditable
   final Node anchorNode;
 
-  @DocsEditable
   @DomName('DOMSelection.anchorOffset')
+  @DocsEditable
   final int anchorOffset;
 
-  @DocsEditable
   @DomName('DOMSelection.baseNode')
+  @DocsEditable
   final Node baseNode;
 
-  @DocsEditable
   @DomName('DOMSelection.baseOffset')
+  @DocsEditable
   final int baseOffset;
 
-  @DocsEditable
   @DomName('DOMSelection.extentNode')
+  @DocsEditable
   final Node extentNode;
 
-  @DocsEditable
   @DomName('DOMSelection.extentOffset')
+  @DocsEditable
   final int extentOffset;
 
-  @DocsEditable
   @DomName('DOMSelection.focusNode')
+  @DocsEditable
   final Node focusNode;
 
-  @DocsEditable
   @DomName('DOMSelection.focusOffset')
+  @DocsEditable
   final int focusOffset;
 
-  @DocsEditable
   @DomName('DOMSelection.isCollapsed')
+  @DocsEditable
   final bool isCollapsed;
 
-  @DocsEditable
   @DomName('DOMSelection.rangeCount')
+  @DocsEditable
   final int rangeCount;
 
-  @DocsEditable
   @DomName('DOMSelection.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('DOMSelection.addRange')
+  @DocsEditable
   void addRange(Range range) native;
 
-  @DocsEditable
   @DomName('DOMSelection.collapse')
+  @DocsEditable
   void collapse(Node node, int index) native;
 
-  @DocsEditable
   @DomName('DOMSelection.collapseToEnd')
+  @DocsEditable
   void collapseToEnd() native;
 
-  @DocsEditable
   @DomName('DOMSelection.collapseToStart')
+  @DocsEditable
   void collapseToStart() native;
 
-  @DocsEditable
   @DomName('DOMSelection.containsNode')
+  @DocsEditable
   bool containsNode(Node node, bool allowPartial) native;
 
-  @DocsEditable
   @DomName('DOMSelection.deleteFromDocument')
+  @DocsEditable
   void deleteFromDocument() native;
 
-  @DocsEditable
   @DomName('DOMSelection.empty')
+  @DocsEditable
   void empty() native;
 
-  @DocsEditable
   @DomName('DOMSelection.extend')
+  @DocsEditable
   void extend(Node node, int offset) native;
 
-  @DocsEditable
   @DomName('DOMSelection.getRangeAt')
+  @DocsEditable
   Range getRangeAt(int index) native;
 
-  @DocsEditable
   @DomName('DOMSelection.modify')
+  @DocsEditable
   void modify(String alter, String direction, String granularity) native;
 
-  @DocsEditable
   @DomName('DOMSelection.removeAllRanges')
+  @DocsEditable
   void removeAllRanges() native;
 
-  @DocsEditable
   @DomName('DOMSelection.selectAllChildren')
+  @DocsEditable
   void selectAllChildren(Node node) native;
 
-  @DocsEditable
   @DomName('DOMSelection.setBaseAndExtent')
+  @DocsEditable
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
 
-  @DocsEditable
   @DomName('DOMSelection.setPosition')
+  @DocsEditable
   void setPosition(Node node, int offset) native;
 
-  @DocsEditable
   @DomName('DOMSelection.toString')
+  @DocsEditable
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7734,13 +7656,12 @@ class DomSelection native "*Selection" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DOMSettableTokenList')
 class DomSettableTokenList extends DomTokenList native "*DOMSettableTokenList" {
 
-  @DocsEditable
   @DomName('DOMSettableTokenList.value')
+  @DocsEditable
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7748,13 +7669,12 @@ class DomSettableTokenList extends DomTokenList native "*DOMSettableTokenList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DOMStringList')
 class DomStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
 
-  @DocsEditable
   @DomName('DOMStringList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   String operator[](int index) => JS("String", "#[#]", this, index);
@@ -7925,12 +7845,12 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 
   // -- end List<String> mixins.
 
-  @DocsEditable
   @DomName('DOMStringList.contains')
+  @DocsEditable
   bool contains(String string) native;
 
-  @DocsEditable
   @DomName('DOMStringList.item')
+  @DocsEditable
   String item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7938,7 +7858,6 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('DOMStringMap')
 abstract class DomStringMap {
 }
@@ -7947,29 +7866,28 @@ abstract class DomStringMap {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DOMTokenList')
 class DomTokenList native "*DOMTokenList" {
 
-  @DocsEditable
   @DomName('DOMTokenList.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('DOMTokenList.contains')
+  @DocsEditable
   bool contains(String token) native;
 
-  @DocsEditable
   @DomName('DOMTokenList.item')
+  @DocsEditable
   String item(int index) native;
 
-  @DocsEditable
   @DomName('DOMTokenList.toString')
+  @DocsEditable
   String toString() native;
 
-  @DocsEditable
   @DomName('DOMTokenList.toggle')
+  @DocsEditable
   bool toggle(String token, [bool force]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8469,7 +8387,6 @@ class _ElementCssClassSet extends CssClassSet {
 /**
  * An abstract class, which all HTML elements extend.
  */
-@DocsEditable
 @DomName('Element')
 abstract class Element extends Node implements ElementTraversal native "*Element" {
 
@@ -8876,192 +8793,192 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   }
 
 
-  @DocsEditable
   @DomName('Element.abort')
+  @DocsEditable
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
-  @DocsEditable
   @DomName('Element.beforecopy')
+  @DocsEditable
   static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
 
-  @DocsEditable
   @DomName('Element.beforecut')
+  @DocsEditable
   static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
 
-  @DocsEditable
   @DomName('Element.beforepaste')
+  @DocsEditable
   static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
 
-  @DocsEditable
   @DomName('Element.blur')
+  @DocsEditable
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
-  @DocsEditable
   @DomName('Element.change')
+  @DocsEditable
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
-  @DocsEditable
   @DomName('Element.click')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
 
-  @DocsEditable
   @DomName('Element.contextmenu')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
 
-  @DocsEditable
   @DomName('Element.copy')
+  @DocsEditable
   static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
 
-  @DocsEditable
   @DomName('Element.cut')
+  @DocsEditable
   static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
 
-  @DocsEditable
   @DomName('Element.dblclick')
+  @DocsEditable
   static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
-  @DocsEditable
   @DomName('Element.drag')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
 
-  @DocsEditable
   @DomName('Element.dragend')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
 
-  @DocsEditable
   @DomName('Element.dragenter')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
 
-  @DocsEditable
   @DomName('Element.dragleave')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
 
-  @DocsEditable
   @DomName('Element.dragover')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
 
-  @DocsEditable
   @DomName('Element.dragstart')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
 
-  @DocsEditable
   @DomName('Element.drop')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
 
-  @DocsEditable
   @DomName('Element.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
   @DomName('Element.focus')
+  @DocsEditable
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
-  @DocsEditable
   @DomName('Element.input')
+  @DocsEditable
   static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
 
-  @DocsEditable
   @DomName('Element.invalid')
+  @DocsEditable
   static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
 
-  @DocsEditable
   @DomName('Element.keydown')
+  @DocsEditable
   static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
 
-  @DocsEditable
   @DomName('Element.keypress')
+  @DocsEditable
   static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
 
-  @DocsEditable
   @DomName('Element.keyup')
+  @DocsEditable
   static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
 
-  @DocsEditable
   @DomName('Element.load')
+  @DocsEditable
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
-  @DocsEditable
   @DomName('Element.mousedown')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
 
-  @DocsEditable
   @DomName('Element.mousemove')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
 
-  @DocsEditable
   @DomName('Element.mouseout')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
 
-  @DocsEditable
   @DomName('Element.mouseover')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
 
-  @DocsEditable
   @DomName('Element.mouseup')
+  @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
 
-  @DocsEditable
   @DomName('Element.paste')
+  @DocsEditable
   static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
 
-  @DocsEditable
   @DomName('Element.reset')
+  @DocsEditable
   static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
-  @DocsEditable
   @DomName('Element.scroll')
+  @DocsEditable
   static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
 
-  @DocsEditable
   @DomName('Element.search')
+  @DocsEditable
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
-  @DocsEditable
   @DomName('Element.select')
+  @DocsEditable
   static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
 
-  @DocsEditable
   @DomName('Element.selectstart')
+  @DocsEditable
   static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
 
-  @DocsEditable
   @DomName('Element.submit')
+  @DocsEditable
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
 
-  @DocsEditable
   @DomName('Element.touchcancel')
+  @DocsEditable
   static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
 
-  @DocsEditable
   @DomName('Element.touchend')
+  @DocsEditable
   static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
 
-  @DocsEditable
   @DomName('Element.touchenter')
+  @DocsEditable
   static const EventStreamProvider<TouchEvent> touchEnterEvent = const EventStreamProvider<TouchEvent>('touchenter');
 
-  @DocsEditable
   @DomName('Element.touchleave')
+  @DocsEditable
   static const EventStreamProvider<TouchEvent> touchLeaveEvent = const EventStreamProvider<TouchEvent>('touchleave');
 
-  @DocsEditable
   @DomName('Element.touchmove')
+  @DocsEditable
   static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
 
-  @DocsEditable
   @DomName('Element.touchstart')
+  @DocsEditable
   static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
 
-  @DocsEditable
   @DomName('Element.webkitTransitionEnd')
+  @DocsEditable
   static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
-  @DocsEditable
   @DomName('Element.webkitfullscreenchange')
+  @DocsEditable
   static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
 
-  @DocsEditable
   @DomName('Element.webkitfullscreenerror')
+  @DocsEditable
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   @DocsEditable
@@ -9070,480 +8987,480 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     new ElementEvents(this);
 
   @JSName('children')
-  @DocsEditable
   @DomName('Element.children')
+  @DocsEditable
   final HtmlCollection $dom_children;
 
-  @DocsEditable
   @DomName('Element.contentEditable')
+  @DocsEditable
   String contentEditable;
 
-  @DocsEditable
   @DomName('Element.dir')
+  @DocsEditable
   String dir;
 
-  @DocsEditable
   @DomName('Element.draggable')
+  @DocsEditable
   bool draggable;
 
-  @DocsEditable
   @DomName('Element.hidden')
+  @DocsEditable
   bool hidden;
 
-  @DocsEditable
   @DomName('Element.id')
+  @DocsEditable
   String id;
 
   @JSName('innerHTML')
-  @DocsEditable
   @DomName('Element.innerHTML')
+  @DocsEditable
   String innerHtml;
 
-  @DocsEditable
   @DomName('Element.isContentEditable')
+  @DocsEditable
   final bool isContentEditable;
 
-  @DocsEditable
   @DomName('Element.lang')
+  @DocsEditable
   String lang;
 
   @JSName('outerHTML')
-  @DocsEditable
   @DomName('Element.outerHTML')
+  @DocsEditable
   final String outerHtml;
 
-  @DocsEditable
   @DomName('Element.spellcheck')
+  @DocsEditable
   bool spellcheck;
 
-  @DocsEditable
   @DomName('Element.tabIndex')
+  @DocsEditable
   int tabIndex;
 
-  @DocsEditable
   @DomName('Element.title')
+  @DocsEditable
   String title;
 
-  @DocsEditable
   @DomName('Element.translate')
+  @DocsEditable
   bool translate;
 
-  @DocsEditable
   @DomName('Element.webkitdropzone')
+  @DocsEditable
   String webkitdropzone;
 
-  @DocsEditable
   @DomName('Element.click')
+  @DocsEditable
   void click() native;
 
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
   @JSName('childElementCount')
-  @DocsEditable
   @DomName('Element.childElementCount')
+  @DocsEditable
   final int $dom_childElementCount;
 
   @JSName('className')
-  @DocsEditable
   @DomName('Element.className')
+  @DocsEditable
   String $dom_className;
 
-  @DocsEditable
   @DomName('Element.clientHeight')
+  @DocsEditable
   final int clientHeight;
 
-  @DocsEditable
   @DomName('Element.clientLeft')
+  @DocsEditable
   final int clientLeft;
 
-  @DocsEditable
   @DomName('Element.clientTop')
+  @DocsEditable
   final int clientTop;
 
-  @DocsEditable
   @DomName('Element.clientWidth')
+  @DocsEditable
   final int clientWidth;
 
-  @DocsEditable
   @DomName('Element.dataset')
+  @DocsEditable
   final Map<String, String> dataset;
 
   @JSName('firstElementChild')
-  @DocsEditable
   @DomName('Element.firstElementChild')
+  @DocsEditable
   final Element $dom_firstElementChild;
 
   @JSName('lastElementChild')
-  @DocsEditable
   @DomName('Element.lastElementChild')
+  @DocsEditable
   final Element $dom_lastElementChild;
 
-  @DocsEditable
   @DomName('Element.nextElementSibling')
+  @DocsEditable
   final Element nextElementSibling;
 
-  @DocsEditable
   @DomName('Element.offsetHeight')
+  @DocsEditable
   final int offsetHeight;
 
-  @DocsEditable
   @DomName('Element.offsetLeft')
+  @DocsEditable
   final int offsetLeft;
 
-  @DocsEditable
   @DomName('Element.offsetParent')
+  @DocsEditable
   final Element offsetParent;
 
-  @DocsEditable
   @DomName('Element.offsetTop')
+  @DocsEditable
   final int offsetTop;
 
-  @DocsEditable
   @DomName('Element.offsetWidth')
+  @DocsEditable
   final int offsetWidth;
 
-  @DocsEditable
   @DomName('Element.previousElementSibling')
+  @DocsEditable
   final Element previousElementSibling;
 
-  @DocsEditable
   @DomName('Element.scrollHeight')
+  @DocsEditable
   final int scrollHeight;
 
-  @DocsEditable
   @DomName('Element.scrollLeft')
+  @DocsEditable
   int scrollLeft;
 
-  @DocsEditable
   @DomName('Element.scrollTop')
+  @DocsEditable
   int scrollTop;
 
-  @DocsEditable
   @DomName('Element.scrollWidth')
+  @DocsEditable
   final int scrollWidth;
 
-  @DocsEditable
   @DomName('Element.style')
+  @DocsEditable
   final CssStyleDeclaration style;
 
-  @DocsEditable
   @DomName('Element.tagName')
+  @DocsEditable
   final String tagName;
 
-  @DocsEditable
   @DomName('Element.webkitPseudo')
+  @DocsEditable
   String webkitPseudo;
 
-  @DocsEditable
   @DomName('Element.webkitShadowRoot')
+  @DocsEditable
   final ShadowRoot webkitShadowRoot;
 
-  @DocsEditable
   @DomName('Element.blur')
+  @DocsEditable
   void blur() native;
 
-  @DocsEditable
   @DomName('Element.focus')
+  @DocsEditable
   void focus() native;
 
   @JSName('getAttribute')
-  @DocsEditable
   @DomName('Element.getAttribute')
+  @DocsEditable
   String $dom_getAttribute(String name) native;
 
   @JSName('getAttributeNS')
-  @DocsEditable
   @DomName('Element.getAttributeNS')
+  @DocsEditable
   String $dom_getAttributeNS(String namespaceURI, String localName) native;
 
-  @DocsEditable
   @DomName('Element.getBoundingClientRect')
+  @DocsEditable
   ClientRect getBoundingClientRect() native;
 
-  @DocsEditable
   @DomName('Element.getClientRects')
+  @DocsEditable
   @Returns('_ClientRectList')
   @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
   @JSName('getElementsByClassName')
-  @DocsEditable
   @DomName('Element.getElementsByClassName')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_getElementsByClassName(String name) native;
 
   @JSName('getElementsByTagName')
-  @DocsEditable
   @DomName('Element.getElementsByTagName')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_getElementsByTagName(String name) native;
 
   @JSName('hasAttribute')
-  @DocsEditable
   @DomName('Element.hasAttribute')
+  @DocsEditable
   bool $dom_hasAttribute(String name) native;
 
   @JSName('hasAttributeNS')
-  @DocsEditable
   @DomName('Element.hasAttributeNS')
+  @DocsEditable
   bool $dom_hasAttributeNS(String namespaceURI, String localName) native;
 
   @JSName('querySelector')
-  @DocsEditable
   @DomName('Element.querySelector')
+  @DocsEditable
   Element $dom_querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
-  @DocsEditable
   @DomName('Element.querySelectorAll')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_querySelectorAll(String selectors) native;
 
   @JSName('removeAttribute')
-  @DocsEditable
   @DomName('Element.removeAttribute')
+  @DocsEditable
   void $dom_removeAttribute(String name) native;
 
   @JSName('removeAttributeNS')
-  @DocsEditable
   @DomName('Element.removeAttributeNS')
+  @DocsEditable
   void $dom_removeAttributeNS(String namespaceURI, String localName) native;
 
-  @DocsEditable
   @DomName('Element.scrollByLines')
+  @DocsEditable
   void scrollByLines(int lines) native;
 
-  @DocsEditable
   @DomName('Element.scrollByPages')
+  @DocsEditable
   void scrollByPages(int pages) native;
 
   @JSName('scrollIntoViewIfNeeded')
-  @DocsEditable
   @DomName('Element.scrollIntoViewIfNeeded')
+  @DocsEditable
   void scrollIntoView([bool centerIfNeeded]) native;
 
   @JSName('setAttribute')
-  @DocsEditable
   @DomName('Element.setAttribute')
+  @DocsEditable
   void $dom_setAttribute(String name, String value) native;
 
   @JSName('setAttributeNS')
-  @DocsEditable
   @DomName('Element.setAttributeNS')
+  @DocsEditable
   void $dom_setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
 
   @JSName('webkitCreateShadowRoot')
-  @DocsEditable
   @DomName('Element.webkitCreateShadowRoot')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental()
   ShadowRoot createShadowRoot() native;
 
-  @DocsEditable
   @DomName('Element.webkitRequestFullScreen')
+  @DocsEditable
   void webkitRequestFullScreen(int flags) native;
 
-  @DocsEditable
   @DomName('Element.webkitRequestFullscreen')
+  @DocsEditable
   void webkitRequestFullscreen() native;
 
-  @DocsEditable
   @DomName('Element.webkitRequestPointerLock')
+  @DocsEditable
   void webkitRequestPointerLock() native;
 
-  @DocsEditable
   @DomName('Element.abort')
+  @DocsEditable
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.beforecopy')
+  @DocsEditable
   Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.beforecut')
+  @DocsEditable
   Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.beforepaste')
+  @DocsEditable
   Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.blur')
+  @DocsEditable
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.change')
+  @DocsEditable
   Stream<Event> get onChange => changeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.click')
+  @DocsEditable
   Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.contextmenu')
+  @DocsEditable
   Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.copy')
+  @DocsEditable
   Stream<Event> get onCopy => copyEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.cut')
+  @DocsEditable
   Stream<Event> get onCut => cutEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.dblclick')
+  @DocsEditable
   Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.drag')
+  @DocsEditable
   Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.dragend')
+  @DocsEditable
   Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.dragenter')
+  @DocsEditable
   Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.dragleave')
+  @DocsEditable
   Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.dragover')
+  @DocsEditable
   Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.dragstart')
+  @DocsEditable
   Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.drop')
+  @DocsEditable
   Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.focus')
+  @DocsEditable
   Stream<Event> get onFocus => focusEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.input')
+  @DocsEditable
   Stream<Event> get onInput => inputEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.invalid')
+  @DocsEditable
   Stream<Event> get onInvalid => invalidEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.keydown')
+  @DocsEditable
   Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.keypress')
+  @DocsEditable
   Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.keyup')
+  @DocsEditable
   Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.load')
+  @DocsEditable
   Stream<Event> get onLoad => loadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.mousedown')
+  @DocsEditable
   Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.mousemove')
+  @DocsEditable
   Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.mouseout')
+  @DocsEditable
   Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.mouseover')
+  @DocsEditable
   Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.mouseup')
+  @DocsEditable
   Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.mousewheel')
+  @DocsEditable
   Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.paste')
+  @DocsEditable
   Stream<Event> get onPaste => pasteEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.reset')
+  @DocsEditable
   Stream<Event> get onReset => resetEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.scroll')
+  @DocsEditable
   Stream<Event> get onScroll => scrollEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.search')
+  @DocsEditable
   Stream<Event> get onSearch => searchEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.select')
+  @DocsEditable
   Stream<Event> get onSelect => selectEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.selectstart')
+  @DocsEditable
   Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.submit')
+  @DocsEditable
   Stream<Event> get onSubmit => submitEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.touchcancel')
+  @DocsEditable
   Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.touchend')
+  @DocsEditable
   Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.touchenter')
+  @DocsEditable
   Stream<TouchEvent> get onTouchEnter => touchEnterEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.touchleave')
+  @DocsEditable
   Stream<TouchEvent> get onTouchLeave => touchLeaveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.touchmove')
+  @DocsEditable
   Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.touchstart')
+  @DocsEditable
   Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.webkitTransitionEnd')
+  @DocsEditable
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.webkitfullscreenchange')
+  @DocsEditable
   Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Element.webkitfullscreenerror')
+  @DocsEditable
   Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
 
 }
@@ -9847,7 +9764,6 @@ class ElementEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('ElementTraversal')
 abstract class ElementTraversal {
 
@@ -9866,7 +9782,6 @@ abstract class ElementTraversal {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLEmbedElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -9880,34 +9795,33 @@ class EmbedElement extends Element native "*HTMLEmbedElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('embed');
 
-  @DocsEditable
   @DomName('HTMLEmbedElement.align')
+  @DocsEditable
   String align;
 
-  @DocsEditable
   @DomName('HTMLEmbedElement.height')
+  @DocsEditable
   String height;
 
-  @DocsEditable
   @DomName('HTMLEmbedElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLEmbedElement.src')
+  @DocsEditable
   String src;
 
-  @DocsEditable
   @DomName('HTMLEmbedElement.type')
+  @DocsEditable
   String type;
 
-  @DocsEditable
   @DomName('HTMLEmbedElement.width')
+  @DocsEditable
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -9927,54 +9841,53 @@ typedef void EntriesCallback(List<Entry> entries);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Entry')
 class Entry native "*Entry" {
 
-  @DocsEditable
   @DomName('Entry.filesystem')
+  @DocsEditable
   final FileSystem filesystem;
 
-  @DocsEditable
   @DomName('Entry.fullPath')
+  @DocsEditable
   final String fullPath;
 
-  @DocsEditable
   @DomName('Entry.isDirectory')
+  @DocsEditable
   final bool isDirectory;
 
-  @DocsEditable
   @DomName('Entry.isFile')
+  @DocsEditable
   final bool isFile;
 
-  @DocsEditable
   @DomName('Entry.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('Entry.copyTo')
+  @DocsEditable
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  @DocsEditable
   @DomName('Entry.getMetadata')
+  @DocsEditable
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  @DocsEditable
   @DomName('Entry.getParent')
+  @DocsEditable
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  @DocsEditable
   @DomName('Entry.moveTo')
+  @DocsEditable
   void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  @DocsEditable
   @DomName('Entry.remove')
+  @DocsEditable
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 
   @JSName('toURL')
-  @DocsEditable
   @DomName('Entry.toURL')
+  @DocsEditable
   String toUrl() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9990,54 +9903,53 @@ typedef void EntryCallback(Entry entry);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('EntrySync')
 class EntrySync native "*EntrySync" {
 
-  @DocsEditable
   @DomName('EntrySync.filesystem')
+  @DocsEditable
   final FileSystemSync filesystem;
 
-  @DocsEditable
   @DomName('EntrySync.fullPath')
+  @DocsEditable
   final String fullPath;
 
-  @DocsEditable
   @DomName('EntrySync.isDirectory')
+  @DocsEditable
   final bool isDirectory;
 
-  @DocsEditable
   @DomName('EntrySync.isFile')
+  @DocsEditable
   final bool isFile;
 
-  @DocsEditable
   @DomName('EntrySync.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('EntrySync.copyTo')
+  @DocsEditable
   EntrySync copyTo(DirectoryEntrySync parent, String name) native;
 
-  @DocsEditable
   @DomName('EntrySync.getMetadata')
+  @DocsEditable
   Metadata getMetadata() native;
 
-  @DocsEditable
   @DomName('EntrySync.getParent')
+  @DocsEditable
   EntrySync getParent() native;
 
-  @DocsEditable
   @DomName('EntrySync.moveTo')
+  @DocsEditable
   EntrySync moveTo(DirectoryEntrySync parent, String name) native;
 
-  @DocsEditable
   @DomName('EntrySync.remove')
+  @DocsEditable
   void remove() native;
 
   @JSName('toURL')
-  @DocsEditable
   @DomName('EntrySync.toURL')
+  @DocsEditable
   String toUrl() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10053,21 +9965,20 @@ typedef void ErrorCallback(FileError error);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ErrorEvent')
 class ErrorEvent extends Event native "*ErrorEvent" {
 
-  @DocsEditable
   @DomName('ErrorEvent.filename')
+  @DocsEditable
   final String filename;
 
-  @DocsEditable
   @DomName('ErrorEvent.lineno')
+  @DocsEditable
   final int lineno;
 
-  @DocsEditable
   @DomName('ErrorEvent.message')
+  @DocsEditable
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10077,7 +9988,6 @@ class ErrorEvent extends Event native "*ErrorEvent" {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('Event')
 class Event native "*Event" {
   // In JS, canBubble and cancelable are technically required parameters to
@@ -10146,73 +10056,73 @@ class Event native "*Event" {
 
   static const int SELECT = 16384;
 
-  @DocsEditable
   @DomName('Event.bubbles')
+  @DocsEditable
   final bool bubbles;
 
-  @DocsEditable
   @DomName('Event.cancelBubble')
+  @DocsEditable
   bool cancelBubble;
 
-  @DocsEditable
   @DomName('Event.cancelable')
+  @DocsEditable
   final bool cancelable;
 
-  @DocsEditable
   @DomName('Event.clipboardData')
+  @DocsEditable
   final Clipboard clipboardData;
 
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
   @JSName('currentTarget')
-  @DocsEditable
   @DomName('Event.currentTarget')
+  @DocsEditable
   @Creates('Null')
   @Returns('EventTarget|=Object')
   final dynamic _currentTarget;
 
-  @DocsEditable
   @DomName('Event.defaultPrevented')
+  @DocsEditable
   final bool defaultPrevented;
 
-  @DocsEditable
   @DomName('Event.eventPhase')
+  @DocsEditable
   final int eventPhase;
 
-  @DocsEditable
   @DomName('Event.returnValue')
+  @DocsEditable
   bool returnValue;
 
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
-  @DocsEditable
   @DomName('Event.target')
+  @DocsEditable
   @Creates('Node')
   @Returns('EventTarget|=Object')
   final dynamic _target;
 
-  @DocsEditable
   @DomName('Event.timeStamp')
+  @DocsEditable
   final int timeStamp;
 
-  @DocsEditable
   @DomName('Event.type')
+  @DocsEditable
   final String type;
 
   @JSName('initEvent')
-  @DocsEditable
   @DomName('Event.initEvent')
+  @DocsEditable
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native;
 
-  @DocsEditable
   @DomName('Event.preventDefault')
+  @DocsEditable
   void preventDefault() native;
 
-  @DocsEditable
   @DomName('Event.stopImmediatePropagation')
+  @DocsEditable
   void stopImmediatePropagation() native;
 
-  @DocsEditable
   @DomName('Event.stopPropagation')
+  @DocsEditable
   void stopPropagation() native;
 
 
@@ -10233,7 +10143,6 @@ class Event native "*Event" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('EventException')
 class EventException native "*EventException" {
@@ -10242,20 +10151,20 @@ class EventException native "*EventException" {
 
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
-  @DocsEditable
   @DomName('EventException.code')
+  @DocsEditable
   final int code;
 
-  @DocsEditable
   @DomName('EventException.message')
+  @DocsEditable
   final String message;
 
-  @DocsEditable
   @DomName('EventException.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('EventException.toString')
+  @DocsEditable
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10263,21 +10172,20 @@ class EventException native "*EventException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('EventSource')
 class EventSource extends EventTarget native "*EventSource" {
 
-  @DocsEditable
   @DomName('EventSource.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
   @DomName('EventSource.message')
+  @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DocsEditable
   @DomName('EventSource.open')
+  @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
@@ -10305,47 +10213,47 @@ class EventSource extends EventTarget native "*EventSource" {
 
   static const int OPEN = 1;
 
-  @DocsEditable
   @DomName('EventSource.readyState')
+  @DocsEditable
   final int readyState;
 
-  @DocsEditable
   @DomName('EventSource.url')
+  @DocsEditable
   final String url;
 
-  @DocsEditable
   @DomName('EventSource.withCredentials')
+  @DocsEditable
   final bool withCredentials;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('EventSource.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('EventSource.close')
+  @DocsEditable
   void close() native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('EventSource.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('EventSource.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('EventSource.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('EventSource.message')
+  @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('EventSource.open')
+  @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
@@ -10437,7 +10345,6 @@ class EventListenerList {
  * [$dom_removeEventListener]) for compile-time type checks and a more concise
  * API.
  */
-@DocsEditable
 @DomName('EventTarget')
 class EventTarget native "*EventTarget" {
 
@@ -10445,25 +10352,24 @@ class EventTarget native "*EventTarget" {
   Events get on => new Events(this);
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('EventTarget.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('EventTarget.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('EventTarget.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -10479,7 +10385,6 @@ class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLFieldSetElement')
 class FieldSetElement extends Element native "*HTMLFieldSetElement" {
@@ -10487,44 +10392,44 @@ class FieldSetElement extends Element native "*HTMLFieldSetElement" {
   @DocsEditable
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.elements')
+  @DocsEditable
   final HtmlCollection elements;
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.validationMessage')
+  @DocsEditable
   final String validationMessage;
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.validity')
+  @DocsEditable
   final ValidityState validity;
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.willValidate')
+  @DocsEditable
   final bool willValidate;
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.checkValidity')
+  @DocsEditable
   bool checkValidity() native;
 
-  @DocsEditable
   @DomName('HTMLFieldSetElement.setCustomValidity')
+  @DocsEditable
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10532,21 +10437,20 @@ class FieldSetElement extends Element native "*HTMLFieldSetElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('File')
 class File extends Blob native "*File" {
 
-  @DocsEditable
   @DomName('File.lastModifiedDate')
+  @DocsEditable
   final Date lastModifiedDate;
 
-  @DocsEditable
   @DomName('File.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('File.webkitRelativePath')
+  @DocsEditable
   final String webkitRelativePath;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10562,17 +10466,16 @@ typedef void FileCallback(File file);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('FileEntry')
 class FileEntry extends Entry native "*FileEntry" {
 
-  @DocsEditable
   @DomName('FileEntry.createWriter')
+  @DocsEditable
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  @DocsEditable
   @DomName('FileEntry.file')
+  @DocsEditable
   void file(FileCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10580,23 +10483,21 @@ class FileEntry extends Entry native "*FileEntry" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('FileEntrySync')
 class FileEntrySync extends EntrySync native "*FileEntrySync" {
 
-  @DocsEditable
   @DomName('FileEntrySync.createWriter')
+  @DocsEditable
   FileWriterSync createWriter() native;
 
-  @DocsEditable
   @DomName('FileEntrySync.file')
+  @DocsEditable
   File file() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -10627,14 +10528,13 @@ class FileError native "*FileError" {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-  @DocsEditable
   @DomName('FileError.code')
+  @DocsEditable
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -10665,20 +10565,20 @@ class FileException native "*FileException" {
 
   static const int TYPE_MISMATCH_ERR = 11;
 
-  @DocsEditable
   @DomName('FileException.code')
+  @DocsEditable
   final int code;
 
-  @DocsEditable
   @DomName('FileException.message')
+  @DocsEditable
   final String message;
 
-  @DocsEditable
   @DomName('FileException.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('FileException.toString')
+  @DocsEditable
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10686,13 +10586,12 @@ class FileException native "*FileException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('FileList')
 class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
 
-  @DocsEditable
   @DomName('FileList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   File operator[](int index) => JS("File", "#[#]", this, index);
@@ -10863,8 +10762,8 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
   // -- end List<File> mixins.
 
-  @DocsEditable
   @DomName('FileList.item')
+  @DocsEditable
   File item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10872,33 +10771,32 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('FileReader')
 class FileReader extends EventTarget native "*FileReader" {
 
-  @DocsEditable
   @DomName('FileReader.abort')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
-  @DocsEditable
   @DomName('FileReader.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
   @DomName('FileReader.load')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
-  @DocsEditable
   @DomName('FileReader.loadend')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
-  @DocsEditable
   @DomName('FileReader.loadstart')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
-  @DocsEditable
   @DomName('FileReader.progress')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DocsEditable
@@ -10916,77 +10814,77 @@ class FileReader extends EventTarget native "*FileReader" {
 
   static const int LOADING = 1;
 
-  @DocsEditable
   @DomName('FileReader.error')
+  @DocsEditable
   final FileError error;
 
-  @DocsEditable
   @DomName('FileReader.readyState')
+  @DocsEditable
   final int readyState;
 
-  @DocsEditable
   @DomName('FileReader.result')
+  @DocsEditable
   @Creates('String|ArrayBuffer|Null')
   final Object result;
 
-  @DocsEditable
   @DomName('FileReader.abort')
+  @DocsEditable
   void abort() native;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('FileReader.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('FileReader.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
-  @DocsEditable
   @DomName('FileReader.readAsArrayBuffer')
+  @DocsEditable
   void readAsArrayBuffer(Blob blob) native;
 
-  @DocsEditable
   @DomName('FileReader.readAsBinaryString')
+  @DocsEditable
   void readAsBinaryString(Blob blob) native;
 
   @JSName('readAsDataURL')
-  @DocsEditable
   @DomName('FileReader.readAsDataURL')
+  @DocsEditable
   void readAsDataUrl(Blob blob) native;
 
-  @DocsEditable
   @DomName('FileReader.readAsText')
+  @DocsEditable
   void readAsText(Blob blob, [String encoding]) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('FileReader.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('FileReader.abort')
+  @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileReader.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileReader.load')
+  @DocsEditable
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileReader.loadend')
+  @DocsEditable
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileReader.loadstart')
+  @DocsEditable
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileReader.progress')
+  @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
 
@@ -11018,7 +10916,6 @@ class FileReaderEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('FileReaderSync')
 class FileReaderSync native "*FileReaderSync" {
@@ -11027,27 +10924,26 @@ class FileReaderSync native "*FileReaderSync" {
   factory FileReaderSync() => FileReaderSync._create();
   static FileReaderSync _create() => JS('FileReaderSync', 'new FileReaderSync()');
 
-  @DocsEditable
   @DomName('FileReaderSync.readAsArrayBuffer')
+  @DocsEditable
   ArrayBuffer readAsArrayBuffer(Blob blob) native;
 
-  @DocsEditable
   @DomName('FileReaderSync.readAsBinaryString')
+  @DocsEditable
   String readAsBinaryString(Blob blob) native;
 
   @JSName('readAsDataURL')
-  @DocsEditable
   @DomName('FileReaderSync.readAsDataURL')
+  @DocsEditable
   String readAsDataUrl(Blob blob) native;
 
-  @DocsEditable
   @DomName('FileReaderSync.readAsText')
+  @DocsEditable
   String readAsText(Blob blob, [String encoding]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -11057,12 +10953,12 @@ class FileSystem native "*DOMFileSystem" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.webkitRequestFileSystem)');
 
-  @DocsEditable
   @DomName('DOMFileSystem.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('DOMFileSystem.root')
+  @DocsEditable
   final DirectoryEntry root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11078,17 +10974,16 @@ typedef void FileSystemCallback(FileSystem fileSystem);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DOMFileSystemSync')
 class FileSystemSync native "*DOMFileSystemSync" {
 
-  @DocsEditable
   @DomName('DOMFileSystemSync.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('DOMFileSystemSync.root')
+  @DocsEditable
   final DirectoryEntrySync root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11096,33 +10991,32 @@ class FileSystemSync native "*DOMFileSystemSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('FileWriter')
 class FileWriter extends EventTarget native "*FileWriter" {
 
-  @DocsEditable
   @DomName('FileWriter.abort')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
-  @DocsEditable
   @DomName('FileWriter.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
   @DomName('FileWriter.progress')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  @DocsEditable
   @DomName('FileWriter.write')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeEvent = const EventStreamProvider<ProgressEvent>('write');
 
-  @DocsEditable
   @DomName('FileWriter.writeend')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeEndEvent = const EventStreamProvider<ProgressEvent>('writeend');
 
-  @DocsEditable
   @DomName('FileWriter.writestart')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
   @DocsEditable
@@ -11136,75 +11030,75 @@ class FileWriter extends EventTarget native "*FileWriter" {
 
   static const int WRITING = 1;
 
-  @DocsEditable
   @DomName('FileWriter.error')
+  @DocsEditable
   final FileError error;
 
-  @DocsEditable
   @DomName('FileWriter.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('FileWriter.position')
+  @DocsEditable
   final int position;
 
-  @DocsEditable
   @DomName('FileWriter.readyState')
+  @DocsEditable
   final int readyState;
 
-  @DocsEditable
   @DomName('FileWriter.abort')
+  @DocsEditable
   void abort() native;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('FileWriter.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('FileWriter.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('FileWriter.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('FileWriter.seek')
+  @DocsEditable
   void seek(int position) native;
 
-  @DocsEditable
   @DomName('FileWriter.truncate')
+  @DocsEditable
   void truncate(int size) native;
 
-  @DocsEditable
   @DomName('FileWriter.write')
+  @DocsEditable
   void write(Blob data) native;
 
-  @DocsEditable
   @DomName('FileWriter.abort')
+  @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileWriter.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileWriter.progress')
+  @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileWriter.write')
+  @DocsEditable
   Stream<ProgressEvent> get onWrite => writeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileWriter.writeend')
+  @DocsEditable
   Stream<ProgressEvent> get onWriteEnd => writeEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('FileWriter.writestart')
+  @DocsEditable
   Stream<ProgressEvent> get onWriteStart => writeStartEvent.forTarget(this);
 }
 
@@ -11244,35 +11138,33 @@ typedef void FileWriterCallback(FileWriter fileWriter);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('FileWriterSync')
 class FileWriterSync native "*FileWriterSync" {
 
-  @DocsEditable
   @DomName('FileWriterSync.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('FileWriterSync.position')
+  @DocsEditable
   final int position;
 
-  @DocsEditable
   @DomName('FileWriterSync.seek')
+  @DocsEditable
   void seek(int position) native;
 
-  @DocsEditable
   @DomName('FileWriterSync.truncate')
+  @DocsEditable
   void truncate(int size) native;
 
-  @DocsEditable
   @DomName('FileWriterSync.write')
+  @DocsEditable
   void write(Blob data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -11290,8 +11182,8 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  @DocsEditable
   @DomName('Float32Array.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   num operator[](int index) => JS("num", "#[#]", this, index);
@@ -11460,18 +11352,17 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   // -- end List<num> mixins.
 
   @JSName('set')
-  @DocsEditable
   @DomName('Float32Array.set')
+  @DocsEditable
   void setElements(Object array, [int offset]) native;
 
-  @DocsEditable
   @DomName('Float32Array.subarray')
+  @DocsEditable
   Float32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -11489,8 +11380,8 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   static const int BYTES_PER_ELEMENT = 8;
 
-  @DocsEditable
   @DomName('Float64Array.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   num operator[](int index) => JS("num", "#[#]", this, index);
@@ -11659,18 +11550,17 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   // -- end List<num> mixins.
 
   @JSName('set')
-  @DocsEditable
   @DomName('Float64Array.set')
+  @DocsEditable
   void setElements(Object array, [int offset]) native;
 
-  @DocsEditable
   @DomName('Float64Array.subarray')
+  @DocsEditable
   Float64Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -11691,14 +11581,13 @@ class FormData native "*FormData" {
     return JS('FormData', 'new FormData(#)', form);
   }
 
-  @DocsEditable
   @DomName('DOMFormData.append')
+  @DocsEditable
   void append(String name, value, [String filename]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -11708,56 +11597,56 @@ class FormElement extends Element native "*HTMLFormElement" {
   @DocsEditable
   factory FormElement() => document.$dom_createElement("form");
 
-  @DocsEditable
   @DomName('HTMLFormElement.acceptCharset')
+  @DocsEditable
   String acceptCharset;
 
-  @DocsEditable
   @DomName('HTMLFormElement.action')
+  @DocsEditable
   String action;
 
-  @DocsEditable
   @DomName('HTMLFormElement.autocomplete')
+  @DocsEditable
   String autocomplete;
 
-  @DocsEditable
   @DomName('HTMLFormElement.encoding')
+  @DocsEditable
   String encoding;
 
-  @DocsEditable
   @DomName('HTMLFormElement.enctype')
+  @DocsEditable
   String enctype;
 
-  @DocsEditable
   @DomName('HTMLFormElement.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('HTMLFormElement.method')
+  @DocsEditable
   String method;
 
-  @DocsEditable
   @DomName('HTMLFormElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLFormElement.noValidate')
+  @DocsEditable
   bool noValidate;
 
-  @DocsEditable
   @DomName('HTMLFormElement.target')
+  @DocsEditable
   String target;
 
-  @DocsEditable
   @DomName('HTMLFormElement.checkValidity')
+  @DocsEditable
   bool checkValidity() native;
 
-  @DocsEditable
   @DomName('HTMLFormElement.reset')
+  @DocsEditable
   void reset() native;
 
-  @DocsEditable
   @DomName('HTMLFormElement.submit')
+  @DocsEditable
   void submit() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11765,29 +11654,28 @@ class FormElement extends Element native "*HTMLFormElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Gamepad')
 class Gamepad native "*Gamepad" {
 
-  @DocsEditable
   @DomName('Gamepad.axes')
+  @DocsEditable
   final List<num> axes;
 
-  @DocsEditable
   @DomName('Gamepad.buttons')
+  @DocsEditable
   final List<num> buttons;
 
-  @DocsEditable
   @DomName('Gamepad.id')
+  @DocsEditable
   final String id;
 
-  @DocsEditable
   @DomName('Gamepad.index')
+  @DocsEditable
   final int index;
 
-  @DocsEditable
   @DomName('Gamepad.timestamp')
+  @DocsEditable
   final int timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11795,21 +11683,20 @@ class Gamepad native "*Gamepad" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Geolocation')
 class Geolocation native "*Geolocation" {
 
-  @DocsEditable
   @DomName('Geolocation.clearWatch')
+  @DocsEditable
   void clearWatch(int watchId) native;
 
-  @DocsEditable
   @DomName('Geolocation.getCurrentPosition')
+  @DocsEditable
   void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 
-  @DocsEditable
   @DomName('Geolocation.watchPosition')
+  @DocsEditable
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11817,23 +11704,21 @@ class Geolocation native "*Geolocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Geoposition')
 class Geoposition native "*Geoposition" {
 
-  @DocsEditable
   @DomName('Geoposition.coords')
+  @DocsEditable
   final Coordinates coords;
 
-  @DocsEditable
   @DomName('Geoposition.timestamp')
+  @DocsEditable
   final int timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -11848,29 +11733,27 @@ class HRElement extends Element native "*HTMLHRElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HashChangeEvent')
 class HashChangeEvent extends Event native "*HashChangeEvent" {
 
   @JSName('newURL')
-  @DocsEditable
   @DomName('HashChangeEvent.newURL')
+  @DocsEditable
   final String newUrl;
 
   @JSName('oldURL')
-  @DocsEditable
   @DomName('HashChangeEvent.oldURL')
+  @DocsEditable
   final String oldUrl;
 
-  @DocsEditable
   @DomName('HashChangeEvent.initHashChangeEvent')
+  @DocsEditable
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -11883,7 +11766,6 @@ class HeadElement extends Element native "*HTMLHeadElement" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -11913,7 +11795,6 @@ class HeadingElement extends Element native "*HTMLHeadingElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('History')
 class History implements HistoryBase native "*History" {
 
@@ -11928,40 +11809,40 @@ class History implements HistoryBase native "*History" {
    */
   static bool get supportsState => JS('bool', '!!window.history.pushState');
 
-  @DocsEditable
   @DomName('History.length')
+  @DocsEditable
   final int length;
 
   dynamic get state => _convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
-  @DocsEditable
   @DomName('History.state')
+  @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
   final dynamic _state;
 
-  @DocsEditable
   @DomName('History.back')
+  @DocsEditable
   void back() native;
 
-  @DocsEditable
   @DomName('History.forward')
+  @DocsEditable
   void forward() native;
 
-  @DocsEditable
   @DomName('History.go')
+  @DocsEditable
   void go(int distance) native;
 
-  @DocsEditable
   @DomName('History.pushState')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void pushState(Object data, String title, [String url]) native;
 
-  @DocsEditable
   @DomName('History.replaceState')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -11973,13 +11854,12 @@ class History implements HistoryBase native "*History" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLAllCollection')
 class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
 
-  @DocsEditable
   @DomName('HTMLAllCollection.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -12150,16 +12030,16 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   // -- end List<Node> mixins.
 
-  @DocsEditable
   @DomName('HTMLAllCollection.item')
+  @DocsEditable
   Node item(int index) native;
 
-  @DocsEditable
   @DomName('HTMLAllCollection.namedItem')
+  @DocsEditable
   Node namedItem(String name) native;
 
-  @DocsEditable
   @DomName('HTMLAllCollection.tags')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> tags(String name) native;
@@ -12169,13 +12049,12 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLCollection')
 class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
 
-  @DocsEditable
   @DomName('HTMLCollection.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -12346,12 +12225,12 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   // -- end List<Node> mixins.
 
-  @DocsEditable
   @DomName('HTMLCollection.item')
+  @DocsEditable
   Node item(int index) native;
 
-  @DocsEditable
   @DomName('HTMLCollection.namedItem')
+  @DocsEditable
   Node namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12361,12 +12240,11 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('HTMLDocument')
 class HtmlDocument extends Document native "*HTMLDocument" {
 
-  @DocsEditable
   @DomName('HTMLDocument.activeElement')
+  @DocsEditable
   final Element activeElement;
 
   @DomName('Document.body')
@@ -12495,7 +12373,6 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLHtmlElement')
 class HtmlElement extends Element native "*HTMLHtmlElement" {
@@ -12508,19 +12385,17 @@ class HtmlElement extends Element native "*HTMLHtmlElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLFormControlsCollection')
 class HtmlFormControlsCollection extends HtmlCollection native "*HTMLFormControlsCollection" {
 
-  @DocsEditable
   @DomName('HTMLFormControlsCollection.namedItem')
+  @DocsEditable
   Node namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -12557,7 +12432,6 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
  * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
-@DocsEditable
 @DomName('XMLHttpRequest')
 class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   /**
@@ -12592,32 +12466,32 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
       _HttpRequestUtils.get(url, onComplete, true);
 
 
-  @DocsEditable
   @DomName('XMLHttpRequest.abort')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
-  @DocsEditable
   @DomName('XMLHttpRequest.error')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
 
-  @DocsEditable
   @DomName('XMLHttpRequest.load')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
-  @DocsEditable
   @DomName('XMLHttpRequest.loadend')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
-  @DocsEditable
   @DomName('XMLHttpRequest.loadstart')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
-  @DocsEditable
   @DomName('XMLHttpRequest.progress')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  @DocsEditable
   @DomName('XMLHttpRequest.readystatechange')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
   @DocsEditable
@@ -12639,113 +12513,113 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.readyState')
+  @DocsEditable
   final int readyState;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.response')
+  @DocsEditable
   @Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')
   final Object response;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.responseText')
+  @DocsEditable
   final String responseText;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.responseType')
+  @DocsEditable
   String responseType;
 
   @JSName('responseXML')
-  @DocsEditable
   @DomName('XMLHttpRequest.responseXML')
+  @DocsEditable
   final Document responseXml;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.status')
+  @DocsEditable
   final int status;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.statusText')
+  @DocsEditable
   final String statusText;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.upload')
+  @DocsEditable
   final HttpRequestUpload upload;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.withCredentials')
+  @DocsEditable
   bool withCredentials;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.abort')
+  @DocsEditable
   void abort() native;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('XMLHttpRequest.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('XMLHttpRequest.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.getAllResponseHeaders')
+  @DocsEditable
   String getAllResponseHeaders() native;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.getResponseHeader')
+  @DocsEditable
   String getResponseHeader(String header) native;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.open')
+  @DocsEditable
   void open(String method, String url, [bool async, String user, String password]) native;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.overrideMimeType')
+  @DocsEditable
   void overrideMimeType(String override) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('XMLHttpRequest.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.send')
+  @DocsEditable
   void send([data]) native;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.setRequestHeader')
+  @DocsEditable
   void setRequestHeader(String header, String value) native;
 
-  @DocsEditable
   @DomName('XMLHttpRequest.abort')
+  @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequest.error')
+  @DocsEditable
   Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequest.load')
+  @DocsEditable
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequest.loadend')
+  @DocsEditable
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequest.loadstart')
+  @DocsEditable
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequest.progress')
+  @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequest.readystatechange')
+  @DocsEditable
   Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
 }
@@ -12781,7 +12655,6 @@ class HttpRequestEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('XMLHttpRequestException')
 class HttpRequestException native "*XMLHttpRequestException" {
@@ -12790,20 +12663,20 @@ class HttpRequestException native "*XMLHttpRequestException" {
 
   static const int NETWORK_ERR = 101;
 
-  @DocsEditable
   @DomName('XMLHttpRequestException.code')
+  @DocsEditable
   final int code;
 
-  @DocsEditable
   @DomName('XMLHttpRequestException.message')
+  @DocsEditable
   final String message;
 
-  @DocsEditable
   @DomName('XMLHttpRequestException.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('XMLHttpRequestException.toString')
+  @DocsEditable
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12811,17 +12684,16 @@ class HttpRequestException native "*XMLHttpRequestException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('XMLHttpRequestProgressEvent')
 class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
 
-  @DocsEditable
   @DomName('XMLHttpRequestProgressEvent.position')
+  @DocsEditable
   final int position;
 
-  @DocsEditable
   @DomName('XMLHttpRequestProgressEvent.totalSize')
+  @DocsEditable
   final int totalSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12829,33 +12701,32 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('XMLHttpRequestUpload')
 class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.abort')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.error')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.load')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.loadend')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.loadstart')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.progress')
+  @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DocsEditable
@@ -12864,42 +12735,42 @@ class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
     new HttpRequestUploadEvents(this);
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.abort')
+  @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.error')
+  @DocsEditable
   Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.load')
+  @DocsEditable
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.loadend')
+  @DocsEditable
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.loadstart')
+  @DocsEditable
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('XMLHttpRequestUpload.progress')
+  @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
 
@@ -12931,7 +12802,6 @@ class HttpRequestUploadEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLIFrameElement')
 class IFrameElement extends Element native "*HTMLIFrameElement" {
@@ -12941,34 +12811,34 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
 
   WindowBase get contentWindow => _convertNativeToDart_Window(this._contentWindow);
   @JSName('contentWindow')
-  @DocsEditable
   @DomName('HTMLIFrameElement.contentWindow')
+  @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _contentWindow;
 
-  @DocsEditable
   @DomName('HTMLIFrameElement.height')
+  @DocsEditable
   String height;
 
-  @DocsEditable
   @DomName('HTMLIFrameElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLIFrameElement.sandbox')
+  @DocsEditable
   String sandbox;
 
-  @DocsEditable
   @DomName('HTMLIFrameElement.src')
+  @DocsEditable
   String src;
 
-  @DocsEditable
   @DomName('HTMLIFrameElement.srcdoc')
+  @DocsEditable
   String srcdoc;
 
-  @DocsEditable
   @DomName('HTMLIFrameElement.width')
+  @DocsEditable
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12976,27 +12846,25 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ImageData')
 class ImageData native "*ImageData" {
 
-  @DocsEditable
   @DomName('ImageData.data')
+  @DocsEditable
   final Uint8ClampedArray data;
 
-  @DocsEditable
   @DomName('ImageData.height')
+  @DocsEditable
   final int height;
 
-  @DocsEditable
   @DomName('ImageData.width')
+  @DocsEditable
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -13012,60 +12880,60 @@ class ImageElement extends Element native "*HTMLImageElement" {
     return e;
   }
 
-  @DocsEditable
   @DomName('HTMLImageElement.alt')
+  @DocsEditable
   String alt;
 
-  @DocsEditable
   @DomName('HTMLImageElement.border')
+  @DocsEditable
   String border;
 
-  @DocsEditable
   @DomName('HTMLImageElement.complete')
+  @DocsEditable
   final bool complete;
 
-  @DocsEditable
   @DomName('HTMLImageElement.crossOrigin')
+  @DocsEditable
   String crossOrigin;
 
-  @DocsEditable
   @DomName('HTMLImageElement.height')
+  @DocsEditable
   int height;
 
-  @DocsEditable
   @DomName('HTMLImageElement.isMap')
+  @DocsEditable
   bool isMap;
 
-  @DocsEditable
   @DomName('HTMLImageElement.lowsrc')
+  @DocsEditable
   String lowsrc;
 
-  @DocsEditable
   @DomName('HTMLImageElement.naturalHeight')
+  @DocsEditable
   final int naturalHeight;
 
-  @DocsEditable
   @DomName('HTMLImageElement.naturalWidth')
+  @DocsEditable
   final int naturalWidth;
 
-  @DocsEditable
   @DomName('HTMLImageElement.src')
+  @DocsEditable
   String src;
 
-  @DocsEditable
   @DomName('HTMLImageElement.useMap')
+  @DocsEditable
   String useMap;
 
-  @DocsEditable
   @DomName('HTMLImageElement.width')
+  @DocsEditable
   int width;
 
-  @DocsEditable
   @DomName('HTMLImageElement.x')
+  @DocsEditable
   final int x;
 
-  @DocsEditable
   @DomName('HTMLImageElement.y')
+  @DocsEditable
   final int y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13073,7 +12941,6 @@ class ImageElement extends Element native "*HTMLImageElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('HTMLInputElement')
 class InputElement extends Element implements
     HiddenInputElement,
@@ -13111,8 +12978,8 @@ class InputElement extends Element implements
     return e;
   }
 
-  @DocsEditable
   @DomName('HTMLInputElement.webkitSpeechChange')
+  @DocsEditable
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
   @DocsEditable
@@ -13120,238 +12987,238 @@ class InputElement extends Element implements
   InputElementEvents get on =>
     new InputElementEvents(this);
 
-  @DocsEditable
   @DomName('HTMLInputElement.accept')
+  @DocsEditable
   String accept;
 
-  @DocsEditable
   @DomName('HTMLInputElement.alt')
+  @DocsEditable
   String alt;
 
-  @DocsEditable
   @DomName('HTMLInputElement.autocomplete')
+  @DocsEditable
   String autocomplete;
 
-  @DocsEditable
   @DomName('HTMLInputElement.autofocus')
+  @DocsEditable
   bool autofocus;
 
-  @DocsEditable
   @DomName('HTMLInputElement.checked')
+  @DocsEditable
   bool checked;
 
-  @DocsEditable
   @DomName('HTMLInputElement.defaultChecked')
+  @DocsEditable
   bool defaultChecked;
 
-  @DocsEditable
   @DomName('HTMLInputElement.defaultValue')
+  @DocsEditable
   String defaultValue;
 
-  @DocsEditable
   @DomName('HTMLInputElement.dirName')
+  @DocsEditable
   String dirName;
 
-  @DocsEditable
   @DomName('HTMLInputElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLInputElement.files')
+  @DocsEditable
   @Returns('FileList')
   @Creates('FileList')
   List<File> files;
 
-  @DocsEditable
   @DomName('HTMLInputElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLInputElement.formAction')
+  @DocsEditable
   String formAction;
 
-  @DocsEditable
   @DomName('HTMLInputElement.formEnctype')
+  @DocsEditable
   String formEnctype;
 
-  @DocsEditable
   @DomName('HTMLInputElement.formMethod')
+  @DocsEditable
   String formMethod;
 
-  @DocsEditable
   @DomName('HTMLInputElement.formNoValidate')
+  @DocsEditable
   bool formNoValidate;
 
-  @DocsEditable
   @DomName('HTMLInputElement.formTarget')
+  @DocsEditable
   String formTarget;
 
-  @DocsEditable
   @DomName('HTMLInputElement.height')
+  @DocsEditable
   int height;
 
-  @DocsEditable
   @DomName('HTMLInputElement.incremental')
+  @DocsEditable
   bool incremental;
 
-  @DocsEditable
   @DomName('HTMLInputElement.indeterminate')
+  @DocsEditable
   bool indeterminate;
 
-  @DocsEditable
   @DomName('HTMLInputElement.labels')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> labels;
 
-  @DocsEditable
   @DomName('HTMLInputElement.list')
+  @DocsEditable
   final Element list;
 
-  @DocsEditable
   @DomName('HTMLInputElement.max')
+  @DocsEditable
   String max;
 
-  @DocsEditable
   @DomName('HTMLInputElement.maxLength')
+  @DocsEditable
   int maxLength;
 
-  @DocsEditable
   @DomName('HTMLInputElement.min')
+  @DocsEditable
   String min;
 
-  @DocsEditable
   @DomName('HTMLInputElement.multiple')
+  @DocsEditable
   bool multiple;
 
-  @DocsEditable
   @DomName('HTMLInputElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLInputElement.pattern')
+  @DocsEditable
   String pattern;
 
-  @DocsEditable
   @DomName('HTMLInputElement.placeholder')
+  @DocsEditable
   String placeholder;
 
-  @DocsEditable
   @DomName('HTMLInputElement.readOnly')
+  @DocsEditable
   bool readOnly;
 
-  @DocsEditable
   @DomName('HTMLInputElement.required')
+  @DocsEditable
   bool required;
 
-  @DocsEditable
   @DomName('HTMLInputElement.selectionDirection')
+  @DocsEditable
   String selectionDirection;
 
-  @DocsEditable
   @DomName('HTMLInputElement.selectionEnd')
+  @DocsEditable
   int selectionEnd;
 
-  @DocsEditable
   @DomName('HTMLInputElement.selectionStart')
+  @DocsEditable
   int selectionStart;
 
-  @DocsEditable
   @DomName('HTMLInputElement.size')
+  @DocsEditable
   int size;
 
-  @DocsEditable
   @DomName('HTMLInputElement.src')
+  @DocsEditable
   String src;
 
-  @DocsEditable
   @DomName('HTMLInputElement.step')
+  @DocsEditable
   String step;
 
-  @DocsEditable
   @DomName('HTMLInputElement.type')
+  @DocsEditable
   String type;
 
-  @DocsEditable
   @DomName('HTMLInputElement.useMap')
+  @DocsEditable
   String useMap;
 
-  @DocsEditable
   @DomName('HTMLInputElement.validationMessage')
+  @DocsEditable
   final String validationMessage;
 
-  @DocsEditable
   @DomName('HTMLInputElement.validity')
+  @DocsEditable
   final ValidityState validity;
 
-  @DocsEditable
   @DomName('HTMLInputElement.value')
+  @DocsEditable
   String value;
 
-  @DocsEditable
   @DomName('HTMLInputElement.valueAsDate')
+  @DocsEditable
   Date valueAsDate;
 
-  @DocsEditable
   @DomName('HTMLInputElement.valueAsNumber')
+  @DocsEditable
   num valueAsNumber;
 
-  @DocsEditable
   @DomName('HTMLInputElement.webkitEntries')
+  @DocsEditable
   @Returns('_EntryArray')
   @Creates('_EntryArray')
   final List<Entry> webkitEntries;
 
-  @DocsEditable
   @DomName('HTMLInputElement.webkitGrammar')
+  @DocsEditable
   bool webkitGrammar;
 
-  @DocsEditable
   @DomName('HTMLInputElement.webkitSpeech')
+  @DocsEditable
   bool webkitSpeech;
 
-  @DocsEditable
   @DomName('HTMLInputElement.webkitdirectory')
+  @DocsEditable
   bool webkitdirectory;
 
-  @DocsEditable
   @DomName('HTMLInputElement.width')
+  @DocsEditable
   int width;
 
-  @DocsEditable
   @DomName('HTMLInputElement.willValidate')
+  @DocsEditable
   final bool willValidate;
 
-  @DocsEditable
   @DomName('HTMLInputElement.checkValidity')
+  @DocsEditable
   bool checkValidity() native;
 
-  @DocsEditable
   @DomName('HTMLInputElement.select')
+  @DocsEditable
   void select() native;
 
-  @DocsEditable
   @DomName('HTMLInputElement.setCustomValidity')
+  @DocsEditable
   void setCustomValidity(String error) native;
 
-  @DocsEditable
   @DomName('HTMLInputElement.setRangeText')
+  @DocsEditable
   void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
-  @DocsEditable
   @DomName('HTMLInputElement.setSelectionRange')
+  @DocsEditable
   void setSelectionRange(int start, int end, [String direction]) native;
 
-  @DocsEditable
   @DomName('HTMLInputElement.stepDown')
+  @DocsEditable
   void stepDown([int n]) native;
 
-  @DocsEditable
   @DomName('HTMLInputElement.stepUp')
+  @DocsEditable
   void stepUp([int n]) native;
 
-  @DocsEditable
   @DomName('HTMLInputElement.webkitSpeechChange')
+  @DocsEditable
   Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
 
 }
@@ -13951,7 +13818,6 @@ class InputElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Int16Array')
 class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int16Array" {
@@ -13967,8 +13833,8 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  @DocsEditable
   @DomName('Int16Array.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -14137,18 +14003,17 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   // -- end List<int> mixins.
 
   @JSName('set')
-  @DocsEditable
   @DomName('Int16Array.set')
+  @DocsEditable
   void setElements(Object array, [int offset]) native;
 
-  @DocsEditable
   @DomName('Int16Array.subarray')
+  @DocsEditable
   Int16Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14166,8 +14031,8 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  @DocsEditable
   @DomName('Int32Array.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -14336,18 +14201,17 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   // -- end List<int> mixins.
 
   @JSName('set')
-  @DocsEditable
   @DomName('Int32Array.set')
+  @DocsEditable
   void setElements(Object array, [int offset]) native;
 
-  @DocsEditable
   @DomName('Int32Array.subarray')
+  @DocsEditable
   Int32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14365,8 +14229,8 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  @DocsEditable
   @DomName('Int8Array.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -14535,18 +14399,17 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   // -- end List<int> mixins.
 
   @JSName('set')
-  @DocsEditable
   @DomName('Int8Array.set')
+  @DocsEditable
   void setElements(Object array, [int offset]) native;
 
-  @DocsEditable
   @DomName('Int8Array.subarray')
+  @DocsEditable
   Int8Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14563,48 +14426,48 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static const int WITH_SCOPE = 2;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.caller')
+  @DocsEditable
   final JavaScriptCallFrame caller;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.column')
+  @DocsEditable
   final int column;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.functionName')
+  @DocsEditable
   final String functionName;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.line')
+  @DocsEditable
   final int line;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.scopeChain')
+  @DocsEditable
   final List scopeChain;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.sourceID')
+  @DocsEditable
   final int sourceID;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.thisObject')
+  @DocsEditable
   final Object thisObject;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.evaluate')
+  @DocsEditable
   void evaluate(String script) native;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.restart')
+  @DocsEditable
   Object restart() native;
 
-  @DocsEditable
   @DomName('JavaScriptCallFrame.scopeType')
+  @DocsEditable
   int scopeType(int scopeIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14612,7 +14475,6 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
@@ -14653,40 +14515,39 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
   @DomName('KeyboardEvent.charCode')
   int get charCode => $dom_charCode;
 
-  @DocsEditable
   @DomName('KeyboardEvent.altGraphKey')
+  @DocsEditable
   final bool altGraphKey;
 
-  @DocsEditable
   @DomName('KeyboardEvent.altKey')
+  @DocsEditable
   final bool altKey;
 
-  @DocsEditable
   @DomName('KeyboardEvent.ctrlKey')
+  @DocsEditable
   final bool ctrlKey;
 
   @JSName('keyIdentifier')
-  @DocsEditable
   @DomName('KeyboardEvent.keyIdentifier')
+  @DocsEditable
   final String $dom_keyIdentifier;
 
-  @DocsEditable
   @DomName('KeyboardEvent.keyLocation')
+  @DocsEditable
   final int keyLocation;
 
-  @DocsEditable
   @DomName('KeyboardEvent.metaKey')
+  @DocsEditable
   final bool metaKey;
 
-  @DocsEditable
   @DomName('KeyboardEvent.shiftKey')
+  @DocsEditable
   final bool shiftKey;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14702,64 +14563,63 @@ class KeygenElement extends Element native "*HTMLKeygenElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('keygen') && (new Element.tag('keygen') is KeygenElement);
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.autofocus')
+  @DocsEditable
   bool autofocus;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.challenge')
+  @DocsEditable
   String challenge;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.keytype')
+  @DocsEditable
   String keytype;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.labels')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> labels;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.validationMessage')
+  @DocsEditable
   final String validationMessage;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.validity')
+  @DocsEditable
   final ValidityState validity;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.willValidate')
+  @DocsEditable
   final bool willValidate;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.checkValidity')
+  @DocsEditable
   bool checkValidity() native;
 
-  @DocsEditable
   @DomName('HTMLKeygenElement.setCustomValidity')
+  @DocsEditable
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14769,18 +14629,17 @@ class LIElement extends Element native "*HTMLLIElement" {
   @DocsEditable
   factory LIElement() => document.$dom_createElement("li");
 
-  @DocsEditable
   @DomName('HTMLLIElement.type')
+  @DocsEditable
   String type;
 
-  @DocsEditable
   @DomName('HTMLLIElement.value')
+  @DocsEditable
   int value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14790,22 +14649,21 @@ class LabelElement extends Element native "*HTMLLabelElement" {
   @DocsEditable
   factory LabelElement() => document.$dom_createElement("label");
 
-  @DocsEditable
   @DomName('HTMLLabelElement.control')
+  @DocsEditable
   final Element control;
 
-  @DocsEditable
   @DomName('HTMLLabelElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLLabelElement.htmlFor')
+  @DocsEditable
   String htmlFor;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14815,14 +14673,13 @@ class LegendElement extends Element native "*HTMLLegendElement" {
   @DocsEditable
   factory LegendElement() => document.$dom_createElement("legend");
 
-  @DocsEditable
   @DomName('HTMLLegendElement.form')
+  @DocsEditable
   final FormElement form;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14832,36 +14689,36 @@ class LinkElement extends Element native "*HTMLLinkElement" {
   @DocsEditable
   factory LinkElement() => document.$dom_createElement("link");
 
-  @DocsEditable
   @DomName('HTMLLinkElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLLinkElement.href')
+  @DocsEditable
   String href;
 
-  @DocsEditable
   @DomName('HTMLLinkElement.hreflang')
+  @DocsEditable
   String hreflang;
 
-  @DocsEditable
   @DomName('HTMLLinkElement.media')
+  @DocsEditable
   String media;
 
-  @DocsEditable
   @DomName('HTMLLinkElement.rel')
+  @DocsEditable
   String rel;
 
-  @DocsEditable
   @DomName('HTMLLinkElement.sheet')
+  @DocsEditable
   final StyleSheet sheet;
 
-  @DocsEditable
   @DomName('HTMLLinkElement.sizes')
+  @DocsEditable
   DomSettableTokenList sizes;
 
-  @DocsEditable
   @DomName('HTMLLinkElement.type')
+  @DocsEditable
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14869,13 +14726,12 @@ class LinkElement extends Element native "*HTMLLinkElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('LocalMediaStream')
 class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
 
-  @DocsEditable
   @DomName('LocalMediaStream.stop')
+  @DocsEditable
   void stop() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14883,73 +14739,71 @@ class LocalMediaStream extends MediaStream implements EventTarget native "*Local
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Location')
 class Location implements LocationBase native "*Location" {
 
-  @DocsEditable
   @DomName('Location.ancestorOrigins')
+  @DocsEditable
   @Returns('DomStringList')
   @Creates('DomStringList')
   final List<String> ancestorOrigins;
 
-  @DocsEditable
   @DomName('Location.hash')
+  @DocsEditable
   String hash;
 
-  @DocsEditable
   @DomName('Location.host')
+  @DocsEditable
   String host;
 
-  @DocsEditable
   @DomName('Location.hostname')
+  @DocsEditable
   String hostname;
 
-  @DocsEditable
   @DomName('Location.href')
+  @DocsEditable
   String href;
 
-  @DocsEditable
   @DomName('Location.origin')
+  @DocsEditable
   final String origin;
 
-  @DocsEditable
   @DomName('Location.pathname')
+  @DocsEditable
   String pathname;
 
-  @DocsEditable
   @DomName('Location.port')
+  @DocsEditable
   String port;
 
-  @DocsEditable
   @DomName('Location.protocol')
+  @DocsEditable
   String protocol;
 
-  @DocsEditable
   @DomName('Location.search')
+  @DocsEditable
   String search;
 
-  @DocsEditable
   @DomName('Location.assign')
+  @DocsEditable
   void assign(String url) native;
 
-  @DocsEditable
   @DomName('Location.reload')
+  @DocsEditable
   void reload() native;
 
-  @DocsEditable
   @DomName('Location.replace')
+  @DocsEditable
   void replace(String url) native;
 
-  @DocsEditable
   @DomName('Location.toString')
+  @DocsEditable
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14959,18 +14813,17 @@ class MapElement extends Element native "*HTMLMapElement" {
   @DocsEditable
   factory MapElement() => document.$dom_createElement("map");
 
-  @DocsEditable
   @DomName('HTMLMapElement.areas')
+  @DocsEditable
   final HtmlCollection areas;
 
-  @DocsEditable
   @DomName('HTMLMapElement.name')
+  @DocsEditable
   String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -14981,75 +14834,75 @@ class MediaController extends EventTarget native "*MediaController" {
   factory MediaController() => MediaController._create();
   static MediaController _create() => JS('MediaController', 'new MediaController()');
 
-  @DocsEditable
   @DomName('MediaController.buffered')
+  @DocsEditable
   final TimeRanges buffered;
 
-  @DocsEditable
   @DomName('MediaController.currentTime')
+  @DocsEditable
   num currentTime;
 
-  @DocsEditable
   @DomName('MediaController.defaultPlaybackRate')
+  @DocsEditable
   num defaultPlaybackRate;
 
-  @DocsEditable
   @DomName('MediaController.duration')
+  @DocsEditable
   final num duration;
 
-  @DocsEditable
   @DomName('MediaController.muted')
+  @DocsEditable
   bool muted;
 
-  @DocsEditable
   @DomName('MediaController.paused')
+  @DocsEditable
   final bool paused;
 
-  @DocsEditable
   @DomName('MediaController.playbackRate')
+  @DocsEditable
   num playbackRate;
 
-  @DocsEditable
   @DomName('MediaController.playbackState')
+  @DocsEditable
   final String playbackState;
 
-  @DocsEditable
   @DomName('MediaController.played')
+  @DocsEditable
   final TimeRanges played;
 
-  @DocsEditable
   @DomName('MediaController.seekable')
+  @DocsEditable
   final TimeRanges seekable;
 
-  @DocsEditable
   @DomName('MediaController.volume')
+  @DocsEditable
   num volume;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('MediaController.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('MediaController.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
-  @DocsEditable
   @DomName('MediaController.pause')
+  @DocsEditable
   void pause() native;
 
-  @DocsEditable
   @DomName('MediaController.play')
+  @DocsEditable
   void play() native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('MediaController.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('MediaController.unpause')
+  @DocsEditable
   void unpause() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15057,109 +14910,108 @@ class MediaController extends EventTarget native "*MediaController" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLMediaElement')
 class MediaElement extends Element native "*HTMLMediaElement" {
 
-  @DocsEditable
   @DomName('HTMLMediaElement.canplay')
+  @DocsEditable
   static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.canplaythrough')
+  @DocsEditable
   static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.durationchange')
+  @DocsEditable
   static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.emptied')
+  @DocsEditable
   static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.ended')
+  @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.loadeddata')
+  @DocsEditable
   static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.loadedmetadata')
+  @DocsEditable
   static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.loadstart')
+  @DocsEditable
   static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.pause')
+  @DocsEditable
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.play')
+  @DocsEditable
   static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.playing')
+  @DocsEditable
   static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.progress')
+  @DocsEditable
   static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.ratechange')
+  @DocsEditable
   static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.seeked')
+  @DocsEditable
   static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.seeking')
+  @DocsEditable
   static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.show')
+  @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.stalled')
+  @DocsEditable
   static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.suspend')
+  @DocsEditable
   static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.timeupdate')
+  @DocsEditable
   static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.volumechange')
+  @DocsEditable
   static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.waiting')
+  @DocsEditable
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitkeyadded')
+  @DocsEditable
   static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitkeyerror')
+  @DocsEditable
   static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitkeymessage')
+  @DocsEditable
   static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitneedkey')
+  @DocsEditable
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
   @DocsEditable
@@ -15185,264 +15037,264 @@ class MediaElement extends Element native "*HTMLMediaElement" {
 
   static const int NETWORK_NO_SOURCE = 3;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.autoplay')
+  @DocsEditable
   bool autoplay;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.buffered')
+  @DocsEditable
   final TimeRanges buffered;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.controller')
+  @DocsEditable
   MediaController controller;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.controls')
+  @DocsEditable
   bool controls;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.currentSrc')
+  @DocsEditable
   final String currentSrc;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.currentTime')
+  @DocsEditable
   num currentTime;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.defaultMuted')
+  @DocsEditable
   bool defaultMuted;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.defaultPlaybackRate')
+  @DocsEditable
   num defaultPlaybackRate;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.duration')
+  @DocsEditable
   final num duration;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.ended')
+  @DocsEditable
   final bool ended;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.error')
+  @DocsEditable
   final MediaError error;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.initialTime')
+  @DocsEditable
   final num initialTime;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.loop')
+  @DocsEditable
   bool loop;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.mediaGroup')
+  @DocsEditable
   String mediaGroup;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.muted')
+  @DocsEditable
   bool muted;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.networkState')
+  @DocsEditable
   final int networkState;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.paused')
+  @DocsEditable
   final bool paused;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.playbackRate')
+  @DocsEditable
   num playbackRate;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.played')
+  @DocsEditable
   final TimeRanges played;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.preload')
+  @DocsEditable
   String preload;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.readyState')
+  @DocsEditable
   final int readyState;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.seekable')
+  @DocsEditable
   final TimeRanges seekable;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.seeking')
+  @DocsEditable
   final bool seeking;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.src')
+  @DocsEditable
   String src;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.startTime')
+  @DocsEditable
   final num startTime;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.textTracks')
+  @DocsEditable
   final TextTrackList textTracks;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.volume')
+  @DocsEditable
   num volume;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
+  @DocsEditable
   final int webkitAudioDecodedByteCount;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
+  @DocsEditable
   bool webkitClosedCaptionsVisible;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitHasClosedCaptions')
+  @DocsEditable
   final bool webkitHasClosedCaptions;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitPreservesPitch')
+  @DocsEditable
   bool webkitPreservesPitch;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitVideoDecodedByteCount')
+  @DocsEditable
   final int webkitVideoDecodedByteCount;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.addTextTrack')
+  @DocsEditable
   TextTrack addTextTrack(String kind, [String label, String language]) native;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.canPlayType')
+  @DocsEditable
   String canPlayType(String type, String keySystem) native;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.load')
+  @DocsEditable
   void load() native;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.pause')
+  @DocsEditable
   void pause() native;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.play')
+  @DocsEditable
   void play() native;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitAddKey')
+  @DocsEditable
   void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) native;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
+  @DocsEditable
   void webkitCancelKeyRequest(String keySystem, String sessionId) native;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitGenerateKeyRequest')
+  @DocsEditable
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
 
-  @DocsEditable
   @DomName('HTMLMediaElement.canplay')
+  @DocsEditable
   Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.canplaythrough')
+  @DocsEditable
   Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.durationchange')
+  @DocsEditable
   Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.emptied')
+  @DocsEditable
   Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.ended')
+  @DocsEditable
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.loadeddata')
+  @DocsEditable
   Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.loadedmetadata')
+  @DocsEditable
   Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.loadstart')
+  @DocsEditable
   Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.pause')
+  @DocsEditable
   Stream<Event> get onPause => pauseEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.play')
+  @DocsEditable
   Stream<Event> get onPlay => playEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.playing')
+  @DocsEditable
   Stream<Event> get onPlaying => playingEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.progress')
+  @DocsEditable
   Stream<Event> get onProgress => progressEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.ratechange')
+  @DocsEditable
   Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.seeked')
+  @DocsEditable
   Stream<Event> get onSeeked => seekedEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.seeking')
+  @DocsEditable
   Stream<Event> get onSeeking => seekingEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.show')
+  @DocsEditable
   Stream<Event> get onShow => showEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.stalled')
+  @DocsEditable
   Stream<Event> get onStalled => stalledEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.suspend')
+  @DocsEditable
   Stream<Event> get onSuspend => suspendEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.timeupdate')
+  @DocsEditable
   Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.volumechange')
+  @DocsEditable
   Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.waiting')
+  @DocsEditable
   Stream<Event> get onWaiting => waitingEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitkeyadded')
+  @DocsEditable
   Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitkeyerror')
+  @DocsEditable
   Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitkeymessage')
+  @DocsEditable
   Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('HTMLMediaElement.webkitneedkey')
+  @DocsEditable
   Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 }
 
@@ -15531,7 +15383,6 @@ class MediaElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaError')
 class MediaError native "*MediaError" {
@@ -15546,14 +15397,13 @@ class MediaError native "*MediaError" {
 
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  @DocsEditable
   @DomName('MediaError.code')
+  @DocsEditable
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -15572,8 +15422,8 @@ class MediaKeyError native "*MediaKeyError" {
 
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
-  @DocsEditable
   @DomName('MediaKeyError.code')
+  @DocsEditable
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15581,38 +15431,37 @@ class MediaKeyError native "*MediaKeyError" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaKeyEvent')
 class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 
   @JSName('defaultURL')
-  @DocsEditable
   @DomName('MediaKeyEvent.defaultURL')
+  @DocsEditable
   final String defaultUrl;
 
-  @DocsEditable
   @DomName('MediaKeyEvent.errorCode')
+  @DocsEditable
   final MediaKeyError errorCode;
 
-  @DocsEditable
   @DomName('MediaKeyEvent.initData')
+  @DocsEditable
   final Uint8Array initData;
 
-  @DocsEditable
   @DomName('MediaKeyEvent.keySystem')
+  @DocsEditable
   final String keySystem;
 
-  @DocsEditable
   @DomName('MediaKeyEvent.message')
+  @DocsEditable
   final Uint8Array message;
 
-  @DocsEditable
   @DomName('MediaKeyEvent.sessionId')
+  @DocsEditable
   final String sessionId;
 
-  @DocsEditable
   @DomName('MediaKeyEvent.systemCode')
+  @DocsEditable
   final int systemCode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15620,29 +15469,28 @@ class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaList')
 class MediaList native "*MediaList" {
 
-  @DocsEditable
   @DomName('MediaList.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('MediaList.mediaText')
+  @DocsEditable
   String mediaText;
 
-  @DocsEditable
   @DomName('MediaList.appendMedium')
+  @DocsEditable
   void appendMedium(String newMedium) native;
 
-  @DocsEditable
   @DomName('MediaList.deleteMedium')
+  @DocsEditable
   void deleteMedium(String oldMedium) native;
 
-  @DocsEditable
   @DomName('MediaList.item')
+  @DocsEditable
   String item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15650,25 +15498,24 @@ class MediaList native "*MediaList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaQueryList')
 class MediaQueryList native "*MediaQueryList" {
 
-  @DocsEditable
   @DomName('MediaQueryList.matches')
+  @DocsEditable
   final bool matches;
 
-  @DocsEditable
   @DomName('MediaQueryList.media')
+  @DocsEditable
   final String media;
 
-  @DocsEditable
   @DomName('MediaQueryList.addListener')
+  @DocsEditable
   void addListener(MediaQueryListListener listener) native;
 
-  @DocsEditable
   @DomName('MediaQueryList.removeListener')
+  @DocsEditable
   void removeListener(MediaQueryListListener listener) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15676,7 +15523,6 @@ class MediaQueryList native "*MediaQueryList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('MediaQueryListListener')
 abstract class MediaQueryListListener {
 
@@ -15687,7 +15533,6 @@ abstract class MediaQueryListListener {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaSource')
 class MediaSource extends EventTarget native "*MediaSource" {
@@ -15696,47 +15541,47 @@ class MediaSource extends EventTarget native "*MediaSource" {
   factory MediaSource() => MediaSource._create();
   static MediaSource _create() => JS('MediaSource', 'new MediaSource()');
 
-  @DocsEditable
   @DomName('MediaSource.activeSourceBuffers')
+  @DocsEditable
   final SourceBufferList activeSourceBuffers;
 
-  @DocsEditable
   @DomName('MediaSource.duration')
+  @DocsEditable
   num duration;
 
-  @DocsEditable
   @DomName('MediaSource.readyState')
+  @DocsEditable
   final String readyState;
 
-  @DocsEditable
   @DomName('MediaSource.sourceBuffers')
+  @DocsEditable
   final SourceBufferList sourceBuffers;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('MediaSource.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('MediaSource.addSourceBuffer')
+  @DocsEditable
   SourceBuffer addSourceBuffer(String type) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('MediaSource.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
-  @DocsEditable
   @DomName('MediaSource.endOfStream')
+  @DocsEditable
   void endOfStream(String error) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('MediaSource.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('MediaSource.removeSourceBuffer')
+  @DocsEditable
   void removeSourceBuffer(SourceBuffer buffer) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -15744,13 +15589,12 @@ class MediaSource extends EventTarget native "*MediaSource" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStream; @docsEditable true@DocsEditable
-@DomName('MediaStream')
+/// @domName MediaStream; @docsEditable true@DomName('MediaStream')
 
 class MediaStream extends EventTarget native "*MediaStream" {
 
-  @DocsEditable
   @DomName('MediaStream.ended')
+  @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
   @DocsEditable
@@ -15762,55 +15606,55 @@ class MediaStream extends EventTarget native "*MediaStream" {
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
-  @DocsEditable
   @DomName('MediaStream.ended')
+  @DocsEditable
   final bool ended;
 
-  @DocsEditable
   @DomName('MediaStream.id')
+  @DocsEditable
   final String id;
 
-  @DocsEditable
   @DomName('MediaStream.label')
+  @DocsEditable
   final String label;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('MediaStream.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('MediaStream.addTrack')
+  @DocsEditable
   void addTrack(MediaStreamTrack track) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('MediaStream.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
-  @DocsEditable
   @DomName('MediaStream.getAudioTracks')
+  @DocsEditable
   List<MediaStreamTrack> getAudioTracks() native;
 
-  @DocsEditable
   @DomName('MediaStream.getTrackById')
+  @DocsEditable
   MediaStreamTrack getTrackById(String trackId) native;
 
-  @DocsEditable
   @DomName('MediaStream.getVideoTracks')
+  @DocsEditable
   List<MediaStreamTrack> getVideoTracks() native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('MediaStream.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('MediaStream.removeTrack')
+  @DocsEditable
   void removeTrack(MediaStreamTrack track) native;
 
-  @DocsEditable
   @DomName('MediaStream.ended')
+  @DocsEditable
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
 
@@ -15849,7 +15693,6 @@ class MediaStreamEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaStreamEvent')
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
@@ -15857,8 +15700,8 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Event._isTypeSupported('MediaStreamEvent');
 
-  @DocsEditable
   @DomName('MediaStreamEvent.stream')
+  @DocsEditable
   final MediaStream stream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15866,21 +15709,20 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaStreamTrack')
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
-  @DocsEditable
   @DomName('MediaStreamTrack.ended')
+  @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DocsEditable
   @DomName('MediaStreamTrack.mute')
+  @DocsEditable
   static const EventStreamProvider<Event> muteEvent = const EventStreamProvider<Event>('mute');
 
-  @DocsEditable
   @DomName('MediaStreamTrack.unmute')
+  @DocsEditable
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
   @DocsEditable
@@ -15894,51 +15736,51 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   static const int MUTED = 1;
 
-  @DocsEditable
   @DomName('MediaStreamTrack.enabled')
+  @DocsEditable
   bool enabled;
 
-  @DocsEditable
   @DomName('MediaStreamTrack.id')
+  @DocsEditable
   final String id;
 
-  @DocsEditable
   @DomName('MediaStreamTrack.kind')
+  @DocsEditable
   final String kind;
 
-  @DocsEditable
   @DomName('MediaStreamTrack.label')
+  @DocsEditable
   final String label;
 
-  @DocsEditable
   @DomName('MediaStreamTrack.readyState')
+  @DocsEditable
   final int readyState;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('MediaStreamTrack.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('MediaStreamTrack.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('MediaStreamTrack.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('MediaStreamTrack.ended')
+  @DocsEditable
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('MediaStreamTrack.mute')
+  @DocsEditable
   Stream<Event> get onMute => muteEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('MediaStreamTrack.unmute')
+  @DocsEditable
   Stream<Event> get onUnmute => unmuteEvent.forTarget(this);
 }
 
@@ -15961,7 +15803,6 @@ class MediaStreamTrackEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaStreamTrackEvent')
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
@@ -15969,8 +15810,8 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Event._isTypeSupported('MediaStreamTrackEvent');
 
-  @DocsEditable
   @DomName('MediaStreamTrackEvent.track')
+  @DocsEditable
   final MediaStreamTrack track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15978,27 +15819,25 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MemoryInfo')
 class MemoryInfo native "*MemoryInfo" {
 
-  @DocsEditable
   @DomName('MemoryInfo.jsHeapSizeLimit')
+  @DocsEditable
   final int jsHeapSizeLimit;
 
-  @DocsEditable
   @DomName('MemoryInfo.totalJSHeapSize')
+  @DocsEditable
   final int totalJSHeapSize;
 
-  @DocsEditable
   @DomName('MemoryInfo.usedJSHeapSize')
+  @DocsEditable
   final int usedJSHeapSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -16013,7 +15852,6 @@ class MenuElement extends Element native "*HTMLMenuElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MessageChannel')
 class MessageChannel native "*MessageChannel" {
@@ -16022,18 +15860,17 @@ class MessageChannel native "*MessageChannel" {
   factory MessageChannel() => MessageChannel._create();
   static MessageChannel _create() => JS('MessageChannel', 'new MessageChannel()');
 
-  @DocsEditable
   @DomName('MessageChannel.port1')
+  @DocsEditable
   final MessagePort port1;
 
-  @DocsEditable
   @DomName('MessageChannel.port2')
+  @DocsEditable
   final MessagePort port2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -16042,39 +15879,39 @@ class MessageEvent extends Event native "*MessageEvent" {
 
   dynamic get data => convertNativeToDart_SerializedScriptValue(this._data);
   @JSName('data')
-  @DocsEditable
   @DomName('MessageEvent.data')
+  @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
   final dynamic _data;
 
-  @DocsEditable
   @DomName('MessageEvent.lastEventId')
+  @DocsEditable
   final String lastEventId;
 
-  @DocsEditable
   @DomName('MessageEvent.origin')
+  @DocsEditable
   final String origin;
 
-  @DocsEditable
   @DomName('MessageEvent.ports')
+  @DocsEditable
   @Creates('=List')
   final List ports;
 
   WindowBase get source => _convertNativeToDart_Window(this._source);
   @JSName('source')
-  @DocsEditable
   @DomName('MessageEvent.source')
+  @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _source;
 
-  @DocsEditable
   @DomName('MessageEvent.initMessageEvent')
+  @DocsEditable
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts) native;
 
-  @DocsEditable
   @DomName('MessageEvent.webkitInitMessageEvent')
+  @DocsEditable
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16082,13 +15919,12 @@ class MessageEvent extends Event native "*MessageEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MessagePort')
 class MessagePort extends EventTarget native "*MessagePort" {
 
-  @DocsEditable
   @DomName('MessagePort.message')
+  @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
   @DocsEditable
@@ -16097,17 +15933,17 @@ class MessagePort extends EventTarget native "*MessagePort" {
     new MessagePortEvents(this);
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('MessagePort.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('MessagePort.close')
+  @DocsEditable
   void close() native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('MessagePort.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   void postMessage(/*any*/ message, [List messagePorts]) {
@@ -16121,25 +15957,25 @@ class MessagePort extends EventTarget native "*MessagePort" {
     return;
   }
   @JSName('postMessage')
-  @DocsEditable
   @DomName('MessagePort.postMessage')
+  @DocsEditable
   void _postMessage_1(message, List messagePorts) native;
   @JSName('postMessage')
-  @DocsEditable
   @DomName('MessagePort.postMessage')
+  @DocsEditable
   void _postMessage_2(message) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('MessagePort.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('MessagePort.start')
+  @DocsEditable
   void start() native;
 
-  @DocsEditable
   @DomName('MessagePort.message')
+  @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
@@ -16156,21 +15992,20 @@ class MessagePortEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLMetaElement')
 class MetaElement extends Element native "*HTMLMetaElement" {
 
-  @DocsEditable
   @DomName('HTMLMetaElement.content')
+  @DocsEditable
   String content;
 
-  @DocsEditable
   @DomName('HTMLMetaElement.httpEquiv')
+  @DocsEditable
   String httpEquiv;
 
-  @DocsEditable
   @DomName('HTMLMetaElement.name')
+  @DocsEditable
   String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16178,17 +16013,16 @@ class MetaElement extends Element native "*HTMLMetaElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Metadata')
 class Metadata native "*Metadata" {
 
-  @DocsEditable
   @DomName('Metadata.modificationTime')
+  @DocsEditable
   final Date modificationTime;
 
-  @DocsEditable
   @DomName('Metadata.size')
+  @DocsEditable
   final int size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16204,7 +16038,6 @@ typedef void MetadataCallback(Metadata metadata);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLMeterElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -16218,34 +16051,34 @@ class MeterElement extends Element native "*HTMLMeterElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
 
-  @DocsEditable
   @DomName('HTMLMeterElement.high')
+  @DocsEditable
   num high;
 
-  @DocsEditable
   @DomName('HTMLMeterElement.labels')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> labels;
 
-  @DocsEditable
   @DomName('HTMLMeterElement.low')
+  @DocsEditable
   num low;
 
-  @DocsEditable
   @DomName('HTMLMeterElement.max')
+  @DocsEditable
   num max;
 
-  @DocsEditable
   @DomName('HTMLMeterElement.min')
+  @DocsEditable
   num min;
 
-  @DocsEditable
   @DomName('HTMLMeterElement.optimum')
+  @DocsEditable
   num optimum;
 
-  @DocsEditable
   @DomName('HTMLMeterElement.value')
+  @DocsEditable
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16253,17 +16086,16 @@ class MeterElement extends Element native "*HTMLMeterElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLModElement')
 class ModElement extends Element native "*HTMLModElement" {
 
-  @DocsEditable
   @DomName('HTMLModElement.cite')
+  @DocsEditable
   String cite;
 
-  @DocsEditable
   @DomName('HTMLModElement.dateTime')
+  @DocsEditable
   String dateTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16271,7 +16103,6 @@ class ModElement extends Element native "*HTMLModElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('MouseEvent')
 class MouseEvent extends UIEvent native "*MouseEvent" {
   factory MouseEvent(String type, Window view, int detail, int screenX,
@@ -16285,76 +16116,76 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
           ctrlKey, altKey, shiftKey, metaKey,
           relatedTarget);
 
-  @DocsEditable
   @DomName('MouseEvent.altKey')
+  @DocsEditable
   final bool altKey;
 
-  @DocsEditable
   @DomName('MouseEvent.button')
+  @DocsEditable
   final int button;
 
-  @DocsEditable
   @DomName('MouseEvent.clientX')
+  @DocsEditable
   final int clientX;
 
-  @DocsEditable
   @DomName('MouseEvent.clientY')
+  @DocsEditable
   final int clientY;
 
-  @DocsEditable
   @DomName('MouseEvent.ctrlKey')
+  @DocsEditable
   final bool ctrlKey;
 
-  @DocsEditable
   @DomName('MouseEvent.dataTransfer')
+  @DocsEditable
   final Clipboard dataTransfer;
 
-  @DocsEditable
   @DomName('MouseEvent.fromElement')
+  @DocsEditable
   final Node fromElement;
 
-  @DocsEditable
   @DomName('MouseEvent.metaKey')
+  @DocsEditable
   final bool metaKey;
 
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._relatedTarget);
   @JSName('relatedTarget')
-  @DocsEditable
   @DomName('MouseEvent.relatedTarget')
+  @DocsEditable
   @Creates('Node')
   @Returns('EventTarget|=Object')
   final dynamic _relatedTarget;
 
-  @DocsEditable
   @DomName('MouseEvent.screenX')
+  @DocsEditable
   final int screenX;
 
-  @DocsEditable
   @DomName('MouseEvent.screenY')
+  @DocsEditable
   final int screenY;
 
-  @DocsEditable
   @DomName('MouseEvent.shiftKey')
+  @DocsEditable
   final bool shiftKey;
 
-  @DocsEditable
   @DomName('MouseEvent.toElement')
+  @DocsEditable
   final Node toElement;
 
-  @DocsEditable
   @DomName('MouseEvent.webkitMovementX')
+  @DocsEditable
   final int webkitMovementX;
 
-  @DocsEditable
   @DomName('MouseEvent.webkitMovementY')
+  @DocsEditable
   final int webkitMovementY;
 
-  @DocsEditable
   @DomName('MouseEvent.x')
+  @DocsEditable
   final int x;
 
-  @DocsEditable
   @DomName('MouseEvent.y')
+  @DocsEditable
   final int y;
 
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
@@ -16363,8 +16194,8 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
     return;
   }
   @JSName('initMouseEvent')
-  @DocsEditable
   @DomName('MouseEvent.initMouseEvent')
+  @DocsEditable
   void _$dom_initMouseEvent_1(type, canBubble, cancelable, Window view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
 
 
@@ -16409,7 +16240,6 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MutationEvent')
 class MutationEvent extends Event native "*MutationEvent" {
@@ -16420,28 +16250,28 @@ class MutationEvent extends Event native "*MutationEvent" {
 
   static const int REMOVAL = 3;
 
-  @DocsEditable
   @DomName('MutationEvent.attrChange')
+  @DocsEditable
   final int attrChange;
 
-  @DocsEditable
   @DomName('MutationEvent.attrName')
+  @DocsEditable
   final String attrName;
 
-  @DocsEditable
   @DomName('MutationEvent.newValue')
+  @DocsEditable
   final String newValue;
 
-  @DocsEditable
   @DomName('MutationEvent.prevValue')
+  @DocsEditable
   final String prevValue;
 
-  @DocsEditable
   @DomName('MutationEvent.relatedNode')
+  @DocsEditable
   final Node relatedNode;
 
-  @DocsEditable
   @DomName('MutationEvent.initMutationEvent')
+  @DocsEditable
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16449,7 +16279,6 @@ class MutationEvent extends Event native "*MutationEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('MutationObserver')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -16460,8 +16289,8 @@ class MutationObserver native "*MutationObserver" {
   @DocsEditable
   factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
 
-  @DocsEditable
   @DomName('MutationObserver.disconnect')
+  @DocsEditable
   void disconnect() native;
 
   void _observe(Node target, Map options) {
@@ -16470,12 +16299,12 @@ class MutationObserver native "*MutationObserver" {
     return;
   }
   @JSName('observe')
-  @DocsEditable
   @DomName('MutationObserver.observe')
+  @DocsEditable
   void __observe_1(Node target, options) native;
 
-  @DocsEditable
   @DomName('MutationObserver.takeRecords')
+  @DocsEditable
   List<MutationRecord> takeRecords() native;
 
   /**
@@ -16564,49 +16393,48 @@ class MutationObserver native "*MutationObserver" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MutationRecord')
 class MutationRecord native "*MutationRecord" {
 
-  @DocsEditable
   @DomName('MutationRecord.addedNodes')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> addedNodes;
 
-  @DocsEditable
   @DomName('MutationRecord.attributeName')
+  @DocsEditable
   final String attributeName;
 
-  @DocsEditable
   @DomName('MutationRecord.attributeNamespace')
+  @DocsEditable
   final String attributeNamespace;
 
-  @DocsEditable
   @DomName('MutationRecord.nextSibling')
+  @DocsEditable
   final Node nextSibling;
 
-  @DocsEditable
   @DomName('MutationRecord.oldValue')
+  @DocsEditable
   final String oldValue;
 
-  @DocsEditable
   @DomName('MutationRecord.previousSibling')
+  @DocsEditable
   final Node previousSibling;
 
-  @DocsEditable
   @DomName('MutationRecord.removedNodes')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> removedNodes;
 
-  @DocsEditable
   @DomName('MutationRecord.target')
+  @DocsEditable
   final Node target;
 
-  @DocsEditable
   @DomName('MutationRecord.type')
+  @DocsEditable
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16614,13 +16442,12 @@ class MutationRecord native "*MutationRecord" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('NamedNodeMap')
 class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
 
-  @DocsEditable
   @DomName('NamedNodeMap.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -16791,32 +16618,32 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 
   // -- end List<Node> mixins.
 
-  @DocsEditable
   @DomName('NamedNodeMap.getNamedItem')
+  @DocsEditable
   Node getNamedItem(String name) native;
 
-  @DocsEditable
   @DomName('NamedNodeMap.getNamedItemNS')
+  @DocsEditable
   Node getNamedItemNS(String namespaceURI, String localName) native;
 
-  @DocsEditable
   @DomName('NamedNodeMap.item')
+  @DocsEditable
   Node item(int index) native;
 
-  @DocsEditable
   @DomName('NamedNodeMap.removeNamedItem')
+  @DocsEditable
   Node removeNamedItem(String name) native;
 
-  @DocsEditable
   @DomName('NamedNodeMap.removeNamedItemNS')
+  @DocsEditable
   Node removeNamedItemNS(String namespaceURI, String localName) native;
 
-  @DocsEditable
   @DomName('NamedNodeMap.setNamedItem')
+  @DocsEditable
   Node setNamedItem(Node node) native;
 
-  @DocsEditable
   @DomName('NamedNodeMap.setNamedItemNS')
+  @DocsEditable
   Node setNamedItemNS(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16824,7 +16651,6 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('Navigator')
 class Navigator native "*Navigator" {
 
@@ -16884,76 +16710,76 @@ class Navigator native "*Navigator" {
       _NavigatorUserMediaErrorCallback error) native;
 
 
-  @DocsEditable
   @DomName('Navigator.appCodeName')
+  @DocsEditable
   final String appCodeName;
 
-  @DocsEditable
   @DomName('Navigator.appName')
+  @DocsEditable
   final String appName;
 
-  @DocsEditable
   @DomName('Navigator.appVersion')
+  @DocsEditable
   final String appVersion;
 
-  @DocsEditable
   @DomName('Navigator.cookieEnabled')
+  @DocsEditable
   final bool cookieEnabled;
 
-  @DocsEditable
   @DomName('Navigator.geolocation')
+  @DocsEditable
   final Geolocation geolocation;
 
-  @DocsEditable
   @DomName('Navigator.mimeTypes')
+  @DocsEditable
   final DomMimeTypeArray mimeTypes;
 
-  @DocsEditable
   @DomName('Navigator.onLine')
+  @DocsEditable
   final bool onLine;
 
-  @DocsEditable
   @DomName('Navigator.platform')
+  @DocsEditable
   final String platform;
 
-  @DocsEditable
   @DomName('Navigator.plugins')
+  @DocsEditable
   final DomPluginArray plugins;
 
-  @DocsEditable
   @DomName('Navigator.product')
+  @DocsEditable
   final String product;
 
-  @DocsEditable
   @DomName('Navigator.productSub')
+  @DocsEditable
   final String productSub;
 
-  @DocsEditable
   @DomName('Navigator.userAgent')
+  @DocsEditable
   final String userAgent;
 
-  @DocsEditable
   @DomName('Navigator.vendor')
+  @DocsEditable
   final String vendor;
 
-  @DocsEditable
   @DomName('Navigator.vendorSub')
+  @DocsEditable
   final String vendorSub;
 
-  @DocsEditable
   @DomName('Navigator.webkitBattery')
+  @DocsEditable
   final BatteryManager webkitBattery;
 
-  @DocsEditable
   @DomName('Navigator.getStorageUpdates')
+  @DocsEditable
   void getStorageUpdates() native;
 
-  @DocsEditable
   @DomName('Navigator.javaEnabled')
+  @DocsEditable
   bool javaEnabled() native;
 
-  @DocsEditable
   @DomName('Navigator.webkitGetGamepads')
+  @DocsEditable
   @Returns('_GamepadList')
   @Creates('_GamepadList')
   List<Gamepad> webkitGetGamepads() native;
@@ -16964,15 +16790,14 @@ class Navigator native "*Navigator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('NavigatorUserMediaError')
 class NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
   static const int PERMISSION_DENIED = 1;
 
-  @DocsEditable
   @DomName('NavigatorUserMediaError.code')
+  @DocsEditable
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17204,7 +17029,6 @@ class _ChildNodeListLazy implements List {
   Node operator[](int index) => _this.$dom_childNodes[index];
 }
 
-@DocsEditable
 @DomName('Node')
 class Node extends EventTarget native "*Node" {
   List<Node> get nodes {
@@ -17250,126 +17074,125 @@ class Node extends EventTarget native "*Node" {
 
 
   @JSName('attributes')
-  @DocsEditable
   @DomName('Node.attributes')
+  @DocsEditable
   final NamedNodeMap $dom_attributes;
 
   @JSName('childNodes')
-  @DocsEditable
   @DomName('Node.childNodes')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> $dom_childNodes;
 
   @JSName('firstChild')
-  @DocsEditable
   @DomName('Node.firstChild')
+  @DocsEditable
   final Node $dom_firstChild;
 
   @JSName('lastChild')
-  @DocsEditable
   @DomName('Node.lastChild')
+  @DocsEditable
   final Node $dom_lastChild;
 
   @JSName('localName')
-  @DocsEditable
   @DomName('Node.localName')
+  @DocsEditable
   final String $dom_localName;
 
   @JSName('namespaceURI')
-  @DocsEditable
   @DomName('Node.namespaceURI')
+  @DocsEditable
   final String $dom_namespaceUri;
 
   @JSName('nextSibling')
-  @DocsEditable
   @DomName('Node.nextSibling')
+  @DocsEditable
   final Node nextNode;
 
-  @DocsEditable
   @DomName('Node.nodeType')
+  @DocsEditable
   final int nodeType;
 
-  @DocsEditable
   @DomName('Node.nodeValue')
+  @DocsEditable
   final String nodeValue;
 
   @JSName('ownerDocument')
-  @DocsEditable
   @DomName('Node.ownerDocument')
+  @DocsEditable
   final Document document;
 
   @JSName('parentElement')
-  @DocsEditable
   @DomName('Node.parentElement')
+  @DocsEditable
   final Element parent;
 
-  @DocsEditable
   @DomName('Node.parentNode')
+  @DocsEditable
   final Node parentNode;
 
   @JSName('previousSibling')
-  @DocsEditable
   @DomName('Node.previousSibling')
+  @DocsEditable
   final Node previousNode;
 
   @JSName('textContent')
-  @DocsEditable
   @DomName('Node.textContent')
+  @DocsEditable
   String text;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('Node.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('appendChild')
-  @DocsEditable
   @DomName('Node.appendChild')
+  @DocsEditable
   Node $dom_appendChild(Node newChild) native;
 
   @JSName('cloneNode')
-  @DocsEditable
   @DomName('Node.cloneNode')
+  @DocsEditable
   Node clone(bool deep) native;
 
-  @DocsEditable
   @DomName('Node.contains')
+  @DocsEditable
   bool contains(Node other) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('Node.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
-  @DocsEditable
   @DomName('Node.hasChildNodes')
+  @DocsEditable
   bool hasChildNodes() native;
 
-  @DocsEditable
   @DomName('Node.insertBefore')
+  @DocsEditable
   Node insertBefore(Node newChild, Node refChild) native;
 
   @JSName('removeChild')
-  @DocsEditable
   @DomName('Node.removeChild')
+  @DocsEditable
   Node $dom_removeChild(Node oldChild) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('Node.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('replaceChild')
-  @DocsEditable
   @DomName('Node.replaceChild')
+  @DocsEditable
   Node $dom_replaceChild(Node newChild, Node oldChild) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -17408,8 +17231,8 @@ class NodeFilter native "*NodeFilter" {
 
   static const int SHOW_TEXT = 0x00000004;
 
-  @DocsEditable
   @DomName('NodeFilter.acceptNode')
+  @DocsEditable
   int acceptNode(Node n) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17417,45 +17240,44 @@ class NodeFilter native "*NodeFilter" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('NodeIterator')
 class NodeIterator native "*NodeIterator" {
 
-  @DocsEditable
   @DomName('NodeIterator.expandEntityReferences')
+  @DocsEditable
   final bool expandEntityReferences;
 
-  @DocsEditable
   @DomName('NodeIterator.filter')
+  @DocsEditable
   final NodeFilter filter;
 
-  @DocsEditable
   @DomName('NodeIterator.pointerBeforeReferenceNode')
+  @DocsEditable
   final bool pointerBeforeReferenceNode;
 
-  @DocsEditable
   @DomName('NodeIterator.referenceNode')
+  @DocsEditable
   final Node referenceNode;
 
-  @DocsEditable
   @DomName('NodeIterator.root')
+  @DocsEditable
   final Node root;
 
-  @DocsEditable
   @DomName('NodeIterator.whatToShow')
+  @DocsEditable
   final int whatToShow;
 
-  @DocsEditable
   @DomName('NodeIterator.detach')
+  @DocsEditable
   void detach() native;
 
-  @DocsEditable
   @DomName('NodeIterator.nextNode')
+  @DocsEditable
   Node nextNode() native;
 
-  @DocsEditable
   @DomName('NodeIterator.previousNode')
+  @DocsEditable
   Node previousNode() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17463,13 +17285,12 @@ class NodeIterator native "*NodeIterator" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('NodeList')
 class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
 
-  @DocsEditable
   @DomName('NodeList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   Node operator[](int index) => JS("Node", "#[#]", this, index);
@@ -17641,8 +17462,8 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   // -- end List<Node> mixins.
 
   @JSName('item')
-  @DocsEditable
   @DomName('NodeList.item')
+  @DocsEditable
   Node _item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17650,17 +17471,16 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Notation')
 class Notation extends Node native "*Notation" {
 
-  @DocsEditable
   @DomName('Notation.publicId')
+  @DocsEditable
   final String publicId;
 
-  @DocsEditable
   @DomName('Notation.systemId')
+  @DocsEditable
   final String systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17668,29 +17488,28 @@ class Notation extends Node native "*Notation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Notification')
 class Notification extends EventTarget native "*Notification" {
 
-  @DocsEditable
   @DomName('Notification.click')
+  @DocsEditable
   static const EventStreamProvider<Event> clickEvent = const EventStreamProvider<Event>('click');
 
-  @DocsEditable
   @DomName('Notification.close')
+  @DocsEditable
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
-  @DocsEditable
   @DomName('Notification.display')
+  @DocsEditable
   static const EventStreamProvider<Event> displayEvent = const EventStreamProvider<Event>('display');
 
-  @DocsEditable
   @DomName('Notification.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
   @DomName('Notification.show')
+  @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
   @DocsEditable
@@ -17712,71 +17531,71 @@ class Notification extends EventTarget native "*Notification" {
   NotificationEvents get on =>
     new NotificationEvents(this);
 
-  @DocsEditable
   @DomName('Notification.dir')
+  @DocsEditable
   String dir;
 
-  @DocsEditable
   @DomName('Notification.permission')
+  @DocsEditable
   final String permission;
 
-  @DocsEditable
   @DomName('Notification.replaceId')
+  @DocsEditable
   String replaceId;
 
-  @DocsEditable
   @DomName('Notification.tag')
+  @DocsEditable
   String tag;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('Notification.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('Notification.cancel')
+  @DocsEditable
   void cancel() native;
 
-  @DocsEditable
   @DomName('Notification.close')
+  @DocsEditable
   void close() native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('Notification.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('Notification.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('Notification.requestPermission')
+  @DocsEditable
   static void requestPermission(NotificationPermissionCallback callback) native;
 
-  @DocsEditable
   @DomName('Notification.show')
+  @DocsEditable
   void show() native;
 
-  @DocsEditable
   @DomName('Notification.click')
+  @DocsEditable
   Stream<Event> get onClick => clickEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Notification.close')
+  @DocsEditable
   Stream<Event> get onClose => closeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Notification.display')
+  @DocsEditable
   Stream<Event> get onDisplay => displayEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Notification.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('Notification.show')
+  @DocsEditable
   Stream<Event> get onShow => showEvent.forTarget(this);
 }
 
@@ -17805,7 +17624,6 @@ class NotificationEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('NotificationCenter')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -17816,21 +17634,21 @@ class NotificationCenter native "*NotificationCenter" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.webkitNotifications)');
 
-  @DocsEditable
   @DomName('NotificationCenter.checkPermission')
+  @DocsEditable
   int checkPermission() native;
 
   @JSName('createHTMLNotification')
-  @DocsEditable
   @DomName('NotificationCenter.createHTMLNotification')
+  @DocsEditable
   Notification createHtmlNotification(String url) native;
 
-  @DocsEditable
   @DomName('NotificationCenter.createNotification')
+  @DocsEditable
   Notification createNotification(String iconUrl, String title, String body) native;
 
-  @DocsEditable
   @DomName('NotificationCenter.requestPermission')
+  @DocsEditable
   void requestPermission(VoidCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17846,7 +17664,6 @@ typedef void NotificationPermissionCallback(String permission);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLOListElement')
 class OListElement extends Element native "*HTMLOListElement" {
@@ -17854,22 +17671,21 @@ class OListElement extends Element native "*HTMLOListElement" {
   @DocsEditable
   factory OListElement() => document.$dom_createElement("ol");
 
-  @DocsEditable
   @DomName('HTMLOListElement.reversed')
+  @DocsEditable
   bool reversed;
 
-  @DocsEditable
   @DomName('HTMLOListElement.start')
+  @DocsEditable
   int start;
 
-  @DocsEditable
   @DomName('HTMLOListElement.type')
+  @DocsEditable
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -17885,62 +17701,61 @@ class ObjectElement extends Element native "*HTMLObjectElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('object');
 
-  @DocsEditable
   @DomName('HTMLObjectElement.code')
+  @DocsEditable
   String code;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.data')
+  @DocsEditable
   String data;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.height')
+  @DocsEditable
   String height;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.type')
+  @DocsEditable
   String type;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.useMap')
+  @DocsEditable
   String useMap;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.validationMessage')
+  @DocsEditable
   final String validationMessage;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.validity')
+  @DocsEditable
   final ValidityState validity;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.width')
+  @DocsEditable
   String width;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.willValidate')
+  @DocsEditable
   final bool willValidate;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.checkValidity')
+  @DocsEditable
   bool checkValidity() native;
 
-  @DocsEditable
   @DomName('HTMLObjectElement.setCustomValidity')
+  @DocsEditable
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -17950,7 +17765,6 @@ class OesElementIndexUint native "*OESElementIndexUint" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -17964,7 +17778,6 @@ class OesStandardDerivatives native "*OESStandardDerivatives" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('OESTextureFloat')
 class OesTextureFloat native "*OESTextureFloat" {
@@ -17974,7 +17787,6 @@ class OesTextureFloat native "*OESTextureFloat" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('OESVertexArrayObject')
 class OesVertexArrayObject native "*OESVertexArrayObject" {
@@ -17982,29 +17794,28 @@ class OesVertexArrayObject native "*OESVertexArrayObject" {
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   @JSName('bindVertexArrayOES')
-  @DocsEditable
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
+  @DocsEditable
   void bindVertexArray(WebGLVertexArrayObject arrayObject) native;
 
   @JSName('createVertexArrayOES')
-  @DocsEditable
   @DomName('OESVertexArrayObject.createVertexArrayOES')
+  @DocsEditable
   WebGLVertexArrayObject createVertexArray() native;
 
   @JSName('deleteVertexArrayOES')
-  @DocsEditable
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
+  @DocsEditable
   void deleteVertexArray(WebGLVertexArrayObject arrayObject) native;
 
   @JSName('isVertexArrayOES')
-  @DocsEditable
   @DomName('OESVertexArrayObject.isVertexArrayOES')
+  @DocsEditable
   bool isVertexArray(WebGLVertexArrayObject arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18014,18 +17825,17 @@ class OptGroupElement extends Element native "*HTMLOptGroupElement" {
   @DocsEditable
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
-  @DocsEditable
   @DomName('HTMLOptGroupElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLOptGroupElement.label')
+  @DocsEditable
   String label;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18064,38 +17874,37 @@ class OptionElement extends Element native "*HTMLOptionElement" {
     return JS('OptionElement', 'new Option(#,#,#,#)', data, value, defaultSelected, selected);
   }
 
-  @DocsEditable
   @DomName('HTMLOptionElement.defaultSelected')
+  @DocsEditable
   bool defaultSelected;
 
-  @DocsEditable
   @DomName('HTMLOptionElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLOptionElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLOptionElement.index')
+  @DocsEditable
   final int index;
 
-  @DocsEditable
   @DomName('HTMLOptionElement.label')
+  @DocsEditable
   String label;
 
-  @DocsEditable
   @DomName('HTMLOptionElement.selected')
+  @DocsEditable
   bool selected;
 
-  @DocsEditable
   @DomName('HTMLOptionElement.value')
+  @DocsEditable
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18111,60 +17920,59 @@ class OutputElement extends Element native "*HTMLOutputElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('output');
 
-  @DocsEditable
   @DomName('HTMLOutputElement.defaultValue')
+  @DocsEditable
   String defaultValue;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.htmlFor')
+  @DocsEditable
   DomSettableTokenList htmlFor;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.labels')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> labels;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.validationMessage')
+  @DocsEditable
   final String validationMessage;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.validity')
+  @DocsEditable
   final ValidityState validity;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.value')
+  @DocsEditable
   String value;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.willValidate')
+  @DocsEditable
   final bool willValidate;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.checkValidity')
+  @DocsEditable
   bool checkValidity() native;
 
-  @DocsEditable
   @DomName('HTMLOutputElement.setCustomValidity')
+  @DocsEditable
   void setCustomValidity(String error) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18177,16 +17985,16 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 
   static const int VERTICAL = 1;
 
-  @DocsEditable
   @DomName('OverflowEvent.horizontalOverflow')
+  @DocsEditable
   final bool horizontalOverflow;
 
-  @DocsEditable
   @DomName('OverflowEvent.orient')
+  @DocsEditable
   final int orient;
 
-  @DocsEditable
   @DomName('OverflowEvent.verticalOverflow')
+  @DocsEditable
   final bool verticalOverflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18194,25 +18002,24 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('PagePopupController')
 class PagePopupController native "*PagePopupController" {
 
-  @DocsEditable
   @DomName('PagePopupController.formatMonth')
+  @DocsEditable
   String formatMonth(int year, int zeroBaseMonth) native;
 
-  @DocsEditable
   @DomName('PagePopupController.histogramEnumeration')
+  @DocsEditable
   void histogramEnumeration(String name, int sample, int boundaryValue) native;
 
-  @DocsEditable
   @DomName('PagePopupController.localizeNumberString')
+  @DocsEditable
   String localizeNumberString(String numberString) native;
 
-  @DocsEditable
   @DomName('PagePopupController.setValueAndClosePopup')
+  @DocsEditable
   void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18220,19 +18027,17 @@ class PagePopupController native "*PagePopupController" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('PageTransitionEvent')
 class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
-  @DocsEditable
   @DomName('PageTransitionEvent.persisted')
+  @DocsEditable
   final bool persisted;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18247,7 +18052,6 @@ class ParagraphElement extends Element native "*HTMLParagraphElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLParamElement')
 class ParamElement extends Element native "*HTMLParamElement" {
@@ -18255,18 +18059,17 @@ class ParamElement extends Element native "*HTMLParamElement" {
   @DocsEditable
   factory ParamElement() => document.$dom_createElement("param");
 
-  @DocsEditable
   @DomName('HTMLParamElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLParamElement.value')
+  @DocsEditable
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18279,26 +18082,25 @@ class Performance extends EventTarget native "*Performance" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
 
-  @DocsEditable
   @DomName('Performance.memory')
+  @DocsEditable
   final MemoryInfo memory;
 
-  @DocsEditable
   @DomName('Performance.navigation')
+  @DocsEditable
   final PerformanceNavigation navigation;
 
-  @DocsEditable
   @DomName('Performance.timing')
+  @DocsEditable
   final PerformanceTiming timing;
 
-  @DocsEditable
   @DomName('Performance.now')
+  @DocsEditable
   num now() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18313,12 +18115,12 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 
   static const int TYPE_RESERVED = 255;
 
-  @DocsEditable
   @DomName('PerformanceNavigation.redirectCount')
+  @DocsEditable
   final int redirectCount;
 
-  @DocsEditable
   @DomName('PerformanceNavigation.type')
+  @DocsEditable
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18326,99 +18128,97 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('PerformanceTiming')
 class PerformanceTiming native "*PerformanceTiming" {
 
-  @DocsEditable
   @DomName('PerformanceTiming.connectEnd')
+  @DocsEditable
   final int connectEnd;
 
-  @DocsEditable
   @DomName('PerformanceTiming.connectStart')
+  @DocsEditable
   final int connectStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.domComplete')
+  @DocsEditable
   final int domComplete;
 
-  @DocsEditable
   @DomName('PerformanceTiming.domContentLoadedEventEnd')
+  @DocsEditable
   final int domContentLoadedEventEnd;
 
-  @DocsEditable
   @DomName('PerformanceTiming.domContentLoadedEventStart')
+  @DocsEditable
   final int domContentLoadedEventStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.domInteractive')
+  @DocsEditable
   final int domInteractive;
 
-  @DocsEditable
   @DomName('PerformanceTiming.domLoading')
+  @DocsEditable
   final int domLoading;
 
-  @DocsEditable
   @DomName('PerformanceTiming.domainLookupEnd')
+  @DocsEditable
   final int domainLookupEnd;
 
-  @DocsEditable
   @DomName('PerformanceTiming.domainLookupStart')
+  @DocsEditable
   final int domainLookupStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.fetchStart')
+  @DocsEditable
   final int fetchStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.loadEventEnd')
+  @DocsEditable
   final int loadEventEnd;
 
-  @DocsEditable
   @DomName('PerformanceTiming.loadEventStart')
+  @DocsEditable
   final int loadEventStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.navigationStart')
+  @DocsEditable
   final int navigationStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.redirectEnd')
+  @DocsEditable
   final int redirectEnd;
 
-  @DocsEditable
   @DomName('PerformanceTiming.redirectStart')
+  @DocsEditable
   final int redirectStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.requestStart')
+  @DocsEditable
   final int requestStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.responseEnd')
+  @DocsEditable
   final int responseEnd;
 
-  @DocsEditable
   @DomName('PerformanceTiming.responseStart')
+  @DocsEditable
   final int responseStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.secureConnectionStart')
+  @DocsEditable
   final int secureConnectionStart;
 
-  @DocsEditable
   @DomName('PerformanceTiming.unloadEventEnd')
+  @DocsEditable
   final int unloadEventEnd;
 
-  @DocsEditable
   @DomName('PerformanceTiming.unloadEventStart')
+  @DocsEditable
   final int unloadEventStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18429,18 +18229,17 @@ class Point native "*WebKitPoint" {
   factory Point(num x, num y) => Point._create(x, y);
   static Point _create(num x, num y) => JS('Point', 'new WebKitPoint(#,#)', x, y);
 
-  @DocsEditable
   @DomName('WebKitPoint.x')
+  @DocsEditable
   num x;
 
-  @DocsEditable
   @DomName('WebKitPoint.y')
+  @DocsEditable
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18449,8 +18248,8 @@ class PopStateEvent extends Event native "*PopStateEvent" {
 
   dynamic get state => convertNativeToDart_SerializedScriptValue(this._state);
   @JSName('state')
-  @DocsEditable
   @DomName('PopStateEvent.state')
+  @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
   final dynamic _state;
@@ -18468,7 +18267,6 @@ typedef void PositionCallback(Geoposition position);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('PositionError')
 class PositionError native "*PositionError" {
@@ -18479,12 +18277,12 @@ class PositionError native "*PositionError" {
 
   static const int TIMEOUT = 3;
 
-  @DocsEditable
   @DomName('PositionError.code')
+  @DocsEditable
   final int code;
 
-  @DocsEditable
   @DomName('PositionError.message')
+  @DocsEditable
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18500,7 +18298,6 @@ typedef void PositionErrorCallback(PositionError error);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLPreElement')
 class PreElement extends Element native "*HTMLPreElement" {
@@ -18508,8 +18305,8 @@ class PreElement extends Element native "*HTMLPreElement" {
   @DocsEditable
   factory PreElement() => document.$dom_createElement("pre");
 
-  @DocsEditable
   @DomName('HTMLPreElement.wrap')
+  @DocsEditable
   bool wrap;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18517,27 +18314,25 @@ class PreElement extends Element native "*HTMLPreElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ProcessingInstruction')
 class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
-  @DocsEditable
   @DomName('ProcessingInstruction.data')
+  @DocsEditable
   String data;
 
-  @DocsEditable
   @DomName('ProcessingInstruction.sheet')
+  @DocsEditable
   final StyleSheet sheet;
 
-  @DocsEditable
   @DomName('ProcessingInstruction.target')
+  @DocsEditable
   final String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18554,22 +18349,22 @@ class ProgressElement extends Element native "*HTMLProgressElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('progress');
 
-  @DocsEditable
   @DomName('HTMLProgressElement.labels')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> labels;
 
-  @DocsEditable
   @DomName('HTMLProgressElement.max')
+  @DocsEditable
   num max;
 
-  @DocsEditable
   @DomName('HTMLProgressElement.position')
+  @DocsEditable
   final num position;
 
-  @DocsEditable
   @DomName('HTMLProgressElement.value')
+  @DocsEditable
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18577,21 +18372,20 @@ class ProgressElement extends Element native "*HTMLProgressElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ProgressEvent')
 class ProgressEvent extends Event native "*ProgressEvent" {
 
-  @DocsEditable
   @DomName('ProgressEvent.lengthComputable')
+  @DocsEditable
   final bool lengthComputable;
 
-  @DocsEditable
   @DomName('ProgressEvent.loaded')
+  @DocsEditable
   final int loaded;
 
-  @DocsEditable
   @DomName('ProgressEvent.total')
+  @DocsEditable
   final int total;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18599,13 +18393,12 @@ class ProgressEvent extends Event native "*ProgressEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLQuoteElement')
 class QuoteElement extends Element native "*HTMLQuoteElement" {
 
-  @DocsEditable
   @DomName('HTMLQuoteElement.cite')
+  @DocsEditable
   String cite;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18637,13 +18430,12 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RadioNodeList')
 class RadioNodeList extends NodeList native "*RadioNodeList" {
 
-  @DocsEditable
   @DomName('RadioNodeList.value')
+  @DocsEditable
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18653,7 +18445,6 @@ class RadioNodeList extends NodeList native "*RadioNodeList" {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('Range')
 class Range native "*Range" {
   factory Range() => document.$dom_createRange();
@@ -18675,137 +18466,136 @@ class Range native "*Range" {
 
   static const int START_TO_START = 0;
 
-  @DocsEditable
   @DomName('Range.collapsed')
+  @DocsEditable
   final bool collapsed;
 
-  @DocsEditable
   @DomName('Range.commonAncestorContainer')
+  @DocsEditable
   final Node commonAncestorContainer;
 
-  @DocsEditable
   @DomName('Range.endContainer')
+  @DocsEditable
   final Node endContainer;
 
-  @DocsEditable
   @DomName('Range.endOffset')
+  @DocsEditable
   final int endOffset;
 
-  @DocsEditable
   @DomName('Range.startContainer')
+  @DocsEditable
   final Node startContainer;
 
-  @DocsEditable
   @DomName('Range.startOffset')
+  @DocsEditable
   final int startOffset;
 
-  @DocsEditable
   @DomName('Range.cloneContents')
+  @DocsEditable
   DocumentFragment cloneContents() native;
 
-  @DocsEditable
   @DomName('Range.cloneRange')
+  @DocsEditable
   Range cloneRange() native;
 
-  @DocsEditable
   @DomName('Range.collapse')
+  @DocsEditable
   void collapse(bool toStart) native;
 
-  @DocsEditable
   @DomName('Range.compareNode')
+  @DocsEditable
   int compareNode(Node refNode) native;
 
-  @DocsEditable
   @DomName('Range.comparePoint')
+  @DocsEditable
   int comparePoint(Node refNode, int offset) native;
 
-  @DocsEditable
   @DomName('Range.createContextualFragment')
+  @DocsEditable
   DocumentFragment createContextualFragment(String html) native;
 
-  @DocsEditable
   @DomName('Range.deleteContents')
+  @DocsEditable
   void deleteContents() native;
 
-  @DocsEditable
   @DomName('Range.detach')
+  @DocsEditable
   void detach() native;
 
-  @DocsEditable
   @DomName('Range.expand')
+  @DocsEditable
   void expand(String unit) native;
 
-  @DocsEditable
   @DomName('Range.extractContents')
+  @DocsEditable
   DocumentFragment extractContents() native;
 
-  @DocsEditable
   @DomName('Range.getBoundingClientRect')
+  @DocsEditable
   ClientRect getBoundingClientRect() native;
 
-  @DocsEditable
   @DomName('Range.getClientRects')
+  @DocsEditable
   @Returns('_ClientRectList')
   @Creates('_ClientRectList')
   List<ClientRect> getClientRects() native;
 
-  @DocsEditable
   @DomName('Range.insertNode')
+  @DocsEditable
   void insertNode(Node newNode) native;
 
-  @DocsEditable
   @DomName('Range.intersectsNode')
+  @DocsEditable
   bool intersectsNode(Node refNode) native;
 
-  @DocsEditable
   @DomName('Range.isPointInRange')
+  @DocsEditable
   bool isPointInRange(Node refNode, int offset) native;
 
-  @DocsEditable
   @DomName('Range.selectNode')
+  @DocsEditable
   void selectNode(Node refNode) native;
 
-  @DocsEditable
   @DomName('Range.selectNodeContents')
+  @DocsEditable
   void selectNodeContents(Node refNode) native;
 
-  @DocsEditable
   @DomName('Range.setEnd')
+  @DocsEditable
   void setEnd(Node refNode, int offset) native;
 
-  @DocsEditable
   @DomName('Range.setEndAfter')
+  @DocsEditable
   void setEndAfter(Node refNode) native;
 
-  @DocsEditable
   @DomName('Range.setEndBefore')
+  @DocsEditable
   void setEndBefore(Node refNode) native;
 
-  @DocsEditable
   @DomName('Range.setStart')
+  @DocsEditable
   void setStart(Node refNode, int offset) native;
 
-  @DocsEditable
   @DomName('Range.setStartAfter')
+  @DocsEditable
   void setStartAfter(Node refNode) native;
 
-  @DocsEditable
   @DomName('Range.setStartBefore')
+  @DocsEditable
   void setStartBefore(Node refNode) native;
 
-  @DocsEditable
   @DomName('Range.surroundContents')
+  @DocsEditable
   void surroundContents(Node newParent) native;
 
-  @DocsEditable
   @DomName('Range.toString')
+  @DocsEditable
   String toString() native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -18816,20 +18606,20 @@ class RangeException native "*RangeException" {
 
   static const int INVALID_NODE_TYPE_ERR = 2;
 
-  @DocsEditable
   @DomName('RangeException.code')
+  @DocsEditable
   final int code;
 
-  @DocsEditable
   @DomName('RangeException.message')
+  @DocsEditable
   final String message;
 
-  @DocsEditable
   @DomName('RangeException.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('RangeException.toString')
+  @DocsEditable
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18837,25 +18627,24 @@ class RangeException native "*RangeException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Rect')
 class Rect native "*Rect" {
 
-  @DocsEditable
   @DomName('Rect.bottom')
+  @DocsEditable
   final CssPrimitiveValue bottom;
 
-  @DocsEditable
   @DomName('Rect.left')
+  @DocsEditable
   final CssPrimitiveValue left;
 
-  @DocsEditable
   @DomName('Rect.right')
+  @DocsEditable
   final CssPrimitiveValue right;
 
-  @DocsEditable
   @DomName('Rect.top')
+  @DocsEditable
   final CssPrimitiveValue top;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18871,21 +18660,20 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RGBColor')
 class RgbColor native "*RGBColor" {
 
-  @DocsEditable
   @DomName('RGBColor.blue')
+  @DocsEditable
   final CssPrimitiveValue blue;
 
-  @DocsEditable
   @DomName('RGBColor.green')
+  @DocsEditable
   final CssPrimitiveValue green;
 
-  @DocsEditable
   @DomName('RGBColor.red')
+  @DocsEditable
   final CssPrimitiveValue red;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18893,25 +18681,24 @@ class RgbColor native "*RGBColor" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RTCDataChannel')
 class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
-  @DocsEditable
   @DomName('RTCDataChannel.close')
+  @DocsEditable
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
-  @DocsEditable
   @DomName('RTCDataChannel.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
   @DomName('RTCDataChannel.message')
+  @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DocsEditable
   @DomName('RTCDataChannel.open')
+  @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
@@ -18919,63 +18706,63 @@ class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
   RtcDataChannelEvents get on =>
     new RtcDataChannelEvents(this);
 
-  @DocsEditable
   @DomName('RTCDataChannel.binaryType')
+  @DocsEditable
   String binaryType;
 
-  @DocsEditable
   @DomName('RTCDataChannel.bufferedAmount')
+  @DocsEditable
   final int bufferedAmount;
 
-  @DocsEditable
   @DomName('RTCDataChannel.label')
+  @DocsEditable
   final String label;
 
-  @DocsEditable
   @DomName('RTCDataChannel.readyState')
+  @DocsEditable
   final String readyState;
 
-  @DocsEditable
   @DomName('RTCDataChannel.reliable')
+  @DocsEditable
   final bool reliable;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('RTCDataChannel.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('RTCDataChannel.close')
+  @DocsEditable
   void close() native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('RTCDataChannel.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('RTCDataChannel.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('RTCDataChannel.send')
+  @DocsEditable
   void send(data) native;
 
-  @DocsEditable
   @DomName('RTCDataChannel.close')
+  @DocsEditable
   Stream<Event> get onClose => closeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCDataChannel.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCDataChannel.message')
+  @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCDataChannel.open')
+  @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
@@ -19001,19 +18788,17 @@ class RtcDataChannelEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RTCDataChannelEvent')
 class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 
-  @DocsEditable
   @DomName('RTCDataChannelEvent.channel')
+  @DocsEditable
   final RtcDataChannel channel;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -19024,16 +18809,16 @@ class RtcIceCandidate native "*RTCIceCandidate" {
   factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
   static RtcIceCandidate _create(Map dictionary) => JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 
-  @DocsEditable
   @DomName('RTCIceCandidate.candidate')
+  @DocsEditable
   final String candidate;
 
-  @DocsEditable
   @DomName('RTCIceCandidate.sdpMLineIndex')
+  @DocsEditable
   final int sdpMLineIndex;
 
-  @DocsEditable
   @DomName('RTCIceCandidate.sdpMid')
+  @DocsEditable
   final String sdpMid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19041,13 +18826,12 @@ class RtcIceCandidate native "*RTCIceCandidate" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RTCIceCandidateEvent')
 class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 
-  @DocsEditable
   @DomName('RTCIceCandidateEvent.candidate')
+  @DocsEditable
   final RtcIceCandidate candidate;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19055,41 +18839,40 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RTCPeerConnection')
 class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
-  @DocsEditable
   @DomName('RTCPeerConnection.addstream')
+  @DocsEditable
   static const EventStreamProvider<MediaStreamEvent> addStreamEvent = const EventStreamProvider<MediaStreamEvent>('addstream');
 
-  @DocsEditable
   @DomName('RTCPeerConnection.datachannel')
+  @DocsEditable
   static const EventStreamProvider<RtcDataChannelEvent> dataChannelEvent = const EventStreamProvider<RtcDataChannelEvent>('datachannel');
 
-  @DocsEditable
   @DomName('RTCPeerConnection.icecandidate')
+  @DocsEditable
   static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
 
-  @DocsEditable
   @DomName('RTCPeerConnection.icechange')
+  @DocsEditable
   static const EventStreamProvider<Event> iceChangeEvent = const EventStreamProvider<Event>('icechange');
 
-  @DocsEditable
   @DomName('RTCPeerConnection.negotiationneeded')
+  @DocsEditable
   static const EventStreamProvider<Event> negotiationNeededEvent = const EventStreamProvider<Event>('negotiationneeded');
 
-  @DocsEditable
   @DomName('RTCPeerConnection.open')
+  @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  @DocsEditable
   @DomName('RTCPeerConnection.removestream')
+  @DocsEditable
   static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
 
-  @DocsEditable
   @DomName('RTCPeerConnection.statechange')
+  @DocsEditable
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
   @DocsEditable
@@ -19111,45 +18894,45 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   RtcPeerConnectionEvents get on =>
     new RtcPeerConnectionEvents(this);
 
-  @DocsEditable
   @DomName('RTCPeerConnection.iceGatheringState')
+  @DocsEditable
   final String iceGatheringState;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.iceState')
+  @DocsEditable
   final String iceState;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.localDescription')
+  @DocsEditable
   final RtcSessionDescription localDescription;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.localStreams')
+  @DocsEditable
   @Returns('_MediaStreamList')
   @Creates('_MediaStreamList')
   final List<MediaStream> localStreams;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.readyState')
+  @DocsEditable
   final String readyState;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.remoteDescription')
+  @DocsEditable
   final RtcSessionDescription remoteDescription;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.remoteStreams')
+  @DocsEditable
   @Returns('_MediaStreamList')
   @Creates('_MediaStreamList')
   final List<MediaStream> remoteStreams;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('RTCPeerConnection.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.addIceCandidate')
+  @DocsEditable
   void addIceCandidate(RtcIceCandidate candidate) native;
 
   void addStream(MediaStream stream, [Map mediaConstraints]) {
@@ -19162,16 +18945,16 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('addStream')
-  @DocsEditable
   @DomName('RTCPeerConnection.addStream')
+  @DocsEditable
   void _addStream_1(MediaStream stream, mediaConstraints) native;
   @JSName('addStream')
-  @DocsEditable
   @DomName('RTCPeerConnection.addStream')
+  @DocsEditable
   void _addStream_2(MediaStream stream) native;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.close')
+  @DocsEditable
   void close() native;
 
   void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
@@ -19184,12 +18967,12 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('createAnswer')
-  @DocsEditable
   @DomName('RTCPeerConnection.createAnswer')
+  @DocsEditable
   void _createAnswer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createAnswer')
-  @DocsEditable
   @DomName('RTCPeerConnection.createAnswer')
+  @DocsEditable
   void _createAnswer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
   RtcDataChannel createDataChannel(String label, [Map options]) {
@@ -19200,12 +18983,12 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return _createDataChannel_2(label);
   }
   @JSName('createDataChannel')
-  @DocsEditable
   @DomName('RTCPeerConnection.createDataChannel')
+  @DocsEditable
   RtcDataChannel _createDataChannel_1(label, options) native;
   @JSName('createDataChannel')
-  @DocsEditable
   @DomName('RTCPeerConnection.createDataChannel')
+  @DocsEditable
   RtcDataChannel _createDataChannel_2(label) native;
 
   void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
@@ -19218,38 +19001,38 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('createOffer')
-  @DocsEditable
   @DomName('RTCPeerConnection.createOffer')
+  @DocsEditable
   void _createOffer_1(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback, mediaConstraints) native;
   @JSName('createOffer')
-  @DocsEditable
   @DomName('RTCPeerConnection.createOffer')
+  @DocsEditable
   void _createOffer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('RTCPeerConnection.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.getStats')
+  @DocsEditable
   void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('RTCPeerConnection.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.removeStream')
+  @DocsEditable
   void removeStream(MediaStream stream) native;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.setLocalDescription')
+  @DocsEditable
   void setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.setRemoteDescription')
+  @DocsEditable
   void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
   void updateIce([Map configuration, Map mediaConstraints]) {
@@ -19268,48 +19051,48 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
     return;
   }
   @JSName('updateIce')
-  @DocsEditable
   @DomName('RTCPeerConnection.updateIce')
+  @DocsEditable
   void _updateIce_1(configuration, mediaConstraints) native;
   @JSName('updateIce')
-  @DocsEditable
   @DomName('RTCPeerConnection.updateIce')
+  @DocsEditable
   void _updateIce_2(configuration) native;
   @JSName('updateIce')
-  @DocsEditable
   @DomName('RTCPeerConnection.updateIce')
+  @DocsEditable
   void _updateIce_3() native;
 
-  @DocsEditable
   @DomName('RTCPeerConnection.addstream')
+  @DocsEditable
   Stream<MediaStreamEvent> get onAddStream => addStreamEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCPeerConnection.datachannel')
+  @DocsEditable
   Stream<RtcDataChannelEvent> get onDataChannel => dataChannelEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCPeerConnection.icecandidate')
+  @DocsEditable
   Stream<RtcIceCandidateEvent> get onIceCandidate => iceCandidateEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCPeerConnection.icechange')
+  @DocsEditable
   Stream<Event> get onIceChange => iceChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCPeerConnection.negotiationneeded')
+  @DocsEditable
   Stream<Event> get onNegotiationNeeded => negotiationNeededEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCPeerConnection.open')
+  @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCPeerConnection.removestream')
+  @DocsEditable
   Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('RTCPeerConnection.statechange')
+  @DocsEditable
   Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
 }
 
@@ -19344,7 +19127,6 @@ class RtcPeerConnectionEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RTCSessionDescription')
 class RtcSessionDescription native "*RTCSessionDescription" {
@@ -19353,12 +19135,12 @@ class RtcSessionDescription native "*RTCSessionDescription" {
   factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
   static RtcSessionDescription _create(Map dictionary) => JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 
-  @DocsEditable
   @DomName('RTCSessionDescription.sdp')
+  @DocsEditable
   String sdp;
 
-  @DocsEditable
   @DomName('RTCSessionDescription.type')
+  @DocsEditable
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19366,21 +19148,20 @@ class RtcSessionDescription native "*RTCSessionDescription" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RTCStatsElement')
 class RtcStatsElement native "*RTCStatsElement" {
 
-  @DocsEditable
   @DomName('RTCStatsElement.timestamp')
+  @DocsEditable
   final Date timestamp;
 
-  @DocsEditable
   @DomName('RTCStatsElement.names')
+  @DocsEditable
   List<String> names() native;
 
-  @DocsEditable
   @DomName('RTCStatsElement.stat')
+  @DocsEditable
   String stat(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19388,17 +19169,16 @@ class RtcStatsElement native "*RTCStatsElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RTCStatsReport')
 class RtcStatsReport native "*RTCStatsReport" {
 
-  @DocsEditable
   @DomName('RTCStatsReport.local')
+  @DocsEditable
   final RtcStatsElement local;
 
-  @DocsEditable
   @DomName('RTCStatsReport.remote')
+  @DocsEditable
   final RtcStatsElement remote;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19406,13 +19186,12 @@ class RtcStatsReport native "*RTCStatsReport" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('RTCStatsResponse')
 class RtcStatsResponse native "*RTCStatsResponse" {
 
-  @DocsEditable
   @DomName('RTCStatsResponse.result')
+  @DocsEditable
   List<RtcStatsReport> result() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19460,47 +19239,45 @@ typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Screen')
 class Screen native "*Screen" {
 
-  @DocsEditable
   @DomName('Screen.availHeight')
+  @DocsEditable
   final int availHeight;
 
-  @DocsEditable
   @DomName('Screen.availLeft')
+  @DocsEditable
   final int availLeft;
 
-  @DocsEditable
   @DomName('Screen.availTop')
+  @DocsEditable
   final int availTop;
 
-  @DocsEditable
   @DomName('Screen.availWidth')
+  @DocsEditable
   final int availWidth;
 
-  @DocsEditable
   @DomName('Screen.colorDepth')
+  @DocsEditable
   final int colorDepth;
 
-  @DocsEditable
   @DomName('Screen.height')
+  @DocsEditable
   final int height;
 
-  @DocsEditable
   @DomName('Screen.pixelDepth')
+  @DocsEditable
   final int pixelDepth;
 
-  @DocsEditable
   @DomName('Screen.width')
+  @DocsEditable
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -19510,36 +19287,36 @@ class ScriptElement extends Element native "*HTMLScriptElement" {
   @DocsEditable
   factory ScriptElement() => document.$dom_createElement("script");
 
-  @DocsEditable
   @DomName('HTMLScriptElement.async')
+  @DocsEditable
   bool async;
 
-  @DocsEditable
   @DomName('HTMLScriptElement.charset')
+  @DocsEditable
   String charset;
 
-  @DocsEditable
   @DomName('HTMLScriptElement.crossOrigin')
+  @DocsEditable
   String crossOrigin;
 
-  @DocsEditable
   @DomName('HTMLScriptElement.defer')
+  @DocsEditable
   bool defer;
 
-  @DocsEditable
   @DomName('HTMLScriptElement.event')
+  @DocsEditable
   String event;
 
-  @DocsEditable
   @DomName('HTMLScriptElement.htmlFor')
+  @DocsEditable
   String htmlFor;
 
-  @DocsEditable
   @DomName('HTMLScriptElement.src')
+  @DocsEditable
   String src;
 
-  @DocsEditable
   @DomName('HTMLScriptElement.type')
+  @DocsEditable
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19547,25 +19324,24 @@ class ScriptElement extends Element native "*HTMLScriptElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ScriptProfile')
 class ScriptProfile native "*ScriptProfile" {
 
-  @DocsEditable
   @DomName('ScriptProfile.head')
+  @DocsEditable
   final ScriptProfileNode head;
 
-  @DocsEditable
   @DomName('ScriptProfile.idleTime')
+  @DocsEditable
   final num idleTime;
 
-  @DocsEditable
   @DomName('ScriptProfile.title')
+  @DocsEditable
   final String title;
 
-  @DocsEditable
   @DomName('ScriptProfile.uid')
+  @DocsEditable
   final int uid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19573,46 +19349,45 @@ class ScriptProfile native "*ScriptProfile" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ScriptProfileNode')
 class ScriptProfileNode native "*ScriptProfileNode" {
 
   @JSName('callUID')
-  @DocsEditable
   @DomName('ScriptProfileNode.callUID')
+  @DocsEditable
   final int callUid;
 
-  @DocsEditable
   @DomName('ScriptProfileNode.functionName')
+  @DocsEditable
   final String functionName;
 
-  @DocsEditable
   @DomName('ScriptProfileNode.lineNumber')
+  @DocsEditable
   final int lineNumber;
 
-  @DocsEditable
   @DomName('ScriptProfileNode.numberOfCalls')
+  @DocsEditable
   final int numberOfCalls;
 
-  @DocsEditable
   @DomName('ScriptProfileNode.selfTime')
+  @DocsEditable
   final num selfTime;
 
-  @DocsEditable
   @DomName('ScriptProfileNode.totalTime')
+  @DocsEditable
   final num totalTime;
 
-  @DocsEditable
   @DomName('ScriptProfileNode.url')
+  @DocsEditable
   final String url;
 
-  @DocsEditable
   @DomName('ScriptProfileNode.visible')
+  @DocsEditable
   final bool visible;
 
-  @DocsEditable
   @DomName('ScriptProfileNode.children')
+  @DocsEditable
   List<ScriptProfileNode> children() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19620,89 +19395,88 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('HTMLSelectElement')
 class SelectElement extends Element native "*HTMLSelectElement" {
 
   @DocsEditable
   factory SelectElement() => document.$dom_createElement("select");
 
-  @DocsEditable
   @DomName('HTMLSelectElement.autofocus')
+  @DocsEditable
   bool autofocus;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.labels')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> labels;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.length')
+  @DocsEditable
   int length;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.multiple')
+  @DocsEditable
   bool multiple;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.required')
+  @DocsEditable
   bool required;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.selectedIndex')
+  @DocsEditable
   int selectedIndex;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.size')
+  @DocsEditable
   int size;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.validationMessage')
+  @DocsEditable
   final String validationMessage;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.validity')
+  @DocsEditable
   final ValidityState validity;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.value')
+  @DocsEditable
   String value;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.willValidate')
+  @DocsEditable
   final bool willValidate;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.checkValidity')
+  @DocsEditable
   bool checkValidity() native;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.item')
+  @DocsEditable
   Node item(int index) native;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.namedItem')
+  @DocsEditable
   Node namedItem(String name) native;
 
-  @DocsEditable
   @DomName('HTMLSelectElement.setCustomValidity')
+  @DocsEditable
   void setCustomValidity(String error) native;
 
 
@@ -19730,7 +19504,6 @@ class SelectElement extends Element native "*HTMLSelectElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
@@ -19740,12 +19513,12 @@ class ShadowElement extends Element native "*HTMLShadowElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('shadow');
 
-  @DocsEditable
   @DomName('HTMLShadowElement.olderShadowRoot')
+  @DocsEditable
   final ShadowRoot olderShadowRoot;
 
-  @DocsEditable
   @DomName('HTMLShadowElement.resetStyleInheritance')
+  @DocsEditable
   bool resetStyleInheritance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19755,59 +19528,58 @@ class ShadowElement extends Element native "*HTMLShadowElement" {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('ShadowRoot')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
-  @DocsEditable
   @DomName('ShadowRoot.activeElement')
+  @DocsEditable
   final Element activeElement;
 
-  @DocsEditable
   @DomName('ShadowRoot.applyAuthorStyles')
+  @DocsEditable
   bool applyAuthorStyles;
 
   @JSName('innerHTML')
-  @DocsEditable
   @DomName('ShadowRoot.innerHTML')
+  @DocsEditable
   String innerHtml;
 
-  @DocsEditable
   @DomName('ShadowRoot.resetStyleInheritance')
+  @DocsEditable
   bool resetStyleInheritance;
 
   @JSName('cloneNode')
-  @DocsEditable
   @DomName('ShadowRoot.cloneNode')
+  @DocsEditable
   Node clone(bool deep) native;
 
-  @DocsEditable
   @DomName('ShadowRoot.elementFromPoint')
+  @DocsEditable
   Element elementFromPoint(int x, int y) native;
 
   @JSName('getElementById')
-  @DocsEditable
   @DomName('ShadowRoot.getElementById')
+  @DocsEditable
   Element $dom_getElementById(String elementId) native;
 
   @JSName('getElementsByClassName')
-  @DocsEditable
   @DomName('ShadowRoot.getElementsByClassName')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_getElementsByClassName(String className) native;
 
   @JSName('getElementsByTagName')
-  @DocsEditable
   @DomName('ShadowRoot.getElementsByTagName')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> $dom_getElementsByTagName(String tagName) native;
 
-  @DocsEditable
   @DomName('ShadowRoot.getSelection')
+  @DocsEditable
   DomSelection getSelection() native;
 
   static bool get supported =>
@@ -19816,7 +19588,6 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -19837,8 +19608,8 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
     return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
   }
 
-  @DocsEditable
   @DomName('SharedWorker.port')
+  @DocsEditable
   final MessagePort port;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19846,13 +19617,12 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SharedWorkerContext')
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
 
-  @DocsEditable
   @DomName('SharedWorkerContext.connect')
+  @DocsEditable
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
   @DocsEditable
@@ -19860,12 +19630,12 @@ class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
-  @DocsEditable
   @DomName('SharedWorkerContext.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('SharedWorkerContext.connect')
+  @DocsEditable
   Stream<Event> get onConnect => connectEvent.forTarget(this);
 }
 
@@ -19882,25 +19652,24 @@ class SharedWorkerContextEvents extends WorkerContextEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SourceBuffer')
 class SourceBuffer native "*SourceBuffer" {
 
-  @DocsEditable
   @DomName('SourceBuffer.buffered')
+  @DocsEditable
   final TimeRanges buffered;
 
-  @DocsEditable
   @DomName('SourceBuffer.timestampOffset')
+  @DocsEditable
   num timestampOffset;
 
-  @DocsEditable
   @DomName('SourceBuffer.abort')
+  @DocsEditable
   void abort() native;
 
-  @DocsEditable
   @DomName('SourceBuffer.append')
+  @DocsEditable
   void append(Uint8Array data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19908,13 +19677,12 @@ class SourceBuffer native "*SourceBuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SourceBufferList')
 class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "*SourceBufferList" {
 
-  @DocsEditable
   @DomName('SourceBufferList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   SourceBuffer operator[](int index) => JS("SourceBuffer", "#[#]", this, index);
@@ -20086,28 +19854,27 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   // -- end List<SourceBuffer> mixins.
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('SourceBufferList.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('SourceBufferList.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
-  @DocsEditable
   @DomName('SourceBufferList.item')
+  @DocsEditable
   SourceBuffer item(int index) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('SourceBufferList.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -20117,22 +19884,21 @@ class SourceElement extends Element native "*HTMLSourceElement" {
   @DocsEditable
   factory SourceElement() => document.$dom_createElement("source");
 
-  @DocsEditable
   @DomName('HTMLSourceElement.media')
+  @DocsEditable
   String media;
 
-  @DocsEditable
   @DomName('HTMLSourceElement.src')
+  @DocsEditable
   String src;
 
-  @DocsEditable
   @DomName('HTMLSourceElement.type')
+  @DocsEditable
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -20147,7 +19913,6 @@ class SpanElement extends Element native "*HTMLSpanElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SpeechGrammar')
 class SpeechGrammar native "*SpeechGrammar" {
@@ -20156,18 +19921,17 @@ class SpeechGrammar native "*SpeechGrammar" {
   factory SpeechGrammar() => SpeechGrammar._create();
   static SpeechGrammar _create() => JS('SpeechGrammar', 'new SpeechGrammar()');
 
-  @DocsEditable
   @DomName('SpeechGrammar.src')
+  @DocsEditable
   String src;
 
-  @DocsEditable
   @DomName('SpeechGrammar.weight')
+  @DocsEditable
   num weight;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -20178,8 +19942,8 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   factory SpeechGrammarList() => SpeechGrammarList._create();
   static SpeechGrammarList _create() => JS('SpeechGrammarList', 'new SpeechGrammarList()');
 
-  @DocsEditable
   @DomName('SpeechGrammarList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   SpeechGrammar operator[](int index) => JS("SpeechGrammar", "#[#]", this, index);
@@ -20350,16 +20114,16 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   // -- end List<SpeechGrammar> mixins.
 
-  @DocsEditable
   @DomName('SpeechGrammarList.addFromString')
+  @DocsEditable
   void addFromString(String string, [num weight]) native;
 
-  @DocsEditable
   @DomName('SpeechGrammarList.addFromUri')
+  @DocsEditable
   void addFromUri(String src, [num weight]) native;
 
-  @DocsEditable
   @DomName('SpeechGrammarList.item')
+  @DocsEditable
   SpeechGrammar item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20367,13 +20131,12 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SpeechInputEvent')
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
-  @DocsEditable
   @DomName('SpeechInputEvent.results')
+  @DocsEditable
   @Returns('_SpeechInputResultList')
   @Creates('_SpeechInputResultList')
   final List<SpeechInputResult> results;
@@ -20383,17 +20146,16 @@ class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SpeechInputResult')
 class SpeechInputResult native "*SpeechInputResult" {
 
-  @DocsEditable
   @DomName('SpeechInputResult.confidence')
+  @DocsEditable
   final num confidence;
 
-  @DocsEditable
   @DomName('SpeechInputResult.utterance')
+  @DocsEditable
   final String utterance;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -20401,54 +20163,53 @@ class SpeechInputResult native "*SpeechInputResult" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('SpeechRecognition')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
-  @DocsEditable
   @DomName('SpeechRecognition.audioend')
+  @DocsEditable
   static const EventStreamProvider<Event> audioEndEvent = const EventStreamProvider<Event>('audioend');
 
-  @DocsEditable
   @DomName('SpeechRecognition.audiostart')
+  @DocsEditable
   static const EventStreamProvider<Event> audioStartEvent = const EventStreamProvider<Event>('audiostart');
 
-  @DocsEditable
   @DomName('SpeechRecognition.end')
+  @DocsEditable
   static const EventStreamProvider<Event> endEvent = const EventStreamProvider<Event>('end');
 
-  @DocsEditable
   @DomName('SpeechRecognition.error')
+  @DocsEditable
   static const EventStreamProvider<SpeechRecognitionError> errorEvent = const EventStreamProvider<SpeechRecognitionError>('error');
 
-  @DocsEditable
   @DomName('SpeechRecognition.nomatch')
+  @DocsEditable
   static const EventStreamProvider<SpeechRecognitionEvent> noMatchEvent = const EventStreamProvider<SpeechRecognitionEvent>('nomatch');
 
-  @DocsEditable
   @DomName('SpeechRecognition.result')
+  @DocsEditable
   static const EventStreamProvider<SpeechRecognitionEvent> resultEvent = const EventStreamProvider<SpeechRecognitionEvent>('result');
 
-  @DocsEditable
   @DomName('SpeechRecognition.soundend')
+  @DocsEditable
   static const EventStreamProvider<Event> soundEndEvent = const EventStreamProvider<Event>('soundend');
 
-  @DocsEditable
   @DomName('SpeechRecognition.soundstart')
+  @DocsEditable
   static const EventStreamProvider<Event> soundStartEvent = const EventStreamProvider<Event>('soundstart');
 
-  @DocsEditable
   @DomName('SpeechRecognition.speechend')
+  @DocsEditable
   static const EventStreamProvider<Event> speechEndEvent = const EventStreamProvider<Event>('speechend');
 
-  @DocsEditable
   @DomName('SpeechRecognition.speechstart')
+  @DocsEditable
   static const EventStreamProvider<Event> speechStartEvent = const EventStreamProvider<Event>('speechstart');
 
-  @DocsEditable
   @DomName('SpeechRecognition.start')
+  @DocsEditable
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
   @DocsEditable
@@ -20462,95 +20223,95 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
   SpeechRecognitionEvents get on =>
     new SpeechRecognitionEvents(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.continuous')
+  @DocsEditable
   bool continuous;
 
-  @DocsEditable
   @DomName('SpeechRecognition.grammars')
+  @DocsEditable
   SpeechGrammarList grammars;
 
-  @DocsEditable
   @DomName('SpeechRecognition.interimResults')
+  @DocsEditable
   bool interimResults;
 
-  @DocsEditable
   @DomName('SpeechRecognition.lang')
+  @DocsEditable
   String lang;
 
-  @DocsEditable
   @DomName('SpeechRecognition.maxAlternatives')
+  @DocsEditable
   int maxAlternatives;
 
-  @DocsEditable
   @DomName('SpeechRecognition.abort')
+  @DocsEditable
   void abort() native;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('SpeechRecognition.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('SpeechRecognition.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('SpeechRecognition.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('SpeechRecognition.start')
+  @DocsEditable
   void start() native;
 
-  @DocsEditable
   @DomName('SpeechRecognition.stop')
+  @DocsEditable
   void stop() native;
 
-  @DocsEditable
   @DomName('SpeechRecognition.audioend')
+  @DocsEditable
   Stream<Event> get onAudioEnd => audioEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.audiostart')
+  @DocsEditable
   Stream<Event> get onAudioStart => audioStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.end')
+  @DocsEditable
   Stream<Event> get onEnd => endEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.error')
+  @DocsEditable
   Stream<SpeechRecognitionError> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.nomatch')
+  @DocsEditable
   Stream<SpeechRecognitionEvent> get onNoMatch => noMatchEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.result')
+  @DocsEditable
   Stream<SpeechRecognitionEvent> get onResult => resultEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.soundend')
+  @DocsEditable
   Stream<Event> get onSoundEnd => soundEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.soundstart')
+  @DocsEditable
   Stream<Event> get onSoundStart => soundStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.speechend')
+  @DocsEditable
   Stream<Event> get onSpeechEnd => speechEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.speechstart')
+  @DocsEditable
   Stream<Event> get onSpeechStart => speechStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('SpeechRecognition.start')
+  @DocsEditable
   Stream<Event> get onStart => startEvent.forTarget(this);
 
   static SpeechRecognition _create() {
@@ -20602,25 +20363,23 @@ class SpeechRecognitionEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SpeechRecognitionAlternative')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 
-  @DocsEditable
   @DomName('SpeechRecognitionAlternative.confidence')
+  @DocsEditable
   final num confidence;
 
-  @DocsEditable
   @DomName('SpeechRecognitionAlternative.transcript')
+  @DocsEditable
   final String transcript;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -20629,18 +20388,17 @@ class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 @Experimental()
 class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 
-  @DocsEditable
   @DomName('SpeechRecognitionError.error')
+  @DocsEditable
   final String error;
 
-  @DocsEditable
   @DomName('SpeechRecognitionError.message')
+  @DocsEditable
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -20649,22 +20407,22 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 @Experimental()
 class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 
-  @DocsEditable
   @DomName('SpeechRecognitionEvent.result')
+  @DocsEditable
   final SpeechRecognitionResult result;
 
-  @DocsEditable
   @DomName('SpeechRecognitionEvent.resultHistory')
+  @DocsEditable
   @Returns('_SpeechRecognitionResultList')
   @Creates('_SpeechRecognitionResultList')
   final List<SpeechRecognitionResult> resultHistory;
 
-  @DocsEditable
   @DomName('SpeechRecognitionEvent.resultIndex')
+  @DocsEditable
   final int resultIndex;
 
-  @DocsEditable
   @DomName('SpeechRecognitionEvent.results')
+  @DocsEditable
   @Returns('_SpeechRecognitionResultList')
   @Creates('_SpeechRecognitionResultList')
   final List<SpeechRecognitionResult> results;
@@ -20674,29 +20432,27 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SpeechRecognitionResult')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 
-  @DocsEditable
   @DomName('SpeechRecognitionResult.isFinal')
+  @DocsEditable
   final bool isFinal;
 
-  @DocsEditable
   @DomName('SpeechRecognitionResult.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('SpeechRecognitionResult.item')
+  @DocsEditable
   SpeechRecognitionAlternative item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -20719,18 +20475,17 @@ class SqlError native "*SQLError" {
 
   static const int VERSION_ERR = 2;
 
-  @DocsEditable
   @DomName('SQLError.code')
+  @DocsEditable
   final int code;
 
-  @DocsEditable
   @DomName('SQLError.message')
+  @DocsEditable
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -20753,12 +20508,12 @@ class SqlException native "*SQLException" {
 
   static const int VERSION_ERR = 2;
 
-  @DocsEditable
   @DomName('SQLException.code')
+  @DocsEditable
   final int code;
 
-  @DocsEditable
   @DomName('SQLException.message')
+  @DocsEditable
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20766,21 +20521,20 @@ class SqlException native "*SQLException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SQLResultSet')
 class SqlResultSet native "*SQLResultSet" {
 
-  @DocsEditable
   @DomName('SQLResultSet.insertId')
+  @DocsEditable
   final int insertId;
 
-  @DocsEditable
   @DomName('SQLResultSet.rows')
+  @DocsEditable
   final SqlResultSetRowList rows;
 
-  @DocsEditable
   @DomName('SQLResultSet.rowsAffected')
+  @DocsEditable
   final int rowsAffected;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20788,13 +20542,12 @@ class SqlResultSet native "*SQLResultSet" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SQLResultSetRowList')
 class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
 
-  @DocsEditable
   @DomName('SQLResultSetRowList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   Map operator[](int index) => JS("Map", "#[#]", this, index);
@@ -20969,8 +20722,8 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     return convertNativeToDart_Dictionary(_item_1(index));
   }
   @JSName('item')
-  @DocsEditable
   @DomName('SQLResultSetRowList.item')
+  @DocsEditable
   @Creates('=Object')
   _item_1(index) native;
 }
@@ -20979,13 +20732,12 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SQLTransaction')
 class SqlTransaction native "*SQLTransaction" {
 
-  @DocsEditable
   @DomName('SQLTransaction.executeSql')
+  @DocsEditable
   void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20993,13 +20745,12 @@ class SqlTransaction native "*SQLTransaction" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SQLTransactionSync')
 class SqlTransactionSync native "*SQLTransactionSync" {
 
-  @DocsEditable
   @DomName('SQLTransactionSync.executeSql')
+  @DocsEditable
   SqlResultSet executeSql(String sqlStatement, List arguments) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21007,7 +20758,6 @@ class SqlTransactionSync native "*SQLTransactionSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('Storage')
 class Storage implements Map<String, String>
      native "*Storage" {
@@ -21060,33 +20810,33 @@ class Storage implements Map<String, String>
   bool get isEmpty => $dom_key(0) == null;
 
   @JSName('length')
-  @DocsEditable
   @DomName('Storage.length')
+  @DocsEditable
   final int $dom_length;
 
   @JSName('clear')
-  @DocsEditable
   @DomName('Storage.clear')
+  @DocsEditable
   void $dom_clear() native;
 
   @JSName('getItem')
-  @DocsEditable
   @DomName('Storage.getItem')
+  @DocsEditable
   String $dom_getItem(String key) native;
 
   @JSName('key')
-  @DocsEditable
   @DomName('Storage.key')
+  @DocsEditable
   String $dom_key(int index) native;
 
   @JSName('removeItem')
-  @DocsEditable
   @DomName('Storage.removeItem')
+  @DocsEditable
   void $dom_removeItem(String key) native;
 
   @JSName('setItem')
-  @DocsEditable
   @DomName('Storage.setItem')
+  @DocsEditable
   void $dom_setItem(String key, String data) native;
 
 }
@@ -21095,39 +20845,37 @@ class Storage implements Map<String, String>
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('StorageEvent')
 class StorageEvent extends Event native "*StorageEvent" {
 
-  @DocsEditable
   @DomName('StorageEvent.key')
+  @DocsEditable
   final String key;
 
-  @DocsEditable
   @DomName('StorageEvent.newValue')
+  @DocsEditable
   final String newValue;
 
-  @DocsEditable
   @DomName('StorageEvent.oldValue')
+  @DocsEditable
   final String oldValue;
 
-  @DocsEditable
   @DomName('StorageEvent.storageArea')
+  @DocsEditable
   final Storage storageArea;
 
-  @DocsEditable
   @DomName('StorageEvent.url')
+  @DocsEditable
   final String url;
 
-  @DocsEditable
   @DomName('StorageEvent.initStorageEvent')
+  @DocsEditable
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -21138,12 +20886,12 @@ class StorageInfo native "*StorageInfo" {
 
   static const int TEMPORARY = 0;
 
-  @DocsEditable
   @DomName('StorageInfo.queryUsageAndQuota')
+  @DocsEditable
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native;
 
-  @DocsEditable
   @DomName('StorageInfo.requestQuota')
+  @DocsEditable
   void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21183,7 +20931,6 @@ typedef void StringCallback(String data);
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLStyleElement')
 class StyleElement extends Element native "*HTMLStyleElement" {
@@ -21191,24 +20938,24 @@ class StyleElement extends Element native "*HTMLStyleElement" {
   @DocsEditable
   factory StyleElement() => document.$dom_createElement("style");
 
-  @DocsEditable
   @DomName('HTMLStyleElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLStyleElement.media')
+  @DocsEditable
   String media;
 
-  @DocsEditable
   @DomName('HTMLStyleElement.scoped')
+  @DocsEditable
   bool scoped;
 
-  @DocsEditable
   @DomName('HTMLStyleElement.sheet')
+  @DocsEditable
   final StyleSheet sheet;
 
-  @DocsEditable
   @DomName('HTMLStyleElement.type')
+  @DocsEditable
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21216,17 +20963,16 @@ class StyleElement extends Element native "*HTMLStyleElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('StyleMedia')
 class StyleMedia native "*StyleMedia" {
 
-  @DocsEditable
   @DomName('StyleMedia.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('StyleMedia.matchMedium')
+  @DocsEditable
   bool matchMedium(String mediaquery) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21234,43 +20980,41 @@ class StyleMedia native "*StyleMedia" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('StyleSheet')
 class StyleSheet native "*StyleSheet" {
 
-  @DocsEditable
   @DomName('StyleSheet.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('StyleSheet.href')
+  @DocsEditable
   final String href;
 
-  @DocsEditable
   @DomName('StyleSheet.media')
+  @DocsEditable
   final MediaList media;
 
-  @DocsEditable
   @DomName('StyleSheet.ownerNode')
+  @DocsEditable
   final Node ownerNode;
 
-  @DocsEditable
   @DomName('StyleSheet.parentStyleSheet')
+  @DocsEditable
   final StyleSheet parentStyleSheet;
 
-  @DocsEditable
   @DomName('StyleSheet.title')
+  @DocsEditable
   final String title;
 
-  @DocsEditable
   @DomName('StyleSheet.type')
+  @DocsEditable
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -21285,7 +21029,6 @@ class TableCaptionElement extends Element native "*HTMLTableCaptionElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLTableCellElement')
 class TableCellElement extends Element native "*HTMLTableCellElement" {
@@ -21293,26 +21036,25 @@ class TableCellElement extends Element native "*HTMLTableCellElement" {
   @DocsEditable
   factory TableCellElement() => document.$dom_createElement("td");
 
-  @DocsEditable
   @DomName('HTMLTableCellElement.cellIndex')
+  @DocsEditable
   final int cellIndex;
 
-  @DocsEditable
   @DomName('HTMLTableCellElement.colSpan')
+  @DocsEditable
   int colSpan;
 
-  @DocsEditable
   @DomName('HTMLTableCellElement.headers')
+  @DocsEditable
   String headers;
 
-  @DocsEditable
   @DomName('HTMLTableCellElement.rowSpan')
+  @DocsEditable
   int rowSpan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -21322,8 +21064,8 @@ class TableColElement extends Element native "*HTMLTableColElement" {
   @DocsEditable
   factory TableColElement() => document.$dom_createElement("col");
 
-  @DocsEditable
   @DomName('HTMLTableColElement.span')
+  @DocsEditable
   int span;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21331,67 +21073,66 @@ class TableColElement extends Element native "*HTMLTableColElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('HTMLTableElement')
 class TableElement extends Element native "*HTMLTableElement" {
 
   @DocsEditable
   factory TableElement() => document.$dom_createElement("table");
 
-  @DocsEditable
   @DomName('HTMLTableElement.border')
+  @DocsEditable
   String border;
 
-  @DocsEditable
   @DomName('HTMLTableElement.caption')
+  @DocsEditable
   TableCaptionElement caption;
 
-  @DocsEditable
   @DomName('HTMLTableElement.rows')
+  @DocsEditable
   final HtmlCollection rows;
 
-  @DocsEditable
   @DomName('HTMLTableElement.tBodies')
+  @DocsEditable
   final HtmlCollection tBodies;
 
-  @DocsEditable
   @DomName('HTMLTableElement.tFoot')
+  @DocsEditable
   TableSectionElement tFoot;
 
-  @DocsEditable
   @DomName('HTMLTableElement.tHead')
+  @DocsEditable
   TableSectionElement tHead;
 
-  @DocsEditable
   @DomName('HTMLTableElement.createCaption')
+  @DocsEditable
   Element createCaption() native;
 
-  @DocsEditable
   @DomName('HTMLTableElement.createTFoot')
+  @DocsEditable
   Element createTFoot() native;
 
-  @DocsEditable
   @DomName('HTMLTableElement.createTHead')
+  @DocsEditable
   Element createTHead() native;
 
-  @DocsEditable
   @DomName('HTMLTableElement.deleteCaption')
+  @DocsEditable
   void deleteCaption() native;
 
-  @DocsEditable
   @DomName('HTMLTableElement.deleteRow')
+  @DocsEditable
   void deleteRow(int index) native;
 
-  @DocsEditable
   @DomName('HTMLTableElement.deleteTFoot')
+  @DocsEditable
   void deleteTFoot() native;
 
-  @DocsEditable
   @DomName('HTMLTableElement.deleteTHead')
+  @DocsEditable
   void deleteTHead() native;
 
-  @DocsEditable
   @DomName('HTMLTableElement.insertRow')
+  @DocsEditable
   Element insertRow(int index) native;
 
 
@@ -21412,7 +21153,6 @@ class TableElement extends Element native "*HTMLTableElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLTableRowElement')
 class TableRowElement extends Element native "*HTMLTableRowElement" {
@@ -21420,24 +21160,24 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
   @DocsEditable
   factory TableRowElement() => document.$dom_createElement("tr");
 
-  @DocsEditable
   @DomName('HTMLTableRowElement.cells')
+  @DocsEditable
   final HtmlCollection cells;
 
-  @DocsEditable
   @DomName('HTMLTableRowElement.rowIndex')
+  @DocsEditable
   final int rowIndex;
 
-  @DocsEditable
   @DomName('HTMLTableRowElement.sectionRowIndex')
+  @DocsEditable
   final int sectionRowIndex;
 
-  @DocsEditable
   @DomName('HTMLTableRowElement.deleteCell')
+  @DocsEditable
   void deleteCell(int index) native;
 
-  @DocsEditable
   @DomName('HTMLTableRowElement.insertCell')
+  @DocsEditable
   Element insertCell(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21445,21 +21185,20 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLTableSectionElement')
 class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 
-  @DocsEditable
   @DomName('HTMLTableSectionElement.rows')
+  @DocsEditable
   final HtmlCollection rows;
 
-  @DocsEditable
   @DomName('HTMLTableSectionElement.deleteRow')
+  @DocsEditable
   void deleteRow(int index) native;
 
-  @DocsEditable
   @DomName('HTMLTableSectionElement.insertRow')
+  @DocsEditable
   Element insertRow(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21469,28 +21208,26 @@ class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('Text')
 class Text extends CharacterData native "*Text" {
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
-  @DocsEditable
   @DomName('Text.wholeText')
+  @DocsEditable
   final String wholeText;
 
-  @DocsEditable
   @DomName('Text.replaceWholeText')
+  @DocsEditable
   Text replaceWholeText(String content) native;
 
-  @DocsEditable
   @DomName('Text.splitText')
+  @DocsEditable
   Text splitText(int offset) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -21500,118 +21237,118 @@ class TextAreaElement extends Element native "*HTMLTextAreaElement" {
   @DocsEditable
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.autofocus')
+  @DocsEditable
   bool autofocus;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.cols')
+  @DocsEditable
   int cols;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.defaultValue')
+  @DocsEditable
   String defaultValue;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.dirName')
+  @DocsEditable
   String dirName;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.disabled')
+  @DocsEditable
   bool disabled;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.form')
+  @DocsEditable
   final FormElement form;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.labels')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   final List<Node> labels;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.maxLength')
+  @DocsEditable
   int maxLength;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.placeholder')
+  @DocsEditable
   String placeholder;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.readOnly')
+  @DocsEditable
   bool readOnly;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.required')
+  @DocsEditable
   bool required;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.rows')
+  @DocsEditable
   int rows;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.selectionDirection')
+  @DocsEditable
   String selectionDirection;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.selectionEnd')
+  @DocsEditable
   int selectionEnd;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.selectionStart')
+  @DocsEditable
   int selectionStart;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.textLength')
+  @DocsEditable
   final int textLength;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.type')
+  @DocsEditable
   final String type;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.validationMessage')
+  @DocsEditable
   final String validationMessage;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.validity')
+  @DocsEditable
   final ValidityState validity;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.value')
+  @DocsEditable
   String value;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.willValidate')
+  @DocsEditable
   final bool willValidate;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.wrap')
+  @DocsEditable
   String wrap;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.checkValidity')
+  @DocsEditable
   bool checkValidity() native;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.select')
+  @DocsEditable
   void select() native;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.setCustomValidity')
+  @DocsEditable
   void setCustomValidity(String error) native;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.setRangeText')
+  @DocsEditable
   void setRangeText(String replacement, [int start, int end, String selectionMode]) native;
 
-  @DocsEditable
   @DomName('HTMLTextAreaElement.setSelectionRange')
+  @DocsEditable
   void setSelectionRange(int start, int end, [String direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21619,17 +21356,16 @@ class TextAreaElement extends Element native "*HTMLTextAreaElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TextEvent')
 class TextEvent extends UIEvent native "*TextEvent" {
 
-  @DocsEditable
   @DomName('TextEvent.data')
+  @DocsEditable
   final String data;
 
-  @DocsEditable
   @DomName('TextEvent.initTextEvent')
+  @DocsEditable
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21637,13 +21373,12 @@ class TextEvent extends UIEvent native "*TextEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TextMetrics')
 class TextMetrics native "*TextMetrics" {
 
-  @DocsEditable
   @DomName('TextMetrics.width')
+  @DocsEditable
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21651,13 +21386,12 @@ class TextMetrics native "*TextMetrics" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TextTrack')
 class TextTrack extends EventTarget native "*TextTrack" {
 
-  @DocsEditable
   @DomName('TextTrack.cuechange')
+  @DocsEditable
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
 
   @DocsEditable
@@ -21665,55 +21399,55 @@ class TextTrack extends EventTarget native "*TextTrack" {
   TextTrackEvents get on =>
     new TextTrackEvents(this);
 
-  @DocsEditable
   @DomName('TextTrack.activeCues')
+  @DocsEditable
   final TextTrackCueList activeCues;
 
-  @DocsEditable
   @DomName('TextTrack.cues')
+  @DocsEditable
   final TextTrackCueList cues;
 
-  @DocsEditable
   @DomName('TextTrack.kind')
+  @DocsEditable
   final String kind;
 
-  @DocsEditable
   @DomName('TextTrack.label')
+  @DocsEditable
   final String label;
 
-  @DocsEditable
   @DomName('TextTrack.language')
+  @DocsEditable
   final String language;
 
-  @DocsEditable
   @DomName('TextTrack.mode')
+  @DocsEditable
   String mode;
 
-  @DocsEditable
   @DomName('TextTrack.addCue')
+  @DocsEditable
   void addCue(TextTrackCue cue) native;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('TextTrack.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('TextTrack.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
-  @DocsEditable
   @DomName('TextTrack.removeCue')
+  @DocsEditable
   void removeCue(TextTrackCue cue) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('TextTrack.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('TextTrack.cuechange')
+  @DocsEditable
   Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
 }
 
@@ -21730,17 +21464,16 @@ class TextTrackEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TextTrackCue')
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
-  @DocsEditable
   @DomName('TextTrackCue.enter')
+  @DocsEditable
   static const EventStreamProvider<Event> enterEvent = const EventStreamProvider<Event>('enter');
 
-  @DocsEditable
   @DomName('TextTrackCue.exit')
+  @DocsEditable
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
   @DocsEditable
@@ -21752,80 +21485,80 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   TextTrackCueEvents get on =>
     new TextTrackCueEvents(this);
 
-  @DocsEditable
   @DomName('TextTrackCue.align')
+  @DocsEditable
   String align;
 
-  @DocsEditable
   @DomName('TextTrackCue.endTime')
+  @DocsEditable
   num endTime;
 
-  @DocsEditable
   @DomName('TextTrackCue.id')
+  @DocsEditable
   String id;
 
-  @DocsEditable
   @DomName('TextTrackCue.line')
+  @DocsEditable
   int line;
 
-  @DocsEditable
   @DomName('TextTrackCue.pauseOnExit')
+  @DocsEditable
   bool pauseOnExit;
 
-  @DocsEditable
   @DomName('TextTrackCue.position')
+  @DocsEditable
   int position;
 
-  @DocsEditable
   @DomName('TextTrackCue.size')
+  @DocsEditable
   int size;
 
-  @DocsEditable
   @DomName('TextTrackCue.snapToLines')
+  @DocsEditable
   bool snapToLines;
 
-  @DocsEditable
   @DomName('TextTrackCue.startTime')
+  @DocsEditable
   num startTime;
 
-  @DocsEditable
   @DomName('TextTrackCue.text')
+  @DocsEditable
   String text;
 
-  @DocsEditable
   @DomName('TextTrackCue.track')
+  @DocsEditable
   final TextTrack track;
 
-  @DocsEditable
   @DomName('TextTrackCue.vertical')
+  @DocsEditable
   String vertical;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('TextTrackCue.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('TextTrackCue.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('getCueAsHTML')
-  @DocsEditable
   @DomName('TextTrackCue.getCueAsHTML')
+  @DocsEditable
   DocumentFragment getCueAsHtml() native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('TextTrackCue.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('TextTrackCue.enter')
+  @DocsEditable
   Stream<Event> get onEnter => enterEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('TextTrackCue.exit')
+  @DocsEditable
   Stream<Event> get onExit => exitEvent.forTarget(this);
 }
 
@@ -21845,13 +21578,12 @@ class TextTrackCueEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TextTrackCueList')
 class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "*TextTrackCueList" {
 
-  @DocsEditable
   @DomName('TextTrackCueList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   TextTrackCue operator[](int index) => JS("TextTrackCue", "#[#]", this, index);
@@ -22022,12 +21754,12 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   // -- end List<TextTrackCue> mixins.
 
-  @DocsEditable
   @DomName('TextTrackCueList.getCueById')
+  @DocsEditable
   TextTrackCue getCueById(String id) native;
 
-  @DocsEditable
   @DomName('TextTrackCueList.item')
+  @DocsEditable
   TextTrackCue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22035,13 +21767,12 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TextTrackList')
 class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
 
-  @DocsEditable
   @DomName('TextTrackList.addtrack')
+  @DocsEditable
   static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
 
   @DocsEditable
@@ -22049,8 +21780,8 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
 
-  @DocsEditable
   @DomName('TextTrackList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   TextTrack operator[](int index) => JS("TextTrack", "#[#]", this, index);
@@ -22222,26 +21953,26 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   // -- end List<TextTrack> mixins.
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('TextTrackList.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('TextTrackList.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
-  @DocsEditable
   @DomName('TextTrackList.item')
+  @DocsEditable
   TextTrack item(int index) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('TextTrackList.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('TextTrackList.addtrack')
+  @DocsEditable
   Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
 }
 
@@ -22258,21 +21989,20 @@ class TextTrackListEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TimeRanges')
 class TimeRanges native "*TimeRanges" {
 
-  @DocsEditable
   @DomName('TimeRanges.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('TimeRanges.end')
+  @DocsEditable
   num end(int index) native;
 
-  @DocsEditable
   @DomName('TimeRanges.start')
+  @DocsEditable
   num start(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22288,7 +22018,6 @@ typedef void TimeoutHandler();
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLTitleElement')
 class TitleElement extends Element native "*HTMLTitleElement" {
@@ -22301,61 +22030,60 @@ class TitleElement extends Element native "*HTMLTitleElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Touch')
 class Touch native "*Touch" {
 
-  @DocsEditable
   @DomName('Touch.clientX')
+  @DocsEditable
   final int clientX;
 
-  @DocsEditable
   @DomName('Touch.clientY')
+  @DocsEditable
   final int clientY;
 
-  @DocsEditable
   @DomName('Touch.identifier')
+  @DocsEditable
   final int identifier;
 
-  @DocsEditable
   @DomName('Touch.pageX')
+  @DocsEditable
   final int pageX;
 
-  @DocsEditable
   @DomName('Touch.pageY')
+  @DocsEditable
   final int pageY;
 
-  @DocsEditable
   @DomName('Touch.screenX')
+  @DocsEditable
   final int screenX;
 
-  @DocsEditable
   @DomName('Touch.screenY')
+  @DocsEditable
   final int screenY;
 
   EventTarget get target => _convertNativeToDart_EventTarget(this._target);
   @JSName('target')
-  @DocsEditable
   @DomName('Touch.target')
+  @DocsEditable
   @Creates('Element|Document')
   @Returns('Element|Document')
   final dynamic _target;
 
-  @DocsEditable
   @DomName('Touch.webkitForce')
+  @DocsEditable
   final num webkitForce;
 
-  @DocsEditable
   @DomName('Touch.webkitRadiusX')
+  @DocsEditable
   final int webkitRadiusX;
 
-  @DocsEditable
   @DomName('Touch.webkitRadiusY')
+  @DocsEditable
   final int webkitRadiusY;
 
-  @DocsEditable
   @DomName('Touch.webkitRotationAngle')
+  @DocsEditable
   final num webkitRotationAngle;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22363,41 +22091,40 @@ class Touch native "*Touch" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TouchEvent')
 class TouchEvent extends UIEvent native "*TouchEvent" {
 
-  @DocsEditable
   @DomName('TouchEvent.altKey')
+  @DocsEditable
   final bool altKey;
 
-  @DocsEditable
   @DomName('TouchEvent.changedTouches')
+  @DocsEditable
   final TouchList changedTouches;
 
-  @DocsEditable
   @DomName('TouchEvent.ctrlKey')
+  @DocsEditable
   final bool ctrlKey;
 
-  @DocsEditable
   @DomName('TouchEvent.metaKey')
+  @DocsEditable
   final bool metaKey;
 
-  @DocsEditable
   @DomName('TouchEvent.shiftKey')
+  @DocsEditable
   final bool shiftKey;
 
-  @DocsEditable
   @DomName('TouchEvent.targetTouches')
+  @DocsEditable
   final TouchList targetTouches;
 
-  @DocsEditable
   @DomName('TouchEvent.touches')
+  @DocsEditable
   final TouchList touches;
 
-  @DocsEditable
   @DomName('TouchEvent.initTouchEvent')
+  @DocsEditable
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22405,13 +22132,12 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TouchList')
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
 
-  @DocsEditable
   @DomName('TouchList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   Touch operator[](int index) => JS("Touch", "#[#]", this, index);
@@ -22582,14 +22308,13 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   // -- end List<Touch> mixins.
 
-  @DocsEditable
   @DomName('TouchList.item')
+  @DocsEditable
   Touch item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -22614,32 +22339,32 @@ class TrackElement extends Element native "*HTMLTrackElement" {
   static const int NONE = 0;
 
   @JSName('default')
-  @DocsEditable
   @DomName('HTMLTrackElement.default')
+  @DocsEditable
   bool defaultValue;
 
-  @DocsEditable
   @DomName('HTMLTrackElement.kind')
+  @DocsEditable
   String kind;
 
-  @DocsEditable
   @DomName('HTMLTrackElement.label')
+  @DocsEditable
   String label;
 
-  @DocsEditable
   @DomName('HTMLTrackElement.readyState')
+  @DocsEditable
   final int readyState;
 
-  @DocsEditable
   @DomName('HTMLTrackElement.src')
+  @DocsEditable
   String src;
 
-  @DocsEditable
   @DomName('HTMLTrackElement.srclang')
+  @DocsEditable
   String srclang;
 
-  @DocsEditable
   @DomName('HTMLTrackElement.track')
+  @DocsEditable
   final TextTrack track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22647,13 +22372,12 @@ class TrackElement extends Element native "*HTMLTrackElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TrackEvent')
 class TrackEvent extends Event native "*TrackEvent" {
 
-  @DocsEditable
   @DomName('TrackEvent.track')
+  @DocsEditable
   final Object track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22661,17 +22385,16 @@ class TrackEvent extends Event native "*TrackEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebKitTransitionEvent')
 class TransitionEvent extends Event native "*WebKitTransitionEvent" {
 
-  @DocsEditable
   @DomName('WebKitTransitionEvent.elapsedTime')
+  @DocsEditable
   final num elapsedTime;
 
-  @DocsEditable
   @DomName('WebKitTransitionEvent.propertyName')
+  @DocsEditable
   final String propertyName;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22679,57 +22402,56 @@ class TransitionEvent extends Event native "*WebKitTransitionEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('TreeWalker')
 class TreeWalker native "*TreeWalker" {
 
-  @DocsEditable
   @DomName('TreeWalker.currentNode')
+  @DocsEditable
   Node currentNode;
 
-  @DocsEditable
   @DomName('TreeWalker.expandEntityReferences')
+  @DocsEditable
   final bool expandEntityReferences;
 
-  @DocsEditable
   @DomName('TreeWalker.filter')
+  @DocsEditable
   final NodeFilter filter;
 
-  @DocsEditable
   @DomName('TreeWalker.root')
+  @DocsEditable
   final Node root;
 
-  @DocsEditable
   @DomName('TreeWalker.whatToShow')
+  @DocsEditable
   final int whatToShow;
 
-  @DocsEditable
   @DomName('TreeWalker.firstChild')
+  @DocsEditable
   Node firstChild() native;
 
-  @DocsEditable
   @DomName('TreeWalker.lastChild')
+  @DocsEditable
   Node lastChild() native;
 
-  @DocsEditable
   @DomName('TreeWalker.nextNode')
+  @DocsEditable
   Node nextNode() native;
 
-  @DocsEditable
   @DomName('TreeWalker.nextSibling')
+  @DocsEditable
   Node nextSibling() native;
 
-  @DocsEditable
   @DomName('TreeWalker.parentNode')
+  @DocsEditable
   Node parentNode() native;
 
-  @DocsEditable
   @DomName('TreeWalker.previousNode')
+  @DocsEditable
   Node previousNode() native;
 
-  @DocsEditable
   @DomName('TreeWalker.previousSibling')
+  @DocsEditable
   Node previousSibling() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22739,7 +22461,6 @@ class TreeWalker native "*TreeWalker" {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
 @DomName('UIEvent')
 class UIEvent extends Event native "*UIEvent" {
   // In JS, canBubble and cancelable are technically required parameters to
@@ -22756,57 +22477,56 @@ class UIEvent extends Event native "*UIEvent" {
   }
 
   @JSName('charCode')
-  @DocsEditable
   @DomName('UIEvent.charCode')
+  @DocsEditable
   final int $dom_charCode;
 
-  @DocsEditable
   @DomName('UIEvent.detail')
+  @DocsEditable
   final int detail;
 
   @JSName('keyCode')
-  @DocsEditable
   @DomName('UIEvent.keyCode')
+  @DocsEditable
   final int $dom_keyCode;
 
-  @DocsEditable
   @DomName('UIEvent.layerX')
+  @DocsEditable
   final int layerX;
 
-  @DocsEditable
   @DomName('UIEvent.layerY')
+  @DocsEditable
   final int layerY;
 
-  @DocsEditable
   @DomName('UIEvent.pageX')
+  @DocsEditable
   final int pageX;
 
-  @DocsEditable
   @DomName('UIEvent.pageY')
+  @DocsEditable
   final int pageY;
 
   WindowBase get view => _convertNativeToDart_Window(this._view);
   @JSName('view')
-  @DocsEditable
   @DomName('UIEvent.view')
+  @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _view;
 
-  @DocsEditable
   @DomName('UIEvent.which')
+  @DocsEditable
   final int which;
 
   @JSName('initUIEvent')
-  @DocsEditable
   @DomName('UIEvent.initUIEvent')
+  @DocsEditable
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -22819,7 +22539,6 @@ class UListElement extends Element native "*HTMLUListElement" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -22837,8 +22556,8 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  @DocsEditable
   @DomName('Uint16Array.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -23007,18 +22726,17 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   // -- end List<int> mixins.
 
   @JSName('set')
-  @DocsEditable
   @DomName('Uint16Array.set')
+  @DocsEditable
   void setElements(Object array, [int offset]) native;
 
-  @DocsEditable
   @DomName('Uint16Array.subarray')
+  @DocsEditable
   Uint16Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23036,8 +22754,8 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  @DocsEditable
   @DomName('Uint32Array.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -23206,18 +22924,17 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   // -- end List<int> mixins.
 
   @JSName('set')
-  @DocsEditable
   @DomName('Uint32Array.set')
+  @DocsEditable
   void setElements(Object array, [int offset]) native;
 
-  @DocsEditable
   @DomName('Uint32Array.subarray')
+  @DocsEditable
   Uint32Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23235,8 +22952,8 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  @DocsEditable
   @DomName('Uint8Array.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) => JS("int", "#[#]", this, index);
@@ -23405,18 +23122,17 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   // -- end List<int> mixins.
 
   @JSName('set')
-  @DocsEditable
   @DomName('Uint8Array.set')
+  @DocsEditable
   void setElements(Object array, [int offset]) native;
 
-  @DocsEditable
   @DomName('Uint8Array.subarray')
+  @DocsEditable
   Uint8Array subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23601,18 +23317,17 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
   // -- end List<int> mixins.
 
   @JSName('set')
-  @DocsEditable
   @DomName('Uint8ClampedArray.set')
+  @DocsEditable
   void setElements(Object array, [int offset]) native;
 
-  @DocsEditable
   @DomName('Uint8ClampedArray.subarray')
+  @DocsEditable
   Uint8ClampedArray subarray(int start, [int end]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23624,7 +23339,6 @@ class UnknownElement extends Element native "*HTMLUnknownElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('URL')
 class Url native "*URL" {
 
@@ -23643,55 +23357,53 @@ class Url native "*URL" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ValidityState')
 class ValidityState native "*ValidityState" {
 
-  @DocsEditable
   @DomName('ValidityState.badInput')
+  @DocsEditable
   final bool badInput;
 
-  @DocsEditable
   @DomName('ValidityState.customError')
+  @DocsEditable
   final bool customError;
 
-  @DocsEditable
   @DomName('ValidityState.patternMismatch')
+  @DocsEditable
   final bool patternMismatch;
 
-  @DocsEditable
   @DomName('ValidityState.rangeOverflow')
+  @DocsEditable
   final bool rangeOverflow;
 
-  @DocsEditable
   @DomName('ValidityState.rangeUnderflow')
+  @DocsEditable
   final bool rangeUnderflow;
 
-  @DocsEditable
   @DomName('ValidityState.stepMismatch')
+  @DocsEditable
   final bool stepMismatch;
 
-  @DocsEditable
   @DomName('ValidityState.tooLong')
+  @DocsEditable
   final bool tooLong;
 
-  @DocsEditable
   @DomName('ValidityState.typeMismatch')
+  @DocsEditable
   final bool typeMismatch;
 
-  @DocsEditable
   @DomName('ValidityState.valid')
+  @DocsEditable
   final bool valid;
 
-  @DocsEditable
   @DomName('ValidityState.valueMissing')
+  @DocsEditable
   final bool valueMissing;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23701,56 +23413,56 @@ class VideoElement extends MediaElement native "*HTMLVideoElement" {
   @DocsEditable
   factory VideoElement() => document.$dom_createElement("video");
 
-  @DocsEditable
   @DomName('HTMLVideoElement.height')
+  @DocsEditable
   int height;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.poster')
+  @DocsEditable
   String poster;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.videoHeight')
+  @DocsEditable
   final int videoHeight;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.videoWidth')
+  @DocsEditable
   final int videoWidth;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.webkitDecodedFrameCount')
+  @DocsEditable
   final int webkitDecodedFrameCount;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.webkitDisplayingFullscreen')
+  @DocsEditable
   final bool webkitDisplayingFullscreen;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.webkitDroppedFrameCount')
+  @DocsEditable
   final int webkitDroppedFrameCount;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.webkitSupportsFullscreen')
+  @DocsEditable
   final bool webkitSupportsFullscreen;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.width')
+  @DocsEditable
   int width;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.webkitEnterFullScreen')
+  @DocsEditable
   void webkitEnterFullScreen() native;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.webkitEnterFullscreen')
+  @DocsEditable
   void webkitEnterFullscreen() native;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.webkitExitFullScreen')
+  @DocsEditable
   void webkitExitFullScreen() native;
 
-  @DocsEditable
   @DomName('HTMLVideoElement.webkitExitFullscreen')
+  @DocsEditable
   void webkitExitFullscreen() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23766,27 +23478,25 @@ typedef void VoidCallback();
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLActiveInfo')
 class WebGLActiveInfo native "*WebGLActiveInfo" {
 
-  @DocsEditable
   @DomName('WebGLActiveInfo.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('WebGLActiveInfo.size')
+  @DocsEditable
   final int size;
 
-  @DocsEditable
   @DomName('WebGLActiveInfo.type')
+  @DocsEditable
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23796,7 +23506,6 @@ class WebGLBuffer native "*WebGLBuffer" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23816,33 +23525,32 @@ class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLContextAttributes')
 class WebGLContextAttributes native "*WebGLContextAttributes" {
 
-  @DocsEditable
   @DomName('WebGLContextAttributes.alpha')
+  @DocsEditable
   bool alpha;
 
-  @DocsEditable
   @DomName('WebGLContextAttributes.antialias')
+  @DocsEditable
   bool antialias;
 
-  @DocsEditable
   @DomName('WebGLContextAttributes.depth')
+  @DocsEditable
   bool depth;
 
-  @DocsEditable
   @DomName('WebGLContextAttributes.premultipliedAlpha')
+  @DocsEditable
   bool premultipliedAlpha;
 
-  @DocsEditable
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
+  @DocsEditable
   bool preserveDrawingBuffer;
 
-  @DocsEditable
   @DomName('WebGLContextAttributes.stencil')
+  @DocsEditable
   bool stencil;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23850,19 +23558,17 @@ class WebGLContextAttributes native "*WebGLContextAttributes" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLContextEvent')
 class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 
-  @DocsEditable
   @DomName('WebGLContextEvent.statusMessage')
+  @DocsEditable
   final String statusMessage;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23878,19 +23584,17 @@ class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLDebugShaders')
 class WebGLDebugShaders native "*WebGLDebugShaders" {
 
-  @DocsEditable
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
+  @DocsEditable
   String getTranslatedShaderSource(WebGLShader shader) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23904,7 +23608,6 @@ class WebGLDepthTexture native "*WebGLDepthTexture" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLFramebuffer')
 class WebGLFramebuffer native "*WebGLFramebuffer" {
@@ -23914,23 +23617,21 @@ class WebGLFramebuffer native "*WebGLFramebuffer" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLLoseContext')
 class WebGLLoseContext native "*WebGLLoseContext" {
 
-  @DocsEditable
   @DomName('WebGLLoseContext.loseContext')
+  @DocsEditable
   void loseContext() native;
 
-  @DocsEditable
   @DomName('WebGLLoseContext.restoreContext')
+  @DocsEditable
   void restoreContext() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -23942,7 +23643,6 @@ class WebGLProgram native "*WebGLProgram" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLRenderbuffer')
 class WebGLRenderbuffer native "*WebGLRenderbuffer" {
@@ -23950,7 +23650,6 @@ class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -24547,420 +24246,420 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   static const int ZERO = 0;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.drawingBufferHeight')
+  @DocsEditable
   final int drawingBufferHeight;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.drawingBufferWidth')
+  @DocsEditable
   final int drawingBufferWidth;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.activeTexture')
+  @DocsEditable
   void activeTexture(int texture) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.attachShader')
+  @DocsEditable
   void attachShader(WebGLProgram program, WebGLShader shader) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.bindAttribLocation')
+  @DocsEditable
   void bindAttribLocation(WebGLProgram program, int index, String name) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.bindBuffer')
+  @DocsEditable
   void bindBuffer(int target, WebGLBuffer buffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.bindFramebuffer')
+  @DocsEditable
   void bindFramebuffer(int target, WebGLFramebuffer framebuffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.bindRenderbuffer')
+  @DocsEditable
   void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.bindTexture')
+  @DocsEditable
   void bindTexture(int target, WebGLTexture texture) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.blendColor')
+  @DocsEditable
   void blendColor(num red, num green, num blue, num alpha) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.blendEquation')
+  @DocsEditable
   void blendEquation(int mode) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.blendEquationSeparate')
+  @DocsEditable
   void blendEquationSeparate(int modeRGB, int modeAlpha) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.blendFunc')
+  @DocsEditable
   void blendFunc(int sfactor, int dfactor) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.blendFuncSeparate')
+  @DocsEditable
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.bufferData')
+  @DocsEditable
   void bufferData(int target, data_OR_size, int usage) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.bufferSubData')
+  @DocsEditable
   void bufferSubData(int target, int offset, data) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
+  @DocsEditable
   int checkFramebufferStatus(int target) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.clear')
+  @DocsEditable
   void clear(int mask) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.clearColor')
+  @DocsEditable
   void clearColor(num red, num green, num blue, num alpha) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.clearDepth')
+  @DocsEditable
   void clearDepth(num depth) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.clearStencil')
+  @DocsEditable
   void clearStencil(int s) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.colorMask')
+  @DocsEditable
   void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.compileShader')
+  @DocsEditable
   void compileShader(WebGLShader shader) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.compressedTexImage2D')
+  @DocsEditable
   void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
+  @DocsEditable
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.copyTexImage2D')
+  @DocsEditable
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.copyTexSubImage2D')
+  @DocsEditable
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.createBuffer')
+  @DocsEditable
   WebGLBuffer createBuffer() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.createFramebuffer')
+  @DocsEditable
   WebGLFramebuffer createFramebuffer() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.createProgram')
+  @DocsEditable
   WebGLProgram createProgram() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.createRenderbuffer')
+  @DocsEditable
   WebGLRenderbuffer createRenderbuffer() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.createShader')
+  @DocsEditable
   WebGLShader createShader(int type) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.createTexture')
+  @DocsEditable
   WebGLTexture createTexture() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.cullFace')
+  @DocsEditable
   void cullFace(int mode) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.deleteBuffer')
+  @DocsEditable
   void deleteBuffer(WebGLBuffer buffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.deleteFramebuffer')
+  @DocsEditable
   void deleteFramebuffer(WebGLFramebuffer framebuffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.deleteProgram')
+  @DocsEditable
   void deleteProgram(WebGLProgram program) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.deleteRenderbuffer')
+  @DocsEditable
   void deleteRenderbuffer(WebGLRenderbuffer renderbuffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.deleteShader')
+  @DocsEditable
   void deleteShader(WebGLShader shader) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.deleteTexture')
+  @DocsEditable
   void deleteTexture(WebGLTexture texture) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.depthFunc')
+  @DocsEditable
   void depthFunc(int func) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.depthMask')
+  @DocsEditable
   void depthMask(bool flag) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.depthRange')
+  @DocsEditable
   void depthRange(num zNear, num zFar) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.detachShader')
+  @DocsEditable
   void detachShader(WebGLProgram program, WebGLShader shader) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.disable')
+  @DocsEditable
   void disable(int cap) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.disableVertexAttribArray')
+  @DocsEditable
   void disableVertexAttribArray(int index) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.drawArrays')
+  @DocsEditable
   void drawArrays(int mode, int first, int count) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.drawElements')
+  @DocsEditable
   void drawElements(int mode, int count, int type, int offset) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.enable')
+  @DocsEditable
   void enable(int cap) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.enableVertexAttribArray')
+  @DocsEditable
   void enableVertexAttribArray(int index) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.finish')
+  @DocsEditable
   void finish() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.flush')
+  @DocsEditable
   void flush() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.framebufferRenderbuffer')
+  @DocsEditable
   void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.framebufferTexture2D')
+  @DocsEditable
   void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.frontFace')
+  @DocsEditable
   void frontFace(int mode) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.generateMipmap')
+  @DocsEditable
   void generateMipmap(int target) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getActiveAttrib')
+  @DocsEditable
   WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getActiveUniform')
+  @DocsEditable
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getAttachedShaders')
+  @DocsEditable
   void getAttachedShaders(WebGLProgram program) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getAttribLocation')
+  @DocsEditable
   int getAttribLocation(WebGLProgram program, String name) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getBufferParameter')
+  @DocsEditable
   Object getBufferParameter(int target, int pname) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getContextAttributes')
+  @DocsEditable
   WebGLContextAttributes getContextAttributes() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getError')
+  @DocsEditable
   int getError() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getExtension')
+  @DocsEditable
   Object getExtension(String name) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
+  @DocsEditable
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getParameter')
+  @DocsEditable
   Object getParameter(int pname) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getProgramInfoLog')
+  @DocsEditable
   String getProgramInfoLog(WebGLProgram program) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getProgramParameter')
+  @DocsEditable
   Object getProgramParameter(WebGLProgram program, int pname) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getRenderbufferParameter')
+  @DocsEditable
   Object getRenderbufferParameter(int target, int pname) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getShaderInfoLog')
+  @DocsEditable
   String getShaderInfoLog(WebGLShader shader) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getShaderParameter')
+  @DocsEditable
   Object getShaderParameter(WebGLShader shader, int pname) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
+  @DocsEditable
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getShaderSource')
+  @DocsEditable
   String getShaderSource(WebGLShader shader) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getSupportedExtensions')
+  @DocsEditable
   List<String> getSupportedExtensions() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getTexParameter')
+  @DocsEditable
   Object getTexParameter(int target, int pname) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getUniform')
+  @DocsEditable
   Object getUniform(WebGLProgram program, WebGLUniformLocation location) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getUniformLocation')
+  @DocsEditable
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getVertexAttrib')
+  @DocsEditable
   Object getVertexAttrib(int index, int pname) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.getVertexAttribOffset')
+  @DocsEditable
   int getVertexAttribOffset(int index, int pname) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.hint')
+  @DocsEditable
   void hint(int target, int mode) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.isBuffer')
+  @DocsEditable
   bool isBuffer(WebGLBuffer buffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.isContextLost')
+  @DocsEditable
   bool isContextLost() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.isEnabled')
+  @DocsEditable
   bool isEnabled(int cap) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.isFramebuffer')
+  @DocsEditable
   bool isFramebuffer(WebGLFramebuffer framebuffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.isProgram')
+  @DocsEditable
   bool isProgram(WebGLProgram program) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.isRenderbuffer')
+  @DocsEditable
   bool isRenderbuffer(WebGLRenderbuffer renderbuffer) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.isShader')
+  @DocsEditable
   bool isShader(WebGLShader shader) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.isTexture')
+  @DocsEditable
   bool isTexture(WebGLTexture texture) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.lineWidth')
+  @DocsEditable
   void lineWidth(num width) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.linkProgram')
+  @DocsEditable
   void linkProgram(WebGLProgram program) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.pixelStorei')
+  @DocsEditable
   void pixelStorei(int pname, int param) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.polygonOffset')
+  @DocsEditable
   void polygonOffset(num factor, num units) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.readPixels')
+  @DocsEditable
   void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.releaseShaderCompiler')
+  @DocsEditable
   void releaseShaderCompiler() native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.renderbufferStorage')
+  @DocsEditable
   void renderbufferStorage(int target, int internalformat, int width, int height) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.sampleCoverage')
+  @DocsEditable
   void sampleCoverage(num value, bool invert) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.scissor')
+  @DocsEditable
   void scissor(int x, int y, int width, int height) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.shaderSource')
+  @DocsEditable
   void shaderSource(WebGLShader shader, String string) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.stencilFunc')
+  @DocsEditable
   void stencilFunc(int func, int ref, int mask) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.stencilFuncSeparate')
+  @DocsEditable
   void stencilFuncSeparate(int face, int func, int ref, int mask) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.stencilMask')
+  @DocsEditable
   void stencilMask(int mask) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.stencilMaskSeparate')
+  @DocsEditable
   void stencilMaskSeparate(int face, int mask) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.stencilOp')
+  @DocsEditable
   void stencilOp(int fail, int zfail, int zpass) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.stencilOpSeparate')
+  @DocsEditable
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
@@ -25000,32 +24699,32 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('texImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable
   void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, ArrayBufferView pixels) native;
   @JSName('texImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable
   void _texImage2D_2(target, level, internalformat, format, type, pixels) native;
   @JSName('texImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable
   void _texImage2D_3(target, level, internalformat, format, type, ImageElement image) native;
   @JSName('texImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable
   void _texImage2D_4(target, level, internalformat, format, type, CanvasElement canvas) native;
   @JSName('texImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable
   void _texImage2D_5(target, level, internalformat, format, type, VideoElement video) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.texParameterf')
+  @DocsEditable
   void texParameterf(int target, int pname, num param) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.texParameteri')
+  @DocsEditable
   void texParameteri(int target, int pname, int param) native;
 
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
@@ -25061,154 +24760,153 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('texSubImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, ArrayBufferView pixels) native;
   @JSName('texSubImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels) native;
   @JSName('texSubImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable
   void _texSubImage2D_3(target, level, xoffset, yoffset, format, type, ImageElement image) native;
   @JSName('texSubImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable
   void _texSubImage2D_4(target, level, xoffset, yoffset, format, type, CanvasElement canvas) native;
   @JSName('texSubImage2D')
-  @DocsEditable
   @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable
   void _texSubImage2D_5(target, level, xoffset, yoffset, format, type, VideoElement video) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform1f')
+  @DocsEditable
   void uniform1f(WebGLUniformLocation location, num x) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform1fv')
+  @DocsEditable
   void uniform1fv(WebGLUniformLocation location, Float32Array v) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform1i')
+  @DocsEditable
   void uniform1i(WebGLUniformLocation location, int x) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform1iv')
+  @DocsEditable
   void uniform1iv(WebGLUniformLocation location, Int32Array v) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform2f')
+  @DocsEditable
   void uniform2f(WebGLUniformLocation location, num x, num y) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform2fv')
+  @DocsEditable
   void uniform2fv(WebGLUniformLocation location, Float32Array v) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform2i')
+  @DocsEditable
   void uniform2i(WebGLUniformLocation location, int x, int y) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform2iv')
+  @DocsEditable
   void uniform2iv(WebGLUniformLocation location, Int32Array v) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform3f')
+  @DocsEditable
   void uniform3f(WebGLUniformLocation location, num x, num y, num z) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform3fv')
+  @DocsEditable
   void uniform3fv(WebGLUniformLocation location, Float32Array v) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform3i')
+  @DocsEditable
   void uniform3i(WebGLUniformLocation location, int x, int y, int z) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform3iv')
+  @DocsEditable
   void uniform3iv(WebGLUniformLocation location, Int32Array v) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform4f')
+  @DocsEditable
   void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform4fv')
+  @DocsEditable
   void uniform4fv(WebGLUniformLocation location, Float32Array v) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform4i')
+  @DocsEditable
   void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniform4iv')
+  @DocsEditable
   void uniform4iv(WebGLUniformLocation location, Int32Array v) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
+  @DocsEditable
   void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
+  @DocsEditable
   void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
+  @DocsEditable
   void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.useProgram')
+  @DocsEditable
   void useProgram(WebGLProgram program) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.validateProgram')
+  @DocsEditable
   void validateProgram(WebGLProgram program) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib1f')
+  @DocsEditable
   void vertexAttrib1f(int indx, num x) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
+  @DocsEditable
   void vertexAttrib1fv(int indx, Float32Array values) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib2f')
+  @DocsEditable
   void vertexAttrib2f(int indx, num x, num y) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
+  @DocsEditable
   void vertexAttrib2fv(int indx, Float32Array values) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib3f')
+  @DocsEditable
   void vertexAttrib3f(int indx, num x, num y, num z) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
+  @DocsEditable
   void vertexAttrib3fv(int indx, Float32Array values) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib4f')
+  @DocsEditable
   void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
+  @DocsEditable
   void vertexAttrib4fv(int indx, Float32Array values) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.vertexAttribPointer')
+  @DocsEditable
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) native;
 
-  @DocsEditable
   @DomName('WebGLRenderingContext.viewport')
+  @DocsEditable
   void viewport(int x, int y, int width, int height) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -25220,27 +24918,25 @@ class WebGLShader native "*WebGLShader" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLShaderPrecisionFormat')
 class WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
 
-  @DocsEditable
   @DomName('WebGLShaderPrecisionFormat.precision')
+  @DocsEditable
   final int precision;
 
-  @DocsEditable
   @DomName('WebGLShaderPrecisionFormat.rangeMax')
+  @DocsEditable
   final int rangeMax;
 
-  @DocsEditable
   @DomName('WebGLShaderPrecisionFormat.rangeMin')
+  @DocsEditable
   final int rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -25252,7 +24948,6 @@ class WebGLTexture native "*WebGLTexture" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLUniformLocation')
 class WebGLUniformLocation native "*WebGLUniformLocation" {
@@ -25262,7 +24957,6 @@ class WebGLUniformLocation native "*WebGLUniformLocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebGLVertexArrayObjectOES')
 class WebGLVertexArrayObject native "*WebGLVertexArrayObjectOES" {
@@ -25270,7 +24964,6 @@ class WebGLVertexArrayObject native "*WebGLVertexArrayObjectOES" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -25301,14 +24994,13 @@ class WebKitCssFilterValue extends _CssValueList native "*WebKitCSSFilterValue" 
 
   static const int CSS_FILTER_SEPIA = 3;
 
-  @DocsEditable
   @DomName('WebKitCSSFilterValue.operationType')
+  @DocsEditable
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -25320,60 +25012,58 @@ class WebKitCssMixFunctionValue extends _CssValueList native "*WebKitCSSMixFunct
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WebKitNamedFlow')
 class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
-  @DocsEditable
   @DomName('WebKitNamedFlow.firstEmptyRegionIndex')
+  @DocsEditable
   final int firstEmptyRegionIndex;
 
-  @DocsEditable
   @DomName('WebKitNamedFlow.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('WebKitNamedFlow.overset')
+  @DocsEditable
   final bool overset;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('WebKitNamedFlow.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('WebKitNamedFlow.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event event) native;
 
-  @DocsEditable
   @DomName('WebKitNamedFlow.getContent')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getContent() native;
 
-  @DocsEditable
   @DomName('WebKitNamedFlow.getRegions')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getRegions() native;
 
-  @DocsEditable
   @DomName('WebKitNamedFlow.getRegionsByContent')
+  @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getRegionsByContent(Node contentNode) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('WebKitNamedFlow.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -25384,20 +25074,20 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class WebSocket extends EventTarget native "*WebSocket" {
 
-  @DocsEditable
   @DomName('WebSocket.close')
+  @DocsEditable
   static const EventStreamProvider<CloseEvent> closeEvent = const EventStreamProvider<CloseEvent>('close');
 
-  @DocsEditable
   @DomName('WebSocket.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
   @DomName('WebSocket.message')
+  @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DocsEditable
   @DomName('WebSocket.open')
+  @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
@@ -25421,71 +25111,71 @@ class WebSocket extends EventTarget native "*WebSocket" {
   static const int OPEN = 1;
 
   @JSName('URL')
-  @DocsEditable
   @DomName('WebSocket.URL')
+  @DocsEditable
   final String Url;
 
-  @DocsEditable
   @DomName('WebSocket.binaryType')
+  @DocsEditable
   String binaryType;
 
-  @DocsEditable
   @DomName('WebSocket.bufferedAmount')
+  @DocsEditable
   final int bufferedAmount;
 
-  @DocsEditable
   @DomName('WebSocket.extensions')
+  @DocsEditable
   final String extensions;
 
-  @DocsEditable
   @DomName('WebSocket.protocol')
+  @DocsEditable
   final String protocol;
 
-  @DocsEditable
   @DomName('WebSocket.readyState')
+  @DocsEditable
   final int readyState;
 
-  @DocsEditable
   @DomName('WebSocket.url')
+  @DocsEditable
   final String url;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('WebSocket.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('WebSocket.close')
+  @DocsEditable
   void close([int code, String reason]) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('WebSocket.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('WebSocket.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('WebSocket.send')
+  @DocsEditable
   void send(data) native;
 
-  @DocsEditable
   @DomName('WebSocket.close')
+  @DocsEditable
   Stream<CloseEvent> get onClose => closeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('WebSocket.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('WebSocket.message')
+  @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('WebSocket.open')
+  @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
 }
 
@@ -25511,7 +25201,6 @@ class WebSocketEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('WheelEvent')
 class WheelEvent extends MouseEvent native "*WheelEvent" {
 
@@ -25576,13 +25265,13 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   }
 
 
-  @DocsEditable
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
+  @DocsEditable
   final bool webkitDirectionInvertedFromDevice;
 
   @JSName('initWebKitWheelEvent')
-  @DocsEditable
   @DomName('WheelEvent.initWebKitWheelEvent')
+  @DocsEditable
   void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 
 
@@ -25708,7 +25397,6 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('Window')
 class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
@@ -25866,72 +25554,72 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   Console get console => Console.safeConsole;
 
 
-  @DocsEditable
   @DomName('DOMWindow.DOMContentLoaded')
+  @DocsEditable
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
-  @DocsEditable
   @DomName('DOMWindow.beforeunload')
+  @DocsEditable
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
 
-  @DocsEditable
   @DomName('DOMWindow.devicemotion')
+  @DocsEditable
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
-  @DocsEditable
   @DomName('DOMWindow.deviceorientation')
+  @DocsEditable
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
-  @DocsEditable
   @DomName('DOMWindow.hashchange')
+  @DocsEditable
   static const EventStreamProvider<HashChangeEvent> hashChangeEvent = const EventStreamProvider<HashChangeEvent>('hashchange');
 
-  @DocsEditable
   @DomName('DOMWindow.message')
+  @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DocsEditable
   @DomName('DOMWindow.offline')
+  @DocsEditable
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
-  @DocsEditable
   @DomName('DOMWindow.online')
+  @DocsEditable
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
-  @DocsEditable
   @DomName('DOMWindow.pagehide')
+  @DocsEditable
   static const EventStreamProvider<Event> pageHideEvent = const EventStreamProvider<Event>('pagehide');
 
-  @DocsEditable
   @DomName('DOMWindow.pageshow')
+  @DocsEditable
   static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
 
-  @DocsEditable
   @DomName('DOMWindow.popstate')
+  @DocsEditable
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
-  @DocsEditable
   @DomName('DOMWindow.resize')
+  @DocsEditable
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  @DocsEditable
   @DomName('DOMWindow.storage')
+  @DocsEditable
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
-  @DocsEditable
   @DomName('DOMWindow.unload')
+  @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  @DocsEditable
   @DomName('DOMWindow.webkitAnimationEnd')
+  @DocsEditable
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
-  @DocsEditable
   @DomName('DOMWindow.webkitAnimationIteration')
+  @DocsEditable
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
-  @DocsEditable
   @DomName('DOMWindow.webkitAnimationStart')
+  @DocsEditable
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
   @DocsEditable
@@ -25943,281 +25631,281 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   static const int TEMPORARY = 0;
 
-  @DocsEditable
   @DomName('DOMWindow.applicationCache')
+  @DocsEditable
   final ApplicationCache applicationCache;
 
-  @DocsEditable
   @DomName('DOMWindow.closed')
+  @DocsEditable
   final bool closed;
 
-  @DocsEditable
   @DomName('DOMWindow.crypto')
+  @DocsEditable
   final Crypto crypto;
 
-  @DocsEditable
   @DomName('DOMWindow.defaultStatus')
+  @DocsEditable
   String defaultStatus;
 
-  @DocsEditable
   @DomName('DOMWindow.defaultstatus')
+  @DocsEditable
   String defaultstatus;
 
-  @DocsEditable
   @DomName('DOMWindow.devicePixelRatio')
+  @DocsEditable
   final num devicePixelRatio;
 
-  @DocsEditable
   @DomName('DOMWindow.event')
+  @DocsEditable
   final Event event;
 
-  @DocsEditable
   @DomName('DOMWindow.history')
+  @DocsEditable
   final History history;
 
-  @DocsEditable
   @DomName('DOMWindow.innerHeight')
+  @DocsEditable
   final int innerHeight;
 
-  @DocsEditable
   @DomName('DOMWindow.innerWidth')
+  @DocsEditable
   final int innerWidth;
 
-  @DocsEditable
   @DomName('DOMWindow.localStorage')
+  @DocsEditable
   final Storage localStorage;
 
-  @DocsEditable
   @DomName('DOMWindow.locationbar')
+  @DocsEditable
   final BarInfo locationbar;
 
-  @DocsEditable
   @DomName('DOMWindow.menubar')
+  @DocsEditable
   final BarInfo menubar;
 
-  @DocsEditable
   @DomName('DOMWindow.name')
+  @DocsEditable
   String name;
 
-  @DocsEditable
   @DomName('DOMWindow.navigator')
+  @DocsEditable
   final Navigator navigator;
 
-  @DocsEditable
   @DomName('DOMWindow.offscreenBuffering')
+  @DocsEditable
   final bool offscreenBuffering;
 
   WindowBase get opener => _convertNativeToDart_Window(this._opener);
   @JSName('opener')
-  @DocsEditable
   @DomName('DOMWindow.opener')
+  @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _opener;
 
-  @DocsEditable
   @DomName('DOMWindow.outerHeight')
+  @DocsEditable
   final int outerHeight;
 
-  @DocsEditable
   @DomName('DOMWindow.outerWidth')
+  @DocsEditable
   final int outerWidth;
 
-  @DocsEditable
   @DomName('DOMWindow.pagePopupController')
+  @DocsEditable
   final PagePopupController pagePopupController;
 
-  @DocsEditable
   @DomName('DOMWindow.pageXOffset')
+  @DocsEditable
   final int pageXOffset;
 
-  @DocsEditable
   @DomName('DOMWindow.pageYOffset')
+  @DocsEditable
   final int pageYOffset;
 
   WindowBase get parent => _convertNativeToDart_Window(this._parent);
   @JSName('parent')
-  @DocsEditable
   @DomName('DOMWindow.parent')
+  @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _parent;
 
-  @DocsEditable
   @DomName('DOMWindow.performance')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE)
   final Performance performance;
 
-  @DocsEditable
   @DomName('DOMWindow.personalbar')
+  @DocsEditable
   final BarInfo personalbar;
 
-  @DocsEditable
   @DomName('DOMWindow.screen')
+  @DocsEditable
   final Screen screen;
 
-  @DocsEditable
   @DomName('DOMWindow.screenLeft')
+  @DocsEditable
   final int screenLeft;
 
-  @DocsEditable
   @DomName('DOMWindow.screenTop')
+  @DocsEditable
   final int screenTop;
 
-  @DocsEditable
   @DomName('DOMWindow.screenX')
+  @DocsEditable
   final int screenX;
 
-  @DocsEditable
   @DomName('DOMWindow.screenY')
+  @DocsEditable
   final int screenY;
 
-  @DocsEditable
   @DomName('DOMWindow.scrollX')
+  @DocsEditable
   final int scrollX;
 
-  @DocsEditable
   @DomName('DOMWindow.scrollY')
+  @DocsEditable
   final int scrollY;
 
-  @DocsEditable
   @DomName('DOMWindow.scrollbars')
+  @DocsEditable
   final BarInfo scrollbars;
 
   WindowBase get self => _convertNativeToDart_Window(this._self);
   @JSName('self')
-  @DocsEditable
   @DomName('DOMWindow.self')
+  @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _self;
 
-  @DocsEditable
   @DomName('DOMWindow.sessionStorage')
+  @DocsEditable
   final Storage sessionStorage;
 
-  @DocsEditable
   @DomName('DOMWindow.status')
+  @DocsEditable
   String status;
 
-  @DocsEditable
   @DomName('DOMWindow.statusbar')
+  @DocsEditable
   final BarInfo statusbar;
 
-  @DocsEditable
   @DomName('DOMWindow.styleMedia')
+  @DocsEditable
   final StyleMedia styleMedia;
 
-  @DocsEditable
   @DomName('DOMWindow.toolbar')
+  @DocsEditable
   final BarInfo toolbar;
 
   WindowBase get top => _convertNativeToDart_Window(this._top);
   @JSName('top')
-  @DocsEditable
   @DomName('DOMWindow.top')
+  @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _top;
 
   @JSName('webkitNotifications')
-  @DocsEditable
   @DomName('DOMWindow.webkitNotifications')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   final NotificationCenter notifications;
 
-  @DocsEditable
   @DomName('DOMWindow.webkitStorageInfo')
+  @DocsEditable
   final StorageInfo webkitStorageInfo;
 
   WindowBase get window => _convertNativeToDart_Window(this._window);
   @JSName('window')
-  @DocsEditable
   @DomName('DOMWindow.window')
+  @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _window;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('DOMWindow.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('DOMWindow.alert')
+  @DocsEditable
   void alert(String message) native;
 
-  @DocsEditable
   @DomName('DOMWindow.atob')
+  @DocsEditable
   String atob(String string) native;
 
-  @DocsEditable
   @DomName('DOMWindow.btoa')
+  @DocsEditable
   String btoa(String string) native;
 
-  @DocsEditable
   @DomName('DOMWindow.captureEvents')
+  @DocsEditable
   void captureEvents() native;
 
-  @DocsEditable
   @DomName('DOMWindow.clearInterval')
+  @DocsEditable
   void clearInterval(int handle) native;
 
-  @DocsEditable
   @DomName('DOMWindow.clearTimeout')
+  @DocsEditable
   void clearTimeout(int handle) native;
 
-  @DocsEditable
   @DomName('DOMWindow.close')
+  @DocsEditable
   void close() native;
 
-  @DocsEditable
   @DomName('DOMWindow.confirm')
+  @DocsEditable
   bool confirm(String message) native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('DOMWindow.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
-  @DocsEditable
   @DomName('DOMWindow.find')
+  @DocsEditable
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
   @JSName('getComputedStyle')
-  @DocsEditable
   @DomName('DOMWindow.getComputedStyle')
+  @DocsEditable
   CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native;
 
   @JSName('getMatchedCSSRules')
-  @DocsEditable
   @DomName('DOMWindow.getMatchedCSSRules')
+  @DocsEditable
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native;
 
-  @DocsEditable
   @DomName('DOMWindow.getSelection')
+  @DocsEditable
   DomSelection getSelection() native;
 
-  @DocsEditable
   @DomName('DOMWindow.matchMedia')
+  @DocsEditable
   MediaQueryList matchMedia(String query) native;
 
-  @DocsEditable
   @DomName('DOMWindow.moveBy')
+  @DocsEditable
   void moveBy(num x, num y) native;
 
-  @DocsEditable
   @DomName('DOMWindow.moveTo')
+  @DocsEditable
   void moveTo(num x, num y) native;
 
-  @DocsEditable
   @DomName('DOMWindow.openDatabase')
+  @DocsEditable
   @Creates('Database')
   @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
@@ -26237,299 +25925,299 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('postMessage')
-  @DocsEditable
   @DomName('DOMWindow.postMessage')
+  @DocsEditable
   void _postMessage_1(message, targetOrigin) native;
   @JSName('postMessage')
-  @DocsEditable
   @DomName('DOMWindow.postMessage')
+  @DocsEditable
   void _postMessage_2(message, targetOrigin, List messagePorts) native;
 
-  @DocsEditable
   @DomName('DOMWindow.print')
+  @DocsEditable
   void print() native;
 
-  @DocsEditable
   @DomName('DOMWindow.releaseEvents')
+  @DocsEditable
   void releaseEvents() native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('DOMWindow.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('DOMWindow.resizeBy')
+  @DocsEditable
   void resizeBy(num x, num y) native;
 
-  @DocsEditable
   @DomName('DOMWindow.resizeTo')
+  @DocsEditable
   void resizeTo(num width, num height) native;
 
-  @DocsEditable
   @DomName('DOMWindow.scroll')
+  @DocsEditable
   void scroll(int x, int y) native;
 
-  @DocsEditable
   @DomName('DOMWindow.scrollBy')
+  @DocsEditable
   void scrollBy(int x, int y) native;
 
-  @DocsEditable
   @DomName('DOMWindow.scrollTo')
+  @DocsEditable
   void scrollTo(int x, int y) native;
 
-  @DocsEditable
   @DomName('DOMWindow.setInterval')
+  @DocsEditable
   int setInterval(TimeoutHandler handler, int timeout) native;
 
-  @DocsEditable
   @DomName('DOMWindow.setTimeout')
+  @DocsEditable
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  @DocsEditable
   @DomName('DOMWindow.showModalDialog')
+  @DocsEditable
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
 
-  @DocsEditable
   @DomName('DOMWindow.stop')
+  @DocsEditable
   void stop() native;
 
-  @DocsEditable
   @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
+  @DocsEditable
   Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
 
-  @DocsEditable
   @DomName('DOMWindow.webkitConvertPointFromPageToNode')
+  @DocsEditable
   Point webkitConvertPointFromPageToNode(Node node, Point p) native;
 
   @JSName('webkitRequestFileSystem')
-  @DocsEditable
   @DomName('DOMWindow.webkitRequestFileSystem')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
-  @DocsEditable
   @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  @DocsEditable
   @DomName('DOMWindow.DOMContentLoaded')
+  @DocsEditable
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.abort')
+  @DocsEditable
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.beforeunload')
+  @DocsEditable
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.blur')
+  @DocsEditable
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.change')
+  @DocsEditable
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.click')
+  @DocsEditable
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.contextmenu')
+  @DocsEditable
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.dblclick')
+  @DocsEditable
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.devicemotion')
+  @DocsEditable
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.deviceorientation')
+  @DocsEditable
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.drag')
+  @DocsEditable
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.dragend')
+  @DocsEditable
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.dragenter')
+  @DocsEditable
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.dragleave')
+  @DocsEditable
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.dragover')
+  @DocsEditable
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.dragstart')
+  @DocsEditable
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.drop')
+  @DocsEditable
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.error')
+  @DocsEditable
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.focus')
+  @DocsEditable
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.hashchange')
+  @DocsEditable
   Stream<HashChangeEvent> get onHashChange => hashChangeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.input')
+  @DocsEditable
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.invalid')
+  @DocsEditable
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.keydown')
+  @DocsEditable
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.keypress')
+  @DocsEditable
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.keyup')
+  @DocsEditable
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.load')
+  @DocsEditable
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.message')
+  @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.mousedown')
+  @DocsEditable
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.mousemove')
+  @DocsEditable
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.mouseout')
+  @DocsEditable
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.mouseover')
+  @DocsEditable
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.mouseup')
+  @DocsEditable
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.mousewheel')
+  @DocsEditable
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.offline')
+  @DocsEditable
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.online')
+  @DocsEditable
   Stream<Event> get onOnline => onlineEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.pagehide')
+  @DocsEditable
   Stream<Event> get onPageHide => pageHideEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.pageshow')
+  @DocsEditable
   Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.popstate')
+  @DocsEditable
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.reset')
+  @DocsEditable
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.resize')
+  @DocsEditable
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.scroll')
+  @DocsEditable
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.search')
+  @DocsEditable
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.select')
+  @DocsEditable
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.storage')
+  @DocsEditable
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.submit')
+  @DocsEditable
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.touchcancel')
+  @DocsEditable
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.touchend')
+  @DocsEditable
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.touchmove')
+  @DocsEditable
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.touchstart')
+  @DocsEditable
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.unload')
+  @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.webkitAnimationEnd')
+  @DocsEditable
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.webkitAnimationIteration')
+  @DocsEditable
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.webkitAnimationStart')
+  @DocsEditable
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
-  @DocsEditable
   @DomName('DOMWindow.webkitTransitionEnd')
+  @DocsEditable
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 }
@@ -26766,13 +26454,12 @@ class WindowEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('Worker')
 class Worker extends AbstractWorker native "*Worker" {
 
-  @DocsEditable
   @DomName('Worker.message')
+  @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
   @DocsEditable
@@ -26795,20 +26482,20 @@ class Worker extends AbstractWorker native "*Worker" {
     return;
   }
   @JSName('postMessage')
-  @DocsEditable
   @DomName('Worker.postMessage')
+  @DocsEditable
   void _postMessage_1(message, List messagePorts) native;
   @JSName('postMessage')
-  @DocsEditable
   @DomName('Worker.postMessage')
+  @DocsEditable
   void _postMessage_2(message) native;
 
-  @DocsEditable
   @DomName('Worker.terminate')
+  @DocsEditable
   void terminate() native;
 
-  @DocsEditable
   @DomName('Worker.message')
+  @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 
@@ -26825,12 +26512,11 @@ class WorkerEvents extends AbstractWorkerEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('WorkerContext')
 class WorkerContext extends EventTarget native "*WorkerContext" {
 
-  @DocsEditable
   @DomName('WorkerContext.error')
+  @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DocsEditable
@@ -26842,99 +26528,99 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
 
   static const int TEMPORARY = 0;
 
-  @DocsEditable
   @DomName('WorkerContext.location')
+  @DocsEditable
   final WorkerLocation location;
 
-  @DocsEditable
   @DomName('WorkerContext.navigator')
+  @DocsEditable
   final WorkerNavigator navigator;
 
-  @DocsEditable
   @DomName('WorkerContext.self')
+  @DocsEditable
   final WorkerContext self;
 
-  @DocsEditable
   @DomName('WorkerContext.webkitNotifications')
+  @DocsEditable
   final NotificationCenter webkitNotifications;
 
   @JSName('addEventListener')
-  @DocsEditable
   @DomName('WorkerContext.addEventListener')
+  @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('WorkerContext.clearInterval')
+  @DocsEditable
   void clearInterval(int handle) native;
 
-  @DocsEditable
   @DomName('WorkerContext.clearTimeout')
+  @DocsEditable
   void clearTimeout(int handle) native;
 
-  @DocsEditable
   @DomName('WorkerContext.close')
+  @DocsEditable
   void close() native;
 
   @JSName('dispatchEvent')
-  @DocsEditable
   @DomName('WorkerContext.dispatchEvent')
+  @DocsEditable
   bool $dom_dispatchEvent(Event evt) native;
 
-  @DocsEditable
   @DomName('WorkerContext.importScripts')
+  @DocsEditable
   void importScripts() native;
 
-  @DocsEditable
   @DomName('WorkerContext.openDatabase')
+  @DocsEditable
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  @DocsEditable
   @DomName('WorkerContext.openDatabaseSync')
+  @DocsEditable
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   @JSName('removeEventListener')
-  @DocsEditable
   @DomName('WorkerContext.removeEventListener')
+  @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DocsEditable
   @DomName('WorkerContext.setInterval')
+  @DocsEditable
   int setInterval(TimeoutHandler handler, int timeout) native;
 
-  @DocsEditable
   @DomName('WorkerContext.setTimeout')
+  @DocsEditable
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
   @JSName('webkitRequestFileSystem')
-  @DocsEditable
   @DomName('WorkerContext.webkitRequestFileSystem')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
   @JSName('webkitRequestFileSystemSync')
-  @DocsEditable
   @DomName('WorkerContext.webkitRequestFileSystemSync')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   FileSystemSync requestFileSystemSync(int type, int size) native;
 
   @JSName('webkitResolveLocalFileSystemSyncURL')
-  @DocsEditable
   @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   EntrySync resolveLocalFileSystemSyncUrl(String url) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
-  @DocsEditable
   @DomName('WorkerContext.webkitResolveLocalFileSystemURL')
+  @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental()
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  @DocsEditable
   @DomName('WorkerContext.error')
+  @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
 
@@ -26967,45 +26653,44 @@ class WorkerContextEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WorkerLocation')
 class WorkerLocation native "*WorkerLocation" {
 
-  @DocsEditable
   @DomName('WorkerLocation.hash')
+  @DocsEditable
   final String hash;
 
-  @DocsEditable
   @DomName('WorkerLocation.host')
+  @DocsEditable
   final String host;
 
-  @DocsEditable
   @DomName('WorkerLocation.hostname')
+  @DocsEditable
   final String hostname;
 
-  @DocsEditable
   @DomName('WorkerLocation.href')
+  @DocsEditable
   final String href;
 
-  @DocsEditable
   @DomName('WorkerLocation.pathname')
+  @DocsEditable
   final String pathname;
 
-  @DocsEditable
   @DomName('WorkerLocation.port')
+  @DocsEditable
   final String port;
 
-  @DocsEditable
   @DomName('WorkerLocation.protocol')
+  @DocsEditable
   final String protocol;
 
-  @DocsEditable
   @DomName('WorkerLocation.search')
+  @DocsEditable
   final String search;
 
-  @DocsEditable
   @DomName('WorkerLocation.toString')
+  @DocsEditable
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27013,35 +26698,33 @@ class WorkerLocation native "*WorkerLocation" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WorkerNavigator')
 class WorkerNavigator native "*WorkerNavigator" {
 
-  @DocsEditable
   @DomName('WorkerNavigator.appName')
+  @DocsEditable
   final String appName;
 
-  @DocsEditable
   @DomName('WorkerNavigator.appVersion')
+  @DocsEditable
   final String appVersion;
 
-  @DocsEditable
   @DomName('WorkerNavigator.onLine')
+  @DocsEditable
   final bool onLine;
 
-  @DocsEditable
   @DomName('WorkerNavigator.platform')
+  @DocsEditable
   final String platform;
 
-  @DocsEditable
   @DomName('WorkerNavigator.userAgent')
+  @DocsEditable
   final String userAgent;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -27052,22 +26735,21 @@ class XPathEvaluator native "*XPathEvaluator" {
   factory XPathEvaluator() => XPathEvaluator._create();
   static XPathEvaluator _create() => JS('XPathEvaluator', 'new XPathEvaluator()');
 
-  @DocsEditable
   @DomName('XPathEvaluator.createExpression')
+  @DocsEditable
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
 
-  @DocsEditable
   @DomName('XPathEvaluator.createNSResolver')
+  @DocsEditable
   XPathNSResolver createNSResolver(Node nodeResolver) native;
 
-  @DocsEditable
   @DomName('XPathEvaluator.evaluate')
+  @DocsEditable
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -27078,20 +26760,20 @@ class XPathException native "*XPathException" {
 
   static const int TYPE_ERR = 52;
 
-  @DocsEditable
   @DomName('XPathException.code')
+  @DocsEditable
   final int code;
 
-  @DocsEditable
   @DomName('XPathException.message')
+  @DocsEditable
   final String message;
 
-  @DocsEditable
   @DomName('XPathException.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('XPathException.toString')
+  @DocsEditable
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27099,13 +26781,12 @@ class XPathException native "*XPathException" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('XPathExpression')
 class XPathExpression native "*XPathExpression" {
 
-  @DocsEditable
   @DomName('XPathExpression.evaluate')
+  @DocsEditable
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27113,20 +26794,18 @@ class XPathExpression native "*XPathExpression" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('XPathNSResolver')
 class XPathNSResolver native "*XPathNSResolver" {
 
   @JSName('lookupNamespaceURI')
-  @DocsEditable
   @DomName('XPathNSResolver.lookupNamespaceURI')
+  @DocsEditable
   String lookupNamespaceUri(String prefix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -27153,46 +26832,45 @@ class XPathResult native "*XPathResult" {
 
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  @DocsEditable
   @DomName('XPathResult.booleanValue')
+  @DocsEditable
   final bool booleanValue;
 
-  @DocsEditable
   @DomName('XPathResult.invalidIteratorState')
+  @DocsEditable
   final bool invalidIteratorState;
 
-  @DocsEditable
   @DomName('XPathResult.numberValue')
+  @DocsEditable
   final num numberValue;
 
-  @DocsEditable
   @DomName('XPathResult.resultType')
+  @DocsEditable
   final int resultType;
 
-  @DocsEditable
   @DomName('XPathResult.singleNodeValue')
+  @DocsEditable
   final Node singleNodeValue;
 
-  @DocsEditable
   @DomName('XPathResult.snapshotLength')
+  @DocsEditable
   final int snapshotLength;
 
-  @DocsEditable
   @DomName('XPathResult.stringValue')
+  @DocsEditable
   final String stringValue;
 
-  @DocsEditable
   @DomName('XPathResult.iterateNext')
+  @DocsEditable
   Node iterateNext() native;
 
-  @DocsEditable
   @DomName('XPathResult.snapshotItem')
+  @DocsEditable
   Node snapshotItem(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -27203,14 +26881,13 @@ class XmlSerializer native "*XMLSerializer" {
   factory XmlSerializer() => XmlSerializer._create();
   static XmlSerializer _create() => JS('XmlSerializer', 'new XMLSerializer()');
 
-  @DocsEditable
   @DomName('XMLSerializer.serializeToString')
+  @DocsEditable
   String serializeToString(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -27221,42 +26898,41 @@ class XsltProcessor native "*XSLTProcessor" {
   factory XsltProcessor() => XsltProcessor._create();
   static XsltProcessor _create() => JS('XsltProcessor', 'new XSLTProcessor()');
 
-  @DocsEditable
   @DomName('XSLTProcessor.clearParameters')
+  @DocsEditable
   void clearParameters() native;
 
-  @DocsEditable
   @DomName('XSLTProcessor.getParameter')
+  @DocsEditable
   String getParameter(String namespaceURI, String localName) native;
 
-  @DocsEditable
   @DomName('XSLTProcessor.importStylesheet')
+  @DocsEditable
   void importStylesheet(Node stylesheet) native;
 
-  @DocsEditable
   @DomName('XSLTProcessor.removeParameter')
+  @DocsEditable
   void removeParameter(String namespaceURI, String localName) native;
 
-  @DocsEditable
   @DomName('XSLTProcessor.reset')
+  @DocsEditable
   void reset() native;
 
-  @DocsEditable
   @DomName('XSLTProcessor.setParameter')
+  @DocsEditable
   void setParameter(String namespaceURI, String localName, String value) native;
 
-  @DocsEditable
   @DomName('XSLTProcessor.transformToDocument')
+  @DocsEditable
   Document transformToDocument(Node source) native;
 
-  @DocsEditable
   @DomName('XSLTProcessor.transformToFragment')
+  @DocsEditable
   DocumentFragment transformToFragment(Node source, Document docVal) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -27268,7 +26944,6 @@ class _AppletElement extends Element native "*HTMLAppletElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLBaseFontElement')
 class _BaseFontElement extends Element native "*HTMLBaseFontElement" {
@@ -27278,13 +26953,12 @@ class _BaseFontElement extends Element native "*HTMLBaseFontElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ClientRectList')
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
 
-  @DocsEditable
   @DomName('ClientRectList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   ClientRect operator[](int index) => JS("ClientRect", "#[#]", this, index);
@@ -27455,8 +27129,8 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   // -- end List<ClientRect> mixins.
 
-  @DocsEditable
   @DomName('ClientRectList.item')
+  @DocsEditable
   ClientRect item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27464,13 +27138,12 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CSSRuleList')
 class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "*CSSRuleList" {
 
-  @DocsEditable
   @DomName('CSSRuleList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   CssRule operator[](int index) => JS("CssRule", "#[#]", this, index);
@@ -27641,8 +27314,8 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   // -- end List<CssRule> mixins.
 
-  @DocsEditable
   @DomName('CSSRuleList.item')
+  @DocsEditable
   CssRule item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27650,13 +27323,12 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('CSSValueList')
 class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexingBehavior native "*CSSValueList" {
 
-  @DocsEditable
   @DomName('CSSValueList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   CssValue operator[](int index) => JS("CssValue", "#[#]", this, index);
@@ -27827,14 +27499,13 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
   // -- end List<CssValue> mixins.
 
-  @DocsEditable
   @DomName('CSSValueList.item')
+  @DocsEditable
   CssValue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -27846,13 +27517,12 @@ class _DirectoryElement extends Element native "*HTMLDirectoryElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('EntryArray')
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
-  @DocsEditable
   @DomName('EntryArray.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   Entry operator[](int index) => JS("Entry", "#[#]", this, index);
@@ -28023,8 +27693,8 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   // -- end List<Entry> mixins.
 
-  @DocsEditable
   @DomName('EntryArray.item')
+  @DocsEditable
   Entry item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28032,13 +27702,12 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('EntryArraySync')
 class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> native "*EntryArraySync" {
 
-  @DocsEditable
   @DomName('EntryArraySync.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   EntrySync operator[](int index) => JS("EntrySync", "#[#]", this, index);
@@ -28209,14 +27878,13 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
   // -- end List<EntrySync> mixins.
 
-  @DocsEditable
   @DomName('EntryArraySync.item')
+  @DocsEditable
   EntrySync item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -28228,7 +27896,6 @@ class _FontElement extends Element native "*HTMLFontElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('HTMLFrameElement')
 class _FrameElement extends Element native "*HTMLFrameElement" {
@@ -28236,7 +27903,6 @@ class _FrameElement extends Element native "*HTMLFrameElement" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -28298,13 +27964,12 @@ class _FrameSetElementEvents extends ElementEvents {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('GamepadList')
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
 
-  @DocsEditable
   @DomName('GamepadList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   Gamepad operator[](int index) => JS("Gamepad", "#[#]", this, index);
@@ -28475,14 +28140,13 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   // -- end List<Gamepad> mixins.
 
-  @DocsEditable
   @DomName('GamepadList.item')
+  @DocsEditable
   Gamepad item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -28494,13 +28158,12 @@ class _MarqueeElement extends Element native "*HTMLMarqueeElement" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaStreamList')
 class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> native "*MediaStreamList" {
 
-  @DocsEditable
   @DomName('MediaStreamList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   MediaStream operator[](int index) => JS("MediaStream", "#[#]", this, index);
@@ -28671,8 +28334,8 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 
   // -- end List<MediaStream> mixins.
 
-  @DocsEditable
   @DomName('MediaStreamList.item')
+  @DocsEditable
   MediaStream item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28680,13 +28343,12 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SpeechInputResultList')
 class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
 
-  @DocsEditable
   @DomName('SpeechInputResultList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   SpeechInputResult operator[](int index) => JS("SpeechInputResult", "#[#]", this, index);
@@ -28857,8 +28519,8 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   // -- end List<SpeechInputResult> mixins.
 
-  @DocsEditable
   @DomName('SpeechInputResultList.item')
+  @DocsEditable
   SpeechInputResult item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28866,13 +28528,12 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('SpeechRecognitionResultList')
 class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "*SpeechRecognitionResultList" {
 
-  @DocsEditable
   @DomName('SpeechRecognitionResultList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   SpeechRecognitionResult operator[](int index) => JS("SpeechRecognitionResult", "#[#]", this, index);
@@ -29043,8 +28704,8 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   // -- end List<SpeechRecognitionResult> mixins.
 
-  @DocsEditable
   @DomName('SpeechRecognitionResultList.item')
+  @DocsEditable
   SpeechRecognitionResult item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29052,13 +28713,12 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('StyleSheetList')
 class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "*StyleSheetList" {
 
-  @DocsEditable
   @DomName('StyleSheetList.length')
+  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   StyleSheet operator[](int index) => JS("StyleSheet", "#[#]", this, index);
@@ -29229,8 +28889,8 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   // -- end List<StyleSheet> mixins.
 
-  @DocsEditable
   @DomName('StyleSheetList.item')
+  @DocsEditable
   StyleSheet item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

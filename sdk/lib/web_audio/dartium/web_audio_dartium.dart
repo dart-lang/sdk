@@ -21,52 +21,52 @@ import 'dart:nativewrappers';
 class AnalyserNode extends AudioNode {
   AnalyserNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('AnalyserNode.fftSize')
+  @DocsEditable
   int get fftSize native "AnalyserNode_fftSize_Getter";
 
-  @DocsEditable
   @DomName('AnalyserNode.fftSize')
+  @DocsEditable
   void set fftSize(int value) native "AnalyserNode_fftSize_Setter";
 
-  @DocsEditable
   @DomName('AnalyserNode.frequencyBinCount')
+  @DocsEditable
   int get frequencyBinCount native "AnalyserNode_frequencyBinCount_Getter";
 
-  @DocsEditable
   @DomName('AnalyserNode.maxDecibels')
+  @DocsEditable
   num get maxDecibels native "AnalyserNode_maxDecibels_Getter";
 
-  @DocsEditable
   @DomName('AnalyserNode.maxDecibels')
+  @DocsEditable
   void set maxDecibels(num value) native "AnalyserNode_maxDecibels_Setter";
 
-  @DocsEditable
   @DomName('AnalyserNode.minDecibels')
+  @DocsEditable
   num get minDecibels native "AnalyserNode_minDecibels_Getter";
 
-  @DocsEditable
   @DomName('AnalyserNode.minDecibels')
+  @DocsEditable
   void set minDecibels(num value) native "AnalyserNode_minDecibels_Setter";
 
-  @DocsEditable
   @DomName('AnalyserNode.smoothingTimeConstant')
+  @DocsEditable
   num get smoothingTimeConstant native "AnalyserNode_smoothingTimeConstant_Getter";
 
-  @DocsEditable
   @DomName('AnalyserNode.smoothingTimeConstant')
+  @DocsEditable
   void set smoothingTimeConstant(num value) native "AnalyserNode_smoothingTimeConstant_Setter";
 
-  @DocsEditable
   @DomName('AnalyserNode.getByteFrequencyData')
+  @DocsEditable
   void getByteFrequencyData(Uint8Array array) native "AnalyserNode_getByteFrequencyData_Callback";
 
-  @DocsEditable
   @DomName('AnalyserNode.getByteTimeDomainData')
+  @DocsEditable
   void getByteTimeDomainData(Uint8Array array) native "AnalyserNode_getByteTimeDomainData_Callback";
 
-  @DocsEditable
   @DomName('AnalyserNode.getFloatFrequencyData')
+  @DocsEditable
   void getFloatFrequencyData(Float32Array array) native "AnalyserNode_getFloatFrequencyData_Callback";
 
 }
@@ -82,32 +82,32 @@ class AnalyserNode extends AudioNode {
 class AudioBuffer extends NativeFieldWrapperClass1 {
   AudioBuffer.internal();
 
-  @DocsEditable
   @DomName('AudioBuffer.duration')
+  @DocsEditable
   num get duration native "AudioBuffer_duration_Getter";
 
-  @DocsEditable
   @DomName('AudioBuffer.gain')
+  @DocsEditable
   num get gain native "AudioBuffer_gain_Getter";
 
-  @DocsEditable
   @DomName('AudioBuffer.gain')
+  @DocsEditable
   void set gain(num value) native "AudioBuffer_gain_Setter";
 
-  @DocsEditable
   @DomName('AudioBuffer.length')
+  @DocsEditable
   int get length native "AudioBuffer_length_Getter";
 
-  @DocsEditable
   @DomName('AudioBuffer.numberOfChannels')
+  @DocsEditable
   int get numberOfChannels native "AudioBuffer_numberOfChannels_Getter";
 
-  @DocsEditable
   @DomName('AudioBuffer.sampleRate')
+  @DocsEditable
   num get sampleRate native "AudioBuffer_sampleRate_Getter";
 
-  @DocsEditable
   @DomName('AudioBuffer.getChannelData')
+  @DocsEditable
   Float32Array getChannelData(int channelIndex) native "AudioBuffer_getChannelData_Callback";
 
 }
@@ -139,48 +139,48 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
   static const int UNSCHEDULED_STATE = 0;
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.buffer')
+  @DocsEditable
   AudioBuffer get buffer native "AudioBufferSourceNode_buffer_Getter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.buffer')
+  @DocsEditable
   void set buffer(AudioBuffer value) native "AudioBufferSourceNode_buffer_Setter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.gain')
+  @DocsEditable
   AudioGain get gain native "AudioBufferSourceNode_gain_Getter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.loop')
+  @DocsEditable
   bool get loop native "AudioBufferSourceNode_loop_Getter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.loop')
+  @DocsEditable
   void set loop(bool value) native "AudioBufferSourceNode_loop_Setter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.loopEnd')
+  @DocsEditable
   num get loopEnd native "AudioBufferSourceNode_loopEnd_Getter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.loopEnd')
+  @DocsEditable
   void set loopEnd(num value) native "AudioBufferSourceNode_loopEnd_Setter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.loopStart')
+  @DocsEditable
   num get loopStart native "AudioBufferSourceNode_loopStart_Getter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.loopStart')
+  @DocsEditable
   void set loopStart(num value) native "AudioBufferSourceNode_loopStart_Setter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.playbackRate')
+  @DocsEditable
   AudioParam get playbackRate native "AudioBufferSourceNode_playbackRate_Getter";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.playbackState')
+  @DocsEditable
   int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
   void start(num when, [num grainOffset, num grainDuration]) {
@@ -199,20 +199,20 @@ class AudioBufferSourceNode extends AudioSourceNode {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode._start_1')
+  @DocsEditable
   void _start_1(when) native "AudioBufferSourceNode__start_1_Callback";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode._start_2')
+  @DocsEditable
   void _start_2(when, grainOffset) native "AudioBufferSourceNode__start_2_Callback";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode._start_3')
+  @DocsEditable
   void _start_3(when, grainOffset, grainDuration) native "AudioBufferSourceNode__start_3_Callback";
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.stop')
+  @DocsEditable
   void stop(num when) native "AudioBufferSourceNode_stop_Callback";
 
 }
@@ -221,13 +221,12 @@ class AudioBufferSourceNode extends AudioSourceNode {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('AudioContext')
 class AudioContext extends EventTarget {
   AudioContext.internal() : super.internal();
 
-  @DocsEditable
   @DomName('AudioContext.complete')
+  @DocsEditable
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
   @DocsEditable
@@ -239,32 +238,32 @@ class AudioContext extends EventTarget {
   AudioContextEvents get on =>
     new AudioContextEvents(this);
 
-  @DocsEditable
   @DomName('AudioContext.activeSourceCount')
+  @DocsEditable
   int get activeSourceCount native "AudioContext_activeSourceCount_Getter";
 
-  @DocsEditable
   @DomName('AudioContext.currentTime')
+  @DocsEditable
   num get currentTime native "AudioContext_currentTime_Getter";
 
-  @DocsEditable
   @DomName('AudioContext.destination')
+  @DocsEditable
   AudioDestinationNode get destination native "AudioContext_destination_Getter";
 
-  @DocsEditable
   @DomName('AudioContext.listener')
+  @DocsEditable
   AudioListener get listener native "AudioContext_listener_Getter";
 
-  @DocsEditable
   @DomName('AudioContext.sampleRate')
+  @DocsEditable
   num get sampleRate native "AudioContext_sampleRate_Getter";
 
-  @DocsEditable
   @DomName('AudioContext.createAnalyser')
+  @DocsEditable
   AnalyserNode createAnalyser() native "AudioContext_createAnalyser_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createBiquadFilter')
+  @DocsEditable
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
   AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) {
@@ -277,16 +276,16 @@ class AudioContext extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DocsEditable
   @DomName('AudioContext._createBuffer_1')
+  @DocsEditable
   AudioBuffer _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) native "AudioContext__createBuffer_1_Callback";
 
-  @DocsEditable
   @DomName('AudioContext._createBuffer_2')
+  @DocsEditable
   AudioBuffer _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native "AudioContext__createBuffer_2_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createBufferSource')
+  @DocsEditable
   AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
 
   ChannelMergerNode createChannelMerger([int numberOfInputs]) {
@@ -296,12 +295,12 @@ class AudioContext extends EventTarget {
     return _createChannelMerger_2();
   }
 
-  @DocsEditable
   @DomName('AudioContext._createChannelMerger_1')
+  @DocsEditable
   ChannelMergerNode _createChannelMerger_1(numberOfInputs) native "AudioContext__createChannelMerger_1_Callback";
 
-  @DocsEditable
   @DomName('AudioContext._createChannelMerger_2')
+  @DocsEditable
   ChannelMergerNode _createChannelMerger_2() native "AudioContext__createChannelMerger_2_Callback";
 
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
@@ -311,16 +310,16 @@ class AudioContext extends EventTarget {
     return _createChannelSplitter_2();
   }
 
-  @DocsEditable
   @DomName('AudioContext._createChannelSplitter_1')
+  @DocsEditable
   ChannelSplitterNode _createChannelSplitter_1(numberOfOutputs) native "AudioContext__createChannelSplitter_1_Callback";
 
-  @DocsEditable
   @DomName('AudioContext._createChannelSplitter_2')
+  @DocsEditable
   ChannelSplitterNode _createChannelSplitter_2() native "AudioContext__createChannelSplitter_2_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createConvolver')
+  @DocsEditable
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
   DelayNode createDelay([num maxDelayTime]) {
@@ -330,40 +329,40 @@ class AudioContext extends EventTarget {
     return _createDelay_2();
   }
 
-  @DocsEditable
   @DomName('AudioContext._createDelay_1')
+  @DocsEditable
   DelayNode _createDelay_1(maxDelayTime) native "AudioContext__createDelay_1_Callback";
 
-  @DocsEditable
   @DomName('AudioContext._createDelay_2')
+  @DocsEditable
   DelayNode _createDelay_2() native "AudioContext__createDelay_2_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createDynamicsCompressor')
+  @DocsEditable
   DynamicsCompressorNode createDynamicsCompressor() native "AudioContext_createDynamicsCompressor_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createGain')
+  @DocsEditable
   GainNode createGain() native "AudioContext_createGain_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createMediaElementSource')
+  @DocsEditable
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createMediaStreamDestination')
+  @DocsEditable
   MediaStreamAudioDestinationNode createMediaStreamDestination() native "AudioContext_createMediaStreamDestination_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createMediaStreamSource')
+  @DocsEditable
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native "AudioContext_createMediaStreamSource_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createOscillator')
+  @DocsEditable
   OscillatorNode createOscillator() native "AudioContext_createOscillator_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createPanner')
+  @DocsEditable
   PannerNode createPanner() native "AudioContext_createPanner_Callback";
 
   ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
@@ -376,36 +375,36 @@ class AudioContext extends EventTarget {
     return _createScriptProcessor_3(bufferSize);
   }
 
-  @DocsEditable
   @DomName('AudioContext._createScriptProcessor_1')
+  @DocsEditable
   ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createScriptProcessor_1_Callback";
 
-  @DocsEditable
   @DomName('AudioContext._createScriptProcessor_2')
+  @DocsEditable
   ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) native "AudioContext__createScriptProcessor_2_Callback";
 
-  @DocsEditable
   @DomName('AudioContext._createScriptProcessor_3')
+  @DocsEditable
   ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext__createScriptProcessor_3_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createWaveShaper')
+  @DocsEditable
   WaveShaperNode createWaveShaper() native "AudioContext_createWaveShaper_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.createWaveTable')
+  @DocsEditable
   WaveTable createWaveTable(Float32Array real, Float32Array imag) native "AudioContext_createWaveTable_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.decodeAudioData')
+  @DocsEditable
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.startRendering')
+  @DocsEditable
   void startRendering() native "AudioContext_startRendering_Callback";
 
-  @DocsEditable
   @DomName('AudioContext.complete')
+  @DocsEditable
   Stream<Event> get onComplete => completeEvent.forTarget(this);
 
 }
@@ -430,8 +429,8 @@ class AudioContextEvents extends Events {
 class AudioDestinationNode extends AudioNode {
   AudioDestinationNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('AudioDestinationNode.numberOfChannels')
+  @DocsEditable
   int get numberOfChannels native "AudioDestinationNode_numberOfChannels_Getter";
 
 }
@@ -460,32 +459,32 @@ class AudioGain extends AudioParam {
 class AudioListener extends NativeFieldWrapperClass1 {
   AudioListener.internal();
 
-  @DocsEditable
   @DomName('AudioListener.dopplerFactor')
+  @DocsEditable
   num get dopplerFactor native "AudioListener_dopplerFactor_Getter";
 
-  @DocsEditable
   @DomName('AudioListener.dopplerFactor')
+  @DocsEditable
   void set dopplerFactor(num value) native "AudioListener_dopplerFactor_Setter";
 
-  @DocsEditable
   @DomName('AudioListener.speedOfSound')
+  @DocsEditable
   num get speedOfSound native "AudioListener_speedOfSound_Getter";
 
-  @DocsEditable
   @DomName('AudioListener.speedOfSound')
+  @DocsEditable
   void set speedOfSound(num value) native "AudioListener_speedOfSound_Setter";
 
-  @DocsEditable
   @DomName('AudioListener.setOrientation')
+  @DocsEditable
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native "AudioListener_setOrientation_Callback";
 
-  @DocsEditable
   @DomName('AudioListener.setPosition')
+  @DocsEditable
   void setPosition(num x, num y, num z) native "AudioListener_setPosition_Callback";
 
-  @DocsEditable
   @DomName('AudioListener.setVelocity')
+  @DocsEditable
   void setVelocity(num x, num y, num z) native "AudioListener_setVelocity_Callback";
 
 }
@@ -501,16 +500,16 @@ class AudioListener extends NativeFieldWrapperClass1 {
 class AudioNode extends NativeFieldWrapperClass1 {
   AudioNode.internal();
 
-  @DocsEditable
   @DomName('AudioNode.context')
+  @DocsEditable
   AudioContext get context native "AudioNode_context_Getter";
 
-  @DocsEditable
   @DomName('AudioNode.numberOfInputs')
+  @DocsEditable
   int get numberOfInputs native "AudioNode_numberOfInputs_Getter";
 
-  @DocsEditable
   @DomName('AudioNode.numberOfOutputs')
+  @DocsEditable
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
   void connect(destination, int output, [int input]) {
@@ -525,16 +524,16 @@ class AudioNode extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DocsEditable
   @DomName('AudioNode._connect_1')
+  @DocsEditable
   void _connect_1(destination, output, input) native "AudioNode__connect_1_Callback";
 
-  @DocsEditable
   @DomName('AudioNode._connect_2')
+  @DocsEditable
   void _connect_2(destination, output) native "AudioNode__connect_2_Callback";
 
-  @DocsEditable
   @DomName('AudioNode.disconnect')
+  @DocsEditable
   void disconnect(int output) native "AudioNode_disconnect_Callback";
 
 }
@@ -550,56 +549,56 @@ class AudioNode extends NativeFieldWrapperClass1 {
 class AudioParam extends NativeFieldWrapperClass1 {
   AudioParam.internal();
 
-  @DocsEditable
   @DomName('AudioParam.defaultValue')
+  @DocsEditable
   num get defaultValue native "AudioParam_defaultValue_Getter";
 
-  @DocsEditable
   @DomName('AudioParam.maxValue')
+  @DocsEditable
   num get maxValue native "AudioParam_maxValue_Getter";
 
-  @DocsEditable
   @DomName('AudioParam.minValue')
+  @DocsEditable
   num get minValue native "AudioParam_minValue_Getter";
 
-  @DocsEditable
   @DomName('AudioParam.name')
+  @DocsEditable
   String get name native "AudioParam_name_Getter";
 
-  @DocsEditable
   @DomName('AudioParam.units')
+  @DocsEditable
   int get units native "AudioParam_units_Getter";
 
-  @DocsEditable
   @DomName('AudioParam.value')
+  @DocsEditable
   num get value native "AudioParam_value_Getter";
 
-  @DocsEditable
   @DomName('AudioParam.value')
+  @DocsEditable
   void set value(num value) native "AudioParam_value_Setter";
 
-  @DocsEditable
   @DomName('AudioParam.cancelScheduledValues')
+  @DocsEditable
   void cancelScheduledValues(num startTime) native "AudioParam_cancelScheduledValues_Callback";
 
-  @DocsEditable
   @DomName('AudioParam.exponentialRampToValueAtTime')
+  @DocsEditable
   void exponentialRampToValueAtTime(num value, num time) native "AudioParam_exponentialRampToValueAtTime_Callback";
 
-  @DocsEditable
   @DomName('AudioParam.linearRampToValueAtTime')
+  @DocsEditable
   void linearRampToValueAtTime(num value, num time) native "AudioParam_linearRampToValueAtTime_Callback";
 
-  @DocsEditable
   @DomName('AudioParam.setTargetAtTime')
+  @DocsEditable
   void setTargetAtTime(num target, num time, num timeConstant) native "AudioParam_setTargetAtTime_Callback";
 
-  @DocsEditable
   @DomName('AudioParam.setValueAtTime')
+  @DocsEditable
   void setValueAtTime(num value, num time) native "AudioParam_setValueAtTime_Callback";
 
-  @DocsEditable
   @DomName('AudioParam.setValueCurveAtTime')
+  @DocsEditable
   void setValueCurveAtTime(Float32Array values, num time, num duration) native "AudioParam_setValueCurveAtTime_Callback";
 
 }
@@ -615,12 +614,12 @@ class AudioParam extends NativeFieldWrapperClass1 {
 class AudioProcessingEvent extends Event {
   AudioProcessingEvent.internal() : super.internal();
 
-  @DocsEditable
   @DomName('AudioProcessingEvent.inputBuffer')
+  @DocsEditable
   AudioBuffer get inputBuffer native "AudioProcessingEvent_inputBuffer_Getter";
 
-  @DocsEditable
   @DomName('AudioProcessingEvent.outputBuffer')
+  @DocsEditable
   AudioBuffer get outputBuffer native "AudioProcessingEvent_outputBuffer_Getter";
 
 }
@@ -665,32 +664,32 @@ class BiquadFilterNode extends AudioNode {
 
   static const int PEAKING = 5;
 
-  @DocsEditable
   @DomName('BiquadFilterNode.Q')
+  @DocsEditable
   AudioParam get Q native "BiquadFilterNode_Q_Getter";
 
-  @DocsEditable
   @DomName('BiquadFilterNode.detune')
+  @DocsEditable
   AudioParam get detune native "BiquadFilterNode_detune_Getter";
 
-  @DocsEditable
   @DomName('BiquadFilterNode.frequency')
+  @DocsEditable
   AudioParam get frequency native "BiquadFilterNode_frequency_Getter";
 
-  @DocsEditable
   @DomName('BiquadFilterNode.gain')
+  @DocsEditable
   AudioParam get gain native "BiquadFilterNode_gain_Getter";
 
-  @DocsEditable
   @DomName('BiquadFilterNode.type')
+  @DocsEditable
   String get type native "BiquadFilterNode_type_Getter";
 
-  @DocsEditable
   @DomName('BiquadFilterNode.type')
+  @DocsEditable
   void set type(String value) native "BiquadFilterNode_type_Setter";
 
-  @DocsEditable
   @DomName('BiquadFilterNode.getFrequencyResponse')
+  @DocsEditable
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback";
 
 }
@@ -732,20 +731,20 @@ class ChannelSplitterNode extends AudioNode {
 class ConvolverNode extends AudioNode {
   ConvolverNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('ConvolverNode.buffer')
+  @DocsEditable
   AudioBuffer get buffer native "ConvolverNode_buffer_Getter";
 
-  @DocsEditable
   @DomName('ConvolverNode.buffer')
+  @DocsEditable
   void set buffer(AudioBuffer value) native "ConvolverNode_buffer_Setter";
 
-  @DocsEditable
   @DomName('ConvolverNode.normalize')
+  @DocsEditable
   bool get normalize native "ConvolverNode_normalize_Getter";
 
-  @DocsEditable
   @DomName('ConvolverNode.normalize')
+  @DocsEditable
   void set normalize(bool value) native "ConvolverNode_normalize_Setter";
 
 }
@@ -761,8 +760,8 @@ class ConvolverNode extends AudioNode {
 class DelayNode extends AudioNode {
   DelayNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('DelayNode.delayTime')
+  @DocsEditable
   AudioParam get delayTime native "DelayNode_delayTime_Getter";
 
 }
@@ -778,28 +777,28 @@ class DelayNode extends AudioNode {
 class DynamicsCompressorNode extends AudioNode {
   DynamicsCompressorNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.attack')
+  @DocsEditable
   AudioParam get attack native "DynamicsCompressorNode_attack_Getter";
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.knee')
+  @DocsEditable
   AudioParam get knee native "DynamicsCompressorNode_knee_Getter";
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.ratio')
+  @DocsEditable
   AudioParam get ratio native "DynamicsCompressorNode_ratio_Getter";
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.reduction')
+  @DocsEditable
   AudioParam get reduction native "DynamicsCompressorNode_reduction_Getter";
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.release')
+  @DocsEditable
   AudioParam get release native "DynamicsCompressorNode_release_Getter";
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.threshold')
+  @DocsEditable
   AudioParam get threshold native "DynamicsCompressorNode_threshold_Getter";
 
 }
@@ -815,8 +814,8 @@ class DynamicsCompressorNode extends AudioNode {
 class GainNode extends AudioNode {
   GainNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('GainNode.gain')
+  @DocsEditable
   AudioGain get gain native "GainNode_gain_Getter";
 
 }
@@ -832,8 +831,8 @@ class GainNode extends AudioNode {
 class MediaElementAudioSourceNode extends AudioSourceNode {
   MediaElementAudioSourceNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('MediaElementAudioSourceNode.mediaElement')
+  @DocsEditable
   MediaElement get mediaElement native "MediaElementAudioSourceNode_mediaElement_Getter";
 
 }
@@ -849,8 +848,8 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
 class MediaStreamAudioDestinationNode extends AudioSourceNode {
   MediaStreamAudioDestinationNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('MediaStreamAudioDestinationNode.stream')
+  @DocsEditable
   MediaStream get stream native "MediaStreamAudioDestinationNode_stream_Getter";
 
 }
@@ -866,8 +865,8 @@ class MediaStreamAudioDestinationNode extends AudioSourceNode {
 class MediaStreamAudioSourceNode extends AudioSourceNode {
   MediaStreamAudioSourceNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('MediaStreamAudioSourceNode.mediaStream')
+  @DocsEditable
   MediaStream get mediaStream native "MediaStreamAudioSourceNode_mediaStream_Getter";
 
 }
@@ -883,8 +882,8 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
 class OfflineAudioCompletionEvent extends Event {
   OfflineAudioCompletionEvent.internal() : super.internal();
 
-  @DocsEditable
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
+  @DocsEditable
   AudioBuffer get renderedBuffer native "OfflineAudioCompletionEvent_renderedBuffer_Getter";
 
 }
@@ -935,36 +934,36 @@ class OscillatorNode extends AudioSourceNode {
 
   static const int UNSCHEDULED_STATE = 0;
 
-  @DocsEditable
   @DomName('OscillatorNode.detune')
+  @DocsEditable
   AudioParam get detune native "OscillatorNode_detune_Getter";
 
-  @DocsEditable
   @DomName('OscillatorNode.frequency')
+  @DocsEditable
   AudioParam get frequency native "OscillatorNode_frequency_Getter";
 
-  @DocsEditable
   @DomName('OscillatorNode.playbackState')
+  @DocsEditable
   int get playbackState native "OscillatorNode_playbackState_Getter";
 
-  @DocsEditable
   @DomName('OscillatorNode.type')
+  @DocsEditable
   String get type native "OscillatorNode_type_Getter";
 
-  @DocsEditable
   @DomName('OscillatorNode.type')
+  @DocsEditable
   void set type(String value) native "OscillatorNode_type_Setter";
 
-  @DocsEditable
   @DomName('OscillatorNode.setWaveTable')
+  @DocsEditable
   void setWaveTable(WaveTable waveTable) native "OscillatorNode_setWaveTable_Callback";
 
-  @DocsEditable
   @DomName('OscillatorNode.start')
+  @DocsEditable
   void start(num when) native "OscillatorNode_start_Callback";
 
-  @DocsEditable
   @DomName('OscillatorNode.stop')
+  @DocsEditable
   void stop(num when) native "OscillatorNode_stop_Callback";
 
 }
@@ -992,80 +991,80 @@ class PannerNode extends AudioNode {
 
   static const int SOUNDFIELD = 2;
 
-  @DocsEditable
   @DomName('PannerNode.coneInnerAngle')
+  @DocsEditable
   num get coneInnerAngle native "PannerNode_coneInnerAngle_Getter";
 
-  @DocsEditable
   @DomName('PannerNode.coneInnerAngle')
+  @DocsEditable
   void set coneInnerAngle(num value) native "PannerNode_coneInnerAngle_Setter";
 
-  @DocsEditable
   @DomName('PannerNode.coneOuterAngle')
+  @DocsEditable
   num get coneOuterAngle native "PannerNode_coneOuterAngle_Getter";
 
-  @DocsEditable
   @DomName('PannerNode.coneOuterAngle')
+  @DocsEditable
   void set coneOuterAngle(num value) native "PannerNode_coneOuterAngle_Setter";
 
-  @DocsEditable
   @DomName('PannerNode.coneOuterGain')
+  @DocsEditable
   num get coneOuterGain native "PannerNode_coneOuterGain_Getter";
 
-  @DocsEditable
   @DomName('PannerNode.coneOuterGain')
+  @DocsEditable
   void set coneOuterGain(num value) native "PannerNode_coneOuterGain_Setter";
 
-  @DocsEditable
   @DomName('PannerNode.distanceModel')
+  @DocsEditable
   String get distanceModel native "PannerNode_distanceModel_Getter";
 
-  @DocsEditable
   @DomName('PannerNode.distanceModel')
+  @DocsEditable
   void set distanceModel(String value) native "PannerNode_distanceModel_Setter";
 
-  @DocsEditable
   @DomName('PannerNode.maxDistance')
+  @DocsEditable
   num get maxDistance native "PannerNode_maxDistance_Getter";
 
-  @DocsEditable
   @DomName('PannerNode.maxDistance')
+  @DocsEditable
   void set maxDistance(num value) native "PannerNode_maxDistance_Setter";
 
-  @DocsEditable
   @DomName('PannerNode.panningModel')
+  @DocsEditable
   String get panningModel native "PannerNode_panningModel_Getter";
 
-  @DocsEditable
   @DomName('PannerNode.panningModel')
+  @DocsEditable
   void set panningModel(String value) native "PannerNode_panningModel_Setter";
 
-  @DocsEditable
   @DomName('PannerNode.refDistance')
+  @DocsEditable
   num get refDistance native "PannerNode_refDistance_Getter";
 
-  @DocsEditable
   @DomName('PannerNode.refDistance')
+  @DocsEditable
   void set refDistance(num value) native "PannerNode_refDistance_Setter";
 
-  @DocsEditable
   @DomName('PannerNode.rolloffFactor')
+  @DocsEditable
   num get rolloffFactor native "PannerNode_rolloffFactor_Getter";
 
-  @DocsEditable
   @DomName('PannerNode.rolloffFactor')
+  @DocsEditable
   void set rolloffFactor(num value) native "PannerNode_rolloffFactor_Setter";
 
-  @DocsEditable
   @DomName('PannerNode.setOrientation')
+  @DocsEditable
   void setOrientation(num x, num y, num z) native "PannerNode_setOrientation_Callback";
 
-  @DocsEditable
   @DomName('PannerNode.setPosition')
+  @DocsEditable
   void setPosition(num x, num y, num z) native "PannerNode_setPosition_Callback";
 
-  @DocsEditable
   @DomName('PannerNode.setVelocity')
+  @DocsEditable
   void setVelocity(num x, num y, num z) native "PannerNode_setVelocity_Callback";
 
 }
@@ -1081,8 +1080,8 @@ class PannerNode extends AudioNode {
 class ScriptProcessorNode extends AudioNode implements EventTarget {
   ScriptProcessorNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('ScriptProcessorNode.bufferSize')
+  @DocsEditable
   int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
 
 }
@@ -1098,12 +1097,12 @@ class ScriptProcessorNode extends AudioNode implements EventTarget {
 class WaveShaperNode extends AudioNode {
   WaveShaperNode.internal() : super.internal();
 
-  @DocsEditable
   @DomName('WaveShaperNode.curve')
+  @DocsEditable
   Float32Array get curve native "WaveShaperNode_curve_Getter";
 
-  @DocsEditable
   @DomName('WaveShaperNode.curve')
+  @DocsEditable
   void set curve(Float32Array value) native "WaveShaperNode_curve_Setter";
 
 }

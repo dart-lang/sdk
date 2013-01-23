@@ -796,8 +796,12 @@ def FindCommonAnnotations(interface_name, member_name=None):
   else:
     key = interface_name
 
-  annotations = ["@DocsEditable",
-                 "@DomName('" + key + "')",]
+  annotations = ["@DomName('" + key + "')",]
+  # Only add this for members, so we don't add DocsEditable to templated classes
+  # (they get it from the default class template)
+  if member_name:
+    annotations.append('@DocsEditable');
+
   if (dart_annotations.get(key) != None):
     annotations.extend(dart_annotations.get(key))
 

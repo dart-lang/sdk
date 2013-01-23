@@ -14,41 +14,40 @@ import 'dart:html_common';
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('AnalyserNode')
 class AnalyserNode extends AudioNode native "*AnalyserNode" {
 
-  @DocsEditable
   @DomName('AnalyserNode.fftSize')
+  @DocsEditable
   int fftSize;
 
-  @DocsEditable
   @DomName('AnalyserNode.frequencyBinCount')
+  @DocsEditable
   final int frequencyBinCount;
 
-  @DocsEditable
   @DomName('AnalyserNode.maxDecibels')
+  @DocsEditable
   num maxDecibels;
 
-  @DocsEditable
   @DomName('AnalyserNode.minDecibels')
+  @DocsEditable
   num minDecibels;
 
-  @DocsEditable
   @DomName('AnalyserNode.smoothingTimeConstant')
+  @DocsEditable
   num smoothingTimeConstant;
 
-  @DocsEditable
   @DomName('AnalyserNode.getByteFrequencyData')
+  @DocsEditable
   void getByteFrequencyData(Uint8Array array) native;
 
-  @DocsEditable
   @DomName('AnalyserNode.getByteTimeDomainData')
+  @DocsEditable
   void getByteTimeDomainData(Uint8Array array) native;
 
-  @DocsEditable
   @DomName('AnalyserNode.getFloatFrequencyData')
+  @DocsEditable
   void getFloatFrequencyData(Float32Array array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -56,33 +55,32 @@ class AnalyserNode extends AudioNode native "*AnalyserNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('AudioBuffer')
 class AudioBuffer native "*AudioBuffer" {
 
-  @DocsEditable
   @DomName('AudioBuffer.duration')
+  @DocsEditable
   final num duration;
 
-  @DocsEditable
   @DomName('AudioBuffer.gain')
+  @DocsEditable
   num gain;
 
-  @DocsEditable
   @DomName('AudioBuffer.length')
+  @DocsEditable
   final int length;
 
-  @DocsEditable
   @DomName('AudioBuffer.numberOfChannels')
+  @DocsEditable
   final int numberOfChannels;
 
-  @DocsEditable
   @DomName('AudioBuffer.sampleRate')
+  @DocsEditable
   final num sampleRate;
 
-  @DocsEditable
   @DomName('AudioBuffer.getChannelData')
+  @DocsEditable
   Float32Array getChannelData(int channelIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -98,7 +96,6 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('AudioBufferSourceNode')
 class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
 
@@ -140,32 +137,32 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 
   static const int UNSCHEDULED_STATE = 0;
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.buffer')
+  @DocsEditable
   AudioBuffer buffer;
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.gain')
+  @DocsEditable
   final AudioGain gain;
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.loop')
+  @DocsEditable
   bool loop;
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.loopEnd')
+  @DocsEditable
   num loopEnd;
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.loopStart')
+  @DocsEditable
   num loopStart;
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.playbackRate')
+  @DocsEditable
   final AudioParam playbackRate;
 
-  @DocsEditable
   @DomName('AudioBufferSourceNode.playbackState')
+  @DocsEditable
   final int playbackState;
 
 }
@@ -174,12 +171,11 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('AudioContext')
 class AudioContext extends EventTarget native "*AudioContext" {
 
-  @DocsEditable
   @DomName('AudioContext.complete')
+  @DocsEditable
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
   @DocsEditable
@@ -190,100 +186,100 @@ class AudioContext extends EventTarget native "*AudioContext" {
   AudioContextEvents get on =>
     new AudioContextEvents(this);
 
-  @DocsEditable
   @DomName('AudioContext.activeSourceCount')
+  @DocsEditable
   final int activeSourceCount;
 
-  @DocsEditable
   @DomName('AudioContext.currentTime')
+  @DocsEditable
   final num currentTime;
 
-  @DocsEditable
   @DomName('AudioContext.destination')
+  @DocsEditable
   final AudioDestinationNode destination;
 
-  @DocsEditable
   @DomName('AudioContext.listener')
+  @DocsEditable
   final AudioListener listener;
 
-  @DocsEditable
   @DomName('AudioContext.sampleRate')
+  @DocsEditable
   final num sampleRate;
 
-  @DocsEditable
   @DomName('AudioContext.createAnalyser')
+  @DocsEditable
   AnalyserNode createAnalyser() native;
 
-  @DocsEditable
   @DomName('AudioContext.createBiquadFilter')
+  @DocsEditable
   BiquadFilterNode createBiquadFilter() native;
 
-  @DocsEditable
   @DomName('AudioContext.createBuffer')
+  @DocsEditable
   AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) native;
 
-  @DocsEditable
   @DomName('AudioContext.createBufferSource')
+  @DocsEditable
   AudioBufferSourceNode createBufferSource() native;
 
-  @DocsEditable
   @DomName('AudioContext.createChannelMerger')
+  @DocsEditable
   ChannelMergerNode createChannelMerger([int numberOfInputs]) native;
 
-  @DocsEditable
   @DomName('AudioContext.createChannelSplitter')
+  @DocsEditable
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) native;
 
-  @DocsEditable
   @DomName('AudioContext.createConvolver')
+  @DocsEditable
   ConvolverNode createConvolver() native;
 
-  @DocsEditable
   @DomName('AudioContext.createDelay')
+  @DocsEditable
   DelayNode createDelay([num maxDelayTime]) native;
 
-  @DocsEditable
   @DomName('AudioContext.createDynamicsCompressor')
+  @DocsEditable
   DynamicsCompressorNode createDynamicsCompressor() native;
 
-  @DocsEditable
   @DomName('AudioContext.createMediaElementSource')
+  @DocsEditable
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native;
 
-  @DocsEditable
   @DomName('AudioContext.createMediaStreamDestination')
+  @DocsEditable
   MediaStreamAudioDestinationNode createMediaStreamDestination() native;
 
-  @DocsEditable
   @DomName('AudioContext.createMediaStreamSource')
+  @DocsEditable
   MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native;
 
-  @DocsEditable
   @DomName('AudioContext.createOscillator')
+  @DocsEditable
   OscillatorNode createOscillator() native;
 
-  @DocsEditable
   @DomName('AudioContext.createPanner')
+  @DocsEditable
   PannerNode createPanner() native;
 
-  @DocsEditable
   @DomName('AudioContext.createWaveShaper')
+  @DocsEditable
   WaveShaperNode createWaveShaper() native;
 
-  @DocsEditable
   @DomName('AudioContext.createWaveTable')
+  @DocsEditable
   WaveTable createWaveTable(Float32Array real, Float32Array imag) native;
 
-  @DocsEditable
   @DomName('AudioContext.decodeAudioData')
+  @DocsEditable
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
-  @DocsEditable
   @DomName('AudioContext.startRendering')
+  @DocsEditable
   void startRendering() native;
 
-  @DocsEditable
   @DomName('AudioContext.complete')
+  @DocsEditable
   Stream<Event> get onComplete => completeEvent.forTarget(this);
 
   static AudioContext _create() => JS('AudioContext',
@@ -327,19 +323,17 @@ class AudioContextEvents extends Events {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('AudioDestinationNode')
 class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
 
-  @DocsEditable
   @DomName('AudioDestinationNode.numberOfChannels')
+  @DocsEditable
   final int numberOfChannels;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -351,29 +345,28 @@ class AudioGain extends AudioParam native "*AudioGain" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('AudioListener')
 class AudioListener native "*AudioListener" {
 
-  @DocsEditable
   @DomName('AudioListener.dopplerFactor')
+  @DocsEditable
   num dopplerFactor;
 
-  @DocsEditable
   @DomName('AudioListener.speedOfSound')
+  @DocsEditable
   num speedOfSound;
 
-  @DocsEditable
   @DomName('AudioListener.setOrientation')
+  @DocsEditable
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native;
 
-  @DocsEditable
   @DomName('AudioListener.setPosition')
+  @DocsEditable
   void setPosition(num x, num y, num z) native;
 
-  @DocsEditable
   @DomName('AudioListener.setVelocity')
+  @DocsEditable
   void setVelocity(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -381,29 +374,28 @@ class AudioListener native "*AudioListener" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('AudioNode')
 class AudioNode native "*AudioNode" {
 
-  @DocsEditable
   @DomName('AudioNode.context')
+  @DocsEditable
   final AudioContext context;
 
-  @DocsEditable
   @DomName('AudioNode.numberOfInputs')
+  @DocsEditable
   final int numberOfInputs;
 
-  @DocsEditable
   @DomName('AudioNode.numberOfOutputs')
+  @DocsEditable
   final int numberOfOutputs;
 
-  @DocsEditable
   @DomName('AudioNode.connect')
+  @DocsEditable
   void connect(destination, int output, [int input]) native;
 
-  @DocsEditable
   @DomName('AudioNode.disconnect')
+  @DocsEditable
   void disconnect(int output) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -411,57 +403,56 @@ class AudioNode native "*AudioNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('AudioParam')
 class AudioParam native "*AudioParam" {
 
-  @DocsEditable
   @DomName('AudioParam.defaultValue')
+  @DocsEditable
   final num defaultValue;
 
-  @DocsEditable
   @DomName('AudioParam.maxValue')
+  @DocsEditable
   final num maxValue;
 
-  @DocsEditable
   @DomName('AudioParam.minValue')
+  @DocsEditable
   final num minValue;
 
-  @DocsEditable
   @DomName('AudioParam.name')
+  @DocsEditable
   final String name;
 
-  @DocsEditable
   @DomName('AudioParam.units')
+  @DocsEditable
   final int units;
 
-  @DocsEditable
   @DomName('AudioParam.value')
+  @DocsEditable
   num value;
 
-  @DocsEditable
   @DomName('AudioParam.cancelScheduledValues')
+  @DocsEditable
   void cancelScheduledValues(num startTime) native;
 
-  @DocsEditable
   @DomName('AudioParam.exponentialRampToValueAtTime')
+  @DocsEditable
   void exponentialRampToValueAtTime(num value, num time) native;
 
-  @DocsEditable
   @DomName('AudioParam.linearRampToValueAtTime')
+  @DocsEditable
   void linearRampToValueAtTime(num value, num time) native;
 
-  @DocsEditable
   @DomName('AudioParam.setTargetAtTime')
+  @DocsEditable
   void setTargetAtTime(num target, num time, num timeConstant) native;
 
-  @DocsEditable
   @DomName('AudioParam.setValueAtTime')
+  @DocsEditable
   void setValueAtTime(num value, num time) native;
 
-  @DocsEditable
   @DomName('AudioParam.setValueCurveAtTime')
+  @DocsEditable
   void setValueCurveAtTime(Float32Array values, num time, num duration) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -469,23 +460,21 @@ class AudioParam native "*AudioParam" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('AudioProcessingEvent')
 class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
 
-  @DocsEditable
   @DomName('AudioProcessingEvent.inputBuffer')
+  @DocsEditable
   final AudioBuffer inputBuffer;
 
-  @DocsEditable
   @DomName('AudioProcessingEvent.outputBuffer')
+  @DocsEditable
   final AudioBuffer outputBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -495,7 +484,6 @@ class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -518,34 +506,33 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
   static const int PEAKING = 5;
 
-  @DocsEditable
   @DomName('BiquadFilterNode.Q')
+  @DocsEditable
   final AudioParam Q;
 
-  @DocsEditable
   @DomName('BiquadFilterNode.detune')
+  @DocsEditable
   final AudioParam detune;
 
-  @DocsEditable
   @DomName('BiquadFilterNode.frequency')
+  @DocsEditable
   final AudioParam frequency;
 
-  @DocsEditable
   @DomName('BiquadFilterNode.gain')
+  @DocsEditable
   final AudioParam gain;
 
-  @DocsEditable
   @DomName('BiquadFilterNode.type')
+  @DocsEditable
   String type;
 
-  @DocsEditable
   @DomName('BiquadFilterNode.getFrequencyResponse')
+  @DocsEditable
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -557,7 +544,6 @@ class ChannelMergerNode extends AudioNode native "*ChannelMergerNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ChannelSplitterNode')
 class ChannelSplitterNode extends AudioNode native "*ChannelSplitterNode" {
@@ -567,17 +553,16 @@ class ChannelSplitterNode extends AudioNode native "*ChannelSplitterNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ConvolverNode')
 class ConvolverNode extends AudioNode native "*ConvolverNode" {
 
-  @DocsEditable
   @DomName('ConvolverNode.buffer')
+  @DocsEditable
   AudioBuffer buffer;
 
-  @DocsEditable
   @DomName('ConvolverNode.normalize')
+  @DocsEditable
   bool normalize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -585,13 +570,12 @@ class ConvolverNode extends AudioNode native "*ConvolverNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DelayNode')
 class DelayNode extends AudioNode native "*DelayNode" {
 
-  @DocsEditable
   @DomName('DelayNode.delayTime')
+  @DocsEditable
   final AudioParam delayTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -599,33 +583,32 @@ class DelayNode extends AudioNode native "*DelayNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('DynamicsCompressorNode')
 class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.attack')
+  @DocsEditable
   final AudioParam attack;
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.knee')
+  @DocsEditable
   final AudioParam knee;
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.ratio')
+  @DocsEditable
   final AudioParam ratio;
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.reduction')
+  @DocsEditable
   final AudioParam reduction;
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.release')
+  @DocsEditable
   final AudioParam release;
 
-  @DocsEditable
   @DomName('DynamicsCompressorNode.threshold')
+  @DocsEditable
   final AudioParam threshold;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -633,13 +616,12 @@ class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" 
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('GainNode')
 class GainNode extends AudioNode native "*GainNode" {
 
-  @DocsEditable
   @DomName('GainNode.gain')
+  @DocsEditable
   final AudioGain gain;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -647,13 +629,12 @@ class GainNode extends AudioNode native "*GainNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaElementAudioSourceNode')
 class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
 
-  @DocsEditable
   @DomName('MediaElementAudioSourceNode.mediaElement')
+  @DocsEditable
   final MediaElement mediaElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -661,13 +642,12 @@ class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementA
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaStreamAudioDestinationNode')
 class MediaStreamAudioDestinationNode extends AudioSourceNode native "*MediaStreamAudioDestinationNode" {
 
-  @DocsEditable
   @DomName('MediaStreamAudioDestinationNode.stream')
+  @DocsEditable
   final MediaStream stream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -675,13 +655,12 @@ class MediaStreamAudioDestinationNode extends AudioSourceNode native "*MediaStre
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('MediaStreamAudioSourceNode')
 class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAudioSourceNode" {
 
-  @DocsEditable
   @DomName('MediaStreamAudioSourceNode.mediaStream')
+  @DocsEditable
   final MediaStream mediaStream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -689,19 +668,17 @@ class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAud
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('OfflineAudioCompletionEvent')
 class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionEvent" {
 
-  @DocsEditable
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
+  @DocsEditable
   final AudioBuffer renderedBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -715,7 +692,6 @@ class OfflineAudioContext extends AudioContext implements EventTarget native "*O
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -740,38 +716,37 @@ class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
 
   static const int UNSCHEDULED_STATE = 0;
 
-  @DocsEditable
   @DomName('OscillatorNode.detune')
+  @DocsEditable
   final AudioParam detune;
 
-  @DocsEditable
   @DomName('OscillatorNode.frequency')
+  @DocsEditable
   final AudioParam frequency;
 
-  @DocsEditable
   @DomName('OscillatorNode.playbackState')
+  @DocsEditable
   final int playbackState;
 
-  @DocsEditable
   @DomName('OscillatorNode.type')
+  @DocsEditable
   String type;
 
-  @DocsEditable
   @DomName('OscillatorNode.setWaveTable')
+  @DocsEditable
   void setWaveTable(WaveTable waveTable) native;
 
-  @DocsEditable
   @DomName('OscillatorNode.start')
+  @DocsEditable
   void start(num when) native;
 
-  @DocsEditable
   @DomName('OscillatorNode.stop')
+  @DocsEditable
   void stop(num when) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
@@ -790,48 +765,48 @@ class PannerNode extends AudioNode native "*PannerNode" {
 
   static const int SOUNDFIELD = 2;
 
-  @DocsEditable
   @DomName('PannerNode.coneInnerAngle')
+  @DocsEditable
   num coneInnerAngle;
 
-  @DocsEditable
   @DomName('PannerNode.coneOuterAngle')
+  @DocsEditable
   num coneOuterAngle;
 
-  @DocsEditable
   @DomName('PannerNode.coneOuterGain')
+  @DocsEditable
   num coneOuterGain;
 
-  @DocsEditable
   @DomName('PannerNode.distanceModel')
+  @DocsEditable
   String distanceModel;
 
-  @DocsEditable
   @DomName('PannerNode.maxDistance')
+  @DocsEditable
   num maxDistance;
 
-  @DocsEditable
   @DomName('PannerNode.panningModel')
+  @DocsEditable
   String panningModel;
 
-  @DocsEditable
   @DomName('PannerNode.refDistance')
+  @DocsEditable
   num refDistance;
 
-  @DocsEditable
   @DomName('PannerNode.rolloffFactor')
+  @DocsEditable
   num rolloffFactor;
 
-  @DocsEditable
   @DomName('PannerNode.setOrientation')
+  @DocsEditable
   void setOrientation(num x, num y, num z) native;
 
-  @DocsEditable
   @DomName('PannerNode.setPosition')
+  @DocsEditable
   void setPosition(num x, num y, num z) native;
 
-  @DocsEditable
   @DomName('PannerNode.setVelocity')
+  @DocsEditable
   void setVelocity(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -839,13 +814,12 @@ class PannerNode extends AudioNode native "*PannerNode" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('ScriptProcessorNode')
 class ScriptProcessorNode extends AudioNode implements EventTarget native "*ScriptProcessorNode" {
 
-  @DocsEditable
   @DomName('ScriptProcessorNode.bufferSize')
+  @DocsEditable
   final int bufferSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -853,19 +827,17 @@ class ScriptProcessorNode extends AudioNode implements EventTarget native "*Scri
 // BSD-style license that can be found in the LICENSE file.
 
 
-
 @DocsEditable
 @DomName('WaveShaperNode')
 class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
-  @DocsEditable
   @DomName('WaveShaperNode.curve')
+  @DocsEditable
   Float32Array curve;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 
 
 @DocsEditable
