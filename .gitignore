@@ -26,10 +26,12 @@
 /*.vcxproj
 /*.vcxproj.filters
 /*.vcxproj.user
-/*.xcodeproj
 
 # End generated ignores. The following are hand-added because the svn:ignore
 # stuff doesn't handle them well.
+
+# Gyp generated files
+*.xcodeproj
 
 # Dart Editor config files - also in all subdirectories.
 .children
