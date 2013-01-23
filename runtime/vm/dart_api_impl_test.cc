@@ -7406,7 +7406,7 @@ TEST_CASE(ExternalizeConstantStrings) {
                                             &peer,
                                             MakeExternalCback);
 
-  EXPECT(Dart_IsNull(str));
+  EXPECT(Dart_IsExternalString(str));
   for (intptr_t i = 0; i < kExpectedLen; i++) {
     EXPECT_EQ(expected_str[i], ext_str[i]);
   }

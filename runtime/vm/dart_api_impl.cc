@@ -1787,7 +1787,7 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
                          "[%"Pd"..%"Pd"].",
                          str_size, String::kMaxElements);
   }
-  if (str_obj.IsCanonical()) {
+  if (str_obj.InVMHeap()) {
     // Since the string object is read only we do not externalize
     // the string but instead copy the contents of the string into the
     // specified buffer and return a Null object.

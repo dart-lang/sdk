@@ -2310,7 +2310,6 @@ static bool MatchesAccessorName(const String& name,
 
 RawFunction* Class::LookupFunction(const String& name) const {
   Isolate* isolate = Isolate::Current();
-  ASSERT(name.IsOneByteString());
   Array& funcs = Array::Handle(isolate, functions());
   if (funcs.IsNull()) {
     // This can occur, e.g., for Null classes.
@@ -2344,7 +2343,6 @@ RawFunction* Class::LookupFunction(const String& name) const {
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
   Isolate* isolate = Isolate::Current();
-  ASSERT(name.IsOneByteString());
   Array& funcs = Array::Handle(isolate, functions());
   if (funcs.IsNull()) {
     // This can occur, e.g., for Null classes.
@@ -2356,8 +2354,8 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
   for (intptr_t i = 0; i < len; i++) {
     function |= funcs.At(i);
     function_name |= function.name();
-    if (OneByteString::EqualsIgnoringPrivateKey(function_name, name)) {
-      return function.raw();
+    if (String::EqualsIgnoringPrivateKey(function_name, name)) {
+        return function.raw();
     }
   }
   // No function found.
@@ -2450,7 +2448,6 @@ RawField* Class::LookupStaticField(const String& name) const {
 
 RawField* Class::LookupField(const String& name) const {
   Isolate* isolate = Isolate::Current();
-  ASSERT(name.IsOneByteString());
   const Array& flds = Array::Handle(isolate, fields());
   Field& field = Field::Handle(isolate, Field::null());
   String& field_name = String::Handle(isolate, String::null());
@@ -2458,8 +2455,8 @@ RawField* Class::LookupField(const String& name) const {
   for (intptr_t i = 0; i < len; i++) {
     field |= flds.At(i);
     field_name |= field.name();
-    if (OneByteString::EqualsIgnoringPrivateKey(field_name, name)) {
-      return field.raw();
+    if (String::EqualsIgnoringPrivateKey(field_name, name)) {
+        return field.raw();
     }
   }
   // No field found.
@@ -4027,7 +4024,6 @@ RawFunction* Function::New(const String& name,
                            bool is_external,
                            const Object& owner,
                            intptr_t token_pos) {
-  ASSERT(name.IsOneByteString());
   ASSERT(!owner.IsNull());
   const Function& result = Function::Handle(Function::New());
   result.set_parameter_types(Object::empty_array());
@@ -4063,7 +4059,6 @@ RawFunction* Function::New(const String& name,
 RawFunction* Function::NewClosureFunction(const String& name,
                                           const Function& parent,
                                           intptr_t token_pos) {
-  ASSERT(name.IsOneByteString());
   ASSERT(!parent.IsNull());
   // Use the owner defining the parent function and not the class containing it.
   const Object& parent_owner = Object::Handle(parent.raw_ptr()->owner_);
@@ -4589,7 +4584,6 @@ RawField* Field::New(const String& name,
                      bool is_const,
                      const Class& owner,
                      intptr_t token_pos) {
-  ASSERT(name.IsOneByteString());
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
@@ -10960,7 +10954,7 @@ RawString* String::MakeExternal(void* array,
   intptr_t original_size = 0;
   uword tags = raw_ptr()->tags_;
 
-  ASSERT(!IsCanonical());
+  ASSERT(!InVMHeap());
   if (class_id == kOneByteStringCid) {
     used_size = ExternalOneByteString::InstanceSize();
     original_size = OneByteString::InstanceSize(str_length);
@@ -11057,6 +11051,104 @@ RawString* String::ToLowerCase(const String& str, Heap::Space space) {
 }
 
 
+// Check to see if 'str1' matches 'str2' as is or
+// once the private key separator is stripped from str2.
+//
+// Things are made more complicated by the fact that constructors are
+// added *after* the private suffix, so "foo@123.named" should match
+// "foo.named".
+//
+// Also, the private suffix can occur more than once in the name, as in:
+//
+//    _ReceivePortImpl@6be832b._internal@6be832b
+//
+template<typename T1, typename T2>
+static bool EqualsIgnoringPrivateKey(const String& str1,
+                                     const String& str2) {
+  intptr_t len = str1.Length();
+  intptr_t str2_len = str2.Length();
+  if (len == str2_len) {
+    for (intptr_t i = 0; i < len; i++) {
+      if (T1::CharAt(str1, i) != T2::CharAt(str2, i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (len < str2_len) {
+    return false;  // No way they can match.
+  }
+  intptr_t pos = 0;
+  intptr_t str2_pos = 0;
+  while (pos < len) {
+    int32_t ch = T1::CharAt(str1, pos);
+    pos++;
+
+    if (ch == Scanner::kPrivateKeySeparator) {
+      // Consume a private key separator.
+      while ((pos < len) && (T1::CharAt(str1, pos) != '.')) {
+        pos++;
+      }
+      // Resume matching characters.
+      continue;
+    }
+    if ((str2_pos == str2_len) || (ch != T2::CharAt(str2, str2_pos))) {
+      return false;
+    }
+    str2_pos++;
+  }
+
+  // We have reached the end of mangled_name string.
+  ASSERT(pos == len);
+  return (str2_pos == str2_len);
+}
+
+
+#define EQUALS_IGNORING_PRIVATE_KEY(class_id, type, str1, str2)                \
+  switch (class_id) {                                                          \
+    case kOneByteStringCid :                                                   \
+      return dart::EqualsIgnoringPrivateKey<type, OneByteString>(str1, str2);  \
+    case kTwoByteStringCid :                                                   \
+      return dart::EqualsIgnoringPrivateKey<type, TwoByteString>(str1, str2);  \
+    case kExternalOneByteStringCid :                                           \
+      return dart::EqualsIgnoringPrivateKey<type, ExternalOneByteString>(str1, \
+                                                                         str2);\
+    case kExternalTwoByteStringCid :                                           \
+      return dart::EqualsIgnoringPrivateKey<type, ExternalTwoByteString>(str1, \
+                                                                         str2);\
+  }                                                                            \
+  UNREACHABLE();                                                               \
+
+
+bool String::EqualsIgnoringPrivateKey(const String& str1,
+                                      const String& str2) {
+  if (str1.raw() == str2.raw()) {
+    return true;  // Both handles point to the same raw instance.
+  }
+  NoGCScope no_gc;
+  intptr_t str1_class_id = str1.raw()->GetClassId();
+  intptr_t str2_class_id = str2.raw()->GetClassId();
+  switch (str1_class_id) {
+    case kOneByteStringCid :
+      EQUALS_IGNORING_PRIVATE_KEY(str2_class_id, OneByteString, str1, str2);
+      break;
+    case kTwoByteStringCid :
+      EQUALS_IGNORING_PRIVATE_KEY(str2_class_id, TwoByteString, str1, str2);
+      break;
+    case kExternalOneByteStringCid :
+      EQUALS_IGNORING_PRIVATE_KEY(str2_class_id,
+                                  ExternalOneByteString, str1, str2);
+      break;
+    case kExternalTwoByteStringCid :
+      EQUALS_IGNORING_PRIVATE_KEY(str2_class_id,
+                                  ExternalTwoByteString, str1, str2);
+      break;
+  }
+  UNREACHABLE();
+  return false;
+}
+
+
 bool String::CodePointIterator::Next() {
   ASSERT(index_ >= -1);
   intptr_t length = Utf16::Length(ch_);
@@ -11107,63 +11199,6 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
     return OneByteString::raw(dststr);
   }
   return OneByteString::null();
-}
-
-
-// Check to see if 'str1' matches 'str2' as is or
-// once the private key separator is stripped from str2.
-//
-// Things are made more complicated by the fact that constructors are
-// added *after* the private suffix, so "foo@123.named" should match
-// "foo.named".
-//
-// Also, the private suffix can occur more than once in the name, as in:
-//
-//    _ReceivePortImpl@6be832b._internal@6be832b
-//
-bool OneByteString::EqualsIgnoringPrivateKey(const String& str1,
-                                             const String& str2) {
-  ASSERT(str2.IsOneByteString());
-  if (str1.raw() == str2.raw()) {
-    return true;  // Both handles point to the same raw instance.
-  }
-  NoGCScope no_gc;
-  intptr_t len = str1.Length();
-  intptr_t str2_len = str2.Length();
-  if (len == str2_len) {
-    for (intptr_t i = 0; i < len; i++) {
-      if (*CharAddr(str1, i) != *CharAddr(str2, i)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  if (len < str2_len) {
-    return false;  // No way they can match.
-  }
-  intptr_t pos = 0;
-  intptr_t str2_pos = 0;
-  while (pos < len) {
-    int32_t ch = *CharAddr(str1, pos);
-    pos++;
-
-    if (ch == Scanner::kPrivateKeySeparator) {
-      // Consume a private key separator.
-      while ((pos < len) && (*CharAddr(str1, pos) != '.')) {
-        pos++;
-      }
-      // Resume matching characters.
-      continue;
-    }
-    if ((str2_pos == str2_len) || (ch != *CharAddr(str2, str2_pos))) {
-      return false;
-    }
-    str2_pos++;
-  }
-
-  // We have reached the end of mangled_name string.
-  ASSERT(pos == len);
-  return (str2_pos == str2_len);
 }
 
 

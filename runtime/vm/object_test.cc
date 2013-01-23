@@ -2960,96 +2960,129 @@ TEST_CASE(EqualsIgnoringPrivate) {
   // Simple matches.
   mangled_name = OneByteString::New("foo");
   bare_name = OneByteString::New("foo");
-  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.");
   bare_name = OneByteString::New("foo.");
-  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.named");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Simple mismatches.
   mangled_name = OneByteString::New("bar");
   bare_name = OneByteString::New("foo");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.");
   bare_name = OneByteString::New("foo");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo");
   bare_name = OneByteString::New("foo.");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.name");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   mangled_name = OneByteString::New("foo.named");
   bare_name = OneByteString::New("foo.name");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private match.
   mangled_name = OneByteString::New("foo@12345");
   bare_name = OneByteString::New("foo");
-  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private mismatch.
   mangled_name = OneByteString::New("food@12345");
   bare_name = OneByteString::New("foo");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private mismatch 2.
   mangled_name = OneByteString::New("foo@12345");
   bare_name = OneByteString::New("food");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private constructor match.
   mangled_name = OneByteString::New("foo@12345.");
   bare_name = OneByteString::New("foo.");
-  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.");
   bare_name = OneByteString::New("foo");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Private constructor mismatch 2.
   mangled_name = OneByteString::New("foo@12345");
   bare_name = OneByteString::New("foo.");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named private constructor match.
   mangled_name = OneByteString::New("foo@12345.named");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.name");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named private constructor mismatch 2.
   mangled_name = OneByteString::New("foo@12345.named");
   bare_name = OneByteString::New("foo.name");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named double-private constructor match.  Yes, this happens.
   mangled_name = OneByteString::New("foo@12345.named@12345");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named double-private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.name@12345");
   bare_name = OneByteString::New("foo.named");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
   // Named double-private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.named@12345");
   bare_name = OneByteString::New("foo.name");
-  EXPECT(!OneByteString::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
+  const char* ext_mangled_str = "foo@12345.name@12345";
+  const char* ext_bare_str = "foo.name";
+  const char* ext_bad_bare_str = "foo.named";
+  String& ext_mangled_name = String::Handle();
+  String& ext_bare_name = String::Handle();
+  String& ext_bad_bare_name = String::Handle();
+
+  mangled_name = OneByteString::New("foo@12345.name@12345");
+  ext_mangled_name = ExternalOneByteString::New(
+      reinterpret_cast<const uint8_t*>(ext_mangled_str),
+      strlen(ext_mangled_str), NULL, NULL, Heap::kNew);
+  EXPECT(ext_mangled_name.IsExternalOneByteString());
+  ext_bare_name = ExternalOneByteString::New(
+      reinterpret_cast<const uint8_t*>(ext_bare_str),
+      strlen(ext_bare_str), NULL, NULL, Heap::kNew);
+  EXPECT(ext_bare_name.IsExternalOneByteString());
+  ext_bad_bare_name = ExternalOneByteString::New(
+      reinterpret_cast<const uint8_t*>(ext_bad_bare_str),
+      strlen(ext_bad_bare_str), NULL, NULL, Heap::kNew);
+  EXPECT(ext_bad_bare_name.IsExternalOneByteString());
+
+  // str1 - OneByteString, str2 - ExternalOneByteString.
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, ext_bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(mangled_name, ext_bad_bare_name));
+
+  // str1 - ExternalOneByteString, str2 - OneByteString.
+  EXPECT(String::EqualsIgnoringPrivateKey(ext_mangled_name, bare_name));
+
+  // str1 - ExternalOneByteString, str2 - ExternalOneByteString.
+  EXPECT(String::EqualsIgnoringPrivateKey(ext_mangled_name, ext_bare_name));
+  EXPECT(!String::EqualsIgnoringPrivateKey(ext_mangled_name,
+                                           ext_bad_bare_name));
 }
 
 

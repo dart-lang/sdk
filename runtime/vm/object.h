@@ -4078,6 +4078,9 @@ class String : public Instance {
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
 
+  static bool EqualsIgnoringPrivateKey(const String& str1,
+                                       const String& str2);
+
   static RawString* NewFormatted(const char* format, ...)
       PRINTF_ATTRIBUTE(1, 2);
   static RawString* NewFormattedV(const char* format, va_list args);
@@ -4127,9 +4130,6 @@ class OneByteString : public AllStatic {
 
   static RawOneByteString* EscapeSpecialCharacters(const String& str,
                                                    bool raw_str);
-
-  static bool EqualsIgnoringPrivateKey(const String& str1,
-                                       const String& str2);
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 1;
