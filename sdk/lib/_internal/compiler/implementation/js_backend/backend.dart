@@ -1103,7 +1103,11 @@ class JavaScriptBackend extends Backend {
     Element element = type.element;
     bool nativeCheck =
           emitter.nativeEmitter.requiresNativeIsCheck(element);
-    if (type == compiler.types.voidType) {
+    if (type.isMalformed) {
+      // Check for malformed types first, because the type may be a list type
+      // with a malformed argument type.
+      return const SourceString('malformedTypeCheck');
+    } else if (type == compiler.types.voidType) {
       return const SourceString('voidTypeCheck');
     } else if (element == compiler.stringClass) {
       return const SourceString('stringTypeCheck');
@@ -1127,8 +1131,6 @@ class JavaScriptBackend extends Backend {
           : const SourceString('stringSuperTypeCheck');
     } else if (identical(element, compiler.listClass)) {
       return const SourceString('listTypeCheck');
-    } else if (type.isMalformed) {
-      return const SourceString('malformedTypeCheck');
     } else {
       if (Elements.isListSupertype(element, compiler)) {
         return nativeCheck
