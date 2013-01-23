@@ -1529,7 +1529,7 @@ class HForeign extends HInstruction {
   }
 
   HForeign.statement(code, List<HInstruction> inputs)
-      : this(code, const LiteralDartString('var'), input, isStatement: true);
+      : this(code, const LiteralDartString('var'), inputs, isStatement: true);
 
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
