@@ -247,7 +247,7 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
   String& name = String::Handle();
   Smi& pos = Smi::Handle();
   for (intptr_t i = 0; i < num_named_args; i++) {
-    name |= optional_arguments_names.At(i);
+    name ^= optional_arguments_names.At(i);
     pos = Smi::New(num_pos_args + i);
     intptr_t insert_index = kFirstNamedEntryIndex + (kNamedEntrySize * i);
     // Shift already inserted pairs with "larger" names.
@@ -255,11 +255,11 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
     Smi& previous_pos = Smi::Handle();
     while (insert_index > kFirstNamedEntryIndex) {
       intptr_t previous_index = insert_index - kNamedEntrySize;
-      previous_name |= descriptor.At(previous_index + kNameOffset);
+      previous_name ^= descriptor.At(previous_index + kNameOffset);
       intptr_t result = name.CompareTo(previous_name);
       ASSERT(result != 0);  // Duplicate argument names checked in parser.
       if (result > 0) break;
-      previous_pos |= descriptor.At(previous_index + kPositionOffset);
+      previous_pos ^= descriptor.At(previous_index + kPositionOffset);
       descriptor.SetAt(insert_index + kNameOffset, previous_name);
       descriptor.SetAt(insert_index + kPositionOffset, previous_pos);
       insert_index = previous_index;

@@ -54,7 +54,7 @@ static void RemoveOptimizedCode(
     array = cls.functions();
     intptr_t num_functions = array.IsNull() ? 0 : array.Length();
     for (intptr_t f = 0; f < num_functions; f++) {
-      function |= array.At(f);
+      function ^= array.At(f);
       ASSERT(!function.IsNull());
       if (function.HasOptimizedCode()) {
         function.SwitchToUnoptimizedCode();
@@ -94,7 +94,7 @@ static void CollectFinalizedSuperClasses(
   Class& cls = Class::Handle();
   Type& super_type = Type::Handle();
   for (intptr_t i = 0; i < pending_classes.Length(); i++) {
-    cls |= pending_classes.At(i);
+    cls ^= pending_classes.At(i);
     ASSERT(!cls.is_finalized());
     super_type ^= cls.super_type();
     if (!super_type.IsNull()) {
@@ -138,7 +138,7 @@ bool ClassFinalizer::FinalizePendingClasses() {
     Class& cls = Class::Handle();
     // First resolve all superclasses.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
-      cls |= class_array.At(i);
+      cls ^= class_array.At(i);
       if (FLAG_trace_class_finalization) {
         OS::Print("Resolving super and interfaces: %s\n", cls.ToCString());
       }
@@ -147,12 +147,12 @@ bool ClassFinalizer::FinalizePendingClasses() {
     }
     // Finalize all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
-      cls |= class_array.At(i);
+      cls ^= class_array.At(i);
       FinalizeClass(cls);
     }
     if (FLAG_print_classes) {
       for (intptr_t i = 0; i < class_array.Length(); i++) {
-        cls |= class_array.At(i);
+        cls ^= class_array.At(i);
         PrintClassInformation(cls);
       }
     }
@@ -270,7 +270,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
       GrowableObjectArray::Handle(object_store->pending_classes());
   for (intptr_t i = 0; i < class_array.Length(); i++) {
     // TODO(iposva): Add real checks.
-    cls |= class_array.At(i);
+    cls ^= class_array.At(i);
     if (cls.is_finalized() || cls.is_prefinalized()) {
       // Pre-finalized bootstrap classes must not define any fields.
       ASSERT(!cls.HasInstanceFields());
@@ -969,7 +969,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   Class& super_class = Class::Handle();
   intptr_t num_fields = array.Length();
   for (intptr_t i = 0; i < num_fields; i++) {
-    field |= array.At(i);
+    field ^= array.At(i);
     type = field.type();
     ResolveType(cls, type, kCanonicalize);
     type = FinalizeType(cls, type, kCanonicalize);
@@ -1025,7 +1025,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   intptr_t num_functions = array.Length();
   String& function_name = String::Handle();
   for (intptr_t i = 0; i < num_functions; i++) {
-    function |= array.At(i);
+    function ^= array.At(i);
     ResolveAndFinalizeSignature(cls, function);
     function_name = function.name();
     if (function.is_static()) {
@@ -1049,7 +1049,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       }
     } else {
       for (int i = 0; i < interfaces.Length(); i++) {
-        super_class |= interfaces.At(i);
+        super_class ^= interfaces.At(i);
         overridden_function = super_class.LookupDynamicFunction(function_name);
         if (!overridden_function.IsNull() &&
             !function.HasCompatibleParametersWith(overridden_function)) {
@@ -1422,7 +1422,7 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
   intptr_t len = fields_array.Length();
   Field& field = Field::Handle();
   for (intptr_t i = 0; i < len; i++) {
-    field |= fields_array.At(i);
+    field ^= fields_array.At(i);
     if (!field.is_static() && !field.is_final()) {
       const String& class_name = String::Handle(cls.Name());
       const String& field_name = String::Handle(field.name());
@@ -1469,14 +1469,14 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
   Function& function = Function::Handle();
   intptr_t len = functions_array.Length();
   for (intptr_t i = 0; i < len; i++) {
-    function |= functions_array.At(i);
+    function ^= functions_array.At(i);
     OS::Print("  %s\n", function.ToCString());
   }
   const Array& fields_array = Array::Handle(cls.fields());
   Field& field = Field::Handle();
   len = fields_array.Length();
   for (intptr_t i = 0; i < len; i++) {
-    field |= fields_array.At(i);
+    field ^= fields_array.At(i);
     OS::Print("  %s\n", field.ToCString());
   }
 }

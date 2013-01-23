@@ -49,7 +49,7 @@ static void CollectSubclassIds(ZoneGrowableArray<intptr_t>* cids,
   }
   Class& direct_subclass = Class::Handle();
   for (intptr_t i = 0; i < cls_direct_subclasses.Length(); i++) {
-    direct_subclass |= cls_direct_subclasses.At(i);
+    direct_subclass ^= cls_direct_subclasses.At(i);
     intptr_t direct_subclass_id = direct_subclass.id();
     if (!ContainsCid(cids, direct_subclass_id)) {
       cids->Add(direct_subclass_id);
@@ -78,7 +78,7 @@ bool CHA::HasOverride(const Class& cls, const String& function_name) {
   }
   Class& direct_subclass = Class::Handle();
   for (intptr_t i = 0; i < cls_direct_subclasses.Length(); i++) {
-    direct_subclass |= cls_direct_subclasses.At(i);
+    direct_subclass ^= cls_direct_subclasses.At(i);
     if (direct_subclass.LookupDynamicFunction(function_name) !=
         Function::null()) {
       return true;

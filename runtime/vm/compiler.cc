@@ -385,7 +385,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     const Array& stackmap_table = Array::Handle(code.stackmaps());
     Stackmap& map = Stackmap::Handle();
     for (intptr_t i = 0; i < stackmap_table.Length(); ++i) {
-      map |= stackmap_table.At(i);
+      map ^= stackmap_table.At(i);
       OS::Print("%s\n", map.ToCString());
     }
   }
@@ -435,9 +435,9 @@ static void DisassembleCode(const Function& function, bool optimized) {
     Code& code = Code::Handle();
     for (intptr_t i = 0; i < table.Length();
         i += Code::kSCallTableEntryLength) {
-      offset |= table.At(i + Code::kSCallTableOffsetEntry);
-      function |= table.At(i + Code::kSCallTableFunctionEntry);
-      code |= table.At(i + Code::kSCallTableCodeEntry);
+      offset ^= table.At(i + Code::kSCallTableOffsetEntry);
+      function ^= table.At(i + Code::kSCallTableFunctionEntry);
+      code ^= table.At(i + Code::kSCallTableCodeEntry);
       OS::Print("  0x%"Px": %s, %p\n",
           start + offset.Value(),
           function.ToFullyQualifiedCString(),
@@ -573,7 +573,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     return error.raw();
   }
   for (int i = 0; i < functions.Length(); i++) {
-    func |= functions.At(i);
+    func ^= functions.At(i);
     ASSERT(!func.IsNull());
     if (!func.HasCode() &&
         !func.is_abstract() &&

@@ -202,7 +202,7 @@ class DeoptRetAfterAddressInstr : public DeoptInstr {
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
     Function& function = Function::Handle(deopt_context->isolate());
-    function |= deopt_context->ObjectAt(object_table_index_);
+    function ^= deopt_context->ObjectAt(object_table_index_);
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
     uword continue_at_pc = code.GetDeoptAfterPcAtDeoptId(deopt_id_);
@@ -261,7 +261,7 @@ class DeoptRetBeforeAddressInstr : public DeoptInstr {
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
     Function& function = Function::Handle(deopt_context->isolate());
-    function |= deopt_context->ObjectAt(object_table_index_);
+    function ^= deopt_context->ObjectAt(object_table_index_);
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
     uword continue_at_pc = code.GetDeoptBeforePcAtDeoptId(deopt_id_);
@@ -439,7 +439,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
     Function& function = Function::Handle(deopt_context->isolate());
-    function |= deopt_context->ObjectAt(object_table_index_);
+    function ^= deopt_context->ObjectAt(object_table_index_);
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
     ASSERT(!code.IsNull());
@@ -585,7 +585,7 @@ uword DeoptInstr::GetRetAfterAddress(intptr_t from_index,
   DeoptRetAfterAddressInstr::GetEncodedValues(from_index,
                                               &object_table_index,
                                               &deopt_id);
-  *func |= object_table.At(object_table_index);
+  *func ^= object_table.At(object_table_index);
   const Code& code = Code::Handle(func->unoptimized_code());
   return code.GetDeoptAfterPcAtDeoptId(deopt_id);
 }
@@ -823,9 +823,9 @@ void DeoptTable::GetEntry(const Array& table,
                           DeoptInfo* info,
                           Smi* reason) {
   intptr_t i = index * kEntrySize;
-  *offset |= table.At(i);
-  *info |= table.At(i + 1);
-  *reason |= table.At(i + 2);
+  *offset ^= table.At(i);
+  *info ^= table.At(i + 1);
+  *reason ^= table.At(i + 2);
 }
 
 }  // namespace dart

@@ -123,8 +123,7 @@ DEFINE_NATIVE_ENTRY(String_getLength, 1) {
 
 static int32_t StringValueAt(const String& str, const Integer& index) {
   if (index.IsSmi()) {
-    Smi& smi = Smi::Handle();
-    smi |= index.raw();
+    const Smi& smi = Smi::Cast(index);
     int32_t index = smi.Value();
     if ((index < 0) || (index >= str.Length())) {
       const Array& args = Array::Handle(Array::New(1));

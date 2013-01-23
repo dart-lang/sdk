@@ -135,8 +135,7 @@ static void LengthCheck(intptr_t len, intptr_t max) {
 
 #define INTEGER_TO_UINT64(integer, uint64)                                     \
   if (integer.IsBigint()) {                                                    \
-    Bigint& bigint = Bigint::Handle();                                         \
-    bigint |= integer.raw();                                                   \
+    const Bigint& bigint = Bigint::Cast(integer);                              \
     ASSERT(BigintOperations::FitsIntoUint64(bigint));                          \
     value = BigintOperations::AbsToUint64(bigint);                             \
   } else {                                                                     \

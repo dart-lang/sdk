@@ -418,7 +418,7 @@ RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
   cls_ = Object::token_stream_class();
   stream_ = reinterpret_cast<RawTokenStream*>(
       AllocateUninitialized(cls_, TokenStream::InstanceSize()));
-  cls_ = object_store()->external_int8_array_class();
+  cls_ = object_store()->external_uint8_array_class();
   uint8_t* array = const_cast<uint8_t*>(CurrentBufferAddress());
   ASSERT(array != NULL);
   Advance(len);

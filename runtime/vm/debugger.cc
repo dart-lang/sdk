@@ -508,7 +508,7 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(i < desc_indices_.length());
   intptr_t desc_index = desc_indices_[i];
   ASSERT(name != NULL);
-  *name |= var_descriptors_.GetName(desc_index);
+  *name ^= var_descriptors_.GetName(desc_index);
   RawLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
   ASSERT(token_pos != NULL);
@@ -824,7 +824,7 @@ void Debugger::DeoptimizeWorld() {
       functions = cls.functions();
       intptr_t num_functions = functions.IsNull() ? 0 : functions.Length();
       for (intptr_t f = 0; f < num_functions; f++) {
-        function |= functions.At(f);
+        function ^= functions.At(f);
         ASSERT(!function.IsNull());
         if (function.HasOptimizedCode()) {
           function.SwitchToUnoptimizedCode();
@@ -1147,7 +1147,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
   for (int i = 0; i < libs.Length(); i++) {
-    lib |= libs.At(i);
+    lib ^= libs.At(i);
     script = lib.LookupScript(script_url);
     if (!script.IsNull()) {
       break;
@@ -1282,7 +1282,7 @@ RawArray* Debugger::GetInstanceFields(const Instance& obj) {
   while (!cls.IsNull()) {
     fields = cls.fields();
     for (int i = 0; i < fields.Length(); i++) {
-      field |= fields.At(i);
+      field ^= fields.At(i);
       if (!field.is_static()) {
         field_name = field.name();
         field_list.Add(field_name);
@@ -1304,7 +1304,7 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
   String& field_name = String::Handle();
   Object& field_value = Object::Handle();
   for (int i = 0; i < fields.Length(); i++) {
-    field |= fields.At(i);
+    field ^= fields.At(i);
     if (field.is_static()) {
       field_name = field.name();
       field_value = GetStaticField(cls, field_name);
@@ -1329,7 +1329,7 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
   while (it.HasNext()) {
     entry = it.GetNext();
     if (entry.IsField()) {
-      field |= entry.raw();
+      field ^= entry.raw();
       cls = field.owner();
       ASSERT(field.is_static());
       field_name = field.name();

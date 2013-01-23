@@ -284,16 +284,16 @@ void Object::InitOnce() {
     Smi::handle_vtable_ = fake_smi.vtable();
   }
 
-  // Allocate the read only object handles here.
-  empty_array_ = reinterpret_cast<Array*>(Dart::AllocateReadOnlyHandle());
-  sentinel_ = reinterpret_cast<Instance*>(Dart::AllocateReadOnlyHandle());
-  transition_sentinel_ =
-      reinterpret_cast<Instance*>(Dart::AllocateReadOnlyHandle());
-  bool_true_ = reinterpret_cast<Bool*>(Dart::AllocateReadOnlyHandle());
-  bool_false_ = reinterpret_cast<Bool*>(Dart::AllocateReadOnlyHandle());
-
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
+
+  // Allocate the read only object handles here.
+  empty_array_ = Array::ReadOnlyHandle(isolate);
+  sentinel_ = Instance::ReadOnlyHandle(isolate);
+  transition_sentinel_ = Instance::ReadOnlyHandle(isolate);
+  bool_true_ = Bool::ReadOnlyHandle(isolate);
+  bool_false_ = Bool::ReadOnlyHandle(isolate);
+
   // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
   // clear the object.
@@ -589,7 +589,7 @@ void Object::VerifyBuiltinVtables() {
   Class& cls = Class::Handle(isolate, Class::null());
   for (intptr_t cid = (kIllegalCid + 1); cid < kNumPredefinedCids; cid++) {
     if (isolate->class_table()->HasValidClassAt(cid)) {
-      cls |= isolate->class_table()->At(cid);
+      cls ^= isolate->class_table()->At(cid);
       ASSERT(builtin_vtables_[cid] == cls.raw_ptr()->handle_vtable_);
     }
   }
@@ -1504,7 +1504,7 @@ bool Class::HasInstanceFields() const {
   const Array& field_array = Array::Handle(fields());
   Field& field = Field::Handle();
   for (intptr_t i = 0; i < field_array.Length(); ++i) {
-    field |= field_array.At(i);
+    field ^= field_array.At(i);
     if (!field.is_static()) {
       return true;
     }
@@ -1520,7 +1520,7 @@ void Class::SetFunctions(const Array& value) const {
   Function& func = Function::Handle();
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
-    func |= value.At(i);
+    func ^= value.At(i);
     ASSERT(func.Owner() == raw());
   }
 #endif
@@ -1560,7 +1560,7 @@ RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
   intptr_t best_fit_token_pos = -1;
   intptr_t best_fit_index = -1;
   for (intptr_t i = 0; i < num_closures; i++) {
-    closure |= closures.At(i);
+    closure ^= closures.At(i);
     ASSERT(!closure.IsNull());
     if ((closure.token_pos() <= token_pos) &&
         (token_pos < closure.end_token_pos()) &&
@@ -1571,7 +1571,7 @@ RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
   }
   closure = Function::null();
   if (best_fit_index >= 0) {
-    closure |= closures.At(best_fit_index);
+    closure ^= closures.At(best_fit_index);
   }
   return closure.raw();
 }
@@ -1728,7 +1728,7 @@ void Class::CalculateFieldOffsets() const {
   Field& field = Field::Handle();
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
-    field |= flds.At(i);
+    field ^= flds.At(i);
     // Offset is computed only for instance fields.
     if (!field.is_static()) {
       ASSERT(field.Offset() == 0);
@@ -1784,8 +1784,8 @@ const char* Class::ApplyPatch(const Class& patch) const {
   const GrowableObjectArray& new_functions = GrowableObjectArray::Handle(
       GrowableObjectArray::New(orig_len));
   for (intptr_t i = 0; i < orig_len; i++) {
-    orig_func |= orig_list.At(i);
-    member_name = orig_func.name();
+    orig_func ^= orig_list.At(i);
+    member_name ^= orig_func.name();
     func = patch.LookupFunction(member_name);
     if (func.IsNull()) {
       // Non-patched function is preserved, all patched functions are added in
@@ -1799,7 +1799,7 @@ const char* Class::ApplyPatch(const Class& patch) const {
     }
   }
   for (intptr_t i = 0; i < patch_len; i++) {
-    func |= patch_list.At(i);
+    func ^= patch_list.At(i);
     func.set_owner(patch_class);
     new_functions.Add(func);
   }
@@ -1817,20 +1817,20 @@ const char* Class::ApplyPatch(const Class& patch) const {
   Field& orig_field = Field::Handle();
   new_list = Array::New(patch_len + orig_len);
   for (intptr_t i = 0; i < patch_len; i++) {
-    field |= patch_list.At(i);
+    field ^= patch_list.At(i);
     field.set_owner(*this);
     member_name = field.name();
     // TODO(iposva): Verify non-public fields only.
 
     // Verify no duplicate additions.
-    orig_field = LookupField(member_name);
+    orig_field ^= LookupField(member_name);
     if (!orig_field.IsNull()) {
       return FormatPatchError("duplicate field: %s", member_name);
     }
     new_list.SetAt(i, field);
   }
   for (intptr_t i = 0; i < orig_len; i++) {
-    field |= orig_list.At(i);
+    field ^= orig_list.At(i);
     new_list.SetAt(patch_len + i, field);
   }
   SetFields(new_list);
@@ -1845,7 +1845,7 @@ void Class::SetFields(const Array& value) const {
   Field& field = Field::Handle();
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
-    field |= value.At(i);
+    field ^= value.At(i);
     ASSERT(field.owner() == raw());
   }
 #endif
@@ -2375,7 +2375,7 @@ RawFunction* Class::LookupFunction(const String& name) const {
     // Quick Symbol compare.
     NoGCScope no_gc;
     for (intptr_t i = 0; i < len; i++) {
-      function |= funcs.At(i);
+      function ^= funcs.At(i);
       if (function.name() == name.raw()) {
         return function.raw();
       }
@@ -2383,8 +2383,8 @@ RawFunction* Class::LookupFunction(const String& name) const {
   } else {
     String& function_name = String::Handle(isolate, String::null());
     for (intptr_t i = 0; i < len; i++) {
-      function |= funcs.At(i);
-      function_name |= function.name();
+      function ^= funcs.At(i);
+      function_name ^= function.name();
       if (function_name.Equals(name)) {
         return function.raw();
       }
@@ -2406,8 +2406,8 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
   String& function_name = String::Handle(isolate, String::null());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
-    function |= funcs.At(i);
-    function_name |= function.name();
+    function ^= funcs.At(i);
+    function_name ^= function.name();
     if (String::EqualsIgnoringPrivateKey(function_name, name)) {
         return function.raw();
     }
@@ -2436,8 +2436,8 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
   String& function_name = String::Handle(isolate, String::null());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
-    function |= funcs.At(i);
-    function_name |= function.name();
+    function ^= funcs.At(i);
+    function_name ^= function.name();
     if (MatchesAccessorName(function_name, prefix, prefix_length, name)) {
       return function.raw();
     }
@@ -2459,7 +2459,7 @@ RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
   Array& funcs = Array::Handle(functions());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
-    func |= funcs.At(i);
+    func ^= funcs.At(i);
     if ((func.token_pos() <= token_pos) &&
         (token_pos <= func.end_token_pos())) {
       return func.raw();
@@ -2507,8 +2507,8 @@ RawField* Class::LookupField(const String& name) const {
   String& field_name = String::Handle(isolate, String::null());
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
-    field |= flds.At(i);
-    field_name |= field.name();
+    field ^= flds.At(i);
+    field_name ^= field.name();
     if (String::EqualsIgnoringPrivateKey(field_name, name)) {
         return field.raw();
     }
@@ -3059,7 +3059,7 @@ static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
   // Last element of the array is the number of used elements.
   intptr_t table_size = table.Length() - 1;
   Smi& used = Smi::Handle(isolate);
-  used |= table.At(table_size);
+  used ^= table.At(table_size);
   intptr_t used_elements = used.Value() + 1;
   used = Smi::New(used_elements);
   table.SetAt(table_size, used);
@@ -3562,7 +3562,7 @@ void Function::set_parameter_types(const Array& value) const {
 RawString* Function::ParameterNameAt(intptr_t index) const {
   const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
   String& parameter_name = String::Handle();
-  parameter_name |= parameter_names.At(index);
+  parameter_name ^= parameter_names.At(index);
   return parameter_name.raw();
 }
 
@@ -3786,13 +3786,13 @@ bool Function::AreValidArguments(int num_arguments,
   String& argument_name = String::Handle();
   String& parameter_name = String::Handle();
   for (int i = 0; i < num_named_arguments; i++) {
-    argument_name |= argument_names.At(i);
+    argument_name ^= argument_names.At(i);
     ASSERT(argument_name.IsSymbol());
     bool found = false;
     const int num_positional_args = num_arguments - num_named_arguments;
     const int num_parameters = NumParameters();
     for (int j = num_positional_args; !found && (j < num_parameters); j++) {
-      parameter_name |= ParameterNameAt(j);
+      parameter_name = ParameterNameAt(j);
       ASSERT(argument_name.IsSymbol());
       if (argument_name.Equals(parameter_name)) {
         found = true;
@@ -4151,9 +4151,9 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // Set closure function's context scope.
   ContextScope& context_scope = ContextScope::Handle();
   if (is_static()) {
-    context_scope |= ContextScope::New(0);
+    context_scope = ContextScope::New(0);
   } else {
-    context_scope |= LocalScope::CreateImplicitClosureScope(*this);
+    context_scope = LocalScope::CreateImplicitClosureScope(*this);
   }
   closure_function.set_context_scope(context_scope);
 
@@ -5266,7 +5266,7 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
       const Array& symbols = Array::Handle(isolate,
                                            object_store->keyword_symbols());
       ASSERT(!symbols.IsNull());
-      str |= symbols.At(kind - Token::kFirstKeyword);
+      str ^= symbols.At(kind - Token::kFirstKeyword);
       ASSERT(!str.IsNull());
       return str.raw();
     }
@@ -5649,7 +5649,7 @@ void Library::AddObject(const Object& obj, const String& name) const {
   // Insert the object at the empty slot.
   dict.SetAt(index, obj);
   Smi& used = Smi::Handle();
-  used |= dict.At(dict_size);
+  used ^= dict.At(dict_size);
   intptr_t used_elements = used.Value() + 1;  // One more element added.
   used = Smi::New(used_elements);
   dict.SetAt(dict_size, used);  // Update used count.
@@ -5673,7 +5673,7 @@ RawObject* Library::LookupExport(const String& name) const {
     Namespace& ns = Namespace::Handle();
     Object& obj = Object::Handle();
     for (int i = 0; i < exports.Length(); i++) {
-      ns |= exports.At(i);
+      ns ^= exports.At(i);
       obj = ns.Lookup(name);
       if (!obj.IsNull()) {
         return obj.raw();
@@ -5755,7 +5755,7 @@ RawArray* Library::LoadedScripts() const {
       }
       bool is_unique = true;
       for (int i = 0; i < scripts.Length(); i++) {
-        script_obj |= scripts.At(i);
+        script_obj ^= scripts.At(i);
         if (script_obj.raw() == owner_script.raw()) {
           // We already have a reference to this script.
           is_unique = false;
@@ -5783,7 +5783,7 @@ RawScript* Library::LookupScript(const String& url) const {
   String& script_url = String::Handle();
   intptr_t num_scripts = scripts.Length();
   for (int i = 0; i < num_scripts; i++) {
-    script |= scripts.At(i);
+    script ^= scripts.At(i);
     script_url = script.url();
     if (script_url.Equals(url)) {
       return script.raw();
@@ -5837,7 +5837,7 @@ RawFunction* Library::LookupFunctionInScript(const Script& script,
   Array& anon_classes = Array::Handle(this->raw_ptr()->anonymous_classes_);
   intptr_t num_anonymous = raw_ptr()->num_anonymous_;
   for (int i = 0; i < num_anonymous; i++) {
-    cls |= anon_classes.At(i);
+    cls ^= anon_classes.At(i);
     ASSERT(!cls.IsNull());
     if (script.raw() == cls.script()) {
       func = cls.LookupFunctionAtToken(token_pos);
@@ -5886,10 +5886,10 @@ RawField* Library::LookupFieldAllowPrivate(const String& name) const {
   Namespace& import = Namespace::Handle();
   Object& obj = Object::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
-    import |= imports.At(j);
+    import ^= imports.At(j);
     obj = import.Lookup(name);
     if (!obj.IsNull() && obj.IsField()) {
-      field |= obj.raw();
+      field ^= obj.raw();
       return field.raw();
     }
   }
@@ -5908,7 +5908,7 @@ RawField* Library::LookupLocalField(const String& name) const {
   }
   if (!obj.IsNull()) {
     if (obj.IsField()) {
-      field |= obj.raw();
+      field ^= obj.raw();
       return field.raw();
     }
   }
@@ -5935,10 +5935,10 @@ RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
   Namespace& import = Namespace::Handle();
   Object& obj = Object::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
-    import |= imports.At(j);
+    import ^= imports.At(j);
     obj = import.Lookup(name);
     if (!obj.IsNull() && obj.IsFunction()) {
-      function |= obj.raw();
+      function ^= obj.raw();
       return function.raw();
     }
   }
@@ -5973,7 +5973,7 @@ RawObject* Library::LookupObject(const String& name) const {
   const Array& imports = Array::Handle(this->imports());
   Namespace& import = Namespace::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
-    import |= imports.At(j);
+    import ^= imports.At(j);
     obj = import.Lookup(name);
     if (!obj.IsNull()) {
       return obj.raw();
@@ -6062,7 +6062,7 @@ RawNamespace* Library::ImportAt(intptr_t index) const {
   }
   const Array& import_list = Array::Handle(imports());
   Namespace& import = Namespace::Handle();
-  import |= import_list.At(index);
+  import ^= import_list.At(index);
   return import.raw();
 }
 
@@ -6343,8 +6343,8 @@ RawLibrary* Library::LookupLibrary(const String &url) {
   GrowableObjectArray& libs = GrowableObjectArray::Handle(
       isolate, isolate->object_store()->libraries());
   for (int i = 0; i < libs.Length(); i++) {
-    lib |= libs.At(i);
-    lib_url = lib.url();
+    lib ^= libs.At(i);
+    lib_url ^= lib.url();
     if (lib_url.Equals(url)) {
       return lib.raw();
     }
@@ -6366,8 +6366,8 @@ bool Library::IsKeyUsed(intptr_t key) {
   Library& lib = Library::Handle();
   String& lib_url = String::Handle();
   for (int i = 0; i < libs.Length(); i++) {
-    lib |= libs.At(i);
-    lib_url |= lib.url();
+    lib ^= libs.At(i);
+    lib_url ^= lib.url();
     lib_key = lib_url.Hash();
     if (lib_key == key) {
       return true;
@@ -6397,7 +6397,7 @@ RawString* Library::PrivateName(const String& name) const {
   ASSERT(IsPrivate(name));
   // ASSERT(strchr(name, '@') == NULL);
   String& str = String::Handle();
-  str |= name.raw();
+  str = name.raw();
   str = String::Concat(str, String::Handle(this->private_key()));
   str = Symbols::New(str);
   return str.raw();
@@ -6411,7 +6411,7 @@ RawLibrary* Library::GetLibrary(intptr_t index) {
   ASSERT(!libs.IsNull());
   if ((0 <= index) && (index < libs.Length())) {
     Library& lib = Library::Handle();
-    lib |= libs.At(index);
+    lib ^= libs.At(index);
     return lib.raw();
   }
   return Library::null();
@@ -6488,7 +6488,7 @@ RawLibrary* LibraryPrefix::GetLibrary(int index) const {
   if ((index >= 0) || (index < num_imports())) {
     const Array& imports = Array::Handle(this->imports());
     Namespace& import = Namespace::Handle();
-    import |= imports.At(index);
+    import ^= imports.At(index);
     return import.library();
   }
   return Library::null();
@@ -6536,7 +6536,7 @@ RawClass* LibraryPrefix::LookupLocalClass(const String& class_name) const {
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
-    import |= imports.At(i);
+    import ^= imports.At(i);
     obj = import.Lookup(class_name);
     if (!obj.IsNull() && obj.IsClass()) {
       // TODO(hausner):
@@ -6610,7 +6610,7 @@ bool Namespace::HidesName(const String& name) const {
     String& hidden = String::Handle();
     intptr_t num_names = names.Length();
     for (intptr_t i = 0; i < num_names; i++) {
-      hidden |= names.At(i);
+      hidden ^= names.At(i);
       if (name.Equals(hidden)) {
         return true;
       }
@@ -6623,7 +6623,7 @@ bool Namespace::HidesName(const String& name) const {
     String& shown = String::Handle();
     intptr_t num_names = names.Length();
     for (intptr_t i = 0; i < num_names; i++) {
-      shown |= names.At(i);
+      shown ^= names.At(i);
       if (name.Equals(shown)) {
         return false;
       }
@@ -6682,10 +6682,10 @@ RawError* Library::CompileAll() {
   Library& lib = Library::Handle();
   Class& cls = Class::Handle();
   for (int i = 0; i < libs.Length(); i++) {
-    lib |= libs.At(i);
+    lib ^= libs.At(i);
     ClassDictionaryIterator it(lib);
     while (it.HasNext()) {
-      cls |= it.GetNextClass();
+      cls = it.GetNextClass();
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
         return error.raw();
@@ -6693,7 +6693,7 @@ RawError* Library::CompileAll() {
     }
     Array& anon_classes = Array::Handle(lib.raw_ptr()->anonymous_classes_);
     for (int i = 0; i < lib.raw_ptr()->num_anonymous_; i++) {
-      cls |= anon_classes.At(i);
+      cls ^= anon_classes.At(i);
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
         return error.raw();
@@ -7022,7 +7022,7 @@ RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
   const Array& names = Array::Handle(raw_ptr()->names_);
   ASSERT(Length() == names.Length());
   String& name = String::Handle();
-  name |= names.At(var_index);
+  name ^= names.At(var_index);
   return name.raw();
 }
 
@@ -7355,7 +7355,7 @@ intptr_t Code::Comments::Length() const {
 
 intptr_t Code::Comments::PCOffsetAt(intptr_t idx) const {
   Smi& result = Smi::Handle();
-  result |= comments_.At(idx * kNumberOfEntries + kPCOffsetEntry);
+  result ^= comments_.At(idx * kNumberOfEntries + kPCOffsetEntry);
   return result.Value();
 }
 
@@ -7368,7 +7368,7 @@ void Code::Comments::SetPCOffsetAt(intptr_t idx, intptr_t pc)  {
 
 RawString* Code::Comments::CommentAt(intptr_t idx) const {
   String& result = String::Handle();
-  result |= comments_.At(idx * kNumberOfEntries + kCommentEntry);
+  result ^= comments_.At(idx * kNumberOfEntries + kCommentEntry);
   return result.raw();
 }
 
@@ -7435,7 +7435,7 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
   for (intptr_t i = 0; i < array.Length(); i += kSCallTableEntryLength) {
     if (array.At(i) == raw_code_offset) {
       Function& function = Function::Handle();
-      function |= array.At(i + kSCallTableFunctionEntry);
+      function ^= array.At(i + kSCallTableFunctionEntry);
       return function.raw();
     }
   }
@@ -7720,7 +7720,7 @@ RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
   *maps = stackmaps();
   *map = Stackmap::null();
   for (intptr_t i = 0; i < maps->Length(); i++) {
-    *map |= maps->At(i);
+    *map ^= maps->At(i);
     ASSERT(!map->IsNull());
     if (map->PC() == pc) {
       return map->raw();  // We found a stack map for this frame.
@@ -8035,10 +8035,10 @@ void ICData::GetCheckAt(intptr_t index,
   intptr_t data_pos = index * TestEntryLength();
   Smi& smi = Smi::Handle();
   for (intptr_t i = 0; i < num_args_tested(); i++) {
-    smi |= data.At(data_pos++);
+    smi ^= data.At(data_pos++);
     class_ids->Add(smi.Value());
   }
-  (*target) |= data.At(data_pos++);
+  (*target) ^= data.At(data_pos++);
 }
 
 
@@ -8051,9 +8051,9 @@ void ICData::GetOneClassCheckAt(intptr_t index,
   const Array& data = Array::Handle(ic_data());
   intptr_t data_pos = index * TestEntryLength();
   Smi& smi = Smi::Handle();
-  smi |= data.At(data_pos);
+  smi ^= data.At(data_pos);
   *class_id = smi.Value();
-  *target |= data.At(data_pos + 1);
+  *target ^= data.At(data_pos + 1);
 }
 
 
@@ -8070,7 +8070,7 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength();
   Smi& smi = Smi::Handle();
-  smi |= data.At(data_pos);
+  smi ^= data.At(data_pos);
   return smi.Value();
 }
 
@@ -8088,7 +8088,7 @@ intptr_t ICData::GetCountAt(intptr_t index) const {
   const intptr_t data_pos = index * TestEntryLength() +
       CountIndexFor(num_args_tested());
   Smi& smi = Smi::Handle();
-  smi |= data.At(data_pos);
+  smi ^= data.At(data_pos);
   return smi.Value();
 }
 
@@ -8320,9 +8320,9 @@ void MegamorphicCache::EnsureCapacity() const {
 
     // Rehash the valid entries.
     for (intptr_t i = 0; i < old_capacity; ++i) {
-      class_id |= GetClassId(old_buckets, i);
+      class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
-        target |= GetTargetFunction(old_buckets, i);
+        target ^= GetTargetFunction(old_buckets, i);
         Insert(class_id, target);
       }
     }
@@ -8340,7 +8340,7 @@ void MegamorphicCache::Insert(const Smi& class_id,
   Smi& probe = Smi::Handle();
   intptr_t i = index;
   do {
-    probe |= GetClassId(backing_array, i);
+    probe ^= GetClassId(backing_array, i);
     if (probe.Value() == kIllegalCid) {
       SetEntry(backing_array, i, class_id, target);
       set_filled_entry_count(filled_entry_count() + 1);
@@ -8415,12 +8415,12 @@ void SubtypeTestCache::GetCheck(
   Array& data = Array::Handle(cache());
   intptr_t data_pos = ix * kTestEntryLength;
   Smi& instance_class_id_handle = Smi::Handle();
-  instance_class_id_handle |= data.At(data_pos + kInstanceClassId);
+  instance_class_id_handle ^= data.At(data_pos + kInstanceClassId);
   *instance_class_id = instance_class_id_handle.Value();
   *instance_type_arguments ^= data.At(data_pos + kInstanceTypeArguments);
   *instantiator_type_arguments ^=
       data.At(data_pos + kInstantiatorTypeArguments);
-  *test_result |= data.At(data_pos + kTestResult);
+  *test_result ^= data.At(data_pos + kTestResult);
 }
 
 
@@ -9736,7 +9736,7 @@ RawInteger* Integer::AsValidInteger() const {
   if (IsSmi()) return raw();
   if (IsMint()) {
     Mint& mint = Mint::Handle();
-    mint |= raw();
+    mint ^= raw();
     if (Smi::IsValid64(mint.value())) {
       return Smi::New(mint.value());
     } else {
@@ -9745,7 +9745,7 @@ RawInteger* Integer::AsValidInteger() const {
   }
   ASSERT(IsBigint());
   Bigint& big_value = Bigint::Handle();
-  big_value |= raw();
+  big_value ^= raw();
   if (BigintOperations::FitsIntoSmi(big_value)) {
     return BigintOperations::ToSmi(big_value);
   } else if (BigintOperations::FitsIntoMint(big_value)) {
@@ -9766,8 +9766,8 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
   if (IsSmi() && other.IsSmi()) {
     Smi& left_smi = Smi::Handle();
     Smi& right_smi = Smi::Handle();
-    left_smi |= raw();
-    right_smi |= other.raw();
+    left_smi ^= raw();
+    right_smi ^= other.raw();
     const intptr_t left_value = left_smi.Value();
     const intptr_t right_value = right_smi.Value();
     switch (operation) {
@@ -9864,8 +9864,8 @@ RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
   if (IsSmi() && other.IsSmi()) {
     Smi& op1 = Smi::Handle();
     Smi& op2 = Smi::Handle();
-    op1 |= raw();
-    op2 |= other.raw();
+    op1 ^= raw();
+    op2 ^= other.raw();
     intptr_t result = 0;
     switch (kind) {
       case Token::kBIT_AND:
@@ -10059,7 +10059,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
   Mint& canonical_value = Mint::Handle();
   intptr_t index = 0;
   while (index < constants_len) {
-    canonical_value |= constants.At(index);
+    canonical_value ^= constants.At(index);
     if (canonical_value.IsNull()) {
       break;
     }
@@ -10213,7 +10213,7 @@ RawDouble* Double::NewCanonical(double value) {
   Double& canonical_value = Double::Handle();
   intptr_t index = 0;
   while (index < constants_len) {
-    canonical_value |= constants.At(index);
+    canonical_value ^= constants.At(index);
     if (canonical_value.IsNull()) {
       break;
     }
@@ -10259,16 +10259,16 @@ RawBigint* Integer::AsBigint() const {
   ASSERT(!IsNull());
   if (IsSmi()) {
     Smi& smi = Smi::Handle();
-    smi |= raw();
+    smi ^= raw();
     return BigintOperations::NewFromSmi(smi);
   } else if (IsMint()) {
     Mint& mint = Mint::Handle();
-    mint |= raw();
+    mint ^= raw();
     return BigintOperations::NewFromInt64(mint.value());
   } else {
     ASSERT(IsBigint());
     Bigint& big = Bigint::Handle();
-    big |= raw();
+    big ^= raw();
     ASSERT(!BigintOperations::FitsIntoSmi(big));
     return big.raw();
   }
@@ -10346,7 +10346,7 @@ RawBigint* Bigint::NewCanonical(const String& str) {
   Bigint& canonical_value = Bigint::Handle();
   intptr_t index = 0;
   while (index < constants_len) {
-    canonical_value |= constants.At(index);
+    canonical_value ^= constants.At(index);
     if (canonical_value.IsNull()) {
       break;
     }
@@ -10742,10 +10742,10 @@ RawString* String::New(const String& str, Heap::Space space) {
   String& result = String::Handle();
   intptr_t char_size = str.CharSize();
   if (char_size == kOneByteChar) {
-    result |= OneByteString::New(len, space);
+    result = OneByteString::New(len, space);
   } else {
     ASSERT(char_size == kTwoByteChar);
-    result |= TwoByteString::New(len, space);
+    result = TwoByteString::New(len, space);
   }
   String::Copy(result, 0, str, 0, len);
   return result.raw();
@@ -10914,7 +10914,7 @@ RawString* String::ConcatAll(const Array& strings,
   String& str = String::Handle();
   intptr_t char_size = kOneByteChar;
   for (intptr_t i = 0; i < strings_len; i++) {
-    str |= strings.At(i);
+    str ^= strings.At(i);
     result_len += str.Length();
     char_size = Utils::Maximum(char_size, str.CharSize());
   }
@@ -10962,9 +10962,9 @@ RawString* String::SubString(const String& str,
     }
   }
   if (is_one_byte_string) {
-    result |= OneByteString::New(length, space);
+    result = OneByteString::New(length, space);
   } else {
-    result |= TwoByteString::New(length, space);
+    result = TwoByteString::New(length, space);
   }
   String::Copy(result, 0, str, begin_index, length);
   return result.raw();
@@ -11367,7 +11367,7 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
   for (intptr_t i = 0; i < strings_len; i++) {
-    str |= strings.At(i);
+    str ^= strings.At(i);
     intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
     pos += str_len;
@@ -11536,7 +11536,7 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
   intptr_t strings_len = strings.Length();
   intptr_t pos = 0;
   for (intptr_t i = 0; i < strings_len; i++) {
-    str |= strings.At(i);
+    str ^= strings.At(i);
     intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
     pos += str_len;
@@ -12720,7 +12720,7 @@ void* JSRegExp::GetDataStartAddress() const {
 RawJSRegExp* JSRegExp::FromDataStartAddress(void* data) {
   JSRegExp& regexp = JSRegExp::Handle();
   intptr_t addr = reinterpret_cast<intptr_t>(data) - sizeof(RawJSRegExp);
-  regexp |= RawObject::FromAddr(addr);
+  regexp ^= RawObject::FromAddr(addr);
   return regexp.raw();
 }
 

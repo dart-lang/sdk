@@ -65,7 +65,7 @@ void Symbols::InitOnce(Isolate* isolate) {
     // The symbol_table needs to be reloaded as it might have grown in the
     // previous iteration.
     symbol_table = object_store->symbol_table();
-    String* str = reinterpret_cast<String*>(Dart::AllocateReadOnlyHandle());
+    String* str = String::ReadOnlyHandle(isolate);
     *str = OneByteString::New(names[i], Heap::kOld);
     Add(symbol_table, *str);
     symbol_handles_[i] = str;
@@ -81,7 +81,7 @@ void Symbols::InitOnce(Isolate* isolate) {
     ASSERT(idx < kMaxPredefinedId);
     ASSERT(Utf::IsLatin1(c));
     uint8_t ch = static_cast<uint8_t>(c);
-    String* str = reinterpret_cast<String*>(Dart::AllocateReadOnlyHandle());
+    String* str = String::ReadOnlyHandle(isolate);
     *str = OneByteString::New(&ch, 1, Heap::kOld);
     Add(symbol_table, *str);
     predefined_[c] = str->raw();
@@ -110,7 +110,7 @@ intptr_t Symbols::Size(Isolate* isolate) {
                                       isolate->object_store()->symbol_table());
   intptr_t table_size_index = symbol_table.Length() - 1;
   dart::Smi& used = Smi::Handle();
-  used |= symbol_table.At(table_size_index);
+  used ^= symbol_table.At(table_size_index);
   return used.Value();
 }
 
@@ -182,14 +182,14 @@ RawString* Symbols::NewSymbol(const CharacterType* characters,
   // First check if a symbol exists in the vm isolate for these characters.
   symbol_table = Dart::vm_isolate()->object_store()->symbol_table();
   intptr_t index = FindIndex(symbol_table, characters, len, hash);
-  symbol |= symbol_table.At(index);
+  symbol ^= symbol_table.At(index);
   if (symbol.IsNull()) {
     // Now try in the symbol table of the current isolate.
     symbol_table = isolate->object_store()->symbol_table();
     index = FindIndex(symbol_table, characters, len, hash);
     // Since we leave enough room in the table to guarantee, that we find an
     // empty spot, index is the insertion point if symbol is null.
-    symbol |= symbol_table.At(index);
+    symbol ^= symbol_table.At(index);
     if (symbol.IsNull()) {
       // Allocate new result string.
       symbol = (*new_string)(characters, len, Heap::kOld);
@@ -243,14 +243,14 @@ RawString* Symbols::New(const String& str, intptr_t begin_index, intptr_t len) {
   // First check if a symbol exists in the vm isolate for these characters.
   symbol_table = Dart::vm_isolate()->object_store()->symbol_table();
   intptr_t index = FindIndex(symbol_table, str, begin_index, len, hash);
-  symbol |= symbol_table.At(index);
+  symbol ^= symbol_table.At(index);
   if (symbol.IsNull()) {
     // Now try in the symbol table of the current isolate.
     symbol_table = isolate->object_store()->symbol_table();
     index = FindIndex(symbol_table, str, begin_index, len, hash);
     // Since we leave enough room in the table to guarantee, that we find an
     // empty spot, index is the insertion point if symbol is null.
-    symbol |= symbol_table.At(index);
+    symbol ^= symbol_table.At(index);
     if (symbol.IsNull()) {
       if (str.IsOld() && begin_index == 0 && len == str.Length()) {
         // Reuse the incoming str as the symbol value.
@@ -285,14 +285,14 @@ void Symbols::DumpStats() {
     // First dump VM symbol table stats.
     symbol_table = Dart::vm_isolate()->object_store()->symbol_table();
     table_size = symbol_table.Length() - 1;
-    used |= symbol_table.At(table_size);
+    used ^= symbol_table.At(table_size);
     OS::Print("VM Isolate: Number of symbols : %"Pd"\n", used.Value());
     OS::Print("VM Isolate: Symbol table capacity : %"Pd"\n", table_size);
 
     // Now dump regular isolate symbol table stats.
     symbol_table = Isolate::Current()->object_store()->symbol_table();
     table_size = symbol_table.Length() - 1;
-    used |= symbol_table.At(table_size);
+    used ^= symbol_table.At(table_size);
     OS::Print("Isolate: Number of symbols : %"Pd"\n", used.Value());
     OS::Print("Isolate: Symbol table capacity : %"Pd"\n", table_size);
 
@@ -319,7 +319,7 @@ void Symbols::GrowSymbolTable(const Array& symbol_table) {
   String& element = String::Handle();
   dart::Object& new_element = Object::Handle();
   for (intptr_t i = 0; i < table_size; i++) {
-    element |= symbol_table.At(i);
+    element ^= symbol_table.At(i);
     if (!element.IsNull()) {
       intptr_t hash = element.Hash();
       intptr_t index = hash % new_table_size;
@@ -354,7 +354,7 @@ void Symbols::InsertIntoSymbolTable(const Array& symbol_table,
   symbol.SetCanonical();  // Mark object as being canonical.
   symbol_table.SetAt(index, symbol);  // Remember the new symbol.
   dart::Smi& used = Smi::Handle();
-  used |= symbol_table.At(table_size);
+  used ^= symbol_table.At(table_size);
   intptr_t used_elements = used.Value() + 1;  // One more element added.
   used = Smi::New(used_elements);
   symbol_table.SetAt(table_size, used);  // Update used count.
@@ -377,10 +377,10 @@ intptr_t Symbols::FindIndex(const Array& symbol_table,
   intptr_t num_collisions = 0;
 
   String& symbol = String::Handle();
-  symbol |= symbol_table.At(index);
+  symbol ^= symbol_table.At(index);
   while (!symbol.IsNull() && !symbol.Equals(characters, len)) {
     index = (index + 1) % table_size;  // Move to next element.
-    symbol |= symbol_table.At(index);
+    symbol ^= symbol_table.At(index);
     num_collisions += 1;
   }
   if (FLAG_dump_symbol_stats) {
@@ -418,10 +418,10 @@ intptr_t Symbols::FindIndex(const Array& symbol_table,
   intptr_t num_collisions = 0;
 
   String& symbol = String::Handle();
-  symbol |= symbol_table.At(index);
+  symbol ^= symbol_table.At(index);
   while (!symbol.IsNull() && !symbol.Equals(str, begin_index, len)) {
     index = (index + 1) % table_size;  // Move to next element.
-    symbol |= symbol_table.At(index);
+    symbol ^= symbol_table.At(index);
     num_collisions += 1;
   }
   if (FLAG_dump_symbol_stats) {

@@ -22,14 +22,12 @@ DEFINE_FLAG(bool, trace_intrinsified_natives, false,
 // when it could have been a Smi.
 static bool CheckInteger(const Integer& i) {
   if (i.IsBigint()) {
-    Bigint& bigint = Bigint::Handle();
-    bigint |= i.raw();
+    const Bigint& bigint = Bigint::Cast(i);
     return !BigintOperations::FitsIntoSmi(bigint) &&
         !BigintOperations::FitsIntoMint(bigint);
   }
   if (i.IsMint()) {
-    Mint& mint = Mint::Handle();
-    mint |= i.raw();
+    const Mint& mint = Mint::Cast(i);
     return !Smi::IsValid64(mint.value());
   }
   return true;
@@ -217,8 +215,7 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
     Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
   if (value.IsSmi()) {
-    Smi& smi_value = Smi::Handle();
-    smi_value |= value.raw();
+    const Smi& smi_value = Smi::Cast(value);
     return smi_value.ShiftOp(kind, amount);
   }
   Bigint& big_value = Bigint::Handle();
@@ -240,7 +237,7 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
     }
   } else {
     ASSERT(value.IsBigint());
-    big_value |= value.raw();
+    big_value = Bigint::Cast(value).raw();
   }
   switch (kind) {
     case Token::kSHL:

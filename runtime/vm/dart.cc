@@ -155,13 +155,13 @@ static void PrintLibrarySources(Isolate* isolate) {
   String& url = String::Handle();
   String& source = String::Handle();
   for (int i = 0; i < lib_count; i++) {
-    lib |= libs.At(i);
+    lib ^= libs.At(i);
     url = lib.url();
     OS::Print("Library %s:\n", url.ToCString());
     scripts = lib.LoadedScripts();
     intptr_t script_count = scripts.Length();
     for (intptr_t i = 0; i < script_count; i++) {
-      script |= scripts.At(i);
+      script ^= scripts.At(i);
       url = script.url();
       source = script.Source();
       OS::Print("Source for %s:\n", url.ToCString());
@@ -246,6 +246,7 @@ void Dart::ShutdownIsolate() {
 
 
 uword Dart::AllocateReadOnlyHandle() {
+  ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(predefined_handles_ != NULL);
   return predefined_handles_->handles_.AllocateScopedHandle();
 }

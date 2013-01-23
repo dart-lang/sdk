@@ -207,11 +207,11 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
     if (existing_stacktrace.IsNull()) {
       stacktrace = Stacktrace::New(func_list, code_list, pc_offset_list);
     } else {
-      stacktrace |= existing_stacktrace.raw();
+      stacktrace ^= existing_stacktrace.raw();
       stacktrace.Append(func_list, code_list, pc_offset_list);
     }
   } else {
-    stacktrace |= existing_stacktrace.raw();
+    stacktrace ^= existing_stacktrace.raw();
   }
   if (FLAG_print_stacktrace_at_throw) {
     OS::Print("Exception '%s' thrown:\n", exception.ToCString());
