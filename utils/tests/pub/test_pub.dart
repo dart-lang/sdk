@@ -432,7 +432,7 @@ final String appPath = "myapp";
 /// to the sandbox directory.
 final String packagesPath = "$appPath/packages";
 
-/// The type for callbacks that will be fired during [runPub]. Takes the
+/// The type for callbacks that will be fired during [schedulePub]. Takes the
 /// sandbox directory as a parameter.
 typedef Future _ScheduledEvent(Directory parentDir);
 
@@ -536,15 +536,6 @@ void schedulePub({List args, Pattern output, Pattern error,
       return null;
     });
   });
-}
-
-/// A shorthand for [schedulePub] and [run] when no validation needs to be done
-/// after Pub has been run.
-///
-/// Any futures in [args] will be resolved before the process is started.
-void runPub({List args, Pattern output, Pattern error, int exitCode: 0}) {
-  schedulePub(args: args, output: output, error: error, exitCode: exitCode);
-  _run();
 }
 
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
@@ -786,16 +777,18 @@ abstract class Descriptor {
   /// loads the contents of the descriptor itself.
   InputStream load(List<String> path);
 
-  /// Schedules the directory to be created before Pub is run with [runPub].
-  /// The directory will be created relative to the sandbox directory.
+  /// Schedules the directory to be created before Pub is run with
+  /// [schedulePub]. The directory will be created relative to the sandbox
+  /// directory.
   // TODO(nweiz): Use implicit closurization once issue 2984 is fixed.
   void scheduleCreate() => _schedule((dir) => this.create(dir));
 
   /// Schedules the file or directory to be deleted recursively.
   void scheduleDelete() => _schedule((dir) => this.delete(dir));
 
-  /// Schedules the directory to be validated after Pub is run with [runPub].
-  /// The directory will be validated relative to the sandbox directory.
+  /// Schedules the directory to be validated after Pub is run with
+  /// [schedulePub]. The directory will be validated relative to the sandbox
+  /// directory.
   void scheduleValidate() => _schedule((parentDir) => validate(parentDir.path));
 
   /// Asserts that the name of the descriptor is a [String] and returns it.

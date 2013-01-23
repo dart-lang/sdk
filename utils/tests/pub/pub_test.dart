@@ -38,24 +38,32 @@ final USAGE_STRING = """
     """;
 
 final VERSION_STRING = '''
-    Pub 0.0.0
+    Pub 0.1.2+3
     ''';
 
 main() {
-  test('running pub with no command displays usage', () =>
-      runPub(args: [], output: USAGE_STRING));
+  integration('running pub with no command displays usage', () {
+    schedulePub(args: [], output: USAGE_STRING);
+  });
 
-  test('running pub with just --help displays usage', () =>
-      runPub(args: ['--help'], output: USAGE_STRING));
+  integration('running pub with just --help displays usage', () {
+    schedulePub(args: ['--help'], output: USAGE_STRING);
+  });
 
-  test('running pub with just -h displays usage', () =>
-      runPub(args: ['-h'], output: USAGE_STRING));
+  integration('running pub with just -h displays usage', () {
+    schedulePub(args: ['-h'], output: USAGE_STRING);
+  });
 
-  test('running pub with just --version displays version', () =>
-      runPub(args: ['--version'], output: VERSION_STRING));
+  integration('running pub with just --version displays version', () {
+    dir(sdkPath, [
+      file('version', '0.1.2.3'),
+    ]).scheduleCreate();
 
-  test('an unknown command displays an error message', () {
-    runPub(args: ['quylthulg'],
+    schedulePub(args: ['--version'], output: VERSION_STRING);
+  });
+
+  integration('an unknown command displays an error message', () {
+    schedulePub(args: ['quylthulg'],
         error: '''
         Could not find a command named "quylthulg".
         Run "pub help" to see available commands.
@@ -63,8 +71,8 @@ main() {
         exitCode: 64);
   });
 
-  test('an unknown option displays an error message', () {
-    runPub(args: ['--blorf'],
+  integration('an unknown option displays an error message', () {
+    schedulePub(args: ['--blorf'],
         error: '''
         Could not find an option named "blorf".
         Run "pub help" to see available options.
@@ -72,10 +80,10 @@ main() {
         exitCode: 64);
   });
 
-  test('an unknown command option displays an error message', () {
+  integration('an unknown command option displays an error message', () {
     // TODO(rnystrom): When pub has command-specific options, a more precise
     // error message would be good here.
-    runPub(args: ['version', '--blorf'],
+    schedulePub(args: ['version', '--blorf'],
         error: '''
         Could not find an option named "blorf".
         Use "pub help" for more information.
@@ -84,8 +92,8 @@ main() {
   });
 
   group('help', () {
-    test('shows help for a command', () {
-      runPub(args: ['help', 'install'],
+    integration('shows help for a command', () {
+      schedulePub(args: ['help', 'install'],
           output: '''
             Install the current package's dependencies.
 
@@ -93,8 +101,8 @@ main() {
             ''');
     });
 
-    test('shows help for a command', () {
-      runPub(args: ['help', 'publish'],
+    integration('shows help for a command', () {
+      schedulePub(args: ['help', 'publish'],
           output: '''
             Publish the current package to pub.dartlang.org.
 
@@ -104,8 +112,8 @@ main() {
             ''');
     });
 
-    test('an unknown help command displays an error message', () {
-      runPub(args: ['help', 'quylthulg'],
+    integration('an unknown help command displays an error message', () {
+      schedulePub(args: ['help', 'quylthulg'],
           error: '''
             Could not find a command named "quylthulg".
             Run "pub help" to see available commands.
@@ -115,6 +123,11 @@ main() {
 
   });
 
-  test('displays the current version', () =>
-    runPub(args: ['version'], output: VERSION_STRING));
+  integration('displays the current version', () {
+    dir(sdkPath, [
+      file('version', '0.1.2.3'),
+    ]).scheduleCreate();
+
+    schedulePub(args: ['version'], output: VERSION_STRING);
+  });
 }

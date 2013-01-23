@@ -11,14 +11,14 @@ import '../../test_pub.dart';
 main() {
   integration('includes transitive dependencies', () {
     dir(sdkPath, [
-      file('revision', '1234'),
+      file('version', '0.1.2.3'),
       dir('pkg', [
         dir('foo', [
-          libDir('foo', 'foo 0.0.1234'),
+          libDir('foo', 'foo 0.1.2+3'),
           libPubspec('foo', '0.0.0-not.used', [{'sdk': 'bar'}])
         ]),
         dir('bar', [
-          libDir('bar', 'bar 0.0.1234'),
+          libDir('bar', 'bar 0.1.2+3'),
           libPubspec('bar', '0.0.0-not.used')
         ])
       ])
@@ -32,8 +32,8 @@ main() {
         output: new RegExp(r"Dependencies installed!$"));
 
     packagesDir({
-      'foo': '0.0.1234',
-      'bar': '0.0.1234'
+      'foo': '0.1.2+3',
+      'bar': '0.1.2+3'
     }).scheduleValidate();
   });
 }

@@ -23,13 +23,12 @@ import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
+import 'sdk.dart' as sdk;
 import 'source.dart';
 import 'source_registry.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 import 'version.dart';
-
-Version get pubVersion => new Version(0, 0, 0);
 
 /// The commands that Pub understands.
 Map<String, PubCommand> get pubCommands {
@@ -172,7 +171,7 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
 }
 
 void printVersion() {
-  log.message('Pub $pubVersion');
+  log.message('Pub ${sdk.version}');
 }
 
 abstract class PubCommand {
