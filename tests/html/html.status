@@ -175,7 +175,6 @@ input_element_test/supported_email: Fail
 input_element_test/supported_month: Fail, Crash
 input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please triage this failure.
-input_element_test/supported_tel: Fail
 input_element_test/supported_time: Fail, Crash
 input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail, Crash
@@ -195,6 +194,8 @@ fileapi_test/getDirectory: Fail # Issue: 7414
 fileapi_test/getFile: Pass, Fail # Issue: 7414
 fileapi_test/unsupported_throws: Fail # Issue: 7414
 input_element_test/constructors: Fail # Issue: 7414
+input_element_test/supported_tel: Pass, Fail # Issue: 7414
+media_stream_test/constructors: Pass, Fail # Issue: 7414
 node_test: Skip # Issue 6457
 notifications_test/unsupported_throws: Fail # Issue: 7414
 notifications_test/webkitNotifications: Fail # Issue: 7414
