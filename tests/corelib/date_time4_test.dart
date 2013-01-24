@@ -9,7 +9,7 @@ main() {
   // here), we round.
   // If (eventually) we support more than just milliseconds this test could
   // fail. Please update the test in this case.
-  DateTime dt1 = new DateTime.fromString("1999-01-02 23:59:59.999519");
+  DateTime dt1 = DateTime.parse("1999-01-02 23:59:59.999519");
   Expect.equals(1999, dt1.year);
   Expect.equals(1, dt1.month);
   Expect.equals(3, dt1.day);
@@ -18,7 +18,7 @@ main() {
   Expect.equals(0, dt1.second);
   Expect.equals(0, dt1.millisecond);
   Expect.equals(false, dt1.isUtc);
-  dt1 = new DateTime.fromString("1999-01-02 23:58:59.999519Z");
+  dt1 = DateTime.parse("1999-01-02 23:58:59.999519Z");
   Expect.equals(1999, dt1.year);
   Expect.equals(1, dt1.month);
   Expect.equals(2, dt1.day);
@@ -27,7 +27,7 @@ main() {
   Expect.equals(0, dt1.second);
   Expect.equals(0, dt1.millisecond);
   Expect.equals(true, dt1.isUtc);
-  dt1 = new DateTime.fromString("0009-09-09 09:09:09.009411Z");
+  dt1 = DateTime.parse("0009-09-09 09:09:09.009411Z");
   Expect.equals(9, dt1.year);
   Expect.equals(9, dt1.month);
   Expect.equals(9, dt1.day);
@@ -37,7 +37,7 @@ main() {
   Expect.equals(9, dt1.millisecond);
   Expect.equals(true, dt1.isUtc);
   String svnDate = "2012-03-30T04:28:13.752341Z";
-  dt1 = new DateTime.fromString(svnDate);
+  dt1 = DateTime.parse(svnDate);
   Expect.equals(2012, dt1.year);
   Expect.equals(3, dt1.month);
   Expect.equals(30, dt1.day);

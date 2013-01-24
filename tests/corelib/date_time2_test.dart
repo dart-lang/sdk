@@ -5,8 +5,8 @@
 // Dart test program for DateTime's hashCode.
 
 main() {
-  var d = new DateTime.fromString("2000-01-01T00:00:00Z");
-  var d2 = new DateTime.fromString("2000-01-01T00:00:01Z");
+  var d = DateTime.parse("2000-01-01T00:00:00Z");
+  var d2 = DateTime.parse("2000-01-01T00:00:01Z");
   // There is no guarantee that the hashcode for these two dates is different,
   // but in the worst case we will have to fix this test.
   // The important test here is, that DateTime .

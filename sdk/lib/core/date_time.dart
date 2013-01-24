@@ -56,7 +56,7 @@ abstract class Date implements Comparable {
   factory Date.now() => new DateTime.now();
 
   factory Date.fromString(String formattedString)
-      => new DateTime.fromString(formattedString);
+      => DateTime.parse(formattedString);
 
   factory Date.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
                                           {bool isUtc: false}) {
@@ -205,16 +205,8 @@ class DateTime implements Date {
    * * `"2012-02-27T14Z"`
    * * `"-123450101 00:00:00 Z"`: in the year -12345.
    */
-  factory DateTime.fromString(String formattedString) {
-    // Read in (a subset of) ISO 8601.
-    // Examples:
-    //    - "2012-02-27 13:27:00"
-    //    - "2012-02-27 13:27:00.423z"
-    //    - "20120227 13:27:00"
-    //    - "20120227T132700"
-    //    - "20120227"
-    //    - "2012-02-27T14Z"
-    //    - "-123450101 00:00:00 Z"  // In the year -12345.
+  // TODO(floitsch): specify grammar.
+  static DateTime parse(String formattedString) {
     final RegExp re = new RegExp(
         r'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)'  // The day part.
         r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)? ?([zZ])?)?$');

@@ -606,22 +606,22 @@ class DateTest {
 
   static void testDateStrings() {
     // TODO(floitsch): Clean up the DateTime API that deals with strings.
-    var dt1 = new DateTime.fromString("2011-05-11 18:58:35Z");
+    var dt1 = DateTime.parse("2011-05-11 18:58:35Z");
     Expect.equals(1305140315000, dt1.millisecondsSinceEpoch);
     Expect.isTrue(dt1.isUtc);
-    dt1 = new DateTime.fromString("20110511 18:58:35z");
+    dt1 = DateTime.parse("20110511 18:58:35z");
     Expect.equals(1305140315000, dt1.millisecondsSinceEpoch);
     Expect.isTrue(dt1.isUtc);
-    dt1 = new DateTime.fromString("+20110511 18:58:35z");
+    dt1 = DateTime.parse("+20110511 18:58:35z");
     Expect.equals(1305140315000, dt1.millisecondsSinceEpoch);
     Expect.isTrue(dt1.isUtc);
     var str = dt1.toString();
-    var dt2 = new DateTime.fromString(str);
+    var dt2 = DateTime.parse(str);
     Expect.equals(true, dt1 == dt2);
     var dt3 = dt1.toUtc();
     str = dt3.toString();
     Expect.equals("2011-05-11 18:58:35.000Z", str);
-    var dt4 = new DateTime.fromString("-1234-01-01 00:00:00Z");
+    var dt4 = DateTime.parse("-1234-01-01 00:00:00Z");
     Expect.equals(-1234, dt4.year);
     Expect.equals(1, dt4.month);
     Expect.equals(1, dt4.day);
@@ -630,7 +630,7 @@ class DateTest {
     Expect.equals(0, dt4.second);
     Expect.equals(0, dt4.millisecond);
     Expect.isTrue(dt4.isUtc);
-    var dt5 = new DateTime.fromString("0099-01-02");
+    var dt5 = DateTime.parse("0099-01-02");
     Expect.equals(99, dt5.year);
     Expect.equals(1, dt5.month);
     Expect.equals(2, dt5.day);
@@ -639,19 +639,19 @@ class DateTest {
     Expect.equals(0, dt5.second);
     Expect.equals(0, dt5.millisecond);
     Expect.isFalse(dt5.isUtc);
-    var dt6 = new DateTime.fromString("2012-01-01 00:00:10.012");
+    var dt6 = DateTime.parse("2012-01-01 00:00:10.012");
     Expect.equals(12, dt6.millisecond);
-    dt6 = new DateTime.fromString("2012-01-01 00:00:10.003");
+    dt6 = DateTime.parse("2012-01-01 00:00:10.003");
     Expect.equals(3, dt6.millisecond);
-    dt6 = new DateTime.fromString("2012-01-01 00:00:10.5");
+    dt6 = DateTime.parse("2012-01-01 00:00:10.5");
     Expect.equals(500, dt6.millisecond);
-    dt6 = new DateTime.fromString("2012-01-01 00:00:10.003Z");
+    dt6 = DateTime.parse("2012-01-01 00:00:10.003Z");
     Expect.equals(3, dt6.millisecond);
-    dt6 = new DateTime.fromString("2012-01-01 00:00:10.5z");
+    dt6 = DateTime.parse("2012-01-01 00:00:10.5z");
     Expect.equals(500, dt6.millisecond);
-    var dt7 = new DateTime.fromString("2011-05-11T18:58:35Z");
+    var dt7 = DateTime.parse("2011-05-11T18:58:35Z");
     Expect.equals(1305140315000, dt7.millisecondsSinceEpoch);
-    var dt8 = new DateTime.fromString("-1234-01-01T00:00:00Z");
+    var dt8 = DateTime.parse("-1234-01-01T00:00:00Z");
     Expect.equals(-1234, dt8.year);
     Expect.equals(1, dt8.month);
     Expect.equals(1, dt8.day);
@@ -660,7 +660,7 @@ class DateTest {
     Expect.equals(0, dt8.second);
     Expect.equals(0, dt8.millisecond);
     Expect.isTrue(dt8.isUtc);
-    var dt9 = new DateTime.fromString("-1234-01-01T00:00:00");
+    var dt9 = DateTime.parse("-1234-01-01T00:00:00");
     Expect.equals(-1234, dt9.year);
     Expect.equals(1, dt9.month);
     Expect.equals(1, dt9.day);
@@ -669,7 +669,7 @@ class DateTest {
     Expect.equals(0, dt9.second);
     Expect.equals(0, dt9.millisecond);
     Expect.isFalse(dt9.isUtc);
-    var dt10 = new DateTime.fromString("-12340101");
+    var dt10 = DateTime.parse("-12340101");
     Expect.equals(-1234, dt10.year);
     Expect.equals(1, dt10.month);
     Expect.equals(1, dt10.day);
@@ -678,7 +678,7 @@ class DateTest {
     Expect.equals(0, dt10.second);
     Expect.equals(0, dt10.millisecond);
     Expect.isFalse(dt10.isUtc);
-    dt1 = new DateTime.fromString("2012-02-27 13:27:00");
+    dt1 = DateTime.parse("2012-02-27 13:27:00");
     Expect.equals(2012, dt1.year);
     Expect.equals(2, dt1.month);
     Expect.equals(27, dt1.day);
@@ -687,7 +687,7 @@ class DateTest {
     Expect.equals(0, dt1.second);
     Expect.equals(0, dt1.millisecond);
     Expect.equals(false, dt1.isUtc);
-    dt1 = new DateTime.fromString("2012-02-27 13:27:00.423z");
+    dt1 = DateTime.parse("2012-02-27 13:27:00.423z");
     Expect.equals(2012, dt1.year);
     Expect.equals(2, dt1.month);
     Expect.equals(27, dt1.day);
@@ -696,7 +696,7 @@ class DateTest {
     Expect.equals(0, dt1.second);
     Expect.equals(423, dt1.millisecond);
     Expect.equals(true, dt1.isUtc);
-    dt1 = new DateTime.fromString("20120227 13:27:00");
+    dt1 = DateTime.parse("20120227 13:27:00");
     Expect.equals(2012, dt1.year);
     Expect.equals(2, dt1.month);
     Expect.equals(27, dt1.day);
@@ -705,7 +705,7 @@ class DateTest {
     Expect.equals(0, dt1.second);
     Expect.equals(0, dt1.millisecond);
     Expect.equals(false, dt1.isUtc);
-    dt1 = new DateTime.fromString("20120227T132700");
+    dt1 = DateTime.parse("20120227T132700");
     Expect.equals(2012, dt1.year);
     Expect.equals(2, dt1.month);
     Expect.equals(27, dt1.day);
@@ -714,7 +714,7 @@ class DateTest {
     Expect.equals(0, dt1.second);
     Expect.equals(0, dt1.millisecond);
     Expect.equals(false, dt1.isUtc);
-    dt1 = new DateTime.fromString("20120227");
+    dt1 = DateTime.parse("20120227");
     Expect.equals(2012, dt1.year);
     Expect.equals(2, dt1.month);
     Expect.equals(27, dt1.day);
@@ -723,7 +723,7 @@ class DateTest {
     Expect.equals(0, dt1.second);
     Expect.equals(0, dt1.millisecond);
     Expect.equals(false, dt1.isUtc);
-    dt1 = new DateTime.fromString("2012-02-27T14Z");
+    dt1 = DateTime.parse("2012-02-27T14Z");
     Expect.equals(2012, dt1.year);
     Expect.equals(2, dt1.month);
     Expect.equals(27, dt1.day);
@@ -732,7 +732,7 @@ class DateTest {
     Expect.equals(0, dt1.second);
     Expect.equals(0, dt1.millisecond);
     Expect.equals(true, dt1.isUtc);
-    dt1 = new DateTime.fromString("-123450101 00:00:00 Z");
+    dt1 = DateTime.parse("-123450101 00:00:00 Z");
     Expect.equals(-12345, dt1.year);
     Expect.equals(1, dt1.month);
     Expect.equals(1, dt1.day);
@@ -745,7 +745,7 @@ class DateTest {
     // here), we round.
     // If (eventually) we support more than just millisecond this test could
     // fail. Please update the test in this case.
-    dt1 = new DateTime.fromString("1999-01-02 23:59:59.99951");
+    dt1 = DateTime.parse("1999-01-02 23:59:59.99951");
     Expect.equals(1999, dt1.year);
     Expect.equals(1, dt1.month);
     Expect.equals(3, dt1.day);
@@ -754,7 +754,7 @@ class DateTest {
     Expect.equals(0, dt1.second);
     Expect.equals(0, dt1.millisecond);
     Expect.equals(false, dt1.isUtc);
-    dt1 = new DateTime.fromString("1999-01-02 23:58:59.99951Z");
+    dt1 = DateTime.parse("1999-01-02 23:58:59.99951Z");
     Expect.equals(1999, dt1.year);
     Expect.equals(1, dt1.month);
     Expect.equals(2, dt1.day);
@@ -763,7 +763,7 @@ class DateTest {
     Expect.equals(0, dt1.second);
     Expect.equals(0, dt1.millisecond);
     Expect.equals(true, dt1.isUtc);
-    dt1 = new DateTime.fromString("0009-09-09 09:09:09.009Z");
+    dt1 = DateTime.parse("0009-09-09 09:09:09.009Z");
     Expect.equals(9, dt1.year);
     Expect.equals(9, dt1.month);
     Expect.equals(9, dt1.day);
