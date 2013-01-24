@@ -68,7 +68,7 @@ class IterableMixinWorkaround {
    */
   static void removeAllList(Collection collection, Iterable elementsToRemove) {
     Set setToRemove;
-    // Assume contains is efficient on a Set.
+    // Assume [contains] is efficient on a Set.
     if (elementsToRemove is Set) {
       setToRemove = elementsToRemove;
     } else {
@@ -90,6 +90,10 @@ class IterableMixinWorkaround {
     } else {
       lookup = elementsToRetain.toSet();
     }
+    if (lookup.isEmpty) {
+      collection.clear();
+      return;
+    }
     collection.retainMatching(lookup.contains);
   }
 
@@ -108,6 +112,32 @@ class IterableMixinWorkaround {
   }
 
   /**
+   * Removes elements matching [test] from [list].
+   *
+   * This is performed in two steps, to avoid exposing an inconsistent state
+   * to the [test] function. First the elements to ratain are found, and then
+   * the original list is updated to contain those elements.
+   */
+  static void removeMatchingList(List list, bool test(var element)) {
+    List retained = [];
+    int length = list.length;
+    for (int i = 0; i < length; i++) {
+      var element = list[i];
+      if (!test(element)) {
+        retained.add(element);
+      }
+      if (length != list.length) {
+        throw new ConcurrentModificationError(list);
+      }
+    }
+    if (retained.length == length) return;
+    for (int i = 0; i < retained.length; i++) {
+      list[i] = retained[i];
+    }
+    list.length = retained.length;
+  }
+
+  /**
    * Simple implemenation for [Collection.retainMatching].
    *
    * This implementation assumes that [Collecton.removeAll] on [collection] is
@@ -120,6 +150,7 @@ class IterableMixinWorkaround {
     }
     collection.removeAll(elementsToRemove);
   }
+
   static bool isEmpty(Iterable iterable) {
     return !iterable.iterator.moveNext();
   }

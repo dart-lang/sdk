@@ -24,16 +24,27 @@ class _GrowableObjectArray<T> implements List<T> {
   void remove(Object element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
-        int newLength = this.length - 1;
-        Arrays.copy(this,
-                    index + 1,
-                    this,
-                    index,
-                    newLength - index);
-        this.length = newLength;
+        removeAt(i);
         return;
       }
     }
+  }
+
+  void removeAll(Iterable elements) {
+    IterableMixinWorkaround.removeAllList(this, elements);
+  }
+
+  void retainAll(Iterable elements) {
+    IterableMixinWorkaround.retainAll(this, elements);
+  }
+
+  void removeMatching(bool test(E element)) {
+    IterableMixinWorkaround.removeMatchingList(this, test);
+  }
+
+  void retainMatching(bool test(T element)) {
+    IterableMixinWorkaround.removeMatchingList(this,
+                                               (T element) => !test(element));
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {

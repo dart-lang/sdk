@@ -8851,19 +8851,19 @@ class _ChildrenElementList implements List {
   }
 
   void removeAll(Iterable elements) {
-    Collections.removeAll(this, elements);
+    IterableMixinWorkaround.removeAll(this, elements);
   }
 
   void retainAll(Iterable elements) {
-    Collections.retainAll(this, elements);
+    IterableMixinWorkaround.retainAll(this, elements);
   }
 
   void removeMatching(bool test(Element element)) {
-    Collections.removeMatching(this, test);
+    IterableMixinWorkaround.removeMatching(this, test);
   }
 
   void retainMatching(bool test(Element element)) {
-    Collections.retainMatching(this, test);
+    IterableMixinWorkaround.retainMatching(this, test);
   }
 
   void removeRange(int start, int rangeLength) {

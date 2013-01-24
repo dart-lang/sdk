@@ -84,4 +84,11 @@ abstract class Collection<E> extends Iterable<E> {
   void retainMatching(bool test(E element)) {
     IterableMixinWorkaround.retainMatching(this, test);
   }
+
+  /**
+   * Removes all elements of this collection.
+   */
+  void clear() {
+    IterableMixinWorkaround.removeMatching((E e) => true);
+  }
 }

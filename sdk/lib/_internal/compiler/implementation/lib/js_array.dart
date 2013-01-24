@@ -44,20 +44,21 @@ class JSArray<E> implements List<E> {
   }
 
   void removeAll(Iterable elements) {
-    Collections.removeAll(this, elements);
+    IterableMixinWorkaround.removeAllList(this, elements);
   }
 
   void retainAll(Iterable elements) {
-    Collections.retainAll(this, elements);
+    IterableMixinWorkaround.retainAll(this, elements);
   }
 
   void removeMatching(bool test(E element)) {
     // This could, and should, be optimized.
-    Collections.removeMatching(this, test);
+    IterableMixinWorkaround.removeMatchingList(this, test);
   }
 
   void reatainMatching(bool test(E element)) {
-    Collections.reatainMatching(this, test);
+    IterableMixinWorkaround.removeMatchingList(this,
+                                               (E element) => !test(element));
   }
 
   Iterable<E> where(bool f(E element)) {
