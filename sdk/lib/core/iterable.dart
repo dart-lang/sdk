@@ -19,6 +19,16 @@ part of dart.core;
 abstract class Iterable<E> {
   const Iterable();
 
+  /**
+   * Create an [Iterable] that generates its elements dynamically.
+   *
+   * The [Iterators] created by the [Iterable] will count from
+   * zero to [:count - 1:] while iterating, and call [generator]
+   * with that index to create the next value.
+   *
+   * As an [Iterable], [:new Iterable.generate(n, generator)):] is equivalent to
+   * [:const [0, ..., n - 1].mappedBy(generator):]
+   */
   factory Iterable.generate(int count, E generator(int index)) {
     return new _GeneratorIterable<E>(count, generator);
   }
