@@ -607,6 +607,7 @@ abstract class Compiler implements DiagnosticListener {
         || libraryName == 'dart:svg'
         || libraryName == 'dart:web_audio') {
       if (nativeTest
+          || libraryName == 'dart:chrome'
           || libraryName == 'dart:html'
           || libraryName == 'dart:html_common'
           || libraryName == 'dart:indexed_db'
