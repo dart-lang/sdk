@@ -140,7 +140,7 @@ void MessageBuffer::PopMessage() {
 
 static bool IsValidJSON(const char* msg) {
   dart::JSONReader r(msg);
-  return r.EndOfObject() != NULL;
+  return r.CheckMessage();
 }
 
 

@@ -102,7 +102,14 @@ class JSONReader : ValueObject {
     return scanner_.CurrentToken() == JSONScanner::TokenNull;
   }
 
+  // Debugging method to check for validity of a JSON message.
+  bool CheckMessage();
+
  private:
+  void CheckObject();
+  void CheckArray();
+  void CheckValue();
+
   JSONScanner scanner_;
   const char* json_object_;
   bool error_;

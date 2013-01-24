@@ -202,11 +202,99 @@ JSONReader::JSONReader(const char* json_object)
   Set(json_object);
 }
 
+
 void JSONReader::Set(const char* json_object) {
   scanner_.SetText(json_object);
   json_object_ = json_object;
   error_ = false;
 }
+
+
+bool JSONReader::CheckMessage() {
+  scanner_.SetText(json_object_);
+  scanner_.Scan();
+  CheckObject();
+  return true;
+}
+
+
+void JSONReader::CheckValue() {
+  switch (scanner_.CurrentToken()) {
+    case JSONScanner::TokenLBrace:
+      CheckObject();
+      break;
+    case JSONScanner::TokenLBrack:
+      CheckArray();
+      break;
+    case JSONScanner::TokenString: {
+      // Check the encoding.
+      const char* s = ValueChars();
+      int remaining = ValueLen();
+      while (remaining > 0) {
+        if ((*s == '\n') || (*s == '\t')) {
+          OS::Print("Un-escaped character in JSON string: '%s'\n",
+                    ValueChars());
+          ASSERT(!"illegal character in JSON string value");
+        }
+        s++;
+        remaining--;
+      }
+      scanner_.Scan();
+      break;
+    }
+    case JSONScanner::TokenInteger:
+    case JSONScanner::TokenTrue:
+    case JSONScanner::TokenFalse:
+    case JSONScanner::TokenNull:
+      scanner_.Scan();
+      break;
+    default:
+      OS::Print("Malformed JSON: expected a value but got '%s'\n",
+                scanner_.TokenChars());
+      ASSERT(!"illegal JSON value found");
+  }
+}
+
+#define CHECK_TOKEN(token)                                                     \
+  if (scanner_.CurrentToken() != token) {                                      \
+    OS::Print("Malformed JSON: expected %s but got '%s'\n",                    \
+              #token, scanner_.TokenChars());                                  \
+  }                                                                            \
+  ASSERT(scanner_.CurrentToken() == token);
+
+void JSONReader::CheckArray() {
+  CHECK_TOKEN(JSONScanner::TokenLBrack);
+  scanner_.Scan();
+  while (scanner_.CurrentToken() != JSONScanner::TokenRBrack) {
+    CheckValue();
+    if (scanner_.CurrentToken() != JSONScanner::TokenComma) {
+      break;
+    }
+    scanner_.Scan();
+  }
+  CHECK_TOKEN(JSONScanner::TokenRBrack);
+  scanner_.Scan();
+}
+
+
+void JSONReader::CheckObject() {
+  CHECK_TOKEN(JSONScanner::TokenLBrace);
+  scanner_.Scan();
+  while (scanner_.CurrentToken() == JSONScanner::TokenString) {
+    scanner_.Scan();
+    CHECK_TOKEN(JSONScanner::TokenColon);
+    scanner_.Scan();
+    CheckValue();
+    if (scanner_.CurrentToken() != JSONScanner::TokenComma) {
+      break;
+    }
+    scanner_.Scan();
+  }
+  CHECK_TOKEN(JSONScanner::TokenRBrace);
+  scanner_.Scan();
+}
+
+#undef CHECK_TOKEN
 
 
 bool JSONReader::Seek(const char* name) {
