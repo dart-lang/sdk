@@ -674,7 +674,7 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
 
   LibraryElement get _library => _element;
 
-  Uri get uri => _library.uri;
+  Uri get uri => _library.canonicalUri;
 
   DeclarationMirror get owner => null;
 
@@ -698,7 +698,7 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
       }
     } else {
       // Use the file name as script name.
-      String path = _library.uri.path;
+      String path = _library.canonicalUri.path;
       return path.substring(path.lastIndexOf('/') + 1);
     }
   }

@@ -593,7 +593,7 @@ abstract class Compiler implements DiagnosticListener {
   // TODO(karlklose,floitsch): move this to the javascript backend.
   /** Enable the 'JS' helper for a library if needed. */
   void maybeEnableJSHelper(LibraryElement library) {
-    String libraryName = library.uri.toString();
+    String libraryName = library.canonicalUri.toString();
     bool nativeTest = library.entryCompilationUnit.script.name.contains(
         'dart/tests/compiler/dart2js_native');
     if (nativeTest
@@ -627,7 +627,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void maybeEnableIsolateHelper(LibraryElement library) {
-    String libraryName = library.uri.toString();
+    String libraryName = library.canonicalUri.toString();
     if (libraryName == 'dart:isolate'
         || libraryName == 'dart:html'
         // TODO(floitsch): create a separate async-helper library instead of
@@ -981,7 +981,30 @@ abstract class Compiler implements DiagnosticListener {
     return spanFromTokens(token, token, uri);
   }
 
-  Script readScript(Uri uri, [Node node]) {
+  /**
+   * Translates the [resolvedUri] into a readable URI.
+   *
+   * The [importingLibrary] holds the library importing [resolvedUri] or
+   * [:null:] if [resolvedUri] is loaded as the main library. The
+   * [importingLibrary] is used to grant access to internal libraries from
+   * platform libraries and patch libraries.
+   *
+   * If the [resolvedUri] is not accessible from [importingLibrary], this method
+   * is responsible for reporting errors.
+   *
+   * See [LibraryLoader] for terminology on URIs.
+   */
+  Uri translateResolvedUri(LibraryElement importingLibrary,
+                           Uri resolvedUri, Node node) {
+    unimplemented('Compiler.translateResolvedUri');
+  }
+
+  /**
+   * Reads the script specified by the [readableUri].
+   *
+   * See [LibraryLoader] for terminology on URIs.
+   */
+  Script readScript(Uri readableUri, [Node node]) {
     unimplemented('Compiler.readScript');
   }
 

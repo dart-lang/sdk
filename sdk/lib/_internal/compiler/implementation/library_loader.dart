@@ -6,12 +6,103 @@ part of dart2js;
 
 /**
  * [CompilerTask] for loading libraries and setting up the import/export scopes.
+ *
+ * The library loader uses four different kinds of URIs in different parts of
+ * the loading process.
+ *
+ * ## User URI ##
+ *
+ * A 'user URI' is a URI provided by the user in code and as the main entry URI
+ * at the command line. These generally come in 3 versions:
+ *
+ *   * A relative URI such as 'foo.dart', '../bar.dart', and 'baz/boz.dart'.
+ *
+ *   * A dart URI such as 'dart:core' and 'dart:_js_helper'.
+ *
+ *   * A package URI such as 'package:foo.dart' and 'package:bar/baz.dart'.
+ *
+ * A user URI can also be absolute, like 'file:///foo.dart' or
+ * 'http://example.com/bar.dart', but such URIs cannot necessarily be used for
+ * locating source files, since the scheme must be supported by the input
+ * provider. The standard input provider for dart2js only supports the 'file'
+ * scheme.
+ *
+ * ## Resolved URI ##
+ *
+ * A 'resolved URI' is a (user) URI that has been resolved to an absolute URI
+ * based on the readable URI (see below) from which it was loaded. A URI with an
+ * explicit scheme (such as 'dart:', 'package:' or 'file:') is already resolved.
+ * A relative URI like for instance '../foo/bar.dart' is translated into an
+ * resolved URI in one of three ways:
+ *
+ *  * If provided as the main entry URI at the command line, the URI is resolved
+ *    relative to the current working directory, say
+ *    'file:///current/working/dir/', and the resolved URI is therefore
+ *    'file:///current/working/foo/bar.dart'.
+ *
+ *  * If the relative URI is provided in an import, export or part tag, and the
+ *    readable URI of the enclosing compilation unit is a file URI,
+ *    'file://some/path/baz.dart', then the resolved URI is
+ *    'file://some/foo/bar.dart'.
+ *
+ *  * If the relative URI is provided in an import, export or part tag, and the
+ *    readable URI of the enclosing compilation unit is a package URI,
+ *    'package:some/path/baz.dart', then the resolved URI is
+ *    'package:some/foo/bar.dart'.
+ *
+ * The resolved URI thus preserves the scheme through resolution: A readable
+ * file URI results in an resolved file URI and a readable package URI results
+ * in an resolved package URI. Note that since a dart URI is not a readable URI,
+ * import, export or part tags within platform libraries are not interpreted as
+ * dart URIs but instead relative to the library source file location.
+ *
+ * The resolved URI of a library is also used as the canonical URI
+ * ([LibraryElement.canonicalUri]) by which we identify which libraries are
+ * identical. This means that libraries loaded through the 'package' scheme will
+ * resolve to the same library when loaded from within using relative URIs (see
+ * for instance the test 'standalone/package/package1_test.dart'). But loading a
+ * platform library using a relative URI will _not_ result in the same library
+ * as when loaded through the dart URI.
+ *
+ * ## Readable URI ##
+ *
+ * A 'readable URI' is an absolute URI whose scheme is either 'package' or
+ * something supported by the input provider, normally 'file'. Dart URIs such as
+ * 'dart:core' and 'dart:_js_helper' are not readable themselves but are instead
+ * resolved into a readable URI using the library root URI provided from the
+ * command line and the list of platform libraries found in
+ * 'sdk/lib/_internal/libraries.dart'. This is done through the
+ * [Compiler.translateResolvedUri] method which checks whether a library by that
+ * name exists and in case of internal libraries whether access is granted.
+ *
+ * ## Resource URI ##
+ *
+ * A 'resource URI' is an absolute URI with a scheme supported by the input
+ * provider. For the standard implementation this means a URI with the 'file'
+ * scheme. Readable URIs are converted into resource URIs as part of the
+ * [Compiler.readScript] method. In the standard implementation the package URIs
+ * are converted to file URIs using the package root URI provided on the
+ * command line as base. If the package root URI is
+ * 'file:///current/working/dir/' then the package URI 'package:foo/bar.dart'
+ * will be resolved to the resource URI
+ * 'file:///current/working/dir/foo/bar.dart'.
+ *
+ * The distinction between readable URI and resource URI is necessary to ensure
+ * that these imports
+ *
+ *     import 'package:foo.dart' as a;
+ *     import 'packages/foo.dart' as b;
+ *
+ * do _not_ resolve to the same library when the package root URI happens to
+ * point to the 'packages' folder.
+ *
  */
 abstract class LibraryLoader extends CompilerTask {
   LibraryLoader(Compiler compiler) : super(compiler);
 
   /**
-   * Loads the library located at [uri] and returns its [LibraryElement].
+   * Loads the library specified by the [resolvedUri] and returns its
+   * [LibraryElement].
    *
    * If the library is not already loaded, the method creates the
    * [LibraryElement] for the library and computes the import/export scope,
@@ -20,7 +111,9 @@ abstract class LibraryLoader extends CompilerTask {
    *
    * This is the main entry point for [LibraryLoader].
    */
-  LibraryElement loadLibrary(Uri uri, Node node, Uri canonicalUri);
+  // TODO(johnniwinther): Remove [canonicalUri] together with
+  // [Compiler.scanBuiltinLibrary].
+  LibraryElement loadLibrary(Uri resolvedUri, Node node, Uri canonicalUri);
 
   // TODO(johnniwinther): Remove this when patches don't need special parsing.
   void registerLibraryFromTag(LibraryDependencyHandler handler,
@@ -133,12 +226,12 @@ class LibraryLoaderTask extends LibraryLoader {
 
   LibraryDependencyHandler currentHandler;
 
-  LibraryElement loadLibrary(Uri uri, Node node, Uri canonicalUri) {
+  LibraryElement loadLibrary(Uri resolvedUri, Node node, Uri canonicalUri) {
     return measure(() {
       assert(currentHandler == null);
       currentHandler = new LibraryDependencyHandler(compiler);
       LibraryElement library =
-          createLibrary(currentHandler, uri, node, canonicalUri);
+          createLibrary(currentHandler, null, resolvedUri, node, canonicalUri);
       currentHandler.computeExports();
       currentHandler = null;
       return library;
@@ -193,21 +286,21 @@ class LibraryLoaderTask extends LibraryLoader {
       } else if (tag.isPart) {
         Part part = tag;
         StringNode uri = part.uri;
-        Uri resolved = base.resolve(uri.dartString.slowToString());
+        Uri resolvedUri = base.resolve(uri.dartString.slowToString());
         tagState = checkTag(TagState.SOURCE, part);
-        scanPart(part, resolved, library);
+        scanPart(part, resolvedUri, library);
       } else {
         compiler.internalError("Unhandled library tag.", node: tag);
       }
     }
 
     // Apply patch, if any.
-    if (library.uri.scheme == 'dart') {
-      patchDartLibrary(handler, library, library.uri.path);
+    if (library.isPlatformLibrary) {
+      patchDartLibrary(handler, library, library.canonicalUri.path);
     }
 
     // Import dart:core if not already imported.
-    if (!importsDartCore && !isDartCore(library.uri)) {
+    if (!importsDartCore && !isDartCore(library.canonicalUri)) {
       handler.registerDependency(library, null, loadCoreLibrary(handler));
     }
 
@@ -245,7 +338,8 @@ class LibraryLoaderTask extends LibraryLoader {
   LibraryElement loadCoreLibrary(LibraryDependencyHandler handler) {
     if (compiler.coreLibrary == null) {
       Uri coreUri = new Uri.fromComponents(scheme: 'dart', path: 'core');
-      compiler.coreLibrary = createLibrary(handler, coreUri, null, coreUri);
+      compiler.coreLibrary
+          = createLibrary(handler, null, coreUri, null, coreUri);
     }
     return compiler.coreLibrary;
   }
@@ -260,12 +354,13 @@ class LibraryLoaderTask extends LibraryLoader {
   }
 
   /**
-   * Handle a part tag in the scope of [library]. The [path] given is used as
-   * is, any URI resolution should be done beforehand.
+   * Handle a part tag in the scope of [library]. The [resolvedUri] given is
+   * used as is, any URI resolution should be done beforehand.
    */
-  void scanPart(Part part, Uri path, LibraryElement library) {
-    if (!path.isAbsolute()) throw new ArgumentError(path);
-    Script sourceScript = compiler.readScript(path, part);
+  void scanPart(Part part, Uri resolvedUri, LibraryElement library) {
+    if (!resolvedUri.isAbsolute()) throw new ArgumentError(resolvedUri);
+    Uri readableUri = compiler.translateResolvedUri(library, resolvedUri, part);
+    Script sourceScript = compiler.readScript(readableUri, part);
     CompilationUnitElement unit =
         new CompilationUnitElementX(sourceScript, library);
     compiler.withCurrentElement(unit, () {
@@ -295,32 +390,40 @@ class LibraryLoaderTask extends LibraryLoader {
                               LibraryElement library,
                               LibraryDependency tag) {
     Uri base = library.entryCompilationUnit.script.uri;
-    Uri resolved = base.resolve(tag.uri.dartString.slowToString());
+    Uri resolvedUri = base.resolve(tag.uri.dartString.slowToString());
     LibraryElement loadedLibrary =
-        createLibrary(handler, resolved, tag.uri, resolved);
+        createLibrary(handler, library, resolvedUri, tag.uri, resolvedUri);
     handler.registerDependency(library, tag, loadedLibrary);
 
     if (!loadedLibrary.hasLibraryName()) {
       compiler.withCurrentElement(library, () {
         compiler.reportError(tag == null ? null : tag.uri,
-            'no library name found in ${loadedLibrary.uri}');
+            'no library name found in ${loadedLibrary.canonicalUri}');
       });
     }
   }
 
   /**
-   * Create (or reuse) a library element for the library located at [uri].
+   * Create (or reuse) a library element for the library specified by the
+   * [resolvedUri].
+   *
    * If a new library is created, the [handler] is notified.
    */
+  // TODO(johnniwinther): Remove [canonicalUri] and make [resolvedUri] the
+  // canonical uri when [Compiler.scanBuiltinLibrary] is removed.
   LibraryElement createLibrary(LibraryDependencyHandler handler,
-                               Uri uri, Node node, Uri canonicalUri) {
+                               LibraryElement importingLibrary,
+                               Uri resolvedUri, Node node, Uri canonicalUri) {
     bool newLibrary = false;
+    Uri readableUri =
+        compiler.translateResolvedUri(importingLibrary, resolvedUri, node);
+    if (readableUri == null) return null;
     LibraryElement createLibrary() {
       newLibrary = true;
-      Script script = compiler.readScript(uri, node);
+      Script script = compiler.readScript(readableUri, node);
       LibraryElement element = new LibraryElementX(script, canonicalUri);
       handler.registerNewLibrary(element);
-      native.maybeEnableNative(compiler, element, uri);
+      native.maybeEnableNative(compiler, element);
       return element;
     }
     LibraryElement library;
@@ -335,7 +438,7 @@ class LibraryLoaderTask extends LibraryLoader {
         compiler.scanner.scanLibrary(library);
         processLibraryTags(handler, library);
         handler.registerLibraryExports(library);
-        compiler.onLibraryScanned(library, uri);
+        compiler.onLibraryScanned(library, resolvedUri);
       });
     }
     return library;

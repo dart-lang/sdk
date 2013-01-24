@@ -143,7 +143,7 @@ void renamePlaceholders(
     if (identical(element.getLibrary(), compiler.coreLibrary)) {
       return originalName;
     }
-    if (library.isPlatformLibrary) {
+    if (library.isPlatformLibrary && !library.isInternalLibrary) {
       assert(element.isTopLevel());
       final prefix =
           imports.putIfAbsent(library, () => generateUniqueName('p'));

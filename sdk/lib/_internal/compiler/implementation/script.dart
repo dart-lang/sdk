@@ -9,7 +9,14 @@ class Script {
   // implements SourceFile, we should be able to type the [file] field as
   // such.
   final file;
+
+  /**
+   * The readable URI from which this script was loaded.
+   *
+   * See [LibraryLoader] for terminology on URIs.
+   */
   final Uri uri;
+
   Script(this.uri, this.file);
 
   String get text => (file == null) ? null : file.text;

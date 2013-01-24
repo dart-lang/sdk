@@ -67,6 +67,8 @@ class Compiler extends leg.Compiler {
     return options.indexOf(option) >= 0;
   }
 
+  // TODO(johnniwinther): Merge better with [translateDartUri] when
+  // [scanBuiltinLibrary] is removed.
   String lookupLibraryPath(String dartLibraryName) {
     LibraryInfo info = LIBRARIES[dartLibraryName];
     if (info == null) return null;
@@ -89,10 +91,7 @@ class Compiler extends leg.Compiler {
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(lookupLibraryPath(path));
-    Uri canonicalUri = null;
-    if (!path.startsWith("_")) {
-      canonicalUri = new Uri.fromComponents(scheme: "dart", path: path);
-    }
+    Uri canonicalUri = new Uri.fromComponents(scheme: "dart", path: path);
     elements.LibraryElement library =
         libraryLoader.loadLibrary(uri, null, canonicalUri);
     return library;
@@ -102,15 +101,30 @@ class Compiler extends leg.Compiler {
     handler(null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
-  leg.Script readScript(Uri uri, [tree.Node node]) {
+  /// See [leg.Compiler.translateResolvedUri].
+  Uri translateResolvedUri(elements.LibraryElement importingLibrary,
+                           Uri resolvedUri, tree.Node node) {
+    if (resolvedUri.scheme == 'dart') {
+      return translateDartUri(importingLibrary, resolvedUri, node);
+    }
+    return resolvedUri;
+  }
+
+  /**
+   * Reads the script designated by [readableUri].
+   */
+  leg.Script readScript(Uri readableUri, [tree.Node node]) {
+    if (!readableUri.isAbsolute()) {
+      internalError('Relative uri $readableUri provided to readScript(Uri)',
+                    node: node);
+    }
     return fileReadingTask.measure(() {
-      if (uri.scheme == 'dart') uri = translateDartUri(uri, node);
-      var translated = translateUri(uri, node);
+      Uri resourceUri = translateUri(readableUri, node);
       String text = "";
       try {
         // TODO(ahe): We expect the future to be complete and call value
         // directly. In effect, we don't support truly asynchronous API.
-        text = deprecatedFutureValue(provider(translated));
+        text = deprecatedFutureValue(provider(resourceUri));
       } catch (exception) {
         if (node != null) {
           cancel("$exception", node: node);
@@ -119,31 +133,67 @@ class Compiler extends leg.Compiler {
           throw new leg.CompilerCancelledException("$exception");
         }
       }
-      SourceFile sourceFile = new SourceFile(translated.toString(), text);
-      return new leg.Script(uri, sourceFile);
+      SourceFile sourceFile = new SourceFile(resourceUri.toString(), text);
+      // We use [readableUri] as the URI for the script since need to preserve
+      // the scheme in the script because [Script.uri] is used for resolving
+      // relative URIs mentioned in the script. See the comment on
+      // [LibraryLoader] for more details.
+      return new leg.Script(readableUri, sourceFile);
     });
   }
 
-  Uri translateUri(Uri uri, tree.Node node) {
-    switch (uri.scheme) {
-      case 'package': return translatePackageUri(uri, node);
-      default: return uri;
+  /**
+   * Translates a readable URI into a resource URI.
+   *
+   * See [LibraryLoader] for terminology on URIs.
+   */
+  Uri translateUri(Uri readableUri, tree.Node node) {
+    switch (readableUri.scheme) {
+      case 'package': return translatePackageUri(readableUri, node);
+      default: return readableUri;
     }
   }
 
-  Uri translateDartUri(Uri uri, tree.Node node) {
-    String path = lookupLibraryPath(uri.path);
-    if (path == null || LIBRARIES[uri.path].category == "Internal") {
+  Uri translateDartUri(elements.LibraryElement importingLibrary,
+                       Uri resolvedUri, tree.Node node) {
+    LibraryInfo libraryInfo = LIBRARIES[resolvedUri.path];
+    String path = lookupLibraryPath(resolvedUri.path);
+    if (libraryInfo != null &&
+        libraryInfo.category == "Internal") {
+      bool allowInternalLibraryAccess = false;
+      if (importingLibrary != null) {
+        if (importingLibrary.isPlatformLibrary || importingLibrary.isPatch) {
+          allowInternalLibraryAccess = true;
+        } else if (importingLibrary.canonicalUri.path.contains(
+                       'dart/tests/compiler/dart2js_native')) {
+          allowInternalLibraryAccess = true;
+        }
+      }
+      if (!allowInternalLibraryAccess) {
+        if (node != null && importingLibrary != null) {
+          reportDiagnostic(spanFromNode(node),
+              'Error: Internal library $resolvedUri is not accessible from '
+              '${importingLibrary.canonicalUri}.',
+              api.Diagnostic.ERROR);
+        } else {
+          reportDiagnostic(null,
+              'Error: Internal library $resolvedUri is not accessible.',
+              api.Diagnostic.ERROR);
+        }
+        //path = null;
+      }
+    }
+    if (path == null) {
       if (node != null) {
-        reportError(node, 'library not found ${uri}');
+        reportError(node, 'library not found ${resolvedUri}');
       } else {
-        reportDiagnostic(null, 'library not found ${uri}',
+        reportDiagnostic(null, 'library not found ${resolvedUri}',
                          api.Diagnostic.ERROR);
       }
       return null;
     }
-    if (uri.path == 'html' ||
-        uri.path == 'io') {
+    if (resolvedUri.path == 'html' ||
+        resolvedUri.path == 'io') {
       // TODO(ahe): Get rid of mockableLibraryUsed when test.dart
       // supports this use case better.
       mockableLibraryUsed = true;

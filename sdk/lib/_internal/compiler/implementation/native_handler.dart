@@ -224,18 +224,20 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   registerElement(Element element) {
-    if (element.isFunction() || element.isGetter() || element.isSetter()) {
-      handleMethodAnnotations(element);
-      if (element.isNative()) {
-        registerMethodUsed(element);
+    compiler.withCurrentElement(element, () {
+      if (element.isFunction() || element.isGetter() || element.isSetter()) {
+        handleMethodAnnotations(element);
+        if (element.isNative()) {
+          registerMethodUsed(element);
+        }
+      } else if (element.isField()) {
+        handleFieldAnnotations(element);
+        if (element.isNative()) {
+          registerFieldLoad(element);
+          registerFieldStore(element);
+        }
       }
-    } else if (element.isField()) {
-      handleFieldAnnotations(element);
-      if (element.isNative()) {
-        registerFieldLoad(element);
-        registerFieldStore(element);
-      }
-    }
+    });
   }
 
   handleFieldAnnotations(Element element) {
@@ -450,9 +452,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
 }
 
 void maybeEnableNative(Compiler compiler,
-                       LibraryElement library,
-                       Uri uri) {
-  String libraryName = uri.toString();
+                       LibraryElement library) {
+  String libraryName = library.canonicalUri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'dart/tests/compiler/dart2js_native')
       || libraryName == 'dart:async'

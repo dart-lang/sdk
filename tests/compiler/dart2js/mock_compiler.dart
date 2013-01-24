@@ -266,6 +266,9 @@ class MockCompiler extends Compiler {
     scanner.importLibrary(library, coreLibrary, null);
   }
 
+  Uri translateResolvedUri(LibraryElement importingLibrary,
+                           Uri resolvedUri, Node node) => resolvedUri;
+
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) => null;
 

@@ -33,7 +33,7 @@ class SourceFileProvider {
 
   Future<String> readStringFromUri(Uri resourceUri) {
     if (resourceUri.scheme != 'file') {
-      throw new ArgumentError(resourceUri);
+      throw new ArgumentError("Unknown scheme in uri '$resourceUri'");
     }
     String source;
     try {

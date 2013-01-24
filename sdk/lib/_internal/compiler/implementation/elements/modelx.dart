@@ -522,7 +522,7 @@ class CompilationUnitElementX extends ElementX
 }
 
 class LibraryElementX extends ElementX implements LibraryElement {
-  final Uri uri;
+  final Uri canonicalUri;
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const Link<CompilationUnitElement>();
@@ -564,8 +564,8 @@ class LibraryElementX extends ElementX implements LibraryElement {
    */
   Link<Element> slotForExports;
 
-  LibraryElementX(Script script, [Uri uri, LibraryElement this.origin])
-    : this.uri = ((uri == null) ? script.uri : uri),
+  LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
+    : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),
       importScope = new Map<SourceString, Element>(),
       super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
@@ -728,14 +728,17 @@ class LibraryElementX extends ElementX implements LibraryElement {
       return libraryTag.name.toString();
     } else {
       // Use the file name as script name.
-      String path = uri.path;
+      String path = canonicalUri.path;
       return path.substring(path.lastIndexOf('/') + 1);
     }
   }
 
   Scope buildScope() => new LibraryScope(this);
 
-  bool get isPlatformLibrary => uri.scheme == "dart";
+  bool get isPlatformLibrary => canonicalUri.scheme == "dart";
+
+  bool get isInternalLibrary =>
+      isPlatformLibrary && canonicalUri.path.startsWith('_');
 
   String toString() {
     if (origin != null) {

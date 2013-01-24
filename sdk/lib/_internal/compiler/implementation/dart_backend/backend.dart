@@ -579,7 +579,7 @@ List sorted(Iterable l, comparison) {
 }
 
 compareElements(e0, e1) {
-  int result = compareBy((e) => e.getLibrary().uri.toString())(e0, e1);
+  int result = compareBy((e) => e.getLibrary().canonicalUri.toString())(e0, e1);
   if (result != 0) return result;
   return compareBy((e) => e.position().charOffset)(e0, e1);
 }
