@@ -25604,7 +25604,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
    if ($this.requestAnimationFrame && $this.cancelAnimationFrame) return;
    $this.requestAnimationFrame = function(callback) {
       return window.setTimeout(function() {
-        callback(DateTime.now());
+        callback(Date.now());
       }, 16 /* 16ms ~= 60fps */);
    };
    $this.cancelAnimationFrame = function(id) { clearTimeout(id); }
