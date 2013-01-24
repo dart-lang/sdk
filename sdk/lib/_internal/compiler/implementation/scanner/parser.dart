@@ -266,8 +266,15 @@ class Parser {
       token = parseIdentifier(token.next);
       token = parseTypeVariablesOpt(token);
       token = expect('=', token);
-      token = parseMixinApplication(token, true);
-      listener.endNamedMixinApplication(typedefKeyword, token);
+      token = parseModifiers(token);
+      token = parseMixinApplication(token);
+      Token implementsKeyword = null;
+      if (optional('implements', token)) {
+        implementsKeyword = token;
+        token = parseTypeList(token.next);
+      }
+      listener.endNamedMixinApplication(
+          typedefKeyword, implementsKeyword, token);
     } else {
       listener.beginFunctionTypeAlias(token);
       token = parseReturnTypeOpt(token.next);
@@ -279,13 +286,8 @@ class Parser {
     return expect(';', token);
   }
 
-  Token parseMixinApplication(Token token, bool isTypedef) {
+  Token parseMixinApplication(Token token) {
     listener.beginMixinApplication(token);
-    if (isTypedef) {
-      token = parseModifiers(token);
-    } else {
-      listener.handleModifiers(0);
-    }
     token = parseType(token);
     token = expect('with', token);
     token = parseTypeList(token);
@@ -489,7 +491,7 @@ class Parser {
     if (optional('extends', token)) {
       extendsKeyword = token;
       if (optional('with', token.next.next)) {
-        token = parseMixinApplication(token.next, false);
+        token = parseMixinApplication(token.next);
       } else {
         token = parseType(token.next);
       }

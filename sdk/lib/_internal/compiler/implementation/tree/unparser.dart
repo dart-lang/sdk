@@ -82,10 +82,6 @@ class Unparser implements Visitor {
   }
 
   visitMixinApplication(MixinApplication node) {
-    if (!node.modifiers.nodes.isEmpty) {
-      visit(node.modifiers);
-      sb.add(' ');
-    }
     visit(node.superclass);
     sb.add(' with ');
     visit(node.mixins);
@@ -98,7 +94,15 @@ class Unparser implements Visitor {
       visit(node.typeParameters);
     }
     sb.add(' = ');
+    if (!node.modifiers.nodes.isEmpty) {
+      visit(node.modifiers);
+      sb.add(' ');
+    }
     visit(node.mixinApplication);
+    if (node.interfaces != null) {
+      sb.add(' implements ');
+      visit(node.interfaces);
+    }
     sb.add(';');
   }
 

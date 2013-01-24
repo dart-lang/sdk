@@ -2855,44 +2855,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     }
 
     assert(element.interfaces == null);
-    Link<DartType> interfaces = const Link<DartType>();
-    for (Link<Node> link = node.interfaces.nodes;
-         !link.isEmpty;
-         link = link.tail) {
-      DartType interfaceType = typeResolver.resolveTypeAnnotation(
-          link.head, scope, element, onFailure: error);
-      if (interfaceType != null) {
-        if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
-          // Error has already been reported.
-        } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
-          // TODO(johnniwinther): Handle dynamic.
-          TypeAnnotation typeAnnotation = link.head;
-          error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
-        } else {
-          if (interfaceType == element.supertype) {
-            compiler.reportMessage(
-                compiler.spanFromSpannable(node.superclass),
-                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
-                Diagnostic.ERROR);
-            compiler.reportMessage(
-                compiler.spanFromSpannable(link.head),
-                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
-                Diagnostic.ERROR);
-          }
-          if (interfaces.contains(interfaceType)) {
-            compiler.reportMessage(
-                compiler.spanFromSpannable(link.head),
-                MessageKind.DUPLICATE_IMPLEMENTS.error([interfaceType]),
-                Diagnostic.ERROR);
-          }
-          interfaces = interfaces.prepend(interfaceType);
-          if (isBlackListed(interfaceType)) {
-            error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
-          }
-        }
-      }
-    }
-    element.interfaces = interfaces;
+    element.interfaces = resolveInterfaces(node.interfaces, node.superclass);
     calculateAllSupertypes(element);
 
     if (node.defaultClause != null) {
@@ -2939,9 +2902,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     assert(mixinApplication.supertype == null);
     mixinApplication.supertype = supertype;
 
+    // Named mixin application may have an 'implements' clause.
+    NamedMixinApplication namedMixinApplication =
+        mixinApplication.parseNode(compiler).asNamedMixinApplication();
+    Link<DartType> interfaces = (namedMixinApplication != null)
+        ? resolveInterfaces(namedMixinApplication.interfaces,
+                            namedMixinApplication.superclass)
+        : const Link<DartType>();
+
     // The class that is the result of a mixin application implements
-    // the interface of the class that was mixed in.
-    Link<DartType> interfaces = const Link<DartType>();
+    // the interface of the class that was mixed in so always prepend
+    // that to the interface list.
     interfaces = interfaces.prepend(mixinType);
     assert(mixinApplication.interfaces == null);
     mixinApplication.interfaces = interfaces;
@@ -3046,6 +3017,46 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       }
     }
     return supertype;
+  }
+
+  Link<DartType> resolveInterfaces(NodeList interfaces, Node superclass) {
+    Link<DartType> result = const Link<DartType>();
+    if (interfaces == null) return result;
+    for (Link<Node> link = interfaces.nodes; !link.isEmpty; link = link.tail) {
+      DartType interfaceType = typeResolver.resolveTypeAnnotation(
+          link.head, scope, element, onFailure: error);
+      if (interfaceType != null) {
+        if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
+          // Error has already been reported.
+        } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
+          // TODO(johnniwinther): Handle dynamic.
+          TypeAnnotation typeAnnotation = link.head;
+          error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
+        } else {
+          if (interfaceType == element.supertype) {
+            compiler.reportMessage(
+                compiler.spanFromSpannable(superclass),
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
+                Diagnostic.ERROR);
+            compiler.reportMessage(
+                compiler.spanFromSpannable(link.head),
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
+                Diagnostic.ERROR);
+          }
+          if (result.contains(interfaceType)) {
+            compiler.reportMessage(
+                compiler.spanFromSpannable(link.head),
+                MessageKind.DUPLICATE_IMPLEMENTS.error([interfaceType]),
+                Diagnostic.ERROR);
+          }
+          result = result.prepend(interfaceType);
+          if (isBlackListed(interfaceType)) {
+            error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   void calculateAllSupertypes(ClassElement cls) {

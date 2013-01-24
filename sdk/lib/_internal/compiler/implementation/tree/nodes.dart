@@ -242,18 +242,16 @@ class ClassNode extends Node {
 }
 
 class MixinApplication extends Node {
-  final Modifiers modifiers;
   final TypeAnnotation superclass;
   final NodeList mixins;
 
-  MixinApplication(this.modifiers, this.superclass, this.mixins);
+  MixinApplication(this.superclass, this.mixins);
 
   MixinApplication asMixinApplication() => this;
 
   accept(Visitor visitor) => visitor.visitMixinApplication(this);
 
   visitChildren(Visitor visitor) {
-    if (modifiers != null) modifiers.accept(visitor);
     if (superclass != null) superclass.accept(visitor);
     if (mixins != null) mixins.accept(visitor);
   }
@@ -267,15 +265,18 @@ class MixinApplication extends Node {
 class NamedMixinApplication extends Node implements MixinApplication {
   final Identifier name;
   final NodeList typeParameters;
+
+  final Modifiers modifiers;
   final MixinApplication mixinApplication;
+  final NodeList interfaces;
 
   final Token typedefKeyword;
   final Token endToken;
 
-  NamedMixinApplication(this.name, this.typeParameters, this.mixinApplication,
+  NamedMixinApplication(this.name, this.typeParameters,
+                        this.modifiers, this.mixinApplication, this.interfaces,
                         this.typedefKeyword, this.endToken);
 
-  Modifiers get modifiers => mixinApplication.modifiers;
   TypeAnnotation get superclass => mixinApplication.superclass;
   NodeList get mixins => mixinApplication.mixins;
 
@@ -287,6 +288,8 @@ class NamedMixinApplication extends Node implements MixinApplication {
   visitChildren(Visitor visitor) {
     name.accept(visitor);
     if (typeParameters != null) typeParameters.accept(visitor);
+    if (modifiers != null) modifiers.accept(visitor);
+    if (interfaces != null) interfaces.accept(visitor);
     mixinApplication.accept(visitor);
   }
 

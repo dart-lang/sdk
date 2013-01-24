@@ -172,7 +172,9 @@ class Listener {
   void beginNamedMixinApplication(Token token) {
   }
 
-  void endNamedMixinApplication(Token typedefKeyword, Token endToken) {
+  void endNamedMixinApplication(Token typedefKeyword,
+                                Token implementsKeyword,
+                                Token endToken) {
   }
 
   void beginHide(Token hideKeyword) {
@@ -826,26 +828,30 @@ class ElementListener extends Listener {
     rejectBuiltInIdentifier(name);
   }
 
-  void endNamedMixinApplication(Token typedefKeyword, Token endToken) {
+  void endNamedMixinApplication(Token typedefKeyword,
+                                Token implementsKeyword,
+                                Token endToken) {
+    NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
     MixinApplication mixinApplication = popNode();
+    Modifiers modifiers = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     NamedMixinApplication namedMixinApplication = new NamedMixinApplication(
-        name, typeParameters, mixinApplication, typedefKeyword, endToken);
+        name, typeParameters, modifiers, mixinApplication, interfaces,
+        typedefKeyword, endToken);
 
     int id = idGenerator();
     Element enclosing = compilationUnitElement;
     pushElement(new MixinApplicationElementX(name.source, enclosing, id,
                                              namedMixinApplication,
-                                             mixinApplication.modifiers));
+                                             modifiers));
     rejectBuiltInIdentifier(name);
   }
 
   void endMixinApplication() {
     NodeList mixins = popNode();
     TypeAnnotation superclass = popNode();
-    Modifiers modifiers = popNode();
-    pushNode(new MixinApplication(modifiers, superclass, mixins));
+    pushNode(new MixinApplication(superclass, mixins));
   }
 
   void handleVoidKeyword(Token token) {
@@ -1214,11 +1220,17 @@ class NodeListener extends ElementListener {
                          typedefKeyword, endToken));
   }
 
-  void endNamedMixinApplication(Token typedefKeyword, Token endToken) {
+  void endNamedMixinApplication(Token typedefKeyword,
+                                Token implementsKeyword,
+                                Token endToken) {
+    NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
     Node mixinApplication = popNode();
+    Modifiers modifiers = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
-    pushNode(new NamedMixinApplication(name, typeParameters, mixinApplication,
+    pushNode(new NamedMixinApplication(name, typeParameters,
+                                       modifiers, mixinApplication,
+                                       interfaces,
                                        typedefKeyword, endToken));
   }
 
