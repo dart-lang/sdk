@@ -84,6 +84,7 @@ class AbstractWorker extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   AbstractWorkerEvents get on =>
     new AbstractWorkerEvents(this);
 
@@ -93,7 +94,7 @@ class AbstractWorker extends EventTarget {
 
   @DomName('AbstractWorker.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "AbstractWorker_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "AbstractWorker_dispatchEvent_Callback";
 
   @DomName('AbstractWorker.removeEventListener')
   @DocsEditable
@@ -106,6 +107,7 @@ class AbstractWorker extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class AbstractWorkerEvents extends Events {
   @DocsEditable
   AbstractWorkerEvents(EventTarget _ptr) : super(_ptr);
@@ -336,6 +338,7 @@ class ApplicationCache extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   ApplicationCacheEvents get on =>
     new ApplicationCacheEvents(this);
 
@@ -365,7 +368,7 @@ class ApplicationCache extends EventTarget {
 
   @DomName('DOMApplicationCache.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "DOMApplicationCache_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "DOMApplicationCache_dispatchEvent_Callback";
 
   @DomName('DOMApplicationCache.removeEventListener')
   @DocsEditable
@@ -414,6 +417,7 @@ class ApplicationCache extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class ApplicationCacheEvents extends Events {
   @DocsEditable
   ApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
@@ -736,6 +740,7 @@ class BatteryManager extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   BatteryManagerEvents get on =>
     new BatteryManagerEvents(this);
 
@@ -761,7 +766,7 @@ class BatteryManager extends EventTarget {
 
   @DomName('BatteryManager.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "BatteryManager_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "BatteryManager_dispatchEvent_Callback";
 
   @DomName('BatteryManager.removeEventListener')
   @DocsEditable
@@ -786,6 +791,7 @@ class BatteryManager extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class BatteryManagerEvents extends Events {
   @DocsEditable
   BatteryManagerEvents(EventTarget _ptr) : super(_ptr);
@@ -948,6 +954,7 @@ class BodyElement extends _Element_Merged {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   BodyElementEvents get on =>
     new BodyElementEvents(this);
 
@@ -1006,6 +1013,7 @@ class BodyElement extends _Element_Merged {
 }
 
 @DocsEditable
+@deprecated
 class BodyElementEvents extends ElementEvents {
   @DocsEditable
   BodyElementEvents(EventTarget _ptr) : super(_ptr);
@@ -6693,6 +6701,7 @@ class DedicatedWorkerContext extends WorkerContext {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
@@ -6707,6 +6716,7 @@ class DedicatedWorkerContext extends WorkerContext {
 }
 
 @DocsEditable
+@deprecated
 class DedicatedWorkerContextEvents extends WorkerContextEvents {
   @DocsEditable
   DedicatedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
@@ -6947,6 +6957,7 @@ class Document extends Node
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   DocumentEvents get on =>
     new DocumentEvents(this);
 
@@ -7422,6 +7433,7 @@ class Document extends Node
 }
 
 @DocsEditable
+@deprecated
 class DocumentEvents extends ElementEvents {
   @DocsEditable
   DocumentEvents(EventTarget _ptr) : super(_ptr);
@@ -7706,6 +7718,7 @@ class DocumentFragment extends Node {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   ElementEvents get on =>
     new ElementEvents(this);
 
@@ -9687,6 +9700,7 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   ElementEvents get on =>
     new ElementEvents(this);
 
@@ -10283,6 +10297,7 @@ class _ElementFactoryProvider {
 }
 
 @DocsEditable
+@deprecated
 class ElementEvents extends Events {
   @DocsEditable
   ElementEvents(EventTarget _ptr) : super(_ptr);
@@ -10962,6 +10977,7 @@ class EventSource extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   EventSourceEvents get on =>
     new EventSourceEvents(this);
 
@@ -10993,7 +11009,7 @@ class EventSource extends EventTarget {
 
   @DomName('EventSource.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "EventSource_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "EventSource_dispatchEvent_Callback";
 
   @DomName('EventSource.removeEventListener')
   @DocsEditable
@@ -11014,6 +11030,7 @@ class EventSource extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class EventSourceEvents extends Events {
   @DocsEditable
   EventSourceEvents(EventTarget _ptr) : super(_ptr);
@@ -11081,7 +11098,7 @@ class EventListenerList {
   }
 
   bool dispatch(Event evt) {
-    return _ptr.$dom_dispatchEvent(evt);
+    return _ptr.dispatchEvent(evt);
   }
 
   void _add(EventListener listener, bool useCapture) {
@@ -11114,7 +11131,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 
   @DomName('EventTarget.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "EventTarget_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "EventTarget_dispatchEvent_Callback";
 
   @DomName('EventTarget.removeEventListener')
   @DocsEditable
@@ -11609,6 +11626,7 @@ class FileReader extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   FileReaderEvents get on =>
     new FileReaderEvents(this);
 
@@ -11640,7 +11658,7 @@ class FileReader extends EventTarget {
 
   @DomName('FileReader.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "FileReader_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "FileReader_dispatchEvent_Callback";
 
   @DomName('FileReader.readAsArrayBuffer')
   @DocsEditable
@@ -11702,6 +11720,7 @@ class FileReader extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class FileReaderEvents extends Events {
   @DocsEditable
   FileReaderEvents(EventTarget _ptr) : super(_ptr);
@@ -11859,6 +11878,7 @@ class FileWriter extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   FileWriterEvents get on =>
     new FileWriterEvents(this);
 
@@ -11894,7 +11914,7 @@ class FileWriter extends EventTarget {
 
   @DomName('FileWriter.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "FileWriter_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "FileWriter_dispatchEvent_Callback";
 
   @DomName('FileWriter.removeEventListener')
   @DocsEditable
@@ -11939,6 +11959,7 @@ class FileWriter extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class FileWriterEvents extends Events {
   @DocsEditable
   FileWriterEvents(EventTarget _ptr) : super(_ptr);
@@ -13503,6 +13524,7 @@ class HttpRequest extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   HttpRequestEvents get on =>
     new HttpRequestEvents(this);
 
@@ -13570,7 +13592,7 @@ class HttpRequest extends EventTarget {
 
   @DomName('XMLHttpRequest.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "XMLHttpRequest_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "XMLHttpRequest_dispatchEvent_Callback";
 
   @DomName('XMLHttpRequest.getAllResponseHeaders')
   @DocsEditable
@@ -13631,6 +13653,7 @@ class HttpRequest extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class HttpRequestEvents extends Events {
   @DocsEditable
   HttpRequestEvents(EventTarget _ptr) : super(_ptr);
@@ -13748,6 +13771,7 @@ class HttpRequestUpload extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   HttpRequestUploadEvents get on =>
     new HttpRequestUploadEvents(this);
 
@@ -13757,7 +13781,7 @@ class HttpRequestUpload extends EventTarget {
 
   @DomName('XMLHttpRequestUpload.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "XMLHttpRequestUpload_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "XMLHttpRequestUpload_dispatchEvent_Callback";
 
   @DomName('XMLHttpRequestUpload.removeEventListener')
   @DocsEditable
@@ -13790,6 +13814,7 @@ class HttpRequestUpload extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class HttpRequestUploadEvents extends Events {
   @DocsEditable
   HttpRequestUploadEvents(EventTarget _ptr) : super(_ptr);
@@ -14074,6 +14099,7 @@ class InputElement extends _Element_Merged implements
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   InputElementEvents get on =>
     new InputElementEvents(this);
 
@@ -15100,6 +15126,7 @@ abstract class ButtonInputElement implements InputElementBase {
 
 
 @DocsEditable
+@deprecated
 class InputElementEvents extends ElementEvents {
   @DocsEditable
   InputElementEvents(EventTarget _ptr) : super(_ptr);
@@ -16394,7 +16421,7 @@ class MediaController extends EventTarget {
 
   @DomName('MediaController.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "MediaController_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "MediaController_dispatchEvent_Callback";
 
   @DomName('MediaController.pause')
   @DocsEditable
@@ -16527,6 +16554,7 @@ class MediaElement extends _Element_Merged {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   MediaElementEvents get on =>
     new MediaElementEvents(this);
 
@@ -16915,6 +16943,7 @@ class MediaElement extends _Element_Merged {
 }
 
 @DocsEditable
+@deprecated
 class MediaElementEvents extends ElementEvents {
   @DocsEditable
   MediaElementEvents(EventTarget _ptr) : super(_ptr);
@@ -17220,7 +17249,7 @@ class MediaSource extends EventTarget {
 
   @DomName('MediaSource.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "MediaSource_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "MediaSource_dispatchEvent_Callback";
 
   @DomName('MediaSource.endOfStream')
   @DocsEditable
@@ -17255,6 +17284,7 @@ class MediaStream extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   MediaStreamEvents get on =>
     new MediaStreamEvents(this);
 
@@ -17280,7 +17310,7 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
 
   @DomName('MediaStream.getAudioTracks')
   @DocsEditable
@@ -17318,6 +17348,7 @@ class MediaStream extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class MediaStreamEvents extends Events {
   @DocsEditable
   MediaStreamEvents(EventTarget _ptr) : super(_ptr);
@@ -17377,6 +17408,7 @@ class MediaStreamTrack extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
 
@@ -17416,7 +17448,7 @@ class MediaStreamTrack extends EventTarget {
 
   @DomName('MediaStreamTrack.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "MediaStreamTrack_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "MediaStreamTrack_dispatchEvent_Callback";
 
   @DomName('MediaStreamTrack.removeEventListener')
   @DocsEditable
@@ -17437,6 +17469,7 @@ class MediaStreamTrack extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class MediaStreamTrackEvents extends Events {
   @DocsEditable
   MediaStreamTrackEvents(EventTarget _ptr) : super(_ptr);
@@ -17602,6 +17635,7 @@ class MessagePort extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   MessagePortEvents get on =>
     new MessagePortEvents(this);
 
@@ -17615,7 +17649,7 @@ class MessagePort extends EventTarget {
 
   @DomName('MessagePort.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "MessagePort_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "MessagePort_dispatchEvent_Callback";
 
   @DomName('MessagePort.postMessage')
   @DocsEditable
@@ -17636,6 +17670,7 @@ class MessagePort extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class MessagePortEvents extends Events {
   @DocsEditable
   MessagePortEvents(EventTarget _ptr) : super(_ptr);
@@ -18852,7 +18887,7 @@ class Node extends EventTarget {
 
   @DomName('Node.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "Node_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "Node_dispatchEvent_Callback";
 
   @DomName('Node.hasChildNodes')
   @DocsEditable
@@ -19233,6 +19268,7 @@ class Notification extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   NotificationEvents get on =>
     new NotificationEvents(this);
 
@@ -19278,7 +19314,7 @@ class Notification extends EventTarget {
 
   @DomName('Notification.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "Notification_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "Notification_dispatchEvent_Callback";
 
   @DomName('Notification.removeEventListener')
   @DocsEditable
@@ -19315,6 +19351,7 @@ class Notification extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class NotificationEvents extends Events {
   @DocsEditable
   NotificationEvents(EventTarget _ptr) : super(_ptr);
@@ -20641,6 +20678,7 @@ class RtcDataChannel extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   RtcDataChannelEvents get on =>
     new RtcDataChannelEvents(this);
 
@@ -20678,7 +20716,7 @@ class RtcDataChannel extends EventTarget {
 
   @DomName('RTCDataChannel.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "RTCDataChannel_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "RTCDataChannel_dispatchEvent_Callback";
 
   @DomName('RTCDataChannel.removeEventListener')
   @DocsEditable
@@ -20739,6 +20777,7 @@ class RtcDataChannel extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class RtcDataChannelEvents extends Events {
   @DocsEditable
   RtcDataChannelEvents(EventTarget _ptr) : super(_ptr);
@@ -20873,6 +20912,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   RtcPeerConnectionEvents get on =>
     new RtcPeerConnectionEvents(this);
 
@@ -20934,7 +20974,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
 
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable
@@ -20995,6 +21035,7 @@ class RtcPeerConnection extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class RtcPeerConnectionEvents extends Events {
   @DocsEditable
   RtcPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
@@ -21644,6 +21685,7 @@ class SharedWorkerContext extends WorkerContext {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   SharedWorkerContextEvents get on =>
     new SharedWorkerContextEvents(this);
 
@@ -21658,6 +21700,7 @@ class SharedWorkerContext extends WorkerContext {
 }
 
 @DocsEditable
+@deprecated
 class SharedWorkerContextEvents extends WorkerContextEvents {
   @DocsEditable
   SharedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
@@ -21895,7 +21938,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
   @DomName('SourceBufferList.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "SourceBufferList_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "SourceBufferList_dispatchEvent_Callback";
 
   @DomName('SourceBufferList.item')
   @DocsEditable
@@ -22334,6 +22377,7 @@ class SpeechRecognition extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   SpeechRecognitionEvents get on =>
     new SpeechRecognitionEvents(this);
 
@@ -22387,7 +22431,7 @@ class SpeechRecognition extends EventTarget {
 
   @DomName('SpeechRecognition.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "SpeechRecognition_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "SpeechRecognition_dispatchEvent_Callback";
 
   @DomName('SpeechRecognition.removeEventListener')
   @DocsEditable
@@ -22448,6 +22492,7 @@ class SpeechRecognition extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class SpeechRecognitionEvents extends Events {
   @DocsEditable
   SpeechRecognitionEvents(EventTarget _ptr) : super(_ptr);
@@ -23767,6 +23812,7 @@ class TextTrack extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   TextTrackEvents get on =>
     new TextTrackEvents(this);
 
@@ -23808,7 +23854,7 @@ class TextTrack extends EventTarget {
 
   @DomName('TextTrack.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "TextTrack_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "TextTrack_dispatchEvent_Callback";
 
   @DomName('TextTrack.removeCue')
   @DocsEditable
@@ -23825,6 +23871,7 @@ class TextTrack extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class TextTrackEvents extends Events {
   @DocsEditable
   TextTrackEvents(EventTarget _ptr) : super(_ptr);
@@ -23858,6 +23905,7 @@ class TextTrackCue extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   TextTrackCueEvents get on =>
     new TextTrackCueEvents(this);
 
@@ -23959,7 +24007,7 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "TextTrackCue_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "TextTrackCue_dispatchEvent_Callback";
 
   @DomName('TextTrackCue.getCueAsHTML')
   @DocsEditable
@@ -23980,6 +24028,7 @@ class TextTrackCue extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class TextTrackCueEvents extends Events {
   @DocsEditable
   TextTrackCueEvents(EventTarget _ptr) : super(_ptr);
@@ -24208,6 +24257,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   TextTrackListEvents get on =>
     new TextTrackListEvents(this);
 
@@ -24396,7 +24446,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   @DomName('TextTrackList.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "TextTrackList_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "TextTrackList_dispatchEvent_Callback";
 
   @DomName('TextTrackList.item')
   @DocsEditable
@@ -24413,6 +24463,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 }
 
 @DocsEditable
+@deprecated
 class TextTrackListEvents extends Events {
   @DocsEditable
   TextTrackListEvents(EventTarget _ptr) : super(_ptr);
@@ -27824,7 +27875,7 @@ class WebKitNamedFlow extends EventTarget {
 
   @DomName('WebKitNamedFlow.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
+  bool dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
 
   @DomName('WebKitNamedFlow.getContent')
   @DocsEditable
@@ -27884,6 +27935,7 @@ class WebSocket extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   WebSocketEvents get on =>
     new WebSocketEvents(this);
 
@@ -27958,7 +28010,7 @@ class WebSocket extends EventTarget {
 
   @DomName('WebSocket.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "WebSocket_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "WebSocket_dispatchEvent_Callback";
 
   @DomName('WebSocket.removeEventListener')
   @DocsEditable
@@ -27987,6 +28039,7 @@ class WebSocket extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class WebSocketEvents extends Events {
   @DocsEditable
   WebSocketEvents(EventTarget _ptr) : super(_ptr);
@@ -28173,6 +28226,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   WindowEvents get on =>
     new WindowEvents(this);
 
@@ -28440,7 +28494,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
 
   @DomName('DOMWindow.find')
   @DocsEditable
@@ -28781,6 +28835,7 @@ class Window extends EventTarget implements WindowBase {
 }
 
 @DocsEditable
+@deprecated
 class WindowEvents extends Events {
   @DocsEditable
   WindowEvents(EventTarget _ptr) : super(_ptr);
@@ -29029,6 +29084,7 @@ class Worker extends AbstractWorker {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   WorkerEvents get on =>
     new WorkerEvents(this);
 
@@ -29047,6 +29103,7 @@ class Worker extends AbstractWorker {
 }
 
 @DocsEditable
+@deprecated
 class WorkerEvents extends AbstractWorkerEvents {
   @DocsEditable
   WorkerEvents(EventTarget _ptr) : super(_ptr);
@@ -29072,6 +29129,7 @@ class WorkerContext extends EventTarget {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   WorkerContextEvents get on =>
     new WorkerContextEvents(this);
 
@@ -29121,7 +29179,7 @@ class WorkerContext extends EventTarget {
 
   @DomName('WorkerContext.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native "WorkerContext_dispatchEvent_Callback";
+  bool dispatchEvent(Event evt) native "WorkerContext_dispatchEvent_Callback";
 
   @DomName('WorkerContext.importScripts')
   @DocsEditable
@@ -29178,6 +29236,7 @@ class WorkerContext extends EventTarget {
 }
 
 @DocsEditable
+@deprecated
 class WorkerContextEvents extends Events {
   @DocsEditable
   WorkerContextEvents(EventTarget _ptr) : super(_ptr);
@@ -30698,12 +30757,14 @@ class _FrameSetElement extends _Element_Merged {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   _FrameSetElementEvents get on =>
     new _FrameSetElementEvents(this);
 
 }
 
 @DocsEditable
+@deprecated
 class _FrameSetElementEvents extends ElementEvents {
   @DocsEditable
   _FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
@@ -34171,7 +34232,7 @@ get _isolateId => ReceivePortSync._isolateId;
 void _dispatchEvent(String receiver, var message) {
   var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
     detail: json.stringify(message));
-  window.$dom_dispatchEvent(event);
+  window.dispatchEvent(event);
 }
 
 String _getPortSyncEventData(CustomEvent event) => event.detail;

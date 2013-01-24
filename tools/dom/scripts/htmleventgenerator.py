@@ -541,6 +541,7 @@ class HtmlEventGenerator(object):
     template = (self._template_loader.TryLoad(template_file) or
         '\n'
         '@DocsEditable\n'
+        '@deprecated\n'
         'class $CLASSNAME extends $SUPER {\n'
         '  @DocsEditable\n'
         '  $CLASSNAME(EventTarget _ptr) : super(_ptr);\n'

@@ -10,7 +10,7 @@ main() {
     final event = new Event('Event');
     // Intentionally do not initialize it!
     try {
-      document.$dom_dispatchEvent(event);
+      document.dispatchEvent(event);
     } on EventException catch (e) {
       expect(e.name, DomException.UNSPECIFIED_EVENT_TYPE);
     }

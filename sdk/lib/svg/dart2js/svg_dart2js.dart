@@ -1195,6 +1195,7 @@ class ElementInstance extends EventTarget native "*SVGElementInstance" {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   ElementInstanceEvents get on =>
     new ElementInstanceEvents(this);
 
@@ -1394,6 +1395,7 @@ class ElementInstance extends EventTarget native "*SVGElementInstance" {
 }
 
 @DocsEditable
+@deprecated
 class ElementInstanceEvents extends Events {
   @DocsEditable
   ElementInstanceEvents(EventTarget _ptr) : super(_ptr);

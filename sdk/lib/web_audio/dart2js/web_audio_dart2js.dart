@@ -185,6 +185,7 @@ class AudioContext extends EventTarget native "*AudioContext" {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   AudioContextEvents get on =>
     new AudioContextEvents(this);
 
@@ -313,6 +314,7 @@ class AudioContext extends EventTarget native "*AudioContext" {
 }
 
 @DocsEditable
+@deprecated
 class AudioContextEvents extends Events {
   @DocsEditable
   AudioContextEvents(EventTarget _ptr) : super(_ptr);

@@ -53,7 +53,7 @@ class EventListenerList {
   }
 
   bool dispatch(Event evt) {
-    return _ptr.$dom_dispatchEvent(evt);
+    return _ptr.dispatchEvent(evt);
   }
 
   void _add(EventListener listener, bool useCapture) {

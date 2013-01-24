@@ -4,6 +4,7 @@
 
 part of html;
 
+@deprecated
 class $CLASSNAME extends $SUPER {
   $CLASSNAME(EventTarget _ptr) : super(_ptr);
 $!MEMBERS

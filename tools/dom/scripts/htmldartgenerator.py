@@ -42,6 +42,7 @@ class HtmlDartGenerator(object):
         "\n  @DocsEditable"
         "\n  @DomName('EventTarget.addEventListener, "
         "EventTarget.removeEventListener, EventTarget.dispatchEvent')"
+        "\n  @deprecated"
         "\n  $TYPE get on =>\n    new $TYPE(this);\n",
         TYPE=events_class_name)
 

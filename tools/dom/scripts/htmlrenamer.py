@@ -112,7 +112,6 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'ElementTraversal.lastElementChild',
   'Event.initEvent',
   'EventTarget.addEventListener',
-  'EventTarget.dispatchEvent',
   'EventTarget.removeEventListener',
   'HashChangeEvent.initHashChangeEvent',
   'KeyboardEvent.initKeyboardEvent',

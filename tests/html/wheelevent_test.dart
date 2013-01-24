@@ -39,7 +39,7 @@ main() {
       deltaX: 0,
       deltaY: 240,
       screenX: 100);
-    element.$dom_dispatchEvent(event);
+    element.dispatchEvent(event);
   });
 
   test('wheelEvent Stream', () {
@@ -53,6 +53,6 @@ main() {
       deltaX: 0,
       deltaY: 240,
       screenX: 100);
-    element.$dom_dispatchEvent(event);
+    element.dispatchEvent(event);
   });
 }

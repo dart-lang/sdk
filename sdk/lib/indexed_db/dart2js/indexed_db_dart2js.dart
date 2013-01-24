@@ -249,6 +249,7 @@ class Database extends EventTarget native "*IDBDatabase" {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   DatabaseEvents get on =>
     new DatabaseEvents(this);
 
@@ -295,10 +296,9 @@ class Database extends EventTarget native "*IDBDatabase" {
   @DocsEditable
   void deleteObjectStore(String name) native;
 
-  @JSName('dispatchEvent')
   @DomName('IDBDatabase.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native;
+  bool dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
   @DomName('IDBDatabase.removeEventListener')
@@ -319,6 +319,7 @@ class Database extends EventTarget native "*IDBDatabase" {
 }
 
 @DocsEditable
+@deprecated
 class DatabaseEvents extends Events {
   @DocsEditable
   DatabaseEvents(EventTarget _ptr) : super(_ptr);
@@ -996,6 +997,7 @@ class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBReq
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   OpenDBRequestEvents get on =>
     new OpenDBRequestEvents(this);
 
@@ -1009,6 +1011,7 @@ class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBReq
 }
 
 @DocsEditable
+@deprecated
 class OpenDBRequestEvents extends RequestEvents {
   @DocsEditable
   OpenDBRequestEvents(EventTarget _ptr) : super(_ptr);
@@ -1038,6 +1041,7 @@ class Request extends EventTarget native "*IDBRequest" {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   RequestEvents get on =>
     new RequestEvents(this);
 
@@ -1074,10 +1078,9 @@ class Request extends EventTarget native "*IDBRequest" {
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @JSName('dispatchEvent')
   @DomName('IDBRequest.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native;
+  bool dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
   @DomName('IDBRequest.removeEventListener')
@@ -1094,6 +1097,7 @@ class Request extends EventTarget native "*IDBRequest" {
 }
 
 @DocsEditable
+@deprecated
 class RequestEvents extends Events {
   @DocsEditable
   RequestEvents(EventTarget _ptr) : super(_ptr);
@@ -1127,6 +1131,7 @@ class Transaction extends EventTarget native "*IDBTransaction" {
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   TransactionEvents get on =>
     new TransactionEvents(this);
 
@@ -1155,10 +1160,9 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @JSName('dispatchEvent')
   @DomName('IDBTransaction.dispatchEvent')
   @DocsEditable
-  bool $dom_dispatchEvent(Event evt) native;
+  bool dispatchEvent(Event evt) native;
 
   @DomName('IDBTransaction.objectStore')
   @DocsEditable
@@ -1183,6 +1187,7 @@ class Transaction extends EventTarget native "*IDBTransaction" {
 }
 
 @DocsEditable
+@deprecated
 class TransactionEvents extends Events {
   @DocsEditable
   TransactionEvents(EventTarget _ptr) : super(_ptr);
@@ -1241,6 +1246,7 @@ class VersionChangeRequest extends Request implements EventTarget native "*IDBVe
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
   VersionChangeRequestEvents get on =>
     new VersionChangeRequestEvents(this);
 
@@ -1250,6 +1256,7 @@ class VersionChangeRequest extends Request implements EventTarget native "*IDBVe
 }
 
 @DocsEditable
+@deprecated
 class VersionChangeRequestEvents extends RequestEvents {
   @DocsEditable
   VersionChangeRequestEvents(EventTarget _ptr) : super(_ptr);

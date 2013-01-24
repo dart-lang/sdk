@@ -219,7 +219,7 @@ get _isolateId => ReceivePortSync._isolateId;
 void _dispatchEvent(String receiver, var message) {
   var event = new CustomEvent(receiver, canBubble: false, cancelable:false,
     detail: json.stringify(message));
-  window.$dom_dispatchEvent(event);
+  window.dispatchEvent(event);
 }
 
 String _getPortSyncEventData(CustomEvent event) => event.detail;
