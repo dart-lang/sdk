@@ -11,6 +11,7 @@ library html_diff;
 import 'dart:io';
 import 'dart:async';
 import '../../sdk/lib/html/html_common/metadata.dart';
+import 'lib/metadata.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
@@ -152,7 +153,7 @@ class HtmlDiff {
   List<String> htmlToDomTypes(ClassMirror htmlType) {
     if (htmlType.simpleName == null) return <String>[];
 
-    final domNameMetadata = _findMetadata(htmlType.metadata, 'DomName');
+    final domNameMetadata = findMetadata(htmlType.metadata, 'DomName');
     if (domNameMetadata != null) {
       var domNames = <String>[];
       var tags = deprecatedFutureValue(domNameMetadata.getField('name'));
@@ -176,7 +177,7 @@ class HtmlDiff {
   Set<String> htmlToDomMembers(MemberMirror htmlMember, List<String> domTypes) {
     if (htmlMember.isPrivate) return new Set();
 
-    final domNameMetadata = _findMetadata(htmlMember.metadata, 'DomName');
+    final domNameMetadata = findMetadata(htmlMember.metadata, 'DomName');
     if (domNameMetadata != null) {
       var domNames = <String>[];
       var tags = deprecatedFutureValue(domNameMetadata.getField('name'));
@@ -233,12 +234,4 @@ class HtmlDiff {
     }
     return new Set.from([name]);
   }
-
-}
-
-/// Returns the metadata for the given string or null if not found.
-InstanceMirror _findMetadata(List<InstanceMirror> metadataList, String find) {
-  return metadataList.firstMatching(
-      (metadata) => metadata.type.simpleName == find,
-      orElse: () => null);
 }

@@ -26,6 +26,7 @@ library html_to_json;
 
 import 'dart:json';
 import 'dart:io';
+import 'dart:async';
 
 
 /// True if any errors were triggered through the conversion.
