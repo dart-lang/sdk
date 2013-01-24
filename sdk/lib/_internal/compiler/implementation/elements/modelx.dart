@@ -507,8 +507,8 @@ class CompilationUnitElementX extends ElementX
     partTag = tag;
     LibraryName libraryTag = getLibrary().libraryTag;
     if (libraryTag != null) {
-      String expectedName = tag.name.toString();
-      String actualName = libraryTag.name.toString();
+      String actualName = tag.name.toString();
+      String expectedName = libraryTag.name.toString();
       if (expectedName != actualName) {
         listener.reportMessage(
             listener.spanFromSpannable(tag.name),

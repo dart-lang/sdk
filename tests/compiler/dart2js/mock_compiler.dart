@@ -272,7 +272,7 @@ class MockCompiler extends Compiler {
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) => null;
 
-  Script readScript(Uri uri, [ScriptTag node]) {
+  Script readScript(Uri uri, [Node node]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
     if (sourceFile == null) throw new ArgumentError(uri);
     return new Script(uri, sourceFile);
