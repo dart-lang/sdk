@@ -479,7 +479,7 @@ $lazyInitializerLogic
     // the actual receiver.
     int extraArgumentCount = isInterceptorClass ? 1 : 0;
     // Use '$receiver' to avoid clashes with other parameter names. Using
-    // '$receiver' works because [JsNames.getValid] used for getting parameter
+    // '$receiver' works because [:namer.safeName:] used for getting parameter
     // names never returns a name beginning with a single '$'.
     String receiverArgumentName = r'$receiver';
 
@@ -504,7 +504,7 @@ $lazyInitializerLogic
         compiler.enqueuer.resolution.getCachedElements(member);
 
     parameters.orderedForEachParameter((Element element) {
-      String jsName = JsNames.getValid(element.name.slowToString());
+      String jsName = backend.namer.safeName(element.name.slowToString());
       assert(jsName != receiverArgumentName);
       int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
       if (count < optionalParameterStart) {

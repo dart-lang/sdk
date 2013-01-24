@@ -2997,6 +2997,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignSetCurrentIsolate(node);
     } else if (name == const SourceString('JS_CREATE_ISOLATE')) {
       handleForeignCreateIsolate(node);
+    } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')) {
+      stack.add(addConstantString(node, backend.namer.operatorIsPrefix()));
     } else {
       throw "Unknown foreign: ${selector}";
     }

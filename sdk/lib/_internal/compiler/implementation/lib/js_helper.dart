@@ -1035,12 +1035,12 @@ class Null {
 setRuntimeTypeInfo(target, typeInfo) {
   assert(typeInfo == null || isJsArray(typeInfo));
   // We have to check for null because factories may return null.
-  if (target != null) JS('var', r'#.builtin$typeInfo = #', target, typeInfo);
+  if (target != null) JS('var', r'#.$builtinTypeInfo = #', target, typeInfo);
 }
 
 getRuntimeTypeInfo(target) {
   if (target == null) return null;
-  var res = JS('var', r'#.builtin$typeInfo', target);
+  var res = JS('var', r'#.$builtinTypeInfo', target);
   // If the object does not have runtime type information, return an
   // empty literal, to avoid null checks.
   // TODO(ngeoffray): Make the object a top-level field to avoid
@@ -1444,7 +1444,7 @@ String joinArguments(var types, int startIndex) {
 
 String getRuntimeTypeString(var object) {
   String className = isJsArray(object) ? 'List' : getClassName(object);
-  var typeInfo = JS('var', r'#.builtin$typeInfo', object);
+  var typeInfo = JS('var', r'#.$builtinTypeInfo', object);
   if (typeInfo == null) return className;
   return "$className<${joinArguments(typeInfo, 0)}>";
 }
@@ -1472,7 +1472,7 @@ bool isSubtype(var s, var t) {
   // constructed from the type of [t].
   var typeOfS = isJsArray(s) ? s[0] : s;
   var typeOfT = isJsArray(t) ? t[0] : t;
-  var test = 'is\$${runtimeTypeToString(typeOfT)}';
+  var test = '${JS_OPERATOR_IS_PREFIX()}${runtimeTypeToString(typeOfT)}';
   if (JS('var', r'#[#]', typeOfS, test) == null) return false;
   // The class of [s] is a subclass of the class of [t]. If either of the types
   // is raw, [s] is a subtype of [t].

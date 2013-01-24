@@ -32,7 +32,6 @@ part 'builder.dart';
 part 'codegen.dart';
 part 'codegen_helpers.dart';
 part 'invoke_dynamic_specializers.dart';
-part 'js_names.dart';
 part 'nodes.dart';
 part 'optimize.dart';
 part 'types.dart';
