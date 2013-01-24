@@ -896,7 +896,7 @@ $if DART2JS
   /**
    * Checks if this element matches the CSS selectors.
    */
-  @Experimental()
+  @Experimental
   bool matches(String selectors) {
     if (JS('bool', '!!#.matches', this)) {
       return JS('bool', '#.matches(#)', this, selectors);

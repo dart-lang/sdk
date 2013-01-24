@@ -1689,7 +1689,7 @@ class Console {
 @DocsEditable
 @DomName('HTMLContentElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class ContentElement extends Element native "*HTMLContentElement" {
 
   @DocsEditable
@@ -5932,7 +5932,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class DetailsElement extends Element native "*HTMLDetailsElement" {
 
   @DocsEditable
@@ -8652,7 +8652,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   /**
    * Checks if this element matches the CSS selectors.
    */
-  @Experimental()
+  @Experimental
   bool matches(String selectors) {
     if (JS('bool', '!!#.matches', this)) {
       return JS('bool', '#.matches(#)', this, selectors);
@@ -9130,7 +9130,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DomName('Element.webkitCreateShadowRoot')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  @Experimental()
+  @Experimental
   ShadowRoot createShadowRoot() native;
 
   @DomName('Element.webkitRequestFullScreen')
@@ -12227,7 +12227,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
+  @Experimental
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
@@ -12618,7 +12618,7 @@ class HttpRequestException native "*XMLHttpRequestException" {
 @DomName('XMLHttpRequestProgressEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
 
   /// Checks if this type is supported on the current platform.
@@ -13429,7 +13429,7 @@ abstract class RangeInputElementBase implements InputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class DateTimeInputElement implements RangeInputElementBase {
   factory DateTimeInputElement() => new InputElement(type: 'datetime');
 
@@ -13454,7 +13454,7 @@ abstract class DateTimeInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
@@ -13479,7 +13479,7 @@ abstract class DateInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
@@ -13504,7 +13504,7 @@ abstract class MonthInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
@@ -13529,7 +13529,7 @@ abstract class WeekInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME)
-@Experimental()
+@Experimental
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
@@ -13555,7 +13555,7 @@ abstract class TimeInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
@@ -13578,7 +13578,7 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 abstract class NumberInputElement implements RangeInputElementBase {
   factory NumberInputElement() => new InputElement(type: 'number');
 
@@ -13605,7 +13605,7 @@ abstract class NumberInputElement implements RangeInputElementBase {
  */
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental()
+@Experimental
 abstract class RangeInputElement implements RangeInputElementBase {
   factory RangeInputElement() => new InputElement(type: 'range');
 
@@ -14518,7 +14518,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 @DomName('HTMLKeygenElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class KeygenElement extends Element native "*HTMLKeygenElement" {
 
   @DocsEditable
@@ -16279,7 +16279,7 @@ class MutationEvent extends Event native "*MutationEvent" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class MutationObserver native "*MutationObserver" {
 
   @DocsEditable
@@ -16681,7 +16681,7 @@ class Navigator native "*Navigator" {
    */
   @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   Future<LocalMediaStream> getUserMedia({bool audio: false,
       bool video: false}) {
     var completer = new Completer<LocalMediaStream>();
@@ -17641,7 +17641,7 @@ class NotificationEvents extends Events {
 @DomName('NotificationCenter')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class NotificationCenter native "*NotificationCenter" {
 
   /// Checks if this type is supported on the current platform.
@@ -19526,7 +19526,7 @@ class SelectElement extends Element native "*HTMLSelectElement" {
 @DocsEditable
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class ShadowElement extends Element native "*HTMLShadowElement" {
 
   /// Checks if this type is supported on the current platform.
@@ -19549,7 +19549,7 @@ class ShadowElement extends Element native "*HTMLShadowElement" {
 
 @DomName('ShadowRoot')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
   @DomName('ShadowRoot.activeElement')
@@ -20199,7 +20199,7 @@ class SpeechInputResult native "*SpeechInputResult" {
 
 @DomName('SpeechRecognition')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
   @DomName('SpeechRecognition.audioend')
@@ -20401,7 +20401,7 @@ class SpeechRecognitionEvents extends Events {
 @DocsEditable
 @DomName('SpeechRecognitionAlternative')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 
   @DomName('SpeechRecognitionAlternative.confidence')
@@ -20420,7 +20420,7 @@ class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 @DocsEditable
 @DomName('SpeechRecognitionError')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 
   @DomName('SpeechRecognitionError.error')
@@ -20439,7 +20439,7 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 @DocsEditable
 @DomName('SpeechRecognitionEvent')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 
   @DomName('SpeechRecognitionEvent.result')
@@ -20470,7 +20470,7 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 @DocsEditable
 @DomName('SpeechRecognitionResult')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognitionResult native "*SpeechRecognitionResult" {
 
   @DomName('SpeechRecognitionResult.isFinal')
@@ -25646,7 +25646,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental()
+  @Experimental
   IdbFactory get indexedDB =>
       JS('IdbFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
@@ -25937,7 +25937,7 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
+  @Experimental
   final NotificationCenter notifications;
 
   @DomName('DOMWindow.webkitStorageInfo')
@@ -26114,14 +26114,14 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DomName('DOMWindow.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
   @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
   @DomName('DOMWindow.DOMContentLoaded')
@@ -26718,28 +26718,28 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DomName('WorkerContext.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
   @JSName('webkitRequestFileSystemSync')
   @DomName('WorkerContext.webkitRequestFileSystemSync')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   FileSystemSync requestFileSystemSync(int type, int size) native;
 
   @JSName('webkitResolveLocalFileSystemSyncURL')
   @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   EntrySync resolveLocalFileSystemSyncUrl(String url) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
   @DomName('WorkerContext.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
   @DomName('WorkerContext.error')
@@ -26756,7 +26756,7 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental()
+  @Experimental
   IdbFactory get indexedDB =>
       JS('IdbFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',

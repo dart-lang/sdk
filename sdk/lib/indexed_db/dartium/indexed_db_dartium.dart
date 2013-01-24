@@ -120,7 +120,7 @@ class CursorWithValue extends Cursor {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental()
+@Experimental
 class Database extends EventTarget {
   Database.internal() : super.internal();
 
@@ -241,7 +241,7 @@ class DatabaseEvents extends Events {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental()
+@Experimental
 class IdbFactory extends NativeFieldWrapperClass1 {
   /**
    * Checks to see if Indexed DB is supported on the current platform.

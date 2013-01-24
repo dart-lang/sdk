@@ -214,7 +214,7 @@ class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental()
+@Experimental
 class Database extends EventTarget native "*IDBDatabase" {
 
   Transaction transaction(storeName_OR_storeNames, String mode) {
@@ -342,7 +342,7 @@ class DatabaseEvents extends Events {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental()
+@Experimental
 class IdbFactory native "*IDBFactory" {
   /**
    * Checks to see if Indexed DB is supported on the current platform.

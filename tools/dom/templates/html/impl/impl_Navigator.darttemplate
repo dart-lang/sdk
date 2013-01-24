@@ -32,7 +32,7 @@ $endif
    */
   @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   Future<LocalMediaStream> getUserMedia({bool audio: false,
       bool video: false}) {
     var completer = new Completer<LocalMediaStream>();

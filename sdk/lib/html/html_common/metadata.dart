@@ -38,9 +38,7 @@ class SupportedBrowser {
  *
  * * [W3C recommendation](http://en.wikipedia.org/wiki/W3C_recommendation)
  */
-class Experimental {
-  const Experimental();
-}
+class Experimental {}
 
 
 /**

@@ -656,19 +656,19 @@ dart2js_annotations = {
 # Placeholder to add experimental flag, implementation for this is
 # pending in a separate CL.
 dart_annotations = {
-  'Element.webkitMatchesSelector': ['@Experimental()'],
+  'Element.webkitMatchesSelector': ['@Experimental'],
 }
 
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX, '15')",
   "@SupportedBrowser(SupportedBrowser.IE, '10')",
-  "@Experimental()",
+  "@Experimental",
 ]
 
 _file_system_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
-  "@Experimental()",
+  "@Experimental",
 ]
 
 _all_but_ie9_annotations = [
@@ -681,7 +681,7 @@ _all_but_ie9_annotations = [
 _webkit_experimental_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  "@Experimental()",
+  "@Experimental",
 ]
 
 _history_annotations = _all_but_ie9_annotations
@@ -694,7 +694,7 @@ _performance_annotations = [
 
 _speech_recognition_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-  "@Experimental()",
+  "@Experimental",
 ]
 
 # Annotations to be placed on generated members.
@@ -718,7 +718,7 @@ dart_annotations = {
   'DOMWindow.webkitResolveLocalFileSystemURL': _file_system_annotations,
   'Element.webkitCreateShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental()",
+    "@Experimental",
   ],
   'FileSystem': _file_system_annotations,
   'FileSystemSync': _file_system_annotations,
@@ -731,7 +731,7 @@ dart_annotations = {
   'History.replaceState': _history_annotations,
   'HTMLContentElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental()",
+    "@Experimental",
   ],
   'HTMLDataListElement': _all_but_ie9_annotations,
   'HTMLDetailsElement': _webkit_experimental_annotations,
@@ -759,7 +759,7 @@ dart_annotations = {
   'HTMLProgressElement': _all_but_ie9_annotations,
   'HTMLShadowElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental()",
+    "@Experimental",
   ],
   'HTMLTrackElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
@@ -772,14 +772,14 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
-    "@Experimental()",
+    "@Experimental",
   ],
   'NotificationCenter': _webkit_experimental_annotations,
   'Performance': _performance_annotations,
   'PopStateEvent': _history_annotations,
   'ShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental()",
+    "@Experimental",
   ],
   'SpeechRecognition': _speech_recognition_annotations,
   'SpeechRecognitionAlternative': _speech_recognition_annotations,

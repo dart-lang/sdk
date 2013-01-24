@@ -2128,7 +2128,7 @@ class Console extends NativeFieldWrapperClass1 {
 @DocsEditable
 @DomName('HTMLContentElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class ContentElement extends _Element_Merged {
   ContentElement.internal() : super.internal();
 
@@ -6735,7 +6735,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class DetailsElement extends _Element_Merged {
   DetailsElement.internal() : super.internal();
 
@@ -9765,7 +9765,7 @@ abstract class Element extends Node implements ElementTraversal {
   @DomName('Element.webkitCreateShadowRoot')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  @Experimental()
+  @Experimental
   ShadowRoot createShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
 
   @DomName('Element.webkitMatchesSelector')
@@ -13118,7 +13118,7 @@ class HtmlDocument extends Document {
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
+  @Experimental
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
@@ -13536,7 +13536,7 @@ class HttpRequestException extends NativeFieldWrapperClass1 {
 @DomName('XMLHttpRequestProgressEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class HttpRequestProgressEvent extends ProgressEvent {
   HttpRequestProgressEvent.internal() : super.internal();
 
@@ -14629,7 +14629,7 @@ abstract class RangeInputElementBase implements InputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class DateTimeInputElement implements RangeInputElementBase {
   factory DateTimeInputElement() => new InputElement(type: 'datetime');
 
@@ -14654,7 +14654,7 @@ abstract class DateTimeInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
@@ -14679,7 +14679,7 @@ abstract class DateInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
@@ -14704,7 +14704,7 @@ abstract class MonthInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
@@ -14729,7 +14729,7 @@ abstract class WeekInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME)
-@Experimental()
+@Experimental
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
@@ -14755,7 +14755,7 @@ abstract class TimeInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
@@ -14778,7 +14778,7 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 abstract class NumberInputElement implements RangeInputElementBase {
   factory NumberInputElement() => new InputElement(type: 'number');
 
@@ -14805,7 +14805,7 @@ abstract class NumberInputElement implements RangeInputElementBase {
  */
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental()
+@Experimental
 abstract class RangeInputElement implements RangeInputElementBase {
   factory RangeInputElement() => new InputElement(type: 'range');
 
@@ -15765,7 +15765,7 @@ class KeyboardEvent extends UIEvent {
 @DomName('HTMLKeygenElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class KeygenElement extends _Element_Merged {
   KeygenElement.internal() : super.internal();
 
@@ -17842,7 +17842,7 @@ class MutationEvent extends Event {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class MutationObserver extends NativeFieldWrapperClass1 {
   MutationObserver.internal();
 
@@ -18230,7 +18230,7 @@ class Navigator extends NativeFieldWrapperClass1 {
    */
   @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   Future<LocalMediaStream> getUserMedia({bool audio: false,
       bool video: false}) {
     var completer = new Completer<LocalMediaStream>();
@@ -19201,7 +19201,7 @@ class NotificationEvents extends Events {
 @DomName('NotificationCenter')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 class NotificationCenter extends NativeFieldWrapperClass1 {
   NotificationCenter.internal();
 
@@ -21373,7 +21373,7 @@ class SelectElement extends _Element_Merged {
 @DocsEditable
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class ShadowElement extends _Element_Merged {
   ShadowElement.internal() : super.internal();
 
@@ -21402,7 +21402,7 @@ class ShadowElement extends _Element_Merged {
 
 @DomName('ShadowRoot')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class ShadowRoot extends DocumentFragment {
   ShadowRoot.internal() : super.internal();
 
@@ -22139,7 +22139,7 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 @DocsEditable
 @DomName('SpeechRecognition')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognition extends EventTarget {
   SpeechRecognition.internal() : super.internal();
 
@@ -22359,7 +22359,7 @@ class SpeechRecognitionEvents extends Events {
 @DocsEditable
 @DomName('SpeechRecognitionAlternative')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
   SpeechRecognitionAlternative.internal();
 
@@ -22382,7 +22382,7 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 @DocsEditable
 @DomName('SpeechRecognitionError')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognitionError extends Event {
   SpeechRecognitionError.internal() : super.internal();
 
@@ -22405,7 +22405,7 @@ class SpeechRecognitionError extends Event {
 @DocsEditable
 @DomName('SpeechRecognitionEvent')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognitionEvent extends Event {
   SpeechRecognitionEvent.internal() : super.internal();
 
@@ -22436,7 +22436,7 @@ class SpeechRecognitionEvent extends Event {
 @DocsEditable
 @DomName('SpeechRecognitionResult')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
   SpeechRecognitionResult.internal();
 
@@ -28106,7 +28106,7 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
   @SupportedBrowser(SupportedBrowser.IE, '10')
-  @Experimental()
+  @Experimental
   IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
 
   @DomName('DOMWindow.innerHeight')
@@ -28260,7 +28260,7 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
+  @Experimental
   NotificationCenter get notifications native "DOMWindow_webkitNotifications_Getter";
 
   @DomName('DOMWindow.webkitStorageInfo')
@@ -28426,13 +28426,13 @@ class Window extends EventTarget implements WindowBase {
   @DomName('DOMWindow.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   void requestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 
   @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
   @DomName('DOMWindow.DOMContentLoaded')
@@ -28961,7 +28961,7 @@ class WorkerContext extends EventTarget {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
   @SupportedBrowser(SupportedBrowser.IE, '10')
-  @Experimental()
+  @Experimental
   IdbFactory get indexedDB native "WorkerContext_indexedDB_Getter";
 
   @DomName('WorkerContext.location')
@@ -29027,25 +29027,25 @@ class WorkerContext extends EventTarget {
   @DomName('WorkerContext.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   void requestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
 
   @DomName('WorkerContext.webkitRequestFileSystemSync')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   FileSystemSync requestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
 
   @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   EntrySync resolveLocalFileSystemSyncUrl(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
 
   @DomName('WorkerContext.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
+  @Experimental
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
 
   @DomName('WorkerContext.error')
