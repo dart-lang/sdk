@@ -73,6 +73,13 @@ main() {
       }, expectation);
     });
 
+    test('popstatevent', () {
+      expect(() {
+        var event = new Event.eventType('PopStateEvent', 'popstate');
+        expect(event is PopStateEvent, true);
+      }, expectation);
+    });
+
     test('hashchangeevent', () {
       var expectation = HashChangeEvent.supported ? returnsNormally : throws;
       expect(() {

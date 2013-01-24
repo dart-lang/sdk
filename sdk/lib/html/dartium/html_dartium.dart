@@ -20116,6 +20116,10 @@ class Point extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('PopStateEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class PopStateEvent extends Event {
   PopStateEvent.internal() : super.internal();
 

@@ -776,6 +776,7 @@ dart_annotations = {
   ],
   'NotificationCenter': _webkit_experimental_annotations,
   'Performance': _performance_annotations,
+  'PopStateEvent': _history_annotations,
   'ShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental()",

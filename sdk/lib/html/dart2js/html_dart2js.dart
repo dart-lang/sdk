@@ -18417,6 +18417,10 @@ class Point native "*WebKitPoint" {
 
 @DocsEditable
 @DomName('PopStateEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class PopStateEvent extends Event native "*PopStateEvent" {
 
   dynamic get state => convertNativeToDart_SerializedScriptValue(this._state);
