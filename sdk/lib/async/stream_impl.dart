@@ -544,9 +544,9 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
     _nextLink = _previousLink = this;
   }
 
-  bool get isSingleSubscription => false;
+  bool get isBroadcast => true;
 
-  Stream<T> asMultiSubscriberStream() => this;
+  Stream<T> asBroadcastStream() => this;
 
   // ------------------------------------------------------------------
   // Helper functions that can be overridden in subclasses.

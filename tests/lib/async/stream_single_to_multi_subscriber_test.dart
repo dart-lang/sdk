@@ -13,7 +13,7 @@ import 'event_helper.dart';
 main() {
   test("tomulti 1", () {
     StreamController c = new StreamController<int>();
-    Stream<int> multi = c.stream.asMultiSubscriberStream();
+    Stream<int> multi = c.stream.asBroadcastStream();
     // Listen twice.
     multi.listen(expectAsync1((v) => Expect.equals(42, v)));
     multi.listen(expectAsync1((v) => Expect.equals(42, v)));
@@ -22,7 +22,7 @@ main() {
 
   test("tomulti 2", () {
     StreamController c = new StreamController<int>();
-    Stream<int> multi = c.stream.asMultiSubscriberStream();
+    Stream<int> multi = c.stream.asBroadcastStream();
     Events expected = new Events.fromIterable([1, 2, 3, 4, 5]);
     Events actual1 = new Events.capture(multi);
     Events actual2 = new Events.capture(multi);
@@ -36,8 +36,8 @@ main() {
   });
 
   test("tomulti no-op", () {
-    StreamController c = new StreamController<int>.multiSubscription();
-    Stream<int> multi = c.stream.asMultiSubscriberStream();
+    StreamController c = new StreamController<int>.broadcast();
+    Stream<int> multi = c.stream.asBroadcastStream();
     Events expected = new Events.fromIterable([1, 2, 3, 4, 5]);
     Events actual1 = new Events.capture(multi);
     Events actual2 = new Events.capture(multi);

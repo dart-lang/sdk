@@ -51,7 +51,9 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
 
   _ForwardingStream(this._source);
 
-  bool get isSingleSubscription => _source.isSingleSubscription;
+  bool get isBroadcast => _source.isBroadcast;
+
+  bool asBroadcastStream() => _source.asBroadcastStream;
 
   StreamSubscription listen(void onData(T value),
                             { void onError(AsyncError error),

@@ -202,7 +202,7 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller = new StreamController.multiSubscription();
+      controller = new StreamController.broadcast();
       stream = errorGroup.registerStream(controller.stream);
     });
 
@@ -341,8 +341,8 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller1 = new StreamController.multiSubscription();
-      controller2 = new StreamController.multiSubscription();
+      controller1 = new StreamController.broadcast();
+      controller2 = new StreamController.broadcast();
       stream1 = errorGroup.registerStream(controller1.stream);
       stream2 = errorGroup.registerStream(controller2.stream);
     });
@@ -396,7 +396,7 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller = new StreamController.multiSubscription();
+      controller = new StreamController.broadcast();
       stream = errorGroup.registerStream(controller.stream);
       completer = new Completer();
       future = errorGroup.registerFuture(completer.future);

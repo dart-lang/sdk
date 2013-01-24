@@ -18,13 +18,13 @@ main() {
   testMinMax(name, iterable, min, max, [int compare(a, b)]) {
     test("$name-min", () {
       StreamController c = new StreamController();
-      Future f = c.min(compare);
+      Future f = c.stream.min(compare);
       f.then(expectAsync1((v) { Expect.equals(min, v);}));
       new Events.fromIterable(iterable).replay(c);
     });
     test("$name-max", () {
       StreamController c = new StreamController();
-      Future f = c.max(compare);
+      Future f = c.stream.max(compare);
       f.then(expectAsync1((v) { Expect.equals(max, v);}));
       new Events.fromIterable(iterable).replay(c);
     });

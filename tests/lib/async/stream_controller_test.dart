@@ -10,58 +10,58 @@ import 'event_helper.dart';
 
 testMultiController() {
   // Test normal flow.
-  var c = new StreamController.multiSubscription();
+  var c = new StreamController.broadcast();
   Events expectedEvents = new Events()
       ..add(42)
       ..add("dibs")
       ..error("error!")
       ..error("error too!")
       ..close();
-  Events actualEvents = new Events.capture(c);
+  Events actualEvents = new Events.capture(c.stream);
   expectedEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test automatic unsubscription on error.
-  c = new StreamController.multiSubscription();
+  c = new StreamController.broadcast();
   expectedEvents = new Events()..add(42)..error("error");
-  actualEvents = new Events.capture(c, unsubscribeOnError: true);
+  actualEvents = new Events.capture(c.stream, unsubscribeOnError: true);
   Events sentEvents =
       new Events()..add(42)..error("error")..add("Are you there?");
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test manual unsubscription.
-  c = new StreamController.multiSubscription();
+  c = new StreamController.broadcast();
   expectedEvents = new Events()..add(42)..error("error")..add(37);
-  actualEvents = new Events.capture(c, unsubscribeOnError: false);
+  actualEvents = new Events.capture(c.stream, unsubscribeOnError: false);
   expectedEvents.replay(c);
   actualEvents.subscription.cancel();
   c.add("Are you there");  // Not sent to actualEvents.
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test filter.
-  c = new StreamController.multiSubscription();
+  c = new StreamController.broadcast();
   expectedEvents = new Events()
     ..add("a string")..add("another string")..close();
   sentEvents = new Events()
     ..add("a string")..add(42)..add("another string")..close();
-  actualEvents = new Events.capture(c.where((v) => v is String));
+  actualEvents = new Events.capture(c.stream.where((v) => v is String));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test map.
-  c = new StreamController.multiSubscription();
+  c = new StreamController.broadcast();
   expectedEvents = new Events()..add("abab")..error("error")..close();
   sentEvents = new Events()..add("ab")..error("error")..close();
-  actualEvents = new Events.capture(c.mappedBy((v) => "$v$v"));
+  actualEvents = new Events.capture(c.stream.mappedBy((v) => "$v$v"));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test handleError.
-  c = new StreamController.multiSubscription();
+  c = new StreamController.broadcast();
   expectedEvents = new Events()..add("ab")..error("[foo]");
   sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
-  actualEvents = new Events.capture(c.handleError((v) {
+  actualEvents = new Events.capture(c.stream.handleError((v) {
         if (v.error is String) {
           throw new AsyncError("[${v.error}]",
                                 "other stack");
@@ -73,13 +73,13 @@ testMultiController() {
   // reduce is tested asynchronously and therefore not in this file.
 
   // Test expand
-  c = new StreamController.multiSubscription();
+  c = new StreamController.broadcast();
   sentEvents = new Events()..add(3)..add(2)..add(4)..close();
   expectedEvents = new Events()..add(1)..add(2)..add(3)
                                ..add(1)..add(2)
                                ..add(1)..add(2)..add(3)..add(4)
                                ..close();
-  actualEvents = new Events.capture(c.expand((v) {
+  actualEvents = new Events.capture(c.stream.expand((v) {
     var l = [];
     for (int i = 0; i < v; i++) l.add(i + 1);
     return l;
@@ -88,22 +88,23 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test transform.
-  c = new StreamController.multiSubscription();
+  c = new StreamController.broadcast();
   sentEvents = new Events()..add("a")..error(42)..add("b")..close();
   expectedEvents =
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
-  actualEvents = new Events.capture(c.transform(new StreamTransformer.from(
-      onData: (v, s) { s.signalError(new AsyncError(v)); },
-      onError: (e, s) { s.add(e.error); },
-      onDone: (s) {
-        s.add("foo");
-        s.close();
-      })));
+  actualEvents = new Events.capture(c.stream.transform(
+      new StreamTransformer.from(
+          onData: (v, s) { s.signalError(new AsyncError(v)); },
+          onError: (e, s) { s.add(e.error); },
+          onDone: (s) {
+            s.add("foo");
+            s.close();
+          })));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test multiple filters.
-  c = new StreamController.multiSubscription();
+  c = new StreamController.broadcast();
   sentEvents = new Events()..add(42)
                            ..add("snugglefluffy")
                            ..add(7)
@@ -112,7 +113,7 @@ testMultiController() {
                            ..close();
   expectedEvents = new Events()..add(42)..error("not FormatException");
   actualEvents = new Events.capture(
-      c.where((v) => v is String)
+      c.stream.where((v) => v is String)
        .mappedBy((v) => int.parse(v))
        .handleError((v) {
           if (v.error is! FormatException) throw v;
@@ -123,7 +124,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test subscription changes while firing.
-  c = new StreamController.multiSubscription();
+  c = new StreamController.broadcast();
   var sink = c.sink;
   var stream = c.stream;
   var counter = 0;
@@ -157,14 +158,14 @@ testSingleController() {
       ..error("error!")
       ..error("error too!")
       ..close();
-  Events actualEvents = new Events.capture(c);
+  Events actualEvents = new Events.capture(c.stream);
   expectedEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test automatic unsubscription on error.
   c = new StreamController();
   expectedEvents = new Events()..add(42)..error("error");
-  actualEvents = new Events.capture(c, unsubscribeOnError: true);
+  actualEvents = new Events.capture(c.stream, unsubscribeOnError: true);
   Events sentEvents =
       new Events()..add(42)..error("error")..add("Are you there?");
   sentEvents.replay(c);
@@ -173,7 +174,7 @@ testSingleController() {
   // Test manual unsubscription.
   c = new StreamController();
   expectedEvents = new Events()..add(42)..error("error")..add(37);
-  actualEvents = new Events.capture(c, unsubscribeOnError: false);
+  actualEvents = new Events.capture(c.stream, unsubscribeOnError: false);
   expectedEvents.replay(c);
   actualEvents.subscription.cancel();
   c.add("Are you there");  // Not sent to actualEvents.
@@ -185,7 +186,7 @@ testSingleController() {
     ..add("a string")..add("another string")..close();
   sentEvents = new Events()
     ..add("a string")..add(42)..add("another string")..close();
-  actualEvents = new Events.capture(c.where((v) => v is String));
+  actualEvents = new Events.capture(c.stream.where((v) => v is String));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -193,7 +194,7 @@ testSingleController() {
   c = new StreamController();
   expectedEvents = new Events()..add("abab")..error("error")..close();
   sentEvents = new Events()..add("ab")..error("error")..close();
-  actualEvents = new Events.capture(c.mappedBy((v) => "$v$v"));
+  actualEvents = new Events.capture(c.stream.mappedBy((v) => "$v$v"));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -201,7 +202,7 @@ testSingleController() {
   c = new StreamController();
   expectedEvents = new Events()..add("ab")..error("[foo]");
   sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
-  actualEvents = new Events.capture(c.handleError((v) {
+  actualEvents = new Events.capture(c.stream.handleError((v) {
         if (v.error is String) {
           throw new AsyncError("[${v.error}]",
                                 "other stack");
@@ -219,7 +220,7 @@ testSingleController() {
                                ..add(1)..add(2)
                                ..add(1)..add(2)..add(3)..add(4)
                                ..close();
-  actualEvents = new Events.capture(c.expand((v) {
+  actualEvents = new Events.capture(c.stream.expand((v) {
     var l = [];
     for (int i = 0; i < v; i++) l.add(i + 1);
     return l;
@@ -230,7 +231,7 @@ testSingleController() {
   // pipe is tested asynchronously and therefore not in this file.
   c = new StreamController();
   var list = <int>[];
-  c.pipeInto(new CollectionSink<int>(list))
+  c.stream.pipeInto(new CollectionSink<int>(list))
    .whenComplete(() { Expect.listEquals(<int>[1,2,9,3,9], list); });
   c.add(1);
   c.add(2);
@@ -244,13 +245,14 @@ testSingleController() {
   sentEvents = new Events()..add("a")..error(42)..add("b")..close();
   expectedEvents =
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
-  actualEvents = new Events.capture(c.transform(new StreamTransformer.from(
-      onData: (v, s) { s.signalError(new AsyncError(v)); },
-      onError: (e, s) { s.add(e.error); },
-      onDone: (s) {
-        s.add("foo");
-        s.close();
-      })));
+  actualEvents = new Events.capture(c.stream.transform(
+      new StreamTransformer.from(
+          onData: (v, s) { s.signalError(new AsyncError(v)); },
+          onError: (e, s) { s.add(e.error); },
+          onDone: (s) {
+            s.add("foo");
+            s.close();
+          })));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -264,7 +266,7 @@ testSingleController() {
                            ..close();
   expectedEvents = new Events()..add(42)..error("not FormatException");
   actualEvents = new Events.capture(
-      c.where((v) => v is String)
+      c.stream.where((v) => v is String)
        .mappedBy((v) => int.parse(v))
        .handleError((v) {
           if (v.error is! FormatException) throw v;
@@ -291,46 +293,46 @@ testExtraMethods() {
 
   var c = new StreamController();
   Events expectedEvents = new Events()..add(3)..close();
-  Events actualEvents = new Events.capture(c.skip(2));
+  Events actualEvents = new Events.capture(c.stream.skip(2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   c = new StreamController();
   expectedEvents = new Events()..close();
-  actualEvents = new Events.capture(c.skip(3));
+  actualEvents = new Events.capture(c.stream.skip(3));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   c = new StreamController();
   expectedEvents = new Events()..close();
-  actualEvents = new Events.capture(c.skip(7));
+  actualEvents = new Events.capture(c.stream.skip(7));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   c = new StreamController();
   expectedEvents = sentEvents;
-  actualEvents = new Events.capture(c.skip(0));
+  actualEvents = new Events.capture(c.stream.skip(0));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
   c = new StreamController();
   expectedEvents = new Events()..add(3)..close();
-  actualEvents = new Events.capture(c.skipWhile((x) => x <= 2));
+  actualEvents = new Events.capture(c.stream.skipWhile((x) => x <= 2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
   c = new StreamController();
   expectedEvents = new Events()..add(1)..add(2)..close();
-  actualEvents = new Events.capture(c.take(2));
+  actualEvents = new Events.capture(c.stream.take(2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
   c = new StreamController();
   expectedEvents = new Events()..add(1)..add(2)..close();
-  actualEvents = new Events.capture(c.takeWhile((x) => x <= 2));
+  actualEvents = new Events.capture(c.stream.takeWhile((x) => x <= 2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -339,7 +341,7 @@ testExtraMethods() {
       ..add(1)..add(1)..add(2)..add(1)..add(2)..add(2)..add(2)..close();
   expectedEvents = new Events()
       ..add(1)..add(2)..add(1)..add(2)..close();
-  actualEvents = new Events.capture(c.distinct());
+  actualEvents = new Events.capture(c.stream.distinct());
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -349,7 +351,7 @@ testExtraMethods() {
   expectedEvents = new Events()
       ..add(5)..add(4)..add(3)..add(1)..close();
   // Use 'distinct' as a filter with access to the previously emitted event.
-  actualEvents = new Events.capture(c.distinct((a, b) => a < b));
+  actualEvents = new Events.capture(c.stream.distinct((a, b) => a < b));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 }

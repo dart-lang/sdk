@@ -19,7 +19,7 @@ part of dart.async;
  * you receive a [StreamSubscription] object that can be used to stop listening,
  * or to temporarily pause events from the stream.
  *
- * When an event is fired, all listeners at that time are informed.
+ * When an event is fired, the listeners at that time are informed.
  * If a listener is added or removed while an event is being fired, the change
  * will only take effect after the event is completely fired.
  *
@@ -27,25 +27,25 @@ part of dart.async;
  * their input, but often, and preferably, they can simply request their input
  * to pause too.
  *
- * There are two kinds of streams: Single-subscription streams and
- * multi-subscription streams.
+ * There are two kinds of streams: The normal "single-subscription" streams and
+ * "broadcast" streams.
  *
- * A single-subscription stream allows only a single listener in its entire
- * life-cycle. It holds back events until it gets a listener, and it exhausts
+ * A single-subscription stream allows only a single listener at a time.
+ * It holds back events until it gets a listener, and it may exhaust
  * itself when the listener is unsubscribed, even if the stream wasn't done.
  *
  * Single-subscription streams are generally used for streaming parts of
  * contiguous data like file I/O.
  *
- * A multi-subscription stream allows any number of listeners, and it fires
+ * A broadcast stream allows any number of listeners, and it fires
  * its events when they are ready, whether there are listeners or not.
  *
- * Multi-subscription streams are used for independent events/observers.
+ * Braodcast streams are used for independent events/observers.
  *
- * The default implementation of [isSingleSubscription] and
- * [asMultiSubscriptionStream] are assuming this is a single-subscription stream
- * and a multi-subscription stream inheriting from [Stream] must override these
- * to return [:false:] and [:this:] respectively.
+ * The default implementation of [isBroadcast] and
+ * [asBroadcastStream] are assuming this is a single-subscription stream
+ * and a broadcast stream inheriting from [Stream] must override these
+ * to return [:true:] and [:this:] respectively.
  */
 abstract class Stream<T> {
   Stream();
@@ -78,9 +78,9 @@ abstract class Stream<T> {
   }
 
   /**
-   * Whether the stream is a single-subscription stream.
+   * Whether the stream is a broadcast stream.
    */
-  bool get isSingleSubscription => true;
+  bool get isBroadcast => false;
 
   /**
    * Returns a multi-subscription stream that produces the same events as this.
@@ -90,9 +90,9 @@ abstract class Stream<T> {
    * subscriber is added, and unsubscribe again when the last subscription is
    * cancelled.
    *
-   * If this stream is already multi-subscriber, it is returned unmodified.
+   * If this stream is already a broadcast stream, it is returned unmodified.
    */
-  Stream<T> asMultiSubscriberStream() {
+  Stream<T> asBroadcastStream() {
     return new _SingleStreamMultiplexer<T>(this);
   }
 
@@ -842,7 +842,9 @@ class StreamView<T> extends Stream<T> {
 
   StreamView(this._stream);
 
-  bool get isSingleSubscription => _stream.isSingleSubscription;
+  bool get isBroadcast => _stream.isBroadcast;
+
+  Stream<T> asBroadcastStream() => _stream.asBroadcastStream();
 
   StreamSubscription<T> listen(void onData(T value),
                                { void onError(AsyncError error),
