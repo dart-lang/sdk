@@ -14602,11 +14602,14 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
-  factory KeyboardEvent(String type, Window view,
-      [bool canBubble = true, bool cancelable = true,
-      String keyIdentifier = "", int keyLocation = 1, bool ctrlKey = false,
-      bool altKey = false, bool shiftKey = false, bool metaKey = false,
-      bool altGraphKey = false]) {
+  factory KeyboardEvent(String type,
+      {Window view, bool canBubble: true, bool cancelable: true,
+      String keyIdentifier: "", int keyLocation: 1, bool ctrlKey: false,
+      bool altKey: false, bool shiftKey: false, bool metaKey: false,
+      bool altGraphKey: false}) {
+    if (view == null) {
+      view = window;
+    }
     final e = document.$dom_createEvent("KeyboardEvent");
     e.$dom_initKeyboardEvent(type, canBubble, cancelable, view, keyIdentifier,
         keyLocation, ctrlKey, altKey, shiftKey, metaKey, altGraphKey);
