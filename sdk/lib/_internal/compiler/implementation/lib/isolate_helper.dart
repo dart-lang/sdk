@@ -402,10 +402,11 @@ class IsolateNatives {
   static String computeThisScript() {
     // TODO(7369): Find a cross-platform non-brittle way of getting the
     // currently running script.
-    var scripts = JS('=List', r"document.getElementsByTagName('script')");
+    var scripts = JS('', r"document.getElementsByTagName('script')");
     // The scripts variable only contains the scripts that have already been
     // executed. The last one is the currently running script.
-    for (var script in scripts) {
+    for (int i = 0; i < JS('int', '#.length', scripts); i++) {
+      var script = JS('', '#[#]', scripts, i);
       var src = JS('String|Null', '# && #.src', script, script);
       // Filter out the test controller script, and the Dart
       // bootstrap script.
