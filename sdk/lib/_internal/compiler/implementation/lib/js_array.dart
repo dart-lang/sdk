@@ -56,7 +56,7 @@ class JSArray<E> implements List<E> {
     IterableMixinWorkaround.removeMatchingList(this, test);
   }
 
-  void reatainMatching(bool test(E element)) {
+  void retainMatching(bool test(E element)) {
     IterableMixinWorkaround.removeMatchingList(this,
                                                (E element) => !test(element));
   }
