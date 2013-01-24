@@ -13,9 +13,7 @@ import 'utils.dart';
 /// Tests whether or not the git command-line app is available for use.
 Future<bool> get isInstalled {
   if (_isGitInstalledCache != null) {
-    // TODO(rnystrom): The sleep is to pump the message queue. Can use
-    // Future.immediate() when #3356 is fixed.
-    return sleep(0).then((_) => _isGitInstalledCache);
+    return new Future.immediate(_isGitInstalledCache);
   }
 
   return _gitCommand.then((git) => git != null);
@@ -23,9 +21,11 @@ Future<bool> get isInstalled {
 
 /// Run a git process with [args] from [workingDir]. Returns the stdout as a
 /// list of strings if it succeeded. Completes to an exception if it failed.
-Future<List<String>> run(List<String> args, {String workingDir}) {
+Future<List<String>> run(List<String> args,
+    {String workingDir, Map<String, String> environment}) {
   return _gitCommand.then((git) {
-    return runProcess(git, args, workingDir: workingDir);
+    return runProcess(git, args, workingDir: workingDir,
+        environment: environment);
   }).then((result) {
     if (!result.success) throw new Exception(
         'Git error. Command: git ${Strings.join(args, " ")}\n'
@@ -43,13 +43,12 @@ String _gitCommandCache;
 /// Returns the name of the git command-line app, or null if Git could not be
 /// found on the user's PATH.
 Future<String> get _gitCommand {
-  // TODO(nweiz): Just use Future.immediate once issue 3356 is fixed.
   if (_gitCommandCache != null) {
-    return sleep(0).then((_) => _gitCommandCache);
+    return new Future.immediate(_gitCommandCache);
   }
 
   return _tryGitCommand("git").then((success) {
-    if (success) return new Future.immediate("git");
+    if (success) return "git";
 
     // Git is sometimes installed on Windows as `git.cmd`
     return _tryGitCommand("git.cmd").then((success) {

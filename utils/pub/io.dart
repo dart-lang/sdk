@@ -15,11 +15,6 @@ import '../../pkg/path/lib/path.dart' as path;
 import 'log.dart' as log;
 import 'utils.dart';
 
-bool _isGitInstalledCache;
-
-/// The cached Git command.
-String _gitCommandCache;
-
 final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
 
 /// Joins a number of path string parts into a single path. Handles
@@ -184,7 +179,7 @@ Future<Directory> ensureDir(path) {
   return dirExists(path).then((exists) {
     if (exists) {
       log.fine("Directory $path already exists.");
-      return new Future.immediate(new Directory(path));
+      return new Directory(path);
     }
 
     return ensureDir(dirname(path)).then((_) {
@@ -411,7 +406,7 @@ Future<File> createPackageSymlink(String name, from, to,
                   'you will not be able to import any libraries from it.');
     }
 
-    return new Future.immediate(to);
+    return to;
   });
 }
 
@@ -769,65 +764,6 @@ Future withTempDir(Future fn(String path)) {
     log.fine('Cleaning up temp directory ${tempDir.path}.');
     return deleteDir(tempDir);
   });
-}
-
-/// Tests whether or not the git command-line app is available for use.
-Future<bool> get isGitInstalled {
-  if (_isGitInstalledCache != null) {
-    // TODO(rnystrom): The sleep is to pump the message queue. Can use
-    // Future.immediate() when #3356 is fixed.
-    return sleep(0).then((_) => _isGitInstalledCache);
-  }
-
-  return _gitCommand.then((git) => git != null);
-}
-
-/// Run a git process with [args] from [workingDir].
-Future<PubProcessResult> runGit(List<String> args,
-    {String workingDir, Map<String, String> environment}) {
-  return _gitCommand.then((git) => runProcess(git, args,
-        workingDir: workingDir, environment: environment));
-}
-
-/// Returns the name of the git command-line app, or null if Git could not be
-/// found on the user's PATH.
-Future<String> get _gitCommand {
-  // TODO(nweiz): Just use Future.immediate once issue 3356 is fixed.
-  if (_gitCommandCache != null) {
-    return sleep(0).then((_) => _gitCommandCache);
-  }
-
-  return _tryGitCommand("git").then((success) {
-    if (success) return new Future.immediate("git");
-
-    // Git is sometimes installed on Windows as `git.cmd`
-    return _tryGitCommand("git.cmd").then((success) {
-      if (success) return "git.cmd";
-      return null;
-    });
-  }).then((command) {
-    _gitCommandCache = command;
-    return command;
-  });
-}
-
-/// Checks whether [command] is the Git command for this computer.
-Future<bool> _tryGitCommand(String command) {
-  var completer = new Completer<bool>();
-
-  // If "git --version" prints something familiar, git is working.
-  var future = runProcess(command, ["--version"]);
-
-  future.then((results) {
-    var regex = new RegExp("^git version");
-    completer.complete(results.stdout.length == 1 &&
-                       regex.hasMatch(results.stdout[0]));
-  }).catchError((err) {
-    // If the process failed, they probably don't have it.
-    completer.complete(false);
-  });
-
-  return completer.future;
 }
 
 /// Extracts a `.tar.gz` file from [stream] to [destination], which can be a

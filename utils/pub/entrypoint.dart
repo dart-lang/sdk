@@ -74,7 +74,7 @@ class Entrypoint {
     var future = ensureDir(dirname(packageDir)).then((_) {
       return exists(packageDir);
     }).then((exists) {
-      if (!exists) return new Future.immediate(null);
+      if (!exists) return;
       // TODO(nweiz): figure out when to actually delete the directory, and when
       // we can just re-use the existing symlink.
       log.fine("Deleting package directory for ${id.name} before install.");
@@ -149,7 +149,7 @@ class Entrypoint {
     return fileExists(lockFilePath).then((exists) {
       if (!exists) {
         log.fine("No lock file at $lockFilePath, creating empty one.");
-        return new Future<LockFile>.immediate(new LockFile.empty());
+        return new LockFile.empty();
       }
 
       return readTextFile(lockFilePath).then((text) =>
@@ -175,7 +175,7 @@ class Entrypoint {
     var linkPath = join(path, root.name);
     return exists(linkPath).then((exists) {
       // Create the symlink if it doesn't exist.
-      if (exists) return new Future.immediate(null);
+      if (exists) return;
       return ensureDir(path).then(
           (_) => createPackageSymlink(root.name, root.dir, linkPath,
               isSelfLink: true));
@@ -192,7 +192,7 @@ class Entrypoint {
     var toolDir = join(root.dir, 'tool');
     var webDir = join(root.dir, 'web');
     return dirExists(binDir).then((exists) {
-      if (!exists) return new Future.immediate(null);
+      if (!exists) return;
       return _linkSecondaryPackageDir(binDir);
     }).then((_) => _linkSecondaryPackageDirsRecursively(exampleDir))
       .then((_) => _linkSecondaryPackageDirsRecursively(testDir))
@@ -204,13 +204,13 @@ class Entrypoint {
   /// subdirectories.
   Future _linkSecondaryPackageDirsRecursively(String dir) {
     return dirExists(dir).then((exists) {
-      if (!exists) return new Future.immediate(null);
+      if (!exists) return;
       return _linkSecondaryPackageDir(dir)
         .then((_) => _listDirWithoutPackages(dir))
         .then((files) {
         return Future.wait(files.mappedBy((file) {
           return dirExists(file).then((isDir) {
-            if (!isDir) return new Future.immediate(null);
+            if (!isDir) return;
             return _linkSecondaryPackageDir(file);
           });
         }));
@@ -226,7 +226,7 @@ class Entrypoint {
       return Future.wait(files.mappedBy((file) {
         if (basename(file) == 'packages') return new Future.immediate([]);
         return dirExists(file).then((isDir) {
-          if (!isDir) return new Future.immediate([]);
+          if (!isDir) return [];
           return _listDirWithoutPackages(file);
         }).then((subfiles) {
           var fileAndSubfiles = [file];
@@ -241,7 +241,7 @@ class Entrypoint {
   Future _linkSecondaryPackageDir(String dir) {
     var to = join(dir, 'packages');
     return exists(to).then((exists) {
-      if (exists) return new Future.immediate(null);
+      if (exists) return;
       return createSymlink(path, to);
     });
   }

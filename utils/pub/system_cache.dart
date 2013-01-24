@@ -93,7 +93,7 @@ class SystemCache {
   Future deleteTempDir() {
     log.fine('Clean up system cache temp directory $tempDir.');
     return dirExists(tempDir).then((exists) {
-      if (!exists) return new Future.immediate(null);
+      if (!exists) return;
       return deleteDir(tempDir);
     });
   }

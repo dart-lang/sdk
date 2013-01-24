@@ -21,6 +21,10 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import '../../../pkg/http/lib/testing.dart';
 import '../../lib/file_system.dart' as fs;
 import '../../pub/entrypoint.dart';
+// TODO(rnystrom): Using "gitlib" as the prefix here is ugly, but "git" collides
+// with the git descriptor method. Maybe we should try to clean up the top level
+// scope a bit?
+import '../../pub/git.dart' as gitlib;
 import '../../pub/git_source.dart';
 import '../../pub/hosted_source.dart';
 import '../../pub/http.dart';
@@ -475,7 +479,6 @@ void _run() {
       _scheduledCleanup = null;
       _scheduledOnException = null;
       if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
-      return new Future.immediate(null);
     });
   }
 
@@ -629,7 +632,7 @@ Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
 /// about the pub git tests).
 void ensureGit() {
   _schedule((_) {
-    return isGitInstalled.then((installed) {
+    return gitlib.isInstalled.then((installed) {
       if (!installed &&
           !Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) {
         _abortScheduled = true;
@@ -1058,15 +1061,8 @@ class GitRepoDescriptor extends DirectoryDescriptor {
       'GIT_COMMITTER_EMAIL': 'pub@dartlang.org'
     };
 
-    return runGit(args, workingDir: workingDir.path,
-        environment: environment).then((result) {
-      if (!result.success) {
-        throw "Error running: git ${Strings.join(args, ' ')}\n"
-            "${Strings.join(result.stderr, '\n')}";
-      }
-
-      return result.stdout;
-    });
+    return gitlib.run(args, workingDir: workingDir.path,
+        environment: environment);
   }
 }
 

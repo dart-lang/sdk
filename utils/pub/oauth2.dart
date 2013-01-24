@@ -56,7 +56,6 @@ Future clearCredentials(SystemCache cache) {
   var credentialsFile = _credentialsFile(cache);
   return fileExists(credentialsFile).then((exists) {
     if (exists) return deleteFile(credentialsFile);
-    return new Future.immediate(null);
   });
 }
 
@@ -97,8 +96,8 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
 Future<Client> _getClient(SystemCache cache) {
   return _loadCredentials(cache).then((credentials) {
     if (credentials == null) return _authorize();
-    return new Future.immediate(new Client(
-        _identifier, _secret, credentials, httpClient: curlClient));
+    return new Client(_identifier, _secret, credentials,
+        httpClient: curlClient);
   }).then((client) {
     return _saveCredentials(cache, client.credentials).then((_) => client);
   });
@@ -119,7 +118,7 @@ Future<Credentials> _loadCredentials(SystemCache cache) {
   return fileExists(path).then((credentialsExist) {
     if (!credentialsExist) {
       log.fine('No credentials found at $path.');
-      return new Future.immediate(null);
+      return;
     }
 
     return readTextFile(_credentialsFile(cache)).then((credentialsJson) {

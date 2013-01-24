@@ -60,7 +60,7 @@ class UploaderCommand extends PubCommand {
 
     return new Future.immediate(null).then((_) {
       var package = commandOptions['package'];
-      if (package != null) return new Future.immediate(package);
+      if (package != null) return package;
       return Entrypoint.load(path.current, cache)
           .then((entrypoint) => entrypoint.root.name);
     }).then((package) {

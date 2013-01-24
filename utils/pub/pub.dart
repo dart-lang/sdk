@@ -245,15 +245,13 @@ abstract class PubCommand {
       this.entrypoint = entrypoint;
       try {
         var commandFuture = onRun();
-        if (commandFuture == null) return new Future.immediate(true);
+        if (commandFuture == null) return true;
 
         return commandFuture;
       } catch (error, trace) {
         handleError(error, trace);
-        return new Future.immediate(null);
       }
     });
-
 
     future
       .then((_) => cache_.deleteTempDir())
