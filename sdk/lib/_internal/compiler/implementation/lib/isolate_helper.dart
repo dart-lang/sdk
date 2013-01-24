@@ -405,7 +405,7 @@ class IsolateNatives {
     var scripts = JS('', r"document.getElementsByTagName('script')");
     // The scripts variable only contains the scripts that have already been
     // executed. The last one is the currently running script.
-    for (int i = 0; i < JS('int', '#.length', scripts); i++) {
+    for (int i = 0, len = JS('int', '#.length', scripts); i < len; i++) {
       var script = JS('', '#[#]', scripts, i);
       var src = JS('String|Null', '# && #.src', script, script);
       // Filter out the test controller script, and the Dart
