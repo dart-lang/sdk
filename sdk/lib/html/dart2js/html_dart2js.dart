@@ -12880,18 +12880,18 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
   @DocsEditable
   String width;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-@DocsEditable
 @DomName('ImageData')
+
 class ImageData native "*ImageData" {
+
 
   @DomName('ImageData.data')
   @DocsEditable
-  final Uint8ClampedArray data;
+  final List<int> data;
 
   @DomName('ImageData.height')
   @DocsEditable
@@ -12900,6 +12900,7 @@ class ImageData native "*ImageData" {
   @DomName('ImageData.width')
   @DocsEditable
   final int width;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

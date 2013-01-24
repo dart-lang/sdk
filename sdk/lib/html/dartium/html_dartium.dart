@@ -13817,21 +13817,27 @@ class IFrameElement extends _Element_Merged {
   void set width(String value) native "HTMLIFrameElement_width_Setter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('ImageData')
+
 class ImageData extends NativeFieldWrapperClass1 {
+  List<int> __data;
+
+  List<int> get data {
+    if (__data == null) {
+      __data = _data;
+    }
+    return __data;
+  }
+
   ImageData.internal();
 
   @DomName('ImageData.data')
   @DocsEditable
-  Uint8ClampedArray get data native "ImageData_data_Getter";
+  List<int> get _data native "ImageData_data_Getter";
 
   @DomName('ImageData.height')
   @DocsEditable

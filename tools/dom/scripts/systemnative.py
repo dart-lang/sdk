@@ -280,6 +280,10 @@ class DartiumBackend(HtmlDartGenerator):
       self._AddSetter(attribute, html_name)
 
   def _AddGetter(self, attr, html_name):
+    # Temporary hack to force dart:scalarlist clamped array for ImageData.data.
+    # TODO(antonm): solve in principled way.
+    if self._interface.id == 'ImageData' and html_name == 'data':
+      html_name = '_data'
     type_info = self._TypeInfo(attr.type.id)
     dart_declaration = '%s get %s' % (
         self.SecureOutputType(attr.type.id), html_name)

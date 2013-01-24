@@ -18,7 +18,7 @@ main() {
   test('CreateImageData', () {
     ImageData image = context.createImageData(canvas.width,
                                               canvas.height);
-    Uint8ClampedArray data = image.data;
+    List<int> data = image.data;
 
     expect(data, hasLength(40000));
     checkPixel(data, 0, [0, 0, 0, 0]);
@@ -49,7 +49,7 @@ main() {
   });
 }
 
-void checkPixel(Uint8ClampedArray data, int offset, List<int> rgba)
+void checkPixel(List<int> data, int offset, List<int> rgba)
 {
   offset *= 4;
   for (var i = 0; i < 4; ++i) {

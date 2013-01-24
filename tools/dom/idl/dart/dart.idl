@@ -61,7 +61,7 @@ interface HTMLSelectElement {
 
 [Supplemental]
 interface ImageData {
-  readonly attribute Uint8ClampedArray data;
+  [Custom] readonly attribute int[] data;
 };
 
 [Supplemental]

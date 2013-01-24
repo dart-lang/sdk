@@ -8,7 +8,7 @@ import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 
 // Some rounding errors in the browsers.
-checkPixel(Uint8ClampedArray pixel, List<int> expected) {
+checkPixel(List<int> pixel, List<int> expected) {
   expect(pixel[0], closeTo(expected[0], 1));
   expect(pixel[1], closeTo(expected[1], 1));
   expect(pixel[2], closeTo(expected[2], 1));
@@ -23,7 +23,7 @@ main() {
 
   var context = canvas.context2d;
 
-  Uint8ClampedArray readPixel() {
+  List<int> readPixel() {
     var imageData = context.getImageData(2, 2, 1, 1);
     return imageData.data;
   }

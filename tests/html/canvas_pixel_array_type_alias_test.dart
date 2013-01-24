@@ -28,10 +28,10 @@ main() {
   test('CreateImageData', () {
     ImageData image = context.createImageData(canvas.width,
                                               canvas.height);
-    Uint8ClampedArray data = image.data;
+    List<int> data = image.data;
     // It is legal for the dart2js compiler to believe the type of the native
     // ImageData.data and elides the check, so check the type explicitly:
-    expect(confuseType(data) is Uint8ClampedArray, isTrue,
+    expect(confuseType(data) is List<int>, isTrue,
         reason: 'canvas array type');
 
     expect(data, hasLength(40000));
@@ -43,7 +43,7 @@ main() {
   });
 }
 
-void checkPixel(Uint8ClampedArray data, int offset, List<int> rgba)
+void checkPixel(List<int> data, int offset, List<int> rgba)
 {
   offset *= 4;
   for (var i = 0; i < 4; ++i) {
