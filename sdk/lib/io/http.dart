@@ -298,7 +298,7 @@ abstract class HttpHeaders {
    * Adds a header value. The header named [name] will have the value
    * [value] added to its list of values. Some headers are single
    * values and for these adding a value will replace the previous
-   * value. If the value is of type Date a HTTP date format will be
+   * value. If the value is of type DateTime a HTTP date format will be
    * applied. If the value is a [:List:] each element of the list will
    * be added separately. For all other types the default [:toString:]
    * method will be used.
@@ -343,21 +343,21 @@ abstract class HttpHeaders {
 
   /**
    * Gets and sets the date. The value of this property will
-   * reflect the "Date" header.
+   * reflect the "DateTime" header.
    */
-  Date date;
+  DateTime date;
 
   /**
    * Gets and sets the expiry date. The value of this property will
    * reflect the "Expires" header.
    */
-  Date expires;
+  DateTime expires;
 
   /**
    * Gets and sets the 'if-modified-since' date. The value of this property will
    * reflect the "if-modified-since" header.
    */
-  Date ifModifiedSince;
+  DateTime ifModifiedSince;
 
   /**
    * Gets and sets the host part of the "Host" header for the
@@ -552,7 +552,7 @@ abstract class Cookie {
   /**
    * Gets and sets the expiry date.
    */
-  Date expires;
+  DateTime expires;
 
   /**
    * Gets and sets the max age. A value of [:0:] means delete cookie

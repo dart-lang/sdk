@@ -24,7 +24,7 @@ const _EXPIRATION_GRACE = 10;
 Credentials handleAccessTokenResponse(
     http.Response response,
     Uri tokenEndpoint,
-    Date startTime,
+    DateTime startTime,
     List<String> scopes) {
   if (response.statusCode != 200) _handleErrorResponse(response, tokenEndpoint);
 

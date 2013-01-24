@@ -57,7 +57,7 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token',
         refreshToken: 'refresh token',
-        expiration: new Date.now().subtract(new Duration(hours: 1)))
+        expiration: new DateTime.now().subtract(new Duration(hours: 1)))
         .scheduleCreate();
 
     var pub = startPubLish(server);
@@ -95,7 +95,7 @@ main() {
        'authenticates again and saves credentials.json', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token',
-        expiration: new Date.now().subtract(new Duration(hours: 1)))
+        expiration: new DateTime.now().subtract(new Duration(hours: 1)))
         .scheduleCreate();
 
     var pub = startPubLish(server);

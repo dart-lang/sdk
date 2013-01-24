@@ -222,7 +222,7 @@ var passed;
 
 runParentTest() {
   var tests = unittest.testCases;
-  tests[testNum].startTime = new Date.now();
+  tests[testNum].startTime = new DateTime.now();
   SendPort childPort = spawnFunction(runChildTest);
   childPort.call(tests[testNum].description).then((results) {
     var result = results[0];

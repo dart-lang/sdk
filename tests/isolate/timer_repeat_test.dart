@@ -15,10 +15,10 @@ int startTime;
 int iteration;
 
 void timeoutHandler(Timer timer) {
-  int endTime = (new Date.now()).millisecondsSinceEpoch;
+  int endTime = (new DateTime.now()).millisecondsSinceEpoch;
   iteration++;
   if (iteration < ITERATIONS) {
-    startTime = (new Date.now()).millisecondsSinceEpoch;
+    startTime = (new DateTime.now()).millisecondsSinceEpoch;
   } else {
     expect(iteration, ITERATIONS);
     timer.cancel();
@@ -28,7 +28,7 @@ void timeoutHandler(Timer timer) {
 main() {
   test("timer_repeat", () {
     iteration = 0;
-    startTime = new Date.now().millisecondsSinceEpoch;
+    startTime = new DateTime.now().millisecondsSinceEpoch;
     timer = new Timer.repeating(TIMEOUT, 
         expectAsync1(timeoutHandler, count: ITERATIONS));
   });

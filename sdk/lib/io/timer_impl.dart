@@ -21,7 +21,7 @@ class _Timer implements Timer {
     Timer timer = new _Timer._internal();
     timer._callback = callback;
     timer._milliSeconds = milliSeconds;
-    timer._wakeupTime = (new Date.now()).millisecondsSinceEpoch + milliSeconds;
+    timer._wakeupTime = (new DateTime.now()).millisecondsSinceEpoch + milliSeconds;
     timer._repeating = repeating;
     timer._addTimerToList();
     timer._notifyEventHandler();
@@ -123,7 +123,7 @@ class _Timer implements Timer {
 
     void _handleTimeout() {
       int currentTime =
-          (new Date.now()).millisecondsSinceEpoch + _TIMER_JITTER;
+          (new DateTime.now()).millisecondsSinceEpoch + _TIMER_JITTER;
 
       // Collect all pending timers.
       DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();

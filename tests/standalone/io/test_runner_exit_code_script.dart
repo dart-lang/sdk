@@ -11,7 +11,7 @@ import "../../../tools/testing/dart/test_options.dart";
 main() {
   var progressType = new Options().arguments[0];
   // Build a progress indicator.
-  var startTime = new Date.now();
+  var startTime = new DateTime.now();
   var progress =
     new ProgressIndicator.fromName(progressType, startTime, false);
   if (progressType == 'buildbot') {
@@ -31,7 +31,7 @@ main() {
   progress.allTestsKnown();
   progress.start(testCase);
   new CommandOutput.fromCase(testCase, dummyCommand, 1, false, false, [], [],
-                             new Date.now().difference(startTime), false);
+                             new DateTime.now().difference(startTime), false);
   progress.done(testCase);
   progress.allDone();
 }

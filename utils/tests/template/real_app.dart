@@ -81,7 +81,7 @@ void main() {
   sales = [];
   divisions.add(new Division("Search", 4, products));
 
-  var header = new Header("Google World Wide", new Date.now());
+  var header = new Header("Google World Wide", new DateTime.now());
   var listView = new DivisionSales(divisions);
 
   document.body.elements.add(header.root);                 // Add top view.

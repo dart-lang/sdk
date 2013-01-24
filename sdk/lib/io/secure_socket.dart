@@ -98,8 +98,8 @@ class X509Certificate {
                   this.endValidity);
   final String subject;
   final String issuer;
-  final Date startValidity;
-  final Date endValidity;
+  final DateTime startValidity;
+  final DateTime endValidity;
 }
 
 

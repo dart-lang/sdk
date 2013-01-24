@@ -95,23 +95,23 @@ patch class Error {
 }
 
 
-// Patch for Date implementation.
-patch class _DateImpl {
-  patch _DateImpl(int year,
-                  int month,
-                  int day,
-                  int hour,
-                  int minute,
-                  int second,
-                  int millisecond,
-                  bool isUtc)
+// Patch for DateTime implementation.
+patch class DateTime {
+  patch DateTime._internal(int year,
+                           int month,
+                           int day,
+                           int hour,
+                           int minute,
+                           int second,
+                           int millisecond,
+                           bool isUtc)
       : this.isUtc = checkNull(isUtc),
         millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
             year, month, day, hour, minute, second, millisecond, isUtc) {
     Primitives.lazyAsJsDate(this);
   }
 
-  patch _DateImpl.now()
+  patch DateTime._now()
       : isUtc = false,
         millisecondsSinceEpoch = Primitives.dateNow() {
     Primitives.lazyAsJsDate(this);

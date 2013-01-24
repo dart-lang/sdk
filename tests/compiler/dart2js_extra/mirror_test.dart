@@ -7,7 +7,7 @@ import 'dart:mirrors';
 import 'async_helper.dart';
 
 void test(void onDone(bool success)) {
-  var now = new Date.now();
+  var now = new DateTime.now();
   InstanceMirror mirror = reflect(now);
   print('now: ${now}');
   print('mirror.type: ${mirror.type}');

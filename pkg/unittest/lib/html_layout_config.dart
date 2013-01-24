@@ -71,10 +71,10 @@ class ChildHtmlConfiguration extends Configuration {
   Window parentWindow;
 
   /** The time at which tests start. */
-  Map<int,Date> _testStarts;
+  Map<int,DateTime> _testStarts;
 
   ChildHtmlConfiguration() :
-      _testStarts = new Map<int,Date>();
+      _testStarts = new Map<int,DateTime>();
 
   /** Don't start running tests automatically. */
   get autoStart => false;
@@ -111,7 +111,7 @@ class ChildHtmlConfiguration extends Configuration {
   /** Record the start time of the test. */
   void onTestStart(TestCase testCase) {
     super.onTestStart(testCase);
-    _testStarts[testCase.id]= new Date.now();
+    _testStarts[testCase.id]= new DateTime.now();
   }
 
   /**
@@ -124,7 +124,7 @@ class ChildHtmlConfiguration extends Configuration {
     if (testCase == null) {
       elapsed = -1;
     } else {
-      Date end = new Date.now();
+      DateTime end = new DateTime.now();
       elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
     }
     parentWindow.postMessage(
@@ -138,7 +138,7 @@ class ChildHtmlConfiguration extends Configuration {
    */
   void onTestResult(TestCase testCase) {
     super.onTestResult(testCase);
-    Date end = new Date.now();
+    DateTime end = new DateTime.now();
     int elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
     if (testCase.stackTrace != null) {
       parentWindow.postMessage(
@@ -164,7 +164,7 @@ class ChildHtmlConfiguration extends Configuration {
 class ParentHtmlConfiguration extends Configuration {
   get autoStart => false;
   get name => 'ParentHtmlConfiguration';
-  Map<int,Date> _testStarts;
+  Map<int,DateTime> _testStarts;
   // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
   EventListener _onErrorClosure;
 
@@ -186,7 +186,7 @@ class ParentHtmlConfiguration extends Configuration {
   Function _messageHandler;
 
   ParentHtmlConfiguration() :
-      _testStarts = new Map<int,Date>();
+      _testStarts = new Map<int,DateTime>();
 
   // We need to block until the test is done, so we make a
   // dummy async callback that we will use to flag completion.
@@ -255,7 +255,7 @@ class ParentHtmlConfiguration extends Configuration {
 
   void onTestStart(TestCase testCase) {
     var id = testCase.id;
-    _testStarts[testCase.id]= new Date.now();
+    _testStarts[testCase.id]= new DateTime.now();
     super.onTestStart(testCase);
     _stack = null;
   }

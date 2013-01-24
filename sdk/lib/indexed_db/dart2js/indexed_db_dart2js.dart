@@ -98,7 +98,7 @@ _convertNativeToDart_IDBKey(nativeKey) {
     return false;  // number, string.
   }
   if (containsDate(nativeKey)) {
-    throw new UnimplementedError('Key containing Date');
+    throw new UnimplementedError('Key containing DateTime');
   }
   // TODO: Cache conversion somewhere?
   return nativeKey;
@@ -125,7 +125,7 @@ _convertNativeToDart_IDBAny(object) {
 }
 
 
-const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add Date.
+const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add DateTime.
 const _annotation_Creates_IDBKey = const Creates(_idbKey);
 const _annotation_Returns_IDBKey = const Returns(_idbKey);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -27,14 +27,14 @@ void main() {
   });
 
   test('is not expired if the expiration is in the future', () {
-    var expiration = new Date.now().add(new Duration(hours: 1));
+    var expiration = new DateTime.now().add(new Duration(hours: 1));
     var credentials = new oauth2.Credentials(
         'access token', null, null, null, expiration);
     expect(credentials.isExpired, isFalse);
   });
 
   test('is expired if the expiration is in the past', () {
-    var expiration = new Date.now().subtract(new Duration(hours: 1));
+    var expiration = new DateTime.now().subtract(new Duration(hours: 1));
     var credentials = new oauth2.Credentials(
         'access token', null, null, null, expiration);
     expect(credentials.isExpired, isTrue);
@@ -124,7 +124,7 @@ void main() {
       new oauth2.Credentials.fromJson(JSON.stringify(map));
 
     test("should load the same credentials from toJson", () {
-      var expiration = new Date.now().subtract(new Duration(hours: 1));
+      var expiration = new DateTime.now().subtract(new Duration(hours: 1));
       var credentials = new oauth2.Credentials(
           'access token', 'refresh token', tokenEndpoint, ['scope1', 'scope2'],
           expiration);

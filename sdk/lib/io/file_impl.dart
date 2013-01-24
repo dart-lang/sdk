@@ -485,7 +485,7 @@ class _File extends _FileBase implements File {
     return result;
   }
 
-  Future<Date> lastModified() {
+  Future<DateTime> lastModified() {
     _ensureFileService();
     List request = new List.fixedLength(2);
     request[0] = _LAST_MODIFIED_REQUEST;
@@ -496,16 +496,16 @@ class _File extends _FileBase implements File {
                                      "Cannot retrieve modification time "
                                      "for file '$_name'");
       }
-      return new Date.fromMillisecondsSinceEpoch(response);
+      return new DateTime.fromMillisecondsSinceEpoch(response);
     });
   }
 
   external static _lastModified(String name);
 
-  Date lastModifiedSync() {
+  DateTime lastModifiedSync() {
     var ms = _lastModified(name);
     throwIfError(ms, "Cannot retrieve modification time for file '$_name'");
-    return new Date.fromMillisecondsSinceEpoch(ms);
+    return new DateTime.fromMillisecondsSinceEpoch(ms);
   }
 
   external static _open(String name, int mode);

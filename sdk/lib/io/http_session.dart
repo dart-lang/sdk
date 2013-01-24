@@ -10,7 +10,7 @@ const String _DART_SESSION_ID = "DARTSESSID";
 // the previous and next pointers.
 class _HttpSession implements HttpSession {
   _HttpSession(_HttpSessionManager this._sessionManager, String this.id)
-    : _lastSeen = new Date.now();
+    : _lastSeen = new DateTime.now();
 
   void destroy() {
     _destroyed = true;
@@ -21,13 +21,13 @@ class _HttpSession implements HttpSession {
   // Mark the session as seen. This will reset the timeout and move the node to
   // the end of the timeout queue.
   void _markSeen() {
-    _lastSeen = new Date.now();
+    _lastSeen = new DateTime.now();
     _sessionManager._bumpToEnd(this);
   }
 
   dynamic data;
 
-  Date get lastSeen => _lastSeen;
+  DateTime get lastSeen => _lastSeen;
 
   final String id;
 
@@ -37,7 +37,7 @@ class _HttpSession implements HttpSession {
 
   // Destroyed marked. Used by the http connection to see if a session is valid.
   bool _destroyed = false;
-  Date _lastSeen;
+  DateTime _lastSeen;
   Function _timeoutCallback;
   _HttpSessionManager _sessionManager;
   // Pointers in timeout queue.
@@ -138,7 +138,7 @@ class _HttpSessionManager {
   void _startTimer() {
     assert(_timer == null);
     if (_head != null) {
-      int seconds = new Date.now().difference(_head.lastSeen).inSeconds;
+      int seconds = new DateTime.now().difference(_head.lastSeen).inSeconds;
       _timer = new Timer((_sessionTimeout - seconds) * 1000, _timerTimeout);
     }
   }

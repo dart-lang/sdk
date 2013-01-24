@@ -37,7 +37,7 @@ class HTracer extends HGraphVisitor implements Tracer {
     tag("compilation", () {
       printProperty("name", methodName);
       printProperty("method", methodName);
-      printProperty("date", new Date.now().millisecondsSinceEpoch);
+      printProperty("date", new DateTime.now().millisecondsSinceEpoch);
     });
   }
 

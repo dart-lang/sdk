@@ -126,7 +126,7 @@ var icuFormatNamesToTest = const [
  * expected result of formatting [date] according to that format in
  * [locale].
  */
-testLocale(String localeName, Map expectedResults, Date date) {
+testLocale(String localeName, Map expectedResults, DateTime date) {
   var intl = new Intl(localeName);
   for(int i=0; i<formatsToTest.length; i++) {
     var skeleton = formatsToTest[i];
@@ -137,7 +137,7 @@ testLocale(String localeName, Map expectedResults, Date date) {
   }
 }
 
-testRoundTripParsing(String localeName, Date date) {
+testRoundTripParsing(String localeName, DateTime date) {
   // In order to test parsing, we can't just read back the date, because
   // printing in most formats loses information. But we can test that
   // what we parsed back prints the same as what we originally printed.
@@ -201,7 +201,7 @@ List evenLocales() {
 // very likely aren't).
 runDateTests([List<String> subset]) {
   test('Multiple patterns', () {
-    var date = new Date.now();
+    var date = new DateTime.now();
     var multiple1 = new DateFormat.yMd().add_jms();
     var multiple2 = new DateFormat("yMd").add_jms();
     var separate1 = new DateFormat.yMd();
@@ -229,7 +229,7 @@ runDateTests([List<String> subset]) {
   });
 
   test('Test ALL the supported formats on representative locales', () {
-    var aDate = new Date(2012, 1, 27, 20, 58, 59, 0);
+    var aDate = new DateTime(2012, 1, 27, 20, 58, 59, 0);
     testLocale("en_US", English, aDate);
     if (subset.length > 1) {
       // Don't run if we have just one locale, so some of these won't be there.
@@ -247,11 +247,11 @@ runDateTests([List<String> subset]) {
     var locales = subset == null ? allLocales() : subset;
     for (var locale in locales) {
       for (var month in months) {
-        var aDate = new Date(2012, month, 27, 13, 58, 59, 012);
+        var aDate = new DateTime(2012, month, 27, 13, 58, 59, 012);
         testRoundTripParsing(locale, aDate);
       }
       for (var hour in hours) {
-        var aDate = new Date(2012, 1, 27, hour, 58, 59, 123);
+        var aDate = new DateTime(2012, 1, 27, hour, 58, 59, 123);
         testRoundTripParsing(locale, aDate);
       }
     }
@@ -277,7 +277,7 @@ runDateTests([List<String> subset]) {
   test('Test malformed locales', () {
     // Don't run if we have just one locale, which may not include these.
     if (subset.length <= 1) return;
-    var aDate = new Date(2012, 1, 27, 20, 58, 59, 0);
+    var aDate = new DateTime(2012, 1, 27, 20, 58, 59, 0);
     // Austrian is a useful test locale here because it differs slightly
     // from the generic "de" locale so we can tell the difference between
     // correcting to "de_AT" and falling back to just "de".
@@ -293,7 +293,7 @@ runDateTests([List<String> subset]) {
     var instanceJP = intl.date('jms');
     var instanceUS = intl.date('jms', 'en_US');
     var blank = intl.date('jms');
-    var date = new Date(2012, 1, 27, 20, 58, 59, 0);
+    var date = new DateTime(2012, 1, 27, 20, 58, 59, 0);
     expect(instanceJP.format(date), equals("20:58:59"));
     expect(instanceUS.format(date), equals("8:58:59 PM"));
     expect(blank.format(date), equals("20:58:59"));
@@ -302,7 +302,7 @@ runDateTests([List<String> subset]) {
   test('Test explicit format string', () {
     // Don't run if we have just one locale, which may not include these.
     if (subset.length <= 1) return;
-    var aDate = new Date(2012, 1, 27, 20, 58, 59, 0);
+    var aDate = new DateTime(2012, 1, 27, 20, 58, 59, 0);
     // An explicit format that doesn't conform to any skeleton
     var us = new DateFormat(r'yy //// :D \\\\ dd:ss ^&@ M');
     expect(us.format(aDate), equals(r"12 //// :D \\\\ 27:59 ^&@ 1"));
@@ -326,8 +326,8 @@ runDateTests([List<String> subset]) {
     });
 
   test('Test fractional seconds padding', () {
-    var one = new Date(2012, 1, 27, 20, 58, 59, 1);
-    var oneHundred = new Date(2012, 1, 27, 20, 58, 59, 100);
+    var one = new DateTime(2012, 1, 27, 20, 58, 59, 1);
+    var oneHundred = new DateTime(2012, 1, 27, 20, 58, 59, 100);
     var fractional = new DateFormat('hh:mm:ss.SSS', 'en_US');
     expect(fractional.format(one), equals('08:58:59.001'));
     expect(fractional.format(oneHundred), equals('08:58:59.100'));
@@ -337,8 +337,8 @@ runDateTests([List<String> subset]) {
   });
 
   test('Test parseUTC', () {
-    var local = new Date(2012, 1, 27, 20, 58, 59, 1);
-    var utc = new Date.utc(2012, 1, 27, 20, 58, 59, 1);
+    var local = new DateTime(2012, 1, 27, 20, 58, 59, 1);
+    var utc = new DateTime.utc(2012, 1, 27, 20, 58, 59, 1);
     // Getting the offset as a duration via difference() would be simpler,
     // but doesn't work on dart2js in checked mode. See issue 4437.
     var offset = utc.millisecondsSinceEpoch - local.millisecondsSinceEpoch;
@@ -354,7 +354,7 @@ runDateTests([List<String> subset]) {
     });
 
   test('Test default format', () {
-    var someDate = new Date(2012, 1, 27, 20, 58, 59, 1);
+    var someDate = new DateTime(2012, 1, 27, 20, 58, 59, 1);
     var emptyFormat = new DateFormat(null, "en_US");
     var knownDefault = new DateFormat.yMMMMd("en_US").add_jms();
     var result = emptyFormat.format(someDate);

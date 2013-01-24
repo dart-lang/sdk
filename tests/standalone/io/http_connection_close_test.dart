@@ -52,7 +52,7 @@ void testStreamResponse() {
   server.listen("127.0.0.1", 0, backlog: 5);
   server.defaultRequestHandler = (var request, var response) {
     timer = new Timer.repeating(10, (_) {
-      Date now = new Date.now();
+      DateTime now = new DateTime.now();
       try {
         response.outputStream.writeString(
             'data:${now.millisecondsSinceEpoch}\n\n');

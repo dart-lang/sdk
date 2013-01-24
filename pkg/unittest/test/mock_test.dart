@@ -24,7 +24,7 @@ class FooSpy extends Mock implements Foo {
 makeTestLogEntry(String methodName, List args, int time,
                  [String mockName]) {
   LogEntry e = new LogEntry(mockName, methodName, args, Action.IGNORE);
-  e.time = new Date.fromMillisecondsSinceEpoch(time, isUtc: true);
+  e.time = new DateTime.fromMillisecondsSinceEpoch(time, isUtc: true);
   return e;
 }
 
@@ -220,11 +220,11 @@ main() {
   test('Mocking: from,after,before,until', () {
     LogEntryList logList = makeTestLog();
     LogEntryList log2;
-    Date t0 = new Date.fromMillisecondsSinceEpoch(0, isUtc: true);
-    Date t1000 = new Date.fromMillisecondsSinceEpoch(1000, isUtc: true);
-    Date t2000 = new Date.fromMillisecondsSinceEpoch(2000, isUtc: true);
-    Date t3000 = new Date.fromMillisecondsSinceEpoch(3000, isUtc: true);
-    Date t4000 = new Date.fromMillisecondsSinceEpoch(4000, isUtc: true);
+    DateTime t0 = new DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    DateTime t1000 = new DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true);
+    DateTime t2000 = new DateTime.fromMillisecondsSinceEpoch(2000, isUtc: true);
+    DateTime t3000 = new DateTime.fromMillisecondsSinceEpoch(3000, isUtc: true);
+    DateTime t4000 = new DateTime.fromMillisecondsSinceEpoch(4000, isUtc: true);
 
     log2 = logList.before(t0);
     expect(log2.logs, hasLength(0));
@@ -306,11 +306,11 @@ main() {
   });
 
   test('Mocking: inplace from,after,before,until', () {
-    Date t0 = new Date.fromMillisecondsSinceEpoch(0, isUtc: true);
-    Date t1000 = new Date.fromMillisecondsSinceEpoch(1000, isUtc: true);
-    Date t2000 = new Date.fromMillisecondsSinceEpoch(2000, isUtc: true);
-    Date t3000 = new Date.fromMillisecondsSinceEpoch(3000, isUtc: true);
-    Date t4000 = new Date.fromMillisecondsSinceEpoch(4000, isUtc: true);
+    DateTime t0 = new DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    DateTime t1000 = new DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true);
+    DateTime t2000 = new DateTime.fromMillisecondsSinceEpoch(2000, isUtc: true);
+    DateTime t3000 = new DateTime.fromMillisecondsSinceEpoch(3000, isUtc: true);
+    DateTime t4000 = new DateTime.fromMillisecondsSinceEpoch(4000, isUtc: true);
 
     LogEntryList logList = makeTestLog().before(t0, true);
     expect(logList.logs, hasLength(0));

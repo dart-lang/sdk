@@ -53,8 +53,8 @@ Future testCertificateCallback({String host, bool acceptCertificate}) {
                 (e) => e is TypeError || e is SocketIOException);
   secure.onBadCertificate = (X509Certificate certificate) {
     Expect.isTrue(certificate.subject.contains("O=Google Inc"));
-    Expect.isTrue(certificate.startValidity < new Date.now());
-    Expect.isTrue(certificate.endValidity > new Date.now());
+    Expect.isTrue(certificate.startValidity < new DateTime.now());
+    Expect.isTrue(certificate.endValidity > new DateTime.now());
     return acceptCertificate;
   };
   secure.onData = () {

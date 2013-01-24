@@ -129,7 +129,7 @@ main() {
   });
 
   test('date', () {
-    var date = new Date.now();
+    var date = new DateTime.now();
     var s = new Serialization()
         ..addRuleFor(date,
             constructorFields : ["year", "month", "day", "hour", "minute",

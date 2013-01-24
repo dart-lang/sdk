@@ -121,7 +121,7 @@ class ListCastError {
 
 /// Defeat optimizations of type checks.
 wrap(e) {
-  if (new Date.now().year == 1980) return null;
+  if (new DateTime.now().year == 1980) return null;
   return e;
 }
 

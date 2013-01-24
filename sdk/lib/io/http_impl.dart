@@ -1755,7 +1755,7 @@ class _SocketConnection {
     _socket.onData = _invalidate;
     _socket.onClosed = _invalidate;
     _socket.onError = (_) => _invalidate();
-    _returnTime = new Date.now();
+    _returnTime = new DateTime.now();
     _httpClientConnection = null;
   }
 
@@ -1774,7 +1774,7 @@ class _SocketConnection {
     _socket.close();
   }
 
-  Duration _idleTime(Date now) => now.difference(_returnTime);
+  Duration _idleTime(DateTime now) => now.difference(_returnTime);
 
   bool get _fromPool => _returnTime != null;
 
@@ -1788,7 +1788,7 @@ class _SocketConnection {
   String _host;
   int _port;
   Socket _socket;
-  Date _returnTime;
+  DateTime _returnTime;
   bool _valid = true;
   HttpClientConnection _httpClientConnection;
 }
@@ -2125,7 +2125,7 @@ class _HttpClient implements HttpClient {
     // If there is currently no eviction timer start one.
     if (_evictionTimer == null) {
       void _handleEviction(Timer timer) {
-        Date now = new Date.now();
+        DateTime now = new DateTime.now();
         List<String> emptyKeys = new List<String>();
         _openSockets.forEach(
             (String key, Queue<_SocketConnection> connections) {

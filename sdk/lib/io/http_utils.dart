@@ -97,12 +97,12 @@ class _HttpUtils {
   //              | "Sep" | "Oct" | "Nov" | "Dec"
 
   // Format as RFC 1123 date.
-  static String formatDate(Date date) {
+  static String formatDate(DateTime date) {
     const List wkday = const ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const List month = const ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    Date d = date.toUtc();
+    DateTime d = date.toUtc();
     StringBuffer sb = new StringBuffer();
     sb.add(wkday[d.weekday - 1]);
     sb.add(", ");
@@ -121,7 +121,7 @@ class _HttpUtils {
     return sb.toString();
   }
 
-  static Date parseDate(String date) {
+  static DateTime parseDate(String date) {
     final int SP = 32;
     const List wkdays = const ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const List weekdays = const ["Monday", "Tuesday", "Wednesday", "Thursday",
@@ -246,10 +246,10 @@ class _HttpUtils {
       expect("GMT");
     }
     expectEnd();
-    return new Date.utc(year, month + 1, day, hours, minutes, seconds, 0);
+    return new DateTime.utc(year, month + 1, day, hours, minutes, seconds, 0);
   }
 
-  static Date parseCookieDate(String date) {
+  static DateTime parseCookieDate(String date) {
     const List monthsLowerCase = const ["jan", "feb", "mar", "apr", "may",
                                         "jun", "jul", "aug", "sep", "oct",
                                         "nov", "dec"];
@@ -356,6 +356,6 @@ class _HttpUtils {
     if (minute > 59) error();
     if (second > 59) error();
 
-    return new Date.utc(year, month, dayOfMonth, hour, minute, second, 0);
+    return new DateTime.utc(year, month, dayOfMonth, hour, minute, second, 0);
   }
 }

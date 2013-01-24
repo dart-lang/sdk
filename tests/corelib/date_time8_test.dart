@@ -5,12 +5,12 @@
 // Make sure the year 0 is correctly printed.
 
 testUtc() {
-  var d = new Date.utc(0, 1, 1);
+  var d = new DateTime.utc(0, 1, 1);
   Expect.equals("0000-01-01 00:00:00.000Z", d.toString());
 }
 
 testLocal() {
-  var d = new Date(0, 1, 1);
+  var d = new DateTime(0, 1, 1);
   Expect.equals("0000-01-01 00:00:00.000", d.toString());
 }
 

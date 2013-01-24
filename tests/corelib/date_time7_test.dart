@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test Date timeZoneName and timeZoneOffset getters.
+// Test DateTime timeZoneName and timeZoneOffset getters.
 
 testUtc() {
-  var d = new Date.fromString("2012-03-04T03:25:38.123Z");
+  var d = new DateTime.fromString("2012-03-04T03:25:38.123Z");
   Expect.equals("UTC", d.timeZoneName);
   Expect.equals(0, d.timeZoneOffset.inSeconds);
 }
@@ -33,11 +33,11 @@ testLocal() {
     }
   }
 
-  var d = new Date.fromString("2012-01-02T13:45:23");
+  var d = new DateTime.fromString("2012-01-02T13:45:23");
   String name = d.timeZoneName;
   checkOffset(name, d.timeZoneOffset);
 
-  d = new Date.fromString("2012-07-02T13:45:23");
+  d = new DateTime.fromString("2012-07-02T13:45:23");
   name = d.timeZoneName;
   checkOffset(name, d.timeZoneOffset);
 }

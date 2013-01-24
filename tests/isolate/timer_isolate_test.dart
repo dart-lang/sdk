@@ -25,12 +25,12 @@ main() {
     
     port.receive(expectAsync2((msg, _) {
       expect("timer_fired", msg);
-      int endTime = (new Date.now()).millisecondsSinceEpoch;
+      int endTime = (new DateTime.now()).millisecondsSinceEpoch;
       expect(endTime - startTime, greaterThanOrEqualTo(TIMEOUT));
       port.close();
     }));
     
-    startTime = (new Date.now()).millisecondsSinceEpoch;
+    startTime = (new DateTime.now()).millisecondsSinceEpoch;
     var sendPort = spawnFunction(createTimer);
     sendPort.send("sendPort", port.toSendPort());
   });

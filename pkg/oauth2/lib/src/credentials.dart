@@ -44,13 +44,13 @@ class Credentials {
 
   /// The date at which these credentials will expire. This is likely to be a
   /// few seconds earlier than the server's idea of the expiration date.
-  final Date expiration;
+  final DateTime expiration;
 
   /// Whether or not these credentials have expired. Note that it's possible the
   /// credentials will expire shortly after this is called. However, since the
   /// client's expiration date is kept a few seconds earlier than the server's,
   /// there should be enough leeway to rely on this.
-  bool get isExpired => expiration != null && new Date.now() > expiration;
+  bool get isExpired => expiration != null && new DateTime.now() > expiration;
 
   /// Whether it's possible to refresh these credentials.
   bool get canRefresh => refreshToken != null && tokenEndpoint != null;
@@ -111,7 +111,7 @@ class Credentials {
     if (expiration != null) {
       validate(expiration is int,
           'field "expiration" was not an int, was "$expiration"');
-      expiration = new Date.fromMillisecondsSinceEpoch(expiration);
+      expiration = new DateTime.fromMillisecondsSinceEpoch(expiration);
     }
 
     return new Credentials(
@@ -152,7 +152,7 @@ class Credentials {
     if (scopes == null) scopes = <String>[];
     if (httpClient == null) httpClient = new http.Client();
 
-    var startTime = new Date.now();
+    var startTime = new DateTime.now();
     return async.then((_) {
       if (refreshToken == null) {
         throw new StateError("Can't refresh credentials without a refresh "

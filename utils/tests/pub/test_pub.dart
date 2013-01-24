@@ -356,7 +356,7 @@ Descriptor credentialsFile(
     ScheduledServer server,
     String accessToken,
     {String refreshToken,
-     Date expiration}) {
+     DateTime expiration}) {
   return async(server.url.then((url) {
     return dir(cachePath, [
       file('credentials.json', new oauth2.Credentials(

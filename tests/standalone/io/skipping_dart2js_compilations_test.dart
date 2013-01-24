@@ -123,7 +123,7 @@ class FileUtils {
 
 class TestCompletedHandler {
   FileUtils fileUtils;
-  Date _expectedTimestamp;
+  DateTime _expectedTimestamp;
   bool _shouldHaveRun;
 
   TestCompletedHandler(FileUtils this.fileUtils, bool this._shouldHaveRun);

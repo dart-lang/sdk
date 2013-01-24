@@ -16,7 +16,7 @@ import 'utils.dart';
 
 final Uri tokenEndpoint = new Uri.fromString("https://example.com/token");
 
-final Date startTime = new Date.now();
+final DateTime startTime = new DateTime.now();
 
 oauth2.Credentials handle(http.Response response) =>
   handleAccessTokenResponse(response, tokenEndpoint, startTime, ["scope"]);

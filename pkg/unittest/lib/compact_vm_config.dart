@@ -20,7 +20,7 @@ const String _NONE = '\u001b[0m';
 const int MAX_LINE = 80;
 
 class CompactVMConfiguration extends VMConfiguration {
-  Date _start;
+  DateTime _start;
   int _pass = 0;
   int _fail = 0;
 
@@ -30,7 +30,7 @@ class CompactVMConfiguration extends VMConfiguration {
 
   void onStart() {
     super.onStart();
-    _start = new Date.now();
+    _start = new DateTime.now();
   }
 
   void onTestStart(TestCase test) {
@@ -84,9 +84,9 @@ class CompactVMConfiguration extends VMConfiguration {
 
   final int _nonVisiblePrefix = 1 + _GREEN.length + _NONE.length;
 
-  void _progressLine(Date startTime, int passed, int failed, String message,
+  void _progressLine(DateTime startTime, int passed, int failed, String message,
       [String color = _NONE]) {
-    var duration = (new Date.now()).difference(startTime);
+    var duration = (new DateTime.now()).difference(startTime);
     var buffer = new StringBuffer();
     // \r moves back to the beginnig of the current line.
     buffer.add('\r${_timeString(duration)} ');

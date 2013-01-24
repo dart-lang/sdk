@@ -10,7 +10,7 @@ import "dart:collection-dev";
 part "bool.dart";
 part "collection.dart";
 part "comparable.dart";
-part "date.dart";
+part "date_time.dart";
 part "double.dart";
 part "duration.dart";
 part "errors.dart";

@@ -36,11 +36,11 @@ class _DateBuilder {
    * Return a date built using our values. If no date portion is set,
    * use the "Epoch" of January 1, 1970.
    */
-  Date asDate() {
+  DateTime asDate() {
     // TODO(alanknight): Validate the date, especially for things which
     // can crash the VM, e.g. large month values.
     if (utc) {
-      return new Date.utc(
+      return new DateTime.utc(
           year,
           month,
           day,
@@ -49,7 +49,7 @@ class _DateBuilder {
           second,
           fractionalSecond);
     } else {
-      return new Date(
+      return new DateTime(
           year,
           month,
           day,

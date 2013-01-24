@@ -303,7 +303,7 @@ class Dartdoc {
   String get footerContent{
     var footerItems = [];
     if (!omitGenerationTime) {
-      footerItems.add("This page was generated at ${new Date.now()}");
+      footerItems.add("This page was generated at ${new DateTime.now()}");
     }
     if (footerText != null) {
       footerItems.add(footerText);
@@ -1825,7 +1825,7 @@ class Dartdoc {
     }
     startFile('appcache.manifest');
     write("CACHE MANIFEST\n\n");
-    write("# VERSION: ${new Date.now()}\n\n");
+    write("# VERSION: ${new DateTime.now()}\n\n");
     write("NETWORK:\n*\n\n");
     write("CACHE:\n");
     var toCache = new Directory.fromPath(outputDir);

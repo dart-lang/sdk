@@ -229,7 +229,7 @@ class AuthorizationCodeGrant {
   /// This works just like [handleAuthorizationCode], except it doesn't validate
   /// the state beforehand.
   Future<Client> _handleAuthorizationCode(String authorizationCode) {
-    var startTime = new Date.now();
+    var startTime = new DateTime.now();
     return _httpClient.post(this.tokenEndpoint, fields: {
       "grant_type": "authorization_code",
       "code": authorizationCode,

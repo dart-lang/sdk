@@ -22,28 +22,28 @@ main() {
     int _message;
 
     void timeoutHandler1(Timer timer) {
-      int endTime = (new Date.now()).millisecondsSinceEpoch;
+      int endTime = (new DateTime.now()).millisecondsSinceEpoch;
       expect(endTime - _startTime1, greaterThanOrEqualTo(TIMEOUT1));
       expect(_order[_message], 0);
       _message++;
     }
 
     void timeoutHandler2(Timer timer) {
-      int endTime  = (new Date.now()).millisecondsSinceEpoch;
+      int endTime  = (new DateTime.now()).millisecondsSinceEpoch;
       expect(endTime - _startTime2, greaterThanOrEqualTo(TIMEOUT2));
       expect(_order[_message], 1);
       _message++;
     }
 
     void timeoutHandler3(Timer timer) {
-      int endTime = (new Date.now()).millisecondsSinceEpoch;
+      int endTime = (new DateTime.now()).millisecondsSinceEpoch;
       expect(endTime - _startTime3, greaterThanOrEqualTo(TIMEOUT3));
       expect(_order[_message], 2);
       _message++;
     }
 
     void timeoutHandler4(Timer timer) {
-      int endTime  = (new Date.now()).millisecondsSinceEpoch;
+      int endTime  = (new DateTime.now()).millisecondsSinceEpoch;
       expect(endTime - _startTime4, greaterThanOrEqualTo(TIMEOUT4));
       expect(_order[_message], 3);
       _message++;
@@ -56,13 +56,13 @@ main() {
     _order[3] = 1;
     _message = 0;
 
-    _startTime1 = (new Date.now()).millisecondsSinceEpoch;
+    _startTime1 = (new DateTime.now()).millisecondsSinceEpoch;
     new Timer(TIMEOUT1, expectAsync1(timeoutHandler1));
-    _startTime2 = (new Date.now()).millisecondsSinceEpoch;
+    _startTime2 = (new DateTime.now()).millisecondsSinceEpoch;
     new Timer(TIMEOUT2, expectAsync1(timeoutHandler2));
-    _startTime3 = (new Date.now()).millisecondsSinceEpoch;
+    _startTime3 = (new DateTime.now()).millisecondsSinceEpoch;
     new Timer(TIMEOUT3, expectAsync1(timeoutHandler3));
-    _startTime4 = (new Date.now()).millisecondsSinceEpoch;
+    _startTime4 = (new DateTime.now()).millisecondsSinceEpoch;
     new Timer(TIMEOUT4, expectAsync1(timeoutHandler4));
   });
 }

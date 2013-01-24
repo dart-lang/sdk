@@ -35,7 +35,7 @@ void main() {
     setUp(createHttpClient);
 
     test("that can't be refreshed throws an ExpirationException on send", () {
-      var expiration = new Date.now().subtract(new Duration(hours: 1));
+      var expiration = new DateTime.now().subtract(new Duration(hours: 1));
       var credentials = new oauth2.Credentials(
           'access token', null, null, [], expiration);
       var client = new oauth2.Client('identifier', 'secret', credentials,
@@ -47,7 +47,7 @@ void main() {
 
     test("that can be refreshed refreshes the credentials and sends the "
         "request", () {
-      var expiration = new Date.now().subtract(new Duration(hours: 1));
+      var expiration = new DateTime.now().subtract(new Duration(hours: 1));
       var credentials = new oauth2.Credentials(
           'access token', 'refresh token', tokenEndpoint, [], expiration);
       var client = new oauth2.Client('identifier', 'secret', credentials,

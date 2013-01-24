@@ -53,7 +53,7 @@ class TestCase {
   /** The group (or groups) under which this test is running. */
   final String currentGroup;
 
-  Date startTime;
+  DateTime startTime;
 
   Duration runningTime;
 
@@ -78,7 +78,7 @@ class TestCase {
         _setUp();
       }
       _config.onTestStart(this);
-      startTime = new Date.now();
+      startTime = new DateTime.now();
       runningTime = null;
       test();
     }
@@ -88,7 +88,7 @@ class TestCase {
     if (runningTime == null) {
       // TODO(gram): currently the duration measurement code is blocked
       // by issue 4437. When that is fixed replace the line below with:
-      //    runningTime = new Date.now().difference(startTime);
+      //    runningTime = new DateTime.now().difference(startTime);
       runningTime = new Duration(milliseconds: 0);
     }
     if (!_doneTeardown) {
