@@ -10,7 +10,7 @@ part of dart.collection.dev;
  * Implements all read-only operations, except [:operator[]:] and [:length:],
  * in terms of those two operations.
  */
-abstract class ListBase<E> extends Iterable<E> implements List<E> {
+abstract class ListBase<E> extends Collection<E> implements List<E> {
   Iterator<E> get iterator => new ListIterator(this);
 
   void forEach(f(E element)) {
@@ -91,6 +91,18 @@ abstract class ListBase<E> extends Iterable<E> implements List<E> {
       result.add(this[start + i]);
     }
     return result;
+  }
+
+  List mappedBy(f(E element)) {
+    return new MappedList(this, f);
+  }
+
+  List<E> take(int n) {
+    return new ListView(this, 0, n);
+  }
+
+  List<E> skip(int n) {
+    return new ListView(this, n, null);
   }
 
   String toString() => Collections.collectionToString(this);
