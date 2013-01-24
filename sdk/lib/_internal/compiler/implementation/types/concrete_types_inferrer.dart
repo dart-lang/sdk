@@ -277,15 +277,21 @@ class ConcreteTypeCartesianProductIterator
  * [BaseType] Constants.
  */
 class BaseTypes {
-  final BaseType intBaseType;
-  final BaseType doubleBaseType;
-  final BaseType numBaseType;
-  final BaseType boolBaseType;
-  final BaseType stringBaseType;
-  final BaseType listBaseType;
-  final BaseType mapBaseType;
-  final BaseType objectBaseType;
-  final BaseType typeBaseType;
+  final ClassBaseType intBaseType;
+  final ClassBaseType doubleBaseType;
+  final ClassBaseType numBaseType;
+  final ClassBaseType boolBaseType;
+  final ClassBaseType stringBaseType;
+  final ClassBaseType listBaseType;
+  final ClassBaseType mapBaseType;
+  final ClassBaseType objectBaseType;
+  final ClassBaseType typeBaseType;
+
+  static _getNativeListClass(Compiler compiler) {
+    // TODO(polux): switch to other implementations on other backends
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsArrayClass;
+  }
 
   BaseTypes(Compiler compiler) :
     intBaseType = new ClassBaseType(compiler.intClass),
@@ -293,7 +299,8 @@ class BaseTypes {
     numBaseType = new ClassBaseType(compiler.numClass),
     boolBaseType = new ClassBaseType(compiler.boolClass),
     stringBaseType = new ClassBaseType(compiler.stringClass),
-    listBaseType = new ClassBaseType(compiler.listClass),
+    // in the Javascript backend, lists are implemented by JsArray
+    listBaseType = new ClassBaseType(_getNativeListClass(compiler)),
     mapBaseType = new ClassBaseType(compiler.mapClass),
     objectBaseType = new ClassBaseType(compiler.objectClass),
     typeBaseType = new ClassBaseType(compiler.typeClass);
@@ -392,7 +399,7 @@ class ConcreteTypesInferrer {
   final Compiler compiler;
 
   /**
-   * When true, the string litteral [:"__dynamic_for_test":] is inferred to
+   * When true, the string literal [:"__dynamic_for_test":] is inferred to
    * have the unknown type.
    */
   // TODO(polux): get rid of this hack once we have a natural way of inferring
@@ -400,11 +407,28 @@ class ConcreteTypesInferrer {
   bool testMode = false;
 
   /**
-   * Constants representing builtin base types. Initialized in [analyzeMain]
+   * Constants representing builtin base types. Initialized in [initialize]
    * and not in the constructor because the compiler elements are not yet
    * populated.
    */
   BaseTypes baseTypes;
+
+  /**
+   * Constant representing [:ConcreteList#[]:] where [:ConcreteList:] is the
+   * concrete implmentation of lists for the selected backend.
+   */
+  FunctionElement listIndex;
+
+  /**
+   * Constant representing [:ConcreteList#[]=:] where [:ConcreteList:] is the
+   * concrete implmentation of lists for the selected backend.
+   */
+  FunctionElement listIndexSet;
+
+  /**
+   * Constant representing [:List():].
+   */
+  FunctionElement listConstructor;
 
   /**
    * A cache from (function x argument base types) to concrete types,
@@ -430,6 +454,9 @@ class ConcreteTypesInferrer {
   /** [: readers[field] :] is the list of [: field :]'s possible readers. */
   final Map<Element, Set<FunctionElement>> readers;
 
+  /** The inferred type of elements stored in Lists. */
+  ConcreteType listElementType;
+
   /**
    * A map from parameters to their inferred concrete types. It plays no role
    * in the analysis, it is write only.
@@ -445,7 +472,8 @@ class ConcreteTypesInferrer {
         inferredParameterTypes = new Map<VariableElement, ConcreteType>(),
         workQueue = new Queue<InferenceWorkItem>(),
         callers = new Map<FunctionElement, Set<FunctionElement>>(),
-        readers = new Map<Element, Set<FunctionElement>>() {
+        readers = new Map<Element, Set<FunctionElement>>(),
+        listElementType = new ConcreteType.empty() {
     unknownConcreteType = new ConcreteType.unknown();
     emptyConcreteType = new ConcreteType.empty();
   }
@@ -533,7 +561,7 @@ class ConcreteTypesInferrer {
    * Returns all the members with name [methodName].
    */
   List<Element> getMembersByName(SourceString methodName) {
-    // TODO(polux): make this faster!
+    // TODO(polux): memoize?
     var result = new List<Element>();
     for (ClassElement cls in compiler.enqueuer.resolution.seenClasses) {
       Element elem = cls.lookupLocalMember(methodName);
@@ -588,6 +616,15 @@ class ConcreteTypesInferrer {
     }
   }
 
+  /// Augment the inferred type of elements stored in Lists.
+  void augmentListElementType(ConcreteType type) {
+    ConcreteType newType = union(listElementType, type);
+    if (newType != listElementType) {
+      invalidateCallers(listIndex);
+      listElementType = newType;
+    }
+  }
+
   /**
    * Sets the concrete type associated to [parameter] to the union of the
    * inferred concrete type so far and [type].
@@ -623,6 +660,24 @@ class ConcreteTypesInferrer {
       Set<FunctionElement> newSet = new Set<FunctionElement>();
       newSet.add(reader);
       readers[field] = newSet;
+    }
+  }
+
+  /**
+   * Add callers of [function] to the workqueue.
+   */
+  void invalidateCallers(FunctionElement function) {
+    Set<FunctionElement> methodCallers = callers[function];
+    if (methodCallers == null) return;
+    for (FunctionElement caller in methodCallers) {
+      Map<ConcreteTypesEnvironment, ConcreteType> callerInstances =
+          cache[caller];
+      if (callerInstances != null) {
+        callerInstances.forEach((environment, _) {
+          workQueue.addLast(
+              new InferenceWorkItem(caller, environment));
+        });
+      }
     }
   }
 
@@ -759,6 +814,8 @@ class ConcreteTypesInferrer {
   ConcreteType getMonomorphicSendReturnType(
       FunctionElement function,
       ConcreteTypesEnvironment environment) {
+    ConcreteType specialType = getSpecialCaseReturnType(function, environment);
+    if (specialType != null) return specialType;
 
     Map<ConcreteTypesEnvironment, ConcreteType> template = cache[function];
     if (template == null) {
@@ -776,6 +833,35 @@ class ConcreteTypesInferrer {
     }
   }
 
+  /**
+   * Handles external methods that cannot be cached because they depend on some
+   * other state of [ConcreteTypesInferrer] like [:List#[]:] and
+   * [:List#[]=:]. Returns null if [function] and [environment] don't form a
+   * special case
+   */
+  ConcreteType getSpecialCaseReturnType(FunctionElement function,
+                                        ConcreteTypesEnvironment environment) {
+    if (function == listIndex) {
+      ConcreteType indexType = environment.lookupType(
+          listIndex.functionSignature.requiredParameters.head);
+      if (!indexType.baseTypes.contains(baseTypes.intBaseType)) {
+        return new ConcreteType.empty();
+      }
+      return listElementType;
+    } else if (function == listIndexSet) {
+      Link<Element> parameters =
+          listIndexSet.functionSignature.requiredParameters;
+      ConcreteType indexType = environment.lookupType(parameters.head);
+      if (!indexType.baseTypes.contains(baseTypes.intBaseType)) {
+        return new ConcreteType.empty();
+      }
+      ConcreteType elementType = environment.lookupType(parameters.tail.head);
+      augmentListElementType(elementType);
+      return new ConcreteType.empty();
+    }
+    return null;
+  }
+
   ConcreteType analyze(FunctionElement element,
                        ConcreteTypesEnvironment environment) {
     return element.isGenerativeConstructor()
@@ -785,17 +871,20 @@ class ConcreteTypesInferrer {
 
   ConcreteType analyzeMethod(FunctionElement element,
                              ConcreteTypesEnvironment environment) {
-    FunctionExpression tree = element.parseNode(compiler);
-    // This should never happen since we only deal with concrete types, except
-    // for external methods whose typing rules have not been hardcoded yet.
-    if (!tree.hasBody()) {
-      return unknownConcreteType;
-    }
     TreeElements elements =
         compiler.enqueuer.resolution.resolvedElements[element];
-    Visitor visitor =
-        new TypeInferrerVisitor(elements, element, this, environment);
-    return tree.accept(visitor);
+    ConcreteType specialResult = handleSpecialMethod(element, environment);
+    if (specialResult != null) return specialResult;
+    FunctionExpression tree = element.parseNode(compiler);
+    if (tree.hasBody()) {
+      Visitor visitor =
+          new TypeInferrerVisitor(elements, element, this, environment);
+      return tree.accept(visitor);
+    } else {
+      // TODO(polux): implement visitForeingCall and always use the
+      // implementation element instead of this hack
+      return new ConcreteType.unknown();
+    }
   }
 
   ConcreteType analyzeConstructor(FunctionElement element,
@@ -846,8 +935,43 @@ class ConcreteTypesInferrer {
     return singletonConcreteType(new ClassBaseType(enclosingClass));
   }
 
-  void analyzeMain(Element element) {
+  /**
+   * Hook that performs side effects on some special method calls (like
+   * [:List(length):]) and possibly returns a concrete type
+   * (like [:{JsArray}:]).
+   */
+  ConcreteType handleSpecialMethod(FunctionElement element,
+                                   ConcreteTypesEnvironment environment) {
+    // When List([length]) is called with some length, we must augment
+    // listElementType with {null}.
+    if (element == listConstructor) {
+      Link<Element> parameters =
+          listConstructor.functionSignature.optionalParameters;
+      ConcreteType lengthType = environment.lookupType(parameters.head);
+      if (lengthType.baseTypes.contains(baseTypes.intBaseType)) {
+        augmentListElementType(singletonConcreteType(new NullBaseType()));
+      }
+      return singletonConcreteType(baseTypes.listBaseType);
+    }
+  }
+
+  /* Initialization code that cannot be run in the constructor because it
+   * requires the compiler's elements to be populated.
+   */
+  void initialize() {
     baseTypes = new BaseTypes(compiler);
+    ClassElement jsArrayClass = baseTypes.listBaseType.element;
+    listIndex = jsArrayClass.lookupMember(const SourceString('[]'));
+    listIndexSet =
+        jsArrayClass.lookupMember(const SourceString('[]='));
+    listConstructor =
+        compiler.listClass.lookupConstructor(
+            new Selector.callConstructor(const SourceString(''),
+                                         compiler.listClass.getLibrary()));
+  }
+
+  void analyzeMain(Element element) {
+    initialize();
     cache[element] = new Map<ConcreteTypesEnvironment, ConcreteType>();
     populateCacheWithBuiltinRules();
     try {
@@ -859,21 +983,11 @@ class ConcreteTypesInferrer {
         var template = cache[item.method];
         if (template[item.environment] == concreteType) continue;
         template[item.environment] = concreteType;
-        final methodCallers = callers[item.method];
-        if (methodCallers == null) continue;
-        for (final caller in methodCallers) {
-          final callerInstances = cache[caller];
-          if (callerInstances != null) {
-            callerInstances.forEach((environment, _) {
-              workQueue.addLast(
-                  new InferenceWorkItem(caller, environment));
-            });
-          }
-        }
+        invalidateCallers(item.method);
       }
     } on CancelTypeInferenceException catch(e) {
       if (LOG_FAILURES) {
-        compiler.log("'${e.node}': ${e.reason}");
+        compiler.log("'${e.node.toDebugString()}': ${e.reason}");
       }
     }
   }
@@ -1133,7 +1247,6 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     else return Elements.mapToUserOperatorOrNull(op);
   }
 
-  // TODO(polux): handle sendset as expression
   ConcreteType visitSendSet(SendSet node) {
     // Operator []= has a different behaviour than other send sets: it is
     // actually a send whose return type is that of its second argument.
@@ -1222,7 +1335,14 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitLiteralList(LiteralList node) {
-    visitNodeList(node.elements);
+    ConcreteType elementsType = new ConcreteType.empty();
+    // We compute the union of the types of the list literal's elements.
+    for (Link<Node> link = node.elements.nodes;
+         !link.isEmpty;
+         link = link.tail) {
+      elementsType = inferrer.union(elementsType, analyze(link.head));
+    }
+    inferrer.augmentListElementType(elementsType);
     return inferrer.singletonConcreteType(inferrer.baseTypes.listBaseType);
   }
 

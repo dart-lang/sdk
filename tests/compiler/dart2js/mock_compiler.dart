@@ -47,7 +47,8 @@ const String DEFAULT_HELPERLIB = r'''
   class JSInvocationMirror {}
   S() {}
   assertHelper(a){}
-  throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}''';
+  throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
+  throwAbstractClassInstantiationError(className) {}''';
 
 const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray {

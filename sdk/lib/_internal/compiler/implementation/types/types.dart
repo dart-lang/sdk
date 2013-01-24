@@ -7,6 +7,7 @@ library types;
 import 'dart:collection' show Queue;
 
 import '../dart2jslib.dart' hide Selector;
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
 import '../util/util.dart';
