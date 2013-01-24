@@ -37,9 +37,6 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
-[ $runtime == vm && $system == windows ]
-intl/test/find_default_locale_standalone_test: Pass, Fail  # Issue 7722
-
 # Skip http request tests on Dartium while resolving an odd
 # error there that causes the tests to timeout.
 [ $runtime == dartium || $runtime == drt ]
