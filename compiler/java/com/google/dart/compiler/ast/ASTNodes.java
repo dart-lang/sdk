@@ -29,6 +29,7 @@ import com.google.dart.compiler.type.TypeKind;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Defines utility methods that operate on nodes in a Dart AST structure (instances of
@@ -1428,6 +1429,21 @@ public class ASTNodes {
     } else {
       return (DartIdentifier) constructor;
     }
+  }
+  
+  /**
+   * @return <code>true</code> if given {@link DartNode} has {@link DartSuperExpression}.
+   */
+  public static boolean hasSuperInvocation(DartNode node) {
+    final AtomicBoolean result = new AtomicBoolean();
+    node.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitSuperExpression(DartSuperExpression node) {
+        result.set(true);
+        return null;
+      }
+    });
+    return result.get();
   }
 
 }

@@ -33,6 +33,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_HIDE_IMPORT_PREFIX("Cannot hide import prefix '%s'"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR("Cannot use class with constructor as a mixin."),
+  CANNOT_MIXIN_CLASS_WITH_SUPER("Cannot use class with super invocation as a mixin."),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
       "cannot override method %s from %s, wrong number of required parameters"),

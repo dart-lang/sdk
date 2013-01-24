@@ -5,6 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.ast.ASTNodes;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -43,6 +44,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   private List<Element> unimplementedMembers;
   private final int openBraceOffset;
   private final int closeBraceOffset;
+  private final boolean hasSuperInvocation;
 
   // declared volatile for thread-safety
   @SuppressWarnings("unused")
@@ -73,6 +75,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       declarationNameWithTypeParameter = createDeclarationName(node.getName(), node.getTypeParameters());
       openBraceOffset = node.getOpenBraceOffset();
       closeBraceOffset = node.getCloseBraceOffset();
+      hasSuperInvocation = ASTNodes.hasSuperInvocation(node);
     } else {
       isInterface = false;
       metadata = DartObsoleteMetadata.EMPTY;
@@ -81,6 +84,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       declarationNameWithTypeParameter = "";
       openBraceOffset = -1;
       closeBraceOffset = -1;
+      hasSuperInvocation = false;
     }
   }
   
@@ -97,6 +101,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       declarationNameWithTypeParameter = createDeclarationName(node.getName(), node.getTypeParameters());
       openBraceOffset = -1;
       closeBraceOffset = -1;
+      hasSuperInvocation = false;
     } else {
       isInterface = false;
       metadata = DartObsoleteMetadata.EMPTY;
@@ -105,6 +110,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       declarationNameWithTypeParameter = "";
       openBraceOffset = -1;
       closeBraceOffset = -1;
+      hasSuperInvocation = false;
     }
   }
 
@@ -448,5 +454,10 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   @Override
   public int getCloseBraceOffset() {
     return closeBraceOffset;
+  }
+  
+  @Override
+  public boolean hasSuperInvocation() {
+    return hasSuperInvocation;
   }
 }

@@ -203,4 +203,9 @@ public class ClassElementUnion implements ClassElement {
   public int getCloseBraceOffset() {
     return -1;
   }
+  
+  @Override
+  public boolean hasSuperInvocation() {
+    return false;
+  }
 }

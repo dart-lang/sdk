@@ -6317,6 +6317,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
   
   /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=8059
+   */
+  public void test_mixin_withSuperInvocation() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class M { foo() => super.toString(); }",
+        "typedef A = Object with M;",
+        "class B extends Object with M {}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_SUPER, 3, 25, 1),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_SUPER, 4, 29, 1));
+  }
+  
+  /**
    * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
    */
   public void _test_mixin_dontAddSupertypes() throws Exception {
