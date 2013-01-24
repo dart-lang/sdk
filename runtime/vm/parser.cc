@@ -7710,7 +7710,7 @@ bool Parser::IsFormalParameter(const String& ident,
     return false;
   }
   if (ident.Equals(Symbols::This())) {
-    // 'this' is not a formal parameter.
+    // 'this' is not a formal parameter that can be tested with '?this'.
     return false;
   }
   // Since an argument definition test does not use the value of the formal
@@ -7718,16 +7718,19 @@ bool Parser::IsFormalParameter(const String& ident,
   const bool kTestOnly = true;  // No capturing.
   LocalVariable* local =
       current_block_->scope->LookupVariable(ident, kTestOnly);
-  if (local == NULL) {
-    if (!current_function().IsLocalFunction()) {
+  if ((local == NULL) ||
+      (local->owner()->HasContextLevel() &&
+       (local->owner()->context_level() < 1))) {
+    if ((local == NULL) && !current_function().IsLocalFunction()) {
       // We are not generating code for a local function, so all locals,
       // captured or not, are in scope. However, 'ident' was not found, so it
       // does not exist.
       return false;
     }
-    // The formal parameter may belong to an enclosing function and may not have
+    // The formal parameter belongs to an enclosing function and may not have
     // been captured, so it was not included in the context scope and it cannot
     // be found by LookupVariable.
+    ASSERT((local == NULL) || local->is_captured());
     // 'ident' necessarily refers to the formal parameter of one of the
     // enclosing functions, or a compile error would have prevented the
     // outermost enclosing function to be executed and we would not be compiling
