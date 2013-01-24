@@ -795,35 +795,16 @@ class Dart2JSBackend(HtmlDartGenerator):
       else:
         return self._NarrowInputType(type_name) if type_name else 'dynamic'
 
-    body = self._members_emitter.Emit(
-        '\n'
-        '  $MODIFIERS$TYPE $(HTML_NAME)($PARAMS) {\n'
-        '$!BODY'
-        '  }\n',
-        MODIFIERS='static ' if info.IsStatic() else '',
-        TYPE=return_type,
-        HTML_NAME=html_name,
-        PARAMS=info.ParametersDeclaration(InputType))
-
     parameter_names = [param_info.name for param_info in info.param_infos]
     parameter_types = [InputType(param_info.type_id)
                        for param_info in info.param_infos]
     operations = info.operations
 
-    method_version = [0]
     temp_version = [0]
 
-    def GenerateCall(operation, argument_count, checks):
-      if checks:
-        (stmts_emitter, call_emitter) = body.Emit(
-            '    if ($CHECKS) {\n$!STMTS$!CALL    }\n',
-            INDENT='      ',
-            CHECKS=' &&\n        '.join(checks))
-      else:
-        (stmts_emitter, call_emitter) = body.Emit('$!A$!B', INDENT='    ');
-
-      method_version[0] += 1
-      target = '_%s_%d' % (html_name, method_version[0]);
+    def GenerateCall(
+        stmts_emitter, call_emitter, version, operation, argument_count):
+      target = '_%s_%d' % (html_name, version);
       arguments = []
       target_parameters = []
       for position, arg in enumerate(operation.arguments[:argument_count]):
@@ -866,11 +847,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       if output_conversion:
         call = '%s(%s)' % (output_conversion.function_name, call)
 
-      if operation.type.id == 'void':
-        call_emitter.Emit('$(INDENT)$CALL;\n$(INDENT)return;\n',
-                          CALL=call)
-      else:
-        call_emitter.Emit('$(INDENT)return $CALL;\n', CALL=call)
+      call_emitter.Emit(call)
 
       self._members_emitter.Emit(
           '  $RENAME$ANNOTATIONS$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
@@ -881,10 +858,15 @@ class Dart2JSBackend(HtmlDartGenerator):
           TARGET=target,
           PARAMS=', '.join(target_parameters))
 
+    declaration = '%s%s %s(%s)' % (
+        'static ' if info.IsStatic() else '',
+        return_type,
+        html_name,
+        info.ParametersDeclaration(InputType))
     self._GenerateDispatcherBody(
-        body,
         operations,
         parameter_names,
+        declaration,
         GenerateCall,
         self._IsOptional,
         can_omit_type_check=lambda type, pos: type == parameter_types[pos])

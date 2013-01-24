@@ -451,31 +451,11 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateDispatcher(self, operations, dart_declaration, parameter_names):
 
-    body = self._members_emitter.Emit(
-        '\n'
-        '  $DECLARATION {\n'
-        '$!BODY'
-        '  }\n',
-        DECLARATION=dart_declaration)
-
-    version = [1]
-    def GenerateCall(operation, argument_count, checks):
-      if checks:
-        if operation.type.id != 'void':
-          template = '    if ($CHECKS) {\n      return $CALL;\n    }\n'
-        else:
-          template = '    if ($CHECKS) {\n      $CALL;\n      return;\n    }\n'
-      else:
-        if operation.type.id != 'void':
-          template = '    return $CALL;\n'
-        else:
-          template = '    $CALL;\n'
-
-      overload_name = '_%s_%s' % (operation.id, version[0])
-      version[0] += 1
+    def GenerateCall(
+        stmts_emitter, call_emitter, version, operation, argument_count):
+      overload_name = '_%s_%s' % (operation.id, version)
       argument_list = ', '.join(parameter_names[:argument_count])
-      call = '%s(%s)' % (overload_name, argument_list)
-      body.Emit(template, CHECKS=' && '.join(checks), CALL=call)
+      call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=argument_list)
 
       dart_declaration = '%s%s %s(%s)' % (
           'static ' if operation.is_static else '',
@@ -487,9 +467,9 @@ class DartiumBackend(HtmlDartGenerator):
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
     self._GenerateDispatcherBody(
-        body,
         operations,
         parameter_names,
+        dart_declaration,
         GenerateCall,
         self._IsArgumentOptionalInWebCore)
 

@@ -176,12 +176,40 @@ class HtmlDartGenerator(object):
       self.EmitOperation(info, method_name)
 
   def _GenerateDispatcherBody(self,
-      emitter,
       operations,
       parameter_names,
+      declaration,
       generate_call,
       is_optional,
       can_omit_type_check=lambda type, pos: False):
+
+    body_emitter = self._members_emitter.Emit(
+        '\n'
+        '  $DECLARATION {\n'
+        '$!BODY'
+        '  }\n',
+        DECLARATION=declaration)
+
+    version = [0]
+    def GenerateCall(operation, argument_count, checks):
+      if checks:
+        (stmts_emitter, call_emitter) = body_emitter.Emit(
+            '    if ($CHECKS) {\n$!STMTS$!CALL    }\n',
+            INDENT='      ',
+            CHECKS=' && '.join(checks))
+      else:
+        (stmts_emitter, call_emitter) = body_emitter.Emit(
+            '$!STMTS$!CALL',
+            INDENT='    ');
+
+      if operation.type.id == 'void':
+        call_emitter = call_emitter.Emit('$(INDENT)$!CALL;\n$(INDENT)return;\n')
+      else:
+        call_emitter = call_emitter.Emit('$(INDENT)return $!CALL;\n')
+
+      version[0] += 1
+      generate_call(
+          stmts_emitter, call_emitter, version[0], operation, argument_count)
 
     def GenerateChecksAndCall(operation, argument_count):
       checks = []
@@ -198,7 +226,7 @@ class HtmlDartGenerator(object):
       # optional argument could have been passed by name, leaving 'holes'.
       checks.extend(['!?%s' % name for name in parameter_names[argument_count:]])
 
-      generate_call(operation, argument_count, checks)
+      GenerateCall(operation, argument_count, checks)
 
     # TODO: Optimize the dispatch to avoid repeated checks.
     if len(operations) > 1:
@@ -207,7 +235,7 @@ class HtmlDartGenerator(object):
           if is_optional(operation, argument):
             GenerateChecksAndCall(operation, position)
         GenerateChecksAndCall(operation, len(operation.arguments))
-      emitter.Emit(
+      body_emitter.Emit(
           '    throw new ArgumentError("Incorrect number or type of arguments");'
           '\n');
     else:
@@ -223,9 +251,9 @@ class HtmlDartGenerator(object):
           # y is optional in WebCore, while z is not.
           # In this case, if y was actually passed, we'd like to emit foo(x, y, z) invocation,
           # not foo(x, y).
-          generate_call(operation, argument_count, [check])
+          GenerateCall(operation, argument_count, [check])
           argument_count = position
-      generate_call(operation, argument_count, [])
+      GenerateCall(operation, argument_count, [])
 
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.

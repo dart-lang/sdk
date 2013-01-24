@@ -488,19 +488,16 @@ class Index native "*IDBIndex" {
   Request _getKey_2(key) native;
 
   Request openCursor([key_OR_range, String direction]) {
-    if (!?key_OR_range &&
-        !?direction) {
+    if (!?key_OR_range && !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is KeyRange || key_OR_range == null) &&
-        !?direction) {
+    if ((key_OR_range is KeyRange || key_OR_range == null) && !?direction) {
       return _openCursor_2(key_OR_range);
     }
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if (?key_OR_range &&
-        !?direction) {
+    if (?key_OR_range && !?direction) {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_4(key_1);
     }
@@ -547,19 +544,16 @@ class Index native "*IDBIndex" {
   Request _openCursor_5(key, direction) native;
 
   Request openKeyCursor([key_OR_range, String direction]) {
-    if (!?key_OR_range &&
-        !?direction) {
+    if (!?key_OR_range && !?direction) {
       return _openKeyCursor_1();
     }
-    if ((key_OR_range is KeyRange || key_OR_range == null) &&
-        !?direction) {
+    if ((key_OR_range is KeyRange || key_OR_range == null) && !?direction) {
       return _openKeyCursor_2(key_OR_range);
     }
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _openKeyCursor_3(key_OR_range, direction);
     }
-    if (?key_OR_range &&
-        !?direction) {
+    if (?key_OR_range && !?direction) {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _openKeyCursor_4(key_1);
     }
@@ -818,16 +812,14 @@ class ObjectStore native "*IDBObjectStore" {
   Request _count_3(key) native;
 
   Index createIndex(String name, keyPath, [Map options]) {
-    if ((keyPath is List<String> || keyPath == null) &&
-        !?options) {
+    if ((keyPath is List<String> || keyPath == null) && !?options) {
       return _createIndex_1(name, keyPath);
     }
     if ((keyPath is List<String> || keyPath == null)) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _createIndex_2(name, keyPath, options_1);
     }
-    if ((keyPath is String || keyPath == null) &&
-        !?options) {
+    if ((keyPath is String || keyPath == null) && !?options) {
       return _createIndex_3(name, keyPath);
     }
     if ((keyPath is String || keyPath == null)) {
@@ -906,19 +898,16 @@ class ObjectStore native "*IDBObjectStore" {
   Index index(String name) native;
 
   Request openCursor([key_OR_range, String direction]) {
-    if (!?key_OR_range &&
-        !?direction) {
+    if (!?key_OR_range && !?direction) {
       return _openCursor_1();
     }
-    if ((key_OR_range is KeyRange || key_OR_range == null) &&
-        !?direction) {
+    if ((key_OR_range is KeyRange || key_OR_range == null) && !?direction) {
       return _openCursor_2(key_OR_range);
     }
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_3(key_OR_range, direction);
     }
-    if (?key_OR_range &&
-        !?direction) {
+    if (?key_OR_range && !?direction) {
       var key_1 = _convertDartToNative_IDBKey(key_OR_range);
       return _openCursor_4(key_1);
     }

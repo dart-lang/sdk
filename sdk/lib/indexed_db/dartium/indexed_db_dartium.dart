@@ -71,6 +71,7 @@ class Cursor extends NativeFieldWrapperClass1 {
       return;
     }
     _continue_2();
+    return;
   }
 
   @DomName('IDBCursor._continue_1')

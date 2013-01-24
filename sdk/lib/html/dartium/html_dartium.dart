@@ -1603,6 +1603,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
       return;
     }
     _fillText_2(text, x, y);
+    return;
   }
 
   @DomName('CanvasRenderingContext2D._fillText_1')
@@ -1699,6 +1700,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
       return;
     }
     _strokeRect_2(x, y, width, height);
+    return;
   }
 
   @DomName('CanvasRenderingContext2D._strokeRect_1')
@@ -1715,6 +1717,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
       return;
     }
     _strokeText_2(text, x, y);
+    return;
   }
 
   @DomName('CanvasRenderingContext2D._strokeText_1')
@@ -6496,6 +6499,7 @@ class DataView extends ArrayBufferView {
       return;
     }
     _setFloat32_2(byteOffset, value);
+    return;
   }
 
   @DomName('DataView._setFloat32_1')
@@ -6512,6 +6516,7 @@ class DataView extends ArrayBufferView {
       return;
     }
     _setFloat64_2(byteOffset, value);
+    return;
   }
 
   @DomName('DataView._setFloat64_1')
@@ -6528,6 +6533,7 @@ class DataView extends ArrayBufferView {
       return;
     }
     _setInt16_2(byteOffset, value);
+    return;
   }
 
   @DomName('DataView._setInt16_1')
@@ -6544,6 +6550,7 @@ class DataView extends ArrayBufferView {
       return;
     }
     _setInt32_2(byteOffset, value);
+    return;
   }
 
   @DomName('DataView._setInt32_1')
@@ -6564,6 +6571,7 @@ class DataView extends ArrayBufferView {
       return;
     }
     _setUint16_2(byteOffset, value);
+    return;
   }
 
   @DomName('DataView._setUint16_1')
@@ -6580,6 +6588,7 @@ class DataView extends ArrayBufferView {
       return;
     }
     _setUint32_2(byteOffset, value);
+    return;
   }
 
   @DomName('DataView._setUint32_1')
@@ -9879,6 +9888,7 @@ abstract class Element extends Node implements ElementTraversal {
       return;
     }
     _scrollIntoViewIfNeeded_2();
+    return;
   }
 
   @DomName('Element._scrollIntoViewIfNeeded_1')
@@ -10555,6 +10565,7 @@ class Entry extends NativeFieldWrapperClass1 {
       return;
     }
     _copyTo_2(parent);
+    return;
   }
 
   @DomName('Entry._copyTo_1')
@@ -10579,6 +10590,7 @@ class Entry extends NativeFieldWrapperClass1 {
       return;
     }
     _moveTo_2(parent);
+    return;
   }
 
   @DomName('Entry._moveTo_1')
@@ -11613,6 +11625,7 @@ class FileReader extends EventTarget {
       return;
     }
     _readAsText_2(blob);
+    return;
   }
 
   @DomName('FileReader._readAsText_1')
@@ -14401,6 +14414,7 @@ class InputElement extends _Element_Merged implements
       return;
     }
     _stepDown_2();
+    return;
   }
 
   @DomName('HTMLInputElement._stepDown_1')
@@ -14417,6 +14431,7 @@ class InputElement extends _Element_Merged implements
       return;
     }
     _stepUp_2();
+    return;
   }
 
   @DomName('HTMLInputElement._stepUp_1')
@@ -16672,6 +16687,7 @@ class MediaElement extends _Element_Merged {
       return;
     }
     _webkitAddKey_2(keySystem, key);
+    return;
   }
 
   @DomName('HTMLMediaElement._webkitAddKey_1')
@@ -16692,6 +16708,7 @@ class MediaElement extends _Element_Merged {
       return;
     }
     _webkitGenerateKeyRequest_2(keySystem);
+    return;
   }
 
   @DomName('HTMLMediaElement._webkitGenerateKeyRequest_1')
@@ -22051,6 +22068,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
       return;
     }
     _addFromString_2(string);
+    return;
   }
 
   @DomName('SpeechGrammarList._addFromString_1')
@@ -22067,6 +22085,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
       return;
     }
     _addFromUri_2(src);
+    return;
   }
 
   @DomName('SpeechGrammarList._addFromUri_1')
@@ -23537,6 +23556,7 @@ class TextAreaElement extends _Element_Merged {
       return;
     }
     _setSelectionRange_2(start, end);
+    return;
   }
 
   @DomName('HTMLTextAreaElement._setSelectionRange_1')
@@ -27737,6 +27757,7 @@ class WebSocket extends EventTarget {
       return;
     }
     _close_3();
+    return;
   }
 
   @DomName('WebSocket._close_1')
