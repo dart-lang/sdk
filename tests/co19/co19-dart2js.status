@@ -180,7 +180,7 @@ LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Ple
 
 
 [ $compiler == dart2js && $runtime == jsshell ]
-LibTest/core/Map/Map_class_A01_t04: Slow # Issue 8096 
+LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096 
 Language/05_Variables/05_Variables_A13_t02: Fail # TODO(ngeoaffray): Please triage these failure.
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # TODO(ngeoaffray): Please triage these failure.
