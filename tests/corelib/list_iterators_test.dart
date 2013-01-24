@@ -37,6 +37,9 @@ class ListIteratorsTest {
     g.removeLast();
     // The iterator keeps the last value.
     Expect.equals(3, it.current);
+    Expect.throws(it.moveNext, (e) => e is ConcurrentModificationError);
+    // No progress when throwing.
+    Expect.equals(3, it.current);
   }
 }
 
