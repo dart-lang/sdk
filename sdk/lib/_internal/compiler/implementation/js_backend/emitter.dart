@@ -1331,7 +1331,8 @@ $lazyInitializerLogic
   void emitStaticFunctionGetters(CodeBuffer buffer) {
     Set<FunctionElement> functionsNeedingGetter =
         compiler.codegenWorld.staticFunctionsNeedingGetter;
-    for (FunctionElement element in functionsNeedingGetter) {
+    for (FunctionElement element in
+             Elements.sortedByPosition(functionsNeedingGetter)) {
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
       // create a fake element with the correct name.
@@ -1593,7 +1594,7 @@ $lazyInitializerLogic
     ConstantHandler handler = compiler.constantHandler;
     Iterable<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
-    for (Element element in staticNonFinalFields) {
+    for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
       compiler.withCurrentElement(element, () {
         Constant initialValue = handler.getInitialValueFor(element);
         js.Expression init =
