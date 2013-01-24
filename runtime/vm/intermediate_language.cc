@@ -828,6 +828,74 @@ bool BlockEntryInstr::Dominates(BlockEntryInstr* other) const {
 }
 
 
+// Helper to mutate the graph during inlining. This block should be
+// replaced with new_block as a predecessor of all of this block's
+// successors.  For each successor, the predecessors will be reordered
+// to preserve block-order sorting of the predecessors as well as the
+// phis if the successor is a join.
+void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
+  // Set the last instruction of the new block to that of the old block.
+  Instruction* last = last_instruction();
+  new_block->set_last_instruction(last);
+  // For each successor, update the predecessors.
+  for (intptr_t sidx = 0; sidx < last->SuccessorCount(); ++sidx) {
+    // If the successor is a target, update its predecessor.
+    TargetEntryInstr* target = last->SuccessorAt(sidx)->AsTargetEntry();
+    if (target != NULL) {
+      target->predecessor_ = new_block;
+      continue;
+    }
+    // If the successor is a join, update each predecessor and the phis.
+    JoinEntryInstr* join = last->SuccessorAt(sidx)->AsJoinEntry();
+    ASSERT(join != NULL);
+    // Find the old predecessor index.
+    intptr_t old_index = join->IndexOfPredecessor(this);
+    intptr_t pred_count = join->PredecessorCount();
+    ASSERT(old_index >= 0);
+    ASSERT(old_index < pred_count);
+    // Find the new predecessor index while reordering the predecessors.
+    intptr_t new_id = new_block->block_id();
+    intptr_t new_index = old_index;
+    if (block_id() < new_id) {
+      // Search upwards, bubbling down intermediate predecessors.
+      for (; new_index < pred_count - 1; ++new_index) {
+        if (join->predecessors_[new_index + 1]->block_id() > new_id) break;
+        join->predecessors_[new_index] = join->predecessors_[new_index + 1];
+      }
+    } else {
+      // Search downwards, bubbling up intermediate predecessors.
+      for (; new_index > 0; --new_index) {
+        if (join->predecessors_[new_index - 1]->block_id() < new_id) break;
+        join->predecessors_[new_index] = join->predecessors_[new_index - 1];
+      }
+    }
+    join->predecessors_[new_index] = new_block;
+    // If the new and old predecessor index match there is nothing to update.
+    if ((join->phis() == NULL) || (old_index == new_index)) return;
+    // Otherwise, reorder the predecessor uses in each phi.
+    for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+      PhiInstr* phi = (*join->phis())[i];
+      if (phi == NULL) continue;
+      ASSERT(pred_count == phi->InputCount());
+      // Save the predecessor use.
+      Value* pred_use = phi->InputAt(old_index);
+      // Move uses between old and new.
+      intptr_t step = (old_index < new_index) ? 1 : -1;
+      for (intptr_t use_idx = old_index;
+           use_idx != new_index;
+           use_idx += step) {
+        Value* use = phi->InputAt(use_idx + step);
+        phi->SetInputAt(use_idx, use);
+        use->set_use_index(use_idx);
+      }
+      // Write the predecessor use.
+      phi->SetInputAt(new_index, pred_use);
+      pred_use->set_use_index(new_index);
+    }
+  }
+}
+
+
 void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   // Lazily initialize the array of phis.
   // Currently, phis are stored in a sparse array that holds the phi

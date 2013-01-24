@@ -436,7 +436,7 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Build the callee graph.
-      ValueInliningContext* inlining_context = new ValueInliningContext();
+      InliningContext* inlining_context = InliningContext::Create(call);
       FlowGraphBuilder builder(*parsed_function, inlining_context);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
@@ -559,7 +559,7 @@ class CallSiteInliner : public ValueObject {
                          isolate);
 
         // Plug result in the caller graph.
-        caller_graph_->InlineCall(call, callee_graph, inlining_context);
+        inlining_context->ReplaceCall(caller_graph_, call, callee_graph);
 
         // Remove push arguments of the call.
         for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {

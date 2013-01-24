@@ -19,7 +19,28 @@ class ParsedFunction;
 // An abstraction of the graph context in which an inlined call occurs.
 class InliningContext: public ZoneAllocated {
  public:
+  // Create the appropriate inlining context for the flow graph context of a
+  // call.
+  static InliningContext* Create(Definition* call);
+
   virtual void AddExit(ReturnInstr* exit) = 0;
+
+  // Inline a flow graph at a call site.
+  //
+  // Assumes the callee graph was computed by BuildGraph with an inlining
+  // context and transformed to SSA with ComputeSSA with a correct virtual
+  // register number, and that the use lists have been correctly computed.
+  //
+  // After inlining the caller graph will correctly have adjusted the
+  // pre/post orders, the dominator tree and the use lists.
+  virtual void ReplaceCall(FlowGraph* caller_graph,
+                           Definition* call,
+                           FlowGraph* callee_graph) = 0;
+
+ protected:
+  static void PrepareGraphs(FlowGraph* caller_graph,
+                            Definition* call,
+                            FlowGraph* callee_graph);
 };
 
 
@@ -29,6 +50,18 @@ class InliningContext: public ZoneAllocated {
 class ValueInliningContext: public InliningContext {
  public:
   ValueInliningContext() : exits_(4) { }
+
+  virtual void AddExit(ReturnInstr* exit);
+
+  virtual void ReplaceCall(FlowGraph* caller_graph,
+                           Definition* call,
+                           FlowGraph* callee_graph);
+
+ private:
+  struct Data {
+    BlockEntryInstr* exit_block;
+    ReturnInstr* exit_return;
+  };
 
   BlockEntryInstr* ExitBlockAt(intptr_t i) const {
     ASSERT(exits_[i].exit_block != NULL);
@@ -41,17 +74,8 @@ class ValueInliningContext: public InliningContext {
     return exits_[i].exit_return->value();
   }
 
-  intptr_t NumExits() { return exits_.length(); }
-  virtual void AddExit(ReturnInstr* exit);
-  void SortExits();
-
- private:
-  struct Data {
-    BlockEntryInstr* exit_block;
-    ReturnInstr* exit_return;
-  };
-
   static int LowestBlockIdFirst(const Data* a, const Data* b);
+  void SortExits();
 
   GrowableArray<Data> exits_;
 };

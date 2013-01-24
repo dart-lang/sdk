@@ -754,6 +754,11 @@ class BlockEntryInstr : public Instruction {
     return const_cast<BlockEntryInstr*>(this);
   }
 
+  // Helper to mutate the graph during inlining. This block should be
+  // replaced with new_block as a predecessor of all of this block's
+  // successors.
+  void ReplaceAsPredecessorWith(BlockEntryInstr* new_block);
+
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index)
       : block_id_(block_id),
@@ -924,7 +929,10 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
-  friend class FlowGraph;  // Access to predecessors_ when inlining.
+  // Classes that have access to predecessors_ when inlining.
+  friend class BlockEntryInstr;
+  friend class ValueInliningContext;
+
   virtual void ClearPredecessors() { predecessors_.Clear(); }
   virtual void AddPredecessor(BlockEntryInstr* predecessor);
 
@@ -1003,7 +1011,8 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
-  friend class FlowGraph;  // Access to predecessor_ when inlining.
+  friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
+
   virtual void ClearPredecessors() { predecessor_ = NULL; }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) {
     ASSERT(predecessor_ == NULL);

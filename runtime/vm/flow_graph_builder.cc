@@ -60,6 +60,41 @@ void FlowGraphBuilder::AddCatchEntry(TargetEntryInstr* entry) {
 }
 
 
+InliningContext* InliningContext::Create(Definition* call) {
+  return new ValueInliningContext();
+}
+
+
+void InliningContext::PrepareGraphs(FlowGraph* caller_graph,
+                                    Definition* call,
+                                    FlowGraph* callee_graph) {
+  ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
+  ASSERT(callee_graph->max_block_id() > caller_graph->max_block_id());
+  ASSERT(callee_graph->max_virtual_register_number() >
+         caller_graph->max_virtual_register_number());
+
+  // Adjust the caller's maximum block id and current SSA temp index.
+  caller_graph->set_max_block_id(callee_graph->max_block_id());
+  caller_graph->set_current_ssa_temp_index(
+      callee_graph->max_virtual_register_number());
+
+  // Attach the outer environment on each instruction in the callee graph.
+  for (BlockIterator block_it = callee_graph->postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator it(block_it.Current());
+         !it.Done();
+         it.Advance()) {
+      Instruction* instr = it.Current();
+      // TODO(zerny): Avoid creating unnecessary environments. Note that some
+      // optimizations need deoptimization info for non-deoptable instructions,
+      // eg, LICM on GOTOs.
+      if (instr->env() != NULL) call->env()->DeepCopyToOuter(instr);
+    }
+  }
+}
+
+
 void ValueInliningContext::AddExit(ReturnInstr* exit) {
   Data data = { NULL, exit };
   exits_.Add(data);
@@ -78,6 +113,118 @@ void ValueInliningContext::SortExits() {
     exits_[i].exit_block = exits_[i].exit_return->GetBlock();
   }
   exits_.Sort(LowestBlockIdFirst);
+}
+
+
+void ValueInliningContext::ReplaceCall(FlowGraph* caller_graph,
+                                       Definition* call,
+                                       FlowGraph* callee_graph) {
+  ASSERT(call->previous() != NULL);
+  ASSERT(call->next() != NULL);
+  PrepareGraphs(caller_graph, call, callee_graph);
+
+  BlockEntryInstr* caller_entry = call->GetBlock();
+  TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
+
+  // Insert the callee graph into the caller graph.  First sort the list of
+  // exits by block id (recording block entries as a side effect).
+  SortExits();
+  intptr_t num_exits = exits_.length();
+  if (num_exits == 0) {
+    // TODO(zerny): Add support for non-local exits, such as throw.
+    UNREACHABLE();
+  } else if (num_exits == 1) {
+    // For just one exit, replace the uses and remove the call from the graph.
+    call->ReplaceUsesWith(ValueAt(0)->definition());
+    call->previous()->LinkTo(callee_entry->next());
+    LastInstructionAt(0)->LinkTo(call->next());
+    // In case of control flow, locally update the predecessors, phis and
+    // dominator tree.
+    // TODO(zerny): should we leave the dominator tree since we recompute it
+    // after a full inlining pass?
+    if (callee_graph->preorder().length() > 2) {
+      BlockEntryInstr* exit_block = ExitBlockAt(0);
+      // Pictorially, the graph structure is:
+      //
+      //   Bc : caller_entry    Bi : callee_entry
+      //     before_call          inlined_head
+      //     call               ... other blocks ...
+      //     after_call         Be : exit_block
+      //                          inlined_foot
+      // And becomes:
+      //
+      //   Bc : caller_entry
+      //     before_call
+      //     inlined_head
+      //   ... other blocks ...
+      //   Be : exit_block
+      //    inlined_foot
+      //    after_call
+      //
+      // For 'after_call', caller entry (Bc) is replaced by callee exit (Be).
+      caller_entry->ReplaceAsPredecessorWith(exit_block);
+      // For 'inlined_head', callee entry (Bi) is replaced by caller entry (Bc).
+      callee_entry->ReplaceAsPredecessorWith(caller_entry);
+      // The callee exit is now the immediate dominator of blocks whose
+      // immediate dominator was the caller entry.
+      ASSERT(exit_block->dominated_blocks().is_empty());
+      for (intptr_t i = 0; i < caller_entry->dominated_blocks().length(); ++i) {
+        BlockEntryInstr* block = caller_entry->dominated_blocks()[i];
+        block->set_dominator(exit_block);
+        exit_block->AddDominatedBlock(block);
+      }
+      // The caller entry is now the immediate dominator of blocks whose
+      // immediate dominator was the callee entry.
+      caller_entry->ClearDominatedBlocks();
+      for (intptr_t i = 0; i < callee_entry->dominated_blocks().length(); ++i) {
+        BlockEntryInstr* block = callee_entry->dominated_blocks()[i];
+        block->set_dominator(caller_entry);
+        caller_entry->AddDominatedBlock(block);
+      }
+    }
+  } else {
+    // Create a join of the returns.
+    intptr_t join_id = caller_graph->max_block_id() + 1;
+    caller_graph->set_max_block_id(join_id);
+    JoinEntryInstr* join =
+        new JoinEntryInstr(join_id, CatchClauseNode::kInvalidTryIndex);
+    for (intptr_t i = 0; i < num_exits; ++i) {
+      LastInstructionAt(i)->Goto(join);
+      // Directly add the predecessors of the join in ascending block id order.
+      join->predecessors_.Add(ExitBlockAt(i));
+    }
+    // If the call has uses, create a phi of the returns.
+    if (call->HasUses()) {
+      // Environment count: length before call - argument count (+ return)
+      intptr_t env_count = call->env()->Length() - call->ArgumentCount();
+      // Add a phi of the return values.
+      join->InsertPhi(env_count, env_count + 1);
+      PhiInstr* phi = join->phis()->Last();
+      phi->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
+      phi->mark_alive();
+      for (intptr_t i = 0; i < num_exits; ++i) {
+        Value* value = ValueAt(i);
+        phi->SetInputAt(i, value);
+        value->set_instruction(phi);
+        value->set_use_index(i);
+      }
+      // Replace uses of the call with the phi.
+      call->ReplaceUsesWith(phi);
+    }
+    // Remove the call from the graph.
+    call->previous()->LinkTo(callee_entry->next());
+    join->LinkTo(call->next());
+    // Replace the blocks after splitting (see comment in the len=1 case above).
+    caller_entry->ReplaceAsPredecessorWith(join);
+    callee_entry->ReplaceAsPredecessorWith(caller_entry);
+    // Update the last instruction pointers on each exit block to the new goto.
+    for (intptr_t i = 0; i < num_exits; ++i) {
+      ExitBlockAt(i)->set_last_instruction(LastInstructionAt(i)->next());
+    }
+    // Mark that the dominator tree is invalid.
+    // TODO(zerny): Compute the dominator frontier locally.
+    caller_graph->InvalidateDominatorTree();
+  }
 }
 
 
