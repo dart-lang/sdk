@@ -24,7 +24,13 @@ class Uri {
   final String query;
   final String fragment;
 
+  /**
+   * Deprecated. Please use [parse] instead.
+   */
+  @deprecated
   Uri.fromString(String uri) : this._fromMatch(_splitRe.firstMatch(uri));
+
+  static Uri parse(String uri) => new Uri._fromMatch(_splitRe.firstMatch(uri));
 
   Uri._fromMatch(Match m) :
     this.fromComponents(scheme: _emptyIfNull(m[_COMPONENT_SCHEME]),
@@ -119,7 +125,7 @@ class Uri {
   }
 
   Uri resolve(String uri) {
-    return resolveUri(new Uri.fromString(uri));
+    return resolveUri(Uri.parse(uri));
   }
 
   Uri resolveUri(Uri reference) {

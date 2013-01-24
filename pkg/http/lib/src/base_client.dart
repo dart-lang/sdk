@@ -110,7 +110,7 @@ abstract class BaseClient implements Client {
     // Wrap everything in a Future block so that synchronous validation errors
     // are passed asynchronously through the Future chain.
     return async.then((_) {
-      if (url is String) url = new Uri.fromString(url);
+      if (url is String) url = Uri.parse(url);
       var request = new Request(method, url);
 
       if (headers != null) mapAddAll(request.headers, headers);

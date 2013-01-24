@@ -766,7 +766,7 @@ class _WebSocketClientConnection
 
 class _WebSocket implements WebSocket {
   _WebSocket(String url, [protocols]) {
-    Uri uri = new Uri.fromString(url);
+    Uri uri = Uri.parse(url);
     if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme ${uri.scheme}");
     }

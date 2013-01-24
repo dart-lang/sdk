@@ -45,7 +45,7 @@ void main() {
       });
     });
 
-    var uri = new Uri.fromString("http://example.com/foo");
+    var uri = Uri.parse("http://example.com/foo");
     var request = new http.Request("POST", uri);
     request.body = "hello, world";
     var future = client.send(request)

@@ -39,7 +39,7 @@ void main() {
 
   Future makeRequest(int n) {
     var completer = new Completer();
-    var url = new Uri.fromString("http://localhost:${server.port}");
+    var url = Uri.parse("http://localhost:${server.port}");
     var connection = client.openUrl("POST", url);
     connection.onRequest = (HttpClientRequest request) {
       request.contentLength = n + 1;

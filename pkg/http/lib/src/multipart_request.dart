@@ -23,7 +23,7 @@ import 'utils.dart';
 /// `multipart/form-data` and the Content-Transfer-Encoding header to `binary`.
 /// These values will override any values set by the user.
 ///
-///     var uri = new Uri.fromString("http://pub.dartlang.org/packages/create");
+///     var uri = Uri.parse("http://pub.dartlang.org/packages/create");
 ///     var request = new http.MultipartRequest("POST", url);
 ///     request.fields['user'] = 'nweiz@google.com';
 ///     request.files.add(new http.MultipartFile.fromFile(

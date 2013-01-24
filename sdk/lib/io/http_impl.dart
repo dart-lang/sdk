@@ -1350,7 +1350,7 @@ class _HttpClientResponse
         }
         // Check for redirect loop
         if (_connection._redirects != null) {
-          Uri redirectUrl = new Uri.fromString(location[0]);
+          Uri redirectUrl = Uri.parse(location[0]);
           for (int i = 0; i < _connection._redirects.length; i++) {
             if (_connection._redirects[i].location.toString() ==
                 redirectUrl.toString()) {
@@ -1702,7 +1702,7 @@ class _HttpClientConnection
   void redirect([String method, Uri url]) {
     if (method == null) method = _method;
     if (url == null) {
-      url = new Uri.fromString(_response.headers.value(HttpHeaders.LOCATION));
+      url = Uri.parse(_response.headers.value(HttpHeaders.LOCATION));
     }
     // Always set the content length to 0 for redirects.
     var mutable = _request._headers._mutable;

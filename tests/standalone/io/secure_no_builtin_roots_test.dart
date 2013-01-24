@@ -11,7 +11,7 @@ void testGoogleUrl() {
   HttpClient client = new HttpClient();
 
   void testUrl(String url) {
-    var requestUri = new Uri.fromString(url);
+    var requestUri = Uri.parse(url);
     var conn = client.getUrl(requestUri);
 
     conn.onRequest = (HttpClientRequest request) {

@@ -65,7 +65,7 @@ void testStreamResponse() {
 
   var client = new HttpClient();
   var connection =
-      client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}"));
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}"));
   connection.onResponse = (resp) {
     int bytes = 0;
     resp.inputStream.onData = () {

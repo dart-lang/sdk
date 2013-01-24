@@ -34,7 +34,7 @@ void testListenOn() {
 
     HttpClient client = new HttpClient();
     HttpClientConnection conn =
-        client.getUrl(new Uri.fromString("https://$HOST_NAME:${server.port}/"));
+        client.getUrl(Uri.parse("https://$HOST_NAME:${server.port}/"));
     conn.onRequest = (HttpClientRequest request) {
       request.outputStream.close();
     };

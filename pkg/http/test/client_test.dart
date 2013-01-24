@@ -42,7 +42,7 @@ void main() {
 
   test('#send with an invalid URL', () {
     var client = new http.Client();
-    var url = new Uri.fromString('http://http.invalid');
+    var url = Uri.parse('http://http.invalid');
     var request = new http.StreamedRequest("POST", url);
     request.headers[HttpHeaders.CONTENT_TYPE] =
         'application/json; charset=utf-8';

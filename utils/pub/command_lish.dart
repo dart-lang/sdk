@@ -38,7 +38,7 @@ class LishCommand extends PubCommand {
   }
 
   /// The URL of the server to which to upload the package.
-  Uri get server => new Uri.fromString(commandOptions['server']);
+  Uri get server => Uri.parse(commandOptions['server']);
 
   Future _publish(packageBytes) {
     var cloudStorageUrl;
@@ -51,7 +51,7 @@ class LishCommand extends PubCommand {
 
         var url = _expectField(parameters, 'url', response);
         if (url is! String) invalidServerResponse(response);
-        cloudStorageUrl = new Uri.fromString(url);
+        cloudStorageUrl = Uri.parse(url);
         var request = new http.MultipartRequest('POST', cloudStorageUrl);
 
         var fields = _expectField(parameters, 'fields', response);

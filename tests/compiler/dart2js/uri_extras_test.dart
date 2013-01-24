@@ -16,23 +16,23 @@ void testRelativize() {
     }
     String r;
 
-    r = relativize(new Uri.fromString('file:$base'),
-                   new Uri.fromString('file:$path'),
+    r = relativize(Uri.parse('file:$base'),
+                   Uri.parse('file:$path'),
                    isWindows);
     Expect.stringEquals(expected, r);
 
-    r = relativize(new Uri.fromString('FILE:$base'),
-                   new Uri.fromString('FILE:$path'),
+    r = relativize(Uri.parse('FILE:$base'),
+                   Uri.parse('FILE:$path'),
                    isWindows);
     Expect.stringEquals(expected, r);
 
-    r = relativize(new Uri.fromString('file:$base'),
-                   new Uri.fromString('FILE:$path'),
+    r = relativize(Uri.parse('file:$base'),
+                   Uri.parse('FILE:$path'),
                    isWindows);
     Expect.stringEquals(expected, r);
 
-    r = relativize(new Uri.fromString('FILE:$base'),
-                   new Uri.fromString('file:$path'),
+    r = relativize(Uri.parse('FILE:$base'),
+                   Uri.parse('file:$path'),
                    isWindows);
     Expect.stringEquals(expected, r);
   }

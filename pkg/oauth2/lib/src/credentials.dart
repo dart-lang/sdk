@@ -105,7 +105,7 @@ class Credentials {
 
     var tokenEndpoint = parsed['tokenEndpoint'];
     if (tokenEndpoint != null) {
-      tokenEndpoint = new Uri.fromString(tokenEndpoint);
+      tokenEndpoint = Uri.parse(tokenEndpoint);
     }
     var expiration = parsed['expiration'];
     if (expiration != null) {

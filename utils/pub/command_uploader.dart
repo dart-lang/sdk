@@ -38,7 +38,7 @@ class UploaderCommand extends PubCommand {
   }
 
   /// The URL of the package hosting server.
-  Uri get server => new Uri.fromString(commandOptions['server']);
+  Uri get server => Uri.parse(commandOptions['server']);
 
   Future onRun() {
     if (commandOptions.rest.isEmpty) {

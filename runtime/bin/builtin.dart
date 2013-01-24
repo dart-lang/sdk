@@ -68,10 +68,10 @@ String _resolveScriptUri(String cwd, String scriptName, bool isWindows) {
 }
 
 String _resolveUri(String base, String userString) {
-  var baseUri = new Uri.fromString(base);
+  var baseUri = Uri.parse(base);
   _logResolution("# Resolving: $userString from $base");
 
-  var uri = new Uri.fromString(userString);
+  var uri = Uri.parse(userString);
   var resolved;
   if ('dart-ext' == uri.scheme) {
     // Relative URIs with scheme dart-ext should be resolved as if with no
@@ -94,7 +94,7 @@ String _resolveUri(String base, String userString) {
 
 
 String _filePathFromUri(String userUri, bool isWindows) {
-  var uri = new Uri.fromString(userUri);
+  var uri = Uri.parse(userUri);
   _logResolution("# Getting file path from: $uri");
 
   var path;

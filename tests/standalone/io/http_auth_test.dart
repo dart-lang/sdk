@@ -78,7 +78,7 @@ void testUrlUserInfo() {
 
   HttpClientConnection conn =
       client.getUrl(
-          new Uri.fromString(
+          Uri.parse(
               "http://username:password@127.0.0.1:${server.port}/"));
   conn.onResponse = (HttpClientResponse response) {
     response.inputStream.onData = response.inputStream.read;
@@ -108,10 +108,10 @@ void testBasicNoCredentials() {
   for (int i = 0; i < 5; i++) {
     futures.add(
         makeRequest(
-            new Uri.fromString("http://127.0.0.1:${server.port}/test$i")));
+            Uri.parse("http://127.0.0.1:${server.port}/test$i")));
     futures.add(
         makeRequest(
-            new Uri.fromString("http://127.0.0.1:${server.port}/test$i/xxx")));
+            Uri.parse("http://127.0.0.1:${server.port}/test$i/xxx")));
   }
   Future.wait(futures).then((_) {
     server.shutdown();
@@ -136,7 +136,7 @@ void testBasicCredentials() {
 
   for (int i = 0; i < 5; i++) {
     client.addCredentials(
-        new Uri.fromString("http://127.0.0.1:${server.port}/test$i"),
+        Uri.parse("http://127.0.0.1:${server.port}/test$i"),
         "realm",
         new HttpClientBasicCredentials("test$i", "test$i"));
   }
@@ -145,10 +145,10 @@ void testBasicCredentials() {
   for (int i = 0; i < 5; i++) {
     futures.add(
         makeRequest(
-            new Uri.fromString("http://127.0.0.1:${server.port}/test$i")));
+            Uri.parse("http://127.0.0.1:${server.port}/test$i")));
     futures.add(
         makeRequest(
-            new Uri.fromString("http://127.0.0.1:${server.port}/test$i/xxx")));
+            Uri.parse("http://127.0.0.1:${server.port}/test$i/xxx")));
   }
   Future.wait(futures).then((_) {
     server.shutdown();
@@ -192,10 +192,10 @@ void testBasicAuthenticateCallback() {
     for (int i = 0; i < 5; i++) {
       futures.add(
           makeRequest(
-              new Uri.fromString("http://127.0.0.1:${server.port}/test$i")));
+              Uri.parse("http://127.0.0.1:${server.port}/test$i")));
       futures.add(
           makeRequest(
-              new Uri.fromString(
+              Uri.parse(
                   "http://127.0.0.1:${server.port}/test$i/xxx")));
     }
     return futures;
@@ -203,7 +203,7 @@ void testBasicAuthenticateCallback() {
 
   Future.wait(makeRequests()).then((_) {
     makeRequest(
-        new Uri.fromString(
+        Uri.parse(
             "http://127.0.0.1:${server.port}/passwdchg")).then((_) {
       passwordChanged = true;
       Future.wait(makeRequests()).then((_) {
@@ -219,14 +219,14 @@ void testLocalServerBasic() {
 
   client.authenticate = (Uri url, String scheme, String realm) {
     client.addCredentials(
-        new Uri.fromString("http://127.0.0.1/basic"),
+        Uri.parse("http://127.0.0.1/basic"),
         "test",
         new HttpClientBasicCredentials("test", "test"));
     return new Future.immediate(true);
   };
 
   HttpClientConnection conn =
-      client.getUrl(new Uri.fromString("http://127.0.0.1/basic/test"));
+      client.getUrl(Uri.parse("http://127.0.0.1/basic/test"));
   conn.onResponse = (HttpClientResponse response) {
     Expect.equals(HttpStatus.OK, response.statusCode);
     response.inputStream.onData = () => response.inputStream.read();
@@ -242,14 +242,14 @@ void testLocalServerDigest() {
   client.authenticate = (Uri url, String scheme, String realm) {
     print("url: $url, scheme: $scheme, realm: $realm");
     client.addCredentials(
-        new Uri.fromString("http://127.0.0.1/digest"),
+        Uri.parse("http://127.0.0.1/digest"),
         "test",
         new HttpClientDigestCredentials("test", "test"));
     return new Future.immediate(true);
   };
 
   HttpClientConnection conn =
-      client.getUrl(new Uri.fromString("http://127.0.0.1/digest/test"));
+      client.getUrl(Uri.parse("http://127.0.0.1/digest/test"));
   conn.onResponse = (HttpClientResponse response) {
     Expect.equals(HttpStatus.OK, response.statusCode);
     response.inputStream.onData = () => response.inputStream.read();

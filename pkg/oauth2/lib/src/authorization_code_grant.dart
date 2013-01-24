@@ -185,7 +185,7 @@ class AuthorizationCodeGrant {
       if (parameters.containsKey('error')) {
         var description = parameters['error_description'];
         var uriString = parameters['error_uri'];
-        var uri = uriString == null ? null : new Uri.fromString(uriString);
+        var uri = uriString == null ? null : Uri.parse(uriString);
         throw new AuthorizationException(parameters['error'], description, uri);
       } else if (!parameters.containsKey('code')) {
         throw new FormatException('Invalid OAuth response for '

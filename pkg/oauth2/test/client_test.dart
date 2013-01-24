@@ -14,9 +14,9 @@ import '../../http/lib/http.dart' as http;
 import '../lib/oauth2.dart' as oauth2;
 import 'utils.dart';
 
-final Uri requestUri = new Uri.fromString("http://example.com/resource");
+final Uri requestUri = Uri.parse("http://example.com/resource");
 
-final Uri tokenEndpoint = new Uri.fromString('http://example.com/token');
+final Uri tokenEndpoint = Uri.parse('http://example.com/token');
 
 ExpectClient httpClient;
 

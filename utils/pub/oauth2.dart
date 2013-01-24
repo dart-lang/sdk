@@ -33,13 +33,13 @@ final _secret = 'SWeqj8seoJW0w7_CpEPFLX0K';
 /// a refresh token from the server. See the [Google OAuth2 documentation][].
 ///
 /// [Google OAuth2 documentation]: https://developers.google.com/accounts/docs/OAuth2WebServer#offline
-final _authorizationEndpoint = new Uri.fromString(
+final _authorizationEndpoint = Uri.parse(
     'https://accounts.google.com/o/oauth2/auth?access_type=offline'
     '&approval_prompt=force');
 
 /// The URL from which the pub client will request an access token once it's
 /// been authorized by the user.
-final _tokenEndpoint = new Uri.fromString(
+final _tokenEndpoint = Uri.parse(
     'https://accounts.google.com/o/oauth2/token');
 
 /// The OAuth2 scopes that the pub client needs. Currently the client only needs
@@ -158,7 +158,7 @@ Future<Client> _authorize() {
   // Allow the tests to inject their own token endpoint URL.
   var tokenEndpoint = Platform.environment['_PUB_TEST_TOKEN_ENDPOINT'];
   if (tokenEndpoint != null) {
-    tokenEndpoint = new Uri.fromString(tokenEndpoint);
+    tokenEndpoint = Uri.parse(tokenEndpoint);
   } else {
     tokenEndpoint = _tokenEndpoint;
   }
@@ -193,7 +193,7 @@ Future<Client> _authorize() {
   server.listen('127.0.0.1', 0);
 
   var authUrl = grant.getAuthorizationUrl(
-      new Uri.fromString('http://localhost:${server.port}'), scopes: _scopes);
+      Uri.parse('http://localhost:${server.port}'), scopes: _scopes);
 
   log.message(
       'Pub needs your authorization to upload packages on your behalf.\n'

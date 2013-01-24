@@ -97,7 +97,7 @@ void compile(List<String> argv) {
   setOutput(String argument) {
     explicitOut = true;
     out = cwd.resolve(nativeToUriPath(extractParameter(argument)));
-    sourceMapOut = new Uri.fromString('$out.map');
+    sourceMapOut = Uri.parse('$out.map');
   }
 
   setOutputType(String argument) {
@@ -239,7 +239,7 @@ void compile(List<String> argv) {
       sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
   code = '$code\n//@ sourceMappingURL=${sourceMapFileName}';
   writeString(out, code);
-  writeString(new Uri.fromString('$out.deps'),
+  writeString(Uri.parse('$out.deps'),
               getDepsOutput(inputProvider.sourceFiles));
   int dartBytesRead = inputProvider.dartBytesRead;
   int bytesWritten = code.length;

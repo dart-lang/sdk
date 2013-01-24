@@ -1436,7 +1436,7 @@ class ScheduledServer {
 
   /// The base URL of the server, including its port.
   Future<Uri> get url =>
-    port.then((p) => new Uri.fromString("http://localhost:$p"));
+    port.then((p) => Uri.parse("http://localhost:$p"));
 
   /// Assert that the next request has the given [method] and [path], and pass
   /// it to [handler] to handle. If [handler] returns a [Future], wait until
@@ -1449,7 +1449,7 @@ class ScheduledServer {
       handlerCompleter.complete((request, response) {
         expect(request.method, equals(method));
         // TODO(nweiz): Use request.path once issue 7464 is fixed.
-        expect(new Uri.fromString(request.uri).path, equals(path));
+        expect(Uri.parse(request.uri).path, equals(path));
 
         var future = handler(request, response);
         if (future == null) future = new Future.immediate(null);

@@ -184,7 +184,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
         .firstMatch(line);
     expect(match, isNotNull);
 
-    var redirectUrl = new Uri.fromString(decodeUriComponent(match.group(1)));
+    var redirectUrl = Uri.parse(decodeUriComponent(match.group(1)));
     redirectUrl = addQueryParameters(redirectUrl, {'code': 'access code'});
     return (new http.Request('GET', redirectUrl)..followRedirects = false)
       .send();

@@ -17,10 +17,10 @@ import 'package:http/src/utils.dart';
 HttpServer _server;
 
 /// The URL for the current server instance.
-Uri get serverUrl => new Uri.fromString('http://localhost:${_server.port}');
+Uri get serverUrl => Uri.parse('http://localhost:${_server.port}');
 
 /// A dummy URL for constructing requests that won't be sent.
-Uri get dummyUrl => new Uri.fromString('http://dartlang.org/');
+Uri get dummyUrl => Uri.parse('http://dartlang.org/');
 
 /// Starts a new HTTP server.
 void startServer() {
@@ -35,7 +35,7 @@ void startServer() {
 
   _server.addRequestHandler((request) => request.path == '/loop',
       (request, response) {
-    var n = int.parse(new Uri.fromString(request.uri).query);
+    var n = int.parse(Uri.parse(request.uri).query);
     response.statusCode = 302;
     response.headers.set('location',
         serverUrl.resolve('/loop?${n + 1}').toString());

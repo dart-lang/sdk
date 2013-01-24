@@ -38,7 +38,7 @@ void test() {
   // Connect web socket over HTTPS.
   var conn = new WebSocketClientConnection(
       client.getUrl(
-          new Uri.fromString("https://$HOST_NAME:${server.port}/")));
+          Uri.parse("https://$HOST_NAME:${server.port}/")));
   conn.onOpen = () {
     conn.send("hello");
   };

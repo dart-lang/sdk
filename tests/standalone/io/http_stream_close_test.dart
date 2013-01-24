@@ -35,7 +35,7 @@ main() {
   };
 
   var connection = client.postUrl(
-      new Uri.fromString("http://127.0.0.1:${server.port}"));
+      Uri.parse("http://127.0.0.1:${server.port}"));
   connection.onError = (e) { throw e; };
   connection.onRequest = (request) {
     request.contentLength = "hello!".length;

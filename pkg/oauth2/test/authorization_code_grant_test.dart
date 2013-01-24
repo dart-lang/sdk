@@ -15,7 +15,7 @@ import '../../http/lib/testing.dart';
 import '../lib/oauth2.dart' as oauth2;
 import 'utils.dart';
 
-final redirectUrl = new Uri.fromString('http://example.com/redirect');
+final redirectUrl = Uri.parse('http://example.com/redirect');
 
 ExpectClient client;
 
@@ -26,8 +26,8 @@ void createGrant() {
   grant = new oauth2.AuthorizationCodeGrant(
       'identifier',
       'secret',
-      new Uri.fromString('https://example.com/authorization'),
-      new Uri.fromString('https://example.com/token'),
+      Uri.parse('https://example.com/authorization'),
+      Uri.parse('https://example.com/token'),
       httpClient: client);
 }
 
@@ -75,8 +75,8 @@ void main() {
       grant = new oauth2.AuthorizationCodeGrant(
           'identifier',
           'secret',
-          new Uri.fromString('https://example.com/authorization?query=value'),
-          new Uri.fromString('https://example.com/token'),
+          Uri.parse('https://example.com/authorization?query=value'),
+          Uri.parse('https://example.com/token'),
           httpClient: client);
 
       var authorizationUrl = grant.getAuthorizationUrl(redirectUrl);

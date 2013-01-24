@@ -47,7 +47,7 @@ Function test(Map options) {
       client.clientCertificate = options['certificateName'];
       var completer = new Completer();
       HttpClientConnection conn =
-          client.getUrl(new Uri.fromString(
+          client.getUrl(Uri.parse(
               "https://$HOST_NAME:${server.port}/$sendCertificate"));
       conn.onRequest = (HttpClientRequest request) {
         request.outputStream.close();

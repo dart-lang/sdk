@@ -971,5 +971,5 @@ Directory _getDirectory(entry) {
 /// Gets a [Uri] for [uri], which can either already be one, or be a [String].
 Uri _getUri(uri) {
   if (uri is Uri) return uri;
-  return new Uri.fromString(uri);
+  return Uri.parse(uri);
 }
