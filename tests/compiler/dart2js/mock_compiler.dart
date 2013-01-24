@@ -32,18 +32,12 @@ class WarningMessage {
 }
 
 const String DEFAULT_HELPERLIB = r'''
-  lt() {} add(var a, var b) {} sub() {} mul() {} div() {} tdiv() {} mod() {}
-  neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
-  or() {} and() {} not() {} eqNull(a) {} eqq() {}
-  ltB() {} leB() {} eqB() {} gtB() {} geB() {} eqNullB(a) {}
   $throw(x) { return x; }
   iae(x) { throw x; } ioore(x) { throw x; }
   guard$array(x) { return x; }
   guard$num(x) { return x; }
   guard$string(x) { return x; }
   guard$stringOrArray(x) { return x; }
-  index(a, index) {}
-  indexSet(a, index, value) {}
   makeLiteralMap(List keyValuePairs) {}
   setRuntimeTypeInfo(a, b) {}
   getRuntimeTypeInfo(a) {}
@@ -108,6 +102,7 @@ const String DEFAULT_CORELIB = r'''
   class String {}
   class Object {
     operator ==(other) {}
+    String toString() {}
   }
   class Type {}
   class Function {}

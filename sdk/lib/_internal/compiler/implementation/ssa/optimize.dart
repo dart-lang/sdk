@@ -722,7 +722,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
     HInstruction newInstruction = handleInterceptorCall(node);
-    if (newInstruction != null) return newInstruction;
+    if (newInstruction != node) return newInstruction;
 
     HInstruction constant = tryComputeConstantInterceptor(
         node.inputs[1], node.interceptedClasses);
@@ -735,12 +735,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (selector.isGetter()) {
       HInstruction res = new HInvokeDynamicGetter(
           selector, node.element, constant, false);
-      res.inputs.add(node.intputs[1]);
+      res.inputs.add(node.inputs[1]);
       return res;
     } else if (node.selector.isSetter()) {
       HInstruction res = new HInvokeDynamicSetter(
           selector, node.element, constant, node.inputs[1], false);
-      res.inputs.add(node.intputs[2]);
+      res.inputs.add(node.inputs[2]);
       return res;
     } else {
       List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
