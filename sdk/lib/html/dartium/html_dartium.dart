@@ -14726,7 +14726,7 @@ abstract class DateTimeInputElement implements RangeInputElementBase {
   factory DateTimeInputElement() => new InputElement(type: 'datetime');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
@@ -14751,7 +14751,7 @@ abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
@@ -14776,7 +14776,7 @@ abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
@@ -14801,7 +14801,7 @@ abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
@@ -14826,7 +14826,7 @@ abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
