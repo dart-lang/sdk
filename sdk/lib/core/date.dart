@@ -263,14 +263,12 @@ class _DateImpl implements Date {
     Match match = re.firstMatch(formattedString);
     if (match != null) {
       int parseIntOrZero(String matched) {
-        // TODO(floitsch): we should not need to test against the empty string.
-        if (matched == null || matched == "") return 0;
+        if (matched == null) return 0;
         return int.parse(matched);
       }
 
       double parseDoubleOrZero(String matched) {
-        // TODO(floitsch): we should not need to test against the empty string.
-        if (matched == null || matched == "") return 0.0;
+        if (matched == null) return 0.0;
         return double.parse(matched);
       }
 
