@@ -368,10 +368,6 @@ class ResolverTask extends CompilerTask {
     }
     ResolverVisitor visitor = visitorFor(element);
     initializerDo(tree, visitor.visit);
-
-    // Perform various checks as side effect of "computing" the type.
-    element.computeType(compiler);
-
     return visitor.mapping;
   }
 

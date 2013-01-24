@@ -36,7 +36,6 @@ class Compiler extends leg.Compiler {
             emitJavaScript: !hasOption(options, '--output-type=dart'),
             disallowUnsafeEval: hasOption(options, '--disallow-unsafe-eval'),
             analyzeAll: hasOption(options, '--analyze-all'),
-            analyzeOnly: hasOption(options, '--analyze-only'),
             rejectDeprecatedFeatures:
                 hasOption(options, '--reject-deprecated-language-features'),
             checkDeprecationInSdk:

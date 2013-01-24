@@ -193,7 +193,6 @@ abstract class Compiler implements DiagnosticListener {
    */
   final int maxConcreteTypeSize;
   final bool analyzeAll;
-  final bool analyzeOnly;
   final bool enableNativeLiveTypeAnalysis;
   final bool rejectDeprecatedFeatures;
   final bool checkDeprecationInSdk;
@@ -204,8 +203,6 @@ abstract class Compiler implements DiagnosticListener {
   final bool preserveComments;
 
   bool disableInlining = false;
-
-  List<Uri> librariesToAnalyzeWhenRun;
 
   final Tracer tracer;
 
@@ -327,7 +324,6 @@ abstract class Compiler implements DiagnosticListener {
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
             this.analyzeAll: false,
-            this.analyzeOnly: false,
             this.rejectDeprecatedFeatures: false,
             this.checkDeprecationInSdk: false,
             this.preserveComments: false,
@@ -638,64 +634,33 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void runCompiler(Uri uri) {
-    assert(uri != null || analyzeOnly);
+    log('compiling $uri ($BUILD_ID)');
     scanBuiltinLibraries();
-    if (librariesToAnalyzeWhenRun != null) {
-      for (Uri libraryUri in librariesToAnalyzeWhenRun) {
-        log('analyzing $libraryUri ($BUILD_ID)');
-        libraryLoader.loadLibrary(libraryUri, null, libraryUri);
-      }
-    }
-    if (uri != null) {
-      if (analyzeOnly) {
-        log('analyzing $uri ($BUILD_ID)');
-      } else {
-        log('compiling $uri ($BUILD_ID)');
-      }
-      mainApp = libraryLoader.loadLibrary(uri, null, uri);
-    }
+    mainApp = libraryLoader.loadLibrary(uri, null, uri);
     libraries.forEach((_, library) {
       maybeEnableJSHelper(library);
       maybeEnableIsolateHelper(library);
     });
-    Element main = null;
-    if (mainApp != null) {
-      main = mainApp.find(MAIN);
-      if (main == null) {
-        if (!analyzeOnly) {
-          // Allow analyze only of libraries with no main.
-          reportFatalError('Could not find $MAIN', mainApp);
-        } else if (!analyzeAll) {
-          reportFatalError(
-              "Could not find $MAIN. "
-              "No source will be analyzed. "
-              "Use '--analyze-all' to analyze all code in the library.",
-              mainApp);
-        }
-      } else {
-        if (!main.isFunction()) {
-          reportFatalError('main is not a function', main);
-        }
-        FunctionElement mainMethod = main;
-        FunctionSignature parameters = mainMethod.computeSignature(this);
-        parameters.forEachParameter((Element parameter) {
-          reportFatalError('main cannot have parameters', parameter);
-        });
-      }
+    final Element main = mainApp.find(MAIN);
+    if (main == null) {
+      reportFatalError('Could not find $MAIN', mainApp);
+    } else {
+      if (!main.isFunction()) reportFatalError('main is not a function', main);
+      FunctionElement mainMethod = main;
+      FunctionSignature parameters = mainMethod.computeSignature(this);
+      parameters.forEachParameter((Element parameter) {
+        reportFatalError('main cannot have parameters', parameter);
+      });
     }
 
     log('Resolving...');
     phase = PHASE_RESOLVING;
-    if (analyzeAll) {
-      libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
-    }
+    if (analyzeAll) libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
     backend.enqueueHelpers(enqueuer.resolution);
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
     if (compilationFailed) return;
-    if (analyzeOnly) return;
-    assert(main != null);
 
     log('Inferring types...');
     typesTask.onResolutionComplete(main);
@@ -735,9 +700,6 @@ abstract class Compiler implements DiagnosticListener {
       ClassElement cls = element;
       cls.ensureResolved(this);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
-    } else if (element.isTypedef()) {
-      TypedefElement typdef = element;
-      typdef.computeType(this);
     } else {
       enqueuer.resolution.addToWorkList(element);
     }
@@ -745,9 +707,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void processQueue(Enqueuer world, Element main) {
     world.nativeEnqueuer.processNativeClasses(libraries.values);
-    if (main != null) {
-      world.addToWorkList(main);
-    }
+    world.addToWorkList(main);
     progress.reset();
     world.forEach((WorkItem work) {
       withCurrentElement(work.element, () => work.run(this, world));

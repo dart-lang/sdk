@@ -10,11 +10,11 @@ import 'dart:uri';
 
 import '../../sdk/lib/_internal/compiler/compiler.dart';
 
-Future<String> provider(Uri uri, String mainSource) {
+Future<String> provider(Uri uri) {
   Completer<String> completer = new Completer<String>();
   String source;
   if (uri.scheme == "main") {
-    source = mainSource;
+    source = "main() {}";
   } else if (uri.scheme == "lib") {
     if (uri.path.endsWith("/core.dart")) {
       source = """library core;
@@ -79,15 +79,11 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 }
 
 main() {
-  Future<String> localProvider(Uri uri) {
-    return provider(uri, "main() {}");
-  }
-
   Future<String> result =
       compile(new Uri.fromComponents(scheme: 'main'),
               new Uri.fromComponents(scheme: 'lib', path: '/'),
               new Uri.fromComponents(scheme: 'package', path: '/'),
-              localProvider, handler);
+              provider, handler);
   result.then((String code) {
     if (code == null) {
       throw 'Compilation failed';
