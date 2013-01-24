@@ -846,7 +846,9 @@ abstract class HInstruction implements Spannable {
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
 
-  void updateInput(int i, HInstruction insn) => inputs[i] = insn;
+  void updateInput(int i, HInstruction insn) {
+    inputs[i] = insn;
+  }
 
   /**
    * A pure instruction is an instruction that does not have any side
