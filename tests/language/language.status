@@ -76,6 +76,7 @@ gc_test: Skip  # Issue 1487, flaky.
 
 [ $compiler == none && $mode == debug ]
 gc_test: Skip  # Takes too long.
+internal_library_test/02: Crash # Issue 8094
 
 [ $compiler == none && $unchecked ]
 
