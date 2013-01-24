@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $arch == simarm ]
-*: Skip
-
 [ $compiler == dart2js ]
 dummy_compiler_test: Slow, Pass
 recursive_import_test: Slow, Pass
@@ -28,3 +25,15 @@ dart2js_test: Fail # http://dartbug.com/2264
 *: Skip
 
 [ $compiler == dartc ]
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
+*: Skip

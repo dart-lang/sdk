@@ -326,12 +326,6 @@ call_test: Fail # Issue 1604
 [ $browser ]
 
 
-[ $arch == simarm ]
-*: Skip
-
-[ $arch == arm ]
-*: Skip
-
 [ $compiler == dart2dart ]
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
 const_factory_redirection_test: Fail # http://dartbug.com/6894
@@ -561,3 +555,15 @@ prefix22_test: Pass
 invocation_mirror_test: Fail, OK # hardcoded names.
 invocation_mirror2_test: Fail, OK # hardcoded names.
 super_call4_test: Fail, OK # hardcoded names.
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
+*: Skip

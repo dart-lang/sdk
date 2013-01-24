@@ -76,13 +76,6 @@ io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 [ $compiler == frog ]
 *: Skip
 
-[ $arch == arm ]
-*: Skip
-
-
-[ $arch == simarm ]
-*: Skip
-
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
 typed_array_test: Skip # This is a VM test
@@ -115,4 +108,16 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
+*: Skip
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
 *: Skip

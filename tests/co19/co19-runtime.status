@@ -396,13 +396,6 @@ Language/03_Overview/1_Scoping_A02_t30: Fail
 [ $compiler == none && $runtime == vm && $mode == debug ]
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
 
-[ $compiler == none && $arch == simarm ]
-*: Skip
-
-[ $compiler == none && $arch == arm ]
-*: Skip
-
-
 [ $compiler == none && $runtime == vm ]
 LibTest/core/Completer/Completer_A01_t01: Fail # Future is in async library. co19 issue 367
 LibTest/core/Completer/completeException_A01_t01: Fail # Future is in async library. co19 issue 367
@@ -516,3 +509,15 @@ LibTest/core/Future/transform_A02_t04: Fail # Future is in async library. co19 i
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/isolate/SendPort/call_A01_t01: Fail # Future is in async library. co19 issue 367
 Language/14_Types/4_Interface_Types_A08_t06: Fail # Moved collection classes from core to collection. co19 issue 371.
+
+[ $compiler == none && $arch == simarm ]
+*: Skip
+
+[ $compiler == none && $arch == arm ]
+*: Skip
+
+[ $compiler == none && $arch == simmips ]
+*: Skip
+
+[ $compiler == none && $arch == mips ]
+*: Skip

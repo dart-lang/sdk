@@ -65,3 +65,15 @@ unittest/test/instance_test: Skip
 
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
+*: Skip

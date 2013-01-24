@@ -30,12 +30,6 @@ unicode_test: Fail
 [ $runtime == vm ]
 string_trim_unicode_test: Fail  # Bug 6569
 
-[ $arch == simarm ]
-*: Skip
-
-[ $arch == arm ]
-*: Skip
-
 [ $compiler == dart2js ]
 math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
 math_test: Fail # issue 3333
@@ -76,3 +70,15 @@ map_values2_test: Fail # Generic types aren't right
 # Tests fail due to bug in generics on constants, issue 6827
 iterable_to_list_test: Fail
 iterable_to_set_test: Fail
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
+*: Skip
