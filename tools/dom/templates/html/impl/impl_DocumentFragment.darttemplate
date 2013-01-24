@@ -4,21 +4,6 @@
 
 part of html;
 
-Future<CssStyleDeclaration> _emptyStyleFuture() {
-  return _createMeasurementFuture(() => new Element.tag('div').style,
-                                  new Completer<CssStyleDeclaration>());
-}
-
-class _FrozenCssClassSet extends CssClassSet {
-  void writeClasses(Set s) {
-    throw new UnsupportedError(
-        'frozen class set cannot be modified');
-  }
-  Set<String> readClasses() => new Set<String>();
-
-  bool get frozen => true;
-}
-
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.createDocumentFragment();
 
@@ -70,8 +55,6 @@ $endif
     return e.innerHtml;
   }
 
-  String get outerHtml => innerHtml;
-
   // TODO(nweiz): Do we want to support some variant of innerHtml for XML and/or
   // SVG strings?
   void set innerHtml(String value) {
@@ -85,186 +68,16 @@ $endif
     this.nodes.addAll(nodes);
   }
 
-  Node _insertAdjacentNode(String where, Node node) {
-    switch (where.toLowerCase()) {
-      case "beforebegin": return null;
-      case "afterend": return null;
-      case "afterbegin":
-        var first = this.nodes.length > 0 ? this.nodes[0] : null;
-        this.insertBefore(node, first);
-        return node;
-      case "beforeend":
-        this.nodes.add(node);
-        return node;
-      default:
-        throw new ArgumentError("Invalid position ${where}");
-    }
-  }
-
-  Element insertAdjacentElement(String where, Element element)
-    => this._insertAdjacentNode(where, element);
-
-  void insertAdjacentText(String where, String text) {
-    this._insertAdjacentNode(where, new Text(text));
-  }
-
-  void insertAdjacentHtml(String where, String text) {
-    this._insertAdjacentNode(where, new DocumentFragment.html(text));
-  }
-
   void append(Element element) {
     this.children.add(element);
   }
 
   void appendText(String text) {
-    this.insertAdjacentText('beforeend', text);
+    this.nodes.add(new Text(text));
   }
 
   void appendHtml(String text) {
-    this.insertAdjacentHtml('beforeend', text);
-  }
-
-  // If we can come up with a semi-reasonable default value for an Element
-  // getter, we'll use it. In general, these return the same values as an
-  // element that has no parent.
-  String get contentEditable => "false";
-  bool get isContentEditable => false;
-  bool get draggable => false;
-  bool get hidden => false;
-  bool get spellcheck => false;
-  bool get translate => false;
-  int get tabIndex => -1;
-  String get id => "";
-  String get title => "";
-  String get tagName => "";
-  String get webkitdropzone => "";
-  String get webkitRegionOverflow => "";
-  Element get $m_firstElementChild {
-    if (children.length > 0) {
-      return children[0];
-    }
-    return null;
-  }
-  Element get $m_lastElementChild => children.last;
-  Element get nextElementSibling => null;
-  Element get previousElementSibling => null;
-  Element get offsetParent => null;
-  Element get parent => null;
-  Map<String, String> get attributes => const {};
-  CssClassSet get classes => new _FrozenCssClassSet();
-  Map<String, String> get dataAttributes => const {};
-  CssStyleDeclaration get style => new Element.tag('div').style;
-  Future<CssStyleDeclaration> get computedStyle =>
-      _emptyStyleFuture();
-  Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) =>
-      _emptyStyleFuture();
-
-  // Imperative Element methods are made into no-ops, as they are on parentless
-  // elements.
-  void blur() {}
-  void focus() {}
-  void click() {}
-  void scrollByLines(int lines) {}
-  void scrollByPages(int pages) {}
-  void scrollIntoView([bool centerIfNeeded]) {}
-  void webkitRequestFullScreen(int flags) {}
-  void webkitRequestFullscreen() {}
-
-  // Setters throw errors rather than being no-ops because we aren't going to
-  // retain the values that were set, and erroring out seems clearer.
-  void set attributes(Map<String, String> value) {
-    throw new UnsupportedError(
-      "Attributes can't be set for document fragments.");
-  }
-
-  void set classes(Collection<String> value) {
-    throw new UnsupportedError(
-      "Classes can't be set for document fragments.");
-  }
-
-  void set dataAttributes(Map<String, String> value) {
-    throw new UnsupportedError(
-      "Data attributes can't be set for document fragments.");
-  }
-
-  void set contentEditable(String value) {
-    throw new UnsupportedError(
-      "Content editable can't be set for document fragments.");
-  }
-
-  String get dir {
-    throw new UnsupportedError(
-      "Document fragments don't support text direction.");
-  }
-
-  void set dir(String value) {
-    throw new UnsupportedError(
-      "Document fragments don't support text direction.");
-  }
-
-  void set draggable(bool value) {
-    throw new UnsupportedError(
-      "Draggable can't be set for document fragments.");
-  }
-
-  void set hidden(bool value) {
-    throw new UnsupportedError(
-      "Hidden can't be set for document fragments.");
-  }
-
-  void set id(String value) {
-    throw new UnsupportedError(
-      "ID can't be set for document fragments.");
-  }
-
-  String get lang {
-    throw new UnsupportedError(
-      "Document fragments don't support language.");
-  }
-
-  void set lang(String value) {
-    throw new UnsupportedError(
-      "Document fragments don't support language.");
-  }
-
-  void set scrollLeft(int value) {
-    throw new UnsupportedError(
-      "Document fragments don't support scrolling.");
-  }
-
-  void set scrollTop(int value) {
-    throw new UnsupportedError(
-      "Document fragments don't support scrolling.");
-  }
-
-  void set spellcheck(bool value) {
-     throw new UnsupportedError(
-      "Spellcheck can't be set for document fragments.");
-  }
-
-  void set translate(bool value) {
-     throw new UnsupportedError(
-      "Spellcheck can't be set for document fragments.");
-  }
-
-  void set tabIndex(int value) {
-    throw new UnsupportedError(
-      "Tab index can't be set for document fragments.");
-  }
-
-  void set title(String value) {
-    throw new UnsupportedError(
-      "Title can't be set for document fragments.");
-  }
-
-  void set webkitdropzone(String value) {
-    throw new UnsupportedError(
-      "WebKit drop zone can't be set for document fragments.");
-  }
-
-  void set webkitRegionOverflow(String value) {
-    throw new UnsupportedError(
-      "WebKit region overflow can't be set for document fragments.");
+    this.nodes.add(new DocumentFragment.html(text));
   }
 
 $!MEMBERS
