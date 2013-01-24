@@ -2,6 +2,7 @@ library svg;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
@@ -3958,11 +3959,13 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   void forEach(void f(Length element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Length element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Length> where(bool f(Length element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Length> where(bool f(Length element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Length element)) => IterableMixinWorkaround.every(this, f);
 
@@ -4022,6 +4025,9 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   // clear() defined by IDL.
 
+  List<Length> get reversed =>
+      new ReversedListView<Length>(this, 0, null);
+
   void sort([int compare(Length a, Length b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -4050,9 +4056,11 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new StateError("More than one element");
   }
 
-  Length min([int compare(Length a, Length b)]) => IterableMixinWorkaround.min(this, compare);
+  Length min([int compare(Length a, Length b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Length max([int compare(Length a, Length b)]) => IterableMixinWorkaround.max(this, compare);
+  Length max([int compare(Length a, Length b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Length removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -4716,11 +4724,13 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   void forEach(void f(Number element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Number element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Number> where(bool f(Number element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Number> where(bool f(Number element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Number element)) => IterableMixinWorkaround.every(this, f);
 
@@ -4780,6 +4790,9 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   // clear() defined by IDL.
 
+  List<Number> get reversed =>
+      new ReversedListView<Number>(this, 0, null);
+
   void sort([int compare(Number a, Number b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -4808,9 +4821,11 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new StateError("More than one element");
   }
 
-  Number min([int compare(Number a, Number b)]) => IterableMixinWorkaround.min(this, compare);
+  Number min([int compare(Number a, Number b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Number max([int compare(Number a, Number b)]) => IterableMixinWorkaround.max(this, compare);
+  Number max([int compare(Number a, Number b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Number removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -5892,11 +5907,13 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   void forEach(void f(PathSeg element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(PathSeg element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<PathSeg> where(bool f(PathSeg element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<PathSeg> where(bool f(PathSeg element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(PathSeg element)) => IterableMixinWorkaround.every(this, f);
 
@@ -5956,6 +5973,9 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   // clear() defined by IDL.
 
+  List<PathSeg> get reversed =>
+      new ReversedListView<PathSeg>(this, 0, null);
+
   void sort([int compare(PathSeg a, PathSeg b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -5984,9 +6004,11 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new StateError("More than one element");
   }
 
-  PathSeg min([int compare(PathSeg a, PathSeg b)]) => IterableMixinWorkaround.min(this, compare);
+  PathSeg min([int compare(PathSeg a, PathSeg b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  PathSeg max([int compare(PathSeg a, PathSeg b)]) => IterableMixinWorkaround.max(this, compare);
+  PathSeg max([int compare(PathSeg a, PathSeg b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   PathSeg removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -6908,11 +6930,13 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(String element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<String> where(bool f(String element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<String> where(bool f(String element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
 
@@ -6972,6 +6996,9 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // clear() defined by IDL.
 
+  List<String> get reversed =>
+      new ReversedListView<String>(this, 0, null);
+
   void sort([int compare(String a, String b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -7000,9 +7027,11 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new StateError("More than one element");
   }
 
-  String min([int compare(String a, String b)]) => IterableMixinWorkaround.min(this, compare);
+  String min([int compare(String a, String b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  String max([int compare(String a, String b)]) => IterableMixinWorkaround.max(this, compare);
+  String max([int compare(String a, String b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -8219,11 +8248,13 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   void forEach(void f(Transform element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Transform element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Transform> where(bool f(Transform element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Transform> where(bool f(Transform element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Transform element)) => IterableMixinWorkaround.every(this, f);
 
@@ -8283,6 +8314,9 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   // clear() defined by IDL.
 
+  List<Transform> get reversed =>
+      new ReversedListView<Transform>(this, 0, null);
+
   void sort([int compare(Transform a, Transform b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -8311,9 +8345,11 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new StateError("More than one element");
   }
 
-  Transform min([int compare(Transform a, Transform b)]) => IterableMixinWorkaround.min(this, compare);
+  Transform min([int compare(Transform a, Transform b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Transform max([int compare(Transform a, Transform b)]) => IterableMixinWorkaround.max(this, compare);
+  Transform max([int compare(Transform a, Transform b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Transform removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -8804,11 +8840,13 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   void forEach(void f(ElementInstance element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(ElementInstance element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<ElementInstance> where(bool f(ElementInstance element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<ElementInstance> where(bool f(ElementInstance element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(ElementInstance element)) => IterableMixinWorkaround.every(this, f);
 
@@ -8870,6 +8908,9 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<ElementInstance> get reversed =>
+      new ReversedListView<ElementInstance>(this, 0, null);
+
   void sort([int compare(ElementInstance a, ElementInstance b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -8898,9 +8939,11 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new StateError("More than one element");
   }
 
-  ElementInstance min([int compare(ElementInstance a, ElementInstance b)]) => IterableMixinWorkaround.min(this, compare);
+  ElementInstance min([int compare(ElementInstance a, ElementInstance b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  ElementInstance max([int compare(ElementInstance a, ElementInstance b)]) => IterableMixinWorkaround.max(this, compare);
+  ElementInstance max([int compare(ElementInstance a, ElementInstance b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   ElementInstance removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");

@@ -26,11 +26,13 @@ $endif
 
   void forEach(void f($E element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f($E element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<$E> where(bool f($E element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<$E> where(bool f($E element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f($E element)) => IterableMixinWorkaround.every(this, f);
 
@@ -98,6 +100,9 @@ $else
   // clear() defined by IDL.
 $endif
 
+  List<$E> get reversed =>
+      new ReversedListView<$E>(this, 0, null);
+
   void sort([int compare($E a, $E b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -126,9 +131,11 @@ $endif
     throw new StateError("More than one element");
   }
 
-  $E min([int compare($E a, $E b)]) => IterableMixinWorkaround.min(this, compare);
+  $E min([int compare($E a, $E b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  $E max([int compare($E a, $E b)]) => IterableMixinWorkaround.max(this, compare);
+  $E max([int compare($E a, $E b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   $E removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");

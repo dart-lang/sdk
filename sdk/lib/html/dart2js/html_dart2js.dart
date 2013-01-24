@@ -2,6 +2,7 @@ library html;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:collection-dev';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -7166,11 +7167,13 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
   void forEach(void f(DomMimeType element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(DomMimeType element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<DomMimeType> where(bool f(DomMimeType element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<DomMimeType> where(bool f(DomMimeType element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(DomMimeType element)) => IterableMixinWorkaround.every(this, f);
 
@@ -7232,6 +7235,9 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<DomMimeType> get reversed =>
+      new ReversedListView<DomMimeType>(this, 0, null);
+
   void sort([int compare(DomMimeType a, DomMimeType b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -7260,9 +7266,11 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new StateError("More than one element");
   }
 
-  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) => IterableMixinWorkaround.min(this, compare);
+  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) => IterableMixinWorkaround.max(this, compare);
+  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   DomMimeType removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -7405,11 +7413,13 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   void forEach(void f(DomPlugin element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(DomPlugin element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<DomPlugin> where(bool f(DomPlugin element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<DomPlugin> where(bool f(DomPlugin element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(DomPlugin element)) => IterableMixinWorkaround.every(this, f);
 
@@ -7471,6 +7481,9 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<DomPlugin> get reversed =>
+      new ReversedListView<DomPlugin>(this, 0, null);
+
   void sort([int compare(DomPlugin a, DomPlugin b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -7499,9 +7512,11 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new StateError("More than one element");
   }
 
-  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) => IterableMixinWorkaround.min(this, compare);
+  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) => IterableMixinWorkaround.max(this, compare);
+  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   DomPlugin removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -7724,11 +7739,13 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 
   void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(String element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<String> where(bool f(String element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<String> where(bool f(String element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
 
@@ -7790,6 +7807,9 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<String> get reversed =>
+      new ReversedListView<String>(this, 0, null);
+
   void sort([int compare(String a, String b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -7818,9 +7838,11 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new StateError("More than one element");
   }
 
-  String min([int compare(String a, String b)]) => IterableMixinWorkaround.min(this, compare);
+  String min([int compare(String a, String b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  String max([int compare(String a, String b)]) => IterableMixinWorkaround.max(this, compare);
+  String max([int compare(String a, String b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -8050,6 +8072,9 @@ class _ChildrenElementList implements List {
     }
   }
 
+  List<Element> get reversed =>
+      new ReversedListView<Element>(this, 0, null);
+
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
@@ -8271,6 +8296,9 @@ class _FrozenElementList implements List {
   void addAll(Iterable<Element> iterable) {
     throw new UnsupportedError('');
   }
+
+  List<Element> get reversed =>
+      new ReversedListView<Element>(this, 0, null);
 
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
@@ -10642,11 +10670,13 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
   void forEach(void f(File element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(File element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<File> where(bool f(File element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<File> where(bool f(File element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(File element)) => IterableMixinWorkaround.every(this, f);
 
@@ -10708,6 +10738,9 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<File> get reversed =>
+      new ReversedListView<File>(this, 0, null);
+
   void sort([int compare(File a, File b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -10736,9 +10769,11 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new StateError("More than one element");
   }
 
-  File min([int compare(File a, File b)]) => IterableMixinWorkaround.min(this, compare);
+  File min([int compare(File a, File b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  File max([int compare(File a, File b)]) => IterableMixinWorkaround.max(this, compare);
+  File max([int compare(File a, File b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   File removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -11231,11 +11266,13 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<num> where(bool f(num element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<num> where(bool f(num element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
@@ -11297,6 +11334,9 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<num> get reversed =>
+      new ReversedListView<num>(this, 0, null);
+
   void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -11325,9 +11365,11 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => IterableMixinWorkaround.min(this, compare);
+  num min([int compare(num a, num b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  num max([int compare(num a, num b)]) => IterableMixinWorkaround.max(this, compare);
+  num max([int compare(num a, num b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -11429,11 +11471,13 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<num> where(bool f(num element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<num> where(bool f(num element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
@@ -11495,6 +11539,9 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<num> get reversed =>
+      new ReversedListView<num>(this, 0, null);
+
   void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -11523,9 +11570,11 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  num min([int compare(num a, num b)]) => IterableMixinWorkaround.min(this, compare);
+  num min([int compare(num a, num b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  num max([int compare(num a, num b)]) => IterableMixinWorkaround.max(this, compare);
+  num max([int compare(num a, num b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -11926,11 +11975,13 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Node> where(bool f(Node element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
@@ -11992,6 +12043,9 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<Node> get reversed =>
+      new ReversedListView<Node>(this, 0, null);
+
   void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -12020,9 +12074,11 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
+  Node min([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
+  Node max([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -12121,11 +12177,13 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Node> where(bool f(Node element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
@@ -12187,6 +12245,9 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<Node> get reversed =>
+      new ReversedListView<Node>(this, 0, null);
+
   void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -12215,9 +12276,11 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
+  Node min([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
+  Node max([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -13899,11 +13962,13 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -13965,6 +14030,9 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<int> get reversed =>
+      new ReversedListView<int>(this, 0, null);
+
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -13993,9 +14061,11 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+  int min([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+  int max([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -14097,11 +14167,13 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -14163,6 +14235,9 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<int> get reversed =>
+      new ReversedListView<int>(this, 0, null);
+
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -14191,9 +14266,11 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+  int min([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+  int max([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -14295,11 +14372,13 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -14361,6 +14440,9 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<int> get reversed =>
+      new ReversedListView<int>(this, 0, null);
+
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -14389,9 +14471,11 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+  int min([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+  int max([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -16544,11 +16628,13 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Node> where(bool f(Node element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
@@ -16610,6 +16696,9 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<Node> get reversed =>
+      new ReversedListView<Node>(this, 0, null);
+
   void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -16638,9 +16727,11 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
+  Node min([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
+  Node max([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -17056,6 +17147,9 @@ class _ChildNodeListLazy implements List {
     return this[index];
   }
 
+  List<Node> get reversed =>
+      new ReversedListView<Node>(this, 0, null);
+
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
   void sort([int compare(Node a, Node b)]) {
@@ -17387,11 +17481,13 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Node> where(bool f(Node element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Node> where(bool f(Node element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
@@ -17453,6 +17549,9 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<Node> get reversed =>
+      new ReversedListView<Node>(this, 0, null);
+
   void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -17481,9 +17580,11 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new StateError("More than one element");
   }
 
-  Node min([int compare(Node a, Node b)]) => IterableMixinWorkaround.min(this, compare);
+  Node min([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Node max([int compare(Node a, Node b)]) => IterableMixinWorkaround.max(this, compare);
+  Node max([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -19779,11 +19880,13 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
   void forEach(void f(SourceBuffer element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(SourceBuffer element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(SourceBuffer element)) => IterableMixinWorkaround.every(this, f);
 
@@ -19845,6 +19948,9 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<SourceBuffer> get reversed =>
+      new ReversedListView<SourceBuffer>(this, 0, null);
+
   void sort([int compare(SourceBuffer a, SourceBuffer b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -19873,9 +19979,11 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) => IterableMixinWorkaround.min(this, compare);
+  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) => IterableMixinWorkaround.max(this, compare);
+  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   SourceBuffer removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -20040,11 +20148,13 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   void forEach(void f(SpeechGrammar element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(SpeechGrammar element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(SpeechGrammar element)) => IterableMixinWorkaround.every(this, f);
 
@@ -20106,6 +20216,9 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<SpeechGrammar> get reversed =>
+      new ReversedListView<SpeechGrammar>(this, 0, null);
+
   void sort([int compare(SpeechGrammar a, SpeechGrammar b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -20134,9 +20247,11 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new StateError("More than one element");
   }
 
-  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) => IterableMixinWorkaround.min(this, compare);
+  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) => IterableMixinWorkaround.max(this, compare);
+  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   SpeechGrammar removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -20644,11 +20759,13 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   void forEach(void f(Map element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Map element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Map> where(bool f(Map element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Map> where(bool f(Map element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Map element)) => IterableMixinWorkaround.every(this, f);
 
@@ -20710,6 +20827,9 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<Map> get reversed =>
+      new ReversedListView<Map>(this, 0, null);
+
   void sort([int compare(Map a, Map b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -20738,9 +20858,11 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new StateError("More than one element");
   }
 
-  Map min([int compare(Map a, Map b)]) => IterableMixinWorkaround.min(this, compare);
+  Map min([int compare(Map a, Map b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Map max([int compare(Map a, Map b)]) => IterableMixinWorkaround.max(this, compare);
+  Map max([int compare(Map a, Map b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Map removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -21704,11 +21826,13 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   void forEach(void f(TextTrackCue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(TextTrackCue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(TextTrackCue element)) => IterableMixinWorkaround.every(this, f);
 
@@ -21770,6 +21894,9 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<TextTrackCue> get reversed =>
+      new ReversedListView<TextTrackCue>(this, 0, null);
+
   void sort([int compare(TextTrackCue a, TextTrackCue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -21798,9 +21925,11 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) => IterableMixinWorkaround.min(this, compare);
+  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) => IterableMixinWorkaround.max(this, compare);
+  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   TextTrackCue removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -21902,11 +22031,13 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   void forEach(void f(TextTrack element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(TextTrack element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<TextTrack> where(bool f(TextTrack element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<TextTrack> where(bool f(TextTrack element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(TextTrack element)) => IterableMixinWorkaround.every(this, f);
 
@@ -21968,6 +22099,9 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<TextTrack> get reversed =>
+      new ReversedListView<TextTrack>(this, 0, null);
+
   void sort([int compare(TextTrack a, TextTrack b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -21996,9 +22130,11 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new StateError("More than one element");
   }
 
-  TextTrack min([int compare(TextTrack a, TextTrack b)]) => IterableMixinWorkaround.min(this, compare);
+  TextTrack min([int compare(TextTrack a, TextTrack b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  TextTrack max([int compare(TextTrack a, TextTrack b)]) => IterableMixinWorkaround.max(this, compare);
+  TextTrack max([int compare(TextTrack a, TextTrack b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   TextTrack removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -22274,11 +22410,13 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   void forEach(void f(Touch element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Touch element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Touch> where(bool f(Touch element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Touch> where(bool f(Touch element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Touch element)) => IterableMixinWorkaround.every(this, f);
 
@@ -22340,6 +22478,9 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<Touch> get reversed =>
+      new ReversedListView<Touch>(this, 0, null);
+
   void sort([int compare(Touch a, Touch b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -22368,9 +22509,11 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new StateError("More than one element");
   }
 
-  Touch min([int compare(Touch a, Touch b)]) => IterableMixinWorkaround.min(this, compare);
+  Touch min([int compare(Touch a, Touch b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Touch max([int compare(Touch a, Touch b)]) => IterableMixinWorkaround.max(this, compare);
+  Touch max([int compare(Touch a, Touch b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Touch removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -22695,11 +22838,13 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -22761,6 +22906,9 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<int> get reversed =>
+      new ReversedListView<int>(this, 0, null);
+
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -22789,9 +22937,11 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+  int min([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+  int max([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -22893,11 +23043,13 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -22959,6 +23111,9 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<int> get reversed =>
+      new ReversedListView<int>(this, 0, null);
+
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -22987,9 +23142,11 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+  int min([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+  int max([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -23091,11 +23248,13 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -23157,6 +23316,9 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<int> get reversed =>
+      new ReversedListView<int>(this, 0, null);
+
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -23185,9 +23347,11 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+  int min([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+  int max([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -23286,11 +23450,13 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<int> where(bool f(int element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -23352,6 +23518,9 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<int> get reversed =>
+      new ReversedListView<int>(this, 0, null);
+
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -23380,9 +23549,11 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
     throw new StateError("More than one element");
   }
 
-  int min([int compare(int a, int b)]) => IterableMixinWorkaround.min(this, compare);
+  int min([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  int max([int compare(int a, int b)]) => IterableMixinWorkaround.max(this, compare);
+  int max([int compare(int a, int b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -27081,11 +27252,13 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   void forEach(void f(ClientRect element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(ClientRect element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<ClientRect> where(bool f(ClientRect element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<ClientRect> where(bool f(ClientRect element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(ClientRect element)) => IterableMixinWorkaround.every(this, f);
 
@@ -27147,6 +27320,9 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<ClientRect> get reversed =>
+      new ReversedListView<ClientRect>(this, 0, null);
+
   void sort([int compare(ClientRect a, ClientRect b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -27175,9 +27351,11 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
     throw new StateError("More than one element");
   }
 
-  ClientRect min([int compare(ClientRect a, ClientRect b)]) => IterableMixinWorkaround.min(this, compare);
+  ClientRect min([int compare(ClientRect a, ClientRect b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  ClientRect max([int compare(ClientRect a, ClientRect b)]) => IterableMixinWorkaround.max(this, compare);
+  ClientRect max([int compare(ClientRect a, ClientRect b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   ClientRect removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -27266,11 +27444,13 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   void forEach(void f(CssRule element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(CssRule element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<CssRule> where(bool f(CssRule element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<CssRule> where(bool f(CssRule element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(CssRule element)) => IterableMixinWorkaround.every(this, f);
 
@@ -27332,6 +27512,9 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<CssRule> get reversed =>
+      new ReversedListView<CssRule>(this, 0, null);
+
   void sort([int compare(CssRule a, CssRule b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -27360,9 +27543,11 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new StateError("More than one element");
   }
 
-  CssRule min([int compare(CssRule a, CssRule b)]) => IterableMixinWorkaround.min(this, compare);
+  CssRule min([int compare(CssRule a, CssRule b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  CssRule max([int compare(CssRule a, CssRule b)]) => IterableMixinWorkaround.max(this, compare);
+  CssRule max([int compare(CssRule a, CssRule b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   CssRule removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -27451,11 +27636,13 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
   void forEach(void f(CssValue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(CssValue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<CssValue> where(bool f(CssValue element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<CssValue> where(bool f(CssValue element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(CssValue element)) => IterableMixinWorkaround.every(this, f);
 
@@ -27517,6 +27704,9 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<CssValue> get reversed =>
+      new ReversedListView<CssValue>(this, 0, null);
+
   void sort([int compare(CssValue a, CssValue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -27545,9 +27735,11 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
     throw new StateError("More than one element");
   }
 
-  CssValue min([int compare(CssValue a, CssValue b)]) => IterableMixinWorkaround.min(this, compare);
+  CssValue min([int compare(CssValue a, CssValue b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  CssValue max([int compare(CssValue a, CssValue b)]) => IterableMixinWorkaround.max(this, compare);
+  CssValue max([int compare(CssValue a, CssValue b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   CssValue removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -27645,11 +27837,13 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   void forEach(void f(Entry element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Entry element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Entry> where(bool f(Entry element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Entry> where(bool f(Entry element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Entry element)) => IterableMixinWorkaround.every(this, f);
 
@@ -27711,6 +27905,9 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<Entry> get reversed =>
+      new ReversedListView<Entry>(this, 0, null);
+
   void sort([int compare(Entry a, Entry b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -27739,9 +27936,11 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new StateError("More than one element");
   }
 
-  Entry min([int compare(Entry a, Entry b)]) => IterableMixinWorkaround.min(this, compare);
+  Entry min([int compare(Entry a, Entry b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Entry max([int compare(Entry a, Entry b)]) => IterableMixinWorkaround.max(this, compare);
+  Entry max([int compare(Entry a, Entry b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Entry removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -27830,11 +28029,13 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
   void forEach(void f(EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(EntrySync element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<EntrySync> where(bool f(EntrySync element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<EntrySync> where(bool f(EntrySync element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(EntrySync element)) => IterableMixinWorkaround.every(this, f);
 
@@ -27896,6 +28097,9 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<EntrySync> get reversed =>
+      new ReversedListView<EntrySync>(this, 0, null);
+
   void sort([int compare(EntrySync a, EntrySync b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -27924,9 +28128,11 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new StateError("More than one element");
   }
 
-  EntrySync min([int compare(EntrySync a, EntrySync b)]) => IterableMixinWorkaround.min(this, compare);
+  EntrySync min([int compare(EntrySync a, EntrySync b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  EntrySync max([int compare(EntrySync a, EntrySync b)]) => IterableMixinWorkaround.max(this, compare);
+  EntrySync max([int compare(EntrySync a, EntrySync b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -28092,11 +28298,13 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   void forEach(void f(Gamepad element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(Gamepad element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<Gamepad> where(bool f(Gamepad element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<Gamepad> where(bool f(Gamepad element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(Gamepad element)) => IterableMixinWorkaround.every(this, f);
 
@@ -28158,6 +28366,9 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<Gamepad> get reversed =>
+      new ReversedListView<Gamepad>(this, 0, null);
+
   void sort([int compare(Gamepad a, Gamepad b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -28186,9 +28397,11 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new StateError("More than one element");
   }
 
-  Gamepad min([int compare(Gamepad a, Gamepad b)]) => IterableMixinWorkaround.min(this, compare);
+  Gamepad min([int compare(Gamepad a, Gamepad b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  Gamepad max([int compare(Gamepad a, Gamepad b)]) => IterableMixinWorkaround.max(this, compare);
+  Gamepad max([int compare(Gamepad a, Gamepad b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   Gamepad removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -28286,11 +28499,13 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 
   void forEach(void f(MediaStream element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(MediaStream element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<MediaStream> where(bool f(MediaStream element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<MediaStream> where(bool f(MediaStream element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(MediaStream element)) => IterableMixinWorkaround.every(this, f);
 
@@ -28352,6 +28567,9 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<MediaStream> get reversed =>
+      new ReversedListView<MediaStream>(this, 0, null);
+
   void sort([int compare(MediaStream a, MediaStream b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -28380,9 +28598,11 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
     throw new StateError("More than one element");
   }
 
-  MediaStream min([int compare(MediaStream a, MediaStream b)]) => IterableMixinWorkaround.min(this, compare);
+  MediaStream min([int compare(MediaStream a, MediaStream b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  MediaStream max([int compare(MediaStream a, MediaStream b)]) => IterableMixinWorkaround.max(this, compare);
+  MediaStream max([int compare(MediaStream a, MediaStream b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   MediaStream removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -28471,11 +28691,13 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   void forEach(void f(SpeechInputResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(SpeechInputResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(SpeechInputResult element)) => IterableMixinWorkaround.every(this, f);
 
@@ -28537,6 +28759,9 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<SpeechInputResult> get reversed =>
+      new ReversedListView<SpeechInputResult>(this, 0, null);
+
   void sort([int compare(SpeechInputResult a, SpeechInputResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -28565,9 +28790,11 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new StateError("More than one element");
   }
 
-  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) => IterableMixinWorkaround.min(this, compare);
+  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) => IterableMixinWorkaround.max(this, compare);
+  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   SpeechInputResult removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -28656,11 +28883,13 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   void forEach(void f(SpeechRecognitionResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(SpeechRecognitionResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.every(this, f);
 
@@ -28722,6 +28951,9 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<SpeechRecognitionResult> get reversed =>
+      new ReversedListView<SpeechRecognitionResult>(this, 0, null);
+
   void sort([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -28750,9 +28982,11 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new StateError("More than one element");
   }
 
-  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => IterableMixinWorkaround.min(this, compare);
+  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) => IterableMixinWorkaround.max(this, compare);
+  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   SpeechRecognitionResult removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
@@ -28841,11 +29075,13 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   void forEach(void f(StyleSheet element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) => IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
 
   List mappedBy(f(StyleSheet element)) => IterableMixinWorkaround.mappedByList(this, f);
 
-  Iterable<StyleSheet> where(bool f(StyleSheet element)) => IterableMixinWorkaround.where(this, f);
+  Iterable<StyleSheet> where(bool f(StyleSheet element)) =>
+      IterableMixinWorkaround.where(this, f);
 
   bool every(bool f(StyleSheet element)) => IterableMixinWorkaround.every(this, f);
 
@@ -28907,6 +29143,9 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
+  List<StyleSheet> get reversed =>
+      new ReversedListView<StyleSheet>(this, 0, null);
+
   void sort([int compare(StyleSheet a, StyleSheet b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
@@ -28935,9 +29174,11 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new StateError("More than one element");
   }
 
-  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) => IterableMixinWorkaround.min(this, compare);
+  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) =>
+      IterableMixinWorkaround.min(this, compare);
 
-  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) => IterableMixinWorkaround.max(this, compare);
+  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) =>
+      IterableMixinWorkaround.max(this, compare);
 
   StyleSheet removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");

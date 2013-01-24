@@ -1,6 +1,8 @@
 library web_audio;
 
 import 'dart:async';
+import 'dart:collection';
+import 'dart:collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 // DO NOT EDIT

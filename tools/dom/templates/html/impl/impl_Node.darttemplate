@@ -189,6 +189,9 @@ $endif
     return this[index];
   }
 
+  List<Node> get reversed =>
+      new ReversedListView<Node>(this, 0, null);
+
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
   void sort([int compare(Node a, Node b)]) {

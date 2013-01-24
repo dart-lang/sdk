@@ -137,6 +137,9 @@ class _ChildrenElementList implements List {
     }
   }
 
+  List<Element> get reversed =>
+      new ReversedListView<Element>(this, 0, null);
+
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
@@ -358,6 +361,9 @@ class _FrozenElementList implements List {
   void addAll(Iterable<Element> iterable) {
     throw new UnsupportedError('');
   }
+
+  List<Element> get reversed =>
+      new ReversedListView<Element>(this, 0, null);
 
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
