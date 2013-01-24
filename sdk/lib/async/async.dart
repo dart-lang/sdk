@@ -12,5 +12,4 @@ part 'stream.dart';
 part 'stream_controller.dart';
 part 'stream_impl.dart';
 part 'stream_pipe.dart';
-part 'string_transform.dart';
 part 'timer.dart';

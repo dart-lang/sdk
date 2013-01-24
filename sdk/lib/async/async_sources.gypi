@@ -13,7 +13,6 @@
     'stream_controller.dart',
     'stream_impl.dart',
     'stream_pipe.dart',
-    'string_transform.dart',
     'timer.dart',
   ],
 }
