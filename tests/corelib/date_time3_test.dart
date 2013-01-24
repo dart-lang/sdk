@@ -7,6 +7,6 @@
 
 main() {
   String s = "2012-01-30 08:30:00.010";
-  DateTime d = Date.parse(s);
+  DateTime d = DateTime.parse(s);
   Expect.equals(s, d.toString());
 }
