@@ -2479,54 +2479,54 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   SsaOptimizedCodeGenerator(backend, work) : super(backend, work);
 
-  int maxBailoutParameters;
-
   HBasicBlock beginGraph(HGraph graph) {
     return graph.entry;
   }
 
   void endGraph(HGraph graph) {}
 
+  // Called by visitTypeGuard to generate the actual bailout call, something
+  // like "return $.foo$bailout(t0, t1);"
   js.Statement bailout(HTypeGuard guard, String reason) {
-    if (maxBailoutParameters == null) {
-      maxBailoutParameters = 0;
-      work.guards.forEach((HTypeGuard workGuard) {
-        HBailoutTarget target = workGuard.bailoutTarget;
-        int inputLength = target.inputs.length;
-        if (inputLength > maxBailoutParameters) {
-          maxBailoutParameters = inputLength;
-        }
-      });
-    }
-    HInstruction input = guard.guarded;
     HBailoutTarget target = guard.bailoutTarget;
-    Namer namer = backend.namer;
-    Element element = work.element;
     List<js.Expression> arguments = <js.Expression>[];
     arguments.add(new js.LiteralNumber("${guard.state}"));
-    // TODO(ngeoffray): try to put a variable at a deterministic
-    // location, so that multiple bailout calls put the variable at
-    // the same parameter index.
-    int i = 0;
-    for (; i < target.inputs.length; i++) {
-      assert(guard.inputs.indexOf(target.inputs[i]) >= 0);
-      use(target.inputs[i]);
+
+    for (int i = 0; i < target.inputs.length; i++) {
+      HInstruction parameter = target.inputs[i];
+      for (int pad = target.padding[i]; pad != 0; pad--) {
+        // This argument will not be used by the bailout function, because
+        // of the control flow (controlled by the state argument passed
+        // above).  We need to pass it to get later arguments in the right
+        // position.
+        arguments.add(new js.LiteralNull());
+      }
+      use(parameter);
       arguments.add(pop());
     }
+    // Don't bother emitting the rest of the pending nulls.  Doing so might make
+    // the function invocation a little faster by having the call site and
+    // function defintion have the same number of arguments, but it would be
+    // more verbose and we don't expect the calls to bailout functions to be
+    // hot.
 
-    js.Expression bailoutTarget;
-    if (element.isInstanceMember()) {
-      String bailoutName = namer.getBailoutName(element);
+    Element method = work.element;
+    js.Expression bailoutTarget;  // Receiver of the bailout call.
+    Namer namer = backend.namer;
+    if (method.isInstanceMember()) {
+      String bailoutName = namer.getBailoutName(method);
       bailoutTarget = new js.PropertyAccess.field(new js.This(), bailoutName);
     } else {
-      assert(!element.isField());
-      bailoutTarget = new js.VariableUse(namer.isolateBailoutAccess(element));
+      assert(!method.isField());
+      bailoutTarget = new js.VariableUse(namer.isolateBailoutAccess(method));
     }
     js.Call call = new js.Call(bailoutTarget, arguments);
     attachLocation(call, guard);
     return new js.Return(call);
   }
 
+  // Generate a type guard, something like "if (typeof t0 == 'number')" and the
+  // corresponding bailout call, something like "return $.foo$bailout(t0, t1);"
   void visitTypeGuard(HTypeGuard node) {
     HInstruction input = node.guarded;
     DartType indexingBehavior =
@@ -2696,38 +2696,29 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       => new js.VariableUse(variableNames.stateName);
 
   HBasicBlock beginGraph(HGraph graph) {
-    propagator = new SsaBailoutPropagator(compiler, generateAtUseSite);
+    propagator =
+        new SsaBailoutPropagator(compiler, generateAtUseSite, variableNames);
     propagator.visitGraph(graph);
     // TODO(ngeoffray): We could avoid generating the state at the
     // call site for non-complex bailout methods.
     newParameters.add(new js.Parameter(variableNames.stateName));
 
-    if (propagator.hasComplexBailoutTargets) {
-      // Use generic parameters that will be assigned to
-      // the right variables in the setup phase.
-      for (int i = 0; i < propagator.maxBailoutParameters; i++) {
-        String name = 'env$i';
-        declaredLocals.add(name);
-        newParameters.add(new js.Parameter(name));
-      }
+    List<String> names = new List<String>(propagator.bailoutArity);
+    for (String variable in propagator.parameterNames.keys) {
+      int index = propagator.parameterNames[variable];
+      assert(names[index] == null);
+      names[index] = variable;
+    }
+    for (int i = 0; i < names.length; i++) {
+      declaredLocals.add(names[i]);
+      newParameters.add(new js.Parameter(names[i]));
+    }
 
+    if (propagator.hasComplexBailoutTargets) {
       startBailoutSwitch();
 
-      // The setup phase of a bailout function sets up the environment for
-      // each bailout target. Each bailout target will populate this
-      // setup phase. It is put at the beginning of the function.
-      setup = new js.Switch(generateStateUse(), <js.SwitchClause>[]);
       return graph.entry;
     } else {
-      // We have a simple bailout target, so we can reuse the names that
-      // the bailout target expects.
-      for (HInstruction input in propagator.firstBailoutTarget.inputs) {
-        input = unwrap(input);
-        String name = variableNames.getName(input);
-        declaredLocals.add(name);
-        newParameters.add(new js.Parameter(name));
-      }
-
       // We change the first instruction of the first guard to be the
       // bailout target. We will change it back in the call to [endGraph].
       HBasicBlock block = propagator.firstBailoutTarget.block;
@@ -2785,47 +2776,47 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void visitBailoutTarget(HBailoutTarget node) {
-    if (!propagator.hasComplexBailoutTargets) return;
-
-    js.Block nextBlock = new js.Block.empty();
-    js.Case clause = new js.Case(new js.LiteralNumber('${node.state}'),
-                                 nextBlock);
-    currentBailoutSwitch.cases.add(clause);
-    currentContainer = nextBlock;
-    pushExpressionAsStatement(new js.Assignment(generateStateUse(),
-                                                new js.LiteralNumber('0')));
-    js.Block setupBlock = new js.Block.empty();
-    List<Copy> copies = <Copy>[];
-    for (int i = 0; i < node.inputs.length; i++) {
-      HInstruction input = node.inputs[i];
-      input = unwrap(input);
-      String name = variableNames.getName(input);
-      String source = "env$i";
-      copies.add(new Copy(source, name));
+    if (propagator.hasComplexBailoutTargets) {
+      js.Block nextBlock = new js.Block.empty();
+      js.Case clause = new js.Case(new js.LiteralNumber('${node.state}'),
+                                   nextBlock);
+      currentBailoutSwitch.cases.add(clause);
+      currentContainer = nextBlock;
+      pushExpressionAsStatement(new js.Assignment(generateStateUse(),
+                                                  new js.LiteralNumber('0')));
     }
-    sequentializeCopies(copies,
-                        variableNames.getSwapTemp(),
-                        (String target, String source) {
-      if (!isVariableDeclared(target) && !shouldGroupVarDeclarations) {
-        js.VariableInitialization init =
-            new js.VariableInitialization(new js.VariableDeclaration(target),
-                                          new js.VariableUse(source));
-        js.Expression varList =
-            new js.VariableDeclarationList(<js.VariableInitialization>[init]);
-        setupBlock.statements.add(new js.ExpressionStatement(varList));
+    // Here we need to rearrange the inputs of the bailout target, so that they
+    // are output in the correct order, perhaps with interspersed nulls, to
+    // match the order in the bailout function, which is of course common to all
+    // the bailout points.
+    var newInputs = new List<HInstruction>(propagator.bailoutArity);
+    for (HInstruction input in node.inputs) {
+      int index = propagator.parameterNames[variableNames.getName(input)];
+      newInputs[index] = input;
+    }
+    // We record the count of unused arguments instead of just filling in the
+    // inputs list with dummy arguments because it is useful to be able easily
+    // to distinguish between a dummy argument (eg 0 or null) and a real
+    // argument that happens to have the same value.  The dummy arguments are
+    // not going to be accessed by the bailout function due to the control flow
+    // implied by the state argument, so we can put anything there, including
+    // just not emitting enough arguments and letting the JS engine insert
+    // undefined for the trailing arguments.
+    node.padding = new List<int>(node.inputs.length);
+    int j = 0;
+    int pendingNulls = 0;
+    for (int i = 0; i < newInputs.length; i++) {
+      HInstruction input = newInputs[i];
+      if (input == null) {
+        pendingNulls++;
       } else {
-        collectedVariableDeclarations.add(target);
-        js.Expression jsTarget = new js.VariableUse(target);
-        js.Expression jsSource = new js.VariableUse(source);
-        js.Expression assignment = new js.Assignment(jsTarget, jsSource);
-        setupBlock.statements.add(new js.ExpressionStatement(assignment));
+        node.padding[j] = pendingNulls;
+        pendingNulls = 0;
+        node.updateInput(j, input);
+        j++;
       }
-      declaredLocals.add(target);
-    });
-    setupBlock.statements.add(new js.Break(null));
-    js.Case setupClause =
-        new js.Case(new js.LiteralNumber('${node.state}'), setupBlock);
-    (setup as js.Switch).cases.add(setupClause);
+    }
+    assert(j == node.inputs.length);
   }
 
   void startBailoutCase(List<HBailoutTarget> bailouts1,

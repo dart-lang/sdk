@@ -937,7 +937,6 @@ class JavaScriptBackend extends Backend {
     invalidateAfterCodegen.clear();
   }
 
-
   native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
     return new native.NativeResolutionEnqueuer(world, compiler);
   }

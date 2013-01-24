@@ -846,6 +846,8 @@ abstract class HInstruction implements Spannable {
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
 
+  void updateInput(int i, HInstruction insn) => inputs[i] = insn;
+
   /**
    * A pure instruction is an instruction that does not have any side
    * effect, nor any dependency. They can be moved anywhere in the
@@ -1192,6 +1194,10 @@ abstract class HCheck extends HInstruction {
 class HBailoutTarget extends HInstruction {
   final int state;
   bool isEnabled = true;
+  // For each argument we record how many dummy (unused) arguments should
+  // precede it, to make sure it lands in the correctly named parameter in the
+  // bailout function.
+  List<int> padding;
   HBailoutTarget(this.state) : super(<HInstruction>[]) {
     assert(!hasSideEffects());
     setUseGvn();

@@ -397,7 +397,24 @@ class SsaBailoutPropagator extends HBaseVisitor {
   final List<HLabeledBlockInformation> labeledBlockInformations;
   final Set<HInstruction> generateAtUseSite;
   SubGraph subGraph;
-  int maxBailoutParameters = 0;
+  /**
+   * Max number of arguments to the bailout (not counting the state).
+   */
+  int bailoutArity;
+  /**
+   * A map from variables to their names.  These are the names in the
+   * unoptimized (bailout) version of the function.  Their names could be
+   * different in the optimized version.
+   */
+  VariableNames variableNames;
+  /**
+   * Maps from the variable names to their positions in the argument list of the
+   * bailout instruction.  Because of the way the variable allocator works,
+   * several variables can end up with the same name (if their live ranges do
+   * not overlap), therefore they can have the same position in the bailout
+   * argument list
+   */
+  Map<String, int> parameterNames;
 
   /**
    * If set to true, the graph has either multiple bailouts in
@@ -417,9 +434,13 @@ class SsaBailoutPropagator extends HBaseVisitor {
    * version.
    */
 
-  SsaBailoutPropagator(this.compiler, this.generateAtUseSite)
+  SsaBailoutPropagator(this.compiler,
+                       this.generateAtUseSite,
+                       this.variableNames)
       : blocks = <HBasicBlock>[],
-        labeledBlockInformations = <HLabeledBlockInformation>[];
+        labeledBlockInformations = <HLabeledBlockInformation>[],
+        bailoutArity = 0,
+        parameterNames = new Map<String, int>();
 
   void visitGraph(HGraph graph) {
     subGraph = new SubGraph(graph.entry, graph.exit);
@@ -534,9 +555,14 @@ class SsaBailoutPropagator extends HBaseVisitor {
 
   visitBailoutTarget(HBailoutTarget target) {
     int inputLength = target.inputs.length;
-    if (inputLength > maxBailoutParameters) {
-      maxBailoutParameters = inputLength;
+    for (HInstruction input in target.inputs) {
+      String inputName = variableNames.getName(input);
+      int position = parameterNames[inputName];
+      if (position == null) {
+        position = parameterNames[inputName] = bailoutArity++;
+      }
     }
+
     if (blocks.isEmpty) {
       if (firstBailoutTarget == null) {
         firstBailoutTarget = target;
