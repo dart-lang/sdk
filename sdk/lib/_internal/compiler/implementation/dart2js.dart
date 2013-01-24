@@ -79,6 +79,7 @@ void compile(List<String> argv) {
   bool wantHelp = false;
   String outputLanguage = 'JavaScript';
   bool stripArgumentSet = false;
+  bool analyzeOnly = false;
   SourceFileProvider inputProvider = new SourceFileProvider();
   FormattingDiagnosticHandler diagnosticHandler =
       new FormattingDiagnosticHandler(inputProvider);
@@ -118,6 +119,11 @@ void compile(List<String> argv) {
 
   setStrip(String argument) {
     stripArgumentSet = true;
+    passThrough(argument);
+  }
+
+  setAnalyzeOnly(String argument) {
+    analyzeOnly = true;
     passThrough(argument);
   }
 
@@ -168,6 +174,7 @@ void compile(List<String> argv) {
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--disallow-unsafe-eval', passThrough),
     new OptionHandler('--analyze-all', passThrough),
+    new OptionHandler('--analyze-only', setAnalyzeOnly),
     new OptionHandler('--disable-native-live-type-analysis', passThrough),
     new OptionHandler('--enable-native-live-type-analysis', passThrough),
     new OptionHandler('--reject-deprecated-language-features', passThrough),
@@ -223,6 +230,8 @@ void compile(List<String> argv) {
                   inputProvider.readStringFromUri,
                   handler,
                   options));
+  if (analyzeOnly) return;
+
   if (code == null) {
     fail('Error: Compilation failed.');
   }
@@ -314,6 +323,9 @@ Supported options:
     code that is reachable from [main].  This option is useful for
     finding errors in libraries, but using it can result in bigger and
     slower output.
+
+  --analyze-only
+    Analyze but do not generate code.
 
   --minify
     Generate minified output.
