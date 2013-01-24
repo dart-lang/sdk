@@ -2383,11 +2383,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       // Do not visit the name, it may not have been resolved.
       String name = node.getPropertyName();
-      InterfaceType.Member member = cls.lookupMember(name);
-      if (member == null || ASTNodes.inSetterContext(node)) {
-        InterfaceType.Member member2 = cls.lookupMember("setter " + name);
-        if (member2 != null && (member == null || member2.getHolder() == member.getHolder() || types.isSubtype(member2.getHolder(), member.getHolder()))) {
-          member = member2;
+      InterfaceType.Member member;
+      if (ASTNodes.inSetterContext(node)) {
+        member = cls.lookupMember("setter " + name);
+        if (member == null) {
+          member = cls.lookupMember(name);
+        }
+      } else {
+        member = cls.lookupMember(name);
+        if (member == null) {
+          member = cls.lookupMember("setter " + name);
         }
       }
       // is "receiver" is inferred, attempt to find member in one of the subtypes
@@ -2436,55 +2441,40 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case FIELD:
           FieldElement fieldElement = (FieldElement) element;
           Modifiers fieldModifiers = fieldElement.getModifiers();
-          MethodElement getter = fieldElement.getGetter();
-          MethodElement setter = fieldElement.getSetter();
+          
+          // Prepare getter/setter members.
+          Member getterMember;
+          Member setterMember;
+          {
+            getterMember = cls.lookupMember(name);
+            if (getterMember == null && TypeQuality.of(cls) == TypeQuality.INFERRED) {
+              getterMember = cls.lookupSubTypeMember(name);
+            }
+          }
+          {
+            setterMember = cls.lookupMember("setter " + name);
+            if (setterMember == null) {
+              setterMember = cls.lookupMember(name);
+            }
+          }
           boolean inSetterContext = ASTNodes.inSetterContext(node);
           boolean inGetterContext = ASTNodes.inGetterContext(node);
-          ClassElement enclosingClass = null;
-          if (fieldElement.getEnclosingElement() instanceof ClassElement) {
-            enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
-          }
 
           // Implicit field declared as "final".
           if (!fieldModifiers.isAbstractField() && fieldModifiers.isFinal() && inSetterContext) {
             return typeError(node.getName(), TypeErrorCode.FIELD_IS_FINAL, node.getName());
           }
 
-          // Check for cases when property has no setter or getter.
-          if (fieldModifiers.isAbstractField() && enclosingClass != null) {
-            // Check for using field without setter in some assignment variant.
-            if (inSetterContext) {
-              if (setter == null) {
-                setter = Elements.lookupFieldElementSetter(enclosingClass, name);
-                if (setter == null) {
-                  setter = Elements.lookupFieldElementSetter(enclosingClass, "setter " + name);
-                }
-                if (setter == null) {
-                  return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
-                }
-              }
-            }
-            // Check for using field without getter in other operation that assignment.
-            if (inGetterContext) {
-              if (getter == null) {
-                getter = Elements.lookupFieldElementGetter(enclosingClass, name);
-                if (getter == null) {
-                  return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
-                }
-              }
-            }
-          }
-
           Type result = member.getType();
           if (fieldModifiers.isAbstractField()) {
             if (inSetterContext) {
-              result = member.getSetterType();
+              result = setterMember != null ? setterMember.getSetterType() : null;
               if (result == null) {
                 return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
               }
             }
             if (inGetterContext) {
-              result = member.getGetterType();
+              result = getterMember != null ? getterMember.getGetterType() : null;
               if (result == null) {
                 return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
               }

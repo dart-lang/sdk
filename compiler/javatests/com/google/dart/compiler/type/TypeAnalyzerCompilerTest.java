@@ -1879,6 +1879,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}");
     assertErrors(result.getErrors());
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7597
+   */
+  public void test_setterIsNotOverriddenByMethod() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  set foo(var v) {}",
+            "}",
+            "class C extends A {",
+            "  foo(value) {}",
+            "}",
+            "main() {",
+            "  C c = new C();",
+            "  c.foo(1);",
+            "  c.foo = 1;",
+            "}");
+    assertErrors(result.getErrors());
+  }
 
 
   public void test_setterGetterAssignable1() throws Exception {
