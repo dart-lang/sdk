@@ -55,8 +55,6 @@ multiple_timer_test: Pass, Fail
 timer_isolate_test: Pass, Fail
 timer_test: Pass, Fail
 
-mandel_isolate_test: Pass, Timeout # http://dartbug.com/8069
-
 # TODO(ager): Update these.
 [ $runtime == ie9 && $system == windows ]
 v2*: Skip
@@ -112,7 +110,7 @@ timer_test: Fail,OK # Needs Timer to run.
 [ $compiler == none ]
 isolate_negative_test: Skip # Bug 6890
 
-[ $compiler == dart2js && $runtime == ff && $system == windows ]
+[ $compiler == dart2js && $runtime == ff && ($system == windows || $system == linux) ]
 mandel_isolate_test: Pass, Fail, Timeout # Issue 7952
 
 [ $arch == arm ]
