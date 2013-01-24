@@ -1614,7 +1614,7 @@ $lazyInitializerLogic
         handler.getLazilyInitializedFieldsForEmission();
     if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
-      for (VariableElement element in lazyFields) {
+      for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
         assert(compiler.codegenWorld.generatedBailoutCode[element] == null);
         js.Expression code = compiler.codegenWorld.generatedCode[element];
         assert(code != null);
@@ -1623,24 +1623,26 @@ $lazyInitializerLogic
         //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
         // The name is used for error reporting. The 'initial' must be a
         // closure that constructs the initial value.
-        buffer.add("$lazyInitializerName(");
-        buffer.add(isolateProperties);
-        buffer.add(",$_'");
-        buffer.add(element.name.slowToString());
-        buffer.add("',$_'");
-        buffer.add(namer.getName(element));
-        buffer.add("',$_'");
-        buffer.add(namer.getLazyInitializerName(element));
-        buffer.add("',$_");
-        buffer.add(js.prettyPrint(code, compiler));
-        emitLazyInitializedGetter(element, buffer);
-        buffer.add(")$N");
+        List<js.Expression> arguments = <js.Expression>[];
+        arguments.add(js.use(isolateProperties));
+        arguments.add(js.string(element.name.slowToString()));
+        arguments.add(js.string(namer.getName(element)));
+        arguments.add(js.string(namer.getLazyInitializerName(element)));
+        arguments.add(code);
+        js.Expression getter = buildLazyInitializedGetter(element);
+        if (getter != null) {
+          arguments.add(getter);
+        }
+        js.Expression init = js.call(js.use(lazyInitializerName), arguments);
+        buffer.add(js.prettyPrint(init, compiler));
+        buffer.add("$N");
       }
     }
   }
 
-  void emitLazyInitializedGetter(VariableElement element, CodeBuffer buffer) {
+  js.Expression buildLazyInitializedGetter(VariableElement element) {
     // Nothing to do, the 'lazy' function will create the getter.
+    return null;
   }
 
   void emitCompileTimeConstants(CodeBuffer buffer) {
