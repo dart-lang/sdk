@@ -327,7 +327,7 @@ interface SQLResultSetRowList {
   [Custom] Dictionary item(in unsigned long index);
 };
 
-[Supplemental]
+[Supplemental, CustomConstructor, Constructor(in DOMString url)]
 interface WebSocket {
   // Suppress the default since it has non-standard return type and add
   // overrides.
