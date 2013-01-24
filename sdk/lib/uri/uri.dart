@@ -27,7 +27,6 @@ class Uri {
   /**
    * Deprecated. Please use [parse] instead.
    */
-  @deprecated
   Uri.fromString(String uri) : this._fromMatch(_splitRe.firstMatch(uri));
 
   static Uri parse(String uri) => new Uri._fromMatch(_splitRe.firstMatch(uri));
