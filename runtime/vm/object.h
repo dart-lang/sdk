@@ -3720,6 +3720,15 @@ class Smi : public Integer {
 
   RawInteger* ShiftOp(Token::Kind kind, const Smi& other) const;
 
+  void operator=(RawSmi* value) {
+    raw_ = value;
+    CHECK_HANDLE();
+  }
+  void operator^=(RawObject* value) {
+    raw_ = value;
+    CHECK_HANDLE();
+  }
+
  private:
   static intptr_t ValueFromRaw(uword raw_value) {
     intptr_t value = raw_value;
@@ -3728,7 +3737,9 @@ class Smi : public Integer {
   }
   static cpp_vtable handle_vtable_;
 
-  OBJECT_IMPLEMENTATION(Smi, Integer);
+  Smi() : Integer() {}
+  BASE_OBJECT_IMPLEMENTATION(Smi, Integer);
+
   friend class Api;  // For ValueFromRaw
   friend class Class;
   friend class Object;
