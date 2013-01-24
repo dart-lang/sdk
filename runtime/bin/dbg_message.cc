@@ -105,6 +105,30 @@ char* MessageParser::GetStringParam(const char* name) const {
 }
 
 
+static void FormatEncodedCharsTrunc(dart::TextBuffer* buf,
+                                    Dart_Handle str,
+                                    intptr_t max_chars) {
+  intptr_t str_len = 0;
+  Dart_Handle res = Dart_StringLength(str, &str_len);
+  ASSERT_NOT_ERROR(res);
+  intptr_t num_chars = (str_len > max_chars) ? max_chars : str_len;
+  uint16_t* codepoints =
+      reinterpret_cast<uint16_t*>(malloc(num_chars * sizeof(uint16_t)));
+  ASSERT(codepoints != NULL);
+  intptr_t actual_len = num_chars;
+  res = Dart_StringToUTF16(str, codepoints, &actual_len);
+  ASSERT_NOT_ERROR(res);
+  ASSERT(num_chars == actual_len);
+  for (int i = 0; i < num_chars; i++) {
+    buf->AddEscapedChar(codepoints[i]);
+  }
+  if (str_len > max_chars) {
+    buf->Printf("...");
+  }
+  free(codepoints);
+}
+
+
 static void FormatEncodedChars(dart::TextBuffer* buf, Dart_Handle str) {
   intptr_t str_len = 0;
   Dart_Handle res = Dart_StringLength(str, &str_len);
@@ -130,37 +154,19 @@ static void FormatEncodedString(dart::TextBuffer* buf, Dart_Handle str) {
 }
 
 
-static void FormatTextualListElement(dart::TextBuffer* buf,
-                                     Dart_Handle object) {
-  if (Dart_IsList(object)) {
-    buf->Printf("[...]");
-  } else if (Dart_IsNull(object)) {
-    buf->Printf("null");
-  } else if (Dart_IsError(object)) {
-    buf->Printf("#ERROR");
-  } else {
-    const bool need_quotes = Dart_IsString(object);
-    Dart_Handle text = Dart_ToString(object);
-    if (need_quotes) buf->Printf("\\\"");
-    if (Dart_IsNull(text)) {
-      buf->Printf("null");
-    } else if (Dart_IsError(text)) {
-      buf->Printf("#ERROR");
-    } else {
-      FormatEncodedChars(buf, text);
-    }
-    if (need_quotes) buf->Printf("\\\"");
-  }
-}
+static void FormatTextualValue(dart::TextBuffer* buf,
+                               Dart_Handle object,
+                               intptr_t max_chars);
 
 
-static void FormatTextualListValue(dart::TextBuffer* buf, Dart_Handle list) {
+static void FormatTextualListValue(dart::TextBuffer* buf,
+                                   Dart_Handle list,
+                                   intptr_t max_chars) {
   intptr_t len = 0;
   Dart_Handle res = Dart_ListLength(list, &len);
   ASSERT_NOT_ERROR(res);
   const intptr_t initial_buffer_length = buf->length();
   // Maximum number of characters we print for array elements.
-  const intptr_t max_chars = 256;
   const intptr_t max_buffer_length = initial_buffer_length + max_chars;
   buf->Printf("[");
   for (int i = 0; i < len; i++) {
@@ -168,7 +174,8 @@ static void FormatTextualListValue(dart::TextBuffer* buf, Dart_Handle list) {
       buf->Printf(", ");
     }
     Dart_Handle elem = Dart_ListGetAt(list, i);
-    FormatTextualListElement(buf, elem);
+    const intptr_t max_element_chars = 50;
+    FormatTextualValue(buf, elem, max_element_chars);
     if (buf->length() > max_buffer_length) {
       buf->Printf(", ...");
       break;
@@ -179,11 +186,16 @@ static void FormatTextualListValue(dart::TextBuffer* buf, Dart_Handle list) {
 
 
 static void FormatTextualValue(dart::TextBuffer* buf,
-                               Dart_Handle object) {
+                               Dart_Handle object,
+                               intptr_t max_chars) {
   if (Dart_IsList(object)) {
-    FormatTextualListValue(buf, object);
+    FormatTextualListValue(buf, object, max_chars);
   } else if (Dart_IsNull(object)) {
     buf->Printf("null");
+  } else if (Dart_IsString(object)) {
+    buf->Printf("\\\"");
+    FormatEncodedCharsTrunc(buf, object, max_chars);
+    buf->Printf("\\\"");
   } else {
     Dart_Handle text = Dart_ToString(object);
     if (Dart_IsNull(text)) {
@@ -191,7 +203,7 @@ static void FormatTextualValue(dart::TextBuffer* buf,
     } else if (Dart_IsError(text)) {
       buf->Printf("#ERROR");
     } else {
-      FormatEncodedChars(buf, text);
+      FormatEncodedCharsTrunc(buf, text, max_chars);
     }
   }
 }
@@ -213,7 +225,8 @@ static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
     buf->Printf("\"kind\":\"object\",");
   }
   buf->Printf("\"text\":\"");
-  FormatTextualValue(buf, object);
+  const intptr_t max_chars = 250;
+  FormatTextualValue(buf, object, max_chars);
   buf->Printf("\"");
 }
 
