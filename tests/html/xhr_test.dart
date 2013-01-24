@@ -10,7 +10,7 @@ import 'dart:json' as json;
 
 main() {
   useHtmlConfiguration();
-  var url = "../../../../tests/html/xhr_cross_origin_data.txt";
+  var url = "/tests/html/xhr_cross_origin_data.txt";
 
   void validate200Response(xhr) {
     expect(xhr.status, equals(200));
