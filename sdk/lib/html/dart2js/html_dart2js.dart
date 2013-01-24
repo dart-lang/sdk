@@ -12616,7 +12616,13 @@ class HttpRequestException native "*XMLHttpRequestException" {
 
 @DocsEditable
 @DomName('XMLHttpRequestProgressEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => Event._isTypeSupported('XMLHttpRequestProgressEvent');
 
   @DomName('XMLHttpRequestProgressEvent.position')
   @DocsEditable

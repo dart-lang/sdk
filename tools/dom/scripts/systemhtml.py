@@ -94,6 +94,8 @@ js_support_checks = {
   'Performance': "JS('bool', '!!(window.performance)')",
   'SpeechRecognition': "JS('bool', '!!(window.SpeechRecognition || "
       "window.webkitSpeechRecognition)')",
+  'XMLHttpRequestProgressEvent':
+      "Event._isTypeSupported('XMLHttpRequestProgressEvent')",
   'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
 }
 

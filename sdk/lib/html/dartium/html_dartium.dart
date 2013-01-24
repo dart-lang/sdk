@@ -13534,8 +13534,14 @@ class HttpRequestException extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('XMLHttpRequestProgressEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
 class HttpRequestProgressEvent extends ProgressEvent {
   HttpRequestProgressEvent.internal() : super.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('XMLHttpRequestProgressEvent.position')
   @DocsEditable

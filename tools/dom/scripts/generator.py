@@ -792,6 +792,7 @@ dart_annotations = {
   'WorkerContext.webkitRequestFileSystemSync': _file_system_annotations,
   'WorkerContext.webkitResolveLocalFileSystemSyncURL': _file_system_annotations,
   'WorkerContext.webkitResolveLocalFileSystemURL': _file_system_annotations,
+  'XMLHttpRequestProgressEvent': _webkit_experimental_annotations,
 }
 
 def FindCommonAnnotations(interface_name, member_name=None):

@@ -88,6 +88,7 @@ websql_test: Fail
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
 xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
+xhr_test/supported_HttpRequestProgressEvent: Fail
 xsltprocessor_test: Fail
 
 [ $runtime == ie9 ]
@@ -154,6 +155,7 @@ window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
+xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_cross_origin_test: Fail # Issue 6016.
 
 [ $runtime == safari ]
@@ -282,6 +284,7 @@ svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
 websql_test: Fail # FF does not support web SQL
+xhr_test/supported_HttpRequestProgressEvent: Fail
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip
