@@ -1370,6 +1370,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         RemovePushArguments(call);
         return true;
       }
+      case MethodRecognizer::kDoubleMod:
       case MethodRecognizer::kDoublePow:
         ReplaceWithMathCFunction(call, recognized_kind);
         return true;

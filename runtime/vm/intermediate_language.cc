@@ -2632,6 +2632,7 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
       ASSERT(!CPUFeatures::double_truncate_round_supported());
       return 1;
     }
+    case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kDoublePow:
       return 2;
     default:
@@ -2647,6 +2648,10 @@ typedef double (*BinaryMathCFunction) (double x, double y);
 extern const RuntimeEntry kPowRuntimeEntry(
     "libc_pow", reinterpret_cast<RuntimeFunction>(
         static_cast<BinaryMathCFunction>(&pow)), 0, true);
+
+extern const RuntimeEntry kModRuntimeEntry(
+    "libc_fmod", reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&fmod)), 0, true);
 
 extern const RuntimeEntry kFloorRuntimeEntry(
     "libc_floor", reinterpret_cast<RuntimeFunction>(
@@ -2677,6 +2682,8 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kCeilRuntimeEntry;
     case MethodRecognizer::kDoublePow:
       return kPowRuntimeEntry;
+    case MethodRecognizer::kDoubleMod:
+      return kModRuntimeEntry;
     default:
       UNREACHABLE();
   }
