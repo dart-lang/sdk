@@ -120,6 +120,7 @@ enum {
   kELFDATA2LSB = 1,
   kELFDATA2MSB = 2,
   kEM_386 = 3,
+  kEM_MIPS = 8,
   kEM_ARM = 40,
   kEM_X86_64 = 62,
   kEV_CURRENT = 1,
@@ -336,15 +337,13 @@ int ElfGen::AddFunction(const char* name, uword pc, intptr_t size) {
   DebugInfo::ByteBuffer* symtab = &section_buf_[kSymtab];
   const int beg = symtab->size();
   WriteInt(symtab, AddName(name));  // st_name
-#if defined(TARGET_ARCH_X64)
+#if defined(ARCH_IS_64_BIT)
   WriteShort(symtab, (kSTB_LOCAL << 4) + kSTT_FUNC);  // st_info + (st_other<<8)
   WriteShort(symtab, kText);  // st_shndx
 #endif
   WriteWord(symtab, pc);  // st_value
   WriteWord(symtab, size);  // st_size
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_ARM) ||                                                \
-    defined(TARGET_ARCH_MIPS)
+#if defined(ARCH_IS_32_BIT)
   // st_info + (st_other<<8)
   WriteShort(symtab, (kSTB_EXPORTED << 4) + kSTT_FUNC);
   WriteShort(symtab, kText);  // st_shndx
@@ -385,12 +384,12 @@ int ElfGen::AddName(const char* str) {
 void ElfGen::AddELFHeader(int shoff) {
   ASSERT(text_vma_ != 0);  // Code must have been added.
   Write(&header_, kEI_MAG0_MAG3, 4);  // EI_MAG0..EI_MAG3
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_ARM) ||                                                \
-    defined(TARGET_ARCH_MIPS)
+#if defined(ARCH_IS_32_BIT)
   WriteByte(&header_, kELFCLASS32);  // EI_CLASS
-#elif defined(TARGET_ARCH_X64)
+#elif defined(ARCH_IS_64_BIT)
   WriteByte(&header_, kELFCLASS64);  // EI_CLASS
+#else
+#error Unknown architecture.
 #endif
   WriteByte(&header_, kELFDATA2LSB);  // EI_DATA
   WriteByte(&header_, kEV_CURRENT);  // EI_VERSION
@@ -404,6 +403,10 @@ void ElfGen::AddELFHeader(int shoff) {
   WriteShort(&header_, kEM_X86_64);  // e_machine
 #elif defined(TARGET_ARCH_ARM)
   WriteShort(&header_, kEM_ARM);  // e_machine
+#elif defined(TARGET_ARCH_MIPS)
+  WriteShort(&header_, kEM_MIPS);  // e_machine
+#else
+#error Unknown architecture.
 #endif
   WriteInt(&header_, kEV_CURRENT);  // e_version
   WriteWord(&header_, 0);  // e_entry: none
