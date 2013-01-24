@@ -273,24 +273,23 @@ abstract class UnmodifiableListBase<E> extends ListBase<E> {
  */
 class ListIterator<E> implements Iterator<E> {
   final List<E> _list;
-  final int _initialLength;
+  final int _length;
   int _position;
   E _current;
 
   ListIterator(List<E> list)
-      : _list = list, _position = -1, _initialLength = list.length;
+      : _list = list, _position = -1, _length = list.length;
 
   bool moveNext() {
-    if (_list.length != _initialLength) {
+    if (_list.length != _length) {
       throw new ConcurrentModificationError(_list);
     }
     int nextPosition = _position + 1;
-    if (nextPosition < _list.length) {
-      _current = _list[nextPosition];
+    if (nextPosition < _length) {
       _position = nextPosition;
+      _current = _list[nextPosition];
       return true;
     }
-    _position = _list.length;
     _current = null;
     return false;
   }

@@ -253,7 +253,7 @@ class JSArray<E> implements List<E> {
 
   Set<E> toSet() => new Set<E>.from(this);
 
-  _ArrayIterator get iterator => new _ArrayIterator(this);
+  Iterator<E> get iterator => new ListIterator<E>(this);
 
   int get hashCode => Primitives.objectHashCode(this);
 
@@ -282,29 +282,5 @@ class JSArray<E> implements List<E> {
     if (index is !int) throw new ArgumentError(index);
     if (index >= length || index < 0) throw new RangeError.value(index);
     JS('void', r'#[#] = #', this, index, value);
-  }
-}
-
-/** Iterator for JavaScript Arrays. */
-class _ArrayIterator<T> implements Iterator<T> {
-  final List<T> _list;
-  int _position;
-  T _current;
-
-  _ArrayIterator(List<T> this._list) : _position = -1;
-
-  T get current => _current;
-
-  bool moveNext() {
-    int nextPosition = _position + 1;
-    int length = _list.length;
-    if (nextPosition < length) {
-      _position = nextPosition;
-      _current = _list[nextPosition];
-      return true;
-    }
-    _position = length;
-    _current = null;
-    return false;
   }
 }
