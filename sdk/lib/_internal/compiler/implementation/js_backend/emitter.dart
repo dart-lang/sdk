@@ -2097,6 +2097,48 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
   }
 
+  void emitOneShotInterceptors(CodeBuffer buffer) {
+    JavaScriptBackend backend = compiler.backend;
+    for (Selector selector in backend.oneShotInterceptors) {
+      Set<ClassElement> classes = backend.getInterceptedClassesOn(selector);
+      String oneShotInterceptorName = namer.oneShotInterceptorName(selector);
+      String getInterceptorName =
+          namer.getInterceptorName(backend.getInterceptorMethod, classes);
+
+      List<js.Parameter> parameters = <js.Parameter>[];
+      List<js.Expression> arguments = <js.Expression>[];
+      parameters.add(new js.Parameter('receiver'));
+      arguments.add(js.use('receiver'));
+
+      if (selector.isSetter()) {
+        parameters.add(new js.Parameter('value'));
+        arguments.add(js.use('value'));
+      } else {
+        for (int i = 0; i < selector.argumentCount; i++) {
+          String argName = 'a$i';
+          parameters.add(new js.Parameter(argName));
+          arguments.add(js.use(argName));
+        }
+      }
+
+      String invocationName = backend.namer.invocationName(selector);
+      js.Fun function =
+          new js.Fun(parameters,
+              js.block1(js.return_(
+                        js.use(isolateProperties)
+                            .dot(getInterceptorName)
+                            .callWith([js.use('receiver')])
+                            .dot(invocationName)
+                            .callWith(arguments))));
+
+      js.PropertyAccess property =
+          js.fieldAccess(js.use(isolateProperties), oneShotInterceptorName);
+
+      buffer.add(js.prettyPrint(js.assign(property, function), compiler));
+      buffer.add(N);
+    }
+  }
+
   String assembleProgram() {
     measure(() {
       computeNeededClasses();
@@ -2126,6 +2168,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
+      emitOneShotInterceptors(mainBuffer);
       emitGetInterceptorMethods(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
 

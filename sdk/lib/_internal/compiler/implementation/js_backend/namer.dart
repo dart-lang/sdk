@@ -47,6 +47,7 @@ class Namer implements ClosureNamer {
    */
   final Compiler compiler;
   final Map<Element, String> globals;
+  final Map<Selector, String> oneShotInterceptorNames;
   final Map<String, LibraryElement> shortPrivateNameOwners;
   final Set<String> usedGlobalNames;
   final Set<String> usedInstanceNames;
@@ -70,6 +71,7 @@ class Namer implements ClosureNamer {
 
   Namer(this.compiler)
       : globals = new Map<Element, String>(),
+        oneShotInterceptorNames = new Map<Selector, String>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
         bailoutNames = new Map<Element, String>(),
         usedBailoutInstanceNames = new Set<String>(),
@@ -394,7 +396,12 @@ class Namer implements ClosureNamer {
     return name;
   }
 
-  String getSpecializedName(Element element, Collection<ClassElement> classes) {
+  String getInterceptorName(Element element, Collection<ClassElement> classes) {
+    if (classes.contains(compiler.objectClass)) {
+      // If the object class is in the set of intercepted classes, we
+      // need to go through the generic getInterceptorMethod.
+      return getName(element);
+    }
     // This gets the minified name, but it doesn't really make much difference.
     // The important thing is that it is a unique name.
     StringBuffer buffer = new StringBuffer('${getName(element)}\$');
@@ -531,6 +538,18 @@ class Namer implements ClosureNamer {
     }
     assert(!jsReserved.contains(name));
     return name;
+  }
+
+  String oneShotInterceptorName(Selector selector) {
+    // TODO(ngeoffray): What to do about typed selectors? We could
+    // filter them out, or keep them and hope the generated one shot
+    // interceptor takes advantage of the type.
+    String cached = oneShotInterceptorNames[selector];
+    if (cached != null) return cached;
+    SourceString name = operatorNameToIdentifier(selector.name);
+    String result = getFreshName(name.slowToString(), usedGlobalNames);
+    oneShotInterceptorNames[selector] = result;
+    return result;
   }
 
   SourceString operatorNameToIdentifier(SourceString name) {

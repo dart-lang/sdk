@@ -448,6 +448,9 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitLazyStatic(HLazyStatic node)
       => "LazyStatic ${node.element.name.slowToString()}";
 
+  String visitOneShotInterceptor(HOneShotInterceptor node)
+      => visitInvokeDynamic(node, "one shot interceptor");
+
   String visitStaticStore(HStaticStore node) {
     String lhs = node.element.name.slowToString();
     return "Static $lhs = ${temporaryId(node.inputs[0])}";

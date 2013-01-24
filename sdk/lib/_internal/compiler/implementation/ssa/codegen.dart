@@ -1499,12 +1499,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitInterceptor(HInterceptor node) {
-    String name =
-        backend.registerSpecializedGetInterceptor(node.interceptedClasses);
-    js.VariableUse interceptor = new js.VariableUse(name);
+    backend.registerSpecializedGetInterceptor(node.interceptedClasses);
+    String name = backend.namer.getInterceptorName(
+        backend.getInterceptorMethod, node.interceptedClasses);
+    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
     use(node.receiver);
     List<js.Expression> arguments = <js.Expression>[pop()];
-    push(new js.Call(interceptor, arguments), node);
+    push(jsPropertyCall(isolate, name, arguments), node);
   }
 
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
@@ -1537,37 +1538,26 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (methodName == null) {
       methodName = backend.namer.invocationName(node.selector);
-      bool inLoop = node.block.enclosingLoopHeader != null;
-
-      Selector selector = getOptimizedSelectorFor(node, node.selector);
-      if (node.isInterceptorCall) {
-        backend.addInterceptedSelector(selector);
-      }
-      // Register this invocation to collect the types used at all call sites.
-      backend.registerDynamicInvocation(node, selector, types);
-
-      // If we don't know what we're calling or if we are calling a getter,
-      // we need to register that fact that we may be calling a closure
-      // with the same arguments.
-      if (target == null || target.isGetter()) {
-        // TODO(kasperl): If we have a typed selector for the call, we
-        // may know something about the types of closures that need
-        // the specific closure call method.
-        Selector call = new Selector.callClosureFrom(selector);
-        world.registerDynamicInvocation(call.name, call);
-      }
-
-      if (target != null) {
-        // If we know we're calling a specific method, register that
-        // method only.
-        if (inLoop) backend.builder.functionsCalledInLoop.add(target);
-        world.registerDynamicInvocationOf(target);
-      } else {
-        if (inLoop) backend.builder.selectorsCalledInLoop[name] = selector;
-        world.registerDynamicInvocation(name, selector);
-      }
+      registerMethodInvoke(node);
     }
     push(jsPropertyCall(object, methodName, arguments), node);
+  }
+
+  void visitOneShotInterceptor(HOneShotInterceptor node) {
+    List<js.Expression> arguments = visitArguments(node.inputs);
+    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
+    Selector selector = node.selector;
+    String methodName = backend.namer.oneShotInterceptorName(selector);
+    push(jsPropertyCall(isolate, methodName, arguments), node);
+    backend.registerSpecializedGetInterceptor(node.interceptedClasses);
+    backend.addOneShotInterceptor(selector);
+    if (selector.isGetter()) {
+      registerGetter(node);
+    } else if (selector.isSetter()) {
+      registerSetter(node);
+    } else {
+      registerMethodInvoke(node);
+    }
   }
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node,
@@ -1592,21 +1582,75 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  void registerInvoke(HInvokeDynamic node) {
+    bool inLoop = node.block.enclosingLoopHeader != null;
+    SourceString name = node.selector.name;
+    if (inLoop) {
+      Element target = node.element;
+      if (target != null) {
+        backend.builder.functionsCalledInLoop.add(target);
+      } else {
+        backend.builder.selectorsCalledInLoop[name] = node.selector;
+      }
+    }
+
+    if (node.isInterceptorCall) {
+      backend.addInterceptedSelector(node.selector);
+    }
+  }
+
+  void registerMethodInvoke(HInvokeDynamic node) {
+    Selector selector = getOptimizedSelectorFor(node, node.selector);
+    // Register this invocation to collect the types used at all call sites.
+    backend.registerDynamicInvocation(node, selector, types);
+
+    // If we don't know what we're calling or if we are calling a getter,
+    // we need to register that fact that we may be calling a closure
+    // with the same arguments.
+    Element target = node.element;
+    if (target == null || target.isGetter()) {
+      // TODO(kasperl): If we have a typed selector for the call, we
+      // may know something about the types of closures that need
+      // the specific closure call method.
+      Selector call = new Selector.callClosureFrom(selector);
+      world.registerDynamicInvocation(call.name, call);
+    }
+
+    if (target != null) {
+      // If we know we're calling a specific method, register that
+      // method only.
+      world.registerDynamicInvocationOf(target);
+    } else {
+      SourceString name = node.selector.name;
+      world.registerDynamicInvocation(name, selector);
+    }
+    registerInvoke(node);
+  }
+
+  void registerSetter(HInvokeDynamic node) {
+    Selector selector = getOptimizedSelectorFor(node, node.selector);
+    world.registerDynamicSetter(selector.name, selector);
+    HType valueType = node.isInterceptorCall
+        ? types[node.inputs[2]]
+        : types[node.inputs[1]];
+    backend.addedDynamicSetter(selector, valueType);
+    registerInvoke(node);
+  }
+
+  void registerGetter(HInvokeDynamic node) {
+    Selector getter = node.selector;
+    world.registerDynamicGetter(
+        getter.name, getOptimizedSelectorFor(node, getter));
+    world.registerInstantiatedClass(compiler.functionClass);
+    registerInvoke(node);
+  }
+
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
     Selector setter = node.selector;
     String name = backend.namer.invocationName(setter);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
-    Selector selector = getOptimizedSelectorFor(node, setter);
-    world.registerDynamicSetter(setter.name, selector);
-    HType valueType;
-    if (node.isInterceptorCall) {
-      valueType = types[node.inputs[2]];
-      backend.addInterceptedSelector(setter);
-    } else {
-      valueType = types[node.inputs[1]];
-    }
-    backend.addedDynamicSetter(selector, valueType);
+    registerSetter(node);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -1614,12 +1658,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Selector getter = node.selector;
     String name = backend.namer.invocationName(getter);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
-    world.registerDynamicGetter(
-        getter.name, getOptimizedSelectorFor(node, getter));
-    if (node.isInterceptorCall) {
-      backend.addInterceptedSelector(getter);
-    }
-    world.registerInstantiatedClass(compiler.functionClass);
+    registerGetter(node);
   }
 
   visitInvokeClosure(HInvokeClosure node) {

@@ -13,20 +13,20 @@ part of ssa;
 class InvokeDynamicSpecializer {
   const InvokeDynamicSpecializer();
 
-  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
     return HType.UNKNOWN;
   }
 
-  HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
+  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   HTypeMap types,
                                   Compiler compiler) {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    HTypeMap types) {
     return null;
   }
@@ -84,7 +84,7 @@ class InvokeDynamicSpecializer {
 class IndexAssignSpecializer extends InvokeDynamicSpecializer {
   const IndexAssignSpecializer();
 
-  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
@@ -100,7 +100,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    HTypeMap types) {
     if (instruction.inputs[1].isMutableArray(types)) {
       return new HIndexAssign(instruction.inputs[1],
@@ -114,7 +114,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
 class IndexSpecializer extends InvokeDynamicSpecializer {
   const IndexSpecializer();
 
-  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
@@ -130,7 +130,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    HTypeMap types) {
     if (instruction.inputs[1].isIndexablePrimitive(types)) {
       return new HIndex(instruction.inputs[1], instruction.inputs[2]);
@@ -146,7 +146,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     return constantSystem.bitNot;
   }
 
-  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
@@ -159,7 +159,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
+  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   HTypeMap types,
                                   Compiler compiler) {
     // All bitwise operations on primitive types either produce an
@@ -168,7 +168,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    HTypeMap types) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(types)) return new HBitNot(input);
@@ -183,7 +183,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
     return constantSystem.negate;
   }
 
-  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
@@ -198,7 +198,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
+  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   HTypeMap types,
                                   Compiler compiler) {
     HType operandType = types[instruction.inputs[1]];
@@ -206,7 +206,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    HTypeMap types) {
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(types)) return new HNegate(input);
@@ -217,7 +217,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
 abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   const BinaryArithmeticSpecializer();
 
-  HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
+  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   HTypeMap types,
                                   Compiler compiler) {
     HInstruction left = instruction.inputs[1];
@@ -230,7 +230,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
@@ -259,12 +259,12 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  bool isBuiltin(HInvokeDynamicMethod instruction, HTypeMap types) {
+  bool isBuiltin(HInvokeDynamic instruction, HTypeMap types) {
     return instruction.inputs[1].isNumber(types)
         && instruction.inputs[2].isNumber(types);
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    HTypeMap types) {
     if (isBuiltin(instruction, types)) {
       HInstruction builtin =
@@ -379,7 +379,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
 abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   const BinaryBitOpSpecializer();
 
-  HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
+  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   HTypeMap types,
                                   Compiler compiler) {
     // All bitwise operations on primitive types either produce an
@@ -389,7 +389,7 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
@@ -412,7 +412,7 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.shiftLeft;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    HTypeMap types) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
@@ -483,14 +483,14 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
 abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
   const RelationalSpecializer();
 
-  HType computeTypeFromInputTypes(HInvokeDynamicMethod instruction,
+  HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   HTypeMap types,
                                   Compiler compiler) {
     if (types[instruction.inputs[1]].isPrimitiveOrNull()) return HType.BOOLEAN;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
@@ -508,7 +508,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    HTypeMap types) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
@@ -524,7 +524,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
 class EqualsSpecializer extends RelationalSpecializer {
   const EqualsSpecializer();
 
-  HType computeDesiredTypeForInput(HInvokeDynamicMethod instruction,
+  HType computeDesiredTypeForInput(HInvokeDynamic instruction,
                                    HInstruction input,
                                    HTypeMap types,
                                    Compiler compiler) {
@@ -552,7 +552,7 @@ class EqualsSpecializer extends RelationalSpecializer {
     return HType.UNKNOWN;
   }
 
-  HInstruction tryConvertToBuiltin(HInvokeDynamicMethod instruction,
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    HTypeMap types) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];

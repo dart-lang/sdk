@@ -668,6 +668,12 @@ class JavaScriptBackend extends Backend {
   final Set<Selector> usedInterceptors;
 
   /**
+   * A collection of selectors that must have a one shot interceptor
+   * generated.
+   */
+  final Set<Selector> oneShotInterceptors;
+
+  /**
    * The members of instantiated interceptor classes: maps a member
    * name to the list of members that have that name. This map is used
    * by the codegen to know whether a send must be intercepted or not.
@@ -702,6 +708,7 @@ class JavaScriptBackend extends Backend {
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         usedInterceptors = new Set<Selector>(),
+        oneShotInterceptors = new Set<Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypeInformation(compiler),
         specializedGetInterceptors =
@@ -731,6 +738,10 @@ class JavaScriptBackend extends Backend {
 
   void addInterceptedSelector(Selector selector) {
     usedInterceptors.add(selector);
+  }
+
+  void addOneShotInterceptor(Selector selector) {
+    oneShotInterceptors.add(selector);
   }
 
   /**
@@ -809,12 +820,12 @@ class JavaScriptBackend extends Backend {
     enqueuer.registerInstantiatedClass(cls);
   }
 
-  String registerSpecializedGetInterceptor(Set<ClassElement> classes) {
+  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
     compiler.enqueuer.codegen.registerInstantiatedClass(objectInterceptorClass);
+    String name = namer.getInterceptorName(getInterceptorMethod, classes);
     if (classes.contains(compiler.objectClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
-      String name = namer.getName(getInterceptorMethod);
       specializedGetInterceptors.putIfAbsent(name, () {
         // It is important to take the order provided by the map,
         // because we want the int type check to happen before the
@@ -827,11 +838,8 @@ class JavaScriptBackend extends Backend {
         });
         return keys;
       });
-      return namer.isolateAccess(getInterceptorMethod);
     } else {
-      String name = namer.getSpecializedName(getInterceptorMethod, classes);
       specializedGetInterceptors[name] = classes;
-      return '${namer.CURRENT_ISOLATE}.$name';
     }
   }
 

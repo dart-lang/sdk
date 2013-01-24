@@ -40,14 +40,6 @@ class SsaInstructionMerger extends HBaseVisitor {
     visitDominatorTree(graph);
   }
 
-  /**
-   * Return whether the instructions do not belong to a loop or
-   * belong to the same loop.
-   */
-  bool notInLoopOrInSameLoop(HInstruction one, HInstruction two) {
-    return one.block.enclosingLoopHeader == two.block.enclosingLoopHeader;
-  }
-
   void analyzeInputs(HInstruction user, int start) {
     List<HInstruction> inputs = user.inputs;
     for (int i = start; i < inputs.length; i++) {
@@ -62,7 +54,7 @@ class SsaInstructionMerger extends HBaseVisitor {
           // Only consider a pure input if it is in the same loop.
           // Otherwise, we might move GVN'ed instruction back into the
           // loop.
-          if (notInLoopOrInSameLoop(user, input)) {
+          if (user.hasSameLoopHeaderAs(input)) {
             // Move it closer to [user], so that instructions in
             // between do not prevent making it generate at use site.
             input.moveBefore(user);

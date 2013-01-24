@@ -50,6 +50,7 @@ abstract class HVisitor<R> {
   R visitMultiply(HMultiply node);
   R visitNegate(HNegate node);
   R visitNot(HNot node);
+  R visitOneShotInterceptor(HOneShotInterceptor);
   R visitParameterValue(HParameterValue node);
   R visitPhi(HPhi node);
   R visitRangeConversion(HRangeConversion node);
@@ -313,6 +314,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitNegate(HNegate node) => visitInvokeUnary(node);
   visitNot(HNot node) => visitInstruction(node);
+  visitOneShotInterceptor(HOneShotInterceptor node)
+      => visitInvokeDynamic(node);
   visitPhi(HPhi node) => visitInstruction(node);
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
   visitParameterValue(HParameterValue node) => visitLocalValue(node);
@@ -1160,6 +1163,14 @@ abstract class HInstruction implements Spannable {
 
     return new HTypeConversion(convertedType, this, kind);
   }
+
+    /**
+   * Return whether the instructions do not belong to a loop or
+   * belong to the same loop.
+   */
+  bool hasSameLoopHeaderAs(HInstruction other) {
+    return block.enclosingLoopHeader == other.block.enclosingLoopHeader;
+  }
 }
 
 class HBoolify extends HInstruction {
@@ -1322,11 +1333,19 @@ abstract class HInvoke extends HInstruction {
 }
 
 abstract class HInvokeDynamic extends HInvoke {
+  final InvokeDynamicSpecializer specializer;
   final Selector selector;
   Element element;
 
-  HInvokeDynamic(this.selector, this.element, List<HInstruction> inputs)
-    : super(inputs);
+  HInvokeDynamic(Selector selector,
+                 this.element,
+                 List<HInstruction> inputs,
+                 [bool isIntercepted = false])
+    : super(inputs),
+      this.selector = selector,
+      specializer = isIntercepted
+          ? InvokeDynamicSpecializer.lookupSpecializer(selector)
+          : const InvokeDynamicSpecializer();
   toString() => 'invoke dynamic: $selector';
   HInstruction get receiver => inputs[0];
 
@@ -1343,6 +1362,16 @@ abstract class HInvokeDynamic extends HInvoke {
     return selector == other.selector
         && element == other.element;
   }
+
+  HType computeDesiredTypeForInput(HInstruction input,
+                                   HTypeMap types,
+                                   Compiler compiler) {
+    return specializer.computeDesiredTypeForInput(this, input, types, compiler);
+  }
+
+  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
+    return specializer.computeTypeFromInputTypes(this, types, compiler);
+  }
 }
 
 class HInvokeClosure extends HInvokeDynamic {
@@ -1354,14 +1383,11 @@ class HInvokeClosure extends HInvokeDynamic {
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
-  final InvokeDynamicSpecializer specializer;
   HInvokeDynamicMethod(Selector selector,
                        List<HInstruction> inputs,
                        [bool isIntercepted = false])
-    : super(selector, null, inputs),
-      specializer = isIntercepted
-          ? InvokeDynamicSpecializer.lookupSpecializer(selector)
-          : const InvokeDynamicSpecializer();
+    : super(selector, null, inputs, isIntercepted);
+
   String toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 
@@ -1370,16 +1396,6 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
         && selector.kind == SelectorKind.INDEX
         && selector.name == const SourceString('[]')
         && inputs[1].isIndexablePrimitive(types);
-  }
-
-  HType computeDesiredTypeForInput(HInstruction input,
-                                   HTypeMap types,
-                                   Compiler compiler) {
-    return specializer.computeDesiredTypeForInput(this, input, types, compiler);
-  }
-
-  HType computeTypeFromInputTypes(HTypeMap types, Compiler compiler) {
-    return specializer.computeTypeFromInputTypes(this, types, compiler);
   }
 }
 
@@ -2141,6 +2157,29 @@ class HInterceptor extends HInstruction {
         || (interceptedClasses.length == other.interceptedClasses.length
             && interceptedClasses.containsAll(other.interceptedClasses));
   }
+}
+
+/**
+ * A "one-shot" interceptor is a call to a synthetized method that
+ * will fetch the interceptor of its first parameter, and make a call
+ * on a given selector with the remaining parameters.
+ *
+ * In order to share the same optimizations with regular interceptor
+ * calls, this class extends [HInvokeDynamic] and also has the null
+ * constant as the first input.
+ */
+class HOneShotInterceptor extends HInvokeDynamic {
+  Set<ClassElement> interceptedClasses;
+  HOneShotInterceptor(Selector selector,
+                      List<HInstruction> inputs,
+                      this.interceptedClasses)
+      : super(selector, null, inputs, true) {
+    assert(inputs[0] is HConstant);
+    assert(inputs[0].guaranteedType == HType.NULL);
+  }
+
+  String toString() => 'one shot interceptor on $selector';
+  accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
 }
 
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */
