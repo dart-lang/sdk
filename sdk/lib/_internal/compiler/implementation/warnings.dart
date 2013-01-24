@@ -315,6 +315,12 @@ class MessageKind {
   static const ILLEGAL_MIXIN_CYCLE = const MessageKind(
       "Error: class used as mixin introduces mixin cycle: #{1} <-> #{2}.");
 
+  static const ILLEGAL_MIXIN_WITH_SUPER = const MessageKind(
+      "Error: cannot use class #{1} as a mixin because it uses super.");
+
+  static const ILLEGAL_MIXIN_SUPER_USE = const MessageKind(
+      "Use of super in class used as mixin.");
+
   static const PARAMETER_NAME_EXPECTED = const MessageKind(
       "Error: parameter name expected.");
 

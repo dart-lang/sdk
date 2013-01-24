@@ -199,6 +199,7 @@ abstract class Element implements Spannable {
   void addMetadata(MetadataAnnotation annotation);
   void setNative(String name);
   void setFixedBackendName(String name);
+
   Scope buildScope();
 }
 

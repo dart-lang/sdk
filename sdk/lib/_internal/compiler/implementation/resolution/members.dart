@@ -9,18 +9,17 @@ abstract class TreeElements {
   Selector getSelector(Send send);
   DartType getType(Node node);
   bool isParameterChecked(Element element);
+  Set<Node> get superUses;
 }
 
 class TreeElementMapping implements TreeElements {
   final Element currentElement;
-  final Map<Node, Selector> selectors;
-  final Map<Node, DartType> types;
-  final Set<Element> checkedParameters;
+  final Map<Node, Selector> selectors = new LinkedHashMap<Node, Selector>();
+  final Map<Node, DartType> types = new LinkedHashMap<Node, DartType>();
+  final Set<Element> checkedParameters = new Set<Element>();
+  final Set<Node> superUses = new Set<Node>();
 
-  TreeElementMapping(this.currentElement)
-      : selectors = new LinkedHashMap<Node, Selector>(),
-        types = new LinkedHashMap<Node, DartType>(),
-        checkedParameters = new Set<Element>();
+  TreeElementMapping(this.currentElement);
 
   operator []=(Node node, Element element) {
     assert(invariant(node, () {
@@ -268,7 +267,24 @@ class ResolverTask extends CompilerTask {
         }
         visitBody(visitor, tree.body);
 
-        return visitor.mapping;
+        // Get the resolution tree and check that the resolved
+        // function doesn't use 'super' if it is mixed into another
+        // class. This is the part of the 'super' mixin check that
+        // happens when a function is resolved after the mixin
+        // application has been performed.
+        TreeElements resolutionTree = visitor.mapping;
+        ClassElement enclosingClass = element.getEnclosingClass();
+        if (enclosingClass != null) {
+          Set<MixinApplicationElement> mixinUses =
+              compiler.world.mixinUses[enclosingClass];
+          if (mixinUses != null) {
+            ClassElement mixin = enclosingClass;
+            for (MixinApplicationElement mixinApplication in mixinUses) {
+              checkMixinSuperUses(resolutionTree, mixinApplication, mixin);
+            }
+          }
+        }
+        return resolutionTree;
       });
     });
   }
@@ -522,14 +538,42 @@ class ResolverTask extends CompilerTask {
                              error, Diagnostic.ERROR);
     }
 
-    // Check that the mixed in class doesn't have any constructors.
+    // Check that the mixed in class doesn't have any constructors and
+    // make sure we aren't mixing in methods that use 'super'.
     mixin.forEachLocalMember((Element member) {
       if (member.isGenerativeConstructor() && !member.isSynthesized) {
         CompilationError error = MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR.error();
         compiler.reportMessage(compiler.spanFromElement(member),
                                error, Diagnostic.ERROR);
+      } else {
+        // Get the resolution tree and check that the resolved member
+        // doesn't use 'super'. This is the part of the 'super' mixin
+        // check that happens when a function is resolved before the
+        // mixin application has been performed.
+        checkMixinSuperUses(
+            compiler.enqueuer.resolution.resolvedElements[member],
+            mixinApplication,
+            mixin);
       }
     });
+  }
+
+  void checkMixinSuperUses(TreeElements resolutionTree,
+                           MixinApplicationElement mixinApplication,
+                           ClassElement mixin) {
+    if (resolutionTree == null) return;
+    Set<Node> superUses = resolutionTree.superUses;
+    if (superUses.isEmpty) return;
+    CompilationError error = MessageKind.ILLEGAL_MIXIN_WITH_SUPER.error(
+        [mixin.name]);
+    compiler.reportMessage(compiler.spanFromElement(mixinApplication),
+                           error, Diagnostic.ERROR);
+    // Show the user the problematic uses of 'super' in the mixin.
+    for (Node use in superUses) {
+      CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPER_USE.error();
+      compiler.reportMessage(compiler.spanFromNode(use),
+                             error, Diagnostic.INFO);
+    }
   }
 
   void checkClassMembers(ClassElement cls) {
@@ -1772,6 +1816,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Element resolveSend(Send node) {
     Selector selector = resolveSelector(node);
+    if (node.isSuperCall) mapping.superUses.add(node);
 
     if (node.receiver == null) {
       // If this send is of the form "assert(expr);", then
@@ -2930,6 +2975,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       previous = current;
       current = currentMixinApplication.mixin;
     }
+    compiler.world.registerMixinUse(mixinApplication, mixin);
     return mixin;
   }
 
