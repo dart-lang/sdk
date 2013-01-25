@@ -6693,8 +6693,14 @@ class DataView extends ArrayBufferView {
 
 @DocsEditable
 @DomName('Database')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class Database extends NativeFieldWrapperClass1 {
   Database.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('Database.version')
   @DocsEditable
@@ -6730,6 +6736,9 @@ typedef void DatabaseCallback(database);
 
 @DocsEditable
 @DomName('DatabaseSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class DatabaseSync extends NativeFieldWrapperClass1 {
   DatabaseSync.internal();
 
@@ -22834,6 +22843,9 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
 @DocsEditable
 @DomName('SQLTransaction')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class SqlTransaction extends NativeFieldWrapperClass1 {
   SqlTransaction.internal();
 
@@ -22851,6 +22863,9 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SQLTransactionSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class SqlTransactionSync extends NativeFieldWrapperClass1 {
   SqlTransactionSync.internal();
 
@@ -28426,6 +28441,9 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.openDatabase')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
 
   @DomName('DOMWindow.postMessage')
@@ -29083,10 +29101,16 @@ class WorkerContext extends EventTarget {
 
   @DomName('WorkerContext.openDatabase')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabase_Callback";
 
   @DomName('WorkerContext.openDatabaseSync')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabaseSync_Callback";
 
   @DomName('WorkerContext.removeEventListener')

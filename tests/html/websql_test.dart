@@ -1,6 +1,6 @@
 library WebDBTest;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_config.dart';
+import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html';
 
@@ -87,31 +87,51 @@ dropTable(tableName, [bool ignoreFailure = false]) =>
 };
 
 main() {
-  useHtmlConfiguration();
+  useHtmlIndividualConfiguration();
 
-  test('Web Database', () {
-    final tableName = 'test_table';
-    final columnName = 'test_data';
+  group('supported', () {
+    test('supported', () {
+      expect(Database.supported, true);
+    });
+  });
 
-    final db = window.openDatabase('test_db', '1.0', 'test_db', 1024 * 1024);
+  group('functional', () {
+    test('unsupported throws', () {
+      var expectation = Database.supported ? returnsNormally : throws;
+      expect(() {
+        window.openDatabase('test_db', '1.0', 'test_db', 1024 * 1024);
+      }, expectation);
 
-    expect(db, isNotNull, reason: 'Unable to open database');
+    });
+    test('Web Database', () {
+      // Skip if not supported.
+      if (!Database.supported) {
+        return;
+      }
 
-    createTransaction(db)
-      // Attempt to clear out any tables which may be lurking from previous
-      // runs.
-      .then(dropTable(tableName, true))
-      .then(createTable(tableName, columnName))
-      .then(insert(tableName, columnName, 'Some text data'))
-      .then(queryTable(tableName, (resultSet) {
-        guardAsync(() {
-          expect(resultSet.rows.length, 1);
-          var row = resultSet.rows.item(0);
-          expect(row.containsKey(columnName), isTrue);
-          expect(row[columnName], 'Some text data');
-        });
-      }))
-      .then(dropTable(tableName))
-      .then(expectAsync1((tx) {}));
+      final tableName = 'test_table';
+      final columnName = 'test_data';
+
+      final db = window.openDatabase('test_db', '1.0', 'test_db', 1024 * 1024);
+
+      expect(db, isNotNull, reason: 'Unable to open database');
+
+      createTransaction(db)
+        // Attempt to clear out any tables which may be lurking from previous
+        // runs.
+        .then(dropTable(tableName, true))
+        .then(createTable(tableName, columnName))
+        .then(insert(tableName, columnName, 'Some text data'))
+        .then(queryTable(tableName, (resultSet) {
+          guardAsync(() {
+            expect(resultSet.rows.length, 1);
+            var row = resultSet.rows.item(0);
+            expect(row.containsKey(columnName), isTrue);
+            expect(row[columnName], 'Some text data');
+          });
+        }))
+        .then(dropTable(tableName))
+        .then(expectAsync1((tx) {}));
+    });
   });
 }

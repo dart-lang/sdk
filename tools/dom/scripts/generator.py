@@ -704,6 +704,12 @@ _speech_recognition_annotations = [
   "@Experimental",
 ]
 
+_web_sql_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  "@Experimental",
+]
+
 # Annotations to be placed on generated members.
 # The table is indexed as:
 #   INTERFACE:     annotations to be added to the interface declaration
@@ -711,6 +717,8 @@ _speech_recognition_annotations = [
 dart_annotations = {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
+  'Database': _web_sql_annotations,
+  'DatabaseSync': _web_sql_annotations,
   'DOMApplicationCache': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -721,6 +729,7 @@ dart_annotations = {
   'DOMWindow.convertPointFromNodeToPage': _webkit_experimental_annotations,
   'DOMWindow.convertPointFromPageToNode': _webkit_experimental_annotations,
   'DOMWindow.indexedDB': _indexed_db_annotations,
+  'DOMWindow.openDatabase': _web_sql_annotations,
   'DOMWindow.performance': _performance_annotations,
   'DOMWindow.webkitNotifications': _webkit_experimental_annotations,
   'DOMWindow.webkitRequestFileSystem': _file_system_annotations,
@@ -795,10 +804,14 @@ dart_annotations = {
   'SpeechRecognitionError': _speech_recognition_annotations,
   'SpeechRecognitionEvent': _speech_recognition_annotations,
   'SpeechRecognitionResult': _speech_recognition_annotations,
+  'SQLTransaction': _web_sql_annotations,
+  'SQLTransactionSync': _web_sql_annotations,
   'WebKitCSSMatrix': _webkit_experimental_annotations,
   'WebKitPoint': _webkit_experimental_annotations,
   'WebSocket': _all_but_ie9_annotations,
   'WorkerContext.indexedDB': _indexed_db_annotations,
+  'WorkerContext.openDatabase': _web_sql_annotations,
+  'WorkerContext.openDatabaseSync': _web_sql_annotations,
   'WorkerContext.webkitRequestFileSystem': _file_system_annotations,
   'WorkerContext.webkitRequestFileSystemSync': _file_system_annotations,
   'WorkerContext.webkitResolveLocalFileSystemSyncURL': _file_system_annotations,

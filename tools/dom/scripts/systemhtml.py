@@ -72,6 +72,7 @@ _js_custom_members = set([
 
 js_support_checks = {
   'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
+  'Database': "JS('bool', '!!(window.openDatabase)')",
   'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
   'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
   'HashChangeEvent': "Event._isTypeSupported('HashChangeEvent')",

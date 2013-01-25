@@ -5939,7 +5939,13 @@ class DataView extends ArrayBufferView native "*DataView" {
 
 @DocsEditable
 @DomName('Database')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class Database native "*Database" {
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.openDatabase)');
 
   @DomName('Database.version')
   @DocsEditable
@@ -5972,6 +5978,9 @@ typedef void DatabaseCallback(database);
 
 @DocsEditable
 @DomName('DatabaseSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class DatabaseSync native "*DatabaseSync" {
 
   @DomName('DatabaseSync.lastErrorMessage')
@@ -20905,6 +20914,9 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
 @DocsEditable
 @DomName('SQLTransaction')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class SqlTransaction native "*SQLTransaction" {
 
   @DomName('SQLTransaction.executeSql')
@@ -20918,6 +20930,9 @@ class SqlTransaction native "*SQLTransaction" {
 
 @DocsEditable
 @DomName('SQLTransactionSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class SqlTransactionSync native "*SQLTransactionSync" {
 
   @DomName('SQLTransactionSync.executeSql')
@@ -26156,6 +26171,9 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   @DomName('DOMWindow.openDatabase')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   @Creates('Database')
   @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
@@ -26826,10 +26844,16 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
 
   @DomName('WorkerContext.openDatabase')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   @DomName('WorkerContext.openDatabaseSync')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   @JSName('removeEventListener')

@@ -84,7 +84,7 @@ storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 svg_3_test: Fail
-websql_test: Fail
+websql_test/supported: Fail
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
 xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
@@ -109,7 +109,7 @@ form_element_test: Fail # Issue 4793.
 inner_frame_test: Skip # Issue 5727 (timeout)
 typed_arrays_1_test/supported: Fail
 localstorage_test: Fail
-websql_test: Fail # IE does not support web SQL
+websql_test/supported: Fail
 #
 # Investigate and triage the following into bug reports.
 #
@@ -250,7 +250,7 @@ inner_frame_test: Skip # Timeout.
 js_interop_3_test: Skip # Timeout.
 js_interop_4_test: Skip # Timeout.
 isolates_test: Skip # Timeout.
-websql_test: Skip # Timeout.
+websql_test/supported: Fail
 
 [ $runtime == ff ]
 audiobuffersourcenode_test: Fail # FF only has Audio element.
