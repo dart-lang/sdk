@@ -39,8 +39,8 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
-  __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array Length.
-  // Assert that length is a Smi.
+  __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array length.
+  // Check that length is a positive Smi.
   __ testl(EDI, Immediate(kSmiTagSize));
   __ j(NOT_ZERO, &fall_through);
   __ cmpl(EDI, Immediate(0));
@@ -50,7 +50,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
       Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
   __ cmpl(EDI, max_len);
   __ j(GREATER, &fall_through);
-  intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leal(EDI, Address(EDI, TIMES_2, fixed_size));  // EDI is a Smi.
   ASSERT(kSmiTagShift == 1);
   __ andl(EDI, Immediate(-kObjectAlignment));
@@ -544,6 +544,98 @@ bool Intrinsifier::Int8Array_setIndexed(Assembler* assembler) {
 }
 
 
+#define TYPED_ARRAY_ALLOCATION(type_name, scale_factor)                        \
+  Label fall_through;                                                          \
+  const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
+  __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
+  /* Check that length is a positive Smi. */                                   \
+  /* EDI: requested array length argument. */                                  \
+  __ testl(EDI, Immediate(kSmiTagSize));                                       \
+  __ j(NOT_ZERO, &fall_through);                                               \
+  __ cmpl(EDI, Immediate(0));                                                  \
+  __ j(LESS, &fall_through);                                                   \
+  __ SmiUntag(EDI);                                                            \
+  /* Check for maximum allowed length. */                                      \
+  /* EDI: untagged array length. */                                            \
+  __ cmpl(EDI, Immediate(type_name::kMaxElements));                            \
+  __ j(GREATER, &fall_through);                                                \
+  const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
+  __ leal(EDI, Address(EDI, scale_factor, fixed_size));                        \
+  __ andl(EDI, Immediate(-kObjectAlignment));                                  \
+  Heap* heap = Isolate::Current()->heap();                                     \
+                                                                               \
+  __ movl(EAX, Address::Absolute(heap->TopAddress()));                         \
+  __ movl(EBX, EAX);                                                           \
+                                                                               \
+  /* EDI: allocation size. */                                                  \
+  __ addl(EBX, EDI);                                                           \
+  __ j(CARRY, &fall_through);                                                  \
+                                                                               \
+  /* Check if the allocation fits into the remaining space. */                 \
+  /* EAX: potential new object start. */                                       \
+  /* EBX: potential next object start. */                                      \
+  /* EDI: allocation size. */                                                  \
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));                         \
+  __ j(ABOVE_EQUAL, &fall_through);                                            \
+                                                                               \
+  /* Successfully allocated the object(s), now update top to point to */       \
+  /* next object start and initialize the object. */                           \
+  __ movl(Address::Absolute(heap->TopAddress()), EBX);                         \
+  __ addl(EAX, Immediate(kHeapObjectTag));                                     \
+                                                                               \
+  /* Initialize the tags. */                                                   \
+  /* EAX: new object start as a tagged pointer. */                             \
+  /* EBX: new object end address. */                                           \
+  /* EDI: allocation size. */                                                  \
+  {                                                                            \
+    Label size_tag_overflow, done;                                             \
+    __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));                  \
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);                     \
+    __ shll(EDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));    \
+    __ jmp(&done, Assembler::kNearJump);                                       \
+                                                                               \
+    __ Bind(&size_tag_overflow);                                               \
+    __ movl(EDI, Immediate(0));                                                \
+    __ Bind(&done);                                                            \
+                                                                               \
+    /* Get the class index and insert it into the tags. */                     \
+    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(k##type_name##Cid)));  \
+    __ movl(FieldAddress(EAX, type_name::tags_offset()), EDI);  /* Tags. */    \
+  }                                                                            \
+  /* Set the length field. */                                                  \
+  /* EAX: new object start as a tagged pointer. */                             \
+  /* EBX: new object end address. */                                           \
+  __ movl(EDI, Address(ESP, kArrayLengthStackOffset));  /* Array length. */    \
+  __ StoreIntoObjectNoBarrier(EAX,                                             \
+                              FieldAddress(EAX, type_name::length_offset()),   \
+                              EDI);                                            \
+  /* Initialize all array elements to 0. */                                    \
+  /* EAX: new object start as a tagged pointer. */                             \
+  /* EBX: new object end address. */                                           \
+  /* EDI: iterator which initially points to the start of the variable */      \
+  /* ECX: scratch register. */                                                 \
+  /* data area to be initialized. */                                           \
+  __ xorl(ECX, ECX);  /* Zero. */                                              \
+  __ leal(EDI, FieldAddress(EAX, sizeof(Raw##type_name)));                     \
+  Label done, init_loop;                                                       \
+  __ Bind(&init_loop);                                                         \
+  __ cmpl(EDI, EBX);                                                           \
+  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);                              \
+  __ movl(Address(EDI, 0), ECX);                                               \
+  __ addl(EDI, Immediate(kWordSize));                                          \
+  __ jmp(&init_loop, Assembler::kNearJump);                                    \
+  __ Bind(&done);                                                              \
+                                                                               \
+  __ ret();                                                                    \
+  __ Bind(&fall_through);                                                      \
+
+
+bool Intrinsifier::Int8Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Int8Array, TIMES_1);
+  return false;
+}
+
+
 bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
@@ -580,6 +672,12 @@ bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
   __ movb(FieldAddress(EAX, EDI, TIMES_1, Uint8Array::data_offset()), BL);
   __ ret();
   __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Uint8Array, TIMES_1);
   return false;
 }
 
@@ -633,6 +731,12 @@ bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Uint8ClampedArray_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Uint8ClampedArray, TIMES_1);
+  return false;
+}
+
+
 bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
@@ -647,6 +751,12 @@ bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Int16Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Int16Array, TIMES_2);
+  return false;
+}
+
+
 bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
@@ -657,6 +767,12 @@ bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
   __ SmiTag(EAX);
   __ ret();
   __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint16Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Uint16Array, TIMES_2);
   return false;
 }
 
@@ -683,6 +799,12 @@ bool Intrinsifier::Int32Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Int32Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Int32Array, TIMES_4);
+  return false;
+}
+
+
 bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
@@ -705,12 +827,30 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Uint32Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Uint32Array, TIMES_4);
+  return false;
+}
+
+
 bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
 
+bool Intrinsifier::Int64Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Int64Array, TIMES_8);
+  return false;
+}
+
+
 bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint64Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Uint64Array, TIMES_8);
   return false;
 }
 
@@ -771,6 +911,12 @@ bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Float32Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Float32Array, TIMES_4);
+  return false;
+}
+
+
 bool Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   TestByteArrayIndex(assembler, &fall_through);
@@ -817,6 +963,12 @@ bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
   __ movsd(FieldAddress(EAX, EBX, TIMES_4, Float64Array::data_offset()), XMM7);
   __ ret();
   __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Float64Array_new(Assembler* assembler) {
+  TYPED_ARRAY_ALLOCATION(Float64Array, TIMES_8);
   return false;
 }
 
