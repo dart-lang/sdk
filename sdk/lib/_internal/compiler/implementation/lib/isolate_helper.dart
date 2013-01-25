@@ -7,7 +7,8 @@ library _isolate_helper;
 import 'dart:async';
 import 'dart:collection' show Queue, HashMap;
 import 'dart:isolate';
-import 'dart:_js_helper' show Null;
+import 'dart:_js_helper' show convertDartClosureToJS,
+                              Null;
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CREATE_ISOLATE,
