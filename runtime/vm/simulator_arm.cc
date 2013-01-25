@@ -5,7 +5,6 @@
 #include <math.h>  // for isnan.
 #include <setjmp.h>
 #include <stdlib.h>
-#include <pthread.h>
 
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
