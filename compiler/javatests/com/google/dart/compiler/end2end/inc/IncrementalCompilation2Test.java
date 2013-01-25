@@ -1573,8 +1573,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             ""));
     // do compile, no errors expected
     compile();
-    // Bug #8108- Complaining about deprecated dart:html APIs
-    //assertErrors(errors);
+    assertErrors(errors);
     // validate types
     DartUnit unit = units.get(APP);
     assertNotNull(unit);
@@ -1842,6 +1841,10 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
 
         @Override
         public void onError(DartCompilationError event) {
+          // ignore deprecated
+          if (event.getErrorCode() == TypeErrorCode.DEPRECATED_ELEMENT) {
+            return;
+          }
           // Remember errors only between unitAboutToCompile/unitCompiled.
           Source source = event.getSource();
           if (source != null && compilingUris.contains(source.getUri())) {
