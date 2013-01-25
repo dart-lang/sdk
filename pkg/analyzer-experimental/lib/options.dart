@@ -114,6 +114,7 @@ class _CommandLineParser {
     : _knownFlags = <String>[],
       _parser = new ArgParser();
 
+
   /**
    * Defines a flag.
    *
@@ -139,6 +140,7 @@ class _CommandLineParser {
         allowMultiple: allowMultiple);
   }
 
+
   /**
    * Generates a string displaying usage information for the defined options.
    *
@@ -161,10 +163,36 @@ class _CommandLineParser {
       return args;
     }
 
-    // Filter all unrecognized flags and options.
-    return args.where((arg) => !arg.startsWith('--') ||
-        _knownFlags.contains(arg.substring(2)));
+    //TODO(pquitslund): replace w/ the following once library skew issues are sorted out
+    //return args.where((arg) => !arg.startsWith('--') ||
+    //  _knownFlags.contains(arg.substring(2)));
 
+    // Filter all unrecognized flags and options.
+    var filtered = <String>[];
+    for (var i=0; i < args.length; ++i) {
+      var arg = args[i];
+      if (arg.startsWith('--') && arg.length > 2) {
+        if (!_knownFlags.contains(arg.substring(2))) {
+          //"eat" params by advancing to the next flag/option
+          i = _getNextFlagIndex(args, i);
+        } else {
+          filtered.add(arg);
+        }
+      } else {
+        filtered.add(arg);
+      }
+    }
+
+    return filtered;
+  }
+
+  _getNextFlagIndex(args, i) {
+    for ( ; i < args.length; ++i) {
+      if (args[i].startsWith('--')) {
+        return i;
+      }
+    }
+    return i;
   }
 
 }
