@@ -506,22 +506,6 @@ class IsolateNatives {
     JS("void", r"#.console.log(#)", globalThis, msg);
   }
 
-  /**
-   * Extract the constructor of runnable, so it can be allocated in another
-   * isolate.
-   */
-  static dynamic _getJSConstructor(Isolate runnable) {
-    return JS("", "#.constructor", runnable);
-  }
-
-  /** Extract the constructor name of a runnable */
-  // TODO(sigmund): find a browser-generic way to support this.
-  // TODO(floitsch): is this function still used? If yes, should we use
-  // Primitives.objectTypeName instead?
-  static dynamic _getJSConstructorName(Isolate runnable) {
-    return JS("", "#.constructor.name", runnable);
-  }
-
   /** Find a constructor given its name. */
   static dynamic _getJSConstructorFromName(String factoryName) {
     return JS("", r"$[#]", factoryName);
@@ -1284,7 +1268,7 @@ class TimerImpl implements Timer {
       // loop instead of setTimeout, to make sure the futures get executed in
       // order.
       _globalState.topEventLoop.enqueue(_globalState.currentContext, () {
-        callback(this); 
+        callback(this);
       }, 'timer');
       _inEventLoop = true;
     } else if (hasTimer()) {

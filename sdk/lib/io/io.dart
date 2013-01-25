@@ -13,7 +13,9 @@
 library dart.io;
 
 import 'dart:async';
-import 'dart:collection' show Queue;
+import 'dart:collection' show Queue,
+                              DoubleLinkedQueue,
+                              DoubleLinkedQueueEntry;
 import 'dart:crypto';
 import 'dart:isolate';
 import 'dart:math';
