@@ -85,7 +85,7 @@ Map _generateJsonFromLibraries(Compilation compilation) {
 
     var libraryJson = {};
     var sortedClasses = _sortAndFilterMirrors(
-        libMirror.classes.values.toList());
+        libMirror.classes.values.toList(), ignoreDocsEditable: true);
 
     for (ClassMirror classMirror in sortedClasses) {
       var classJson = {};
@@ -107,8 +107,10 @@ Map _generateJsonFromLibraries(Compilation compilation) {
         }
       }
 
+      // Only include the comment if DocsEditable is set.
       var classComment = computeUntrimmedCommentAsList(classMirror);
-      if (!classComment.isEmpty) {
+      if (!classComment.isEmpty &&
+          findMetadata(classMirror.metadata, 'DocsEditable') != null) {
         classJson.putIfAbsent('comment', () => classComment);
       }
       if (!membersJson.isEmpty) {
@@ -131,13 +133,19 @@ Map _generateJsonFromLibraries(Compilation compilation) {
   return convertedJson;
 }
 
-List<DeclarationMirror> _sortAndFilterMirrors(List<DeclarationMirror> mirrors) {
-  // Filter out mirrors that are private, or which are not part of this docs
-  // process. That is, ones without the DocsEditable annotation.
+/// Filter out mirrors that are private, or which are not part of this docs
+/// process. That is, ones without the DocsEditable annotation.
+/// If [ignoreDocsEditable] is true, relax the restriction on @DocsEditable.
+/// This is to account for classes that are defined in a template, but whose
+/// members are generated.
+List<DeclarationMirror> _sortAndFilterMirrors(List<DeclarationMirror> mirrors,
+    {ignoreDocsEditable: false}) {
+
   var filteredMirrors = mirrors.where((DeclarationMirror c) =>
       !domNames(c).isEmpty &&
       !c.displayName.startsWith('_') &&
-      (findMetadata(c.metadata, 'DocsEditable') != null))
+      (!ignoreDocsEditable ? (findMetadata(c.metadata, 'DocsEditable') != null)
+          : true))
       .toList();
 
   filteredMirrors.sort((x, y) =>

@@ -1014,15 +1014,57 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
     return e;
   }
 
+  /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
   @DocsEditable
   int height;
 
+  /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
   @DocsEditable
   int width;
 
   @JSName('toDataURL')
+  /**
+   * Returns a data URI containing a representation of the image in the
+   * format specified by type (defaults to 'image/png').
+   *
+   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
+   *
+   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
+   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
+   * value is used. Note: the default value varies by browser.
+   *
+   * If the height or width of this canvas element is 0, then 'data:' is returned,
+   * representing no data.
+   *
+   * If the type requested is not 'image/png', and the returned value is
+   * 'data:image/png', then the requested type is not supported.
+   *
+   * Example usage:
+   *
+   *     CanvasElement canvas = new CanvasElement();
+   *     var ctx = canvas.context2d
+   *     ..fillStyle = "rgb(200,0,0)"
+   *     ..fillRect(10, 10, 55, 50);
+   *     var dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+   *     // The Data Uri would look similar to
+   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
+   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
+   *     //Create a new image element from the data URI.
+   *     var img = new ImageElement();
+   *     img.src = dataUrl;
+   *     document.body.children.add(img);
+   *
+   * See also:
+   *
+   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
+   *
+   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
+   *
+   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
+   */
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable
   String toDataUrl(String type, [num quality]) native;
@@ -1037,9 +1079,47 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
 
 
 @DocsEditable
+/**
+ * An opaque canvas object representing a gradient.
+ *
+ * Created by calling [createLinearGradient] or [createRadialGradient] on a
+ * [CanvasRenderingContext2D] object.
+ *
+ * Example usage:
+ *
+ *     var canvas = new CanvasElement(width: 600, height: 600);
+ *     var ctx = canvas.context2d;
+ *     ctx.clearRect(0, 0, 600, 600);
+ *     ctx.save();
+ *     // Create radial gradient.
+ *     CanvasGradient gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);
+ *     gradient.addColorStop(0, '#000');
+ *     gradient.addColorStop(1, 'rgb(255, 255, 255)');
+ *     // Assign gradients to fill.
+ *     ctx.fillStyle = gradient;
+ *     // Draw a rectangle with a gradient fill.
+ *     ctx.fillRect(0, 0, 600, 600);
+ *     ctx.save();
+ *     document.body.children.add(canvas);
+ *
+ * See also:
+ *
+ * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
+ * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
+ * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
+ */
 @DomName('CanvasGradient')
 class CanvasGradient native "*CanvasGradient" {
 
+  /**
+   * Adds a color stop to this gradient at the offset.
+   *
+   * The [offset] can range between 0.0 and 1.0.
+   *
+   * See also:
+   *
+   * * [Multiple Color Stops](https://developer.mozilla.org/en-US/docs/CSS/linear-gradient#Gradient_with_multiple_color_stops) from MDN.
+   */
   @DomName('CanvasGradient.addColorStop')
   @DocsEditable
   void addColorStop(num offset, String color) native;
@@ -1050,6 +1130,33 @@ class CanvasGradient native "*CanvasGradient" {
 
 
 @DocsEditable
+/**
+ * An opaque object representing a pattern of image, canvas, or video.
+ *
+ * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.
+ *
+ * Example usage:
+ *
+ *     var canvas = new CanvasElement(width: 600, height: 600);
+ *     var ctx = canvas.context2d;
+ *     var img = new ImageElement();
+ *     // Image src needs to be loaded before pattern is applied.
+ *     img.on.load.add((event) {
+ *       // When the image is loaded, create a pattern
+ *       // from the ImageElement.
+ *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');
+ *       ctx.rect(0, 0, canvas.width, canvas.height);
+ *       ctx.fillStyle = pattern;
+ *       ctx.fill();
+ *     });
+ *     img.src = "images/foo.jpg";
+ *     document.body.children.add(canvas);
+ *
+ * See also:
+ * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
+ * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
+ * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
+ */
 @DomName('CanvasPattern')
 class CanvasPattern native "*CanvasPattern" {
 }
@@ -1059,9 +1166,16 @@ class CanvasPattern native "*CanvasPattern" {
 
 
 @DocsEditable
+/**
+ * A rendering context for a canvas element.
+ *
+ * This context is extended by [CanvasRenderingContext2D] and
+ * [WebGLRenderingContext].
+ */
 @DomName('CanvasRenderingContext')
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
+  /// Reference to the canvas element to which this context belongs.
   @DomName('CanvasRenderingContext.canvas')
   @DocsEditable
   final CanvasElement canvas;

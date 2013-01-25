@@ -8,7 +8,7 @@ dart:html APIs from the IDL database."""
 
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
-    IsPureInterface, TypeOrNothing, FindCommonAnnotations
+    IsPureInterface, TypeOrNothing
 
 # Types that are accessible cross-frame in a limited fashion.
 # In these cases, the base type (e.g., WindowBase) provides restricted access

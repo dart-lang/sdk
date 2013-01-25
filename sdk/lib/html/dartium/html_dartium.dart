@@ -1246,6 +1246,36 @@ class CanvasElement extends _Element_Merged {
 
 
 @DocsEditable
+/**
+ * An opaque canvas object representing a gradient.
+ *
+ * Created by calling [createLinearGradient] or [createRadialGradient] on a
+ * [CanvasRenderingContext2D] object.
+ *
+ * Example usage:
+ *
+ *     var canvas = new CanvasElement(width: 600, height: 600);
+ *     var ctx = canvas.context2d;
+ *     ctx.clearRect(0, 0, 600, 600);
+ *     ctx.save();
+ *     // Create radial gradient.
+ *     CanvasGradient gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);
+ *     gradient.addColorStop(0, '#000');
+ *     gradient.addColorStop(1, 'rgb(255, 255, 255)');
+ *     // Assign gradients to fill.
+ *     ctx.fillStyle = gradient;
+ *     // Draw a rectangle with a gradient fill.
+ *     ctx.fillRect(0, 0, 600, 600);
+ *     ctx.save();
+ *     document.body.children.add(canvas);
+ *
+ * See also:
+ *
+ * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
+ * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
+ * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
+ */
+@DomName('CanvasGradient')
 @DomName('CanvasGradient')
 class CanvasGradient extends NativeFieldWrapperClass1 {
   CanvasGradient.internal();
@@ -1263,6 +1293,34 @@ class CanvasGradient extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+/**
+ * An opaque object representing a pattern of image, canvas, or video.
+ *
+ * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.
+ *
+ * Example usage:
+ *
+ *     var canvas = new CanvasElement(width: 600, height: 600);
+ *     var ctx = canvas.context2d;
+ *     var img = new ImageElement();
+ *     // Image src needs to be loaded before pattern is applied.
+ *     img.on.load.add((event) {
+ *       // When the image is loaded, create a pattern
+ *       // from the ImageElement.
+ *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');
+ *       ctx.rect(0, 0, canvas.width, canvas.height);
+ *       ctx.fillStyle = pattern;
+ *       ctx.fill();
+ *     });
+ *     img.src = "images/foo.jpg";
+ *     document.body.children.add(canvas);
+ *
+ * See also:
+ * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
+ * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
+ * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
+ */
+@DomName('CanvasPattern')
 @DomName('CanvasPattern')
 class CanvasPattern extends NativeFieldWrapperClass1 {
   CanvasPattern.internal();
@@ -1276,6 +1334,13 @@ class CanvasPattern extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+/**
+ * A rendering context for a canvas element.
+ *
+ * This context is extended by [CanvasRenderingContext2D] and
+ * [WebGLRenderingContext].
+ */
+@DomName('CanvasRenderingContext')
 @DomName('CanvasRenderingContext')
 class CanvasRenderingContext extends NativeFieldWrapperClass1 {
   CanvasRenderingContext.internal();
