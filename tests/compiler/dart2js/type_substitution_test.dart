@@ -12,13 +12,17 @@ import "compiler_helper.dart";
 import "parser_helper.dart";
 import "dart:uri";
 
-DartType getElementType(compiler, String name) {
+Element getElement(compiler, String name) {
   var element = findElement(compiler, name);
   Expect.isNotNull(element);
   if (identical(element.kind, ElementKind.CLASS)) {
     element.ensureResolved(compiler);
   }
-  return element.computeType(compiler);
+  return element;
+}
+
+DartType getElementType(compiler, String name) {
+  return getElement(compiler, name).computeType(compiler);
 }
 
 DartType getType(compiler, String name) {
@@ -53,22 +57,72 @@ int length(Link link) {
   return count;
 }
 
+void main() {
+  testAsInstanceOf();
+  testTypeSubstitution();
+}
+
+InterfaceType instantiate(ClassElement element, List<DartType> arguments) {
+  return new InterfaceType(element, new Link<DartType>.fromList(arguments));
+}
+
+void testAsInstanceOf() {
+  var uri = new Uri.fromComponents(scheme: 'source');
+  Compiler compiler = compilerFor('''
+      main() {}
+      class A<T> {}
+      class B<T> {}
+      class C<T> extends A<T> {}
+      class D<T> extends A<int> {}
+      class E<T> extends A<A<T>> {}
+      class F<T, U> extends B<F<T, String>> implements A<F<B<U>, int>> {}''',
+    uri);
+  compiler.runCompiler(uri);
+
+  ClassElement A = getElement(compiler, "A");
+  ClassElement B = getElement(compiler, "B");
+  ClassElement C = getElement(compiler, "C");
+  ClassElement D = getElement(compiler, "D");
+  ClassElement E = getElement(compiler, "E");
+  ClassElement F = getElement(compiler, "F");
+
+  DartType numType = compiler.numClass.computeType(compiler);
+  DartType intType = compiler.intClass.computeType(compiler);
+  DartType stringType = compiler.stringClass.computeType(compiler);
+
+  DartType C_int = instantiate(C, [intType]);
+  Expect.equals(instantiate(C, [intType]), C_int);
+  Expect.equals(instantiate(A, [intType]), C_int.asInstanceOf(A));
+
+  DartType D_int = instantiate(D, [stringType]);
+  Expect.equals(instantiate(A, [intType]), D_int.asInstanceOf(A));
+
+  DartType E_int = instantiate(E, [intType]);
+  Expect.equals(instantiate(A, [instantiate(A, [intType])]),
+                E_int.asInstanceOf(A));
+
+  DartType F_int_string = instantiate(F, [intType, stringType]);
+  Expect.equals(instantiate(B, [instantiate(F, [intType, stringType])]),
+                F_int_string.asInstanceOf(B));
+  Expect.equals(instantiate(A, [instantiate(F, [instantiate(B, [stringType]),
+						intType])]),
+                F_int_string.asInstanceOf(A));
+}
+
 /**
  * Test that substitution of [parameters] by [arguments] in the type found
  * through [name1] is the same as the type found through [name2].
  */
-bool test(compiler, arguments, parameters,
+bool testSubstitution(compiler, arguments, parameters,
           String name1, String name2) {
   DartType type1 = getType(compiler, name1);
   DartType type2 = getType(compiler, name2);
   DartType subst = type1.subst(arguments, parameters);
-  print('$type1.subst($arguments,$parameters)=$subst');
   Expect.equals(type2, subst,
       "$type1.subst($arguments,$parameters)=$subst != $type2");
 }
 
-
-void main() {
+void testTypeSubstitution() {
   var uri = new Uri.fromComponents(scheme: 'source');
   var compiler = compilerFor(
       r"""
@@ -156,28 +210,31 @@ void main() {
   // TODO(johnniwinther): Create types directly from strings to improve test
   // readability.
 
-  test(compiler, arguments, parameters, "void1", "void2");
-  test(compiler, arguments, parameters, "dynamic1", "dynamic2");
-  test(compiler, arguments, parameters, "int1", "int2");
-  test(compiler, arguments, parameters, "String1", "String2");
-  test(compiler, arguments, parameters, "ListInt1", "ListInt2");
-  test(compiler, arguments, parameters, "ListT1", "ListT2");
-  test(compiler, arguments, parameters, "ListS1", "ListS2");
-  test(compiler, arguments, parameters, "ListListT1", "ListListT2");
-  test(compiler, arguments, parameters, "ListRaw1", "ListRaw2");
-  test(compiler, arguments, parameters, "ListDynamic1", "ListDynamic2");
-  test(compiler, arguments, parameters, "MapIntString1", "MapIntString2");
-  test(compiler, arguments, parameters, "MapTString1", "MapTString2");
-  test(compiler, arguments, parameters,
-    "MapDynamicString1", "MapDynamicString2");
-  test(compiler, arguments, parameters, "TypeVarT1", "TypeVarT2");
-  test(compiler, arguments, parameters, "TypeVarS1", "TypeVarS2");
-  test(compiler, arguments, parameters, "Function1a", "Function2a");
-  test(compiler, arguments, parameters, "Function1b", "Function2b");
-  test(compiler, arguments, parameters, "Function1c", "Function2c");
-  test(compiler, arguments, parameters, "Typedef1a", "Typedef2a");
-  test(compiler, arguments, parameters, "Typedef1b", "Typedef2b");
-  test(compiler, arguments, parameters, "Typedef1c", "Typedef2c");
-  test(compiler, arguments, parameters, "Typedef1d", "Typedef2d");
-  test(compiler, arguments, parameters, "Typedef1e", "Typedef2e");
+  testSubstitution(compiler, arguments, parameters, "void1", "void2");
+  testSubstitution(compiler, arguments, parameters, "dynamic1", "dynamic2");
+  testSubstitution(compiler, arguments, parameters, "int1", "int2");
+  testSubstitution(compiler, arguments, parameters, "String1", "String2");
+  testSubstitution(compiler, arguments, parameters, "ListInt1", "ListInt2");
+  testSubstitution(compiler, arguments, parameters, "ListT1", "ListT2");
+  testSubstitution(compiler, arguments, parameters, "ListS1", "ListS2");
+  testSubstitution(compiler, arguments, parameters, "ListListT1", "ListListT2");
+  testSubstitution(compiler, arguments, parameters, "ListRaw1", "ListRaw2");
+  testSubstitution(compiler, arguments, parameters,
+                    "ListDynamic1", "ListDynamic2");
+  testSubstitution(compiler, arguments, parameters,
+                   "MapIntString1", "MapIntString2");
+  testSubstitution(compiler, arguments, parameters,
+                   "MapTString1", "MapTString2");
+  testSubstitution(compiler, arguments, parameters,
+                   "MapDynamicString1", "MapDynamicString2");
+  testSubstitution(compiler, arguments, parameters, "TypeVarT1", "TypeVarT2");
+  testSubstitution(compiler, arguments, parameters, "TypeVarS1", "TypeVarS2");
+  testSubstitution(compiler, arguments, parameters, "Function1a", "Function2a");
+  testSubstitution(compiler, arguments, parameters, "Function1b", "Function2b");
+  testSubstitution(compiler, arguments, parameters, "Function1c", "Function2c");
+  testSubstitution(compiler, arguments, parameters, "Typedef1a", "Typedef2a");
+  testSubstitution(compiler, arguments, parameters, "Typedef1b", "Typedef2b");
+  testSubstitution(compiler, arguments, parameters, "Typedef1c", "Typedef2c");
+  testSubstitution(compiler, arguments, parameters, "Typedef1d", "Typedef2d");
+  testSubstitution(compiler, arguments, parameters, "Typedef1e", "Typedef2e");
 }

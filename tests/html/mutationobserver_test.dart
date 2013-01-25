@@ -129,5 +129,15 @@ main() {
         div1.nodes.add(div2);
       }, expectation);
     });
+
+    test('mutation event', () {
+      // Bug 8076 that not all optional params are optional in Dartium.
+      var event = new MutationEvent('something', prevValue: 'prev',
+          newValue: 'new', attrName: 'attr');
+      expect(event is MutationEvent, isTrue);
+      expect(event.prevValue, 'prev');
+      expect(event.newValue, 'new');
+      expect(event.attrName, 'attr');
+    });
   });
 }

@@ -177,6 +177,10 @@ public class SupertypeResolver {
             topLevelContext.onError(mixNode, ResolverErrorCode.SUPER_CLASS_IN_WITH);
             continue;
           }
+          if (!Objects.equal(mixType.getElement().getSupertype(), typeProvider.getObjectType())) {
+            topLevelContext.onError(mixNode, ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS);
+            continue;
+          }
           seenMixin.add(mixType);
           // OK, add
           Elements.addMixin(classElement, mixType);

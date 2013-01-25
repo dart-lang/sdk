@@ -79,11 +79,16 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 }
 
 main() {
-  String code = compile(new Uri.fromComponents(scheme: 'main'),
-                        new Uri.fromComponents(scheme: 'lib', path: '/'),
-                        new Uri.fromComponents(scheme: 'package', path: '/'),
-                        provider, handler).value;
-  if (code == null) {
-    throw 'Compilation failed';
-  }
+  Future<String> result =
+      compile(new Uri.fromComponents(scheme: 'main'),
+              new Uri.fromComponents(scheme: 'lib', path: '/'),
+              new Uri.fromComponents(scheme: 'package', path: '/'),
+              provider, handler);
+  result.then((String code) {
+    if (code == null) {
+      throw 'Compilation failed';
+    }
+  }, onError: (AsyncError e) {
+      throw 'Compilation failed';
+  });
 }

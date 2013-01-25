@@ -28,6 +28,9 @@ class_test: Fail
 [ $compiler == dart2js && $minified ]
 to_string_test: Fail # Issue 7179.
 
+# Mirrors do not work with minification.
+mirror_test: Fail  # Issue 6490.
+
 [ $jscl ]
 timer_test: Fail # Issue 7728.
 

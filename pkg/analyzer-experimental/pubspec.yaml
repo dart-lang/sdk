@@ -1,0 +1,8 @@
+name:  analyzer-experimental
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+description: Experimental static analyzer for Dart.
+
+dependencies:
+  args: any
+  unittest: any

@@ -9,7 +9,7 @@ import 'dart:io';
 import '../../test_pub.dart';
 
 main() {
-  integration('checks out packages transitively from a pub server', () {
+  integration('installs packages transitively from a pub server', () {
     servePackages([
       package("foo", "1.2.3", [dependency("bar", "2.0.4")]),
       package("bar", "2.0.3"),

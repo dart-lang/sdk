@@ -428,16 +428,17 @@ class Range {
   final Value upper;
   final ValueRangeInfo info;
   Range(this.lower, this.upper, this.info);
-  Range.unbound(this.info)
-      : lower = const MinIntValue(),
-        upper = const MaxIntValue();
+
+  Range.unbound(info) : this(const MinIntValue(), const MaxIntValue(), info);
+
   /**
    * Checks if the given values are unknown, and creates a
    * range that does not have any unknown values.
    */
-  Range.normalize(Value low, Value up, this.info)
-      : lower = low == const UnknownValue() ? const MinIntValue() : low,
-        upper = up == const UnknownValue() ? const MaxIntValue() : up;
+  Range.normalize(Value low, Value up, info) : this(
+      low == const UnknownValue() ? const MinIntValue() : low,
+      up == const UnknownValue() ? const MaxIntValue() : up,
+      info);
 
   Range union(Range other) {
     return info.newNormalizedRange(
@@ -684,10 +685,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (!belowLength) {
-      // Update the range of the index if using the length bounds
+      // Update the range of the index if using the maximum index
       // narrows it.
       Range newIndexRange = indexRange.intersection(
-          info.newRange(lengthRange.lower, maxIndex));
+          info.newRange(info.intZero, maxIndex));
       if (indexRange == newIndexRange) return indexRange;
       HInstruction instruction = createRangeConversion(next, check.index);
       ranges[instruction] = newIndexRange;
@@ -706,7 +707,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range rightRange = ranges[relational.right];
     Range leftRange = ranges[relational.left];
 
-    if (relational is HEquals || relational is HIdentity) {
+    if (relational is HIdentity) {
       handleEqualityCheck(relational);
     } else if (operation.apply(leftRange, rightRange)) {
       relational.block.rewrite(
@@ -829,7 +830,6 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     var condition = branch.condition;
     // TODO(ngeoffray): Handle complex conditions.
     if (condition is !HRelational) return info.newUnboundRange();
-    if (condition is HEquals) return info.newUnboundRange();
     if (condition is HIdentity) return info.newUnboundRange();
     HInstruction right = condition.right;
     HInstruction left = condition.left;

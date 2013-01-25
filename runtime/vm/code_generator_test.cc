@@ -553,7 +553,7 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   // App lib is the last one that was loaded.
   intptr_t num_libs = libs.Length();
   Library& app_lib = Library::Handle();
-  app_lib |= libs.At(num_libs - 1);
+  app_lib ^= libs.At(num_libs - 1);
   ASSERT(!app_lib.IsNull());
   const Class& cls = Class::Handle(
       app_lib.LookupClass(String::Handle(Symbols::New("A"))));

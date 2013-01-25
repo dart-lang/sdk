@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart core library.
 
-// VM implementation of _DateImpl.
-patch class _DateImpl {
-  /* patch */ _DateImpl(int year,
-                        int month,
-                        int day,
-                        int hour,
-                        int minute,
-                        int second,
-                        int millisecond,
-                        bool isUtc)
+// VM implementation of DateTime.
+patch class DateTime {
+  /* patch */ DateTime._internal(int year,
+                                 int month,
+                                 int day,
+                                 int hour,
+                                 int minute,
+                                 int second,
+                                 int millisecond,
+                                 bool isUtc)
       : this.isUtc = isUtc,
         this.millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
             year, month, day, hour, minute, second, millisecond, isUtc) {
@@ -20,7 +20,7 @@ patch class _DateImpl {
     if (isUtc == null) throw new ArgumentError();
   }
 
-  /* patch */ _DateImpl.now()
+  /* patch */ DateTime._now()
       : isUtc = false,
         millisecondsSinceEpoch = _getCurrentMs() {
   }
@@ -75,8 +75,8 @@ patch class _DateImpl {
     int daysSince1970 =
         _flooredDivision(_localDateInUtcMs, Duration.MILLISECONDS_PER_DAY);
     // 1970-1-1 was a Thursday.
-    return ((daysSince1970 + Date.THU - Date.MON) % Date.DAYS_IN_WEEK) +
-        Date.MON;
+    return ((daysSince1970 + DateTime.THU - DateTime.MON) % DateTime.DAYS_IN_WEEK) +
+        DateTime.MON;
   }
 
 
@@ -140,10 +140,10 @@ patch class _DateImpl {
    * as [this].
    *
    * Say [:t:] is the result of this function, then
-   * * [:this.year == new Date.fromMillisecondsSinceEpoch(t, true).year:],
-   * * [:this.month == new Date.fromMillisecondsSinceEpoch(t, true).month:],
-   * * [:this.day == new Date.fromMillisecondsSinceEpoch(t, true).day:],
-   * * [:this.hour == new Date.fromMillisecondsSinceEpoch(t, true).hour:],
+   * * [:this.year == new DateTime.fromMillisecondsSinceEpoch(t, true).year:],
+   * * [:this.month == new DateTime.fromMillisecondsSinceEpoch(t, true).month:],
+   * * [:this.day == new DateTime.fromMillisecondsSinceEpoch(t, true).day:],
+   * * [:this.hour == new DateTime.fromMillisecondsSinceEpoch(t, true).hour:],
    * * ...
    *
    * Daylight savings is computed as if the date was computed in [1970..2037].

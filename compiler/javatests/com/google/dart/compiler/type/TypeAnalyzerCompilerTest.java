@@ -596,7 +596,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 7, 1));
     {
       DartCompilationError typeError = libraryResult.getErrors().get(0);
       String message = typeError.getMessage();
@@ -626,7 +626,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 4, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 4, 7, 1));
     {
       DartCompilationError typeError = libraryResult.getErrors().get(0);
       String message = typeError.getMessage();
@@ -651,7 +651,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
     {
       DartCompilationError typeError = libraryResult.getErrors().get(0);
       String message = typeError.getMessage();
@@ -680,7 +680,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
               "}");
       assertErrors(
           libraryResult.getErrors(),
-          errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
+          errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
     }
     // disable warnings if has "noSuchMethod"
     {
@@ -715,7 +715,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 1, 7, 1));
   }
 
   public void test_warnAbstract_onConcreteClassDeclaration_hasUnimplemented_mixin() throws Exception {
@@ -729,7 +729,26 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         result.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
+  }
+
+  /**
+   * Class "B" has implementation for "bVal" and "bVal=", so we don't need any warning.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7605
+   */
+  public void test_warnAbstract_onConcreteClassDeclaration_inheritedGetter_abstractGetter() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  get bVal {}",
+        "  set bVal(var val);",
+        "}",
+        "class B extends A {",
+        "  set bVal(var val) {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
   }
 
   /**
@@ -770,7 +789,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 5, 7, 1));
   }
   
   /**
@@ -1857,6 +1876,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  A resultA = instance.field;",
             "  instance.field = new A();",
             "  B resultB = instance.field;",
+            "}");
+    assertErrors(result.getErrors());
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7597
+   */
+  public void test_setterIsNotOverriddenByMethod() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  set foo(var v) {}",
+            "}",
+            "class C extends A {",
+            "  foo(value) {}",
+            "}",
+            "main() {",
+            "  C c = new C();",
+            "  c.foo(1);",
+            "  c.foo = 1;",
             "}");
     assertErrors(result.getErrors());
   }
@@ -3496,6 +3537,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7980
+   */
+  public void test_whenVariableNamedDynamic() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var dynamic = 42;",
+        "  new List<dynamic>();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NOT_A_TYPE, 4, 12, 7));
+  }
+
+  /**
    * It is a static warning if the return type of the user-declared operator == is explicitly
    * declared and not bool.
    */
@@ -4814,10 +4872,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 17),
+        errEx(TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 17),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 6, 7, 1),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 7, 1),
-        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 9, 17));
+        errEx(TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 9, 17));
   }
   
   /**
@@ -5346,6 +5404,50 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       });
       AnalyzeLibraryResult result = analyzeLibrary(lines);
       assertErrors(result.getErrors(), errEx(TypeErrorCode.NOT_A_MEMBER_OF, 10, 20, 17));
+    }
+  }
+
+  /**
+   * Don't report "is not a function type" if class implements "noSuchMethod" method.
+   */
+  public void test_dontReport_ifHas_noSuchMember_isNotFunction() throws Exception {
+    String[] lines = {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  noSuchMethod(InvocationMirror invocation) {}",
+        "}",
+        "class B extends A {}",
+        "class C {}",
+        "main() {",
+        "  A a = new A();",
+        "  B b = new B();",
+        "  C c = new C();",
+        "  a();",
+        "  b();",
+        "  c();",
+        "}",
+        ""};
+    // report by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 11, 3, 1),
+          errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 12, 3, 1),
+          errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 13, 3, 1));
+    }
+    // don't report
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean reportNoMemberWhenHasInterceptor() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(lines);
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 13, 3, 1));
     }
   }
 
@@ -6201,7 +6303,62 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors());
   }
   
-  public void test_mixin_dontAddSupertypes() throws Exception {
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=8022
+   */
+  public void test_mixin_notObjectSuperclass() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A {}",
+        "typedef C = Object with B;",
+        "class D extends Object with B {}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS, 4, 25, 1),
+        errEx(ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS, 5, 29, 1));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=8025
+   */
+  public void test_mixin_withConstructor() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class M { M(); }",
+        "typedef A = Object with M;",
+        "class B extends Object with M {}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR, 3, 25, 1),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR, 4, 29, 1));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=8059
+   */
+  public void test_mixin_withSuperInvocation() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class M { foo() => super.toString(); }",
+        "typedef A = Object with M;",
+        "class B extends Object with M {}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_SUPER, 3, 25, 1),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_SUPER, 4, 29, 1));
+  }
+  
+  /**
+   * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
+   */
+  public void _test_mixin_dontAddSupertypes() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -6251,7 +6408,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 15, 5, 7));
   }
   
-  public void test_mixin_dontAddSupertypes3() throws Exception {
+  /**
+   * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
+   */
+  public void _test_mixin_dontAddSupertypes3() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -6267,10 +6427,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         result.getErrors(),
-        errEx(TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 10, 7, 1));
+        errEx(TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 10, 7, 1));
   }
 
-  public void test_mixin_dontLookSupertype_getter() throws Exception {
+  /**
+   * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
+   */
+  public void _test_mixin_dontLookSupertype_getter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -6292,7 +6455,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NOT_A_MEMBER_OF, 13, 11, 2));
   }
   
-  public void test_mixin_dontLookSupertype_setter() throws Exception {
+  /**
+   * 20130122. Currently it is not allowed to have mixin with superclass other than Object.
+   */
+  public void _test_mixin_dontLookSupertype_setter() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",

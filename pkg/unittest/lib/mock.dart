@@ -365,7 +365,7 @@ class Behavior {
  */
 class LogEntry {
   /** The time of the event. */
-  Date time;
+  DateTime time;
 
   /** The mock object name, if any. */
   final String mockName;
@@ -384,12 +384,12 @@ class LogEntry {
 
   LogEntry(this.mockName, this.methodName,
       this.args, this.action, [this.value]) {
-    time = new Date.now();
+    time = new DateTime.now();
   }
 
   String _pad2(int val) => (val >= 10 ? '$val' : '0$val');
 
-  String toString([Date baseTime]) {
+  String toString([DateTime baseTime]) {
     Description d = new StringDescription();
     if (baseTime == null) {
       // Show absolute time.
@@ -565,7 +565,7 @@ class LogEntryList {
    * then each entry is prefixed with the offset from that time in
    * milliseconds; otherwise the time of day is used.
    */
-  String toString([Date baseTime]) {
+  String toString([DateTime baseTime]) {
     String s = '';
     for (var e in logs) {
       s = '$s${e.toString(baseTime)}\n';
@@ -663,7 +663,7 @@ class LogEntryList {
    * the entries that happened up to [when]; otherwise a new
    * list is created.
    */
-  LogEntryList after(Date when, [bool inPlace = false]) =>
+  LogEntryList after(DateTime when, [bool inPlace = false]) =>
       _tail((e) => e.time > when, inPlace, 'after $when', logs.length);
 
   /**
@@ -672,7 +672,7 @@ class LogEntryList {
    * removing the entries that happened before [when]; otherwise
    * a new list is created.
    */
-  LogEntryList from(Date when, [bool inPlace = false]) =>
+  LogEntryList from(DateTime when, [bool inPlace = false]) =>
       _tail((e) => e.time >= when, inPlace, 'from $when', logs.length);
 
   /**
@@ -681,7 +681,7 @@ class LogEntryList {
    * the entries that happened after [when]; otherwise a new
    * list is created.
    */
-  LogEntryList until(Date when, [bool inPlace = false]) =>
+  LogEntryList until(DateTime when, [bool inPlace = false]) =>
       _head((e) => e.time > when, inPlace, 'until $when', logs.length);
 
   /**
@@ -690,7 +690,7 @@ class LogEntryList {
    * the entries that happened from [when] onwards; otherwise a new
    * list is created.
    */
-  LogEntryList before(Date when, [bool inPlace = false]) =>
+  LogEntryList before(DateTime when, [bool inPlace = false]) =>
       _head((e) => e.time >= when, inPlace, 'before $when', logs.length);
 
   /**
@@ -700,7 +700,7 @@ class LogEntryList {
    * list is created. If [logEntry] is null the current time is used.
    */
   LogEntryList afterEntry(LogEntry logEntry, [bool inPlace = false]) =>
-      after(logEntry == null ? new Date.now() : logEntry.time);
+      after(logEntry == null ? new DateTime.now() : logEntry.time);
 
   /**
    * Returns log events that happened from [logEntry]'s time onwards.
@@ -709,7 +709,7 @@ class LogEntryList {
    * a new list is created. If [logEntry] is null the current time is used.
    */
   LogEntryList fromEntry(LogEntry logEntry, [bool inPlace = false]) =>
-      from(logEntry == null ? new Date.now() : logEntry.time);
+      from(logEntry == null ? new DateTime.now() : logEntry.time);
 
   /**
    * Returns log events that happened until [logEntry]'s time. If
@@ -719,7 +719,7 @@ class LogEntryList {
    */
   LogEntryList untilEntry(LogEntry logEntry, [bool inPlace = false]) =>
       until(logEntry == null ?
-          new Date.fromMillisecondsSinceEpoch(0) : logEntry.time);
+          new DateTime.fromMillisecondsSinceEpoch(0) : logEntry.time);
 
   /**
    * Returns log events that happened before [logEntry]'s time. If
@@ -729,7 +729,7 @@ class LogEntryList {
    */
   LogEntryList beforeEntry(LogEntry logEntry, [bool inPlace = false]) =>
       before(logEntry == null ?
-          new Date.fromMillisecondsSinceEpoch(0) : logEntry.time);
+          new DateTime.fromMillisecondsSinceEpoch(0) : logEntry.time);
 
   /**
    * Returns log events that happened after the first event in [segment].

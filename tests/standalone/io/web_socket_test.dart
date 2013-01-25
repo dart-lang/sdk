@@ -39,7 +39,7 @@ class SecurityConfiguration {
   WebSocketClientConnection createClient(int port,
                                          {bool followRedirects,
                                           String method: "GET"}) {
-    HttpClientConnection conn = client.openUrl(method, new Uri.fromString(
+    HttpClientConnection conn = client.openUrl(method, Uri.parse(
         '${secure ? "https" : "http"}://$HOST_NAME:$port/'));
     if (followRedirects != null) {
       conn.followRedirects = followRedirects;

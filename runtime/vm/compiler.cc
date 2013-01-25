@@ -150,7 +150,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
 
       // Build the flow graph.
       FlowGraphBuilder builder(parsed_function, NULL);  // NULL = not inlining.
-      flow_graph = builder.BuildGraph(0);  // The initial loop depth is zero.
+      flow_graph = builder.BuildGraph();
     }
 
     if (optimized) {
@@ -211,19 +211,21 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // Do optimizations that depend on the propagated type information.
       optimizer.Canonicalize();
 
-      // Unbox doubles.
       flow_graph->ComputeUseLists();
-      optimizer.SelectRepresentations();
 
-      if (FLAG_constant_propagation ||
-          FLAG_common_subexpression_elimination) {
-        flow_graph->ComputeUseLists();
-      }
       if (FLAG_constant_propagation) {
         ConstantPropagator::Optimize(flow_graph);
         // A canonicalization pass to remove e.g. smi checks on smi constants.
         optimizer.Canonicalize();
       }
+
+      // Unbox doubles. Performed after constant propagation to minimize
+      // interference from phis merging double values and tagged
+      // values comming from dead paths.
+      flow_graph->ComputeUseLists();
+      optimizer.SelectRepresentations();
+      flow_graph->ComputeUseLists();
+
       if (FLAG_common_subexpression_elimination) {
         if (DominatorBasedCSE::Optimize(flow_graph)) {
           // Do another round of CSE to take secondary effects into account:
@@ -383,7 +385,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     const Array& stackmap_table = Array::Handle(code.stackmaps());
     Stackmap& map = Stackmap::Handle();
     for (intptr_t i = 0; i < stackmap_table.Length(); ++i) {
-      map |= stackmap_table.At(i);
+      map ^= stackmap_table.At(i);
       OS::Print("%s\n", map.ToCString());
     }
   }
@@ -433,9 +435,9 @@ static void DisassembleCode(const Function& function, bool optimized) {
     Code& code = Code::Handle();
     for (intptr_t i = 0; i < table.Length();
         i += Code::kSCallTableEntryLength) {
-      offset |= table.At(i + Code::kSCallTableOffsetEntry);
-      function |= table.At(i + Code::kSCallTableFunctionEntry);
-      code |= table.At(i + Code::kSCallTableCodeEntry);
+      offset ^= table.At(i + Code::kSCallTableOffsetEntry);
+      function ^= table.At(i + Code::kSCallTableFunctionEntry);
+      code ^= table.At(i + Code::kSCallTableCodeEntry);
       OS::Print("  0x%"Px": %s, %p\n",
           start + offset.Value(),
           function.ToFullyQualifiedCString(),
@@ -571,7 +573,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     return error.raw();
   }
   for (int i = 0; i < functions.Length(); i++) {
-    func |= functions.At(i);
+    func ^= functions.At(i);
     ASSERT(!func.IsNull());
     if (!func.HasCode() &&
         !func.is_abstract() &&

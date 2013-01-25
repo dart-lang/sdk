@@ -15,6 +15,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
+#include "vm/simulator.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -94,6 +95,9 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   FreeListElement::InitOnce();
   Api::InitOnce();
   CodeObservers::InitOnce();
+#if defined(USING_SIMULATOR)
+  Simulator::InitOnce();
+#endif
   // Create the read-only handles area.
   ASSERT(predefined_handles_ == NULL);
   predefined_handles_ = new ReadOnlyHandles();
@@ -155,13 +159,13 @@ static void PrintLibrarySources(Isolate* isolate) {
   String& url = String::Handle();
   String& source = String::Handle();
   for (int i = 0; i < lib_count; i++) {
-    lib |= libs.At(i);
+    lib ^= libs.At(i);
     url = lib.url();
     OS::Print("Library %s:\n", url.ToCString());
     scripts = lib.LoadedScripts();
     intptr_t script_count = scripts.Length();
     for (intptr_t i = 0; i < script_count; i++) {
-      script |= scripts.At(i);
+      script ^= scripts.At(i);
       url = script.url();
       source = script.Source();
       OS::Print("Source for %s:\n", url.ToCString());
@@ -213,6 +217,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     isolate->heap()->ProfileToFile("initialize");
   }
 
+  Object::VerifyBuiltinVtables();
+
   StubCode::Init(isolate);
   // TODO(regis): Reenable this code for arm and mips when possible.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
@@ -244,6 +250,7 @@ void Dart::ShutdownIsolate() {
 
 
 uword Dart::AllocateReadOnlyHandle() {
+  ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(predefined_handles_ != NULL);
   return predefined_handles_->handles_.AllocateScopedHandle();
 }

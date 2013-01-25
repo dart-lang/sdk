@@ -955,6 +955,57 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+intptr_t LoadIndexedInstr::ResultCid() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return kDynamicCid;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kDoubleCid;
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      return kSmiCid;
+    default:
+      UNIMPLEMENTED();
+      return kSmiCid;
+  }
+}
+
+
+Representation LoadIndexedInstr::representation() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      return kTagged;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
+}
+
+
 LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -1050,10 +1101,42 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movzxw(result, element_address);
       __ SmiTag(result);
       break;
+    case kInt32ArrayCid:
+      __ movsxl(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kUint32ArrayCid:
+      __ movl(result, element_address);
+      __ SmiTag(result);
+      break;
     default:
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
       __ movq(result, element_address);
       break;
+  }
+}
+
+
+Representation StoreIndexedInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  if ((idx == 0) || (idx == 1)) return kTagged;
+  ASSERT(idx == 2);
+  switch (class_id_) {
+    case kArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      return kTagged;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
   }
 }
 
@@ -1085,6 +1168,8 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       break;
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
       // Writable register because the value must be untagged before storing.
       locs->set_in(2, Location::WritableRegister());
       break;
@@ -1182,11 +1267,18 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kInt16ArrayCid:
     case kUint16ArrayCid: {
-        Register value = locs()->in(2).reg();
-        __ SmiUntag(value);
-        __ movw(element_address, value);
+      Register value = locs()->in(2).reg();
+      __ SmiUntag(value);
+      __ movw(element_address, value);
+      break;
+    }
+    case kInt32ArrayCid:
+    case kUint32ArrayCid: {
+      Register value = locs()->in(2).reg();
+      __ SmiUntag(value);
+      __ movl(element_address, value);
         break;
-      }
+    }
     case kFloat32ArrayCid:
       // Convert to single precision.
       __ cvtsd2ss(locs()->temp(0).fpu_reg(), locs()->in(2).fpu_reg());
@@ -1702,16 +1794,15 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   }
 
   if (op_kind() == Token::kTRUNCDIV) {
-    const intptr_t kNumTemps = 3;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    // Both inputs must be writable because they will be untagged.
     summary->set_in(0, Location::RegisterLocation(RAX));
-    summary->set_in(1, Location::RegisterLocation(RCX));
+    summary->set_in(1, Location::WritableRegister());
     summary->set_out(Location::SameAsFirstInput());
-    summary->set_temp(0, Location::RegisterLocation(RBX));
-    // Will be used for for sign extension.
-    summary->set_temp(1, Location::RegisterLocation(RDX));
-    summary->set_temp(2, Location::RequiresRegister());
+    // Will be used for sign extension and division.
+    summary->set_temp(0, Location::RegisterLocation(RDX));
     return summary;
   } else if (op_kind() == Token::kSHR) {
     const intptr_t kNumTemps = 0;
@@ -1875,22 +1966,17 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      Register temp = locs()->temp(0).reg();
       // Handle divide by zero in runtime.
-      // Deoptimization requires that temp and right are preserved.
       __ testq(right, right);
       __ j(ZERO, deopt);
       ASSERT(left == RAX);
       ASSERT((right != RDX) && (right != RAX));
-      ASSERT((temp != RDX) && (temp != RAX));
-      ASSERT(locs()->temp(1).reg() == RDX);
+      ASSERT(locs()->temp(0).reg() == RDX);
       ASSERT(result == RAX);
-      Register right_temp = locs()->temp(2).reg();
-      __ movq(right_temp, right);
       __ SmiUntag(left);
-      __ SmiUntag(right_temp);
+      __ SmiUntag(right);
       __ cqo();  // Sign extend RAX -> RDX:RAX.
-      __ idivq(right_temp);  //  RAX: quotient, RDX: remainder.
+      __ idivq(right);  //  RAX: quotient, RDX: remainder.
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
       __ cmpq(result, Immediate(0x4000000000000000));
@@ -2313,6 +2399,40 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+}
+
+
+LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
+  // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
+  // double arguments and XMM0 to return the result. Unfortunately
+  // currently we can't specify these registers because ParallelMoveResolver
+  // assumes that XMM0 is free at all times.
+  // TODO(vegorov): allow XMM0 to be used.
+  ASSERT((InputCount() == 1) || (InputCount() == 2));
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
+  result->set_in(0, Location::FpuRegisterLocation(XMM1, Location::kDouble));
+  if (InputCount() == 2) {
+    result->set_in(1, Location::FpuRegisterLocation(XMM2, Location::kDouble));
+  }
+  result->set_out(Location::FpuRegisterLocation(XMM1, Location::kDouble));
+  return result;
+}
+
+
+void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(locs()->in(0).fpu_reg() == XMM1);
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(0);
+  __ movaps(XMM0, locs()->in(0).fpu_reg());
+  if (InputCount() == 2) {
+    ASSERT(locs()->in(1).fpu_reg() == XMM2);
+    __ movaps(XMM1, locs()->in(1).fpu_reg());
+  }
+  __ CallRuntime(TargetFunction());
+  __ movaps(locs()->out().fpu_reg(), XMM0);
+  __ leave();
 }
 
 

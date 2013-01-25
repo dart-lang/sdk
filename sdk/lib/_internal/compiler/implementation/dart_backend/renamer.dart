@@ -134,15 +134,16 @@ void renamePlaceholders(
   }
 
   Function makeElementRenamer(rename, generateUniqueName) => (element) {
-    assert(Elements.isStaticOrTopLevel(element)
-           || element is TypeVariableElement);
+    assert(Elements.isErroneousElement(element) ||
+           Elements.isStaticOrTopLevel(element) ||
+           element is TypeVariableElement);
     // TODO(smok): We may want to reuse class static field and method names.
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
     if (identical(element.getLibrary(), compiler.coreLibrary)) {
       return originalName;
     }
-    if (library.isPlatformLibrary) {
+    if (library.isPlatformLibrary && !library.isInternalLibrary) {
       assert(element.isTopLevel());
       final prefix =
           imports.putIfAbsent(library, () => generateUniqueName('p'));
@@ -154,7 +155,7 @@ void renamePlaceholders(
 
   Function makeRenamer(generateUniqueName) =>
       (library, originalName) =>
-          renamed.putIfAbsent(library, () => <String>{})
+          renamed.putIfAbsent(library, () => {})
               .putIfAbsent(originalName,
                   () => generateUniqueName(originalName));
 

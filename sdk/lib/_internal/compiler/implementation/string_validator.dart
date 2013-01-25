@@ -6,6 +6,8 @@
 
 library stringvalidator;
 
+import "dart:collection";
+
 import "dart2jslib.dart";
 import "tree/tree.dart";
 import "elements/elements.dart";

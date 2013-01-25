@@ -4,6 +4,8 @@
 
 // Test the feature where the native string declares the native method's name.
 
+import 'dart:_js_helper' show JSName;
+
 class A native "*A" {
   @JSName('fooA')
   int foo() native;

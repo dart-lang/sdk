@@ -4,6 +4,8 @@
 
 // Properties on hidden native classes.
 
+import 'dart:_foreign_helper' show JS;
+
 class A native "*A" {
 
   // Setters and getters should be similar to these methods:

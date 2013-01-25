@@ -244,7 +244,7 @@ static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
   Dart_Handle end_epoch_ms_int = Dart_NewInteger(end_epoch_ms);
 
   Dart_Handle date_class =
-      DartUtils::GetDartClass(DartUtils::kCoreLibURL, "Date");
+      DartUtils::GetDartClass(DartUtils::kCoreLibURL, "DateTime");
   Dart_Handle from_milliseconds =
       DartUtils::NewString("fromMillisecondsSinceEpoch");
 

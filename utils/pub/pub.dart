@@ -23,13 +23,12 @@ import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
+import 'sdk.dart' as sdk;
 import 'source.dart';
 import 'source_registry.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 import 'version.dart';
-
-Version get pubVersion => new Version(0, 0, 0);
 
 /// The commands that Pub understands.
 Map<String, PubCommand> get pubCommands {
@@ -110,9 +109,6 @@ main() {
       break;
   }
 
-  // TODO(nweiz): Have a fallback for this this out automatically once 1145 is
-  // fixed.
-  var sdkDir = Platform.environment['DART_SDK'];
   var cacheDir;
   if (Platform.environment.containsKey('PUB_CACHE')) {
     cacheDir = Platform.environment['PUB_CACHE'];
@@ -123,7 +119,7 @@ main() {
     cacheDir = '${Platform.environment['HOME']}/.pub-cache';
   }
 
-  var cache = new SystemCache.withSources(cacheDir, sdkDir);
+  var cache = new SystemCache.withSources(cacheDir);
 
   // Select the command.
   var command = pubCommands[globalOptions.rest[0]];
@@ -139,7 +135,7 @@ main() {
   command.run(cache, globalOptions, commandArgs);
 }
 
-/// Displays usage information for the app. 
+/// Displays usage information for the app.
 void printUsage([String description = 'Pub is a package manager for Dart.']) {
   // Build up a buffer so it shows up as a single log entry.
   var buffer = new StringBuffer();
@@ -175,7 +171,7 @@ void printUsage([String description = 'Pub is a package manager for Dart.']) {
 }
 
 void printVersion() {
-  log.message('Pub $pubVersion');
+  log.message('Pub ${sdk.version}');
 }
 
 abstract class PubCommand {
@@ -249,15 +245,13 @@ abstract class PubCommand {
       this.entrypoint = entrypoint;
       try {
         var commandFuture = onRun();
-        if (commandFuture == null) return new Future.immediate(true);
+        if (commandFuture == null) return true;
 
         return commandFuture;
       } catch (error, trace) {
         handleError(error, trace);
-        return new Future.immediate(null);
       }
     });
-
 
     future
       .then((_) => cache_.deleteTempDir())
@@ -283,7 +277,7 @@ abstract class PubCommand {
   /// command is synchronous, it may return `null`.
   Future onRun();
 
-  /// Displays usage information for this command. 
+  /// Displays usage information for this command.
   void printUsage([String description]) {
     if (description == null) description = this.description;
 

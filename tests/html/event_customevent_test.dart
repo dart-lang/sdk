@@ -27,7 +27,8 @@ main() {
   useHtmlConfiguration();
 
   eventTest('CustomEvent.initCustomEvent', () {
-    return new CustomEvent('foo', false, false, 'detail');
+    return new CustomEvent('foo', canBubble: false, cancelable: false,
+        detail: 'detail');
   },
   (ev) { expect(ev.detail, equals('detail')); });
 }

@@ -324,7 +324,7 @@ template DivisionSales(var divisions) {
   </div>
 }
 
-template Header(String company, Date date) {
+template Header(String company, DateTime date) {
   css {
     .header {
       background-color: slateGray;

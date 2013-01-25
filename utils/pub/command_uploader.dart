@@ -38,7 +38,7 @@ class UploaderCommand extends PubCommand {
   }
 
   /// The URL of the package hosting server.
-  Uri get server => new Uri.fromString(commandOptions['server']);
+  Uri get server => Uri.parse(commandOptions['server']);
 
   Future onRun() {
     if (commandOptions.rest.isEmpty) {
@@ -60,7 +60,7 @@ class UploaderCommand extends PubCommand {
 
     return new Future.immediate(null).then((_) {
       var package = commandOptions['package'];
-      if (package != null) return new Future.immediate(package);
+      if (package != null) return package;
       return Entrypoint.load(path.current, cache)
           .then((entrypoint) => entrypoint.root.name);
     }).then((package) {

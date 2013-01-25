@@ -184,6 +184,7 @@ class JSString implements String {
       : JS('bool', r'# < #', this, other) ? -1 : 1;
   }
 
+  // Note: if you change this, also change the function [S].
   String toString() => this;
 
   /**

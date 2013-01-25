@@ -7,8 +7,9 @@ main() {
   useHtmlConfiguration();
 
   test('MessageEvent.initMessageEvent', () {
-      final event = document.$dom_createEvent('MessageEvent');
-      event.initMessageEvent('type', false, true, 'data', 'origin', 'lastEventId', window, []);
+      final event = new MessageEvent('type', cancelable: true, data: 'data',
+          origin: 'origin', lastEventId: 'lastEventId');
+
       expect(event.type, equals('type'));
       expect(event.bubbles, isFalse);
       expect(event.cancelable, isTrue);

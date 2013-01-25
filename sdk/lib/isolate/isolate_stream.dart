@@ -52,7 +52,7 @@ class _CloseToken {
 class IsolateStream extends Stream<dynamic> {
   bool _isClosed = false;
   final ReceivePort _port;
-  StreamController _controller = new StreamController.multiSubscription();
+  StreamController _controller = new StreamController.broadcast();
 
   IsolateStream._fromOriginalReceivePort(this._port) {
     _port.receive((message, replyTo) {
@@ -95,10 +95,10 @@ class IsolateStream extends Stream<dynamic> {
                             { void onError(AsyncError error),
                               void onDone(),
                               bool unsubscribeOnError}) {
-      return _controller.listen(onData,
-                                onError: onError,
-                                onDone: onDone,
-                                unsubscribeOnError: unsubscribeOnError);
+      return _controller.stream.listen(onData,
+                                       onError: onError,
+                                       onDone: onDone,
+                                       unsubscribeOnError: unsubscribeOnError);
   }
 
   dynamic _unmangleMessage(var message) {

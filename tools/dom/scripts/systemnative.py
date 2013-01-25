@@ -113,7 +113,7 @@ class DartiumBackend(HtmlDartGenerator):
   def NativeSpec(self):
     return ''
 
-  def StartInterface(self, memebers_emitter):
+  def StartInterface(self, members_emitter):
     # Create emitters for c++ implementation.
     if not IsPureInterface(self._interface.id):
       self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(
@@ -125,7 +125,7 @@ class DartiumBackend(HtmlDartGenerator):
       self._cpp_impl_emitter = emitter.Emitter()
 
     self._interface_type_info = self._TypeInfo(self._interface.id)
-    self._members_emitter = memebers_emitter
+    self._members_emitter = members_emitter
     self._cpp_declarations_emitter = emitter.Emitter()
     self._cpp_impl_includes = set()
     self._cpp_definitions_emitter = emitter.Emitter()
@@ -280,6 +280,10 @@ class DartiumBackend(HtmlDartGenerator):
       self._AddSetter(attribute, html_name)
 
   def _AddGetter(self, attr, html_name):
+    # Temporary hack to force dart:scalarlist clamped array for ImageData.data.
+    # TODO(antonm): solve in principled way.
+    if self._interface.id == 'ImageData' and html_name == 'data':
+      html_name = '_data'
     type_info = self._TypeInfo(attr.type.id)
     dart_declaration = '%s get %s' % (
         self.SecureOutputType(attr.type.id), html_name)
@@ -451,33 +455,13 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateDispatcher(self, operations, dart_declaration, parameter_names):
 
-    body = self._members_emitter.Emit(
-        '\n'
-        '  $DECLARATION {\n'
-        '$!BODY'
-        '  }\n',
-        DECLARATION=dart_declaration)
-
-    version = [1]
-    def GenerateCall(operation, argument_count, checks):
-      if checks:
-        if operation.type.id != 'void':
-          template = '    if ($CHECKS) {\n      return $CALL;\n    }\n'
-        else:
-          template = '    if ($CHECKS) {\n      $CALL;\n      return;\n    }\n'
-      else:
-        if operation.type.id != 'void':
-          template = '    return $CALL;\n'
-        else:
-          template = '    $CALL;\n'
-
-      overload_name = '%s_%s' % (operation.id, version[0])
-      version[0] += 1
+    def GenerateCall(
+        stmts_emitter, call_emitter, version, operation, argument_count):
+      overload_name = '_%s_%s' % (operation.id, version)
       argument_list = ', '.join(parameter_names[:argument_count])
-      call = '_%s(%s)' % (overload_name, argument_list)
-      body.Emit(template, CHECKS=' && '.join(checks), CALL=call)
+      call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=argument_list)
 
-      dart_declaration = '%s%s _%s(%s)' % (
+      dart_declaration = '%s%s %s(%s)' % (
           'static ' if operation.is_static else '',
           self.SecureOutputType(operation.type.id),
           overload_name, argument_list)
@@ -487,9 +471,9 @@ class DartiumBackend(HtmlDartGenerator):
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
     self._GenerateDispatcherBody(
-        body,
         operations,
         parameter_names,
+        dart_declaration,
         GenerateCall,
         self._IsArgumentOptionalInWebCore)
 
@@ -749,18 +733,15 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
-    annotations = FindCommonAnnotations(self._interface.id, idl_name)
-    if annotations:
-      annotation_str = '\n  ' + '\n  '.join(annotations)
-    else:
-      annotation_str = ''
+    annotations = FormatAnnotationsAndComments(
+        GetAnnotationsAndComments(self._interface.id, idl_name), '  ')
 
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
     self._members_emitter.Emit(
-        '$ANNOTATIONS'
-        '\n  $DART_DECLARATION native "$NATIVE_BINDING";\n',
+        '\n'
+        '  $ANNOTATIONS$DART_DECLARATION native "$NATIVE_BINDING";\n',
         DOMINTERFACE=self._interface.id,
-        ANNOTATIONS=annotation_str,
+        ANNOTATIONS=annotations,
         DART_DECLARATION=dart_declaration,
         NATIVE_BINDING=native_binding)
 

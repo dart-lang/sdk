@@ -45,7 +45,7 @@ part 'bidi_utils.dart';
  *          "Today's date is $date",
  *          desc: 'Indicate the current date',
  *          examples: {'date' : 'June 8, 2012'});
- *      print(today(new Date.now());
+ *      print(today(new DateTime.now());
  *
  *      msg({num_people, place}) => Intl.message(
  *           '''I see ${Intl.plural(num_people,
@@ -59,7 +59,7 @@ part 'bidi_utils.dart';
  * produce "I see 2 other people in Athens." as output in the default locale.
  *
  * To use a locale other than the default, use the `withLocale` function.
- *       var todayString = new DateFormat("pt_BR").format(new Date.now());
+ *       var todayString = new DateFormat("pt_BR").format(new DateTime.now());
  *       print(withLocale("pt_BR", () => today(todayString));
  *
  * See `tests/message_format_test.dart` for more examples.

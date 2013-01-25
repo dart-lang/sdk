@@ -12,7 +12,7 @@ void testGoogleUrl() {
   HttpClient client = new HttpClient();
 
   void testUrl(String url) {
-    var requestUri = new Uri.fromString(url);
+    var requestUri = Uri.parse(url);
     var conn = client.getUrl(requestUri);
 
     conn.onRequest = (HttpClientRequest request) {
@@ -43,7 +43,7 @@ void testGoogleUrl() {
 void testBadHostName() {
   HttpClient client = new HttpClient();
   HttpClientConnection connection = client.getUrl(
-      new Uri.fromString("https://some.bad.host.name.7654321/"));
+      Uri.parse("https://some.bad.host.name.7654321/"));
   connection.onRequest = (HttpClientRequest request) {
     Expect.fail("Should not open a request on bad hostname");
   };

@@ -6,6 +6,7 @@
 """This module provides functionality to generate dart:html event classes."""
 
 import logging
+from generator import GetAnnotationsAndComments, FormatAnnotationsAndComments
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -209,7 +210,8 @@ _html_event_types = {
   '*.ended': ('ended', 'Event'),
   '*.error': ('error', 'Event'),
   '*.focus': ('focus', 'Event'),
-  '*.hashchange': ('hashChange', 'HashChangeEvent'),
+  # Should be HashChangeEvent, but IE does not support it.
+  '*.hashchange': ('hashChange', 'Event'),
   '*.input': ('input', 'Event'),
   '*.invalid': ('invalid', 'Event'),
   '*.keydown': ('keyDown', 'KeyboardEvent'),
@@ -381,7 +383,7 @@ class HtmlEventGenerator(object):
     self._template_loader = template_loader
 
   def EmitStreamProviders(self, interface, custom_events,
-      members_emitter):
+      members_emitter, library_name):
     events = self._GetEvents(interface, custom_events)
     if not events:
       return
@@ -393,16 +395,20 @@ class HtmlEventGenerator(object):
       if self._GetEventRedirection(interface, html_name, event_type):
         continue
 
+      annotations = FormatAnnotationsAndComments(
+          GetAnnotationsAndComments(interface.id, dom_name, library_name), '  ')
+
       members_emitter.Emit(
           "\n"
-          "  static const EventStreamProvider<$TYPE> $(NAME)Event = "
-          "const EventStreamProvider<$TYPE>('$DOM_NAME');\n",
+          "  $(ANNOTATIONS)static const EventStreamProvider<$TYPE> "
+          "$(NAME)Event = const EventStreamProvider<$TYPE>('$DOM_NAME');\n",
+          ANNOTATIONS=annotations,
           NAME=html_name,
           DOM_NAME=dom_name,
           TYPE=event_type)
 
   def EmitStreamGetters(self, interface, custom_events,
-      members_emitter):
+      members_emitter, library_name):
     events = self._GetEvents(interface, custom_events)
     if not events:
       return
@@ -418,9 +424,14 @@ class HtmlEventGenerator(object):
       else:
         provider = html_name + 'Event'
 
+      annotations = FormatAnnotationsAndComments(
+          GetAnnotationsAndComments(interface.id, dom_name, library_name), '  ')
+
       members_emitter.Emit(
           "\n"
-          "  Stream<$TYPE> get $(NAME) => $PROVIDER.forTarget(this);\n",
+          "  $(ANNOTATIONS)Stream<$TYPE> get $(NAME) => "
+          "$PROVIDER.forTarget(this);\n",
+          ANNOTATIONS=annotations,
           NAME=getter_name,
           PROVIDER=provider,
           TYPE=event_type)
@@ -530,6 +541,7 @@ class HtmlEventGenerator(object):
     template = (self._template_loader.TryLoad(template_file) or
         '\n'
         '@DocsEditable\n'
+        '@deprecated\n'
         'class $CLASSNAME extends $SUPER {\n'
         '  @DocsEditable\n'
         '  $CLASSNAME(EventTarget _ptr) : super(_ptr);\n'

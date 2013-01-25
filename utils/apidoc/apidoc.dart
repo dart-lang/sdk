@@ -155,8 +155,6 @@ class Apidoc extends doc.Dartdoc {
   final Map mdn;
 
 
-  static const disqusShortname = 'dartapidocs';
-
   // A set of type names (TypeMirror.simpleName values) to ignore while
   // looking up information from MDN data.  TODO(eub, jacobr): fix up the MDN
   // import scripts so they run correctly and generate data that doesn't have
@@ -200,34 +198,8 @@ class Apidoc extends doc.Dartdoc {
         page is licensed under the <a href="$cca">Creative Commons Attribution
         3.0 License</a>, and code samples are licensed under the
         <a href="$bsd">BSD License</a>.</p>
-        <p>
-          Comments that are not specifically about the API libraries will
-          be moderated and possibly deleted.
-          Because we may incorporate information from comments into the
-          documentation, any comment submitted here is under the same
-          license as the documentation.
-        </p>
         <p><a href="$tos">Terms of Service</a> |
         <a href="$privacy">Privacy Policy</a></p>
-        ''';
-
-    preFooterText =
-        '''
-        <div id="comments">
-        <div id="disqus_thread"></div>
-        <script type="text/javascript">
-            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-            var disqus_shortname = "$disqusShortname"; // required: replace example with your forum shortname
-
-            /* * * DON\'T EDIT BELOW THIS LINE * * */
-            (function() {
-                var dsq = document.createElement("script"); dsq.type = "text/javascript"; dsq.async = true;
-                dsq.src = "http://" + disqus_shortname + ".disqus.com/embed.js";
-                (document.getElementsByTagName("head")[0] || document.getElementsByTagName("body")[0]).appendChild(dsq);
-            })();
-        </script>
-        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-        </div> <!-- #comments -->
         ''';
 
     searchEngineId = '011220921317074318178:i4mscbaxtru';

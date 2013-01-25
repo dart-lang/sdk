@@ -126,22 +126,22 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
   const bool is_getter = Field::IsGetterName(function_name);
   String& field_name = String::Handle();
   if (is_getter) {
-    field_name |= Field::NameFromGetter(function_name);
+    field_name ^= Field::NameFromGetter(function_name);
   }
 
   // Now look for an instance function whose name matches function_name
   // in the class.
   Function& function = Function::Handle();
   while (function.IsNull() && !cls.IsNull()) {
-    function |= cls.LookupDynamicFunction(function_name);
+    function ^= cls.LookupDynamicFunction(function_name);
 
     // Getter invocation might actually be a method extraction.
     if (is_getter && function.IsNull()) {
-      function |= cls.LookupDynamicFunction(field_name);
+      function ^= cls.LookupDynamicFunction(field_name);
       if (!function.IsNull()) {
         // We were looking for the getter but found a method with the same name.
         // Create a method extractor and return it.
-        function |= CreateMethodExtractor(function_name, function);
+        function ^= CreateMethodExtractor(function_name, function);
       }
     }
 
@@ -163,7 +163,7 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
     // Check if we are referring to a top level function.
     const Object& object = Object::Handle(library.LookupObject(function_name));
     if (!object.IsNull() && object.IsFunction()) {
-      function |= object.raw();
+      function ^= object.raw();
       if (!function.AreValidArguments(num_arguments, argument_names, NULL)) {
         if (FLAG_trace_resolving) {
           String& error_message = String::Handle();

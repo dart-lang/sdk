@@ -17,6 +17,12 @@ main() {
     var callback = expectAsync1(verifyLocale);
     findSystemLocale().then(callback);
     });
+
+  test("Test windows regex", () {
+    expect(sysInfoRegex.hasMatch("System Locale:   en-US;blah blah"), isTrue);
+    expect(sysInfoRegex.hasMatch("System Locale:   ru;sdfadsf"), isTrue);
+    expect(sysInfoRegex.hasMatch("System Locale:   ru;"), isTrue);
+  });
 }
 
 verifyLocale(_) {

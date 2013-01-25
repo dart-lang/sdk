@@ -99,16 +99,16 @@ abstract class File {
 
   /**
    * Get the last-modified time of the file. Returns a
-   * [:Future<Date>:] that completes with a [Date] object for the
+   * [:Future<DateTime>:] that completes with a [DateTime] object for the
    * modification date.
    */
-  Future<Date> lastModified();
+  Future<DateTime> lastModified();
 
   /**
    * Get the last-modified time of the file. Throws an exception
    * if the file does not exist.
    */
-  Date lastModifiedSync();
+  DateTime lastModifiedSync();
 
   /**
    * Open the file for random access operations. Returns a

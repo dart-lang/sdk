@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of $LIBRARYNAME;
-$ANNOTATIONS
-class $CLASSNAME$EXTENDS implements
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS implements
     HiddenInputElement,
     SearchInputElement,
     TextInputElement,
@@ -309,12 +309,12 @@ abstract class RangeInputElementBase implements InputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class DateTimeInputElement implements RangeInputElementBase {
   factory DateTimeInputElement() => new InputElement(type: 'datetime');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
@@ -334,12 +334,12 @@ abstract class DateTimeInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
@@ -359,12 +359,12 @@ abstract class DateInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
@@ -384,12 +384,12 @@ abstract class MonthInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
@@ -409,12 +409,12 @@ abstract class WeekInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME)
-@Experimental()
+@Experimental
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
   @DomName('HTMLInputElement.valueAsDate')
-  Date valueAsDate;
+  DateTime valueAsDate;
 
   @DomName('HTMLInputElement.readOnly')
   bool readOnly;
@@ -435,7 +435,7 @@ abstract class TimeInputElement implements RangeInputElementBase {
  * Use [supported] to check if this is supported on the current platform.
  */
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
-@Experimental()
+@Experimental
 abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
@@ -458,7 +458,7 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
+@Experimental
 abstract class NumberInputElement implements RangeInputElementBase {
   factory NumberInputElement() => new InputElement(type: 'number');
 
@@ -485,7 +485,7 @@ abstract class NumberInputElement implements RangeInputElementBase {
  */
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
-@Experimental()
+@Experimental
 abstract class RangeInputElement implements RangeInputElementBase {
   factory RangeInputElement() => new InputElement(type: 'range');
 

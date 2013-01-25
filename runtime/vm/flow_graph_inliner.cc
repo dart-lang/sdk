@@ -26,8 +26,6 @@ DEFINE_FLAG(int, inlining_depth_threshold, 3,
     "Inline function calls up to threshold nesting depth");
 DEFINE_FLAG(int, inlining_size_threshold, 20,
     "Always inline functions that have threshold or fewer instructions");
-DEFINE_FLAG(int, inlining_in_loop_size_threshold, 80,
-    "Inline functions in loops that have threshold or fewer instructions");
 DEFINE_FLAG(int, inlining_callee_call_sites_threshold, 1,
     "Always inline functions containing threshold or fewer calls.");
 DEFINE_FLAG(int, inlining_constant_arguments_count, 1,
@@ -303,18 +301,13 @@ class CallSiteInliner : public ValueObject {
         function_cache_() { }
 
   // Inlining heuristics based on Cooper et al. 2008.
-  bool ShouldWeInline(intptr_t loop_depth,
-                      intptr_t instr_count,
+  bool ShouldWeInline(intptr_t instr_count,
                       intptr_t call_site_count,
                       intptr_t const_arg_count) {
     if (instr_count <= FLAG_inlining_size_threshold) {
       return true;
     }
     if (call_site_count <= FLAG_inlining_callee_call_sites_threshold) {
-      return true;
-    }
-    if ((loop_depth > 0) &&
-        (instr_count <= FLAG_inlining_in_loop_size_threshold)) {
       return true;
     }
     if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
@@ -385,18 +378,14 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
-    const intptr_t loop_depth = call->GetBlock()->loop_depth();
     const intptr_t constant_arguments = CountConstants(*arguments);
-    if (!ShouldWeInline(loop_depth,
-                        function.optimized_instruction_count(),
+    if (!ShouldWeInline(function.optimized_instruction_count(),
                         function.optimized_call_site_count(),
                         constant_arguments)) {
       TRACE_INLINING(OS::Print("     Bailout: early heuristics with "
-                               "loop depth: %"Pd", "
                                "code size:  %"Pd", "
                                "call sites: %"Pd", "
                                "const args: %"Pd"\n",
-                               loop_depth,
                                function.optimized_instruction_count(),
                                function.optimized_call_site_count(),
                                constant_arguments));
@@ -447,7 +436,7 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Build the callee graph.
-      ValueInliningContext* inlining_context = new ValueInliningContext();
+      InliningContext* inlining_context = InliningContext::Create(call);
       FlowGraphBuilder builder(*parsed_function, inlining_context);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
@@ -455,7 +444,7 @@ class CallSiteInliner : public ValueObject {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_build_timer,
                          isolate);
-        callee_graph = builder.BuildGraph(loop_depth);
+        callee_graph = builder.BuildGraph();
       }
 
       // The parameter stubs are a copy of the actual arguments providing
@@ -537,13 +526,11 @@ class CallSiteInliner : public ValueObject {
       function.set_optimized_call_site_count(info.call_site_count());
 
       // Use heuristics do decide if this call should be inlined.
-      if (!ShouldWeInline(loop_depth,
-                          size,
+      if (!ShouldWeInline(size,
                           info.call_site_count(),
                           constants_count)) {
         // If size is larger than all thresholds, don't consider it again.
         if ((size > FLAG_inlining_size_threshold) &&
-            (size > FLAG_inlining_in_loop_size_threshold) &&
             (size > FLAG_inlining_callee_call_sites_threshold) &&
             (size > FLAG_inlining_constant_arguments_size_threshold)) {
           function.set_is_inlinable(false);
@@ -552,11 +539,9 @@ class CallSiteInliner : public ValueObject {
         isolate->set_deopt_id(prev_deopt_id);
         isolate->set_ic_data_array(prev_ic_data.raw());
         TRACE_INLINING(OS::Print("     Bailout: heuristics with "
-                                 "loop depth: %"Pd", "
                                  "code size:  %"Pd", "
                                  "call sites: %"Pd", "
                                  "const args: %"Pd"\n",
-                                 loop_depth,
                                  size,
                                  info.call_site_count(),
                                  constants_count));
@@ -574,7 +559,7 @@ class CallSiteInliner : public ValueObject {
                          isolate);
 
         // Plug result in the caller graph.
-        caller_graph_->InlineCall(call, callee_graph, inlining_context);
+        inlining_context->ReplaceCall(caller_graph_, call, callee_graph);
 
         // Remove push arguments of the call.
         for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
@@ -792,7 +777,7 @@ class CallSiteInliner : public ValueObject {
     GrowableArray<NamedArgument> named_args(argument_names_count);
     for (intptr_t i = 0; i < argument_names.Length(); ++i) {
       String& arg_name = String::Handle(Isolate::Current());
-      arg_name |= argument_names.At(i);
+      arg_name ^= argument_names.At(i);
       named_args.Add(
           NamedArgument(&arg_name, (*arguments)[i + fixed_param_count]));
     }

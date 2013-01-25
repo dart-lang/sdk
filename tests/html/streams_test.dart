@@ -17,7 +17,7 @@ class StreamHelper {
   // Causes an event on a to be fired.
   void pulse() {
     var event = new Event('focus');
-    _a.$dom_dispatchEvent(event);
+    _a.dispatchEvent(event);
   }
 }
 

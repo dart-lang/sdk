@@ -5,6 +5,7 @@
 library utils;
 
 import 'dart:async';
+import 'dart:collection' show Queue;
 
 import '../../unittest/lib/unittest.dart';
 import '../../http/lib/http.dart' as http;

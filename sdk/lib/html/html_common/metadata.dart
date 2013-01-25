@@ -38,9 +38,7 @@ class SupportedBrowser {
  *
  * * [W3C recommendation](http://en.wikipedia.org/wiki/W3C_recommendation)
  */
-class Experimental {
-  const Experimental();
-}
+class Experimental {}
 
 
 /**
@@ -58,6 +56,4 @@ class DomName {
 
 /// Metadata that specifies that that member is editable through generated
 /// files.
-class DocsEditable {
-  const DocsEditable();
-}
+class DocsEditable {}

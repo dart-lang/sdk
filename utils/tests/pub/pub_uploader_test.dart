@@ -8,7 +8,6 @@ import 'dart:io';
 import 'dart:json' as json;
 
 import 'test_pub.dart';
-import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/utils.dart';
 import '../../pub/io.dart';
@@ -33,15 +32,20 @@ ScheduledProcess startPubUploader(ScheduledServer server, List<String> args) {
 
 main() {
   group('displays usage', () {
-    test('when run with no arguments', () =>
-        runPub(args: ['uploader'], output: USAGE_STRING, exitCode: 64));
+    integration('when run with no arguments', () {
+      schedulePub(args: ['uploader'],
+          output: USAGE_STRING, exitCode: 64);
+    });
 
-    test('when run with only a command', () =>
-        runPub(args: ['uploader', 'add'], output: USAGE_STRING, exitCode: 64));
+    integration('when run with only a command', () {
+      schedulePub(args: ['uploader', 'add'],
+          output: USAGE_STRING, exitCode: 64);
+    });
 
-    test('when run with an invalid command', () => runPub(
-        args: ['uploader', 'foo', 'email'],
-        output: USAGE_STRING, exitCode: 64));
+    integration('when run with an invalid command', () {
+      schedulePub(args: ['uploader', 'foo', 'email'],
+          output: USAGE_STRING, exitCode: 64);
+    });
   });
 
   integration('adds an uploader', () {

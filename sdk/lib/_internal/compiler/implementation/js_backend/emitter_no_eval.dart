@@ -67,9 +67,12 @@ $lazyInitializerLogic
 }""";
   }
 
-  void emitLazyInitializedGetter(VariableElement element, CodeBuffer buffer) {
+  js.Expression buildLazyInitializedGetter(VariableElement element) {
     String isolate = namer.CURRENT_ISOLATE;
-    buffer.add(', function() { return $isolate.${namer.getName(element)}; }');
+    return js.fun([],
+        js.block1(
+            js.return_(
+                js.fieldAccess(js.use(isolate), namer.getName(element)))));
   }
 
   js.Expression buildConstructor(String mangledName, List<String> fieldNames) {

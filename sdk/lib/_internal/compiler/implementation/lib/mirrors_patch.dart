@@ -4,6 +4,8 @@
 
 // Patch library for dart:mirrors.
 
+import 'dart:_foreign_helper' show JS;
+
 // Yeah, seriously: mirrors in dart2js are experimental...
 const String _MIRROR_OPT_IN_MESSAGE = """
 

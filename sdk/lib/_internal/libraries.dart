@@ -20,7 +20,7 @@ const int VM_PLATFORM = 2;
  * and extract the necessary information without executing it
  * while other tools can access via execution.
  */
-const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
+const Map<String, LibraryInfo> LIBRARIES = const {
 
   "async": const LibraryInfo(
       "async/async.dart",
@@ -35,7 +35,9 @@ const Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
 
   "collection": const LibraryInfo("collection/collection.dart"),
 
-  "collection-dev": const LibraryInfo("collection_dev/collection_dev.dart"),
+  "collection-dev": const LibraryInfo(
+      "collection_dev/collection_dev.dart",
+      documented: false),
 
   "core": const LibraryInfo(
       "core/core.dart",

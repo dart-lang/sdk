@@ -31,10 +31,8 @@ import 'markdown.dart' as md;
 import 'src/json_serializer.dart' as json_serializer;
 import '../../compiler/implementation/scanner/scannerlib.dart' as dart2js;
 import '../../libraries.dart';
+import 'src/dartdoc/nav.dart';
 
-
-// TODO(rnystrom): Use "package:" URL (#4968).
-part 'src/dartdoc/nav.dart';
 part 'src/dartdoc/utils.dart';
 
 /**
@@ -134,7 +132,8 @@ Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
   var jsPath = outputDir.append('client-$clientScript.js');
 
   var completer = new Completer<bool>();
-  var compilation = new Compilation(dartPath, libPath);
+  var compilation = new Compilation(
+      dartPath, libPath, null, const <String>['--categories=Client,Server']);
   Future<String> result = compilation.compileToJavaScript();
   result.then((jsCode) {
     writeString(new File.fromPath(jsPath), jsCode);
@@ -190,9 +189,6 @@ class Dartdoc {
   /** Set this to add footer text to each generated page. */
   String footerText = null;
 
-  /** Set this to add content before the footer */
-  String preFooterText = '';
-
   /** Set this to omit generation timestamp from output */
   bool omitGenerationTime = false;
 
@@ -244,6 +240,9 @@ class Dartdoc {
   int get totalLibraries => _totalLibraries;
   int get totalTypes => _totalTypes;
   int get totalMembers => _totalMembers;
+
+  static const List<String> COMPILER_OPTIONS =
+      const <String>['--preserve-comments', '--categories=Client,Server'];
 
   Dartdoc() {
     // Patch in support for [:...:]-style code to the markdown parser.
@@ -305,7 +304,7 @@ class Dartdoc {
   String get footerContent{
     var footerItems = [];
     if (!omitGenerationTime) {
-      footerItems.add("This page was generated at ${new Date.now()}");
+      footerItems.add("This page was generated at ${new DateTime.now()}");
     }
     if (footerText != null) {
       footerItems.add(footerText);
@@ -322,13 +321,13 @@ class Dartdoc {
 
   void documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
     final compilation = new Compilation(entrypoint, libPath, pkgPath,
-        <String>['--preserve-comments']);
+        COMPILER_OPTIONS);
     _document(compilation);
   }
 
   void documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
     final compilation = new Compilation.library(libraryList, libPath, pkgPath,
-        <String>['--preserve-comments']);
+        COMPILER_OPTIONS);
     _document(compilation);
   }
 
@@ -508,7 +507,6 @@ class Dartdoc {
         </div>
         <div class="clear"></div>
         </div>
-        ${preFooterText}
         <div class="footer">
           $footerContent
         </div>
@@ -563,7 +561,8 @@ class Dartdoc {
     String dartString = jsonString.replaceAll(r"$", r"\$");
     final filePath = tmpPath.append('nav.dart');
     writeString(new File.fromPath(filePath),
-        'get json => $dartString;');
+        '''part of client;
+           get json => $dartString;''');
   }
 
   Path get tmpPath => dartdocPath.append('tmp');
@@ -1826,7 +1825,7 @@ class Dartdoc {
     }
     startFile('appcache.manifest');
     write("CACHE MANIFEST\n\n");
-    write("# VERSION: ${new Date.now()}\n\n");
+    write("# VERSION: ${new DateTime.now()}\n\n");
     write("NETWORK:\n*\n\n");
     write("CACHE:\n");
     var toCache = new Directory.fromPath(outputDir);
@@ -1862,7 +1861,7 @@ class InternalError {
 
 /**
  * Computes the doc comment for the declaration mirror.
-*
+ *
  * Multiple comments are concatenated with newlines in between.
  */
 String computeComment(DeclarationMirror mirror) {
@@ -1876,6 +1875,22 @@ String computeComment(DeclarationMirror mirror) {
         } else {
           text = '$text\n${comment.trimmedText}';
         }
+      }
+    }
+  }
+  return text;
+}
+
+/**
+ * Computes the doc comment for the declaration mirror as a list.
+ */
+List<String> computeUntrimmedCommentAsList(DeclarationMirror mirror) {
+  var text = <String>[];
+  for (InstanceMirror metadata in mirror.metadata) {
+    if (metadata is CommentInstanceMirror) {
+      CommentInstanceMirror comment = metadata;
+      if (comment.isDocComment) {
+        text.add(comment.text);
       }
     }
   }

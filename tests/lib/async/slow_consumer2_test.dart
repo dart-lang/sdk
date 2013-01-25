@@ -48,20 +48,24 @@ class SlowConsumer extends StreamConsumer {
   }
 }
 
-class DataProvider extends StreamController {
+class DataProvider {
   final int chunkSize;
   final int bytesPerSecond;
   int sentCount = 0;
   int targetCount;
+  StreamController controller;
 
   DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
+    controller = new StreamController(onPauseStateChange: onPauseStateChange);
     new Timer(0, (_) => send());
   }
 
+  Stream get stream => controller.stream;
+
   send() {
-    if (isPaused) return;
+    if (controller.isPaused) return;
     if (sentCount == targetCount) {
-      close();
+      controller.close();
       return;
     }
     int listSize = chunkSize;
@@ -70,9 +74,9 @@ class DataProvider extends StreamController {
       listSize -= sentCount - targetCount;
       sentCount = targetCount;
     }
-    add(new List.fixedLength(listSize));
+    controller.add(new List.fixedLength(listSize));
     int ms = listSize * 1000 ~/ bytesPerSecond;
-    if (!isPaused) new Timer(ms, (_) => send());
+    if (!controller.isPaused) new Timer(ms, (_) => send());
   }
 
   onPauseStateChange() {
@@ -93,7 +97,7 @@ main() {
   // file). If the consumer doesn't pause the data-provider it will run out of
   // heap-space.
 
-  new DataProvider(800 * MB, 100 * MB, 1 * MB)
+  new DataProvider(800 * MB, 100 * MB, 1 * MB).stream
     .pipe(new SlowConsumer(200 * MB, 5 * MB))
     .then((count) {
       port.close();

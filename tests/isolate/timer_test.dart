@@ -16,12 +16,12 @@ int timeout;
 int iteration;
 
 void timeoutHandler(Timer timer) {
-  int endTime = (new Date.now()).millisecondsSinceEpoch;
+  int endTime = (new DateTime.now()).millisecondsSinceEpoch;
   expect(endTime - startTime, greaterThanOrEqualTo(timeout));
   if (iteration < ITERATIONS) {
     iteration++;
     timeout = timeout - DECREASE;
-    startTime = (new Date.now()).millisecondsSinceEpoch;
+    startTime = (new DateTime.now()).millisecondsSinceEpoch;
     new Timer(timeout, expectAsync1(timeoutHandler));
   }
 }
@@ -30,7 +30,7 @@ main() {
   test("timeout test", () {
     iteration = 0;
     timeout = STARTTIMEOUT;
-    startTime = (new Date.now()).millisecondsSinceEpoch;
+    startTime = (new DateTime.now()).millisecondsSinceEpoch;
     new Timer(timeout, expectAsync1(timeoutHandler));
   });
 }

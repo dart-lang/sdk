@@ -44,20 +44,21 @@ class JSArray<E> implements List<E> {
   }
 
   void removeAll(Iterable elements) {
-    Collections.removeAll(this, elements);
+    IterableMixinWorkaround.removeAllList(this, elements);
   }
 
   void retainAll(Iterable elements) {
-    Collections.retainAll(this, elements);
+    IterableMixinWorkaround.retainAll(this, elements);
   }
 
   void removeMatching(bool test(E element)) {
     // This could, and should, be optimized.
-    Collections.removeMatching(this, test);
+    IterableMixinWorkaround.removeMatchingList(this, test);
   }
 
-  void reatainMatching(bool test(E element)) {
-    Collections.reatainMatching(this, test);
+  void retainMatching(bool test(E element)) {
+    IterableMixinWorkaround.removeMatchingList(this,
+                                               (E element) => !test(element));
   }
 
   Iterable<E> where(bool f(E element)) {
@@ -221,6 +222,8 @@ class JSArray<E> implements List<E> {
 
   bool every(bool f(E element)) => IterableMixinWorkaround.every(this, f);
 
+  List<E> get reversed => new ReversedListView<E>(this, 0, null);
+
   void sort([int compare(E a, E b)]) {
     checkMutable(this, 'sort');
     IterableMixinWorkaround.sortList(this, compare);
@@ -251,7 +254,7 @@ class JSArray<E> implements List<E> {
 
   Set<E> toSet() => new Set<E>.from(this);
 
-  _ArrayIterator get iterator => new _ArrayIterator(this);
+  Iterator<E> get iterator => new ListIterator<E>(this);
 
   int get hashCode => Primitives.objectHashCode(this);
 
@@ -280,29 +283,5 @@ class JSArray<E> implements List<E> {
     if (index is !int) throw new ArgumentError(index);
     if (index >= length || index < 0) throw new RangeError.value(index);
     JS('void', r'#[#] = #', this, index, value);
-  }
-}
-
-/** Iterator for JavaScript Arrays. */
-class _ArrayIterator<T> implements Iterator<T> {
-  final List<T> _list;
-  int _position;
-  T _current;
-
-  _ArrayIterator(List<T> this._list) : _position = -1;
-
-  T get current => _current;
-
-  bool moveNext() {
-    int nextPosition = _position + 1;
-    int length = _list.length;
-    if (nextPosition < length) {
-      _position = nextPosition;
-      _current = _list[nextPosition];
-      return true;
-    }
-    _position = length;
-    _current = null;
-    return false;
   }
 }

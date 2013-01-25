@@ -233,9 +233,9 @@ class _ErrorGroupStream extends Stream {
   /// Creates a new [_ErrorGroupFuture] that's a child of [_group] and wraps
   /// [inner].
   _ErrorGroupStream(this._group, Stream inner)
-    : _controller = inner.isSingleSubscription ?
-          new StreamController() :
-          new StreamController.multiSubscription() {
+    : _controller = inner.isBroadcast ?
+          new StreamController.broadcast() :
+          new StreamController() {
     _subscription = inner.listen(_controller.add,
         onError: (e) => _group._signalError(e),
         onDone: () {

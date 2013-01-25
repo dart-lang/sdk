@@ -52,7 +52,7 @@ void testStreamResponse() {
   server.listen("127.0.0.1", 0, backlog: 5);
   server.defaultRequestHandler = (var request, var response) {
     timer = new Timer.repeating(10, (_) {
-      Date now = new Date.now();
+      DateTime now = new DateTime.now();
       try {
         response.outputStream.writeString(
             'data:${now.millisecondsSinceEpoch}\n\n');
@@ -65,7 +65,7 @@ void testStreamResponse() {
 
   var client = new HttpClient();
   var connection =
-      client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}"));
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}"));
   connection.onResponse = (resp) {
     int bytes = 0;
     resp.inputStream.onData = () {

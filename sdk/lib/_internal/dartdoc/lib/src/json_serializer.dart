@@ -19,6 +19,14 @@ String serialize(Object o) {
   return printer.toString();
 }
 
+/// Serialize the object with pretty printing.
+String prettySerialize(Object o) {
+  var printer = new JsonPrinter(_prettyPrint: true);
+  _serialize(null, o, printer);
+  return printer.toString();
+}
+
+
 void _serialize(String name, Object o, JsonPrinter printer) {
   if (o == null) return;
 
@@ -80,6 +88,10 @@ void _serializeList(String name, List l, JsonPrinter printer) {
 }
 
 void _serializeMap(String name, Map m, JsonPrinter printer) {
+  printer.startObject(name);
+  m.forEach((key, value) =>
+      _serialize(key, value, printer));
+  printer.endObject();
 }
 
 class JsonPrinter {
@@ -164,7 +176,10 @@ class JsonPrinter {
     if (_inSet) {
       _sb.add(',');
     }
-    _newline();
+    // Do not print a newline at the beginning of the file.
+    if (!_sb.isEmpty) {
+      _newline();
+    }
     if (name != null) {
       _sb.add('"$name": ');
     }

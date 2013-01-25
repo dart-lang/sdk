@@ -597,7 +597,28 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
         return false;
       }
       break;
-
+    case kInt32ArrayCid:
+    case kUint32ArrayCid: {
+      // Check if elements fit into a smi or the platform supports unboxed
+      // mints.
+      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
+        return false;
+      }
+      // Check that value is always smi or mint, if the platform has unboxed
+      // mints (ia32 with at least SSE 4.1).
+      value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      for (intptr_t i = 0; i < value_check.NumberOfChecks(); i++) {
+        intptr_t cid = value_check.GetReceiverClassIdAt(i);
+        if (FlowGraphCompiler::SupportsUnboxedMints()) {
+          if ((cid != kSmiCid) && (cid != kMintCid)) {
+            return false;
+          }
+        } else if (cid != kSmiCid) {
+          return false;
+        }
+      }
+      break;
+    }
     case kFloat32ArrayCid:
     case kFloat64ArrayCid: {
       // Check that value is always double.
@@ -645,6 +666,8 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       case kUint8ClampedArrayCid:
       case kInt16ArrayCid:
       case kUint16ArrayCid:
+      case kInt32ArrayCid:
+      case kUint32ArrayCid:
         ASSERT(value_type.IsIntType());
         // Fall through.
       case kFloat32ArrayCid:
@@ -677,22 +700,20 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   // Check if store barrier is needed.
   bool needs_store_barrier = true;
   if (!value_check.IsNull()) {
-    ASSERT(value_check.NumberOfChecks() == 1);
-    if (value_check.GetReceiverClassIdAt(0) == kSmiCid) {
+    needs_store_barrier = false;
+    if (value_check.NumberOfChecks() == 1 &&
+        value_check.GetReceiverClassIdAt(0) == kSmiCid) {
       InsertBefore(call,
                    new CheckSmiInstr(value->Copy(), call->deopt_id()),
                    call->env(),
                    Definition::kEffect);
-      needs_store_barrier = false;
     } else {
-      ASSERT(value_check.GetReceiverClassIdAt(0) == kDoubleCid);
       InsertBefore(call,
                    new CheckClassInstr(value->Copy(),
                                        call->deopt_id(),
                                        value_check),
                    call->env(),
                    Definition::kEffect);
-      needs_store_barrier = false;
     }
   }
 
@@ -720,7 +741,14 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kExternalUint8ArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
-      // Acceptable load index classes.
+      break;
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      // Check if elements fit into a smi or the platform supports unboxed
+      // mints.
+      if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
+        return false;
+      }
       break;
     default:
       return false;
@@ -1261,6 +1289,22 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
 }
 
 
+void FlowGraphOptimizer::ReplaceWithMathCFunction(
+  InstanceCallInstr* call,
+  MethodRecognizer::Kind recognized_kind) {
+  AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+  ZoneGrowableArray<Value*>* args =
+      new ZoneGrowableArray<Value*>(call->ArgumentCount());
+  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+    args->Add(call->ArgumentAt(i)->value());
+  }
+  InvokeMathCFunctionInstr* invoke =
+      new InvokeMathCFunctionInstr(args, call, recognized_kind);
+  call->ReplaceWith(invoke, current_iterator());
+  RemovePushArguments(call);
+}
+
+
 // Inline only simple, frequently called core library methods.
 bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -1308,38 +1352,47 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   if (class_ids[0] == kDoubleCid) {
-    if (recognized_kind == MethodRecognizer::kDoubleToInteger) {
-      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-      ASSERT(call->HasICData());
-      const ICData& ic_data = *call->ic_data();
-      Definition* d2i_instr = NULL;
-      if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
-        // Do not repeatedly deoptimize because result didn't fit into Smi.
-        d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(),
-                                             call);
-      } else {
-        // Optimistically assume result fits into Smi.
-        d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
+    switch (recognized_kind) {
+      case MethodRecognizer::kDoubleToInteger: {
+        AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+        ASSERT(call->HasICData());
+        const ICData& ic_data = *call->ic_data();
+        Definition* d2i_instr = NULL;
+        if (ic_data.deopt_reason() == kDeoptDoubleToSmi) {
+          // Do not repeatedly deoptimize because result didn't fit into Smi.
+          d2i_instr = new DoubleToIntegerInstr(call->ArgumentAt(0)->value(),
+                                               call);
+        } else {
+          // Optimistically assume result fits into Smi.
+          d2i_instr = new DoubleToSmiInstr(call->ArgumentAt(0)->value(), call);
+        }
+        call->ReplaceWith(d2i_instr, current_iterator());
+        RemovePushArguments(call);
+        return true;
       }
-      call->ReplaceWith(d2i_instr, current_iterator());
-      RemovePushArguments(call);
-      return true;
-    }
-    if ((recognized_kind == MethodRecognizer::kDoubleTruncate) ||
-        (recognized_kind == MethodRecognizer::kDoubleRound) ||
-        (recognized_kind == MethodRecognizer::kDoubleFloor) ||
-        (recognized_kind == MethodRecognizer::kDoubleCeil)) {
-      if (!CPUFeatures::double_truncate_round_supported()) {
+      case MethodRecognizer::kDoubleMod:
+      case MethodRecognizer::kDoublePow:
+        ReplaceWithMathCFunction(call, recognized_kind);
+        return true;
+      case MethodRecognizer::kDoubleTruncate:
+      case MethodRecognizer::kDoubleRound:
+      case MethodRecognizer::kDoubleFloor:
+      case MethodRecognizer::kDoubleCeil:
+        if (!CPUFeatures::double_truncate_round_supported()) {
+          ReplaceWithMathCFunction(call, recognized_kind);
+        } else {
+          AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
+          DoubleToDoubleInstr* d2d_instr =
+              new DoubleToDoubleInstr(call->ArgumentAt(0)->value(),
+                                      call,
+                                      recognized_kind);
+          call->ReplaceWith(d2d_instr, current_iterator());
+          RemovePushArguments(call);
+        }
+        return true;
+      default:
+        // Unsupported method.
         return false;
-      }
-      AddCheckClass(call, call->ArgumentAt(0)->value()->Copy());
-      DoubleToDoubleInstr* d2d_instr =
-          new DoubleToDoubleInstr(call->ArgumentAt(0)->value(),
-                                  call,
-                                  recognized_kind);
-      call->ReplaceWith(d2d_instr, current_iterator());
-      RemovePushArguments(call);
-      return true;
     }
   }
 
@@ -4322,6 +4375,12 @@ void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitInvokeMathCFunction(
+    InvokeMathCFunctionInstr* instr) {
+  // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
   SetValue(instr, instr->value());
 }
@@ -4498,16 +4557,12 @@ void ConstantPropagator::Transform() {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
-        join = new JoinEntryInstr(if_false->block_id(),
-                                  if_false->try_index(),
-                                  if_false->loop_depth());
+        join = new JoinEntryInstr(if_false->block_id(), if_false->try_index());
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
-        join = new JoinEntryInstr(if_true->block_id(),
-                                  if_true->try_index(),
-                                  if_true->loop_depth());
+        join = new JoinEntryInstr(if_true->block_id(), if_true->try_index());
         next = if_true->next();
       }
 

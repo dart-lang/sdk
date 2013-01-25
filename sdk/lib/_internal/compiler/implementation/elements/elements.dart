@@ -199,6 +199,7 @@ abstract class Element implements Spannable {
   void addMetadata(MetadataAnnotation annotation);
   void setNative(String name);
   void setFixedBackendName(String name);
+
   Scope buildScope();
 }
 
@@ -469,14 +470,30 @@ abstract class CompilationUnitElement extends Element {
 }
 
 abstract class LibraryElement extends Element implements ScopeContainerElement {
-  Uri get uri;
+  /**
+   * The canonical uri for this library.
+   *
+   * For user libraries the canonical uri is the script uri. For platform
+   * libraries the canonical uri is of the form [:dart:x:].
+   */
+  Uri get canonicalUri;
   CompilationUnitElement get entryCompilationUnit;
   Link<CompilationUnitElement> get compilationUnits;
   Link<LibraryTag> get tags;
   LibraryName get libraryTag;
   Link<Element> get exports;
 
+  /**
+   * [:true:] if this library is part of the platform, that is its canonical
+   * uri has the scheme 'dart'.
+   */
   bool get isPlatformLibrary;
+
+  /**
+   * [:true:] if this library is a platform library whose path starts with
+   * an underscore.
+   */
+  bool get isInternalLibrary;
   bool get canUseNative;
   bool get exportsHandled;
 
@@ -665,7 +682,6 @@ abstract class ClassElement extends TypeDeclarationElement
   bool implementsInterface(ClassElement intrface);
   bool isShadowedByField(Element fieldMember);
 
-  ClassNode parseNode(Compiler compiler);
   ClassElement ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);

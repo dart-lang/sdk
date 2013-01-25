@@ -372,6 +372,8 @@ public class Resolver {
         }
         onError(errorTarget, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
       }
+      checkMixinNoConstructors(cls.getMixins());
+      checkMixinNoSuperInvocations(cls.getMixins());
       return classElement;
     }
 
@@ -487,10 +489,49 @@ public class Resolver {
         }
       }
 
+      // check mixins
+      checkMixinNoConstructors(cls.getMixins());
+      checkMixinNoSuperInvocations(cls.getMixins());
+
       context = previousContext;
       currentHolder = previousHolder;
       enclosingElement = previousEnclosingElement;
       return classElement;
+    }
+
+    /**
+     * Checks that the types of the given mixin type node don't have explicit constructors.
+     */
+    private void checkMixinNoConstructors(List<DartTypeNode> mixins) {
+      for (DartTypeNode mixNode : mixins) {
+        if (mixNode.getType() instanceof InterfaceType) {
+          InterfaceType mixType = (InterfaceType) mixNode.getType();
+          for (ConstructorElement constructor : mixType.getElement().getConstructors()) {
+            if (!constructor.getModifiers().isFactory()) {
+              topLevelContext.onError(mixNode, ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR);
+              break;
+            }
+          }
+        }
+      }
+    }
+    
+    /**
+     * Checks that the types of the given mixin type node don't have super invocations.
+     */
+    private void checkMixinNoSuperInvocations(List<DartTypeNode> mixins) {
+      for (DartTypeNode mixNode : mixins) {
+        if (mixNode.getType() instanceof InterfaceType) {
+          InterfaceType mixType = (InterfaceType) mixNode.getType();
+          if (mixType.getElement() instanceof ClassElement) {
+            ClassElement mixElement = (ClassElement) mixType.getElement();
+            if (mixElement.hasSuperInvocation()) {
+              topLevelContext.onError(mixNode, ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_SUPER);
+              break;
+            }
+          }
+        }
+      }
     }
 
     private void constVerifyMembers(Iterable<? extends Element> members, ClassElement originalClass,
@@ -1395,13 +1436,18 @@ public class Resolver {
                                             String name, Element element) {
       switch (element.getKind()) {
         case FIELD:
-          if (!Elements.isStaticContext(element) && !element.getModifiers().isConstant()) {
-            if (inInstanceVariableInitializer) {
-              onError(x, ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER);
+          if (!Elements.isStaticContext(element)) {
+            if (!element.getModifiers().isConstant()) {
+              if (inInstanceVariableInitializer) {
+                onError(x, ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER);
+              }
             }
-          }
-          if (ASTNodes.isStaticContext(x) && !Elements.isStaticContext(element)) {
-            onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, name);
+            if (ASTNodes.isStaticContext(x)) {
+              onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, name);
+            }
+            if (ASTNodes.isFactoryContext(x)) {
+              onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_FACTORY, name);
+            }
           }
           if (isIllegalPrivateAccess(x, enclosingElement, element, x.getName())) {
             return null;
@@ -2220,9 +2266,9 @@ public class Resolver {
 
     private ConstructorElement checkIsConstructor(DartNewExpression node, Element element) {
       if (!ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
-        ResolverErrorCode errorCode = node.isConst()
+        ErrorCode errorCode = node.isConst()
             ? ResolverErrorCode.NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR
-            : ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR;
+            : TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR;
         onError(ASTNodes.getConstructorNameNode(node), errorCode);
         return null;
       }

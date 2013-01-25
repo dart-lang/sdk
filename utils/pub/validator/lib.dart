@@ -27,7 +27,7 @@ class LibValidator extends Validator {
       if (!libDirExists) {
         errors.add('You must have a "lib" directory.\n'
             "Without that, users cannot import any code from your package.");
-        return new Future.immediate(null);
+        return;
       }
 
       return listDir(libDir).then((files) {

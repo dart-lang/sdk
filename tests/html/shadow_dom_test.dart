@@ -16,7 +16,7 @@ main() {
     });
   });
 
-  group('ShadowDOM tests', () {
+  group('ShadowDOM_tests', () {
 
     var div1, div2, shadowRoot, paragraph1, paragraph2;
 

@@ -35,7 +35,6 @@ main() {
   RegExp regexp = new RegExp(r"foo\$0?:(.|\n)*bar\$0:(.|\n)*gee\$0:");
 
   String generated = compileAll(TEST_ONE);
-  print(generated);
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compileAll(TEST_TWO);

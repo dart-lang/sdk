@@ -22,7 +22,7 @@ import bot
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
-    r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(all|html))?(-(\d+)-(\d+))?')
+    r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(\d+)-(\d+))?')
 
 
 def GetBuildInfo(builder_name, is_buildbot):
@@ -79,13 +79,16 @@ def GetBuildInfo(builder_name, is_buildbot):
   if system == 'windows':
     system = 'win7'
 
+  # We have both 10.8 and 10.7 bots, functionality is the same.
+  if system == 'mac10.8' or system == 'mac10.7':
+    system = 'mac'
+
   if (system == 'win7' and platform.system() != 'Windows') or (
       system == 'mac' and platform.system() != 'Darwin') or (
       system == 'linux' and platform.system() != 'Linux'):
     print ('Error: You cannot emulate a buildbot with a platform different '
         'from your own.')
     return None
-
   return bot.BuildInfo(compiler, runtime, mode, system, checked, host_checked,
                        minified, shard_index, total_shards, is_buildbot,
                        test_set)

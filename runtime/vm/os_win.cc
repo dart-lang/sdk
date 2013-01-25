@@ -158,6 +158,22 @@ void OS::Sleep(int64_t millis) {
 }
 
 
+void OS::DebugBreak() {
+#if defined(_MSC_VER)
+  // Microsoft Visual C/C++ or drop-in replacement.
+  __debugbreak();
+#elif defined(__GCC__)
+  // MinGW?
+  asm("int $3");
+#else
+  // Microsoft style assembly.
+  __asm {
+    int 3
+  }
+#endif
+}
+
+
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);

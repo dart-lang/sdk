@@ -136,22 +136,25 @@ class PatchParserTask extends leg.CompilerTask {
                     Uri patchUri, LibraryElement originLibrary) {
 
     leg.Script script = compiler.readScript(patchUri, null);
-    var patchLibrary = new LibraryElementX(script, patchUri, originLibrary);
-    handler.registerNewLibrary(patchLibrary);
-    LinkBuilder<tree.LibraryTag> imports = new LinkBuilder<tree.LibraryTag>();
-    compiler.withCurrentElement(patchLibrary.entryCompilationUnit, () {
-      // This patches the elements of the patch library into [library].
-      // Injected elements are added directly under the compilation unit.
-      // Patch elements are stored on the patched functions or classes.
-      scanLibraryElements(patchLibrary.entryCompilationUnit, imports);
+    var patchLibrary = new LibraryElementX(script, null, originLibrary);
+    compiler.withCurrentElement(patchLibrary, () {
+      handler.registerNewLibrary(patchLibrary);
+      LinkBuilder<tree.LibraryTag> imports = new LinkBuilder<tree.LibraryTag>();
+      compiler.withCurrentElement(patchLibrary.entryCompilationUnit, () {
+        // This patches the elements of the patch library into [library].
+        // Injected elements are added directly under the compilation unit.
+        // Patch elements are stored on the patched functions or classes.
+        scanLibraryElements(patchLibrary.entryCompilationUnit, imports);
+      });
+      // After scanning declarations, we handle the import tags in the patch.
+      // TODO(lrn): These imports end up in the original library and are in
+      // scope for the original methods too. This should be fixed.
+      compiler.importHelperLibrary(originLibrary);
+      for (tree.LibraryTag tag in imports.toLink()) {
+        compiler.libraryLoader.registerLibraryFromTag(
+            handler, patchLibrary, tag);
+      }
     });
-    // After scanning declarations, we handle the import tags in the patch.
-    // TODO(lrn): These imports end up in the original library and are in
-    // scope for the original methods too. This should be fixed.
-    compiler.importHelperLibrary(originLibrary);
-    for (tree.LibraryTag tag in imports.toLink()) {
-      compiler.libraryLoader.registerLibraryFromTag(handler, patchLibrary, tag);
-    }
   }
 
   void scanLibraryElements(

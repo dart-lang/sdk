@@ -101,7 +101,7 @@ function(cls, desc) {
   }
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   for (var method in desc) {
-    if (method) {  """/* Short version of: if (method != '') */"""
+    if (method) {
       if (hasOwnProperty.call(desc, method)) {
         $dynamicName(method)[cls] = desc[method];
       }
@@ -499,6 +499,12 @@ function(cls, desc) {
     String hashCodeName =
         backend.namer.publicGetterName(const SourceString('hashCode'));
     addProperty(hashCodeName, makeCallOnThis(hashCodeHelperName));
+
+    // Same as above, but for operator==.
+    String equalsName = backend.namer.publicInstanceMethodNameByArity(
+        const SourceString('=='), 1);
+    addProperty(equalsName, js.fun(['a'], js.block1(
+        js.return_(js.strictEquals(new js.This(), js.use('a'))))));
 
     // If the native emitter has been asked to take care of the
     // noSuchMethod handlers, we do that now.

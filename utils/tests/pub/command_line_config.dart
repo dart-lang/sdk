@@ -17,6 +17,7 @@ const _NONE = '\u001b[0m';
 /// Pretty Unicode characters!
 const _CHECKBOX = '\u2713';
 const _BALLOT_X = '\u2717';
+const _LAMBDA   = '\u03bb';
 
 /// A custom unittest configuration for running the pub tests from the
 /// command-line and generating human-friendly output.
@@ -70,14 +71,10 @@ class CommandLineConfiguration extends Configuration {
     if (stackTrace == null || stackTrace == '') return;
 
     // Parse out each stack entry.
-    var regexp = new RegExp(r'#\d+\s+(.*) \(file:///([^)]+)\)');
     var stack = [];
     for (var line in stackTrace.split('\n')) {
       if (line.trim() == '') continue;
-
-      var match = regexp.firstMatch(line);
-      if (match == null) throw "Couldn't clean up stack trace line '$line'.";
-      stack.add(new Pair(match[2], match[1]));
+      stack.add(new _StackFrame(line));
     }
 
     if (stack.length == 0) return;
@@ -86,10 +83,12 @@ class CommandLineConfiguration extends Configuration {
     var common = 0;
     while (true) {
       var matching = true;
-      // TODO(bob): Handle empty stack.
-      var c = stack[0].first[common];
-      for (var pair in stack) {
-        if (pair.first.length <= common || pair.first[common] != c) {
+      var c;
+      for (var frame in stack) {
+        if (frame.isCore) continue;
+        if (c == null) c = frame.library[common];
+
+        if (frame.library.length <= common || frame.library[common] != c) {
           matching = false;
           break;
         }
@@ -101,19 +100,18 @@ class CommandLineConfiguration extends Configuration {
 
     // Remove them.
     if (common > 0) {
-      for (var pair in stack) {
-        pair.first = pair.first.substring(common);
+      for (var frame in stack) {
+        if (frame.isCore) continue;
+        frame.library = frame.library.substring(common);
       }
     }
 
     // Figure out the longest path so we know how much to pad.
-    int longest = stack.mappedBy((pair) => pair.first.length).max();
+    int longest = stack.mappedBy((frame) => frame.location.length).max();
 
     // Print out the stack trace nicely formatted.
-    for (var pair in stack) {
-      var path = pair.first;
-      path = path.replaceFirst(':', ' ');
-      print('  ${_padLeft(path, longest)}  ${pair.last}');
+    for (var frame in stack) {
+      print('  ${_padLeft(frame.location, longest)}  ${frame.member}');
     }
 
     print('');
@@ -135,5 +133,46 @@ class CommandLineConfiguration extends Configuration {
     // TODO(nweiz): Use this simpler code once issue 2980 is fixed.
     // return str.replaceAll(new RegExp("^", multiLine: true), "  ");
     return Strings.join(str.split("\n").mappedBy((line) => "  $line"), "\n");
+  }
+}
+
+class _StackFrame {
+  static final fileRegExp = new RegExp(
+      r'#\d+\s+(.*) \((file:///.+):(\d+):(\d+)\)');
+  static final coreRegExp = new RegExp(r'#\d+\s+(.*) \((.+):(\d+):(\d+)\)');
+
+  /// If `true`, then this stack frame is for a library built into Dart and
+  /// not a regular file path.
+  final bool isCore;
+
+  /// The path to the library or the library name if a core library.
+  String library;
+
+  /// The line number.
+  final String line;
+
+  /// The column number.
+  final String column;
+
+  /// The member where the error occurred.
+  final String member;
+
+  /// A formatted description of the code location.
+  String get location => '$library $line:$column';
+
+  _StackFrame._(this.isCore, this.library, this.line, this.column, this.member);
+
+  factory _StackFrame(String text) {
+    var match = fileRegExp.firstMatch(text);
+    var isCore = false;
+
+    if (match == null) {
+      match = coreRegExp.firstMatch(text);
+      if (match == null) throw "Couldn't parse stack trace line '$text'.";
+      isCore = true;
+    }
+
+    var member = match[1].replaceAll("<anonymous closure>", _LAMBDA);
+    return new _StackFrame._(isCore, match[2], match[3], match[4], member);
   }
 }

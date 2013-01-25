@@ -48,7 +48,7 @@ class NameValidator extends Validator {
   Future<List<String>> get _libraries {
     var libDir = join(entrypoint.root.dir, "lib");
     return dirExists(libDir).then((libDirExists) {
-      if (!libDirExists) return new Future.immediate([]);
+      if (!libDirExists) return [];
       return listDir(libDir, recursive: true);
     }).then((files) {
       return files

@@ -69,6 +69,9 @@ class FilteredElementList implements List {
     return element is Element && _childNodes.contains(element);
   }
 
+  List<Element> get reversed =>
+      new ReversedListView<Element>(_filtered, 0, null);
+
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
@@ -123,19 +126,19 @@ class FilteredElementList implements List {
 
   void removeAll(Iterable elements) {
     // This should be optimized to not use [remove] directly.
-    Collections.removeAll(this, elements);
+    IterableMixinWorkaround.removeAll(this, elements);
   }
 
   void retainAll(Iterable elements) {
-    Collections.retainAll(this, elements);
+    IterableMixinWorkaround.retainAll(this, elements);
   }
 
   void removeMatching(bool test(Element element)) {
-    Collections.removeMatching(this, test);
+    IterableMixinWorkaround.removeMatching(this, test);
   }
 
   void retainMatching(bool test(Element element)) {
-    Collections.retainMatching(this, test);
+    IterableMixinWorkaround.retainMatching(this, test);
   }
 
   dynamic reduce(dynamic initialValue,
@@ -176,20 +179,20 @@ class FilteredElementList implements List {
     return _filtered.lastIndexOf(element, start);
   }
 
-  Iterable<Element> take(int n) {
-    return new TakeIterable<Element>(this, n);
+  List<Element> take(int n) {
+    return IterableMixinWorkaround.takeList(this, n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return new TakeWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Element> skip(int n) {
-    return new SkipIterable<Element>(this, n);
+  List<Element> skip(int n) {
+    return IterableMixinWorkaround.skipList(this, n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return new SkipWhileIterable<Element>(this, test);
+    return IterableMixinWorkaround.skipWhile(this, test);
   }
 
   Element get first => _filtered.first;

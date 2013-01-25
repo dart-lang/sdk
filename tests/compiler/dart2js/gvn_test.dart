@@ -13,10 +13,44 @@ void foo(bar) {
 }
 """;
 
+// Check that modulo does not have any side effect and we are
+// GVN'ing the length of [:list:].
+const String TEST_TWO = r"""
+void foo(a) {
+  var list = new List<int>();
+  list[0] = list[0 % a];
+  list[1] = list[1 % a];
+}
+""";
+
+// Check that is checks get GVN'ed.
+const String TEST_THREE = r"""
+void foo(a) {
+  print(a is num);
+  print(a is num);
+}
+""";
+
+// Check that instructions that don't have a builtin equivalent can
+// still be GVN'ed.
+const String TEST_FOUR = r"""
+void foo(a) {
+  print(1 >> a);
+  print(1 >> a);
+}
+""";
+
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
   RegExp regexp = new RegExp(r"1 \+ [a-z]+");
-  Iterator matches = regexp.allMatches(generated).iterator;
-  Expect.isTrue(matches.moveNext());
-  Expect.isFalse(matches.moveNext());
+  checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
+
+  generated = compile(TEST_TWO, entry: 'foo');
+  checkNumberOfMatches(new RegExp("length").allMatches(generated).iterator, 1);
+
+  generated = compile(TEST_THREE, entry: 'foo');
+  checkNumberOfMatches(new RegExp("number").allMatches(generated).iterator, 1);
+
+  generated = compile(TEST_FOUR, entry: 'foo');
+  checkNumberOfMatches(new RegExp("shr").allMatches(generated).iterator, 1);
 }

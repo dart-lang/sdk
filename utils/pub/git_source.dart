@@ -49,11 +49,11 @@ class GitSource extends Source {
       revisionCachePath = path;
       return exists(revisionCachePath);
     }).then((exists) {
-      if (exists) return new Future.immediate(null);
+      if (exists) return;
       return _clone(_repoCachePath(id), revisionCachePath, mirror: false);
     }).then((_) {
       var ref = _getEffectiveRef(id);
-      if (ref == 'HEAD') return new Future.immediate(null);
+      if (ref == 'HEAD') return;
       return _checkOut(revisionCachePath, ref);
     }).then((_) {
       return Package.load(id.name, revisionCachePath, systemCache.sources);

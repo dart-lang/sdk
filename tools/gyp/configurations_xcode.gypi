@@ -26,6 +26,7 @@
   'target_defaults': {
     'configurations': {
       'Dart_Base': {
+        'abstract': 1,
         'xcode_settings': {
           'GCC_VERSION': '<(xcode_gcc_version)',
           'GCC_C_LANGUAGE_STANDARD': 'ansi',

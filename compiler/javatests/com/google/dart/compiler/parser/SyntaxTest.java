@@ -14,6 +14,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
@@ -115,6 +116,33 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("D", mixins.get(1).toString());
   }
 
+  public void test_parseTypedefMixin() throws Exception {
+    parseUnit(
+        "test.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "typedef C = A with B;",
+            ""));
+    DartClassTypeAlias typedef = findNode(DartClassTypeAlias.class, "typedef C");
+    assertEquals("A", typedef.getSuperclass().toString());
+    {
+      NodeList<DartTypeNode> mixins = typedef.getMixins();
+      assertEquals(1, mixins.size());
+      assertEquals("B", mixins.get(0).toString());
+    }
+  }
+  
+  public void test_parseTypedefMixin_abstract() throws Exception {
+    parseUnit(
+        "test.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "typedef C = abstract A with B;",
+            ""));
+    DartClassTypeAlias typedef = findNode(DartClassTypeAlias.class, "typedef C");
+    assertTrue(typedef.getModifiers().isAbstract());
+  }
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=6881
@@ -190,6 +218,27 @@ public class SyntaxTest extends AbstractParserTest {
             "",
             "@meta @meta2 export 'Lib.dart';",
             ""));
+  }
+
+  /**
+   * There was bug that class instead of case in switch caused infinite parsing loop.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7999
+   */
+  public void test_switch_class_inCase() {
+    DartParserRunner runner = parseSource(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void main() {",
+        "  print((e) {",
+        "    switch (e) {",
+        "      case 'Up': cursor.(); break;",
+        "      class LoopClass { var myData; }",
+        "      case 'Down':",
+        "    }",
+        "  }); ",
+        "}",
+        ""));
+    assertTrue(runner.getErrorCount() > 0);
   }
 
   /**

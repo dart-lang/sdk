@@ -48,6 +48,8 @@ class FlowGraphOptimizer;
   V(_Double, round, DoubleRound, 620870996)                                    \
   V(_Double, floor, DoubleFloor, 620870996)                                    \
   V(_Double, ceil, DoubleCeil, 620870996)                                      \
+  V(_Double, pow, DoublePow, 1131958048)                                       \
+  V(_Double, _modulo, DoubleMod, 437099337)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
 
 // Class that recognizes the name and owner of a function and returns the
@@ -274,7 +276,8 @@ class EmbeddedArray<T, 0> {
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
-  M(StringFromCharCode)
+  M(StringFromCharCode)                                                        \
+  M(InvokeMathCFunction)                                                       \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -515,6 +518,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class LICM;
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
+  friend class InvokeMathCFunctionInstr;
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
@@ -653,8 +657,6 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
 // branches.
 class BlockEntryInstr : public Instruction {
  public:
-  static const intptr_t kInvalidLoopDepth = -1;
-
   virtual BlockEntryInstr* AsBlockEntry() { return this; }
 
   virtual intptr_t PredecessorCount() const = 0;
@@ -748,19 +750,17 @@ class BlockEntryInstr : public Instruction {
     loop_info_ = loop_info;
   }
 
-  intptr_t loop_depth() const { return loop_depth_; }
-  void set_loop_depth(intptr_t loop_depth) {
-    ASSERT(loop_depth_ == kInvalidLoopDepth);
-    ASSERT(loop_depth != kInvalidLoopDepth);
-    loop_depth_ = loop_depth;
-  }
-
   virtual BlockEntryInstr* GetBlock() const {
     return const_cast<BlockEntryInstr*>(this);
   }
 
+  // Helper to mutate the graph during inlining. This block should be
+  // replaced with new_block as a predecessor of all of this block's
+  // successors.
+  void ReplaceAsPredecessorWith(BlockEntryInstr* new_block);
+
  protected:
-  BlockEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t loop_depth)
+  BlockEntryInstr(intptr_t block_id, intptr_t try_index)
       : block_id_(block_id),
         try_index_(try_index),
         preorder_number_(-1),
@@ -769,8 +769,7 @@ class BlockEntryInstr : public Instruction {
         dominated_blocks_(1),
         last_instruction_(NULL),
         parallel_move_(NULL),
-        loop_info_(NULL),
-        loop_depth_(loop_depth) { }
+        loop_info_(NULL) { }
 
  private:
   virtual void ClearPredecessors() = 0;
@@ -796,9 +795,6 @@ class BlockEntryInstr : public Instruction {
   // Bit vector containg loop blocks for a loop header indexed by block
   // preorder number.
   BitVector* loop_info_;
-
-  // Syntactic loop depth of the block.
-  intptr_t loop_depth_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
@@ -903,8 +899,8 @@ class GraphEntryInstr : public BlockEntryInstr {
 
 class JoinEntryInstr : public BlockEntryInstr {
  public:
-  JoinEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t loop_depth)
-      : BlockEntryInstr(block_id, try_index, loop_depth),
+  JoinEntryInstr(intptr_t block_id, intptr_t try_index)
+      : BlockEntryInstr(block_id, try_index),
         predecessors_(2),  // Two is the assumed to be the common case.
         phis_(NULL),
         phi_count_(0) { }
@@ -933,7 +929,10 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
-  friend class FlowGraph;  // Access to predecessors_ when inlining.
+  // Classes that have access to predecessors_ when inlining.
+  friend class BlockEntryInstr;
+  friend class ValueInliningContext;
+
   virtual void ClearPredecessors() { predecessors_.Clear(); }
   virtual void AddPredecessor(BlockEntryInstr* predecessor);
 
@@ -975,8 +974,8 @@ class PhiIterator : public ValueObject {
 
 class TargetEntryInstr : public BlockEntryInstr {
  public:
-  TargetEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t loop_depth)
-      : BlockEntryInstr(block_id, try_index, loop_depth),
+  TargetEntryInstr(intptr_t block_id, intptr_t try_index)
+      : BlockEntryInstr(block_id, try_index),
         predecessor_(NULL),
         catch_try_index_(CatchClauseNode::kInvalidTryIndex),
         catch_handler_types_(Array::ZoneHandle()) { }
@@ -1012,7 +1011,8 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
-  friend class FlowGraph;  // Access to predecessor_ when inlining.
+  friend class BlockEntryInstr;  // Access to predecessor_ when inlining.
+
   virtual void ClearPredecessors() { predecessor_ = NULL; }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) {
     ASSERT(predecessor_ == NULL);
@@ -4053,6 +4053,76 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind recognized_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
+};
+
+
+class InvokeMathCFunctionInstr : public Definition {
+ public:
+  InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
+                           InstanceCallInstr* instance_call,
+                           MethodRecognizer::Kind recognized_kind)
+    : inputs_(inputs), locs_(NULL), recognized_kind_(recognized_kind) {
+    ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  static intptr_t ArgumentCountFor(MethodRecognizer::Kind recognized_kind_);
+
+  const RuntimeEntry& TargetFunction() const;
+
+  MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
+
+  DECLARE_INSTRUCTION(InvokeMathCFunction)
+  virtual RawAbstractType* CompileType() const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((0 <= idx) && (idx < InputCount()));
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  virtual intptr_t InputCount() const {
+    return inputs_->length();
+  }
+
+  virtual Value* InputAt(intptr_t i) const {
+    return (*inputs_)[i];
+  }
+
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    ASSERT(value != NULL);
+    (*inputs_)[i] = value;
+  }
+
+  // Returns a structure describing the location constraints required
+  // to emit native code for this definition.
+  LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+ private:
+  ZoneGrowableArray<Value*>* inputs_;
+
+  LocationSummary* locs_;
+
+  const MethodRecognizer::Kind recognized_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(InvokeMathCFunctionInstr);
 };
 
 

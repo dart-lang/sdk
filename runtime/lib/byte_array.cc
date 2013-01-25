@@ -22,7 +22,7 @@ static void RangeCheck(const ByteArray& array,
   if (!Utils::RangeCheck(index, num_bytes, array.ByteLength())) {
     const String& error = String::Handle(String::NewFormatted(
         "index (%"Pd") must be in the range [0..%"Pd")",
-        index, (array.ByteLength() / num_bytes)));
+        (index / num_bytes), (array.ByteLength() / num_bytes)));
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kRange, args);
@@ -86,6 +86,23 @@ static void LengthCheck(intptr_t len, intptr_t max) {
   return Integer::New(index.Value() + sizeof(ValueT));
 
 
+#define SCALED_UNALIGNED_GETTER(ArrayT, ObjectT, ValueT)                       \
+  GETTER_ARGUMENTS(ArrayT, ValueT);                                            \
+  RangeCheck(array, index.Value() * sizeof(ValueT), sizeof(ValueT));           \
+  ValueT result;                                                               \
+  ByteArray::Copy(&result, array,                                              \
+      index.Value() * sizeof(ValueT), sizeof(ValueT));                         \
+  return ObjectT::New(result);
+
+
+#define SCALED_UNALIGNED_SETTER(ArrayT, ObjectT, Getter, ValueT)               \
+  SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT);                                   \
+  RangeCheck(array, index.Value() * sizeof(ValueT), sizeof(ValueT));           \
+  ValueT src = value_object.Getter();                                          \
+  ByteArray::Copy(array, index.Value() * sizeof(ValueT), &src, sizeof(ValueT));\
+  return Integer::New(index.Value() + sizeof(ValueT));
+
+
 #define UINT64_TO_INTEGER(value, integer)                                      \
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {                        \
     result = BigintOperations::NewFromUint64(value);                           \
@@ -118,8 +135,7 @@ static void LengthCheck(intptr_t len, intptr_t max) {
 
 #define INTEGER_TO_UINT64(integer, uint64)                                     \
   if (integer.IsBigint()) {                                                    \
-    Bigint& bigint = Bigint::Handle();                                         \
-    bigint |= integer.raw();                                                   \
+    const Bigint& bigint = Bigint::Cast(integer);                              \
     ASSERT(BigintOperations::FitsIntoUint64(bigint));                          \
     value = BigintOperations::AbsToUint64(bigint);                             \
   } else {                                                                     \
@@ -286,7 +302,7 @@ DEFINE_NATIVE_ENTRY(Int8Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Int8Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Int8List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int8Array::kMaxElements);
@@ -320,7 +336,7 @@ DEFINE_NATIVE_ENTRY(Uint8Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Uint8Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Uint8List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8Array::kMaxElements);
@@ -354,7 +370,7 @@ DEFINE_NATIVE_ENTRY(Uint8ClampedArray_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Uint8ClampedArray_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Uint8ClampedList_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8ClampedArray::kMaxElements);
@@ -388,7 +404,7 @@ DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Int16Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Int16List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int16Array::kMaxElements);
@@ -422,7 +438,7 @@ DEFINE_NATIVE_ENTRY(Uint16Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Uint16Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Uint16List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint16Array::kMaxElements);
@@ -456,7 +472,7 @@ DEFINE_NATIVE_ENTRY(Int32Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Int32Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Int32List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int32Array::kMaxElements);
@@ -490,7 +506,7 @@ DEFINE_NATIVE_ENTRY(Uint32Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Uint32Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Uint32List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint32Array::kMaxElements);
@@ -524,7 +540,7 @@ DEFINE_NATIVE_ENTRY(Int64Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Int64Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Int64List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int64Array::kMaxElements);
@@ -558,7 +574,7 @@ DEFINE_NATIVE_ENTRY(Uint64Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Uint64Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Uint64List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint64Array::kMaxElements);
@@ -592,7 +608,7 @@ DEFINE_NATIVE_ENTRY(Float32Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Float32Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Float32List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float32Array::kMaxElements);
@@ -626,7 +642,7 @@ DEFINE_NATIVE_ENTRY(Float64Array_new, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Float64Array_newTransferable, 1) {
+DEFINE_NATIVE_ENTRY(Float64List_newTransferable, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float64Array::kMaxElements);
@@ -665,24 +681,24 @@ DEFINE_NATIVE_ENTRY(ExternalInt8Array_setIndexed, 3) {
 // ExternalUint8Array
 
 DEFINE_NATIVE_ENTRY(ExternalUint8Array_getIndexed, 2) {
-  UNALIGNED_GETTER(ExternalUint8Array, Smi, uint8_t);
+  SCALED_UNALIGNED_GETTER(ExternalUint8Array, Smi, uint8_t);
 }
 
 
 DEFINE_NATIVE_ENTRY(ExternalUint8Array_setIndexed, 3) {
-  UNALIGNED_SETTER(ExternalUint8Array, Smi, Value, uint8_t);
+  SCALED_UNALIGNED_SETTER(ExternalUint8Array, Smi, Value, uint8_t);
 }
 
 
 // ExternalUint8ClampedArray
 
 DEFINE_NATIVE_ENTRY(ExternalUint8ClampedArray_getIndexed, 2) {
-  UNALIGNED_GETTER(ExternalUint8ClampedArray, Smi, uint8_t);
+  SCALED_UNALIGNED_GETTER(ExternalUint8ClampedArray, Smi, uint8_t);
 }
 
 
 DEFINE_NATIVE_ENTRY(ExternalUint8ClampedArray_setIndexed, 3) {
-  UNALIGNED_SETTER(ExternalUint8ClampedArray, Smi, Value, uint8_t);
+  SCALED_UNALIGNED_SETTER(ExternalUint8ClampedArray, Smi, Value, uint8_t);
 }
 
 
@@ -701,12 +717,12 @@ DEFINE_NATIVE_ENTRY(ExternalInt16Array_setIndexed, 3) {
 // ExternalUint16Array
 
 DEFINE_NATIVE_ENTRY(ExternalUint16Array_getIndexed, 2) {
-  UNALIGNED_GETTER(ExternalUint16Array, Smi, uint16_t);
+  SCALED_UNALIGNED_GETTER(ExternalUint16Array, Smi, uint16_t);
 }
 
 
 DEFINE_NATIVE_ENTRY(ExternalUint16Array_setIndexed, 3) {
-  UNALIGNED_SETTER(ExternalUint16Array, Smi, Value, uint16_t);
+  SCALED_UNALIGNED_SETTER(ExternalUint16Array, Smi, Value, uint16_t);
 }
 
 
@@ -725,12 +741,12 @@ DEFINE_NATIVE_ENTRY(ExternalInt32Array_setIndexed, 3) {
 // ExternalUint32Array
 
 DEFINE_NATIVE_ENTRY(ExternalUint32Array_getIndexed, 2) {
-  UNALIGNED_GETTER(ExternalUint32Array, Integer, uint32_t);
+  SCALED_UNALIGNED_GETTER(ExternalUint32Array, Integer, uint32_t);
 }
 
 
 DEFINE_NATIVE_ENTRY(ExternalUint32Array_setIndexed, 3) {
-  UNALIGNED_SETTER(ExternalUint32Array, Integer, AsInt64Value, uint32_t);
+  SCALED_UNALIGNED_SETTER(ExternalUint32Array, Integer, AsInt64Value, uint32_t);
 }
 
 

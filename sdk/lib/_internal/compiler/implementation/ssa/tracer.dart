@@ -37,7 +37,7 @@ class HTracer extends HGraphVisitor implements Tracer {
     tag("compilation", () {
       printProperty("name", methodName);
       printProperty("method", methodName);
-      printProperty("date", new Date.now().millisecondsSinceEpoch);
+      printProperty("date", new DateTime.now().millisecondsSinceEpoch);
     });
   }
 
@@ -83,7 +83,7 @@ class HTracer extends HGraphVisitor implements Tracer {
          instruction = instruction.next) {
       int bci = 0;
       int uses = instruction.usedBy.length;
-      String changes = instruction.hasSideEffects(types) ? '!' : ' ';
+      String changes = instruction.hasSideEffects() ? '!' : ' ';
       String depends = instruction.dependsOnSomething() ? '?' : '';
       addIndent();
       String temporaryId = stringifier.temporaryId(instruction);
@@ -225,24 +225,24 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Boolify: ${temporaryId(node.inputs[0])}";
   }
 
-  String handleBinaryArithmetic(HBinaryArithmetic node, String op) {
+  String handleInvokeBinary(HInvokeBinary node, String op) {
     String left = temporaryId(node.left);
     String right= temporaryId(node.right);
     return '$left $op $right';
   }
 
-  String visitAdd(HAdd node) => handleBinaryArithmetic(node, '+');
+  String visitAdd(HAdd node) => handleInvokeBinary(node, '+');
 
-  String visitBitAnd(HBitAnd node) => handleBinaryArithmetic(node, '&');
+  String visitBitAnd(HBitAnd node) => handleInvokeBinary(node, '&');
 
   String visitBitNot(HBitNot node) {
     String operand = temporaryId(node.operand);
     return "~$operand";
   }
 
-  String visitBitOr(HBitOr node) => handleBinaryArithmetic(node, '|');
+  String visitBitOr(HBitOr node) => handleInvokeBinary(node, '|');
 
-  String visitBitXor(HBitXor node) => handleBinaryArithmetic(node, '^');
+  String visitBitXor(HBitXor node) => handleInvokeBinary(node, '^');
 
   String visitBoundsCheck(HBoundsCheck node) {
     String lengthId = temporaryId(node.length);
@@ -268,35 +268,42 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Continue: (B${target.id})";
   }
 
-  String visitDivide(HDivide node) => handleBinaryArithmetic(node, '/');
-
-  String visitEquals(HEquals node) => visitInvokeStatic(node);
+  String visitDivide(HDivide node) => handleInvokeBinary(node, '/');
 
   String visitExit(HExit node) => "exit";
 
   String visitFieldGet(HFieldGet node) {
     String fieldName = node.element.name.slowToString();
-    return 'get ${temporaryId(node.receiver)}.$fieldName';
+    return 'field get ${temporaryId(node.receiver)}.$fieldName';
   }
 
   String visitFieldSet(HFieldSet node) {
     String valueId = temporaryId(node.value);
     String fieldName = node.element.name.slowToString();
-    return 'set ${temporaryId(node.receiver)}.$fieldName to $valueId';
+    return 'field set ${temporaryId(node.receiver)}.$fieldName to $valueId';
   }
 
-  String visitLocalGet(HLocalGet node) => visitFieldGet(node);
-  String visitLocalSet(HLocalSet node) => visitFieldSet(node);
+  String visitLocalGet(HLocalGet node) {
+    String localName = node.element.name.slowToString();
+    return 'local get ${temporaryId(node.local)}.$localName';
+  }
+
+  String visitLocalSet(HLocalSet node) {
+    String valueId = temporaryId(node.value);
+    String localName = node.element.name.slowToString();
+    return 'local set ${temporaryId(node.local)}.$localName to $valueId';
+  }
 
   String visitGoto(HGoto node) {
     HBasicBlock target = currentBlock.successors[0];
     return "Goto: (B${target.id})";
   }
 
-  String visitGreater(HGreater node) => visitInvokeStatic(node);
-  String visitGreaterEqual(HGreaterEqual node) => visitInvokeStatic(node);
-
-  String visitIdentity(HIdentity node) => visitInvokeStatic(node);
+  String visitGreater(HGreater node) => handleInvokeBinary(node, '>');
+  String visitGreaterEqual(HGreaterEqual node) {
+    handleInvokeBinary(node, '>=');
+  }
+  String visitIdentity(HIdentity node) => handleInvokeBinary(node, '===');
 
   String visitIf(HIf node) {
     HBasicBlock thenBlock = currentBlock.successors[0];
@@ -384,8 +391,8 @@ class HInstructionStringifier implements HVisitor<String> {
                               node.inputs);
   }
 
-  String visitLess(HLess node) => visitInvokeStatic(node);
-  String visitLessEqual(HLessEqual node) => visitInvokeStatic(node);
+  String visitLess(HLess node) => handleInvokeBinary(node, '<');
+  String visitLessEqual(HLessEqual node) => handleInvokeBinary(node, '<=');
 
   String visitLiteralList(HLiteralList node) {
     StringBuffer elementsString = new StringBuffer();
@@ -403,7 +410,7 @@ class HInstructionStringifier implements HVisitor<String> {
     return "While ($conditionId): (B${bodyBlock.id}) then (B${exitBlock.id})";
   }
 
-  String visitMultiply(HMultiply node) => handleBinaryArithmetic(node, '*');
+  String visitMultiply(HMultiply node) => handleInvokeBinary(node, '*');
 
   String visitNegate(HNegate node) {
     String operand = temporaryId(node.operand);
@@ -433,13 +440,16 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitReturn(HReturn node) => "Return ${temporaryId(node.inputs[0])}";
 
-  String visitShiftLeft(HShiftLeft node) => handleBinaryArithmetic(node, '<<');
+  String visitShiftLeft(HShiftLeft node) => handleInvokeBinary(node, '<<');
 
   String visitStatic(HStatic node)
       => "Static ${node.element.name.slowToString()}";
 
   String visitLazyStatic(HLazyStatic node)
       => "LazyStatic ${node.element.name.slowToString()}";
+
+  String visitOneShotInterceptor(HOneShotInterceptor node)
+      => visitInvokeDynamic(node, "one shot interceptor");
 
   String visitStaticStore(HStaticStore node) {
     String lhs = node.element.name.slowToString();
@@ -452,7 +462,7 @@ class HInstructionStringifier implements HVisitor<String> {
     return "StringConcat: $leftId + $rightId";
   }
 
-  String visitSubtract(HSubtract node) => handleBinaryArithmetic(node, '-');
+  String visitSubtract(HSubtract node) => handleInvokeBinary(node, '-');
 
   String visitSwitch(HSwitch node) {
     StringBuffer buf = new StringBuffer();

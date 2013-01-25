@@ -91,14 +91,16 @@ class FlowGraph : public ZoneAllocated {
   }
 
   intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
+  void set_current_ssa_temp_index(intptr_t index) {
+    current_ssa_temp_index_ = index;
+  }
 
   intptr_t max_virtual_register_number() const {
     return current_ssa_temp_index();
   }
 
-  intptr_t max_block_id() const {
-    return max_block_id_;
-  }
+  intptr_t max_block_id() const { return max_block_id_; }
+  void set_max_block_id(intptr_t id) { max_block_id_ = id; }
 
   GraphEntryInstr* graph_entry() const {
     return graph_entry_;
@@ -124,13 +126,12 @@ class FlowGraph : public ZoneAllocated {
   // body blocks for each loop header.
   void ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers);
 
-  void InlineCall(Definition* call,
-                  FlowGraph* callee_graph,
-                  ValueInliningContext* inlining_context);
   void RepairGraphAfterInlining();
 
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;
+
+  void InvalidateDominatorTree() { invalid_dominator_tree_ = true; }
 
 #ifdef DEBUG
   // Validation methods for debugging.

@@ -133,6 +133,7 @@ class JSNumber {
     return JS('String', r'#.toString(#)', this, radix);
   }
 
+  // Note: if you change this, also change the function [S].
   String toString() {
     if (this == 0 && JS('bool', '(1 / #) < 0', this)) {
       return '-0.0';
@@ -230,6 +231,26 @@ class JSNumber {
   num operator ^(num other) {
     if (other is !num) throw new ArgumentError(other);
     return JS('num', r'(# ^ #) >>> 0', this, other);    
+  }
+
+  bool operator <(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# < #', this, other);
+  }
+
+  bool operator >(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# > #', this, other);
+  }
+
+  bool operator <=(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# <= #', this, other);
+  }
+
+  bool operator >=(num other) {
+    if (other is !num) throw new ArgumentError(other);
+    return JS('num', '# >= #', this, other);
   }
 }
 

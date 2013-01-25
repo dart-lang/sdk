@@ -158,7 +158,11 @@ const String CORELIB = r'''
   class String {}
   class Object {}
   class Function {}
-  abstract class List {}
+  abstract class List<E> {
+    factory List([int length]);
+    E operator [](int index);
+    void operator []=(int index, E value);
+  }
   abstract class Map {}
   class Closure {}
   class Null {}
@@ -890,7 +894,7 @@ testInequality() {
   result.checkNodeHasType('bar', [result.bool]);
   result.checkNodeHasType('baz', []);
   // TODO(polux): the following result should be [:[null, string]:], see
-  // fieldInitialization().
+  // testFieldInitialization().
   result.checkFieldHasType('A', 'witness', [result.string]);
 }
 
@@ -907,6 +911,48 @@ testFieldInitialization() {
   AnalysisResult result = analyze(source);
   result.checkFieldHasType('A', 'x', [result.nullType]);
   result.checkFieldHasType('A', 'y', [result.int]);
+}
+
+testLists() {
+  final String source = r"""
+    main() {
+      new List();
+      var l1 = [1.2];
+      var l2 = [];
+      l1['a'] = 42;  // raises an error, so int should not be recorded
+      l1[1] = 'abc';
+      "__dynamic_for_test"[1] = true;
+      var x = l1[1];
+      var y = l2[1];
+      var z = l1['foo'];
+      x; y; z;
+    }""";
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.double, result.string, result.bool]);
+  result.checkNodeHasType('y', [result.double, result.string, result.bool]);
+  result.checkNodeHasType('z', []);
+}
+
+testListWithCapacity() {
+  final String source = r"""
+    main() {
+      var l = new List(10);
+      var x = l[0];
+      x;
+    }""";
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.nullType]);
+}
+
+testEmptyList() {
+  final String source = r"""
+    main() {
+      var l = new List();
+      var x = l[0];
+      x;
+    }""";
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', []);
 }
 
 testSendWithWrongArity() {
@@ -1014,4 +1060,7 @@ void main() {
   testBigTypesWidening1();
   testBigTypesWidening2();
   testDynamicIsAbsorbing();
+  testLists();
+  testListWithCapacity();
+  testEmptyList();
 }

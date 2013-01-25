@@ -4,6 +4,16 @@
 
 // Patch file for dart:core classes.
 
+import 'dart:_interceptors';
+import 'dart:_js_helper' show checkNull,
+                              getRuntimeTypeString,
+                              isJsArray,
+                              JSSyntaxRegExp,
+                              Primitives,
+                              TypeImpl,
+                              stringJoinUnchecked,
+                              JsStringBuffer;
+
 // Patch for 'print' function.
 patch void print(var object) {
   if (object is String) {
@@ -95,23 +105,23 @@ patch class Error {
 }
 
 
-// Patch for Date implementation.
-patch class _DateImpl {
-  patch _DateImpl(int year,
-                  int month,
-                  int day,
-                  int hour,
-                  int minute,
-                  int second,
-                  int millisecond,
-                  bool isUtc)
+// Patch for DateTime implementation.
+patch class DateTime {
+  patch DateTime._internal(int year,
+                           int month,
+                           int day,
+                           int hour,
+                           int minute,
+                           int second,
+                           int millisecond,
+                           bool isUtc)
       : this.isUtc = checkNull(isUtc),
         millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
             year, month, day, hour, minute, second, millisecond, isUtc) {
     Primitives.lazyAsJsDate(this);
   }
 
-  patch _DateImpl.now()
+  patch DateTime._now()
       : isUtc = false,
         millisecondsSinceEpoch = Primitives.dateNow() {
     Primitives.lazyAsJsDate(this);
@@ -255,4 +265,10 @@ patch class RegExp {
 // Patch for 'identical' function.
 patch bool identical(Object a, Object b) {
   return Primitives.identicalImplementation(a, b);
+}
+
+patch class StringBuffer {
+  patch factory StringBuffer([Object content = ""]) {
+    return new JsStringBuffer(content);
+  }
 }

@@ -222,7 +222,7 @@ class LeapCompiler extends Compiler {
   String get legDirectory => libDir;
 
   LibraryElement scanBuiltinLibrary(String path) {
-    Uri base = new Uri.fromString(html.window.location.toString());
+    Uri base = Uri.parse(html.window.location.toString());
     Uri libraryRoot = base.resolve(libDir);
     Uri resolved = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);
     LibraryElement library = scanner.loadLibrary(resolved, null);

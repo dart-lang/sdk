@@ -20,9 +20,18 @@ DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
 DEFINE_FLAG(bool, heap_profile_out_of_memory, false,
             "Writes a heap profile on unhandled out-of-memory exceptions.");
-
+DEFINE_FLAG(bool, verbose_stacktrace, false,
+    "Stack traces will include methods marked invisible.");
 
 const char* Exceptions::kCastErrorDstName = "type cast";
+
+
+static bool ShouldShowFunction(const Function& function) {
+  if (FLAG_verbose_stacktrace) {
+    return true;
+  }
+  return function.is_visible();
+}
 
 
 // Iterate through the stack frames and try to find a frame with an
@@ -56,16 +65,20 @@ static bool FindExceptionHandler(uword* handler_pc,
           ASSERT(pc != 0);
           code = func.unoptimized_code();
           offset = Smi::New(pc - code.EntryPoint());
-          func_list.Add(func);
-          code_list.Add(code);
-          pc_offset_list.Add(offset);
+          if (ShouldShowFunction(func)) {
+            func_list.Add(func);
+            code_list.Add(code);
+            pc_offset_list.Add(offset);
+          }
         }
       } else {
         offset = Smi::New(frame->pc() - code.EntryPoint());
         func = code.function();
-        func_list.Add(func);
-        code_list.Add(code);
-        pc_offset_list.Add(offset);
+        if (ShouldShowFunction(func)) {
+          func_list.Add(func);
+          code_list.Add(code);
+          pc_offset_list.Add(offset);
+        }
       }
       if (frame->FindExceptionHandler(handler_pc)) {
         *handler_sp = frame->sp();
@@ -194,11 +207,11 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
     if (existing_stacktrace.IsNull()) {
       stacktrace = Stacktrace::New(func_list, code_list, pc_offset_list);
     } else {
-      stacktrace |= existing_stacktrace.raw();
+      stacktrace ^= existing_stacktrace.raw();
       stacktrace.Append(func_list, code_list, pc_offset_list);
     }
   } else {
-    stacktrace |= existing_stacktrace.raw();
+    stacktrace ^= existing_stacktrace.raw();
   }
   if (FLAG_print_stacktrace_at_throw) {
     OS::Print("Exception '%s' thrown:\n", exception.ToCString());

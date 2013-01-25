@@ -21,7 +21,9 @@ class MinifyNamer extends Namer {
 
   // You can pass an invalid identifier to this and unlike its non-minifying
   // counterpart it will never return the proposedName as the new fresh name.
-  String getFreshName(String proposedName, Set<String> usedNames) {
+  String getFreshName(String proposedName,
+                      Set<String> usedNames,
+                      {bool ensureSafe: true}) {
     var freshName = _getUnusedName(proposedName, usedNames);
     usedNames.add(freshName);
     return freshName;
@@ -35,7 +37,9 @@ class MinifyNamer extends Namer {
   }
 
   void reserveBackendNames() {
-    for (var name in JsNames.reservedNativeProperties) {
+     // TODO(7554): We need a complete list from the DOM.
+    const reservedNativeProperties = const <String>["x", "y", "z"];
+    for (var name in reservedNativeProperties) {
       if (name.length < 3) {
         instanceNameMap[name] = name;
       }

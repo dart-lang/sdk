@@ -88,7 +88,6 @@
         'abstract': 1,
         'xcode_settings': {
           'ARCHS': [ 'i386' ],
-          'GCC_OPTIMIZATION_LEVEL': '3',
         },
       },
 

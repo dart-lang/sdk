@@ -72,7 +72,7 @@ class ProxyServer {
           requestCount++;
           // Open the connection from the proxy.
           HttpClientConnection conn =
-              client.openUrl(request.method, new Uri.fromString(request.path));
+              client.openUrl(request.method, Uri.parse(request.path));
           conn.onRequest = (HttpClientRequest clientRequest) {
             // Forward all headers.
             request.headers.forEach((String name, List<String> values) {
@@ -118,17 +118,17 @@ testInvalidProxy() {
   // HttpClientConnection onError.
   client.findProxy = (Uri uri) => "XXX";
   Expect.throws(
-      () => client.getUrl(new Uri.fromString("http://www.google.com/test")),
+      () => client.getUrl(Uri.parse("http://www.google.com/test")),
       (e) => e is HttpException);
 
   client.findProxy = (Uri uri) => "PROXY www.google.com";
   Expect.throws(
-      () => client.getUrl(new Uri.fromString("http://www.google.com/test")),
+      () => client.getUrl(Uri.parse("http://www.google.com/test")),
       (e) => e is HttpException);
 
   client.findProxy = (Uri uri) => "PROXY www.google.com:http";
   Expect.throws(
-      () => client.getUrl(new Uri.fromString("http://www.google.com/test")),
+      () => client.getUrl(Uri.parse("http://www.google.com/test")),
       (e) => e is HttpException);
 }
 
@@ -147,7 +147,7 @@ void testDirectProxy() {
 
   for (int i = 0; i < proxy.length; i++) {
     HttpClientConnection conn =
-        client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/$i"));
+        client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"));
     conn.onRequest = (HttpClientRequest clientRequest) {
       String content = "$i$i$i";
       clientRequest.contentLength = content.length;
@@ -191,7 +191,7 @@ void testProxy() {
   for (int i = 0; i < proxy.length; i++) {
     HttpClientConnection conn =
         client.postUrl(
-            new Uri.fromString("http://127.0.0.1:${server.port}/$i"));
+            Uri.parse("http://127.0.0.1:${server.port}/$i"));
     conn.onRequest = (HttpClientRequest clientRequest) {
       String content = "$i$i$i";
       clientRequest.outputStream.writeString(content);
@@ -238,7 +238,7 @@ void testProxyChain() {
 
   for (int i = 0; i < proxy.length; i++) {
     HttpClientConnection conn =
-        client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/$i"));
+        client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"));
     conn.onRequest = (HttpClientRequest clientRequest) {
       String content = "$i$i$i";
       clientRequest.contentLength = content.length;
@@ -280,7 +280,7 @@ void testRealProxy() {
 
   for (int i = 0; i < proxy.length; i++) {
     HttpClientConnection conn =
-       client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/$i"));
+       client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"));
     conn.onRequest = (HttpClientRequest clientRequest) {
       String content = "$i$i$i";
       clientRequest.contentLength = content.length;

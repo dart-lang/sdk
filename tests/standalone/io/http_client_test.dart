@@ -30,7 +30,7 @@ void testGoogleUrl() {
   HttpClient client = new HttpClient();
 
   void testUrl(String url) {
-    var requestUri = new Uri.fromString(url);
+    var requestUri = Uri.parse(url);
     var conn = client.getUrl(requestUri);
 
     conn.onRequest = (HttpClientRequest request) {
@@ -62,7 +62,7 @@ void testGoogleUrl() {
 void testInvalidUrl() {
   HttpClient client = new HttpClient();
   Expect.throws(
-      () => client.getUrl(new Uri.fromString('ftp://www.google.com')));
+      () => client.getUrl(Uri.parse('ftp://www.google.com')));
 }
 
 void testBadHostName() {

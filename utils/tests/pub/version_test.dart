@@ -5,6 +5,7 @@
 library version_test;
 
 import '../../../pkg/unittest/lib/unittest.dart';
+import 'test_pub.dart';
 import '../../pub/utils.dart';
 import '../../pub/version.dart';
 
@@ -302,8 +303,20 @@ main() {
   });
 
   group('VersionConstraint', () {
+    test('any', () {
+      expect(VersionConstraint.any.isAny, isTrue);
+      expect(VersionConstraint.any, allows([
+        new Version.parse('0.0.0-blah'),
+        new Version.parse('1.2.3'),
+        new Version.parse('12345.678.90')]));
+    });
+
     test('empty', () {
-      expect(new VersionConstraint.empty().isEmpty, isTrue);
+      expect(VersionConstraint.empty.isEmpty, isTrue);
+      expect(VersionConstraint.empty, doesNotAllow([
+        new Version.parse('0.0.0-blah'),
+        new Version.parse('1.2.3'),
+        new Version.parse('12345.678.90')]));
     });
 
     group('parse()', () {

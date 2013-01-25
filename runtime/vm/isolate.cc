@@ -17,6 +17,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -270,6 +271,7 @@ Isolate::Isolate()
       api_state_(NULL),
       stub_code_(NULL),
       debugger_(NULL),
+      simulator_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
       deopt_id_(0),
@@ -297,6 +299,9 @@ Isolate::~Isolate() {
   delete api_state_;
   delete stub_code_;
   delete debugger_;
+#if defined(USING_SIMULATOR)
+  delete simulator_;
+#endif
   delete mutex_;
   mutex_ = NULL;  // Fail fast if interrupts are scheduled on a dead isolate.
   delete message_handler_;
@@ -432,7 +437,7 @@ ICData* Isolate::GetICDataForDeoptId(intptr_t deopt_id) const {
     return &ICData::ZoneHandle();
   }
   ICData& ic_data_handle = ICData::ZoneHandle();
-  ic_data_handle |= array_handle.At(deopt_id);
+  ic_data_handle ^= array_handle.At(deopt_id);
   return &ic_data_handle;
 }
 
@@ -457,7 +462,7 @@ static void AddFunctionsFromClass(const Class& cls,
   const int func_len = class_functions.IsNull() ? 0 : class_functions.Length();
   for (int j = 0; j < func_len; j++) {
     Function& function = Function::Handle();
-    function |= class_functions.At(j);
+    function ^= class_functions.At(j);
     if (function.usage_counter() > 0) {
       functions->Add(&function);
     }
@@ -474,7 +479,7 @@ void Isolate::PrintInvokedFunctions() {
   Library& library = Library::Handle();
   GrowableArray<const Function*> invoked_functions;
   for (int i = 0; i < libraries.Length(); i++) {
-    library |= libraries.At(i);
+    library ^= libraries.At(i);
     Class& cls = Class::Handle();
     ClassDictionaryIterator iter(library);
     while (iter.HasNext()) {
@@ -483,7 +488,7 @@ void Isolate::PrintInvokedFunctions() {
     }
     Array& anon_classes = Array::Handle(library.raw_ptr()->anonymous_classes_);
     for (int i = 0; i < library.raw_ptr()->num_anonymous_; i++) {
-      cls |= anon_classes.At(i);
+      cls ^= anon_classes.At(i);
       AddFunctionsFromClass(cls, &invoked_functions);
     }
   }

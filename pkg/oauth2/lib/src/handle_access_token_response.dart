@@ -24,7 +24,7 @@ const _EXPIRATION_GRACE = 10;
 Credentials handleAccessTokenResponse(
     http.Response response,
     Uri tokenEndpoint,
-    Date startTime,
+    DateTime startTime,
     List<String> scopes) {
   if (response.statusCode != 200) _handleErrorResponse(response, tokenEndpoint);
 
@@ -130,7 +130,7 @@ void _handleErrorResponse(http.Response response, Uri tokenEndpoint) {
 
   var description = parameters['error_description'];
   var uriString = parameters['error_uri'];
-  var uri = uriString == null ? null : new Uri.fromString(uriString);
+  var uri = uriString == null ? null : Uri.parse(uriString);
   throw new AuthorizationException(parameters['error'], description, uri);
 }
 

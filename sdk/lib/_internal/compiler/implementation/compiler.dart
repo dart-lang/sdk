@@ -193,6 +193,7 @@ abstract class Compiler implements DiagnosticListener {
    */
   final int maxConcreteTypeSize;
   final bool analyzeAll;
+  final bool analyzeOnly;
   final bool enableNativeLiveTypeAnalysis;
   final bool rejectDeprecatedFeatures;
   final bool checkDeprecationInSdk;
@@ -203,6 +204,8 @@ abstract class Compiler implements DiagnosticListener {
   final bool preserveComments;
 
   bool disableInlining = false;
+
+  List<Uri> librariesToAnalyzeWhenRun;
 
   final Tracer tracer;
 
@@ -324,6 +327,7 @@ abstract class Compiler implements DiagnosticListener {
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
             this.analyzeAll: false,
+            this.analyzeOnly: false,
             this.rejectDeprecatedFeatures: false,
             this.checkDeprecationInSdk: false,
             this.preserveComments: false,
@@ -488,33 +492,50 @@ abstract class Compiler implements DiagnosticListener {
   LibraryElement scanBuiltinLibrary(String filename);
 
   void initializeSpecialClasses() {
-    final List missingClasses = [];
-    ClassElement lookupSpecialClass(SourceString name) {
+    final List missingCoreClasses = [];
+    ClassElement lookupCoreClass(SourceString name) {
       ClassElement result = coreLibrary.find(name);
       if (result == null) {
-        missingClasses.add(name.slowToString());
+        missingCoreClasses.add(name.slowToString());
       }
       return result;
     }
-    objectClass = lookupSpecialClass(const SourceString('Object'));
-    boolClass = lookupSpecialClass(const SourceString('bool'));
-    numClass = lookupSpecialClass(const SourceString('num'));
-    intClass = lookupSpecialClass(const SourceString('int'));
-    doubleClass = lookupSpecialClass(const SourceString('double'));
-    stringClass = lookupSpecialClass(const SourceString('String'));
-    functionClass = lookupSpecialClass(const SourceString('Function'));
-    listClass = lookupSpecialClass(const SourceString('List'));
-    typeClass = lookupSpecialClass(const SourceString('Type'));
-    mapClass = lookupSpecialClass(const SourceString('Map'));
-    jsInvocationMirrorClass =
-        lookupSpecialClass(const SourceString('JSInvocationMirror'));
-    closureClass = lookupSpecialClass(const SourceString('Closure'));
-    dynamicClass = lookupSpecialClass(const SourceString('Dynamic_'));
-    nullClass = lookupSpecialClass(const SourceString('Null'));
-    types = new Types(this, dynamicClass);
-    if (!missingClasses.isEmpty) {
-      cancel('core library does not contain required classes: $missingClasses');
+    objectClass = lookupCoreClass(const SourceString('Object'));
+    boolClass = lookupCoreClass(const SourceString('bool'));
+    numClass = lookupCoreClass(const SourceString('num'));
+    intClass = lookupCoreClass(const SourceString('int'));
+    doubleClass = lookupCoreClass(const SourceString('double'));
+    stringClass = lookupCoreClass(const SourceString('String'));
+    functionClass = lookupCoreClass(const SourceString('Function'));
+    listClass = lookupCoreClass(const SourceString('List'));
+    typeClass = lookupCoreClass(const SourceString('Type'));
+    mapClass = lookupCoreClass(const SourceString('Map'));
+    if (!missingCoreClasses.isEmpty) {
+      internalErrorOnElement(coreLibrary,
+          'dart:core library does not contain required classes: '
+          '$missingCoreClasses');
     }
+
+    final List missingHelperClasses = [];
+    ClassElement lookupHelperClass(SourceString name) {
+      ClassElement result = jsHelperLibrary.find(name);
+      if (result == null) {
+        missingHelperClasses.add(name.slowToString());
+      }
+      return result;
+    }
+    jsInvocationMirrorClass =
+        lookupHelperClass(const SourceString('JSInvocationMirror'));
+    closureClass = lookupHelperClass(const SourceString('Closure'));
+    dynamicClass = lookupHelperClass(const SourceString('Dynamic_'));
+    nullClass = lookupHelperClass(const SourceString('Null'));
+    if (!missingHelperClasses.isEmpty) {
+      internalErrorOnElement(jsHelperLibrary,
+          'dart:_js_helper library does not contain required classes: '
+          '$missingHelperClasses');
+    }
+
+    types = new Types(this, dynamicClass);
   }
 
   void scanBuiltinLibraries() {
@@ -528,18 +549,6 @@ abstract class Compiler implements DiagnosticListener {
     ClassElement cls =
         isolateHelperLibrary.find(const SourceString('_WorkerStub'));
     cls.setNative('"*Worker"');
-
-    // The core library was loaded and patched before jsHelperLibrary was
-    // initialized, so it wasn't imported into those two libraries during
-    // patching.
-    importHelperLibrary(coreLibrary);
-    importHelperLibrary(interceptorsLibrary);
-
-    importForeignLibrary(jsHelperLibrary);
-    importForeignLibrary(interceptorsLibrary);
-
-    importForeignLibrary(isolateHelperLibrary);
-    importHelperLibrary(isolateHelperLibrary);
 
     assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));
@@ -573,94 +582,61 @@ abstract class Compiler implements DiagnosticListener {
    */
   Uri resolvePatchUri(String dartLibraryPath);
 
-  /** Define the JS helper functions in the given library. */
-  void importForeignLibrary(LibraryElement library) {
-    if (foreignLibrary != null) {
-      libraryLoader.importLibrary(library, foreignLibrary, null);
-    }
-  }
-
-  void importIsolateHelperLibrary(LibraryElement library) {
-    if (isolateHelperLibrary != null) {
-      libraryLoader.importLibrary(library, isolateHelperLibrary, null);
-    }
-  }
-
-  // TODO(karlklose,floitsch): move this to the javascript backend.
-  /** Enable the 'JS' helper for a library if needed. */
-  void maybeEnableJSHelper(LibraryElement library) {
-    String libraryName = library.uri.toString();
-    bool nativeTest = library.entryCompilationUnit.script.name.contains(
-        'dart/tests/compiler/dart2js_native');
-    if (nativeTest
-        || libraryName == 'dart:async'
-        || libraryName == 'dart:chrome'
-        || libraryName == 'dart:mirrors'
-        || libraryName == 'dart:math'
-        || libraryName == 'dart:html'
-        || libraryName == 'dart:html_common'
-        || libraryName == 'dart:indexed_db'
-        || libraryName == 'dart:svg'
-        || libraryName == 'dart:web_audio') {
-      if (nativeTest
-          || libraryName == 'dart:html'
-          || libraryName == 'dart:html_common'
-          || libraryName == 'dart:indexed_db'
-          || libraryName == 'dart:svg') {
-        // dart:html and dart:svg need access to convertDartClosureToJS and
-        // annotation classes.
-        // dart:mirrors needs access to the Primitives class.
-        importHelperLibrary(library);
-      }
-      library.addToScope(
-          foreignLibrary.findLocal(const SourceString('JS')), this);
-      Element jsIndexingBehaviorInterface =
-          findHelper(const SourceString('JavaScriptIndexingBehavior'));
-      if (jsIndexingBehaviorInterface != null) {
-        library.addToScope(jsIndexingBehaviorInterface, this);
-      }
-    }
-  }
-
-  void maybeEnableIsolateHelper(LibraryElement library) {
-    String libraryName = library.uri.toString();
-    if (libraryName == 'dart:isolate'
-        || libraryName == 'dart:html'
-        // TODO(floitsch): create a separate async-helper library instead of
-        // importing the isolate-library just for TimerImpl.
-        || libraryName == 'dart:async') {
-      importIsolateHelperLibrary(library);
-    }
-  }
-
   void runCompiler(Uri uri) {
-    log('compiling $uri ($BUILD_ID)');
+    assert(uri != null || analyzeOnly);
     scanBuiltinLibraries();
-    mainApp = libraryLoader.loadLibrary(uri, null, uri);
-    libraries.forEach((_, library) {
-      maybeEnableJSHelper(library);
-      maybeEnableIsolateHelper(library);
-    });
-    final Element main = mainApp.find(MAIN);
-    if (main == null) {
-      reportFatalError('Could not find $MAIN', mainApp);
-    } else {
-      if (!main.isFunction()) reportFatalError('main is not a function', main);
-      FunctionElement mainMethod = main;
-      FunctionSignature parameters = mainMethod.computeSignature(this);
-      parameters.forEachParameter((Element parameter) {
-        reportFatalError('main cannot have parameters', parameter);
-      });
+    if (librariesToAnalyzeWhenRun != null) {
+      for (Uri libraryUri in librariesToAnalyzeWhenRun) {
+        log('analyzing $libraryUri ($BUILD_ID)');
+        libraryLoader.loadLibrary(libraryUri, null, libraryUri);
+      }
+    }
+    if (uri != null) {
+      if (analyzeOnly) {
+        log('analyzing $uri ($BUILD_ID)');
+      } else {
+        log('compiling $uri ($BUILD_ID)');
+      }
+      mainApp = libraryLoader.loadLibrary(uri, null, uri);
+    }
+    Element main = null;
+    if (mainApp != null) {
+      main = mainApp.find(MAIN);
+      if (main == null) {
+        if (!analyzeOnly) {
+          // Allow analyze only of libraries with no main.
+          reportFatalError('Could not find $MAIN', mainApp);
+        } else if (!analyzeAll) {
+          reportFatalError(
+              "Could not find $MAIN. "
+              "No source will be analyzed. "
+              "Use '--analyze-all' to analyze all code in the library.",
+              mainApp);
+        }
+      } else {
+        if (!main.isFunction()) {
+          reportFatalError('main is not a function', main);
+        }
+        FunctionElement mainMethod = main;
+        FunctionSignature parameters = mainMethod.computeSignature(this);
+        parameters.forEachParameter((Element parameter) {
+          reportFatalError('main cannot have parameters', parameter);
+        });
+      }
     }
 
     log('Resolving...');
     phase = PHASE_RESOLVING;
-    if (analyzeAll) libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
+    if (analyzeAll) {
+      libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
+    }
     backend.enqueueHelpers(enqueuer.resolution);
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
     if (compilationFailed) return;
+    if (analyzeOnly) return;
+    assert(main != null);
 
     log('Inferring types...');
     typesTask.onResolutionComplete(main);
@@ -707,7 +683,9 @@ abstract class Compiler implements DiagnosticListener {
 
   void processQueue(Enqueuer world, Element main) {
     world.nativeEnqueuer.processNativeClasses(libraries.values);
-    world.addToWorkList(main);
+    if (main != null) {
+      world.addToWorkList(main);
+    }
     progress.reset();
     world.forEach((WorkItem work) {
       withCurrentElement(work.element, () => work.run(this, world));
@@ -944,7 +922,30 @@ abstract class Compiler implements DiagnosticListener {
     return spanFromTokens(token, token, uri);
   }
 
-  Script readScript(Uri uri, [Node node]) {
+  /**
+   * Translates the [resolvedUri] into a readable URI.
+   *
+   * The [importingLibrary] holds the library importing [resolvedUri] or
+   * [:null:] if [resolvedUri] is loaded as the main library. The
+   * [importingLibrary] is used to grant access to internal libraries from
+   * platform libraries and patch libraries.
+   *
+   * If the [resolvedUri] is not accessible from [importingLibrary], this method
+   * is responsible for reporting errors.
+   *
+   * See [LibraryLoader] for terminology on URIs.
+   */
+  Uri translateResolvedUri(LibraryElement importingLibrary,
+                           Uri resolvedUri, Node node) {
+    unimplemented('Compiler.translateResolvedUri');
+  }
+
+  /**
+   * Reads the script specified by the [readableUri].
+   *
+   * See [LibraryLoader] for terminology on URIs.
+   */
+  Script readScript(Uri readableUri, [Node node]) {
     unimplemented('Compiler.readScript');
   }
 

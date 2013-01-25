@@ -51,7 +51,9 @@ abstract class Visitor<R> {
   R visitMixinApplication(MixinApplication node) => visitNode(node);
   R visitModifiers(Modifiers node) => visitNode(node);
   R visitNamedArgument(NamedArgument node) => visitExpression(node);
-  R visitNamedMixinApplication(NamedMixinApplication node) => visitNode(node);
+  R visitNamedMixinApplication(NamedMixinApplication node) {
+    return visitMixinApplication(node);
+  }
   R visitNewExpression(NewExpression node) => visitExpression(node);
   R visitNodeList(NodeList node) => visitNode(node);
   R visitOperator(Operator node) => visitIdentifier(node);
@@ -170,6 +172,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   MixinApplication asMixinApplication() => null;
   Modifiers asModifiers() => null;
   NamedArgument asNamedArgument() => null;
+  NamedMixinApplication asNamedMixinApplication() => null;
   NodeList asNodeList() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
@@ -239,18 +242,16 @@ class ClassNode extends Node {
 }
 
 class MixinApplication extends Node {
-  final Modifiers modifiers;
   final TypeAnnotation superclass;
   final NodeList mixins;
 
-  MixinApplication(this.modifiers, this.superclass, this.mixins);
+  MixinApplication(this.superclass, this.mixins);
 
   MixinApplication asMixinApplication() => this;
 
   accept(Visitor visitor) => visitor.visitMixinApplication(this);
 
   visitChildren(Visitor visitor) {
-    if (modifiers != null) modifiers.accept(visitor);
     if (superclass != null) superclass.accept(visitor);
     if (mixins != null) mixins.accept(visitor);
   }
@@ -261,17 +262,25 @@ class MixinApplication extends Node {
 
 // TODO(kasperl): Let this share some structure with the typedef for function
 // type aliases?
-class NamedMixinApplication extends Node {
+class NamedMixinApplication extends Node implements MixinApplication {
   final Identifier name;
   final NodeList typeParameters;
+
+  final Modifiers modifiers;
   final MixinApplication mixinApplication;
+  final NodeList interfaces;
 
   final Token typedefKeyword;
   final Token endToken;
 
-  NamedMixinApplication(this.name, this.typeParameters, this.mixinApplication,
+  NamedMixinApplication(this.name, this.typeParameters,
+                        this.modifiers, this.mixinApplication, this.interfaces,
                         this.typedefKeyword, this.endToken);
 
+  TypeAnnotation get superclass => mixinApplication.superclass;
+  NodeList get mixins => mixinApplication.mixins;
+
+  MixinApplication asMixinApplication() => this;
   NamedMixinApplication asNamedMixinApplication() => this;
 
   accept(Visitor visitor) => visitor.visitNamedMixinApplication(this);
@@ -279,6 +288,8 @@ class NamedMixinApplication extends Node {
   visitChildren(Visitor visitor) {
     name.accept(visitor);
     if (typeParameters != null) typeParameters.accept(visitor);
+    if (modifiers != null) modifiers.accept(visitor);
+    if (interfaces != null) interfaces.accept(visitor);
     mixinApplication.accept(visitor);
   }
 

@@ -35,6 +35,10 @@ public class CommandLineOptions {
     @Option(name = "--error_format",
         usage = "Format errors as normal or machine")
     private String errorFormat = "";
+    
+    @Option(name = "--extended-exit-code",
+        usage = "0 - clean; 1 - has warnings; 2 - has errors")
+    private boolean extendedExitCode = false;
 
     @Option(name = "--enable_type_checks",
         usage = "Generate runtime type checks")
@@ -148,6 +152,10 @@ public class CommandLineOptions {
 
     public File getDartSdkPath() {
       return dartSdkPath;
+    }
+    
+    public boolean extendedExitCode() {
+      return extendedExitCode;
     }
 
     /**

@@ -322,4 +322,9 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   public int getCloseBraceOffset() {
     return -1;
   }
+  
+  @Override
+  public boolean hasSuperInvocation() {
+    return false;
+  }
 }

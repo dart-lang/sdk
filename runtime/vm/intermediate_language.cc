@@ -200,7 +200,7 @@ const Object& Value::BoundConstant() const {
 
 
 GraphEntryInstr::GraphEntryInstr(TargetEntryInstr* normal_entry)
-    : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex, 0),
+    : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
       normal_entry_(normal_entry),
       catch_entries_(),
       initial_definitions_(),
@@ -828,6 +828,74 @@ bool BlockEntryInstr::Dominates(BlockEntryInstr* other) const {
 }
 
 
+// Helper to mutate the graph during inlining. This block should be
+// replaced with new_block as a predecessor of all of this block's
+// successors.  For each successor, the predecessors will be reordered
+// to preserve block-order sorting of the predecessors as well as the
+// phis if the successor is a join.
+void BlockEntryInstr::ReplaceAsPredecessorWith(BlockEntryInstr* new_block) {
+  // Set the last instruction of the new block to that of the old block.
+  Instruction* last = last_instruction();
+  new_block->set_last_instruction(last);
+  // For each successor, update the predecessors.
+  for (intptr_t sidx = 0; sidx < last->SuccessorCount(); ++sidx) {
+    // If the successor is a target, update its predecessor.
+    TargetEntryInstr* target = last->SuccessorAt(sidx)->AsTargetEntry();
+    if (target != NULL) {
+      target->predecessor_ = new_block;
+      continue;
+    }
+    // If the successor is a join, update each predecessor and the phis.
+    JoinEntryInstr* join = last->SuccessorAt(sidx)->AsJoinEntry();
+    ASSERT(join != NULL);
+    // Find the old predecessor index.
+    intptr_t old_index = join->IndexOfPredecessor(this);
+    intptr_t pred_count = join->PredecessorCount();
+    ASSERT(old_index >= 0);
+    ASSERT(old_index < pred_count);
+    // Find the new predecessor index while reordering the predecessors.
+    intptr_t new_id = new_block->block_id();
+    intptr_t new_index = old_index;
+    if (block_id() < new_id) {
+      // Search upwards, bubbling down intermediate predecessors.
+      for (; new_index < pred_count - 1; ++new_index) {
+        if (join->predecessors_[new_index + 1]->block_id() > new_id) break;
+        join->predecessors_[new_index] = join->predecessors_[new_index + 1];
+      }
+    } else {
+      // Search downwards, bubbling up intermediate predecessors.
+      for (; new_index > 0; --new_index) {
+        if (join->predecessors_[new_index - 1]->block_id() < new_id) break;
+        join->predecessors_[new_index] = join->predecessors_[new_index - 1];
+      }
+    }
+    join->predecessors_[new_index] = new_block;
+    // If the new and old predecessor index match there is nothing to update.
+    if ((join->phis() == NULL) || (old_index == new_index)) return;
+    // Otherwise, reorder the predecessor uses in each phi.
+    for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+      PhiInstr* phi = (*join->phis())[i];
+      if (phi == NULL) continue;
+      ASSERT(pred_count == phi->InputCount());
+      // Save the predecessor use.
+      Value* pred_use = phi->InputAt(old_index);
+      // Move uses between old and new.
+      intptr_t step = (old_index < new_index) ? 1 : -1;
+      for (intptr_t use_idx = old_index;
+           use_idx != new_index;
+           use_idx += step) {
+        Value* use = phi->InputAt(use_idx + step);
+        phi->SetInputAt(use_idx, use);
+        use->set_use_index(use_idx);
+      }
+      // Write the predecessor use.
+      phi->SetInputAt(new_index, pred_use);
+      pred_use->set_use_index(new_index);
+    }
+  }
+}
+
+
 void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   // Lazily initialize the array of phis.
   // Currently, phis are stored in a sparse array that holds the phi
@@ -1128,87 +1196,20 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
     case kExternalUint8ArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
       return Type::IntType();
     default:
       UNIMPLEMENTED();
       return Type::IntType();
-  }
-}
-
-
-intptr_t LoadIndexedInstr::ResultCid() const {
-  switch (class_id_) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return kDynamicCid;
-    case kFloat32ArrayCid :
-    case kFloat64ArrayCid :
-      return kDoubleCid;
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-      return kSmiCid;
-    default:
-      UNIMPLEMENTED();
-      return kSmiCid;
-  }
-}
-
-
-Representation LoadIndexedInstr::representation() const {
-  switch (class_id_) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-      return kTagged;
-    case kFloat32ArrayCid :
-    case kFloat64ArrayCid :
-      return kUnboxedDouble;
-    default:
-      UNIMPLEMENTED();
-      return kTagged;
   }
 }
 
 
 RawAbstractType* StoreIndexedInstr::CompileType() const {
   return AbstractType::null();
-}
-
-
-Representation StoreIndexedInstr::RequiredInputRepresentation(
-    intptr_t idx) const {
-  if ((idx == 0) || (idx == 1)) return kTagged;
-  ASSERT(idx == 2);
-  switch (class_id_) {
-    case kArrayCid:
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-      return kTagged;
-    case kFloat32ArrayCid :
-    case kFloat64ArrayCid :
-      return kUnboxedDouble;
-    default:
-      UNIMPLEMENTED();
-      return kTagged;
-  }
 }
 
 
@@ -1613,6 +1614,11 @@ RawAbstractType* DoubleToSmiInstr::CompileType() const {
 
 
 RawAbstractType* DoubleToDoubleInstr::CompileType() const {
+  return Type::Double();
+}
+
+
+RawAbstractType* InvokeMathCFunctionInstr::CompileType() const {
   return Type::Double();
 }
 
@@ -2682,6 +2688,76 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
       return -1;
   }
 }
+
+
+intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
+    MethodRecognizer::Kind kind) {
+  switch (kind) {
+    case MethodRecognizer::kDoubleTruncate:
+    case MethodRecognizer::kDoubleRound:
+    case MethodRecognizer::kDoubleFloor:
+    case MethodRecognizer::kDoubleCeil: {
+      ASSERT(!CPUFeatures::double_truncate_round_supported());
+      return 1;
+    }
+    case MethodRecognizer::kDoubleMod:
+    case MethodRecognizer::kDoublePow:
+      return 2;
+    default:
+      UNREACHABLE();
+  }
+  return 0;
+}
+
+// Use expected function signatures to help MSVC compiler resolve overloading.
+typedef double (*UnaryMathCFunction) (double x);
+typedef double (*BinaryMathCFunction) (double x, double y);
+
+extern const RuntimeEntry kPowRuntimeEntry(
+    "libc_pow", reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&pow)), 0, true);
+
+extern const RuntimeEntry kModRuntimeEntry(
+    "libc_fmod", reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&fmod)), 0, true);
+
+extern const RuntimeEntry kFloorRuntimeEntry(
+    "libc_floor", reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&floor)), 0, true);
+
+extern const RuntimeEntry kCeilRuntimeEntry(
+    "libc_ceil", reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&ceil)), 0, true);
+
+extern const RuntimeEntry kTruncRuntimeEntry(
+    "libc_trunc", reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&trunc)), 0, true);
+
+extern const RuntimeEntry kRoundRuntimeEntry(
+    "libc_round", reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&round)), 0, true);
+
+
+const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
+  switch (recognized_kind_) {
+    case MethodRecognizer::kDoubleTruncate:
+      return kTruncRuntimeEntry;
+    case MethodRecognizer::kDoubleRound:
+      return kRoundRuntimeEntry;
+    case MethodRecognizer::kDoubleFloor:
+      return kFloorRuntimeEntry;
+    case MethodRecognizer::kDoubleCeil:
+      return kCeilRuntimeEntry;
+    case MethodRecognizer::kDoublePow:
+      return kPowRuntimeEntry;
+    case MethodRecognizer::kDoubleMod:
+      return kModRuntimeEntry;
+    default:
+      UNREACHABLE();
+  }
+  return kPowRuntimeEntry;
+}
+
 
 #undef __
 

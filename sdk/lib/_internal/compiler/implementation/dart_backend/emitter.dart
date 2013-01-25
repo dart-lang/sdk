@@ -10,7 +10,7 @@ String emitCode(
       Collection<Node> topLevelNodes,
       Map<ClassNode, Collection<Node>> classMembers) {
   imports.forEach((libraryElement, prefix) {
-    unparser.unparseImportTag('${libraryElement.uri}', prefix);
+    unparser.unparseImportTag('${libraryElement.canonicalUri}', prefix);
   });
 
   for (final node in topLevelNodes) {

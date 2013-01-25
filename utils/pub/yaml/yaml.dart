@@ -5,6 +5,7 @@
 library yaml;
 
 import 'dart:math' as Math;
+import 'dart:collection' show Queue;
 
 import 'deep_equals.dart';
 

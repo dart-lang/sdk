@@ -313,7 +313,7 @@ class LogRecord {
   final String loggerName;
 
   /** Time when this record was created. */
-  final Date time;
+  final DateTime time;
 
   /** Unique sequence number greater than all log records created before it. */
   final int sequenceNumber;
@@ -329,6 +329,6 @@ class LogRecord {
   LogRecord(
       this.level, this.message, this.loggerName,
       [time, this.exception, this.exceptionText]) :
-    this.time = (time == null) ? new Date.now() : time,
+    this.time = (time == null) ? new DateTime.now() : time,
     this.sequenceNumber = LogRecord._nextNumber++;
 }

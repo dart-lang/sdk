@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /** Provides client-side behavior for generated docs. */
-library client_live_nav;
+library client;
 
 import 'dart:html';
 import 'dart:json' as jsonlib;
@@ -11,6 +11,7 @@ import '../../../../compiler/implementation/source_file.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../classify.dart';
 import '../../markdown.dart' as md;
+part '../dartdoc/nav.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 part 'dropdown.dart';

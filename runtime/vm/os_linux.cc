@@ -112,11 +112,11 @@ class PprofCodeObserver : public CodeObserver {
     pprof_symbol_generator_->WriteToMemory(debug_region);
     int buffer_size = debug_region->size();
     void* buffer = debug_region->data();
-    delete debug_region;
     if (buffer_size > 0) {
       ASSERT(buffer != NULL);
       (*file_write)(buffer, buffer_size, out_file);
     }
+    delete debug_region;
     (*file_close)(out_file);
     DebugInfo::UnregisterAllSections();
   }
@@ -307,6 +307,19 @@ int OS::NumberOfAvailableProcessors() {
 void OS::Sleep(int64_t millis) {
   // TODO(5411554):  For now just use usleep we may have to revisit this.
   usleep(millis * 1000);
+}
+
+
+void OS::DebugBreak() {
+#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32)
+  asm("int $3");
+#elif defined(HOST_ARCH_ARM)
+  asm("svc #0x9f0001");  // __ARM_NR_breakpoint
+#elif defined(HOST_ARCH_MIPS)
+  UNIMPLEMENTED();
+#else
+#error Unsupported architecture.
+#endif
 }
 
 

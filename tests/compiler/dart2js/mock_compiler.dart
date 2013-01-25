@@ -4,6 +4,7 @@
 
 library mock_compiler;
 
+import 'dart:collection';
 import 'dart:uri';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
@@ -31,18 +32,12 @@ class WarningMessage {
 }
 
 const String DEFAULT_HELPERLIB = r'''
-  lt() {} add(var a, var b) {} sub() {} mul() {} div() {} tdiv() {} mod() {}
-  neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
-  or() {} and() {} not() {} eqNull(a) {} eqq() {}
-  ltB() {} leB() {} eqB() {} gtB() {} geB() {} eqNullB(a) {}
   $throw(x) { return x; }
   iae(x) { throw x; } ioore(x) { throw x; }
   guard$array(x) { return x; }
   guard$num(x) { return x; }
   guard$string(x) { return x; }
   guard$stringOrArray(x) { return x; }
-  index(a, index) {}
-  indexSet(a, index, value) {}
   makeLiteralMap(List keyValuePairs) {}
   setRuntimeTypeInfo(a, b) {}
   getRuntimeTypeInfo(a) {}
@@ -52,7 +47,8 @@ const String DEFAULT_HELPERLIB = r'''
   class JSInvocationMirror {}
   S() {}
   assertHelper(a){}
-  throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}''';
+  throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
+  throwAbstractClassInstantiationError(className) {}''';
 
 const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSArray {
@@ -77,6 +73,12 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator |(other) {}
     operator &(other) {}
     operator ^(other) {}
+    operator >(other) {}
+    operator >=(other) {}
+    operator <(other) {}
+    operator <=(other) {}
+    operator ==(other) {}
+    operator %(other) {}
   }
   class JSInt {
   }
@@ -99,7 +101,10 @@ const String DEFAULT_CORELIB = r'''
   abstract class double extends num { }
   class bool {}
   class String {}
-  class Object {}
+  class Object {
+    operator ==(other) {}
+    String toString() {}
+  }
   class Type {}
   class Function {}
   class List<E> {}
@@ -257,10 +262,13 @@ class MockCompiler extends Compiler {
     scanner.importLibrary(library, coreLibrary, null);
   }
 
+  Uri translateResolvedUri(LibraryElement importingLibrary,
+                           Uri resolvedUri, Node node) => resolvedUri;
+
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) => null;
 
-  Script readScript(Uri uri, [ScriptTag node]) {
+  Script readScript(Uri uri, [Node node]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
     if (sourceFile == null) throw new ArgumentError(uri);
     return new Script(uri, sourceFile);

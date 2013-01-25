@@ -20,10 +20,10 @@ main() {
   var isCanvasElement = 
       predicate((x) => x is CanvasElement, 'is a CanvasElement');
   var isImageData = predicate((x) => x is ImageData, 'is an ImageData');
-  //var isCanvasPixelArray =
-  //  predicate((x) => x is CanvasPixelArray, 'is a CanvasPixelArray');
-  var isUint8ClampedArray = 
-      predicate((x) => x is Uint8ClampedArray, 'is a Uint8ClampedArray');
+  //var isUint8ClampedArray =
+  //  predicate((x) => x is Uint8ClampedArray, 'is a Uint8ClampedArray');
+  var isIntList =
+      predicate((x) => x is List<int>, 'is a List<int>');
 
   useHtmlConfiguration();
   test('Instanceof', () {
@@ -60,7 +60,7 @@ main() {
     expect(bytes, isNot(isElement));
     expect(bytes, isNot(isCanvasElement));
     expect(bytes, isNot(isImageData));
-    expect(bytes, isUint8ClampedArray);
+    expect(bytes, isIntList);
 
     // FIXME: Ensure this is an SpanElement when we next update
     // WebKit IDL.

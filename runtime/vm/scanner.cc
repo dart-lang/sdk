@@ -312,7 +312,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
       if (char_pos == ident_length) {
         if (keywords_[i].keyword_symbol == NULL) {
           String& symbol = String::ZoneHandle();
-          symbol |= keyword_symbol_table_.At(i);
+          symbol ^= keyword_symbol_table_.At(i);
           ASSERT(!symbol.IsNull());
           keywords_[i].keyword_symbol = &symbol;
         }

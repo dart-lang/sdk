@@ -241,10 +241,15 @@ const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
     operator |(other) {}
     operator &(other) {}
     operator ^(other) {}
+    operator <(other) {}
+    operator >(other) {}
+    operator <=(other) {}
+    operator >=(other) {}
+    operator ==(other) {}
   }
-  class JSInt {
+  class JSInt extends JSNumber {
   }
-  class JSDouble {
+  class JSDouble extends JSNumber {
   }
   class JSNull {
   }

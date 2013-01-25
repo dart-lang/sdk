@@ -1,0 +1,24 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of html;
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  factory $CLASSNAME(TouchList touches, TouchList targetTouches,
+      TouchList changedTouches, String type,
+      {Window view, int screenX: 0, int screenY: 0, int clientX: 0,
+      int clientY: 0, bool ctrlKey: false, bool altKey: false,
+      bool shiftKey: false, bool metaKey: false}) {
+    if (view == null) {
+      view = window;
+    }
+    var e = document.$dom_createEvent("TouchEvent");
+    e.$dom_initTouchEvent(touches, targetTouches, changedTouches, type, view,
+        screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
+    return e;
+  }
+$!MEMBERS
+}

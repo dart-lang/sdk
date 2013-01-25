@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of html;
-$ANNOTATIONS
-class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
   Document get document => JS('Document', '#.document', this);
 
@@ -131,7 +131,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental()
+  @Experimental
   IdbFactory get indexedDB =>
       JS('IdbFactory',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',

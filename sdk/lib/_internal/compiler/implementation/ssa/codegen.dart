@@ -1263,16 +1263,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary(op, jsLeft, pop()), node);
   }
 
-  visitRelational(HRelational node, String op) {
-    if (node.isBuiltin(types)) {
-      use(node.left);
-      js.Expression jsLeft = pop();
-      use(node.right);
-      push(new js.Binary(op, jsLeft, pop()), node);
-    } else {
-      visitInvokeStatic(node);
-    }
-  }
+  visitRelational(HRelational node, String op) => visitInvokeBinary(node, op);
 
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
@@ -1320,16 +1311,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  visitEquals(HEquals node) {
-    if (node.isBuiltin(types)) {
-      emitIdentityComparison(node.left, node.right);
-    } else {
-      visitInvokeStatic(node);
-    }
-  }
-
   visitIdentity(HIdentity node) {
-    assert(node.isBuiltin(types));
     emitIdentityComparison(node.left, node.right);
   }
 
@@ -1517,12 +1499,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitInterceptor(HInterceptor node) {
-    String name =
-        backend.registerSpecializedGetInterceptor(node.interceptedClasses);
-    js.VariableUse interceptor = new js.VariableUse(name);
+    backend.registerSpecializedGetInterceptor(node.interceptedClasses);
+    String name = backend.namer.getInterceptorName(
+        backend.getInterceptorMethod, node.interceptedClasses);
+    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
     use(node.receiver);
     List<js.Expression> arguments = <js.Expression>[pop()];
-    push(new js.Call(interceptor, arguments), node);
+    push(jsPropertyCall(isolate, name, arguments), node);
   }
 
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
@@ -1555,37 +1538,26 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (methodName == null) {
       methodName = backend.namer.invocationName(node.selector);
-      bool inLoop = node.block.enclosingLoopHeader != null;
-
-      Selector selector = getOptimizedSelectorFor(node, node.selector);
-      if (node.isInterceptorCall) {
-        backend.addInterceptedSelector(selector);
-      }
-      // Register this invocation to collect the types used at all call sites.
-      backend.registerDynamicInvocation(node, selector, types);
-
-      // If we don't know what we're calling or if we are calling a getter,
-      // we need to register that fact that we may be calling a closure
-      // with the same arguments.
-      if (target == null || target.isGetter()) {
-        // TODO(kasperl): If we have a typed selector for the call, we
-        // may know something about the types of closures that need
-        // the specific closure call method.
-        Selector call = new Selector.callClosureFrom(selector);
-        world.registerDynamicInvocation(call.name, call);
-      }
-
-      if (target != null) {
-        // If we know we're calling a specific method, register that
-        // method only.
-        if (inLoop) backend.builder.functionsCalledInLoop.add(target);
-        world.registerDynamicInvocationOf(target);
-      } else {
-        if (inLoop) backend.builder.selectorsCalledInLoop[name] = selector;
-        world.registerDynamicInvocation(name, selector);
-      }
+      registerMethodInvoke(node);
     }
     push(jsPropertyCall(object, methodName, arguments), node);
+  }
+
+  void visitOneShotInterceptor(HOneShotInterceptor node) {
+    List<js.Expression> arguments = visitArguments(node.inputs);
+    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
+    Selector selector = node.selector;
+    String methodName = backend.namer.oneShotInterceptorName(selector);
+    push(jsPropertyCall(isolate, methodName, arguments), node);
+    backend.registerSpecializedGetInterceptor(node.interceptedClasses);
+    backend.addOneShotInterceptor(selector);
+    if (selector.isGetter()) {
+      registerGetter(node);
+    } else if (selector.isSetter()) {
+      registerSetter(node);
+    } else {
+      registerMethodInvoke(node);
+    }
   }
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node,
@@ -1610,21 +1582,75 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  void registerInvoke(HInvokeDynamic node) {
+    bool inLoop = node.block.enclosingLoopHeader != null;
+    SourceString name = node.selector.name;
+    if (inLoop) {
+      Element target = node.element;
+      if (target != null) {
+        backend.builder.functionsCalledInLoop.add(target);
+      } else {
+        backend.builder.selectorsCalledInLoop[name] = node.selector;
+      }
+    }
+
+    if (node.isInterceptorCall) {
+      backend.addInterceptedSelector(node.selector);
+    }
+  }
+
+  void registerMethodInvoke(HInvokeDynamic node) {
+    Selector selector = getOptimizedSelectorFor(node, node.selector);
+    // Register this invocation to collect the types used at all call sites.
+    backend.registerDynamicInvocation(node, selector, types);
+
+    // If we don't know what we're calling or if we are calling a getter,
+    // we need to register that fact that we may be calling a closure
+    // with the same arguments.
+    Element target = node.element;
+    if (target == null || target.isGetter()) {
+      // TODO(kasperl): If we have a typed selector for the call, we
+      // may know something about the types of closures that need
+      // the specific closure call method.
+      Selector call = new Selector.callClosureFrom(selector);
+      world.registerDynamicInvocation(call.name, call);
+    }
+
+    if (target != null) {
+      // If we know we're calling a specific method, register that
+      // method only.
+      world.registerDynamicInvocationOf(target);
+    } else {
+      SourceString name = node.selector.name;
+      world.registerDynamicInvocation(name, selector);
+    }
+    registerInvoke(node);
+  }
+
+  void registerSetter(HInvokeDynamic node) {
+    Selector selector = getOptimizedSelectorFor(node, node.selector);
+    world.registerDynamicSetter(selector.name, selector);
+    HType valueType = node.isInterceptorCall
+        ? types[node.inputs[2]]
+        : types[node.inputs[1]];
+    backend.addedDynamicSetter(selector, valueType);
+    registerInvoke(node);
+  }
+
+  void registerGetter(HInvokeDynamic node) {
+    Selector getter = node.selector;
+    world.registerDynamicGetter(
+        getter.name, getOptimizedSelectorFor(node, getter));
+    world.registerInstantiatedClass(compiler.functionClass);
+    registerInvoke(node);
+  }
+
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
     Selector setter = node.selector;
     String name = backend.namer.invocationName(setter);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
-    Selector selector = getOptimizedSelectorFor(node, setter);
-    world.registerDynamicSetter(setter.name, selector);
-    HType valueType;
-    if (node.isInterceptorCall) {
-      valueType = types[node.inputs[2]];
-      backend.addInterceptedSelector(setter);
-    } else {
-      valueType = types[node.inputs[1]];
-    }
-    backend.addedDynamicSetter(selector, valueType);
+    registerSetter(node);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -1632,12 +1658,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Selector getter = node.selector;
     String name = backend.namer.invocationName(getter);
     push(jsPropertyCall(pop(), name, visitArguments(node.inputs)), node);
-    world.registerDynamicGetter(
-        getter.name, getOptimizedSelectorFor(node, getter));
-    if (node.isInterceptorCall) {
-      backend.addInterceptedSelector(getter);
-    }
-    world.registerInstantiatedClass(compiler.functionClass);
+    registerGetter(node);
   }
 
   visitInvokeClosure(HInvokeClosure node) {
@@ -1749,7 +1770,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
-    if (node.isJsStatement(types)) {
+    if (node.isJsStatement()) {
       if (!inputs.isEmpty) {
         compiler.internalError("foreign statement with inputs: $code",
                                instruction: node);
@@ -1855,7 +1876,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     attachLocationToLast(node);
   }
 
-
   void generateNot(HInstruction input) {
     bool canGenerateOptimizedComparison(HInstruction instruction) {
       if (instruction is !HRelational) return false;
@@ -1864,8 +1884,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       HInstruction right = relational.right;
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
-      return relational.isBuiltin(types)
-          && types[left].isUseful() && left.isInteger(types)
+      return types[left].isUseful() && left.isInteger(types)
           && types[right].isUseful() && right.isInteger(types);
     }
 
@@ -2481,7 +2500,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       } else if (parameterCount == 3) {
         // 3 arguments implies that the method is [malformedTypeCheck].
         assert(type.isMalformed);
-        String reasons = fetchReasonsFromMalformedType(type);
+        String reasons = Types.fetchReasonsFromMalformedType(type);
         arguments.add(js.string('$type'));
         // TODO(johnniwinther): Handle escaping correctly.
         arguments.add(js.string(reasons));
@@ -2499,54 +2518,54 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   SsaOptimizedCodeGenerator(backend, work) : super(backend, work);
 
-  int maxBailoutParameters;
-
   HBasicBlock beginGraph(HGraph graph) {
     return graph.entry;
   }
 
   void endGraph(HGraph graph) {}
 
+  // Called by visitTypeGuard to generate the actual bailout call, something
+  // like "return $.foo$bailout(t0, t1);"
   js.Statement bailout(HTypeGuard guard, String reason) {
-    if (maxBailoutParameters == null) {
-      maxBailoutParameters = 0;
-      work.guards.forEach((HTypeGuard workGuard) {
-        HBailoutTarget target = workGuard.bailoutTarget;
-        int inputLength = target.inputs.length;
-        if (inputLength > maxBailoutParameters) {
-          maxBailoutParameters = inputLength;
-        }
-      });
-    }
-    HInstruction input = guard.guarded;
     HBailoutTarget target = guard.bailoutTarget;
-    Namer namer = backend.namer;
-    Element element = work.element;
     List<js.Expression> arguments = <js.Expression>[];
     arguments.add(new js.LiteralNumber("${guard.state}"));
-    // TODO(ngeoffray): try to put a variable at a deterministic
-    // location, so that multiple bailout calls put the variable at
-    // the same parameter index.
-    int i = 0;
-    for (; i < target.inputs.length; i++) {
-      assert(guard.inputs.indexOf(target.inputs[i]) >= 0);
-      use(target.inputs[i]);
+
+    for (int i = 0; i < target.inputs.length; i++) {
+      HInstruction parameter = target.inputs[i];
+      for (int pad = target.padding[i]; pad != 0; pad--) {
+        // This argument will not be used by the bailout function, because
+        // of the control flow (controlled by the state argument passed
+        // above).  We need to pass it to get later arguments in the right
+        // position.
+        arguments.add(new js.LiteralNull());
+      }
+      use(parameter);
       arguments.add(pop());
     }
+    // Don't bother emitting the rest of the pending nulls.  Doing so might make
+    // the function invocation a little faster by having the call site and
+    // function defintion have the same number of arguments, but it would be
+    // more verbose and we don't expect the calls to bailout functions to be
+    // hot.
 
-    js.Expression bailoutTarget;
-    if (element.isInstanceMember()) {
-      String bailoutName = namer.getBailoutName(element);
+    Element method = work.element;
+    js.Expression bailoutTarget;  // Receiver of the bailout call.
+    Namer namer = backend.namer;
+    if (method.isInstanceMember()) {
+      String bailoutName = namer.getBailoutName(method);
       bailoutTarget = new js.PropertyAccess.field(new js.This(), bailoutName);
     } else {
-      assert(!element.isField());
-      bailoutTarget = new js.VariableUse(namer.isolateBailoutAccess(element));
+      assert(!method.isField());
+      bailoutTarget = new js.VariableUse(namer.isolateBailoutAccess(method));
     }
     js.Call call = new js.Call(bailoutTarget, arguments);
     attachLocation(call, guard);
     return new js.Return(call);
   }
 
+  // Generate a type guard, something like "if (typeof t0 == 'number')" and the
+  // corresponding bailout call, something like "return $.foo$bailout(t0, t1);"
   void visitTypeGuard(HTypeGuard node) {
     HInstruction input = node.guarded;
     DartType indexingBehavior =
@@ -2716,38 +2735,29 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       => new js.VariableUse(variableNames.stateName);
 
   HBasicBlock beginGraph(HGraph graph) {
-    propagator = new SsaBailoutPropagator(compiler, generateAtUseSite);
+    propagator =
+        new SsaBailoutPropagator(compiler, generateAtUseSite, variableNames);
     propagator.visitGraph(graph);
     // TODO(ngeoffray): We could avoid generating the state at the
     // call site for non-complex bailout methods.
     newParameters.add(new js.Parameter(variableNames.stateName));
 
-    if (propagator.hasComplexBailoutTargets) {
-      // Use generic parameters that will be assigned to
-      // the right variables in the setup phase.
-      for (int i = 0; i < propagator.maxBailoutParameters; i++) {
-        String name = 'env$i';
-        declaredLocals.add(name);
-        newParameters.add(new js.Parameter(name));
-      }
+    List<String> names = new List<String>(propagator.bailoutArity);
+    for (String variable in propagator.parameterNames.keys) {
+      int index = propagator.parameterNames[variable];
+      assert(names[index] == null);
+      names[index] = variable;
+    }
+    for (int i = 0; i < names.length; i++) {
+      declaredLocals.add(names[i]);
+      newParameters.add(new js.Parameter(names[i]));
+    }
 
+    if (propagator.hasComplexBailoutTargets) {
       startBailoutSwitch();
 
-      // The setup phase of a bailout function sets up the environment for
-      // each bailout target. Each bailout target will populate this
-      // setup phase. It is put at the beginning of the function.
-      setup = new js.Switch(generateStateUse(), <js.SwitchClause>[]);
       return graph.entry;
     } else {
-      // We have a simple bailout target, so we can reuse the names that
-      // the bailout target expects.
-      for (HInstruction input in propagator.firstBailoutTarget.inputs) {
-        input = unwrap(input);
-        String name = variableNames.getName(input);
-        declaredLocals.add(name);
-        newParameters.add(new js.Parameter(name));
-      }
-
       // We change the first instruction of the first guard to be the
       // bailout target. We will change it back in the call to [endGraph].
       HBasicBlock block = propagator.firstBailoutTarget.block;
@@ -2805,47 +2815,47 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void visitBailoutTarget(HBailoutTarget node) {
-    if (!propagator.hasComplexBailoutTargets) return;
-
-    js.Block nextBlock = new js.Block.empty();
-    js.Case clause = new js.Case(new js.LiteralNumber('${node.state}'),
-                                 nextBlock);
-    currentBailoutSwitch.cases.add(clause);
-    currentContainer = nextBlock;
-    pushExpressionAsStatement(new js.Assignment(generateStateUse(),
-                                                new js.LiteralNumber('0')));
-    js.Block setupBlock = new js.Block.empty();
-    List<Copy> copies = <Copy>[];
-    for (int i = 0; i < node.inputs.length; i++) {
-      HInstruction input = node.inputs[i];
-      input = unwrap(input);
-      String name = variableNames.getName(input);
-      String source = "env$i";
-      copies.add(new Copy(source, name));
+    if (propagator.hasComplexBailoutTargets) {
+      js.Block nextBlock = new js.Block.empty();
+      js.Case clause = new js.Case(new js.LiteralNumber('${node.state}'),
+                                   nextBlock);
+      currentBailoutSwitch.cases.add(clause);
+      currentContainer = nextBlock;
+      pushExpressionAsStatement(new js.Assignment(generateStateUse(),
+                                                  new js.LiteralNumber('0')));
     }
-    sequentializeCopies(copies,
-                        variableNames.getSwapTemp(),
-                        (String target, String source) {
-      if (!isVariableDeclared(target) && !shouldGroupVarDeclarations) {
-        js.VariableInitialization init =
-            new js.VariableInitialization(new js.VariableDeclaration(target),
-                                          new js.VariableUse(source));
-        js.Expression varList =
-            new js.VariableDeclarationList(<js.VariableInitialization>[init]);
-        setupBlock.statements.add(new js.ExpressionStatement(varList));
+    // Here we need to rearrange the inputs of the bailout target, so that they
+    // are output in the correct order, perhaps with interspersed nulls, to
+    // match the order in the bailout function, which is of course common to all
+    // the bailout points.
+    var newInputs = new List<HInstruction>(propagator.bailoutArity);
+    for (HInstruction input in node.inputs) {
+      int index = propagator.parameterNames[variableNames.getName(input)];
+      newInputs[index] = input;
+    }
+    // We record the count of unused arguments instead of just filling in the
+    // inputs list with dummy arguments because it is useful to be able easily
+    // to distinguish between a dummy argument (eg 0 or null) and a real
+    // argument that happens to have the same value.  The dummy arguments are
+    // not going to be accessed by the bailout function due to the control flow
+    // implied by the state argument, so we can put anything there, including
+    // just not emitting enough arguments and letting the JS engine insert
+    // undefined for the trailing arguments.
+    node.padding = new List<int>(node.inputs.length);
+    int j = 0;
+    int pendingNulls = 0;
+    for (int i = 0; i < newInputs.length; i++) {
+      HInstruction input = newInputs[i];
+      if (input == null) {
+        pendingNulls++;
       } else {
-        collectedVariableDeclarations.add(target);
-        js.Expression jsTarget = new js.VariableUse(target);
-        js.Expression jsSource = new js.VariableUse(source);
-        js.Expression assignment = new js.Assignment(jsTarget, jsSource);
-        setupBlock.statements.add(new js.ExpressionStatement(assignment));
+        node.padding[j] = pendingNulls;
+        pendingNulls = 0;
+        node.updateInput(j, input);
+        j++;
       }
-      declaredLocals.add(target);
-    });
-    setupBlock.statements.add(new js.Break(null));
-    js.Case setupClause =
-        new js.Case(new js.LiteralNumber('${node.state}'), setupBlock);
-    (setup as js.Switch).cases.add(setupClause);
+    }
+    assert(j == node.inputs.length);
   }
 
   void startBailoutCase(List<HBailoutTarget> bailouts1,

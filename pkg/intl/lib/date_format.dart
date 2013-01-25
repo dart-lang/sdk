@@ -172,7 +172,7 @@ part of intl;
  * DateFormat must interpret the abbreviated year relative to some
  * century. It does this by adjusting dates to be within 80 years before and 20
  * years after the time the parse function is called. For example, using a
- * pattern of "MM/dd/yy" and a DateTimeParse instance created on Jan 1, 1997,
+ * pattern of "MM/dd/yy" and a DateParse instance created on Jan 1, 1997,
  * the string "01/11/12" would be interpreted as Jan 11, 2012 while the string
  * "05/04/64" would be interpreted as May 4, 1964. During parsing, only
  * strings consisting of exactly two digits, as defined by {@link
@@ -222,7 +222,7 @@ class DateFormat {
    * Return a string representing [date] formatted according to our locale
    * and internal format.
    */
-  String format(Date date) {
+  String format(DateTime date) {
     // TODO(efortuna): read optional TimeZone argument (or similar)?
     var result = new StringBuffer();
     _formatFields.forEach((field) => result.add(field.format(date)));
@@ -232,9 +232,9 @@ class DateFormat {
   /**
    * Returns a date string indicating how long ago (3 hours, 2 minutes)
    * something has happened or how long in the future something will happen
-   * given a [reference] Date relative to the current time.
+   * given a [reference] DateTime relative to the current time.
    */
-  String formatDuration(Date reference) {
+  String formatDuration(DateTime reference) {
     return '';
   }
 
@@ -243,7 +243,7 @@ class DateFormat {
    * in the future (positive [duration]) some time is with respect to a
    * reference [date].
    */
-  String formatDurationFrom(Duration duration, Date date) {
+  String formatDurationFrom(Duration duration, DateTime date) {
     return '';
   }
 
@@ -251,7 +251,7 @@ class DateFormat {
    * Given user input, attempt to parse the [inputString] into the anticipated
    * format, treating it as being in the local timezone.
    */
-  Date parse(String inputString, [utc = false]) {
+  DateTime parse(String inputString, [utc = false]) {
     // TODO(alanknight): The Closure code refers to special parsing of numeric
     // values with no delimiters, which we currently don't do. Should we?
     var dateFields = new _DateBuilder();
@@ -266,7 +266,7 @@ class DateFormat {
    * Given user input, attempt to parse the [inputString] into the anticipated
    * format, treating it as being in UTC.
    */
-  Date parseUTC(String inputString) {
+  DateTime parseUTC(String inputString) {
     return parse(inputString, true);
   }
 

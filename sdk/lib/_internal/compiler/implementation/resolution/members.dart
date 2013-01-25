@@ -9,18 +9,17 @@ abstract class TreeElements {
   Selector getSelector(Send send);
   DartType getType(Node node);
   bool isParameterChecked(Element element);
+  Set<Node> get superUses;
 }
 
 class TreeElementMapping implements TreeElements {
   final Element currentElement;
-  final Map<Node, Selector> selectors;
-  final Map<Node, DartType> types;
-  final Set<Element> checkedParameters;
+  final Map<Node, Selector> selectors = new LinkedHashMap<Node, Selector>();
+  final Map<Node, DartType> types = new LinkedHashMap<Node, DartType>();
+  final Set<Element> checkedParameters = new Set<Element>();
+  final Set<Node> superUses = new Set<Node>();
 
-  TreeElementMapping(this.currentElement)
-      : selectors = new LinkedHashMap<Node, Selector>(),
-        types = new LinkedHashMap<Node, DartType>(),
-        checkedParameters = new Set<Element>();
+  TreeElementMapping(this.currentElement);
 
   operator []=(Node node, Element element) {
     assert(invariant(node, () {
@@ -268,7 +267,24 @@ class ResolverTask extends CompilerTask {
         }
         visitBody(visitor, tree.body);
 
-        return visitor.mapping;
+        // Get the resolution tree and check that the resolved
+        // function doesn't use 'super' if it is mixed into another
+        // class. This is the part of the 'super' mixin check that
+        // happens when a function is resolved after the mixin
+        // application has been performed.
+        TreeElements resolutionTree = visitor.mapping;
+        ClassElement enclosingClass = element.getEnclosingClass();
+        if (enclosingClass != null) {
+          Set<MixinApplicationElement> mixinUses =
+              compiler.world.mixinUses[enclosingClass];
+          if (mixinUses != null) {
+            ClassElement mixin = enclosingClass;
+            for (MixinApplicationElement mixinApplication in mixinUses) {
+              checkMixinSuperUses(resolutionTree, mixinApplication, mixin);
+            }
+          }
+        }
+        return resolutionTree;
       });
     });
   }
@@ -352,6 +368,10 @@ class ResolverTask extends CompilerTask {
     }
     ResolverVisitor visitor = visitorFor(element);
     initializerDo(tree, visitor.visit);
+
+    // Perform various checks as side effect of "computing" the type.
+    element.computeType(compiler);
+
     return visitor.mapping;
   }
 
@@ -489,7 +509,78 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  void checkMembers(ClassElement cls) {
+  void checkClass(ClassElement element) {
+    if (element.isMixinApplication) {
+      checkMixinApplication(element);
+    } else {
+      checkClassMembers(element);
+    }
+  }
+
+  void checkMixinApplication(MixinApplicationElement mixinApplication) {
+    Modifiers modifiers = mixinApplication.modifiers;
+    int illegalFlags = modifiers.flags & ~Modifiers.FLAG_ABSTRACT;
+    if (illegalFlags != 0) {
+      Modifiers illegalModifiers = new Modifiers.withFlags(null, illegalFlags);
+      CompilationError error =
+          MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS.error(
+              [illegalModifiers]);
+      compiler.reportMessage(compiler.spanFromSpannable(modifiers),
+                             error, Diagnostic.ERROR);
+    }
+
+    // In case of cyclic mixin applications, the mixin chain will have
+    // been cut. If so, we have already reported the error to the
+    // user so we just return from here.
+    ClassElement mixin = mixinApplication.mixin;
+    if (mixin == null) return;
+
+    // Check that the mixed in class has Object as its superclass.
+    if (!mixin.superclass.isObject(compiler)) {
+      CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPERCLASS.error();
+      compiler.reportMessage(compiler.spanFromElement(mixin),
+                             error, Diagnostic.ERROR);
+    }
+
+    // Check that the mixed in class doesn't have any constructors and
+    // make sure we aren't mixing in methods that use 'super'.
+    mixin.forEachLocalMember((Element member) {
+      if (member.isGenerativeConstructor() && !member.isSynthesized) {
+        CompilationError error = MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR.error();
+        compiler.reportMessage(compiler.spanFromElement(member),
+                               error, Diagnostic.ERROR);
+      } else {
+        // Get the resolution tree and check that the resolved member
+        // doesn't use 'super'. This is the part of the 'super' mixin
+        // check that happens when a function is resolved before the
+        // mixin application has been performed.
+        checkMixinSuperUses(
+            compiler.enqueuer.resolution.resolvedElements[member],
+            mixinApplication,
+            mixin);
+      }
+    });
+  }
+
+  void checkMixinSuperUses(TreeElements resolutionTree,
+                           MixinApplicationElement mixinApplication,
+                           ClassElement mixin) {
+    if (resolutionTree == null) return;
+    Set<Node> superUses = resolutionTree.superUses;
+    if (superUses.isEmpty) return;
+    CompilationError error = MessageKind.ILLEGAL_MIXIN_WITH_SUPER.error(
+        [mixin.name]);
+    compiler.reportMessage(compiler.spanFromElement(mixinApplication),
+                           error, Diagnostic.ERROR);
+    // Show the user the problematic uses of 'super' in the mixin.
+    for (Node use in superUses) {
+      CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPER_USE.error();
+      compiler.reportMessage(compiler.spanFromNode(use),
+                             error, Diagnostic.INFO);
+    }
+  }
+
+  void checkClassMembers(ClassElement cls) {
     assert(invariant(cls, cls.isDeclaration));
     if (cls.isObject(compiler)) return;
     // TODO(johnniwinther): Should this be done on the implementation element as
@@ -1729,6 +1820,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Element resolveSend(Send node) {
     Selector selector = resolveSelector(node);
+    if (node.isSuperCall) mapping.superUses.add(node);
 
     if (node.receiver == null) {
       // If this send is of the form "assert(expr);", then
@@ -2767,44 +2859,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     }
 
     assert(element.interfaces == null);
-    Link<DartType> interfaces = const Link<DartType>();
-    for (Link<Node> link = node.interfaces.nodes;
-         !link.isEmpty;
-         link = link.tail) {
-      DartType interfaceType = typeResolver.resolveTypeAnnotation(
-          link.head, scope, element, onFailure: error);
-      if (interfaceType != null) {
-        if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
-          // Error has already been reported.
-        } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
-          // TODO(johnniwinther): Handle dynamic.
-          TypeAnnotation typeAnnotation = link.head;
-          error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
-        } else {
-          if (interfaceType == element.supertype) {
-            compiler.reportMessage(
-                compiler.spanFromSpannable(node.superclass),
-                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
-                Diagnostic.ERROR);
-            compiler.reportMessage(
-                compiler.spanFromSpannable(link.head),
-                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
-                Diagnostic.ERROR);
-          }
-          if (interfaces.contains(interfaceType)) {
-            compiler.reportMessage(
-                compiler.spanFromSpannable(link.head),
-                MessageKind.DUPLICATE_IMPLEMENTS.error([interfaceType]),
-                Diagnostic.ERROR);
-          }
-          interfaces = interfaces.prepend(interfaceType);
-          if (isBlackListed(interfaceType)) {
-            error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
-          }
-        }
-      }
-    }
-    element.interfaces = interfaces;
+    element.interfaces = resolveInterfaces(node.interfaces, node.superclass);
     calculateAllSupertypes(element);
 
     if (node.defaultClause != null) {
@@ -2814,9 +2869,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return element.computeType(compiler);
   }
 
-  DartType visitMixinApplication(MixinApplication node) {
+  DartType visitNamedMixinApplication(NamedMixinApplication node) {
     compiler.ensure(element != null);
     compiler.ensure(element.resolutionState == STATE_STARTED);
+
+    InterfaceType type = element.computeType(compiler);
+    scope = new TypeDeclarationScope(scope, element);
+    resolveTypeVariableBounds(node.typeParameters);
 
     // Generate anonymous mixin application elements for the
     // intermediate mixin applications (excluding the last).
@@ -2837,7 +2896,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         new SourceString("${superName}_${mixinName}"),
         element.getCompilationUnit(),
         compiler.getNextFreeClassId(),
-        element.parseNode(compiler));
+        element.parseNode(compiler),
+        Modifiers.EMPTY);  // TODO(kasperl): Should this be abstract?
     doApplyMixinTo(mixinApplication, supertype, mixinType);
     mixinApplication.resolutionState = STATE_DONE;
     mixinApplication.supertypeLoadState = STATE_DONE;
@@ -2850,20 +2910,53 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     assert(mixinApplication.supertype == null);
     mixinApplication.supertype = supertype;
 
+    // Named mixin application may have an 'implements' clause.
+    NamedMixinApplication namedMixinApplication =
+        mixinApplication.parseNode(compiler).asNamedMixinApplication();
+    Link<DartType> interfaces = (namedMixinApplication != null)
+        ? resolveInterfaces(namedMixinApplication.interfaces,
+                            namedMixinApplication.superclass)
+        : const Link<DartType>();
+
     // The class that is the result of a mixin application implements
-    // the interface of the class that was mixed in.
-    Link<DartType> interfaces = const Link<DartType>();
+    // the interface of the class that was mixed in so always prepend
+    // that to the interface list.
     interfaces = interfaces.prepend(mixinType);
     assert(mixinApplication.interfaces == null);
     mixinApplication.interfaces = interfaces;
 
     assert(mixinApplication.mixin == null);
-    mixinApplication.mixin = mixinType.element;
-    mixinApplication.mixin.ensureResolved(compiler);
+    mixinApplication.mixin = resolveMixinFor(mixinApplication, mixinType);
     mixinApplication.addDefaultConstructorIfNeeded(compiler);
     calculateAllSupertypes(mixinApplication);
   }
 
+  ClassElement resolveMixinFor(MixinApplicationElement mixinApplication,
+                               DartType mixinType) {
+    ClassElement mixin = mixinType.element;
+    mixin.ensureResolved(compiler);
+
+    // Check for cycles in the mixin chain.
+    ClassElement previous = mixinApplication;  // For better error messages.
+    ClassElement current = mixin;
+    while (current != null && current.isMixinApplication) {
+      MixinApplicationElement currentMixinApplication = current;
+      if (currentMixinApplication == mixinApplication) {
+        CompilationError error = MessageKind.ILLEGAL_MIXIN_CYCLE.error(
+            [current.name, previous.name]);
+        compiler.reportMessage(compiler.spanFromElement(mixinApplication),
+                               error, Diagnostic.ERROR);
+        // We have found a cycle in the mixin chain. Return null as
+        // the mixin for this application to avoid getting into
+        // infinite recursion when traversing members.
+        return null;
+      }
+      previous = current;
+      current = currentMixinApplication.mixin;
+    }
+    compiler.world.registerMixinUse(mixinApplication, mixin);
+    return mixin;
+  }
 
   // TODO(johnniwinther): Remove when default class is no longer supported.
   DartType visitTypeAnnotation(TypeAnnotation node) {
@@ -2932,6 +3025,46 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       }
     }
     return supertype;
+  }
+
+  Link<DartType> resolveInterfaces(NodeList interfaces, Node superclass) {
+    Link<DartType> result = const Link<DartType>();
+    if (interfaces == null) return result;
+    for (Link<Node> link = interfaces.nodes; !link.isEmpty; link = link.tail) {
+      DartType interfaceType = typeResolver.resolveTypeAnnotation(
+          link.head, scope, element, onFailure: error);
+      if (interfaceType != null) {
+        if (identical(interfaceType.kind, TypeKind.MALFORMED_TYPE)) {
+          // Error has already been reported.
+        } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
+          // TODO(johnniwinther): Handle dynamic.
+          TypeAnnotation typeAnnotation = link.head;
+          error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
+        } else {
+          if (interfaceType == element.supertype) {
+            compiler.reportMessage(
+                compiler.spanFromSpannable(superclass),
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
+                Diagnostic.ERROR);
+            compiler.reportMessage(
+                compiler.spanFromSpannable(link.head),
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
+                Diagnostic.ERROR);
+          }
+          if (result.contains(interfaceType)) {
+            compiler.reportMessage(
+                compiler.spanFromSpannable(link.head),
+                MessageKind.DUPLICATE_IMPLEMENTS.error([interfaceType]),
+                Diagnostic.ERROR);
+          }
+          result = result.prepend(interfaceType);
+          if (isBlackListed(interfaceType)) {
+            error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   void calculateAllSupertypes(ClassElement cls) {

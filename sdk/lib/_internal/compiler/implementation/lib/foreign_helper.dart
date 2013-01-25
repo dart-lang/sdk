@@ -91,16 +91,6 @@ dynamic JS(String typeDescription, String codeTemplate,
     [var arg0, var arg1, var arg2]) {}
 
 /**
- * Invokes a method without the compiler trying to intercept it.
- */
-dynamic UNINTERCEPTED(var expression) {}
-
-/**
- * Returns [:true:] if [object] has its own operator== definition.
- */
-bool JS_HAS_EQUALS(var object) {}
-
-/**
  * Returns the isolate in which this code is running.
  */
 dynamic JS_CURRENT_ISOLATE() {}
@@ -138,3 +128,8 @@ void JS_SET_CURRENT_ISOLATE(var isolate) {}
  * Creates an isolate and returns it.
  */
 dynamic JS_CREATE_ISOLATE() {}
+
+/**
+ * Returns the prefix used for generated is checks on classes.
+ */
+String JS_OPERATOR_IS_PREFIX() {}

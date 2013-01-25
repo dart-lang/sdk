@@ -1,0 +1,21 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of html;
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  factory $CLASSNAME(String type,
+      {bool canBubble: false, bool cancelable: false, Window view,
+      String data}) {
+    if (view == null) {
+      view = window;
+    }
+    var e = document.$dom_createEvent("CompositionEvent");
+    e.$dom_initCompositionEvent(type, canBubble, cancelable, view, data);
+    return e;
+  }
+$!MEMBERS
+}

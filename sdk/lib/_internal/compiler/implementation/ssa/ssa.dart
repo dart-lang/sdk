@@ -4,6 +4,8 @@
 
 library ssa;
 
+import 'dart:collection';
+
 import '../closure.dart';
 import '../js/js.dart' as js;
 import '../dart2jslib.dart' hide Selector;
@@ -30,7 +32,6 @@ part 'builder.dart';
 part 'codegen.dart';
 part 'codegen_helpers.dart';
 part 'invoke_dynamic_specializers.dart';
-part 'js_names.dart';
 part 'nodes.dart';
 part 'optimize.dart';
 part 'types.dart';

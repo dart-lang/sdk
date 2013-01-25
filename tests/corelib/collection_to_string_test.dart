@@ -7,6 +7,8 @@
  */
 
 library collection_to_string;
+
+import 'dart:collection' show Queue, LinkedHashMap;
 import 'dart:math' as Math;
 
 // TODO(jjb): seed random number generator when API allows it

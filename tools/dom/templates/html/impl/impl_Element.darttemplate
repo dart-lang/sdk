@@ -137,6 +137,9 @@ class _ChildrenElementList implements List {
     }
   }
 
+  List<Element> get reversed =>
+      new ReversedListView<Element>(this, 0, null);
+
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
@@ -160,19 +163,19 @@ class _ChildrenElementList implements List {
   }
 
   void removeAll(Iterable elements) {
-    Collections.removeAll(this, elements);
+    IterableMixinWorkaround.removeAll(this, elements);
   }
 
   void retainAll(Iterable elements) {
-    Collections.retainAll(this, elements);
+    IterableMixinWorkaround.retainAll(this, elements);
   }
 
   void removeMatching(bool test(Element element)) {
-    Collections.removeMatching(this, test);
+    IterableMixinWorkaround.removeMatching(this, test);
   }
 
   void retainMatching(bool test(Element element)) {
-    Collections.retainMatching(this, test);
+    IterableMixinWorkaround.retainMatching(this, test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -359,6 +362,9 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
+  List<Element> get reversed =>
+      new ReversedListView<Element>(this, 0, null);
+
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
   }
@@ -496,7 +502,7 @@ class _ElementCssClassSet extends CssClassSet {
 /**
  * An abstract class, which all HTML elements extend.
  */
-abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.
@@ -890,7 +896,7 @@ $if DART2JS
   /**
    * Checks if this element matches the CSS selectors.
    */
-  @Experimental()
+  @Experimental
   bool matches(String selectors) {
     if (JS('bool', '!!#.matches', this)) {
       return JS('bool', '#.matches(#)', this, selectors);

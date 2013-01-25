@@ -1774,6 +1774,7 @@ class TestUtils {
       // args.add("--verbose");
       if (!isBrowserRuntime(configuration['runtime'])) {
         args.add("--allow-mock-compilation");
+        args.add("--categories=all");
       }
     }
     if ((compiler == "dart2js" || compiler == "dart2dart") &&

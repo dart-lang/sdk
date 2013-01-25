@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for dart:math library.
+import 'dart:_foreign_helper' show JS;
 
 patch double sqrt(num x)
   => JS('double', r'Math.sqrt(#)', checkNum(x));

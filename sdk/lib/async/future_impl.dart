@@ -359,7 +359,7 @@ typedef dynamic _FutureOnError(AsyncError error);
 /** Test used by [Future.catchError] to handle skip some errors. */
 typedef bool _FutureErrorTest(var error);
 /** Used by [WhenFuture]. */
-typedef void _FutureAction();
+typedef _FutureAction();
 
 /** Future returned by [Future.then] with no [:onError:] parameter. */
 class _ThenFuture<S, T> extends _TransformFuture<S, T> {

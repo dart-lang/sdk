@@ -4,38 +4,6 @@
 
 part of html;
 
-class _CustomEventFactoryProvider {
-  static CustomEvent createCustomEvent(String type, [bool canBubble = true,
-      bool cancelable = true, Object detail = null]) {
-    final CustomEvent e = document.$dom_createEvent("CustomEvent");
-    e.$dom_initCustomEvent(type, canBubble, cancelable, detail);
-    return e;
-  }
-}
-
-class _EventFactoryProvider {
-  static Event createEvent(String type, [bool canBubble = true,
-      bool cancelable = true]) {
-    final Event e = document.$dom_createEvent("Event");
-    e.$dom_initEvent(type, canBubble, cancelable);
-    return e;
-  }
-}
-
-class _MouseEventFactoryProvider {
-  static MouseEvent createMouseEvent(String type, Window view, int detail,
-      int screenX, int screenY, int clientX, int clientY, int button,
-      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
-      bool altKey = false, bool shiftKey = false, bool metaKey = false,
-      EventTarget relatedTarget = null]) {
-    final e = document.$dom_createEvent("MouseEvent");
-    e.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
-        screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
-        button, relatedTarget);
-    return e;
-  }
-}
-
 class _CssStyleDeclarationFactoryProvider {
   static CssStyleDeclaration createCssStyleDeclaration_css(String css) {
     final style = new Element.tag('div').style;

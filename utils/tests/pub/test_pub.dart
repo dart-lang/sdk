@@ -9,6 +9,7 @@
 library test_pub;
 
 import 'dart:async';
+import 'dart:collection' show Queue;
 import 'dart:io';
 import 'dart:json' as json;
 import 'dart:math';
@@ -20,6 +21,10 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import '../../../pkg/http/lib/testing.dart';
 import '../../lib/file_system.dart' as fs;
 import '../../pub/entrypoint.dart';
+// TODO(rnystrom): Using "gitlib" as the prefix here is ugly, but "git" collides
+// with the git descriptor method. Maybe we should try to clean up the top level
+// scope a bit?
+import '../../pub/git.dart' as gitlib;
 import '../../pub/git_source.dart';
 import '../../pub/hosted_source.dart';
 import '../../pub/http.dart';
@@ -351,7 +356,7 @@ Descriptor credentialsFile(
     ScheduledServer server,
     String accessToken,
     {String refreshToken,
-     Date expiration}) {
+     DateTime expiration}) {
   return async(server.url.then((url) {
     return dir(cachePath, [
       file('credentials.json', new oauth2.Credentials(
@@ -386,7 +391,7 @@ Future<Map> _dependencyListToMap(List<Map> dependencies) {
         source = new HostedSource();
         break;
       case "sdk":
-        source = new SdkSource('');
+        source = new SdkSource();
         break;
       default:
         throw 'Unknown source "$sourceName"';
@@ -431,7 +436,7 @@ final String appPath = "myapp";
 /// to the sandbox directory.
 final String packagesPath = "$appPath/packages";
 
-/// The type for callbacks that will be fired during [runPub]. Takes the
+/// The type for callbacks that will be fired during [schedulePub]. Takes the
 /// sandbox directory as a parameter.
 typedef Future _ScheduledEvent(Directory parentDir);
 
@@ -455,7 +460,7 @@ final _TIMEOUT = 30000;
 
 /// Defines an integration test. The [body] should schedule a series of
 /// operations which will be run asynchronously.
-integration(String description, body()) {
+void integration(String description, void body()) {
   test(description, () {
     body();
     _run();
@@ -474,7 +479,6 @@ void _run() {
       _scheduledCleanup = null;
       _scheduledOnException = null;
       if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
-      return new Future.immediate(null);
     });
   }
 
@@ -535,15 +539,6 @@ void schedulePub({List args, Pattern output, Pattern error,
       return null;
     });
   });
-}
-
-/// A shorthand for [schedulePub] and [run] when no validation needs to be done
-/// after Pub has been run.
-///
-/// Any futures in [args] will be resolved before the process is started.
-void runPub({List args, Pattern output, Pattern error, int exitCode: 0}) {
-  schedulePub(args: args, output: output, error: error, exitCode: exitCode);
-  _run();
 }
 
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
@@ -637,7 +632,7 @@ Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
 /// about the pub git tests).
 void ensureGit() {
   _schedule((_) {
-    return isGitInstalled.then((installed) {
+    return gitlib.isInstalled.then((installed) {
       if (!installed &&
           !Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) {
         _abortScheduled = true;
@@ -785,16 +780,18 @@ abstract class Descriptor {
   /// loads the contents of the descriptor itself.
   InputStream load(List<String> path);
 
-  /// Schedules the directory to be created before Pub is run with [runPub].
-  /// The directory will be created relative to the sandbox directory.
+  /// Schedules the directory to be created before Pub is run with
+  /// [schedulePub]. The directory will be created relative to the sandbox
+  /// directory.
   // TODO(nweiz): Use implicit closurization once issue 2984 is fixed.
   void scheduleCreate() => _schedule((dir) => this.create(dir));
 
   /// Schedules the file or directory to be deleted recursively.
   void scheduleDelete() => _schedule((dir) => this.delete(dir));
 
-  /// Schedules the directory to be validated after Pub is run with [runPub].
-  /// The directory will be validated relative to the sandbox directory.
+  /// Schedules the directory to be validated after Pub is run with
+  /// [schedulePub]. The directory will be validated relative to the sandbox
+  /// directory.
   void scheduleValidate() => _schedule((parentDir) => validate(parentDir.path));
 
   /// Asserts that the name of the descriptor is a [String] and returns it.
@@ -1064,15 +1061,8 @@ class GitRepoDescriptor extends DirectoryDescriptor {
       'GIT_COMMITTER_EMAIL': 'pub@dartlang.org'
     };
 
-    return runGit(args, workingDir: workingDir.path,
-        environment: environment).then((result) {
-      if (!result.success) {
-        throw "Error running: git ${Strings.join(args, ' ')}\n"
-            "${Strings.join(result.stderr, '\n')}";
-      }
-
-      return result.stdout;
-    });
+    return gitlib.run(args, workingDir: workingDir.path,
+        environment: environment);
   }
 }
 
@@ -1166,8 +1156,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     ValidatorCreator fn) {
   return _scheduleValue((sandboxDir) {
     var cache = new SystemCache.withSources(
-        join(sandboxDir, cachePath),
-        join(sandboxDir, sdkPath));
+        join(sandboxDir, cachePath));
 
     return Entrypoint.load(join(sandboxDir, appPath), cache)
         .then((entrypoint) {
@@ -1447,7 +1436,7 @@ class ScheduledServer {
 
   /// The base URL of the server, including its port.
   Future<Uri> get url =>
-    port.then((p) => new Uri.fromString("http://localhost:$p"));
+    port.then((p) => Uri.parse("http://localhost:$p"));
 
   /// Assert that the next request has the given [method] and [path], and pass
   /// it to [handler] to handle. If [handler] returns a [Future], wait until
@@ -1460,7 +1449,7 @@ class ScheduledServer {
       handlerCompleter.complete((request, response) {
         expect(request.method, equals(method));
         // TODO(nweiz): Use request.path once issue 7464 is fixed.
-        expect(new Uri.fromString(request.uri).path, equals(path));
+        expect(Uri.parse(request.uri).path, equals(path));
 
         var future = handler(request, response);
         if (future == null) future = new Future.immediate(null);

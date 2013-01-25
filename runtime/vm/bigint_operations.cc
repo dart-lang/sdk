@@ -184,15 +184,15 @@ RawBigint* BigintOperations::FromDecimalCString(const char* str,
       ASSERT(('0' <= c) && (c <= '9'));
       digit = digit * 10 + c - '0';
     }
-    result |= MultiplyWithDigit(result, kTenMultiplier);
+    result = MultiplyWithDigit(result, kTenMultiplier);
     if (digit != 0) {
       increment.SetChunkAt(0, digit);
-      result |= Add(result, increment);
+      result = Add(result, increment);
     }
   }
   Clamp(result);
   if ((space == Heap::kOld) && !result.IsOld()) {
-    result |= Object::Clone(result, Heap::kOld);
+    result ^= Object::Clone(result, Heap::kOld);
   }
   return result.raw();
 }
@@ -1480,13 +1480,13 @@ void BigintOperations::DivideRemainder(
 
   int comp = UnsignedCompare(a, b);
   if (comp < 0) {
-    (*quotient) |= Zero();
-    (*remainder) |= Copy(a);  // TODO(floitsch): can we reuse the input?
+    (*quotient) = Zero();
+    (*remainder) = Copy(a);  // TODO(floitsch): can we reuse the input?
     return;
   } else if (comp == 0) {
-    (*quotient) |= One();
+    (*quotient) = One();
     quotient->SetSign(a.IsNegative() != b.IsNegative());
-    (*remainder) |= Zero();
+    (*remainder) = Zero();
     return;
   }
 
@@ -1521,7 +1521,7 @@ void BigintOperations::DivideRemainder(
   ASSERT(divisor_length == divisor.Length());
 
   intptr_t quotient_length = dividend_length - divisor_length + 1;
-  *quotient |= Bigint::Allocate(quotient_length);
+  *quotient = Bigint::Allocate(quotient_length);
   quotient->SetSign(a.IsNegative() != b.IsNegative());
 
   intptr_t quotient_pos = dividend_length - divisor_length;
@@ -1536,7 +1536,7 @@ void BigintOperations::DivideRemainder(
   Chunk first_quotient_digit = 0;
   while (UnsignedCompare(dividend, shifted_divisor) >= 0) {
     first_quotient_digit++;
-    dividend |= Subtract(dividend, shifted_divisor);
+    dividend = Subtract(dividend, shifted_divisor);
   }
   quotient->SetChunkAt(quotient_pos--, first_quotient_digit);
 
@@ -1609,7 +1609,7 @@ void BigintOperations::DivideRemainder(
     target.SetChunkAt(2, dividend_digit);
     do {
       quotient_digit = (quotient_digit - 1) & kDigitMask;
-      estimation_product |= MultiplyWithDigit(short_divisor, quotient_digit);
+      estimation_product = MultiplyWithDigit(short_divisor, quotient_digit);
     } while (UnsignedCompareNonClamped(estimation_product, target) > 0);
     // At this point the quotient_digit is fairly accurate.
     // At the worst it is off by one.
@@ -1617,15 +1617,15 @@ void BigintOperations::DivideRemainder(
     // subtract the divisor another time.
     // Let t = i - divisor_length.
     // dividend -= (quotient_digit * divisor) << (t * kDigitBitSize);
-    shifted_divisor |= MultiplyWithDigit(divisor, quotient_digit);
-    shifted_divisor |= DigitsShiftLeft(shifted_divisor, i - divisor_length);
+    shifted_divisor = MultiplyWithDigit(divisor, quotient_digit);
+    shifted_divisor = DigitsShiftLeft(shifted_divisor, i - divisor_length);
     dividend = Subtract(dividend, shifted_divisor);
     if (dividend.IsNegative()) {
       // The estimation was still too big.
       quotient_digit--;
       // TODO(floitsch): allocate space for the shifted_divisor once and reuse
       // it at every iteration.
-      shifted_divisor |= DigitsShiftLeft(divisor, i - divisor_length);
+      shifted_divisor = DigitsShiftLeft(divisor, i - divisor_length);
       // TODO(floitsch): reuse the space of the previous dividend.
       dividend = Add(dividend, shifted_divisor);
     }
@@ -1633,7 +1633,7 @@ void BigintOperations::DivideRemainder(
   }
   ASSERT(quotient_pos == -1);
   Clamp(*quotient);
-  *remainder |= ShiftRight(dividend, normalization_shift);
+  *remainder = ShiftRight(dividend, normalization_shift);
   remainder->SetSign(a.IsNegative());
 }
 

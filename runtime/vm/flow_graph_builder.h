@@ -19,7 +19,28 @@ class ParsedFunction;
 // An abstraction of the graph context in which an inlined call occurs.
 class InliningContext: public ZoneAllocated {
  public:
+  // Create the appropriate inlining context for the flow graph context of a
+  // call.
+  static InliningContext* Create(Definition* call);
+
   virtual void AddExit(ReturnInstr* exit) = 0;
+
+  // Inline a flow graph at a call site.
+  //
+  // Assumes the callee graph was computed by BuildGraph with an inlining
+  // context and transformed to SSA with ComputeSSA with a correct virtual
+  // register number, and that the use lists have been correctly computed.
+  //
+  // After inlining the caller graph will correctly have adjusted the
+  // pre/post orders, the dominator tree and the use lists.
+  virtual void ReplaceCall(FlowGraph* caller_graph,
+                           Definition* call,
+                           FlowGraph* callee_graph) = 0;
+
+ protected:
+  static void PrepareGraphs(FlowGraph* caller_graph,
+                            Definition* call,
+                            FlowGraph* callee_graph);
 };
 
 
@@ -29,6 +50,18 @@ class InliningContext: public ZoneAllocated {
 class ValueInliningContext: public InliningContext {
  public:
   ValueInliningContext() : exits_(4) { }
+
+  virtual void AddExit(ReturnInstr* exit);
+
+  virtual void ReplaceCall(FlowGraph* caller_graph,
+                           Definition* call,
+                           FlowGraph* callee_graph);
+
+ private:
+  struct Data {
+    BlockEntryInstr* exit_block;
+    ReturnInstr* exit_return;
+  };
 
   BlockEntryInstr* ExitBlockAt(intptr_t i) const {
     ASSERT(exits_[i].exit_block != NULL);
@@ -41,17 +74,8 @@ class ValueInliningContext: public InliningContext {
     return exits_[i].exit_return->value();
   }
 
-  intptr_t NumExits() { return exits_.length(); }
-  virtual void AddExit(ReturnInstr* exit);
-  void SortExits();
-
- private:
-  struct Data {
-    BlockEntryInstr* exit_block;
-    ReturnInstr* exit_return;
-  };
-
   static int LowestBlockIdFirst(const Data* a, const Data* b);
+  void SortExits();
 
   GrowableArray<Data> exits_;
 };
@@ -64,7 +88,7 @@ class FlowGraphBuilder: public ValueObject {
   FlowGraphBuilder(const ParsedFunction& parsed_function,
                    InliningContext* inlining_context);
 
-  FlowGraph* BuildGraph(intptr_t initial_loop_depth);
+  FlowGraph* BuildGraph();
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
@@ -137,13 +161,11 @@ class TestGraphVisitor;
 class EffectGraphVisitor : public AstNodeVisitor {
  public:
   EffectGraphVisitor(FlowGraphBuilder* owner,
-                     intptr_t temp_index,
-                     intptr_t loop_depth)
+                     intptr_t temp_index)
       : owner_(owner),
         temp_index_(temp_index),
         entry_(NULL),
-        exit_(NULL),
-        loop_depth_(loop_depth) { }
+        exit_(NULL) { }
 
 #define DEFINE_VISIT(type, name) virtual void Visit##type(type* node);
   NODE_LIST(DEFINE_VISIT)
@@ -151,7 +173,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   FlowGraphBuilder* owner() const { return owner_; }
   intptr_t temp_index() const { return temp_index_; }
-  intptr_t loop_depth() const { return loop_depth_; }
   Instruction* entry() const { return entry_; }
   Instruction* exit() const { return exit_; }
 
@@ -328,9 +349,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Output parameters.
   Instruction* entry_;
   Instruction* exit_;
-
-  // Internal state.
-  const intptr_t loop_depth_;
 };
 
 
@@ -342,9 +360,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 class ValueGraphVisitor : public EffectGraphVisitor {
  public:
   ValueGraphVisitor(FlowGraphBuilder* owner,
-                    intptr_t temp_index,
-                    intptr_t loop_depth)
-      : EffectGraphVisitor(owner, temp_index, loop_depth), value_(NULL) { }
+                    intptr_t temp_index)
+      : EffectGraphVisitor(owner, temp_index), value_(NULL) { }
 
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
@@ -406,9 +423,8 @@ class TestGraphVisitor : public ValueGraphVisitor {
  public:
   TestGraphVisitor(FlowGraphBuilder* owner,
                    intptr_t temp_index,
-                   intptr_t loop_depth,
                    intptr_t condition_token_pos)
-      : ValueGraphVisitor(owner, temp_index, loop_depth),
+      : ValueGraphVisitor(owner, temp_index),
         true_successor_addresses_(1),
         false_successor_addresses_(1),
         condition_token_pos_(condition_token_pos) { }

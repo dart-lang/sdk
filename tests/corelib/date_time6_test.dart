@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test Date comparison operators.
+// Test DateTime comparison operators.
 
 main() {
-  var d = new Date.fromMillisecondsSinceEpoch(0, isUtc: true);
-  var d2 = new Date.fromMillisecondsSinceEpoch(1, isUtc: true);
+  var d = new DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  var d2 = new DateTime.fromMillisecondsSinceEpoch(1, isUtc: true);
   Expect.isTrue(d < d2);
   Expect.isTrue(d <= d2);
   Expect.isTrue(d2 > d);
@@ -16,8 +16,8 @@ main() {
   Expect.isFalse(d > d2);
   Expect.isFalse(d >= d2);
 
-  d = new Date.fromMillisecondsSinceEpoch(-1, isUtc: true);
-  d2 = new Date.fromMillisecondsSinceEpoch(0, isUtc: true);
+  d = new DateTime.fromMillisecondsSinceEpoch(-1, isUtc: true);
+  d2 = new DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
   Expect.isTrue(d < d2);
   Expect.isTrue(d <= d2);
   Expect.isTrue(d2 > d);

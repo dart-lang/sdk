@@ -13,9 +13,7 @@ class ReturnInfo {
   ReturnInfo(HType this.returnType)
       : compiledFunctions = new List<Element>();
 
-  ReturnInfo.unknownType()
-      : this.returnType = null,
-        compiledFunctions = new List<Element>();
+  ReturnInfo.unknownType() : this(null);
 
   void update(HType type, Recompile recompile, Compiler compiler) {
     HType newType =
@@ -128,6 +126,7 @@ class HTypeList {
   bool get hasNamedArguments => namedArguments != null;
   int get length => types.length;
   HType operator[](int index) => types[index];
+  void operator[]=(int index, HType type) { types[index] = type; }
 
   HTypeList union(HTypeList other, Compiler compiler) {
     if (allUnknown) return this;
@@ -482,9 +481,7 @@ class ArgumentTypesRegistry {
     staticTypeMap[element] = HTypeList.ALL_UNKNOWN;
   }
 
-  void registerDynamicInvocation(HInvokeDynamic node,
-                                 Selector selector,
-                                 HTypeMap types) {
+  void registerDynamicInvocation(HTypeList providedTypes, Selector selector) {
     if (selector.isClosureCall()) {
       // We cannot use the current framework to do optimizations based
       // on the 'call' selector because we are also generating closure
@@ -492,8 +489,6 @@ class ArgumentTypesRegistry {
       // track parameter types, nor invalidates optimized methods.
       return;
     }
-    HTypeList providedTypes =
-        new HTypeList.fromDynamicInvocation(node, selector, types);
     if (!selectorTypeMap.containsKey(selector)) {
       selectorTypeMap[selector] = providedTypes;
     } else {
@@ -643,7 +638,7 @@ class JavaScriptBackend extends Backend {
   Element jsStringConcat;
   Element getInterceptorMethod;
   Element fixedLengthListConstructor;
-  bool _interceptorsAreInitialized = false;
+  bool seenAnyClass = false;
 
   final Namer namer;
 
@@ -665,14 +660,18 @@ class JavaScriptBackend extends Backend {
   ArgumentTypesRegistry argumentTypes;
   FieldTypesRegistry fieldTypes;
 
-  final Interceptors interceptors;
-
   /**
    * A collection of selectors of intercepted method calls. The
    * emitter uses this set to generate the [:ObjectInterceptor:] class
    * whose members just forward the call to the intercepted receiver.
    */
   final Set<Selector> usedInterceptors;
+
+  /**
+   * A collection of selectors that must have a one shot interceptor
+   * generated.
+   */
+  final Set<Selector> oneShotInterceptors;
 
   /**
    * The members of instantiated interceptor classes: maps a member
@@ -708,8 +707,8 @@ class JavaScriptBackend extends Backend {
       : namer = determineNamer(compiler),
         returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
-        interceptors = new Interceptors(compiler),
         usedInterceptors = new Set<Selector>(),
+        oneShotInterceptors = new Set<Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypeInformation(compiler),
         specializedGetInterceptors =
@@ -739,6 +738,10 @@ class JavaScriptBackend extends Backend {
 
   void addInterceptedSelector(Selector selector) {
     usedInterceptors.add(selector);
+  }
+
+  void addOneShotInterceptor(Selector selector) {
+    oneShotInterceptors.add(selector);
   }
 
   /**
@@ -817,12 +820,12 @@ class JavaScriptBackend extends Backend {
     enqueuer.registerInstantiatedClass(cls);
   }
 
-  String registerSpecializedGetInterceptor(Set<ClassElement> classes) {
+  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
     compiler.enqueuer.codegen.registerInstantiatedClass(objectInterceptorClass);
+    String name = namer.getInterceptorName(getInterceptorMethod, classes);
     if (classes.contains(compiler.objectClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
-      String name = namer.getName(getInterceptorMethod);
       specializedGetInterceptors.putIfAbsent(name, () {
         // It is important to take the order provided by the map,
         // because we want the int type check to happen before the
@@ -835,20 +838,30 @@ class JavaScriptBackend extends Backend {
         });
         return keys;
       });
-      return namer.isolateAccess(getInterceptorMethod);
     } else {
-      String name = namer.getSpecializedName(getInterceptorMethod, classes);
       specializedGetInterceptors[name] = classes;
-      return '${namer.CURRENT_ISOLATE}.$name';
     }
   }
 
+  void initializeNoSuchMethod() {
+    // In case the emitter generates noSuchMethod calls, we need to
+    // make sure all [noSuchMethod] methods know they might take a
+    // [JsInvocationMirror] as parameter.
+    HTypeList types = new HTypeList(1);
+    types[0] = new HType.fromBoundedType(
+        compiler.jsInvocationMirrorClass.computeType(compiler),
+        compiler,
+        false);
+    argumentTypes.registerDynamicInvocation(types, new Selector.noSuchMethod());
+  }
+
   void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
-    ClassElement result = null;
-    if (!_interceptorsAreInitialized) {
+    if (!seenAnyClass) {
       initializeInterceptorElements();
-      _interceptorsAreInitialized = true;
+      initializeNoSuchMethod();
+      seenAnyClass = true;
     }
+    ClassElement result = null;
     if (cls == compiler.stringClass) {
       addInterceptors(jsStringClass, enqueuer);
     } else if (cls == compiler.listClass) {
@@ -932,7 +945,6 @@ class JavaScriptBackend extends Backend {
     invalidateAfterCodegen.clear();
   }
 
-
   native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
     return new native.NativeResolutionEnqueuer(world, compiler);
   }
@@ -964,7 +976,9 @@ class JavaScriptBackend extends Backend {
   void registerDynamicInvocation(HInvokeDynamic node,
                                  Selector selector,
                                  HTypeMap types) {
-    argumentTypes.registerDynamicInvocation(node, selector, types);
+    HTypeList providedTypes =
+        new HTypeList.fromDynamicInvocation(node, selector, types);
+    argumentTypes.registerDynamicInvocation(providedTypes, selector);
   }
 
   /**
@@ -1052,7 +1066,8 @@ class JavaScriptBackend extends Backend {
     assert(invariant(callee, callee.isDeclaration));
     returnInfo.putIfAbsent(callee, () => new ReturnInfo.unknownType());
     ReturnInfo info = returnInfo[callee];
-    if (info.returnType != HType.UNKNOWN && caller != null) {
+    HType returnType = info.returnType;
+    if (returnType != HType.UNKNOWN && returnType != null && caller != null) {
       assert(invariant(caller, caller.isDeclaration));
       info.addCompiledFunction(caller);
     }
@@ -1095,7 +1110,11 @@ class JavaScriptBackend extends Backend {
     Element element = type.element;
     bool nativeCheck =
           emitter.nativeEmitter.requiresNativeIsCheck(element);
-    if (type == compiler.types.voidType) {
+    if (type.isMalformed) {
+      // Check for malformed types first, because the type may be a list type
+      // with a malformed argument type.
+      return const SourceString('malformedTypeCheck');
+    } else if (type == compiler.types.voidType) {
       return const SourceString('voidTypeCheck');
     } else if (element == compiler.stringClass) {
       return const SourceString('stringTypeCheck');
@@ -1119,8 +1138,6 @@ class JavaScriptBackend extends Backend {
           : const SourceString('stringSuperTypeCheck');
     } else if (identical(element, compiler.listClass)) {
       return const SourceString('listTypeCheck');
-    } else if (type.isMalformed) {
-      return const SourceString('malformedTypeCheck');
     } else {
       if (Elements.isListSupertype(element, compiler)) {
         return nativeCheck
@@ -1147,5 +1164,43 @@ class JavaScriptBackend extends Backend {
     print("------------------------");
     fieldTypes.dump();
     print("");
+  }
+
+  Element getExceptionUnwrapper() {
+    return compiler.findHelper(const SourceString('unwrapException'));
+  }
+
+  Element getThrowRuntimeError() {
+    return compiler.findHelper(const SourceString('throwRuntimeError'));
+  }
+
+  Element getThrowMalformedSubtypeError() {
+    return compiler.findHelper(
+        const SourceString('throwMalformedSubtypeError'));
+  }
+
+  Element getThrowAbstractClassInstantiationError() {
+    return compiler.findHelper(
+        const SourceString('throwAbstractClassInstantiationError'));
+  }
+
+  Element getClosureConverter() {
+    return compiler.findHelper(const SourceString('convertDartClosureToJS'));
+  }
+
+  Element getTraceFromException() {
+    return compiler.findHelper(const SourceString('getTraceFromException'));
+  }
+
+  Element getMapMaker() {
+    return compiler.findHelper(const SourceString('makeLiteralMap'));
+  }
+
+  Element getSetRuntimeTypeInfo() {
+    return compiler.findHelper(const SourceString('setRuntimeTypeInfo'));
+  }
+
+  Element getGetRuntimeTypeInfo() {
+    return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
   }
 }

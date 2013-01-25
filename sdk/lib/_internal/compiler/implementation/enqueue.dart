@@ -198,7 +198,7 @@ abstract class Enqueuer {
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
         if (isResolutionQueue) {
-          compiler.resolver.checkMembers(cls);
+          compiler.resolver.checkClass(cls);
         }
 
         if (compiler.enableTypeAssertions) {
@@ -417,7 +417,7 @@ class ResolutionEnqueuer extends Enqueuer {
     // isolate library, or timers for the async library.
     LibraryElement library = element.getLibrary();
     if (!compiler.hasIsolateSupport()) {
-      String uri = library.uri.toString();
+      String uri = library.canonicalUri.toString();
       if (uri == 'dart:isolate') {
         enableIsolateSupport(library);
       } else if (uri == 'dart:async') {

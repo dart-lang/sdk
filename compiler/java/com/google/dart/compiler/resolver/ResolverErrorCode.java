@@ -32,6 +32,8 @@ public enum ResolverErrorCode implements ErrorCode {
       "Cannot declare a non-factory named constructor of another class."),
   CANNOT_HIDE_IMPORT_PREFIX("Cannot hide import prefix '%s'"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
+  CANNOT_MIXIN_CLASS_WITH_CONSTRUCTOR("Cannot use class with constructor as a mixin."),
+  CANNOT_MIXIN_CLASS_WITH_SUPER("Cannot use class with super invocation as a mixin."),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
       "cannot override method %s from %s, wrong number of required parameters"),
@@ -129,6 +131,7 @@ public enum ResolverErrorCode implements ErrorCode {
   ILLEGAL_ACCESS_TO_PRIVATE(ErrorSeverity.WARNING, "'%s' is private and not defined in this library"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("ErrorSeverity.WARNING, \"%s\" refers to \"%s\" which is in a different library"),
+  ILLEGAL_FIELD_ACCESS_FROM_FACTORY("Illegal access of instance field %s from factory"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
   INITIALIZER_ONLY_IN_GENERATIVE_CONSTRUCTOR("Initializers are allowed only in non-redirecting generative constructors"),
@@ -162,8 +165,6 @@ public enum ResolverErrorCode implements ErrorCode {
   METHOD_MUST_HAVE_BODY(ErrorSeverity.WARNING, "Method must have a body in a non-abstract class"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR(ErrorSeverity.WARNING, "New expression cannot be invoked on type variable"),
-  NEW_EXPRESSION_NOT_CONSTRUCTOR(
-      ErrorSeverity.WARNING, "New expression does not resolve to a constructor"),
   NEW_EXPRESSION_NOT_CONST_CONSTRUCTOR("New expression does not resolve to a const constructor"),
   NO_SUCH_TYPE("no such type \"%s\""),
   NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),
@@ -178,6 +179,7 @@ public enum ResolverErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test (reachable code?)
   NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
   NOT_GENERATIVE_SUPER_CONSTRUCTOR("Constructor '%s' in class '%s' is not generative."),
+  ONLY_OBJECT_MIXIN_SUPERCLASS("Only Object is allowed to be a superclass of a mixin."),
   OPTIONAL_PARAMETERS_CANNOT_START_WITH_UNDER("Optional parameters cannot start with an '_' character"),
   PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),
   SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER(

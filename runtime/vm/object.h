@@ -39,21 +39,10 @@ class Symbols;
 #define CHECK_HANDLE()
 #endif
 
-#define OBJECT_IMPLEMENTATION(object, super)                                   \
+#define BASE_OBJECT_IMPLEMENTATION(object, super)                              \
  public:  /* NOLINT */                                                         \
   Raw##object* raw() const { return reinterpret_cast<Raw##object*>(raw_); }    \
-  void operator=(Raw##object* value) {                                         \
-    initializeHandle(this, value);                                             \
-  }                                                                            \
   bool Is##object() const { return true; }                                     \
-  void operator^=(RawObject* value) {                                          \
-    initializeHandle(this, value);                                             \
-    ASSERT(IsNull() || Is##object());                                          \
-  }                                                                            \
-  void operator|=(RawObject* value) {                                          \
-    raw_ = value;                                                              \
-    CHECK_HANDLE();                                                            \
-  }                                                                            \
   static object& Handle(Isolate* isolate, Raw##object* raw_ptr) {              \
     object* obj =                                                              \
         reinterpret_cast<object*>(VMHandles::AllocateHandle(isolate));         \
@@ -88,6 +77,12 @@ class Symbols;
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
+  static object* ReadOnlyHandle(Isolate* isolate) {                            \
+    object* obj = reinterpret_cast<object*>(                                   \
+        Dart::AllocateReadOnlyHandle());                                       \
+    initializeHandle(obj, object::null());                                     \
+    return obj;                                                                \
+  }                                                                            \
   static object& ZoneHandle() {                                                \
     return ZoneHandle(Isolate::Current(), object::null());                     \
   }                                                                            \
@@ -119,8 +114,6 @@ class Symbols;
   }                                                                            \
   virtual const char* ToCString() const;                                       \
   static const ClassId kClassId = k##object##Cid;                              \
- protected:  /* NOLINT */                                                      \
-  object() : super() {}                                                        \
  private:  /* NOLINT */                                                        \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
   static void initializeHandle(object* obj, RawObject* raw_ptr) {              \
@@ -146,8 +139,42 @@ class Symbols;
                                Snapshot::Kind);                                \
   friend class SnapshotReader;                                                 \
 
+#define OBJECT_IMPLEMENTATION(object, super)                                   \
+ public:  /* NOLINT */                                                         \
+  void operator=(Raw##object* value) {                                         \
+    initializeHandle(this, value);                                             \
+  }                                                                            \
+  void operator^=(RawObject* value) {                                          \
+    initializeHandle(this, value);                                             \
+    ASSERT(IsNull() || Is##object());                                          \
+  }                                                                            \
+ protected:  /* NOLINT */                                                      \
+  object() : super() {}                                                        \
+  BASE_OBJECT_IMPLEMENTATION(object, super)                                    \
+
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
+  Raw##object* raw_ptr() const {                                               \
+    ASSERT(raw() != null());                                                   \
+    return raw()->ptr();                                                       \
+  }                                                                            \
+  SNAPSHOT_READER_SUPPORT(object)                                              \
+  friend class StackFrame;                                                     \
+
+// This macro is used to denote types that do not have a sub-type.
+#define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
+ public:  /* NOLINT */                                                         \
+  void operator=(Raw##object* value) {                                         \
+    raw_ = value;                                                              \
+    CHECK_HANDLE();                                                            \
+  }                                                                            \
+  void operator^=(RawObject* value) {                                          \
+    raw_ = value;                                                              \
+    CHECK_HANDLE();                                                            \
+  }                                                                            \
+ private:  /* NOLINT */                                                        \
+  object() : super() {}                                                        \
+  BASE_OBJECT_IMPLEMENTATION(object, super)                                    \
   Raw##object* raw_ptr() const {                                               \
     ASSERT(raw() != null());                                                   \
     return raw()->ptr();                                                       \
@@ -352,6 +379,8 @@ class Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawObject));
   }
+
+  static void VerifyBuiltinVtables();
 
   static const ClassId kClassId = kObjectCid;
 
@@ -860,7 +889,7 @@ class Class : public Object {
                 const AbstractTypeArguments& other_type_arguments,
                 Error* malformed_error) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(Class, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
   friend class Instance;
   friend class Object;
@@ -894,7 +923,7 @@ class UnresolvedClass : public Object {
 
   static RawUnresolvedClass* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass, Object);
   friend class Class;
 };
 
@@ -1123,7 +1152,7 @@ class PatchClass : public Object {
   void set_script(const Script& value) const;
   static RawPatchClass* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
   friend class Class;
 };
 
@@ -1390,6 +1419,11 @@ class Function : public Object {
   bool IsInlineable() const;
   void set_is_inlinable(bool value) const;
 
+  bool is_visible() const {
+    return VisibleBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_visible(bool value) const;
+
   enum IntrinsicKind {
     kUnknownIntrinsic = 0,  // Initial value.
     kIsIntrinsic,
@@ -1545,9 +1579,10 @@ class Function : public Object {
     kNativeBit = 5,
     kAbstractBit = 6,
     kExternalBit = 7,
-    kIntrinsicTagBit = 8,
+    kVisibleBit = 8,
+    kIntrinsicTagBit = 9,
     kIntrinsicTagSize = 2,
-    kKindTagBit = 10,
+    kKindTagBit = 11,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -1558,6 +1593,7 @@ class Function : public Object {
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
+  class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
   class IntrinsicKindBits :
     public BitField<Function::IntrinsicKind,
                     kIntrinsicTagBit, kIntrinsicTagSize> {};  // NOLINT
@@ -1601,7 +1637,7 @@ class Function : public Object {
                          const AbstractTypeArguments& other_type_arguments,
                          Error* malformed_error) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(Function, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
 };
 
@@ -1636,7 +1672,7 @@ class ClosureData: public Object {
 
   static RawClosureData* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
   friend class Class;
   friend class Function;
   friend class HeapProfiler;
@@ -1664,7 +1700,7 @@ class RedirectionData: public Object {
 
   static RawRedirectionData* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(RedirectionData, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(RedirectionData, Object);
   friend class Class;
   friend class Function;
   friend class HeapProfiler;
@@ -1758,7 +1794,7 @@ class Field : public Object {
   }
   static RawField* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(Field, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Field, Object);
   friend class Class;
   friend class HeapProfiler;
 };
@@ -1782,7 +1818,7 @@ class LiteralToken : public Object {
   void set_literal(const String& literal) const;
   void set_value(const Object& value) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(LiteralToken, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LiteralToken, Object);
   friend class Class;
 };
 
@@ -1860,7 +1896,7 @@ class TokenStream : public Object {
   static RawTokenStream* New();
   static void DataFinalizer(void *peer);
 
-  HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
   friend class Class;
 };
 
@@ -1911,7 +1947,7 @@ class Script : public Object {
   void set_tokens(const TokenStream& value) const;
   static RawScript* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(Script, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Script, Object);
   friend class Class;
 };
 
@@ -2104,7 +2140,7 @@ class Library : public Object {
                                       bool import_core_lib);
   RawObject* LookupEntry(const String& name, intptr_t *index) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(Library, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
   friend class Class;
   friend class Debugger;
   friend class DictionaryIterator;
@@ -2141,7 +2177,7 @@ class LibraryPrefix : public Object {
   void set_num_imports(intptr_t value) const;
   static RawLibraryPrefix* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);
   friend class Class;
   friend class Isolate;
 };
@@ -2166,7 +2202,7 @@ class Namespace : public Object {
  private:
   static RawNamespace* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
 };
 
@@ -2222,7 +2258,7 @@ class Instructions : public Object {
   // and links the two in a GC safe manner.
   static RawInstructions* New(intptr_t size);
 
-  HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
   friend class Code;
 };
@@ -2258,7 +2294,7 @@ class LocalVarDescriptors : public Object {
   static RawLocalVarDescriptors* New(intptr_t num_variables);
 
  private:
-  HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);
   friend class Class;
 };
 
@@ -2356,7 +2392,7 @@ class PcDescriptors : public Object {
     return reinterpret_cast<RawSmi**>(EntryAddr(index, entry_offset));
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;
 };
 
@@ -2409,7 +2445,7 @@ class Stackmap : public Object {
   bool GetBit(intptr_t bit_index) const;
   void SetBit(intptr_t bit_index, bool value) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(Stackmap, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Stackmap, Object);
   friend class BitmapBuilder;
   friend class Class;
 };
@@ -2455,7 +2491,7 @@ class ExceptionHandlers : public Object {
   static const intptr_t kMaxHandlers = 1024 * 1024;
 
   void set_handled_types_data(const Array& value) const;
-  HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers, Object);
   friend class Class;
 };
 
@@ -2522,7 +2558,7 @@ class DeoptInfo : public Object {
 
   void SetLength(intptr_t value) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(DeoptInfo, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(DeoptInfo, Object);
   friend class Class;
 };
 
@@ -2755,7 +2791,7 @@ class Code : public Object {
   // and links the two in a GC safe manner.
   static RawCode* New(intptr_t pointer_offsets_length);
 
-  HEAP_OBJECT_IMPLEMENTATION(Code, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
 };
 
@@ -2816,7 +2852,7 @@ class Context : public Object {
     raw_ptr()->num_variables_ = num_variables;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Context, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Context, Object);
   friend class Class;
 };
 
@@ -2888,7 +2924,7 @@ class ContextScope : public Object {
     return reinterpret_cast<RawContextScope::VariableDesc*>(raw_addr);
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ContextScope, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ContextScope, Object);
   friend class Class;
 };
 
@@ -3025,7 +3061,7 @@ class ICData : public Object {
   intptr_t TestEntryLength() const;
   void WriteSentinel() const;
 
-  HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
 };
 
@@ -3079,7 +3115,7 @@ class MegamorphicCache : public Object {
   static inline RawObject* GetTargetFunction(const Array& array,
                                              intptr_t index);
 
-  HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, Object);
 };
 
 
@@ -3123,7 +3159,7 @@ class SubtypeTestCache : public Object {
 
   intptr_t TestEntryLength() const;
 
-  HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
 };
 
@@ -3157,7 +3193,7 @@ class ApiError : public Error {
   void set_message(const String& message) const;
   static RawApiError* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(ApiError, Error);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ApiError, Error);
   friend class Class;
 };
 
@@ -3182,7 +3218,7 @@ class LanguageError : public Error {
   void set_message(const String& message) const;
   static RawLanguageError* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(LanguageError, Error);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LanguageError, Error);
   friend class Class;
 };
 
@@ -3213,7 +3249,7 @@ class UnhandledException : public Error {
   void set_exception(const Instance& exception) const;
   void set_stacktrace(const Instance& stacktrace) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;
 };
 
@@ -3237,7 +3273,7 @@ class UnwindError : public Error {
  private:
   void set_message(const String& message) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(UnwindError, Error);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(UnwindError, Error);
   friend class Class;
 };
 
@@ -3684,6 +3720,15 @@ class Smi : public Integer {
 
   RawInteger* ShiftOp(Token::Kind kind, const Smi& other) const;
 
+  void operator=(RawSmi* value) {
+    raw_ = value;
+    CHECK_HANDLE();
+  }
+  void operator^=(RawObject* value) {
+    raw_ = value;
+    CHECK_HANDLE();
+  }
+
  private:
   static intptr_t ValueFromRaw(uword raw_value) {
     intptr_t value = raw_value;
@@ -3692,7 +3737,9 @@ class Smi : public Integer {
   }
   static cpp_vtable handle_vtable_;
 
-  OBJECT_IMPLEMENTATION(Smi, Integer);
+  Smi() : Integer() {}
+  BASE_OBJECT_IMPLEMENTATION(Smi, Integer);
+
   friend class Api;  // For ValueFromRaw
   friend class Class;
   friend class Object;
@@ -3736,7 +3783,7 @@ class Mint : public Integer {
  private:
   void set_value(int64_t value) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(Mint, Integer);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Mint, Integer);
   friend class Class;
 };
 
@@ -3817,7 +3864,7 @@ class Bigint : public Integer {
 
   static RawBigint* Allocate(intptr_t length, Heap::Space space = Heap::kNew);
 
-  HEAP_OBJECT_IMPLEMENTATION(Bigint, Integer);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Bigint, Integer);
   friend class BigintOperations;
   friend class Class;
 };
@@ -3855,7 +3902,7 @@ class Double : public Number {
  private:
   void set_value(double value) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(Double, Number);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Double, Number);
   friend class Class;
 };
 
@@ -4078,6 +4125,9 @@ class String : public Instance {
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
 
+  static bool EqualsIgnoringPrivateKey(const String& str1,
+                                       const String& str2);
+
   static RawString* NewFormatted(const char* format, ...)
       PRINTF_ATTRIBUTE(1, 2);
   static RawString* NewFormattedV(const char* format, va_list args);
@@ -4108,7 +4158,7 @@ class String : public Instance {
                            CallbackType new_symbol,
                            Snapshot::Kind kind);
 
-  HEAP_OBJECT_IMPLEMENTATION(String, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 
   friend class Class;
   friend class Symbols;
@@ -4127,9 +4177,6 @@ class OneByteString : public AllStatic {
 
   static RawOneByteString* EscapeSpecialCharacters(const String& str,
                                                    bool raw_str);
-
-  static bool EqualsIgnoringPrivateKey(const String& str1,
-                                       const String& str2);
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 1;
@@ -4470,7 +4517,7 @@ class Bool : public Instance {
   // New should only be called to initialize the two legal bool values.
   static RawBool* New(bool value);
 
-  HEAP_OBJECT_IMPLEMENTATION(Bool, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Bool, Instance);
   friend class Class;
   friend class Object;  // To initialize the true and false values.
 };
@@ -4574,7 +4621,7 @@ class ImmutableArray : public Array {
   static RawImmutableArray* New(intptr_t len, Heap::Space space = Heap::kNew);
 
  private:
-  HEAP_OBJECT_IMPLEMENTATION(ImmutableArray, Array);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ImmutableArray, Array);
   friend class Class;
 };
 
@@ -4683,7 +4730,7 @@ class GrowableObjectArray : public Instance {
 
   static const int kDefaultInitialCapacity = 4;
 
-  HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray, Instance);
   friend class Array;
   friend class Class;
 };
@@ -4802,7 +4849,7 @@ class Int8Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Int8Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Int8Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -4854,7 +4901,7 @@ class Uint8Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Uint8Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint8Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -4907,7 +4954,7 @@ class Uint8ClampedArray : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Uint8ClampedArray, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint8ClampedArray, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -4959,7 +5006,7 @@ class Int16Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Int16Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Int16Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5011,7 +5058,7 @@ class Uint16Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Uint16Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint16Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5063,7 +5110,7 @@ class Int32Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Int32Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Int32Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5115,7 +5162,7 @@ class Uint32Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Uint32Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint32Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5167,7 +5214,7 @@ class Int64Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Int64Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Int64Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5219,7 +5266,7 @@ class Uint64Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Uint64Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Uint64Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5271,7 +5318,7 @@ class Float32Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Float32Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Float32Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5323,7 +5370,7 @@ class Float64Array : public ByteArray {
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Float64Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5381,7 +5428,7 @@ class ExternalInt8Array : public ByteArray {
     raw_ptr()->external_data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalInt8Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalInt8Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5459,7 +5506,8 @@ class ExternalUint8ClampedArray : public ExternalUint8Array {
                                            Heap::Space space = Heap::kNew);
 
  private:
-  HEAP_OBJECT_IMPLEMENTATION(ExternalUint8ClampedArray, ExternalUint8Array);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalUint8ClampedArray,
+                                   ExternalUint8Array);
   friend class Class;
 };
 
@@ -5516,7 +5564,7 @@ class ExternalInt16Array : public ByteArray {
     raw_ptr()->external_data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalInt16Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalInt16Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5574,7 +5622,7 @@ class ExternalUint16Array : public ByteArray {
     raw_ptr()->external_data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalUint16Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalUint16Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5632,7 +5680,7 @@ class ExternalInt32Array : public ByteArray {
     raw_ptr()->external_data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalInt32Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalInt32Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5690,7 +5738,7 @@ class ExternalUint32Array : public ByteArray {
     raw_ptr()->external_data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalUint32Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalUint32Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5748,7 +5796,7 @@ class ExternalInt64Array : public ByteArray {
     raw_ptr()->external_data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalInt64Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalInt64Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5806,7 +5854,7 @@ class ExternalUint64Array : public ByteArray {
     raw_ptr()->external_data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5864,7 +5912,7 @@ class ExternalFloat32Array : public ByteArray {
     raw_ptr()->external_data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5922,7 +5970,7 @@ class ExternalFloat64Array : public ByteArray {
     raw_ptr()->external_data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ExternalFloat64Array, ByteArray);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat64Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };
@@ -5931,7 +5979,7 @@ class ExternalFloat64Array : public ByteArray {
 // DartFunction represents the abstract Dart class 'Function'.
 class DartFunction : public Instance {
  private:
-  HEAP_OBJECT_IMPLEMENTATION(DartFunction, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(DartFunction, Instance);
   friend class Class;
   friend class Instance;
 };
@@ -6036,7 +6084,7 @@ class Stacktrace : public Instance {
   void set_code_array(const Array& code_array) const;
   void set_pc_offset_array(const Array& pc_offset_array) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
   friend class Class;
 };
 
@@ -6116,7 +6164,7 @@ class JSRegExp : public Instance {
     raw_ptr()->data_length_ = Smi::New(value);
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);
   friend class Class;
 };
 
@@ -6151,7 +6199,7 @@ class WeakProperty : public Instance {
   }
 
  private:
-  HEAP_OBJECT_IMPLEMENTATION(WeakProperty, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakProperty, Instance);
   friend class Class;
 };
 
@@ -6181,15 +6229,13 @@ void Object::SetRaw(RawObject* value) {
   }
   set_vtable(builtin_vtables_[cid]);
 #if defined(DEBUG)
-  Isolate* isolate = Isolate::Current();
   if (FLAG_verify_handles) {
+    Isolate* isolate = Isolate::Current();
     Heap* isolate_heap = isolate->heap();
     Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
     ASSERT(isolate_heap->Contains(RawObject::ToAddr(raw_)) ||
            vm_isolate_heap->Contains(RawObject::ToAddr(raw_)));
   }
-  ASSERT(builtin_vtables_[cid] ==
-         isolate->class_table()->At(cid)->ptr()->handle_vtable_);
 #endif
 }
 

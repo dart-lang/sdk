@@ -14,9 +14,9 @@ import '../../http/lib/http.dart' as http;
 import '../lib/oauth2.dart' as oauth2;
 import 'utils.dart';
 
-final Uri requestUri = new Uri.fromString("http://example.com/resource");
+final Uri requestUri = Uri.parse("http://example.com/resource");
 
-final Uri tokenEndpoint = new Uri.fromString('http://example.com/token');
+final Uri tokenEndpoint = Uri.parse('http://example.com/token');
 
 ExpectClient httpClient;
 
@@ -35,7 +35,7 @@ void main() {
     setUp(createHttpClient);
 
     test("that can't be refreshed throws an ExpirationException on send", () {
-      var expiration = new Date.now().subtract(new Duration(hours: 1));
+      var expiration = new DateTime.now().subtract(new Duration(hours: 1));
       var credentials = new oauth2.Credentials(
           'access token', null, null, [], expiration);
       var client = new oauth2.Client('identifier', 'secret', credentials,
@@ -47,7 +47,7 @@ void main() {
 
     test("that can be refreshed refreshes the credentials and sends the "
         "request", () {
-      var expiration = new Date.now().subtract(new Duration(hours: 1));
+      var expiration = new DateTime.now().subtract(new Duration(hours: 1));
       var credentials = new oauth2.Credentials(
           'access token', 'refresh token', tokenEndpoint, [], expiration);
       var client = new oauth2.Client('identifier', 'secret', credentials,

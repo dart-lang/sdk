@@ -11,10 +11,10 @@ import '../../test_pub.dart';
 main() {
   integration('checks out a package from the SDK', () {
     dir(sdkPath, [
-      file('revision', '1234'),
+      file('version', '0.1.2.3'),
       dir('pkg', [
         dir('foo', [
-          libDir('foo', 'foo 0.0.1234'),
+          libDir('foo', 'foo 0.1.2+3'),
           libPubspec('foo', '0.0.0-not.used')
         ])
       ])
@@ -27,6 +27,6 @@ main() {
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    packagesDir({"foo": "0.0.1234"}).scheduleValidate();
+    packagesDir({"foo": "0.1.2+3"}).scheduleValidate();
   });
 }

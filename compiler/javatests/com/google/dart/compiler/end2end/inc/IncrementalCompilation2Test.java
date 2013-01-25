@@ -695,7 +695,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   /**
    * Checks that it is not an error to use a multi-line string literal as a URI in a part directive.
    * Even with leading whitespace since it's getting trimmed. Even with Windows \r\n style.
@@ -722,7 +722,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   /**
    * Checks that it is a compile-time error when the library being exported does not have a library
    * definition.
@@ -741,7 +741,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errors,
         errEx(APP, DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE_EXPORT, 3, 1, 16));
   }
-  
+
   /**
    * Enabled in 0.13
    */
@@ -764,7 +764,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   /**
    * It is neither an error nor a warning if N is introduced by two or more imports but never
    * referred to.
@@ -784,7 +784,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   public void test_importConflict_used_asTypeAnnotation() throws Exception {
     prepare_importConflictAB();
     appSource.setContent(
@@ -827,7 +827,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errors,
         errEx(APP, ResolverErrorCode.DUPLICATE_IMPORTED_NAME, 5, 17, 4));
   }
-  
+
   public void test_importConflict_used_notTypeAnnotation_2() throws Exception {
     prepare_importConflictAB();
     appSource.setContent(
@@ -869,7 +869,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   public void test_importConflict_used_inCommentRef() throws Exception {
     prepare_importConflictAB();
     appSource.setContent(
@@ -916,7 +916,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             ""));
     compile();
     assertErrors(errors, errEx(APP, ResolverErrorCode.DUPLICATE_EXPORTED_NAME, 4, 1, 16));
-  } 
+  }
 
   private void prepare_importConflictAB() {
     appSource.setContent(
@@ -983,7 +983,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // Check that errors where reported (and in correct time).
     assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 23));
   }
-  
+
   public void test_reportMissingSource_withSchema_file() throws Exception {
     URI uri = new URI("file:noSuchSource.dart");
     Source source = new UrlSource(uri) {
@@ -995,7 +995,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // should not cause exception
     assertFalse(source.exists());
   }
-  
+
   public void test_reportMissingSource_withSchema_dart() throws Exception {
     URI uri = new URI("dart:noSuchSource");
     Source source = new UrlSource(uri, new PackageLibraryManager()) {
@@ -1087,7 +1087,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errors,
         errEx(ResolverErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, 5, 5, 14));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=4072
@@ -1119,7 +1119,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errors,
         errEx(TypeErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, 6, 5, 16));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3266
@@ -1182,7 +1182,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3340
@@ -1235,7 +1235,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors, errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 3, 10));
   }
-  
+
   public void test_newLibrarySyntax_hide() throws Exception {
     appSource.setContent(
         "A.dart",
@@ -1308,7 +1308,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertTrue(errors.toString().contains("libB.TypeAC"));
     assertTrue(errors.toString().contains("libB.TypeBB"));
   }
-  
+
   public void test_newLibrarySyntax_export2() throws Exception {
     appSource.setContent(
         "A.dart",
@@ -1382,7 +1382,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   public void test_newLibrarySyntax_export4() throws Exception {
     appSource.setContent(
         "p1.dart",
@@ -1417,7 +1417,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   public void test_newLibrarySyntax_export_hide() throws Exception {
     appSource.setContent(
         "A.dart",
@@ -1463,7 +1463,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertTrue(errors.toString().contains("libB.TypeAC"));
     assertTrue(errors.toString().contains("libB.TypeBB"));
   }
-  
+
   public void test_newLibrarySyntax_noExport() throws Exception {
     appSource.setContent(
         "A.dart",
@@ -1508,6 +1508,40 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertTrue(errors.toString().contains("libB.TypeAA"));
     assertTrue(errors.toString().contains("libB.TypeAB"));
     assertTrue(errors.toString().contains("libB.TypeAC"));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7598
+   */
+  public void test_newLibrarySyntax_export_withMetadata() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.A;",
+            "var a = 0;",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.B;",
+            "@meta export 'A.dart';",
+            "const meta = 'meta!';",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'B.dart';",
+            "main() {",
+            "  print(a);",
+            "}",
+            ""));
+    compile();
+    assertErrors(errors);
   }
 
   /**
@@ -1623,7 +1657,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertEquals(0, errors.size());
   }
-  
+
   public void test_implicitlyImportCore() throws Exception {
     appSource.setContent(
         APP,
@@ -1681,7 +1715,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors, errEx(DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, 2, 1, 10));
   }
-  
+
   /**
    * Part should have one and only one directive - "part of".
    */
@@ -1704,7 +1738,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors, errEx(DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, 2, 1, 20));
   }
-  
+
   /**
    * Part should have one and only one directive - "part of".
    */
@@ -1725,7 +1759,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE, -1, -1, 0));
   }
-  
+
   /**
    * Part should have one and only one directive - "part of".
    */
@@ -1770,7 +1804,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors);
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=6077
@@ -1807,6 +1841,10 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
 
         @Override
         public void onError(DartCompilationError event) {
+          // ignore deprecated
+          if (event.getErrorCode() == TypeErrorCode.DEPRECATED_ELEMENT) {
+            return;
+          }
           // Remember errors only between unitAboutToCompile/unitCompiled.
           Source source = event.getSource();
           if (source != null && compilingUris.contains(source.getUri())) {

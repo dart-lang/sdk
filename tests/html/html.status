@@ -19,14 +19,18 @@ input_element_test/supported_datetime: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_week: Fail
+speechrecognition_test/supported: Pass, Fail       # Chrome stable does not support it.
 shadow_dom_test/supported: Fail
 css_test: Pass, Fail # Issue 7978
+speechrecognition_test/types: Pass, Fail
 
 [ $runtime == chrome || $runtime == drt]
-audiobuffersourcenode_test: Pass, Fail  # AudiobufferSourceNode is flaky on Chrome and Dartium.
+audiobuffersourcenode_test: Pass, Fail, Timeout # AudiobufferSourceNode is flaky on Chrome and Dartium - filed issue 8021 for the timeout.
+audiocontext_test: Pass, Timeout  # Issue 8021.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+transferables_test: Pass, Fail # Issue 8026
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
@@ -56,6 +60,7 @@ element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
 form_data_test: Fail # TODO(efortuna): Issue 7875.
 fileapi_test/supported: Fail
+history_test/supported_HashChangeEvent: Fail
 inner_frame_test: Skip
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime: Fail
@@ -65,13 +70,16 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 isolates_test: Skip
 measurement_test: Fail, Pass
-media_stream_test/supported: Fail
+media_stream_test/supported_media: Fail
+media_stream_test/supported_MediaStreamEvent: Fail
+media_stream_test/supported_MediaStreamTrackEvent: Fail
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 notifications_test/supported: Fail
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
+speechrecognition_test/supported: Fail
 storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -80,6 +88,7 @@ websql_test: Fail
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
 xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
+xhr_test/supported_HttpRequestProgressEvent: Fail
 xsltprocessor_test: Fail
 
 [ $runtime == ie9 ]
@@ -112,6 +121,7 @@ css_test: Fail
 dom_constructors_test: Fail
 element_test/matches: Fail # IE9 does not support matches
 fileapi_test/supported: Fail
+history_test/supported_HashChangeEvent: Fail
 history_test/supported_state: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
@@ -126,13 +136,16 @@ input_element_test/supported_tel: Fail
 input_element_test/supported_time: Fail
 input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail
-media_stream_test/supported: Fail
+media_stream_test/supported_media: Fail
+media_stream_test/supported_MediaStreamEvent: Fail
+media_stream_test/supported_MediaStreamTrackEvent: Fail
 messageevent_test: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
+speechrecognition_test/supported: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -142,29 +155,59 @@ window_open_test: Skip      # BUG(4016)
 xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
+xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_cross_origin_test: Fail # Issue 6016.
 
 [ $runtime == safari ]
-# TODO(ahe, efortuna): These tests need to be retriaged now that we're testing
-# with Safari 6.
-audiocontext_test: Crash, Fail # Issue: 7414
-element_test/elements: Crash, Fail # Issue: 7414
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
+element_types_test/supported_details: Fail
+element_types_test/supported_embed: Fail
+element_types_test/supported_keygen: Fail
+element_types_test/supported_meter: Fail
+element_types_test/supported_object: Fail
+element_types_test/supported_output: Fail
+element_types_test/supported_progress: Fail
 element_types_test/supported_shadow: Fail
-performance_api_test/supported: Fail
+element_types_test/supported_track: Pass, Fail
+fileapi_test/supported: Fail
 indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
-input_element_test/supported_datetime: Fail
 input_element_test/supported_datetime-local: Fail
+input_element_test/supported_datetime: Fail
+input_element_test/supported_email: Fail
 input_element_test/supported_month: Fail, Crash
+input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please triage this failure.
 input_element_test/supported_time: Fail, Crash
+input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail, Crash
-fileapi_test/supported: Fail
-media_stream_test/supported: Fail
-node_test: Skip # Issue 6457
+media_stream_test/supported_media: Fail
+media_stream_test/supported_MediaStreamEvent: Fail
+media_stream_test/supported_MediaStreamTrackEvent: Fail
+notifications_test/supported: Fail # Issue: 7414
+performance_api_test/supported: Fail
 shadow_dom_test/supported: Fail
+speechrecognition_test/supported: Fail
+
+audiocontext_test: Crash, Fail # Issue: 7414
+datalistelement_test: Fail # Issue: 7414
+element_test/elements: Crash, Fail # Issue: 7414
+element_types_test/constructors: Fail
+fileapi_test/getDirectory: Fail # Issue: 7414
+fileapi_test/getFile: Pass, Fail # Issue: 7414
+fileapi_test/unsupported_throws: Fail # Issue: 7414
+input_element_test/constructors: Fail # Issue: 7414
+input_element_test/supported_tel: Pass, Fail # Issue: 7414
+media_stream_test/constructors: Pass, Fail # Issue: 7414
+node_test: Skip # Issue 6457
+notifications_test/unsupported_throws: Fail # Issue: 7414
+notifications_test/webkitNotifications: Fail # Issue: 7414
+performance_api_test/performance: Fail # Issue: 7414
+shadow_dom_test/ShadowDOM_tests: Fail # Issue: 7414
+wheelevent_test: Fail # Issue: 7414
+speechrecognition_test/types: Pass, Fail
+
 
 [ $runtime == opera ]
 document_test/supports_cssCanvasContext: Fail
@@ -194,6 +237,7 @@ mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 performance_api_test/supported: Fail
 serialized_script_value_test: Fail
+speechrecognition_test/supported: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
@@ -229,15 +273,18 @@ input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 input_element_test/supported_number: Fail
 input_element_test/supported_range: Fail
+media_stream_test/supported_MediaStreamEvent: Fail
+media_stream_test/supported_MediaStreamTrackEvent: Fail
 notifications_test/supported: Fail
 shadow_dom_test/supported: Fail
+speechrecognition_test/supported: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
 websql_test: Fail # FF does not support web SQL
-wheelevent_test: Skip # Times out on FF 16. Issue 7943
+xhr_test/supported_HttpRequestProgressEvent: Fail
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip

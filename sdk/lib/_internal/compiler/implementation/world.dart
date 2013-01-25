@@ -7,6 +7,7 @@ part of dart2js;
 class World {
   final Compiler compiler;
   final Map<ClassElement, Set<ClassElement>> subtypes;
+  final Map<ClassElement, Set<MixinApplicationElement>> mixinUses;
   final Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses;
   final Set<ClassElement> classesNeedingRti;
   final Map<ClassElement, Set<ClassElement>> rtiDependencies;
@@ -15,6 +16,7 @@ class World {
 
   World(Compiler compiler)
       : subtypes = new Map<ClassElement, Set<ClassElement>>(),
+        mixinUses = new Map<ClassElement, Set<MixinApplicationElement>>(),
         typesImplementedBySubclasses =
             new Map<ClassElement, Set<ClassElement>>(),
         userDefinedGetters = new FunctionSet(compiler),
@@ -93,6 +95,14 @@ class World {
     return classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
   }
 
+  void registerMixinUse(MixinApplicationElement mixinApplication,
+                        ClassElement mixin) {
+    Set<MixinApplicationElement> users =
+        mixinUses.putIfAbsent(mixin, () =>
+                              new Set<MixinApplicationElement>());
+    users.add(mixinApplication);
+  }
+
   void registerRtiDependency(Element element, Element dependency) {
     // We're not dealing with typedef for now.
     if (!element.isClass() || !dependency.isClass()) return;
@@ -132,8 +142,6 @@ class World {
     // TODO(ngeoffray): Implement the full thing.
     return subclasses == null || subclasses.isEmpty;
   }
-
-
 
   void registerUsedElement(Element element) {
     if (element.isMember()) {

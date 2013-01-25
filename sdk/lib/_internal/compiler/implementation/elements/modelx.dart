@@ -507,8 +507,8 @@ class CompilationUnitElementX extends ElementX
     partTag = tag;
     LibraryName libraryTag = getLibrary().libraryTag;
     if (libraryTag != null) {
-      String expectedName = tag.name.toString();
-      String actualName = libraryTag.name.toString();
+      String actualName = tag.name.toString();
+      String expectedName = libraryTag.name.toString();
       if (expectedName != actualName) {
         listener.reportMessage(
             listener.spanFromSpannable(tag.name),
@@ -522,7 +522,7 @@ class CompilationUnitElementX extends ElementX
 }
 
 class LibraryElementX extends ElementX implements LibraryElement {
-  final Uri uri;
+  final Uri canonicalUri;
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const Link<CompilationUnitElement>();
@@ -564,8 +564,8 @@ class LibraryElementX extends ElementX implements LibraryElement {
    */
   Link<Element> slotForExports;
 
-  LibraryElementX(Script script, [Uri uri, LibraryElement this.origin])
-    : this.uri = ((uri == null) ? script.uri : uri),
+  LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
+    : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),
       importScope = new Map<SourceString, Element>(),
       super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
@@ -728,14 +728,17 @@ class LibraryElementX extends ElementX implements LibraryElement {
       return libraryTag.name.toString();
     } else {
       // Use the file name as script name.
-      String path = uri.path;
+      String path = canonicalUri.path;
       return path.substring(path.lastIndexOf('/') + 1);
     }
   }
 
   Scope buildScope() => new LibraryScope(this);
 
-  bool get isPlatformLibrary => uri.scheme == "dart";
+  bool get isPlatformLibrary => canonicalUri.scheme == "dart";
+
+  bool get isInternalLibrary =>
+      isPlatformLibrary && canonicalUri.path.startsWith('_');
 
   String toString() {
     if (origin != null) {
@@ -1367,17 +1370,10 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   bool get hasBackendMembers => !backendMembers.isEmpty;
 
-  InterfaceType computeType(compiler) {
+  InterfaceType computeType(Compiler compiler) {
     if (thisType == null) {
       if (origin == null) {
-        Link<DartType> parameters = const Link<DartType>();
-        // TODO(kasperl): Figure out how to get the type parameters
-        // for a mixin application.
-        if (!isMixinApplication) {
-          ClassNode node = parseNode(compiler);
-          parameters = TypeDeclarationElementX.createTypeVariables(
-              this, node.typeParameters);
-        }
+        Link<DartType> parameters = computeTypeParameters(compiler);
         thisType = new InterfaceType(this, parameters);
         if (parameters.isEmpty) {
           rawType = thisType;
@@ -1396,6 +1392,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
     }
     return thisType;
   }
+
+  Link<DartType> computeTypeParameters(Compiler compiler);
 
   /**
    * Return [:true:] if this element is the [:Object:] class for the [compiler].
@@ -1764,6 +1762,12 @@ abstract class ClassElementX extends BaseClassElementX {
     addToScope(constructor, compiler);
   }
 
+  Link<DartType> computeTypeParameters(Compiler compiler) {
+    ClassNode node = parseNode(compiler);
+    return TypeDeclarationElementX.createTypeVariables(
+        this, node.typeParameters);
+  }
+
   Scope buildScope() => new ClassScope(enclosingElement.buildScope(), this);
 
   String toString() {
@@ -1779,7 +1783,8 @@ abstract class ClassElementX extends BaseClassElementX {
 
 class MixinApplicationElementX extends BaseClassElementX
     implements MixinApplicationElement {
-  final Node cachedNode;
+  final Node node;
+  final Modifiers modifiers;
 
   FunctionElement constructor;
   ClassElement mixin;
@@ -1790,24 +1795,29 @@ class MixinApplicationElementX extends BaseClassElementX
   final ClassElement origin = null;
 
   MixinApplicationElementX(SourceString name, Element enclosing, int id,
-                           this.cachedNode)
+                           this.node, this.modifiers)
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
   bool get isMixinApplication => true;
   bool get hasConstructor => constructor != null;
   bool get hasLocalScopeMembers => false;
 
-  Token position() => cachedNode.getBeginToken();
+  Token position() => node.getBeginToken();
 
-  Node parseNode(DiagnosticListener listener) => cachedNode;
+  Node parseNode(DiagnosticListener listener) => node;
 
   Element localLookup(SourceString name) {
     if (this.name == name) return constructor;
-    if (mixin != null) return mixin.localLookup(name);
+    if (mixin == null) return null;
+    Element mixedInElement = mixin.localLookup(name);
+    if (mixedInElement == null) return null;
+    return mixedInElement.isInstanceMember() ? mixedInElement : null;
   }
 
   void forEachLocalMember(void f(Element member)) {
-    if (mixin != null) mixin.forEachLocalMember(f);
+    if (mixin != null) mixin.forEachLocalMember((Element mixedInElement) {
+      if (mixedInElement.isInstanceMember()) f(mixedInElement);
+    });
   }
 
   void addMember(Element element, DiagnosticListener listener) {
@@ -1821,6 +1831,13 @@ class MixinApplicationElementX extends BaseClassElementX
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
     assert(!hasConstructor);
     this.constructor = constructor;
+  }
+
+  Link<DartType> computeTypeParameters(Compiler compiler) {
+    NamedMixinApplication named = node.asNamedMixinApplication();
+    if (named == null) return const Link<DartType>();
+    return TypeDeclarationElementX.createTypeVariables(
+        this, named.typeParameters);
   }
 }
 

@@ -890,6 +890,10 @@ intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
       return Int16Array::kBytesPerElement;
     case kUint16ArrayCid:
       return Uint16Array::kBytesPerElement;
+    case kInt32ArrayCid:
+      return Int32Array::kBytesPerElement;
+    case kUint32ArrayCid:
+      return Uint32Array::kBytesPerElement;
     case kOneByteStringCid:
       return OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
@@ -922,6 +926,10 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
       return Int16Array::data_offset();
     case kUint16ArrayCid:
       return Uint16Array::data_offset();
+    case kInt32ArrayCid:
+      return Int32Array::data_offset();
+    case kUint32ArrayCid:
+      return Uint32Array::data_offset();
     case kOneByteStringCid:
       return OneByteString::data_offset();
     case kTwoByteStringCid:

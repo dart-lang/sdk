@@ -306,23 +306,27 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     return ResolveUri(library_url, url, builtin_lib);
   }
   if (is_dart_scheme_url) {
-    ASSERT(tag == kImportTag);
-    // Handle imports of other built-in libraries present in the SDK.
-    Builtin::BuiltinLibraryId id;
-    if (DartUtils::IsDartCryptoLibURL(url_string)) {
-      id = Builtin::kCryptoLibrary;
-    } else if (DartUtils::IsDartIOLibURL(url_string)) {
-      id = Builtin::kIOLibrary;
-    } else if (DartUtils::IsDartJsonLibURL(url_string)) {
-      id = Builtin::kJsonLibrary;
-    } else if (DartUtils::IsDartUriLibURL(url_string)) {
-      id = Builtin::kUriLibrary;
-    } else if (DartUtils::IsDartUtfLibURL(url_string)) {
-      id = Builtin::kUtfLibrary;
+    if (tag == kImportTag) {
+      // Handle imports of other built-in libraries present in the SDK.
+      Builtin::BuiltinLibraryId id;
+      if (DartUtils::IsDartCryptoLibURL(url_string)) {
+        id = Builtin::kCryptoLibrary;
+      } else if (DartUtils::IsDartIOLibURL(url_string)) {
+        id = Builtin::kIOLibrary;
+      } else if (DartUtils::IsDartJsonLibURL(url_string)) {
+        id = Builtin::kJsonLibrary;
+      } else if (DartUtils::IsDartUriLibURL(url_string)) {
+        id = Builtin::kUriLibrary;
+      } else if (DartUtils::IsDartUtfLibURL(url_string)) {
+        id = Builtin::kUtfLibrary;
+      } else {
+        return Dart_Error("Do not know how to load '%s'", url_string);
+      }
+      return Builtin::LoadAndCheckLibrary(id);
     } else {
-      return Dart_Error("Do not know how to load '%s'", url_string);
+      ASSERT(tag == kSourceTag);
+      return Dart_Error("Unable to load source '%s' ", url_string);
     }
-    return Builtin::LoadAndCheckLibrary(id);
   } else {
     // Get the file path out of the url.
     Dart_Handle builtin_lib =

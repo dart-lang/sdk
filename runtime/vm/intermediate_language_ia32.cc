@@ -1091,6 +1091,60 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+intptr_t LoadIndexedInstr::ResultCid() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return kDynamicCid;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kDoubleCid;
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return kSmiCid;
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      // Result can be smi or mint when boxed.
+      return kDynamicCid;
+    default:
+      UNIMPLEMENTED();
+      return kDynamicCid;
+  }
+}
+
+
+Representation LoadIndexedInstr::representation() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return kTagged;
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      return kUnboxedMint;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
+}
+
+
 LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
@@ -1144,16 +1198,26 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       : FlowGraphCompiler::ElementAddressForIntIndex(
           class_id(), array, Smi::Cast(index.constant()).Value());
 
-  if (representation() == kUnboxedDouble) {
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedMint)) {
     XmmRegister result = locs()->out().fpu_reg();
-    if (class_id() == kFloat32ArrayCid) {
-      // Load single precision float.
-      __ movss(result, element_address);
-      // Promote to double.
-      __ cvtss2sd(result, locs()->out().fpu_reg());
-    } else {
-      ASSERT(class_id() == kFloat64ArrayCid);
-      __ movsd(result, element_address);
+    switch (class_id()) {
+      case kInt32ArrayCid:
+        __ movss(result, element_address);
+        __ pmovsxdq(result, result);
+        break;
+      case kUint32ArrayCid:
+        __ xorpd(result, result);
+        __ movss(result, element_address);
+        break;
+      case kFloat32ArrayCid:
+        // Load single precision float and promote to double.
+        __ movss(result, element_address);
+        __ cvtss2sd(result, locs()->out().fpu_reg());
+        break;
+      case kFloat64ArrayCid:
+        __ movsd(result, element_address);
+        break;
     }
     return;
   }
@@ -1194,6 +1258,31 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+Representation StoreIndexedInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  if ((idx == 0) || (idx == 1)) return kTagged;
+  ASSERT(idx == 2);
+  switch (class_id_) {
+    case kArrayCid:
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+      return kTagged;
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      return kUnboxedMint;
+    case kFloat32ArrayCid :
+    case kFloat64ArrayCid :
+      return kUnboxedDouble;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
+}
+
+
 LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 0;
@@ -1228,6 +1317,8 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       // Need temp register for float-to-double conversion.
       locs->AddTemp(Location::RequiresFpuRegister());
       // Fall through.
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
     case kFloat64ArrayCid:
       // TODO(srdjan): Support Float64 constants.
       locs->set_in(2, Location::RequiresFpuRegister());
@@ -1318,11 +1409,15 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kInt16ArrayCid:
     case kUint16ArrayCid: {
-        Register value = locs()->in(2).reg();
-        __ SmiUntag(value);
-        __ movw(element_address, value);
-        break;
-      }
+      Register value = locs()->in(2).reg();
+      __ SmiUntag(value);
+      __ movw(element_address, value);
+      break;
+    }
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+      __ movss(element_address, locs()->in(2).fpu_reg());
+      break;
     case kFloat32ArrayCid:
       // Convert to single precision.
       __ cvtsd2ss(locs()->temp(0).fpu_reg(), locs()->in(2).fpu_reg());
@@ -1823,16 +1918,15 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   if (op_kind() == Token::kTRUNCDIV) {
-    const intptr_t kNumTemps = 3;
+    const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    // Both inputs must be writable because they will be untagged.
     summary->set_in(0, Location::RegisterLocation(EAX));
-    summary->set_in(1, Location::RegisterLocation(ECX));
+    summary->set_in(1, Location::WritableRegister());
     summary->set_out(Location::SameAsFirstInput());
-    summary->set_temp(0, Location::RegisterLocation(EBX));
-    // Will be used for for sign extension.
-    summary->set_temp(1, Location::RegisterLocation(EDX));
-    summary->set_temp(2, Location::RequiresRegister());
+    // Will be used for sign extension and division.
+    summary->set_temp(0, Location::RegisterLocation(EDX));
     return summary;
   } else if (op_kind() == Token::kSHR) {
     const intptr_t kNumTemps = 0;
@@ -1994,22 +2088,17 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      Register temp = locs()->temp(0).reg();
       // Handle divide by zero in runtime.
-      // Deoptimization requires that temp and right are preserved.
       __ testl(right, right);
       __ j(ZERO, deopt);
       ASSERT(left == EAX);
       ASSERT((right != EDX) && (right != EAX));
-      ASSERT((temp != EDX) && (temp != EAX));
-      ASSERT(locs()->temp(1).reg() == EDX);
+      ASSERT(locs()->temp(0).reg() == EDX);
       ASSERT(result == EAX);
-      Register right_temp = locs()->temp(2).reg();
-      __ movl(right_temp, right);
       __ SmiUntag(left);
-      __ SmiUntag(right_temp);
+      __ SmiUntag(right);
       __ cdq();  // Sign extend EAX -> EDX:EAX.
-      __ idivl(right_temp);  //  EAX: quotient, EDX: remainder.
+      __ idivl(right);  //  EAX: quotient, EDX: remainder.
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
       __ cmpl(result, Immediate(0x40000000));
@@ -2423,6 +2512,33 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+}
+
+
+LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
+  ASSERT((InputCount() == 1) || (InputCount() == 2));
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
+  result->set_in(0, Location::FpuRegisterLocation(XMM1, Location::kDouble));
+  if (InputCount() == 2) {
+    result->set_in(1, Location::FpuRegisterLocation(XMM2, Location::kDouble));
+  }
+  result->set_out(Location::FpuRegisterLocation(XMM1, Location::kDouble));
+  return result;
+}
+
+
+void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(kDoubleSize * InputCount());
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    __ movsd(Address(ESP, kDoubleSize * i), locs()->in(i).fpu_reg());
+  }
+  __ CallRuntime(TargetFunction());
+  __ fstpl(Address(ESP, 0));
+  __ movsd(locs()->out().fpu_reg(), Address(ESP, 0));
+  __ leave();
 }
 
 

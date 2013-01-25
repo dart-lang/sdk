@@ -10,6 +10,7 @@
   'target_defaults': {
     'configurations': {
       'Dart_Base': {
+        'abstract': 1,
         'cflags': [
           '-Werror',
           '<@(common_gcc_warning_flags)',

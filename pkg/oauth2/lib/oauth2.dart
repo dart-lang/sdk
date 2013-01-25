@@ -28,9 +28,9 @@
 ///     // server. They're usually included in the server's documentation of its
 ///     // OAuth2 API.
 ///     final authorizationEndpoint =
-///         new Uri.fromString("http://example.com/oauth2/authorization");
+///         Uri.parse("http://example.com/oauth2/authorization");
 ///     final tokenEndpoint =
-///         new Uri.fromString("http://example.com/oauth2/token");
+///         Uri.parse("http://example.com/oauth2/token");
 ///     
 ///     // The authorization server will issue each client a separate client
 ///     // identifier and secret, which allows the server to tell which client
@@ -48,7 +48,7 @@
 ///     // will redirect the resource owner here once they've authorized the
 ///     // client. The redirection will include the authorization code in the
 ///     // query parameters.
-///     final redirectUrl = new Uri.fromString(
+///     final redirectUrl = Uri.parse(
 ///         "http://my-site.com/oauth2-redirect");
 ///     
 ///     var credentialsFile = new File("~/.myapp/credentials.json");

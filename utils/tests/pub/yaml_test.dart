@@ -434,7 +434,7 @@ main() {
           "Warning": "A slightly different error message."
         },
         {
-          "Date": "2001-11-23 15:03:17 -5",
+          "DateTime": "2001-11-23 15:03:17 -5",
           "User": "ed",
           "Fatal": 'Unknown variable "bar"',
           "Stack": [
@@ -461,7 +461,7 @@ main() {
           A slightly different error
           message.
         ---
-        Date: 2001-11-23 15:03:17 -5
+        DateTime: 2001-11-23 15:03:17 -5
         User: ed
         Fatal:
           Unknown variable "bar"

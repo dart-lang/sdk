@@ -4,6 +4,8 @@
 
 library mirrors_util;
 
+import 'dart:collection' show Queue;
+
 // TODO(rnystrom): Use "package:" URL (#4968).
 import 'mirrors.dart';
 

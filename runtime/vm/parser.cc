@@ -27,8 +27,6 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
-DEFINE_FLAG(bool, warn_legacy_map_literal, false,
-            "Warning on legacy map literal syntax (single type argument)");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -364,14 +362,14 @@ Token::Kind Parser::LookaheadToken(int num_tokens) {
 
 String* Parser::CurrentLiteral() const {
   String& result = String::ZoneHandle();
-  result |= tokens_iterator_.CurrentLiteral();
+  result = tokens_iterator_.CurrentLiteral();
   return &result;
 }
 
 
 RawDouble* Parser::CurrentDoubleLiteral() const {
   LiteralToken& token = LiteralToken::Handle();
-  token |= tokens_iterator_.CurrentToken();
+  token ^= tokens_iterator_.CurrentToken();
   ASSERT(token.kind() == Token::kDOUBLE);
   return reinterpret_cast<RawDouble*>(token.value());
 }
@@ -379,7 +377,7 @@ RawDouble* Parser::CurrentDoubleLiteral() const {
 
 RawInteger* Parser::CurrentIntegerLiteral() const {
   LiteralToken& token = LiteralToken::Handle();
-  token |= tokens_iterator_.CurrentToken();
+  token ^= tokens_iterator_.CurrentToken();
   ASSERT(token.kind() == Token::kINTEGER);
   return reinterpret_cast<RawInteger*>(token.value());
 }
@@ -626,7 +624,7 @@ class ClassDesc : public ValueObject {
   bool has_constructor() const {
     Function& func = Function::Handle();
     for (int i = 0; i < functions_.Length(); i++) {
-      func |= functions_.At(i);
+      func ^= functions_.At(i);
       if (func.kind() == RawFunction::kConstructor) {
         return true;
       }
@@ -660,7 +658,7 @@ class ClassDesc : public ValueObject {
     String& test_name = String::Handle();
     Field& field = Field::Handle();
     for (int i = 0; i < fields_.Length(); i++) {
-      field |= fields_.At(i);
+      field ^= fields_.At(i);
       test_name = field.name();
       if (name.Equals(test_name)) {
         return &field;
@@ -677,7 +675,7 @@ class ClassDesc : public ValueObject {
     String& test_name = String::Handle();
     Function& func = Function::Handle();
     for (int i = 0; i < functions_.Length(); i++) {
-      func |= functions_.At(i);
+      func ^= functions_.At(i);
       test_name = func.name();
       if (name.Equals(test_name)) {
         return &func;
@@ -1748,6 +1746,9 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   // "this" must not be accessible in initializer expressions.
   receiver->set_invisible(true);
   AstNode* init_expr = ParseConditionalExpr();
+  if (CurrentToken() == Token::kCASCADE) {
+    init_expr = ParseCascades(init_expr);
+  }
   receiver->set_invisible(false);
   SetAllowFunctionLiterals(saved_mode);
   Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
@@ -1766,7 +1767,7 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
   Field& field = Field::Handle();
   SequenceNode* initializers = current_block_->statements;
   for (int field_num = 0; field_num < fields.Length(); field_num++) {
-    field |= fields.At(field_num);
+    field ^= fields.At(field_num);
     if (field.is_static() || !field.is_final()) {
       continue;
     }
@@ -1798,10 +1799,10 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
   Field& f = Field::Handle();
   const intptr_t saved_pos = TokenPos();
   for (int i = 0; i < fields.Length(); i++) {
-    f |= fields.At(i);
+    f ^= fields.At(i);
     if (!f.is_static() && f.has_initializer()) {
       Field& field = Field::ZoneHandle();
-      field |= fields.At(i);
+      field ^= fields.At(i);
       if (field.is_final()) {
         // Final fields with initializer expression may not be initialized
         // again by constructors. Remember that this field is already
@@ -3138,7 +3139,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       ErrorMsg(classname_pos, "'%s' is already defined",
                class_name.ToCString());
     }
-    cls |= obj.raw();
+    cls ^= obj.raw();
     if (is_patch) {
       String& patch = String::Handle(
           String::Concat(Symbols::PatchSpace(), class_name));
@@ -7113,7 +7114,7 @@ ArgumentListNode* Parser::ParseActualParameters(
         // canonicalized strings.
         ASSERT(CurrentLiteral()->IsSymbol());
         for (int i = 0; i < names.Length(); i++) {
-          arg_name |= names.At(i);
+          arg_name ^= names.At(i);
           if (CurrentLiteral()->Equals(arg_name)) {
             ErrorMsg("duplicate named argument");
           }
@@ -7402,7 +7403,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (primary_node->primary().IsClass()) {
             // If the primary node referred to a class we are loading a
             // qualified static field.
-            cls |= primary_node->primary().raw();
+            cls ^= primary_node->primary().raw();
           }
         }
         if (cls.IsNull()) {
@@ -7709,7 +7710,7 @@ bool Parser::IsFormalParameter(const String& ident,
     return false;
   }
   if (ident.Equals(Symbols::This())) {
-    // 'this' is not a formal parameter.
+    // 'this' is not a formal parameter that can be tested with '?this'.
     return false;
   }
   // Since an argument definition test does not use the value of the formal
@@ -7717,16 +7718,19 @@ bool Parser::IsFormalParameter(const String& ident,
   const bool kTestOnly = true;  // No capturing.
   LocalVariable* local =
       current_block_->scope->LookupVariable(ident, kTestOnly);
-  if (local == NULL) {
-    if (!current_function().IsLocalFunction()) {
+  if ((local == NULL) ||
+      (local->owner()->HasContextLevel() &&
+       (local->owner()->context_level() < 1))) {
+    if ((local == NULL) && !current_function().IsLocalFunction()) {
       // We are not generating code for a local function, so all locals,
       // captured or not, are in scope. However, 'ident' was not found, so it
       // does not exist.
       return false;
     }
-    // The formal parameter may belong to an enclosing function and may not have
+    // The formal parameter belongs to an enclosing function and may not have
     // been captured, so it was not included in the context scope and it cannot
     // be found by LookupVariable.
+    ASSERT((local == NULL) || local->is_captured());
     // 'ident' necessarily refers to the formal parameter of one of the
     // enclosing functions, or a compile error would have prevented the
     // outermost enclosing function to be executed and we would not be compiling
@@ -8135,7 +8139,7 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
     intptr_t num_imports = library_.num_imports();
     Object& imported_obj = Object::Handle();
     for (int i = 0; i < num_imports; i++) {
-      import |= library_.ImportAt(i);
+      import = library_.ImportAt(i);
       imported_obj = LookupNameInImport(import, name);
       if (!imported_obj.IsNull()) {
         const Library& lib = Library::Handle(import.library());
@@ -8238,7 +8242,7 @@ RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
   Object& resolved_obj = Object::Handle();
   const Array& imports = Array::Handle(prefix.imports());
   for (intptr_t i = 0; i < prefix.num_imports(); i++) {
-    import |= imports.At(i);
+    import ^= imports.At(i);
     resolved_obj = LookupNameInImport(import, name);
     if (!resolved_obj.IsNull()) {
       obj = resolved_obj.raw();
@@ -8672,29 +8676,16 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   if (!map_type_arguments.IsNull()) {
     ASSERT(map_type_arguments.Length() > 0);
     // Map literals take two type arguments.
-    if (map_type_arguments.Length() < 2) {
-      // TODO(hausner): Remove legacy syntax support.
-      // We temporarily accept a single type argument.
-      if (FLAG_warn_legacy_map_literal) {
-        Warning(type_pos,
-                "a map literal takes two type arguments specifying "
-                "the key type and the value type");
-      }
-      TypeArguments& type_array = TypeArguments::Handle(TypeArguments::New(2));
-      type_array.SetTypeAt(0, Type::Handle(Type::StringType()));
-      type_array.SetTypeAt(1, value_type);
-      map_type_arguments = type_array.raw();
-    } else if (map_type_arguments.Length() > 2) {
+    if (map_type_arguments.Length() != 2) {
       ErrorMsg(type_pos,
                "a map literal takes two type arguments specifying "
                "the key type and the value type");
-    } else {
-      const AbstractType& key_type =
-          AbstractType::Handle(map_type_arguments.TypeAt(0));
-      value_type = map_type_arguments.TypeAt(1);
-      if (!key_type.IsStringType()) {
-        ErrorMsg(type_pos, "the key type of a map literal must be 'String'");
-      }
+    }
+    const AbstractType& key_type =
+        AbstractType::Handle(map_type_arguments.TypeAt(0));
+    value_type = map_type_arguments.TypeAt(1);
+    if (!key_type.IsStringType()) {
+      ErrorMsg(type_pos, "the key type of a map literal must be 'String'");
     }
     if (is_const && !value_type.IsInstantiated()) {
       ErrorMsg(type_pos,
@@ -9138,7 +9129,7 @@ String& Parser::Interpolate(ArrayNode* values) {
 
   // Call interpolation function.
   String& concatenated = String::ZoneHandle();
-  concatenated |= DartEntry::InvokeStatic(func, interpolate_arg);
+  concatenated ^= DartEntry::InvokeStatic(func, interpolate_arg);
   if (concatenated.IsUnhandledException()) {
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }

@@ -5,7 +5,8 @@
 // WARNING: Do not edit - generated code.
 
 part of $LIBRARYNAME;
-$ANNOTATIONS
-class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+@DocsEditable
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 }

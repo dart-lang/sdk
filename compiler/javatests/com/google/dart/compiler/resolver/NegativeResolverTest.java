@@ -1181,4 +1181,23 @@ public class NegativeResolverTest extends CompilerTestCase {
             ""),
         errEx(ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, 5, 12, 5));
   }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=7633
+   */
+  public void test_accessInstanceField_fromConstFactory() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  var foo;",
+            "  factory A() {",
+            "    var v = foo;",
+            "    return null;",
+            "  }",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_FACTORY, 5, 13, 3));
+  }
 }

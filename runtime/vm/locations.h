@@ -418,7 +418,7 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_in(intptr_t index, Location loc) {
-    ASSERT(!always_calls() || loc.IsRegister());
+    ASSERT(!always_calls() || loc.IsMachineRegister());
     input_locations_[index] = loc;
   }
 
@@ -453,7 +453,7 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_out(Location loc) {
-    ASSERT(!always_calls() || (loc.IsRegister() || loc.IsInvalid()));
+    ASSERT(!always_calls() || (loc.IsMachineRegister() || loc.IsInvalid()));
     output_location_ = loc;
   }
 

@@ -5,9 +5,10 @@ import 'dart:html';
 import 'utils.dart';
 
 serializationTest(name, value) => test(name, () {
-      // To check how value is serialized and deserialized, we create a MessageEvent.
-    final event = document.$dom_createEvent('MessageEvent');
-    event.initMessageEvent('', false, false, value, '', '', window, []);
+    // To check how value is serialized and deserialized, we create a
+    // MessageEvent.
+    final event =
+        new MessageEvent('', data: value, origin: '', lastEventId: '');
     verifyGraph(value, event.data);
 });
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of html;
-$ANNOTATIONS
+
 /**
  * The base class for all documents.
  *
@@ -13,7 +13,7 @@ $ANNOTATIONS
  * If you aren't comfortable with DOM concepts, see the Dart tutorial
  * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
  */
-class $CLASSNAME extends Node $NATIVESPEC
+$(ANNOTATIONS)class $CLASSNAME extends Node $NATIVESPEC
 {
 
 $!MEMBERS

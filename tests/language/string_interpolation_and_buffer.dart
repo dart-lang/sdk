@@ -56,6 +56,25 @@ main() {
     return 'Success';
   }
 
+  initBuffer(object) {
+    var sb;
+    if (checkedMode && object != null) {
+      try {
+        sb = new StringBuffer(wrap(object));
+      } on TypeError {
+        return 'Error';
+      }
+    } else {
+      try {
+        sb = new StringBuffer(wrap(object));
+      } on ArgumentError {
+        return 'Error';
+      }
+      Expect.isTrue(sb.toString() is String);
+    }
+    return 'Success';
+  }
+
   Expect.equals('Error', interpolate(null));
   Expect.equals('Success', interpolate(""));
   Expect.equals('Success', interpolate("string"));
@@ -69,4 +88,11 @@ main() {
   Expect.equals('Error', buffer([]));
   Expect.equals('Error', buffer([1]));
   Expect.equals('Error', buffer(new Object()));
+
+  Expect.equals('Error', initBuffer(null));
+  Expect.equals('Success', initBuffer(""));
+  Expect.equals('Success', initBuffer("string"));
+  Expect.equals('Error', initBuffer([]));
+  Expect.equals('Error', initBuffer([1]));
+  Expect.equals('Error', initBuffer(new Object()));
 }

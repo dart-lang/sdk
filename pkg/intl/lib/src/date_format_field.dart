@@ -30,7 +30,7 @@ abstract class _DateFormatField {
   String toString() => pattern;
 
   /** Format date according to our specification and return the result. */
-  String format(Date date) {
+  String format(DateTime date) {
     // Default implementation in the superclass, works for both types of
     // literal patterns, and is overridden by _DateFormatPatternField.
     return pattern;
@@ -108,7 +108,7 @@ class _DateFormatPatternField extends _DateFormatField {
   _DateFormatPatternField(pattern, parent): super(pattern,  parent);
 
   /** Format date according to our specification and return the result. */
-  String format(Date date) {
+  String format(DateTime date) {
       return formatField(date);
   }
 
@@ -152,7 +152,7 @@ class _DateFormatPatternField extends _DateFormatField {
  }
 
   /** Formatting logic if we are of type FIELD */
-  String formatField(Date date) {
+  String formatField(DateTime date) {
      switch (pattern[0]) {
       case 'a': return formatAmPm(date);
       case 'c': return formatStandaloneDay(date);
@@ -180,13 +180,13 @@ class _DateFormatPatternField extends _DateFormatField {
   /** Return the symbols for our current locale. */
   DateSymbols get symbols => dateTimeSymbols[parent.locale];
 
-  formatEra(Date date) {
+  formatEra(DateTime date) {
     var era = date.year > 0 ? 1 : 0;
     return width >= 4 ? symbols.ERANAMES[era] :
                         symbols.ERAS[era];
   }
 
-  formatYear(Date date) {
+  formatYear(DateTime date) {
     // TODO(alanknight): Proper handling of years <= 0
     var year = date.year;
     if (year < 0) {
@@ -229,7 +229,7 @@ class _DateFormatPatternField extends _DateFormatField {
      return longestResult;
      }
 
-  String formatMonth(Date date) {
+  String formatMonth(DateTime date) {
     switch (width) {
       case 5: return symbols.NARROWMONTHS[date.month-1];
       case 4: return symbols.MONTHS[date.month-1];
@@ -250,11 +250,11 @@ class _DateFormatPatternField extends _DateFormatField {
     dateFields.month = parseEnumeratedString(input, possibilities) + 1;
   }
 
-  String format24Hours(Date date) {
+  String format24Hours(DateTime date) {
     return padTo(width, date.hour);
   }
 
-  String formatFractionalSeconds(Date date) {
+  String formatFractionalSeconds(DateTime date) {
     // Always print at least 3 digits. If the width is greater, append 0s
     var basic = padTo(3, date.millisecond);
     if (width - 3 > 0) {
@@ -265,7 +265,7 @@ class _DateFormatPatternField extends _DateFormatField {
     }
   }
 
-  String formatAmPm(Date date) {
+  String formatAmPm(DateTime date) {
     var hours = date.hour;
     var index = (date.hour >= 12) && (date.hour < 24) ? 1 : 0;
     var ampm = symbols.AMPMS;
@@ -278,7 +278,7 @@ class _DateFormatPatternField extends _DateFormatField {
     if (ampm == 1) dateFields.pm = true;
   }
 
-  String format1To12Hours(Date date) {
+  String format1To12Hours(DateTime date) {
     var hours = date.hour;
     if (date.hour > 12) hours = hours - 12;
     if (hours == 0) hours = 12;
@@ -290,15 +290,15 @@ class _DateFormatPatternField extends _DateFormatField {
     if (dateFields.hour == 12) dateFields.hour = 0;
   }
 
-  String format0To11Hours(Date date) {
+  String format0To11Hours(DateTime date) {
     return padTo(width, date.hour % 12);
   }
 
-  String format0To23Hours(Date date) {
+  String format0To23Hours(DateTime date) {
     return padTo(width, date.hour);
   }
 
-  String formatStandaloneDay(Date date) {
+  String formatStandaloneDay(DateTime date) {
     switch (width) {
       case 5: return symbols.STANDALONENARROWWEEKDAYS[date.weekday % 7];
       case 4: return symbols.STANDALONEWEEKDAYS[date.weekday % 7];
@@ -320,7 +320,7 @@ class _DateFormatPatternField extends _DateFormatField {
     parseEnumeratedString(input, possibilities);
   }
 
-  String formatStandaloneMonth(Date date) {
+  String formatStandaloneMonth(DateTime date) {
   switch (width) {
     case 5:
       return symbols.STANDALONENARROWMONTHS[date.month-1];
@@ -344,7 +344,7 @@ class _DateFormatPatternField extends _DateFormatField {
     dateFields.month = parseEnumeratedString(input, possibilities) + 1;
   }
 
-  String formatQuarter(Date date) {
+  String formatQuarter(DateTime date) {
     var quarter = (date.month / 3).truncate().toInt();
     if (width < 4) {
       return symbols.SHORTQUARTERS[quarter];
@@ -352,11 +352,11 @@ class _DateFormatPatternField extends _DateFormatField {
       return symbols.QUARTERS[quarter];
     }
   }
-  String formatDayOfMonth(Date date) {
+  String formatDayOfMonth(DateTime date) {
     return padTo(width, date.day);
   }
 
-  String formatDayOfWeek(Date date) {
+  String formatDayOfWeek(DateTime date) {
     // Note that Dart's weekday returns 1 for Monday and 7 for Sunday.
     return (width >= 4 ? symbols.WEEKDAYS :
                         symbols.SHORTWEEKDAYS)[(date.weekday) % 7];
@@ -368,24 +368,24 @@ class _DateFormatPatternField extends _DateFormatField {
     parseEnumeratedString(input, possibilities);
   }
 
-  String formatMinutes(Date date) {
+  String formatMinutes(DateTime date) {
     return padTo(width, date.minute);
   }
 
-  String formatSeconds(Date date) {
+  String formatSeconds(DateTime date) {
     return padTo(width, date.second);
   }
 
-  String formatTimeZoneId(Date date) {
+  String formatTimeZoneId(DateTime date) {
     // TODO(alanknight): implement time zone support
     throw new UnimplementedError();
   }
 
-  String formatTimeZone(Date date) {
+  String formatTimeZone(DateTime date) {
     throw new UnimplementedError();
   }
 
-  String formatTimeZoneRFC(Date date) {
+  String formatTimeZoneRFC(DateTime date) {
     throw new UnimplementedError();
   }
 

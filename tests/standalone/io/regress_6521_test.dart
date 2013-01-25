@@ -22,7 +22,7 @@ void main() {
 
   var connection = client.openUrl(
       "POST",
-      new Uri.fromString("http://localhost:${server.port}/"));
+      Uri.parse("http://localhost:${server.port}/"));
   connection.onRequest = (request) {
     // Keep a reference to the client request object.
     clientRequest = request;

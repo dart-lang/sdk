@@ -8,9 +8,9 @@ import 'dart:utf';
 import 'dart:uri';
 
 testUri(String uri, bool isAbsolute) {
-  Expect.equals(isAbsolute, new Uri.fromString(uri).isAbsolute());
+  Expect.equals(isAbsolute, Uri.parse(uri).isAbsolute());
   Expect.equals(isAbsolute, new Uri(uri).isAbsolute());
-  Expect.stringEquals(uri, new Uri.fromString(uri).toString());
+  Expect.stringEquals(uri, Uri.parse(uri).toString());
   Expect.stringEquals(uri, new Uri(uri).toString());
 
   // Test equals and hashCode members.
@@ -113,7 +113,7 @@ main() {
                           path: "/a/b/c/",
                           query: null,
                           fragment: null).toString());
-  Expect.stringEquals("file://", new Uri.fromString("file:").toString());
+  Expect.stringEquals("file://", Uri.parse("file:").toString());
   Expect.stringEquals("file://", new Uri("file:").toString());
   Expect.stringEquals("/a/g", removeDotSegments("/a/b/c/./../../g"));
   Expect.stringEquals("mid/6", removeDotSegments("mid/content=5/../6"));
@@ -127,25 +127,25 @@ main() {
   Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/././."));
 
   final urisSample = "http://a/b/c/d;p?q";
-  Uri baseFromString = new Uri.fromString(urisSample);
+  Uri baseFromString = Uri.parse(urisSample);
   testUriPerRFCs(baseFromString);
   Uri base = new Uri(urisSample);
   testUriPerRFCs(base);
 
   Expect.stringEquals(
       "http://example.com",
-      new Uri.fromString("http://example.com/a/b/c").origin);
+      Uri.parse("http://example.com/a/b/c").origin);
   Expect.stringEquals(
       "https://example.com",
-      new Uri.fromString("https://example.com/a/b/c").origin);
+      Uri.parse("https://example.com/a/b/c").origin);
   Expect.stringEquals(
       "http://example.com:1234",
-      new Uri.fromString("http://example.com:1234/a/b/c").origin);
+      Uri.parse("http://example.com:1234/a/b/c").origin);
   Expect.stringEquals(
       "https://example.com:1234",
-      new Uri.fromString("https://example.com:1234/a/b/c").origin);
+      Uri.parse("https://example.com:1234/a/b/c").origin);
   Expect.throws(
-      () => new Uri.fromString("http:").origin,
+      () => Uri.parse("http:").origin,
       (e) { return e is ArgumentError; },
       "origin for uri with empty domain should fail");
   Expect.throws(
@@ -182,11 +182,11 @@ main() {
       (e) { return e is ArgumentError; },
       "origin for uri with empty domain should fail");
   Expect.throws(
-      () => new Uri.fromString("http://:80").origin,
+      () => Uri.parse("http://:80").origin,
       (e) { return e is ArgumentError; },
       "origin for uri with empty domain should fail");
   Expect.throws(
-      () => new Uri.fromString("file://localhost/test.txt").origin,
+      () => Uri.parse("file://localhost/test.txt").origin,
       (e) { return e is ArgumentError; },
       "origin for non-http/https uri should fail");
 

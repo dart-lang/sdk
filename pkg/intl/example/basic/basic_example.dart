@@ -46,7 +46,7 @@ void setup(Function program, Function output) {
 // futures have completed. We are passed the collection of futures, but we
 // don't need to use them, so ignore the parameter.
 runProgram(List<Future> _) {
-  var aDate = new Date.fromMillisecondsSinceEpoch(0, isUtc: true);
+  var aDate = new DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
   var de = new Intl('de_DE');
   var th = new Intl('th_TH');
   // This defines a message that can be internationalized. It is written as a

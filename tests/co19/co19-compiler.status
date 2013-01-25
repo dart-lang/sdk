@@ -118,6 +118,17 @@ LibTest/isolate/SendPort/send_A01_t01: Fail
 Language/07_Classes/6_Constructors/2_Factories_A01_t02: Fail
 
 
+# co19 issue 372 (@static-clean where type warnings are expected)
+Language/07_Classes/6_Constructors_A03_t03: Fail
+Language/11_Expressions/11_Instance_Creation/1_New_A06_t04: Fail
+Language/11_Expressions/11_Instance_Creation/1_New_A06_t05: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail
+
+
+
+
 # testing framework or VM issue 7388 (dies on Turkish character)
 Language/11_Expressions/30_Identifier_Reference_A01_t08: Skip
 
@@ -157,7 +168,6 @@ Language/07_Classes/07_Classes_A03_t05: Fail, OK # TODO(ahe): This test is faili
 Language/07_Classes/07_Classes_A03_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/07_Classes/3_Setters_A04_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/3_Setters_A04_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/07_Classes/3_Setters_A04_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/07_Classes/3_Setters_A04_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/07_Classes/4_Abstract_Instance_Members_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
@@ -274,7 +284,6 @@ Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail, OK # TODO(ahe): This 
 Language/13_Libraries_and_Scripts/1_Imports_A02_t20: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/13_Libraries_and_Scripts/2_Exports_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t17: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/13_Libraries_and_Scripts/2_Exports_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/13_Libraries_and_Scripts/2_Exports_A03_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/13_Libraries_and_Scripts/3_Parts_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
@@ -431,6 +440,55 @@ LibTest/core/String/split_A01_t02: Fail, OK # TODO(ahe): This test is failing af
 LibTest/core/StringBuffer/isEmpty_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 LibTest/isolate/SendPort/call_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 LibTest/math/Random/nextDouble_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
+
+Language/14_Types/4_Interface_Types_A08_t06: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Expect/setEquals_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Expect/setEquals_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashMap/HashMap.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashMap/HashMap.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashMap/HashMap_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashSet/HashSet.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashSet/HashSet.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/HashSet/HashSet_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/LinkedHashMap/LinkedHashMap.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/LinkedHashMap/LinkedHashMap.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/LinkedHashMap/LinkedHashMap_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/LinkedHashMap/LinkedHashMap_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/List/List.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/List/addAll_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/Queue.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/Queue.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/Queue_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addAll_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addAll_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addAll_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addFirst_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addFirst_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addLast_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/addLast_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/add_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/add_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/clear_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t04: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t05: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/every_A01_t06: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/first_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/first_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/forEach_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/forEach_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/forEach_A01_t05: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/forEach_A01_t04: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/isEmpty_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/last_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/last_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/length_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/removeFirst_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/removeFirst_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/removeLast_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Queue/removeLast_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
+LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 
 
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]

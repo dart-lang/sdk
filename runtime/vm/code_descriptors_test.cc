@@ -146,28 +146,28 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     EXPECT_EQ(4, stack_map_list.Length());
 
     // Validate the first stack map entry.
-    stack_map |= stack_map_list.At(0);
+    stack_map ^= stack_map_list.At(0);
     EXPECT_EQ(kStackSlotCount, stack_map.Length());
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation0[i], stack_map.IsObject(i));
     }
 
     // Validate the second stack map entry.
-    stack_map |= stack_map_list.At(1);
+    stack_map ^= stack_map_list.At(1);
     EXPECT_EQ(kStackSlotCount, stack_map.Length());
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation1[i], stack_map.IsObject(i));
     }
 
     // Validate the third stack map entry.
-    stack_map |= stack_map_list.At(2);
+    stack_map ^= stack_map_list.At(2);
     EXPECT_EQ(kStackSlotCount, stack_map.Length());
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation2[i], stack_map.IsObject(i));
     }
 
     // Validate the fourth stack map entry.
-    stack_map |= stack_map_list.At(3);
+    stack_map ^= stack_map_list.At(3);
     EXPECT_EQ(kStackSlotCount, stack_map.Length());
     for (intptr_t i = 0; i < kStackSlotCount; ++i) {
       EXPECT_EQ(expectation3[i], stack_map.IsObject(i));

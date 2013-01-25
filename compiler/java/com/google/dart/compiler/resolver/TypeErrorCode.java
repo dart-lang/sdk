@@ -17,7 +17,7 @@ public enum TypeErrorCode implements ErrorCode {
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE("cannot override method '%s', default value doesn't match '%s'"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
-  CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS("Concrete class %s has unimplemented member(s) %s"),
+  CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS("Concrete class %s has unimplemented member(s) %s"),
   CYCLIC_REFERENCE_TO_TYPE_VARIABLE(
       "Invalid type expression, cyclic reference to type variable '%s'"),
   DEPRECATED_ELEMENT(ErrorSeverity.INFO, "%s is deprecated"),
@@ -49,6 +49,7 @@ public enum TypeErrorCode implements ErrorCode {
   MEMBER_IS_A_CONSTRUCTOR("%s is a constructor in %s"),
   MISSING_ARGUMENT("missing argument of type %s"),
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),
+  NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NO_SUCH_NAMED_PARAMETER("no such named parameter \"%s\" defined"),
   NO_SUCH_TYPE("no such type \"%s\"", true),
   NOT_A_FUNCTION_TYPE("\"%s\" is not a function type"),

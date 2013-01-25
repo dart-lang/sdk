@@ -43,9 +43,9 @@ class SystemCache {
     sources = new SourceRegistry();
 
   /// Creates a system cache and registers the standard set of sources.
-  factory SystemCache.withSources(String rootDir, String sdkDir) {
+  factory SystemCache.withSources(String rootDir) {
     var cache = new SystemCache(rootDir);
-    cache.register(new SdkSource(sdkDir));
+    cache.register(new SdkSource());
     cache.register(new GitSource());
     cache.register(new HostedSource());
     cache.sources.setDefault('hosted');
@@ -93,7 +93,7 @@ class SystemCache {
   Future deleteTempDir() {
     log.fine('Clean up system cache temp directory $tempDir.');
     return dirExists(tempDir).then((exists) {
-      if (!exists) return new Future.immediate(null);
+      if (!exists) return;
       return deleteDir(tempDir);
     });
   }

@@ -185,7 +185,7 @@ class AuthorizationCodeGrant {
       if (parameters.containsKey('error')) {
         var description = parameters['error_description'];
         var uriString = parameters['error_uri'];
-        var uri = uriString == null ? null : new Uri.fromString(uriString);
+        var uri = uriString == null ? null : Uri.parse(uriString);
         throw new AuthorizationException(parameters['error'], description, uri);
       } else if (!parameters.containsKey('code')) {
         throw new FormatException('Invalid OAuth response for '
@@ -229,7 +229,7 @@ class AuthorizationCodeGrant {
   /// This works just like [handleAuthorizationCode], except it doesn't validate
   /// the state beforehand.
   Future<Client> _handleAuthorizationCode(String authorizationCode) {
-    var startTime = new Date.now();
+    var startTime = new DateTime.now();
     return _httpClient.post(this.tokenEndpoint, fields: {
       "grant_type": "authorization_code",
       "code": authorizationCode,

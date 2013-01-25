@@ -9,7 +9,6 @@ import 'dart:json' as json;
 import 'dart:uri';
 
 import 'test_pub.dart';
-import 'test_pub.dart';
 import '../../../pkg/http/lib/http.dart' as http;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/io.dart';
@@ -58,7 +57,7 @@ main() {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token',
         refreshToken: 'refresh token',
-        expiration: new Date.now().subtract(new Duration(hours: 1)))
+        expiration: new DateTime.now().subtract(new Duration(hours: 1)))
         .scheduleCreate();
 
     var pub = startPubLish(server);
@@ -96,7 +95,7 @@ main() {
        'authenticates again and saves credentials.json', () {
     var server = new ScheduledServer();
     credentialsFile(server, 'access token',
-        expiration: new Date.now().subtract(new Duration(hours: 1)))
+        expiration: new DateTime.now().subtract(new Duration(hours: 1)))
         .scheduleCreate();
 
     var pub = startPubLish(server);
@@ -185,7 +184,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
         .firstMatch(line);
     expect(match, isNotNull);
 
-    var redirectUrl = new Uri.fromString(decodeUriComponent(match.group(1)));
+    var redirectUrl = Uri.parse(decodeUriComponent(match.group(1)));
     redirectUrl = addQueryParameters(redirectUrl, {'code': 'access code'});
     return (new http.Request('GET', redirectUrl)..followRedirects = false)
       .send();

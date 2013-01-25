@@ -73,7 +73,7 @@ class HostedSource extends Source {
     // Download and extract the archive to a temp directory.
     var tempDir;
     return Future.wait([
-      httpClient.send(new http.Request("GET", new Uri.fromString(fullUrl)))
+      httpClient.send(new http.Request("GET", Uri.parse(fullUrl)))
           .then((response) => response.stream),
       systemCache.createTempDir()
     ]).then((args) {

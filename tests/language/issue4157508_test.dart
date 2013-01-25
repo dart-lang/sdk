@@ -4,7 +4,7 @@
 
 class Issue4157508Test {
   Issue4157508Test(var v) {
-    var d = new Date.fromMillisecondsSinceEpoch(v, isUtc: true);
+    var d = new DateTime.fromMillisecondsSinceEpoch(v, isUtc: true);
   }
 
   static void testMain() {

@@ -54,9 +54,9 @@ void testMultiValue() {
 }
 
 void testDate() {
-  Date date1 = new Date.utc(1999, Date.JUN, 11, 18, 46, 53, 0);
+  DateTime date1 = new DateTime.utc(1999, DateTime.JUN, 11, 18, 46, 53, 0);
   String httpDate1 = "Fri, 11 Jun 1999 18:46:53 GMT";
-  Date date2 = new Date.utc(2000, Date.AUG, 16, 12, 34, 56, 0);
+  DateTime date2 = new DateTime.utc(2000, DateTime.AUG, 16, 12, 34, 56, 0);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
   _HttpHeaders headers = new _HttpHeaders();
@@ -80,9 +80,9 @@ void testDate() {
 }
 
 void testExpires() {
-  Date date1 = new Date.utc(1999, Date.JUN, 11, 18, 46, 53, 0);
+  DateTime date1 = new DateTime.utc(1999, DateTime.JUN, 11, 18, 46, 53, 0);
   String httpDate1 = "Fri, 11 Jun 1999 18:46:53 GMT";
-  Date date2 = new Date.utc(2000, Date.AUG, 16, 12, 34, 56, 0);
+  DateTime date2 = new DateTime.utc(2000, DateTime.AUG, 16, 12, 34, 56, 0);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
   _HttpHeaders headers = new _HttpHeaders();
@@ -106,9 +106,9 @@ void testExpires() {
 }
 
 void testIfModifiedSince() {
-  Date date1 = new Date.utc(1999, Date.JUN, 11, 18, 46, 53, 0);
+  DateTime date1 = new DateTime.utc(1999, DateTime.JUN, 11, 18, 46, 53, 0);
   String httpDate1 = "Fri, 11 Jun 1999 18:46:53 GMT";
-  Date date2 = new Date.utc(2000, Date.AUG, 16, 12, 34, 56, 0);
+  DateTime date2 = new DateTime.utc(2000, DateTime.AUG, 16, 12, 34, 56, 0);
   String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
 
   _HttpHeaders headers = new _HttpHeaders();
@@ -319,7 +319,7 @@ void testCookie() {
   Cookie cookie;
   cookie = new Cookie("name", "value");
   Expect.equals("name=value", cookie.toString());
-  Date date = new Date.utc(2014, Date.JAN, 5, 23, 59, 59, 0);
+  DateTime date = new DateTime.utc(2014, DateTime.JAN, 5, 23, 59, 59, 0);
   cookie.expires = date;
   checkCookie(cookie, "name=value"
                       "; Expires=Sun, 5 Jan 2014 23:59:59 GMT");

@@ -74,6 +74,7 @@ js_support_checks = {
   'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
   'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
   'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
+  'HashChangeEvent': "Event._isTypeSupported('HashChangeEvent')",
   'HTMLContentElement': "Element.isTagSupported('content')",
   'HTMLDataListElement': "Element.isTagSupported('datalist')",
   'HTMLDetailsElement': "Element.isTagSupported('details')",
@@ -87,8 +88,14 @@ js_support_checks = {
   'HTMLProgressElement': "Element.isTagSupported('progress')",
   'HTMLShadowElement': "Element.isTagSupported('shadow')",
   'HTMLTrackElement': "Element.isTagSupported('track')",
+  'MediaStreamEvent': "Event._isTypeSupported('MediaStreamEvent')",
+  'MediaStreamTrackEvent': "Event._isTypeSupported('MediaStreamTrackEvent')",
   'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
   'Performance': "JS('bool', '!!(window.performance)')",
+  'SpeechRecognition': "JS('bool', '!!(window.SpeechRecognition || "
+      "window.webkitSpeechRecognition)')",
+  'XMLHttpRequestProgressEvent':
+      "Event._isTypeSupported('XMLHttpRequestProgressEvent')",
   'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
 }
 
@@ -394,15 +401,14 @@ class HtmlDartInterfaceGenerator(object):
     if implements:
       implements_str = ' implements ' + ', '.join(set(implements))
 
-    annotations = FindCommonAnnotations(self._interface.doc_js_name)
-    annotations_str = ''
-    if annotations:
-      annotations_str = '\n' + '\n'.join(annotations)
+    annotations = FormatAnnotationsAndComments(
+        GetAnnotationsAndComments(self._interface.doc_js_name,
+                              library_name=self._library_name), '')
 
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
         LIBRARYNAME=self._library_name,
-        ANNOTATIONS=annotations_str,
+        ANNOTATIONS=annotations,
         CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=implements_str,
@@ -414,7 +420,8 @@ class HtmlDartInterfaceGenerator(object):
     self._event_generator.EmitStreamProviders(
         self._interface,
         self._backend.CustomJSMembers(),
-        self._implementation_members_emitter)
+        self._implementation_members_emitter,
+        self._library_name)
     self._backend.AddConstructors(
         constructors, factory_provider, factory_constructor_name)
 
@@ -437,7 +444,8 @@ class HtmlDartInterfaceGenerator(object):
     self._event_generator.EmitStreamGetters(
         self._interface,
         [],
-        self._implementation_members_emitter)
+        self._implementation_members_emitter,
+        self._library_name)
     self._backend.FinishInterface()
 
   def _ImplementationEmitter(self):
@@ -468,6 +476,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._renamer = options.renamer
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._current_secondary_parent = None
+    self._library_name = self._renamer.GetLibraryName(self._interface)
 
   def ImplementsMergedMembers(self):
     return True
@@ -514,6 +523,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         'AudioContext',
         'Blob',
         'MutationObserver',
+        'SpeechRecognition',
     ]
 
     if self._interface.doc_js_name in WITH_CUSTOM_STATIC_FACTORY:
@@ -791,35 +801,16 @@ class Dart2JSBackend(HtmlDartGenerator):
       else:
         return self._NarrowInputType(type_name) if type_name else 'dynamic'
 
-    body = self._members_emitter.Emit(
-        '\n'
-        '  $MODIFIERS$TYPE $(HTML_NAME)($PARAMS) {\n'
-        '$!BODY'
-        '  }\n',
-        MODIFIERS='static ' if info.IsStatic() else '',
-        TYPE=return_type,
-        HTML_NAME=html_name,
-        PARAMS=info.ParametersDeclaration(InputType))
-
     parameter_names = [param_info.name for param_info in info.param_infos]
     parameter_types = [InputType(param_info.type_id)
                        for param_info in info.param_infos]
     operations = info.operations
 
-    method_version = [0]
     temp_version = [0]
 
-    def GenerateCall(operation, argument_count, checks):
-      if checks:
-        (stmts_emitter, call_emitter) = body.Emit(
-            '    if ($CHECKS) {\n$!STMTS$!CALL    }\n',
-            INDENT='      ',
-            CHECKS=' &&\n        '.join(checks))
-      else:
-        (stmts_emitter, call_emitter) = body.Emit('$!A$!B', INDENT='    ');
-
-      method_version[0] += 1
-      target = '_%s_%d' % (html_name, method_version[0]);
+    def GenerateCall(
+        stmts_emitter, call_emitter, version, operation, argument_count):
+      target = '_%s_%d' % (html_name, version);
       arguments = []
       target_parameters = []
       for position, arg in enumerate(operation.arguments[:argument_count]):
@@ -862,11 +853,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       if output_conversion:
         call = '%s(%s)' % (output_conversion.function_name, call)
 
-      if operation.type.id == 'void':
-        call_emitter.Emit('$(INDENT)$CALL;\n$(INDENT)return;\n',
-                          CALL=call)
-      else:
-        call_emitter.Emit('$(INDENT)return $CALL;\n', CALL=call)
+      call_emitter.Emit(call)
 
       self._members_emitter.Emit(
           '  $RENAME$ANNOTATIONS$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
@@ -877,10 +864,15 @@ class Dart2JSBackend(HtmlDartGenerator):
           TARGET=target,
           PARAMS=', '.join(target_parameters))
 
+    declaration = '%s%s %s(%s)' % (
+        'static ' if info.IsStatic() else '',
+        return_type,
+        html_name,
+        info.ParametersDeclaration(InputType))
     self._GenerateDispatcherBody(
-        body,
         operations,
         parameter_names,
+        declaration,
         GenerateCall,
         self._IsOptional,
         can_omit_type_check=lambda type, pos: type == parameter_types[pos])
@@ -923,19 +915,20 @@ class Dart2JSBackend(HtmlDartGenerator):
       return  "@JSName('%s')\n  " % idl_name
     return ''
 
-  def _Annotations(self, idl_type, idl_member_name):
-    out = ''
-    annotations = FindDart2JSAnnotations(idl_type, self._interface.id,
-        idl_member_name)
-    if annotations:
-      out = '%s\n  ' % annotations
+  def _Annotations(self, idl_type, idl_member_name, indent='  '):
+    anns = FindDart2JSAnnotationsAndComments(idl_type, self._interface.id,
+        idl_member_name, self._library_name)
+
     if not AnyConversionAnnotations(idl_type, self._interface.id,
                                   idl_member_name):
       return_type = self.SecureOutputType(idl_type)
       native_type = self._NarrowToImplementationType(idl_type)
       if native_type != return_type:
-        out += "@Returns('%s') @Creates('%s')\n  " % (native_type, native_type)
-    return out
+        anns = anns + [
+          "@Returns('%s')" % native_type,
+          "@Creates('%s')" % native_type,
+        ]
+    return FormatAnnotationsAndComments(anns, indent);
 
   def CustomJSMembers(self):
     return _js_custom_members

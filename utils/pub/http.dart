@@ -50,9 +50,7 @@ class PubHttpClient extends http.BaseClient {
       var status = streamedResponse.statusCode;
       // 401 responses should be handled by the OAuth2 client. It's very
       // unlikely that they'll be returned by non-OAuth2 requests.
-      if (status < 400 || status == 401) {
-        return new Future.immediate(streamedResponse);
-      }
+      if (status < 400 || status == 401) return streamedResponse;
 
       return http.Response.fromStream(streamedResponse).then((response) {
         throw new PubHttpException(response);

@@ -60,10 +60,20 @@ mixin_field_test: Fail
 mixin_is_test: Fail
 mixin_method_test: Fail
 mixin_naming_test: Fail
-
 mixin_extends_field_test: Fail
 mixin_extends_is_test: Fail
 mixin_extends_method_test: Fail
+mixin_mixin_test: Fail
+mixin_illegal_syntax_test/none: Fail
+mixin_illegal_superclass_test/none: Fail
+mixin_illegal_constructor_test/none: Fail
+mixin_illegal_static_access_test: Fail
+mixin_illegal_super_use_test/none: Fail
+mixin_implements_test: Fail
+mixin_type_parameters_mixin_test: Fail
+mixin_type_parameters_super_test: Fail
+mixin_type_parameters_mixin_extends_test: Fail
+mixin_type_parameters_super_extends_test: Fail
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
@@ -282,7 +292,8 @@ prefix2_negative_test: Fail
 # test issue 7523 (const declared without type, so not-a-function warning should not be reported)
 call_through_getter_test: Fail
 
-
+mixin_illegal_cycles_test/01: Fail # issue 8027
+mixin_illegal_cycles_test/02: Fail # issue 8027
 
 #
 # Add new dartc annotations above in alphabetical order
@@ -321,12 +332,6 @@ call_test: Fail # Issue 1604
 [ $browser ]
 
 
-[ $arch == simarm ]
-*: Skip
-
-[ $arch == arm ]
-*: Skip
-
 [ $compiler == dart2dart ]
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
 const_factory_redirection_test: Fail # http://dartbug.com/6894
@@ -349,15 +354,24 @@ type_variable_scope_test: Fail # type arguments on redirecting factory not imple
 many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 
-# Mixins aren't unparsed the right way yet.
-mixin_field_test: Fail # http://dartbug.com/7972
-mixin_is_test: Fail # http://dartbug.com/7972
-mixin_method_test: Fail # http://dartbug.com/7972
-mixin_naming_test: Fail # http://dartbug.com/7972
-
-mixin_extends_field_test: Fail # http://dartbug.com/7972
-mixin_extends_is_test: Fail # http://dartbug.com/7972
-mixin_extends_method_test: Fail # http://dartbug.com/7972
+# Mixins fail on the VM.
+mixin_field_test: Fail                          # VM issue
+mixin_is_test: Fail                             # VM issue
+mixin_method_test: Fail                         # VM issue
+mixin_naming_test: Fail                         # VM issue
+mixin_extends_field_test: Fail                  # VM issue
+mixin_extends_is_test: Fail                     # VM issue
+mixin_extends_method_test: Fail                 # VM issue
+mixin_mixin_test: Fail                          # VM issue
+mixin_illegal_syntax_test/none: Fail            # VM issue
+mixin_illegal_superclass_test/none: Fail        # VM issue
+mixin_illegal_constructor_test/none: Fail       # VM issue
+mixin_illegal_super_use_test/none: Fail         # VM issue
+mixin_implements_test: Fail                     # VM issue
+mixin_type_parameters_mixin_test: Fail          # VM issue
+mixin_type_parameters_super_test: Fail          # VM issue
+mixin_type_parameters_mixin_extends_test: Fail  # VM issue
+mixin_type_parameters_super_extends_test: Fail  # VM issue
 
 # Malformed types not handled as unresolved:
 import_core_prefix_test: Fail
@@ -432,6 +446,7 @@ bad_constructor_test/06: Fail
 argument_definition_test/*: Skip # Not implemented.
 argument_definition2_test: Skip # Not implemented. Fails in minified tests.
 argument_definition3_test: Skip # Not implemented. Fails in minified tests.
+argument_definition4_test: Skip # Not implemented. Fails in minified tests.
 const_var_test: Pass, Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
@@ -553,3 +568,15 @@ prefix22_test: Pass
 invocation_mirror_test: Fail, OK # hardcoded names.
 invocation_mirror2_test: Fail, OK # hardcoded names.
 super_call4_test: Fail, OK # hardcoded names.
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
+*: Skip

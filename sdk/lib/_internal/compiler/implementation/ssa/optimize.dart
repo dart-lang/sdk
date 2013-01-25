@@ -41,6 +41,11 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypeConversionInserter(compiler),
           new SsaTypePropagator(compiler, types),
           new SsaConstantFolder(constantSystem, backend, work, types),
+          // The constant folder affects the types of instructions, so
+          // we run the type propagator again. Note that this would
+          // not be necessary if types were directly stored on
+          // instructions.
+          new SsaTypePropagator(compiler, types),
           new SsaCheckInserter(backend, work, types, context.boundsChecked),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
@@ -53,6 +58,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Previous optimizations may have generated new
           // opportunities for constant folding.
           new SsaConstantFolder(constantSystem, backend, work, types),
+          new SsaSimplifyInterceptors(constantSystem),
           new SsaDeadCodeEliminator(types)];
       runPhases(graph, phases);
       if (!speculative) {
@@ -214,25 +220,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return null;
   }
 
-  HInstruction handleInterceptorCall(HInvokeDynamicMethod node) {
+  HInstruction handleInterceptorCall(HInvokeDynamic node) {
+    // We only optimize for intercepted method calls in this method.
+    if (node.selector.isGetter() || node.selector.isSetter()) return node;
+
     HInstruction input = node.inputs[1];
     if (input.isString(types)
         && node.selector.name == const SourceString('toString')) {
       return node.inputs[1];
-    }
-    // Check if this call does not need to be intercepted.
-    HType type = types[input];
-    var interceptor = node.inputs[0];
-    if (interceptor is !HThis && !type.canBePrimitive()) {
-      // If the type can be null, and the intercepted method can be in
-      // the object class, keep the interceptor.
-      if (type.canBeNull()
-          && interceptor.interceptedClasses.contains(compiler.objectClass)) {
-        return node;
-      }
-      // Change the call to a regular invoke dynamic call.
-      return new HInvokeDynamicMethod(
-          node.selector, node.inputs.getRange(1, node.inputs.length - 1));
     }
 
     // Try constant folding the instruction.
@@ -248,6 +243,27 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction instruction =
         node.specializer.tryConvertToBuiltin(node, types);
     if (instruction != null) return instruction;
+
+    // Check if this call does not need to be intercepted.
+    HType type = types[input];
+    var interceptor = node.inputs[0];
+    if (interceptor is !HThis && !type.canBePrimitive()) {
+      // If the type can be null, and the intercepted method can be in
+      // the object class, keep the interceptor.
+      if (type.canBeNull()) {
+        Set<ClassElement> interceptedClasses;
+        if (interceptor is HInterceptor) {
+          interceptedClasses = interceptor.interceptedClasses;
+        } else if (node is HOneShotInterceptor) {
+          var oneShotInterceptor = node;
+          interceptedClasses = oneShotInterceptor.interceptedClasses;
+        }
+        if (interceptedClasses.contains(compiler.objectClass)) return node;
+      }
+      // Change the call to a regular invoke dynamic call.
+      return new HInvokeDynamicMethod(
+          node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+    }
 
     Selector selector = node.selector;
     SourceString selectorName = selector.name;
@@ -384,14 +400,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     BinaryOperation operation = node.operation(constantSystem);
     HConstant folded = foldBinary(operation, left, right);
     if (folded != null) return folded;
-
-    if (!left.canBePrimitive(types)
-        && operation.isUserDefinable()
-        // The equals operation is being optimized in visitEquals.
-        && node is! HEquals) {
-      Selector selector = new Selector.binaryOperator(operation.name);
-      return fromPrimitiveInstructionToDynamicInvocation(node, selector);
-    }
     return node;
   }
 
@@ -406,25 +414,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitRelational(HRelational node) {
     if (allUsersAreBoolifies(node)) {
-      Interceptors interceptors = backend.builder.interceptors;
-      HStatic oldTarget = node.target;
-      Element boolifiedInterceptor =
-          interceptors.getBoolifiedVersionOf(oldTarget.element);
-      if (boolifiedInterceptor != null) {
-        HStatic boolifiedTarget = new HStatic(boolifiedInterceptor);
-        // We don't remove the [oldTarget] in case it is used by other
-        // instructions. If it is unused it will be treated as dead code and
-        // discarded.
-        oldTarget.block.addAfter(oldTarget, boolifiedTarget);
-        // Remove us as user from the [oldTarget].
-        oldTarget.removeUser(node);
-        // Replace old target with boolified target.
-        assert(node.target == node.inputs[0]);
-        node.inputs[0] = boolifiedTarget;
-        boolifiedTarget.usedBy.add(node);
-        node.usesBoolifiedInterceptor = true;
-        types[node] = HType.BOOLEAN;
-      }
+      // TODO(ngeoffray): Call a boolified selector.
       // This node stays the same, but the Boolify node will go away.
     }
     // Note that we still have to call [super] to make sure that we end up
@@ -468,61 +458,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIdentity(HIdentity node) {
     HInstruction newInstruction = handleIdentityCheck(node);
     return newInstruction == null ? super.visitIdentity(node) : newInstruction;
-  }
-
-  HInstruction foldBuiltinEqualsCheck(HEquals node) {
-    // TODO(floitsch): cache interceptors.
-    HInstruction newInstruction = handleIdentityCheck(node);
-    if (newInstruction == null) {
-      HStatic target = new HStatic(
-          backend.builder.interceptors.getTripleEqualsInterceptor());
-      node.block.addBefore(node, target);
-      return new HIdentity(target, node.left, node.right);
-    } else {
-      return newInstruction;
-    }
-  }
-
-  HInstruction visitEquals(HEquals node) {
-    HInstruction left = node.left;
-    HInstruction right = node.right;
-
-    if (node.isBuiltin(types)) {
-      return foldBuiltinEqualsCheck(node);
-    }
-
-    if (left.isConstant() && right.isConstant()) {
-      return super.visitEquals(node);
-    }
-
-    HType leftType = types[left];
-    if (leftType.isExact()) {
-      HBoundedType type = leftType;
-      Element element = type.lookupMember(const SourceString('=='));
-      if (element != null) {
-        // If the left-hand side is guaranteed to be a non-primitive
-        // type and and it defines operator==, we emit a call to that
-        // operator.
-        return super.visitEquals(node);
-      } else if (right.isConstantNull()) {
-        return graph.addConstantBool(false, constantSystem);
-      } else {
-        // We can just emit an identity check because the type does
-        // not implement operator=.
-        return foldBuiltinEqualsCheck(node);
-      }
-    }
-
-    if (right.isConstantNull()) {
-      if (leftType.isPrimitive()) {
-        return graph.addConstantBool(false, constantSystem);
-      }
-    }
-
-    // All other cases are dealt with by the [visitRelational] and
-    // [visitInvokeBinary], which are visited by invoking the [super]'s
-    // visit method.
-    return super.visitEquals(node);
   }
 
   HInstruction visitTypeGuard(HTypeGuard node) {
@@ -744,7 +679,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitInterceptor(HInterceptor node) {
     if (node.isConstant()) return node;
-    HType type = types[node.inputs[0]];
+    HInstruction constant = tryComputeConstantInterceptor(
+        node.inputs[0], node.interceptedClasses);
+    if (constant == null) return node;
+    return constant;
+  }
+
+  HInstruction tryComputeConstantInterceptor(HInstruction input,
+                                             Set<ClassElement> intercepted) {
+    HType type = types[input];
     ClassElement constantInterceptor;
     if (type.isInteger()) {
       constantInterceptor = backend.jsIntClass;
@@ -759,7 +702,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     } else if (type.isNull()) {
       constantInterceptor = backend.jsIntClass;
     } else if (type.isNumber()) {
-      Set<ClassElement> intercepted = node.interceptedClasses;
       // If the method being intercepted is not defined in [int] or
       // [double] we can safely use the number interceptor.
       if (!intercepted.contains(compiler.intClass)
@@ -768,7 +710,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
-    if (constantInterceptor == null) return node;
+    if (constantInterceptor == null) return null;
     if (constantInterceptor == work.element.getEnclosingClass()) {
       return graph.thisInstruction;
     }
@@ -776,6 +718,35 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     Constant constant = new ConstructedConstant(
         constantInterceptor.computeType(compiler), <Constant>[]);
     return graph.addConstant(constant);
+  }
+
+  HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
+    HInstruction newInstruction = handleInterceptorCall(node);
+    if (newInstruction != node) return newInstruction;
+
+    HInstruction constant = tryComputeConstantInterceptor(
+        node.inputs[1], node.interceptedClasses);
+
+    if (constant == null) return node;
+
+    Selector selector = node.selector;
+    // TODO(ngeoffray): make one shot interceptors know whether
+    // they have side effects.
+    if (selector.isGetter()) {
+      HInstruction res = new HInvokeDynamicGetter(
+          selector, node.element, constant, false);
+      res.inputs.add(node.inputs[1]);
+      return res;
+    } else if (node.selector.isSetter()) {
+      HInstruction res = new HInvokeDynamicSetter(
+          selector, node.element, constant, node.inputs[1], false);
+      res.inputs.add(node.inputs[2]);
+      return res;
+    } else {
+      List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
+      inputs[0] = constant;
+      return new HInvokeDynamicMethod(selector, inputs, true);
+    }
   }
 }
 
@@ -869,14 +840,12 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   SsaDeadCodeEliminator(this.types);
 
   bool isDeadCode(HInstruction instruction) {
-    return !instruction.hasSideEffects(types)
+    return !instruction.hasSideEffects()
+           && !instruction.canThrow()
            && instruction.usedBy.isEmpty
-           // A dynamic getter that has no side effect can still throw
-           // a NoSuchMethodError.
-           && instruction is !HInvokeDynamicGetter
-           && instruction is !HCheck
            && instruction is !HTypeGuard
            && instruction is !HParameterValue
+           && instruction is !HLocalSet
            && !instruction.isControlFlow();
   }
 
@@ -1137,7 +1106,6 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       int changesFlags = 0;
       HInstruction instruction = block.first;
       while (instruction != null) {
-        instruction.prepareGvn(types);
         changesFlags |= instruction.getChangesFlags();
         instruction = instruction.next;
       }
@@ -1522,4 +1490,53 @@ class SsaReceiverSpecialization extends HBaseVisitor
   }
 
   // TODO(ngeoffray): Also implement it for non-intercepted calls.
+}
+
+/**
+ * This phase replaces all interceptors that are used only once with
+ * one-shot interceptors. It saves code size and makes the receiver of
+ * an intercepted call a candidate for being generated at use site.
+ */
+class SsaSimplifyInterceptors extends HBaseVisitor
+    implements OptimizationPhase {
+  final String name = "SsaSimplifyInterceptors";
+  final ConstantSystem constantSystem;
+  HGraph graph;
+
+  SsaSimplifyInterceptors(this.constantSystem);
+
+  void visitGraph(HGraph graph) {
+    this.graph = graph;
+    visitDominatorTree(graph);
+  }
+
+  void visitInterceptor(HInterceptor node) {
+    if (node.usedBy.length != 1) return;
+    // [HBailoutTarget] instructions might have the interceptor as
+    // input. In such situation we let the dead code analyzer find out
+    // the interceptor is not needed.
+    if (node.usedBy[0] is !HInvokeDynamic) return;
+
+    HInvokeDynamic user = node.usedBy[0];
+
+    // If [node] was loop hoisted, we keep the interceptor.
+    if (!user.hasSameLoopHeaderAs(node)) return;
+
+    // Replace the user with a [HOneShotInterceptor].
+    HConstant nullConstant = graph.addConstantNull(constantSystem);
+    List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
+    inputs[0] = nullConstant;
+    HOneShotInterceptor interceptor = new HOneShotInterceptor(
+        user.selector, inputs, node.interceptedClasses);
+    interceptor.sourcePosition = user.sourcePosition;
+
+    HBasicBlock block = user.block;
+    block.addAfter(user, interceptor);
+    block.rewrite(user, interceptor);
+    block.remove(user);
+
+    // The interceptor will be removed in the dead code elimination
+    // phase. Note that removing it here would not work because of how
+    // the [visitBasicBlock] is implemented.
+  }
 }

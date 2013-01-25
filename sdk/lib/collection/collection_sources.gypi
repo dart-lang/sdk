@@ -7,9 +7,12 @@
   'sources': [
     'arrays.dart',
     'collections.dart',
+    'iterator.dart',
+    'map.dart',
     'maps.dart',
+    'queue.dart',
+    'set.dart',
     'sort.dart',
     'splay_tree.dart',
   ],
 }
-

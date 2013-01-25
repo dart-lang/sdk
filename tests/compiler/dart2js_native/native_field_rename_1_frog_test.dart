@@ -6,6 +6,8 @@
 // fields.  However, native fields keep their name.  The implication: a getter
 // for the field must be based on the field's name, not the field's jsname.
 
+import 'dart:_js_helper' show JSName;
+
 class A native "*A" {
   int key;                    //  jsname is 'key'
   int getKey() => key;

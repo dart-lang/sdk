@@ -57,4 +57,6 @@ public interface ClassElement extends EnclosingElement {
   int getOpenBraceOffset();
   
   int getCloseBraceOffset();
+  
+  boolean hasSuperInvocation();
 }

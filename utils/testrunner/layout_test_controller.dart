@@ -42,7 +42,7 @@ Function notifyDone;
 
 // Variable below here are local to this file.
 var passCount = 0, failCount = 0, errorCount = 0;
-Date start;
+DateTime start;
 
 class Macros {
   static const String testTime = '<TIME>';
@@ -79,7 +79,7 @@ void outputResult(start, label, result, [message = '']) {
   }
   var elapsed = '';
   if (includeTime) {
-    var end = new Date.now();
+    var end = new DateTime.now();
     double duration = (end.difference(start)).inMilliseconds.toDouble();
     duration /= 1000;
     elapsed = '${duration.toStringAsFixed(3)}s ';
@@ -127,7 +127,7 @@ complete() {
 runTextLayoutTest(testNum) {
   var url = '$baseUrl?test=$testNum';
   var stdout = new List();
-  start = new Date.now();
+  start = new DateTime.now();
   Process.start(drt, [url]).then((process) {
     // Drain stderr to not leak resources.
     process.stderr.onData = process.stderr.read;
@@ -213,7 +213,7 @@ runTextLayoutTest(testNum) {
 runPixelLayoutTest(int testNum) {
   var url = '$baseUrl?test=$testNum';
   var stdout = new List();
-  start = new Date.now();
+  start = new DateTime.now();
   Process.start(drt, ["$url'-p"]).then((process) {
     // Drain stderr to not leak resources.
     process.stderr.onData = process.stderr.read;

@@ -15,7 +15,7 @@ main() {
   }
 
   test('keyboardEvent constructor', () {
-    var event = new KeyboardEvent('keyup', document.window);
+    var event = new KeyboardEvent('keyup');
   });
   test('keys', () {
     // This test currently is pretty much a no-op because we

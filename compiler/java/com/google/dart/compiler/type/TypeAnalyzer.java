@@ -1614,7 +1614,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (!node.getModifiers().isAbstract() && !unimplementedMembers.isEmpty() &&
             (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(type))) {
           StringBuilder sb = getUnimplementedMembersMessage(element, unimplementedMembers);
-          onError(node.getName(), TypeErrorCode.CONTRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
+          onError(node.getName(), TypeErrorCode.CONCRETE_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
               node.getName(), sb.toString());
         }
       }
@@ -2192,7 +2192,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private void analyzeFactory(DartMethodDefinition node, DartExpression name,
-        final ConstructorElement methodElement) {
+        final ConstructorElement constructorElement) {
       ASTVisitor<Void> visitor = new ASTVisitor<Void>() {
         @Override
         public Void visitParameterizedTypeNode(DartParameterizedTypeNode node) {
@@ -2213,12 +2213,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       };
       name.accept(visitor);
       // redirecting factory constructor
-      if (methodElement instanceof ConstructorElement) {
-        ConstructorElement constructorElement = (ConstructorElement) methodElement;
+      {
         ConstructorElement targetElement = constructorElement.getRedirectingFactoryConstructor();
         if (targetElement != null) {
           ClassElement targetEnclosingClass = (ClassElement) targetElement.getEnclosingElement();
-          Type sourceMethodType = methodElement.getType();
+          Type sourceMethodType = constructorElement.getType();
           Type targetMethodType = targetElement.getType();
           InterfaceType targetClassType = (InterfaceType) node.getRedirectedTypeName().getType();
           targetMethodType = targetMethodType.subst(targetClassType.getArguments(),
@@ -2384,11 +2383,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       // Do not visit the name, it may not have been resolved.
       String name = node.getPropertyName();
-      InterfaceType.Member member = cls.lookupMember(name);
-      if (member == null || ASTNodes.inSetterContext(node)) {
-        InterfaceType.Member member2 = cls.lookupMember("setter " + name);
-        if (member2 != null && (member == null || member2.getHolder() == member.getHolder() || types.isSubtype(member2.getHolder(), member.getHolder()))) {
-          member = member2;
+      InterfaceType.Member member;
+      if (ASTNodes.inSetterContext(node)) {
+        member = cls.lookupMember("setter " + name);
+        if (member == null) {
+          member = cls.lookupMember(name);
+        }
+      } else {
+        member = cls.lookupMember(name);
+        if (member == null) {
+          member = cls.lookupMember("setter " + name);
         }
       }
       // is "receiver" is inferred, attempt to find member in one of the subtypes
@@ -2437,55 +2441,40 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case FIELD:
           FieldElement fieldElement = (FieldElement) element;
           Modifiers fieldModifiers = fieldElement.getModifiers();
-          MethodElement getter = fieldElement.getGetter();
-          MethodElement setter = fieldElement.getSetter();
+          
+          // Prepare getter/setter members.
+          Member getterMember;
+          Member setterMember;
+          {
+            getterMember = cls.lookupMember(name);
+            if (getterMember == null && TypeQuality.of(cls) == TypeQuality.INFERRED) {
+              getterMember = cls.lookupSubTypeMember(name);
+            }
+          }
+          {
+            setterMember = cls.lookupMember("setter " + name);
+            if (setterMember == null) {
+              setterMember = cls.lookupMember(name);
+            }
+          }
           boolean inSetterContext = ASTNodes.inSetterContext(node);
           boolean inGetterContext = ASTNodes.inGetterContext(node);
-          ClassElement enclosingClass = null;
-          if (fieldElement.getEnclosingElement() instanceof ClassElement) {
-            enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
-          }
 
           // Implicit field declared as "final".
           if (!fieldModifiers.isAbstractField() && fieldModifiers.isFinal() && inSetterContext) {
             return typeError(node.getName(), TypeErrorCode.FIELD_IS_FINAL, node.getName());
           }
 
-          // Check for cases when property has no setter or getter.
-          if (fieldModifiers.isAbstractField() && enclosingClass != null) {
-            // Check for using field without setter in some assignment variant.
-            if (inSetterContext) {
-              if (setter == null) {
-                setter = Elements.lookupFieldElementSetter(enclosingClass, name);
-                if (setter == null) {
-                  setter = Elements.lookupFieldElementSetter(enclosingClass, "setter " + name);
-                }
-                if (setter == null) {
-                  return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
-                }
-              }
-            }
-            // Check for using field without getter in other operation that assignment.
-            if (inGetterContext) {
-              if (getter == null) {
-                getter = Elements.lookupFieldElementGetter(enclosingClass, name);
-                if (getter == null) {
-                  return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
-                }
-              }
-            }
-          }
-
           Type result = member.getType();
           if (fieldModifiers.isAbstractField()) {
             if (inSetterContext) {
-              result = member.getSetterType();
+              result = setterMember != null ? setterMember.getSetterType() : null;
               if (result == null) {
                 return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
               }
             }
             if (inGetterContext) {
-              result = member.getGetterType();
+              result = getterMember != null ? getterMember.getGetterType() : null;
               if (result == null) {
                 return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
               }
@@ -2818,7 +2807,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
               // A subtype of interface Function.
               return dynamicType;
             } else if (name == null || currentClass == null) {
-              return typeError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE, type);
+              if (reportNoMemberWhenHasInterceptor || !(type instanceof InterfaceType)
+                  || !Elements.handlesNoSuchMethod((InterfaceType) type)) {
+                return typeError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE, type);
+              }
+              return dynamicType;
             } else {
               return typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, currentClass);
             }
@@ -3217,16 +3210,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             while (supertype != null) {
               ClassElement superclass = supertype.getElement();
               for (Element member : superclass.getMembers()) {
-                String name = member.getName();
-                if (!Elements.isAbstractElement(member)) {
-                  superMembers.removeAll(name);
-                }
-                if (member instanceof FieldElement) {
-                  FieldElement field = (FieldElement) member;
-                  if (field.getSetter() != null) {
-                    superMembers.removeAll("setter " + name);
-                  }
-                }
+                removeSuperMemberIfNotAbstract(member);
               }
               supertype = supertype.getElement().getSupertype();
             }
@@ -3237,16 +3221,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         for (InterfaceType mixType : currentClass.getElement().getMixins()) {
           ClassElement mixElement = mixType.getElement();
           for (Element member : mixElement.getMembers()) {
-            String name = member.getName();
-            if (!Elements.isAbstractElement(member)) {
-              superMembers.removeAll(name);
-            }
-            if (member instanceof FieldElement) {
-              FieldElement field = (FieldElement) member;
-              if (field.getSetter() != null) {
-                superMembers.removeAll("setter " + name);
-              }
-            }
+            removeSuperMemberIfNotAbstract(member);
           }
         }
         
@@ -3270,12 +3245,43 @@ public class TypeAnalyzer implements DartCompilationPhase {
         
         // add abstract members of current class
         for (Element member : currentClass.getElement().getMembers()) {
-          if (Elements.isAbstractElement(member)) {
+          if (ElementKind.of(member) == ElementKind.FIELD && member.getModifiers().isAbstractField()) {
+            FieldElement field = (FieldElement) member;
+            MethodElement getter = field.getGetter();
+            MethodElement setter = field.getSetter();
+            if (getter != null && Elements.isAbstractElement(getter)) {
+              unimplementedElements.add(getter);
+            }
+            if (setter != null && Elements.isAbstractElement(setter)) {
+              unimplementedElements.add(setter);
+            }
+          } else if (Elements.isAbstractElement(member)) {
             unimplementedElements.add(member);
           }
         }
         
         return null;
+      }
+
+      private void removeSuperMemberIfNotAbstract(Element member) {
+        String name = member.getName();
+        if (ElementKind.of(member) == ElementKind.FIELD && member.getModifiers().isAbstractField()) {
+          FieldElement field = (FieldElement) member;
+          MethodElement getter = field.getGetter();
+          MethodElement setter = field.getSetter();
+          if (getter != null && !Elements.isAbstractElement(getter)) {
+            superMembers.removeAll(name);
+          }
+          if (setter != null && !Elements.isAbstractElement(setter)) {
+            if (!name.startsWith("setter ")) {
+              superMembers.removeAll("setter " + name);
+            } else {
+              superMembers.removeAll(name);
+            }
+          }
+        } else if (!Elements.isAbstractElement(member)) {
+          superMembers.removeAll(name);
+        }
       }
 
       @Override

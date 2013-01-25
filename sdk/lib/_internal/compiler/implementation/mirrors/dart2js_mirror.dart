@@ -5,6 +5,7 @@
 library mirrors_dart2js;
 
 import 'dart:async';
+import 'dart:collection' show LinkedHashMap;
 import 'dart:io';
 import 'dart:uri';
 
@@ -22,6 +23,7 @@ import '../util/util.dart';
 import '../util/uri_extras.dart';
 import '../dart2js.dart';
 import '../util/characters.dart';
+import '../source_file_provider.dart';
 
 import 'mirrors.dart';
 import 'mirrors_util.dart';
@@ -287,9 +289,6 @@ class LibraryCompiler extends api.Compiler {
     for (var uri in uriList) {
       elementList.add(libraryLoader.loadLibrary(uri, null, uri));
     }
-    libraries.forEach((_, library) {
-      maybeEnableJSHelper(library);
-    });
 
     world.populate();
 
@@ -303,9 +302,7 @@ class LibraryCompiler extends api.Compiler {
   void processQueueList(Enqueuer world, List<LibraryElement> elements) {
     world.nativeEnqueuer.processNativeClasses(libraries.values);
     for (var library in elements) {
-      library.forEachLocalMember((element) {
-        world.addToWorkList(element);
-      });
+      fullyEnqueueLibrary(library);
     }
     progress.reset();
     world.forEach((WorkItem work) {
@@ -674,7 +671,7 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
 
   LibraryElement get _library => _element;
 
-  Uri get uri => _library.uri;
+  Uri get uri => _library.canonicalUri;
 
   DeclarationMirror get owner => null;
 
@@ -698,7 +695,7 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
       }
     } else {
       // Use the file name as script name.
-      String path = _library.uri.path;
+      String path = _library.canonicalUri.path;
       return path.substring(path.lastIndexOf('/') + 1);
     }
   }

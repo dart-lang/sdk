@@ -30,7 +30,7 @@ main() {
         });
   }
 
-  group('unsupported throws', () {
+  group('unsupported_throws', () {
     test('requestFileSystem', () {
       var expectation = FileSystem.supported ? returnsNormally : throws;
       expect(() {

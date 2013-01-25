@@ -479,7 +479,7 @@ $lazyInitializerLogic
     // the actual receiver.
     int extraArgumentCount = isInterceptorClass ? 1 : 0;
     // Use '$receiver' to avoid clashes with other parameter names. Using
-    // '$receiver' works because [JsNames.getValid] used for getting parameter
+    // '$receiver' works because [:namer.safeName:] used for getting parameter
     // names never returns a name beginning with a single '$'.
     String receiverArgumentName = r'$receiver';
 
@@ -504,7 +504,7 @@ $lazyInitializerLogic
         compiler.enqueuer.resolution.getCachedElements(member);
 
     parameters.orderedForEachParameter((Element element) {
-      String jsName = JsNames.getValid(element.name.slowToString());
+      String jsName = backend.namer.safeName(element.name.slowToString());
       assert(jsName != receiverArgumentName);
       int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
       if (count < optionalParameterStart) {
@@ -735,14 +735,32 @@ $lazyInitializerLogic
       return;
     }
 
+    void visitMember(ClassElement enclosing, Element member) {
+      assert(invariant(classElement, member.isDeclaration));
+      if (member.isInstanceMember()) {
+        addInstanceMember(member, builder);
+      }
+    }
+
+    // TODO(kasperl): We should make sure to only emit one version of
+    // overridden methods. Right now, we rely on the ordering so the
+    // methods pulled in from mixins are replaced with the members
+    // from the class definition.
+
+    // If the class is a native class, we have to add the instance
+    // members defined in the non-native mixin applications used by
+    // the class.
+    visitNativeMixins(classElement, (MixinApplicationElement mixin) {
+      mixin.forEachMember(
+          visitMember,
+          includeBackendMembers: true,
+          includeSuperMembers: false);
+    });
+
     classElement.implementation.forEachMember(
-        (ClassElement enclosing, Element member) {
-          assert(invariant(classElement, member.isDeclaration));
-          if (member.isInstanceMember()) {
-            addInstanceMember(member, builder);
-          }
-        },
-        includeBackendMembers: true);
+        visitMember,
+        includeBackendMembers: true,
+        includeSuperMembers: false);
 
     generateIsTestsOn(classElement, (Element other) {
       js.Expression code;
@@ -764,6 +782,22 @@ $lazyInitializerLogic
       if (!nativeEmitter.handleNoSuchMethod) {
         emitNoSuchMethodHandlers(builder.addProperty);
       }
+    }
+
+    if (backend.isInterceptorClass(classElement)) {
+      // The operator== method in [:Object:] does not take the same
+      // number of arguments as an intercepted method, therefore we
+      // explicitely add one to all interceptor classes. Note that we
+      // would not have do do that if all intercepted methods had
+      // a calling convention where the receiver is the first
+      // parameter.
+      String name = backend.namer.publicInstanceMethodNameByArity(
+          const SourceString('=='), 1);
+      Function kind = (classElement == backend.jsNullClass)
+          ? js.equals
+          : js.strictEquals;
+      builder.addProperty(name, js.fun(['receiver', 'a'],
+          js.block1(js.return_(kind(js.use('receiver'), js.use('a'))))));
     }
   }
 
@@ -808,6 +842,22 @@ $lazyInitializerLogic
         buffer.add('$holder.${namer.operatorIs(check)}$_=${_}true$N');
       };
     }
+  }
+
+  void visitNativeMixins(ClassElement classElement,
+                         void visit(MixinApplicationElement mixinApplication)) {
+    if (!classElement.isNative()) return;
+    // Use recursion to make sure to visit the superclasses before the
+    // subclasses. Once we start keeping track of the emitted fields
+    // and members, we're going to want to visit these in the other
+    // order so we get the most specialized definition first.
+    void recurse(ClassElement cls) {
+      if (cls == null || !cls.isMixinApplication) return;
+      recurse(cls.superclass);
+      assert(!cls.isNative());
+      visit(cls);
+    }
+    recurse(classElement.superclass);
   }
 
   /**
@@ -874,6 +924,20 @@ $lazyInitializerLogic
                  needsCheckedSetter);
       }
     }
+
+    // TODO(kasperl): We should make sure to only emit one version of
+    // overridden fields. Right now, we rely on the ordering so the
+    // fields pulled in from mixins are replaced with the fields from
+    // the class definition.
+
+    // If the class is a native class, we have to add the fields
+    // defined in the non-native mixin applications used by the class.
+    visitNativeMixins(classElement, (MixinApplicationElement mixin) {
+      mixin.forEachInstanceField(
+          visitField,
+          includeBackendMembers: true,
+          includeSuperMembers: false);
+    });
 
     // If a class is not instantiated then we add the field just so we can
     // generate the field getter/setter dynamically. Since this is only
@@ -1052,7 +1116,13 @@ $lazyInitializerLogic
 
     needsDefineClass = true;
     String className = namer.getName(classElement);
+
+    // Find the first non-native superclass.
     ClassElement superclass = classElement.superclass;
+    while (superclass != null && superclass.isNative()) {
+      superclass = superclass.superclass;
+    }
+
     String superName = "";
     if (superclass != null) {
       superName = namer.getName(superclass);
@@ -1146,9 +1216,20 @@ $lazyInitializerLogic
         getTypedefChecksOn(call.computeType(compiler)).forEach(emitIsTest);
       }
     }
+
     for (DartType interfaceType in cls.interfaces) {
       generateInterfacesIsTests(interfaceType.element, emitIsTest, generated);
     }
+
+    // For native classes, we also have to run through their mixin
+    // applications and make sure we deal with 'is' tests correctly
+    // for those.
+    visitNativeMixins(cls, (MixinApplicationElement mixin) {
+      for (DartType interfaceType in mixin.interfaces) {
+        ClassElement interfaceElement = interfaceType.element;
+        generateInterfacesIsTests(interfaceType.element, emitIsTest, generated);
+      }
+    });
   }
 
   /**
@@ -1315,7 +1396,8 @@ $lazyInitializerLogic
   void emitStaticFunctionGetters(CodeBuffer buffer) {
     Set<FunctionElement> functionsNeedingGetter =
         compiler.codegenWorld.staticFunctionsNeedingGetter;
-    for (FunctionElement element in functionsNeedingGetter) {
+    for (FunctionElement element in
+             Elements.sortedByPosition(functionsNeedingGetter)) {
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
       // create a fake element with the correct name.
@@ -1577,7 +1659,7 @@ $lazyInitializerLogic
     ConstantHandler handler = compiler.constantHandler;
     Iterable<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
-    for (Element element in staticNonFinalFields) {
+    for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
       compiler.withCurrentElement(element, () {
         Constant initialValue = handler.getInitialValueFor(element);
         js.Expression init =
@@ -1598,7 +1680,7 @@ $lazyInitializerLogic
         handler.getLazilyInitializedFieldsForEmission();
     if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
-      for (VariableElement element in lazyFields) {
+      for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
         assert(compiler.codegenWorld.generatedBailoutCode[element] == null);
         js.Expression code = compiler.codegenWorld.generatedCode[element];
         assert(code != null);
@@ -1607,24 +1689,26 @@ $lazyInitializerLogic
         //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);
         // The name is used for error reporting. The 'initial' must be a
         // closure that constructs the initial value.
-        buffer.add("$lazyInitializerName(");
-        buffer.add(isolateProperties);
-        buffer.add(",$_'");
-        buffer.add(element.name.slowToString());
-        buffer.add("',$_'");
-        buffer.add(namer.getName(element));
-        buffer.add("',$_'");
-        buffer.add(namer.getLazyInitializerName(element));
-        buffer.add("',$_");
-        buffer.add(js.prettyPrint(code, compiler));
-        emitLazyInitializedGetter(element, buffer);
-        buffer.add(")$N");
+        List<js.Expression> arguments = <js.Expression>[];
+        arguments.add(js.use(isolateProperties));
+        arguments.add(js.string(element.name.slowToString()));
+        arguments.add(js.string(namer.getName(element)));
+        arguments.add(js.string(namer.getLazyInitializerName(element)));
+        arguments.add(code);
+        js.Expression getter = buildLazyInitializedGetter(element);
+        if (getter != null) {
+          arguments.add(getter);
+        }
+        js.Expression init = js.call(js.use(lazyInitializerName), arguments);
+        buffer.add(js.prettyPrint(init, compiler));
+        buffer.add("$N");
       }
     }
   }
 
-  void emitLazyInitializedGetter(VariableElement element, CodeBuffer buffer) {
+  js.Expression buildLazyInitializedGetter(VariableElement element) {
     // Nothing to do, the 'lazy' function will create the getter.
+    return null;
   }
 
   void emitCompileTimeConstants(CodeBuffer buffer) {
@@ -2079,6 +2163,48 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
   }
 
+  void emitOneShotInterceptors(CodeBuffer buffer) {
+    JavaScriptBackend backend = compiler.backend;
+    for (Selector selector in backend.oneShotInterceptors) {
+      Set<ClassElement> classes = backend.getInterceptedClassesOn(selector);
+      String oneShotInterceptorName = namer.oneShotInterceptorName(selector);
+      String getInterceptorName =
+          namer.getInterceptorName(backend.getInterceptorMethod, classes);
+
+      List<js.Parameter> parameters = <js.Parameter>[];
+      List<js.Expression> arguments = <js.Expression>[];
+      parameters.add(new js.Parameter('receiver'));
+      arguments.add(js.use('receiver'));
+
+      if (selector.isSetter()) {
+        parameters.add(new js.Parameter('value'));
+        arguments.add(js.use('value'));
+      } else {
+        for (int i = 0; i < selector.argumentCount; i++) {
+          String argName = 'a$i';
+          parameters.add(new js.Parameter(argName));
+          arguments.add(js.use(argName));
+        }
+      }
+
+      String invocationName = backend.namer.invocationName(selector);
+      js.Fun function =
+          new js.Fun(parameters,
+              js.block1(js.return_(
+                        js.use(isolateProperties)
+                            .dot(getInterceptorName)
+                            .callWith([js.use('receiver')])
+                            .dot(invocationName)
+                            .callWith(arguments))));
+
+      js.PropertyAccess property =
+          js.fieldAccess(js.use(isolateProperties), oneShotInterceptorName);
+
+      buffer.add(js.prettyPrint(js.assign(property, function), compiler));
+      buffer.add(N);
+    }
+  }
+
   String assembleProgram() {
     measure(() {
       computeNeededClasses();
@@ -2108,6 +2234,7 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
+      emitOneShotInterceptors(mainBuffer);
       emitGetInterceptorMethods(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
 

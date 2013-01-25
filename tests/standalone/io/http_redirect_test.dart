@@ -148,7 +148,7 @@ void testManualRedirect() {
 
   int redirectCount = 0;
   HttpClientConnection conn =
-     client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/1"));
+     client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/1"));
   conn.followRedirects = false;
   conn.onResponse = (HttpClientResponse response) {
     response.inputStream.onData = response.inputStream.read;
@@ -173,7 +173,7 @@ void testManualRedirectWithHeaders() {
 
   int redirectCount = 0;
   HttpClientConnection conn =
-     client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/src"));
+     client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/src"));
   conn.followRedirects = false;
   conn.onRequest = (HttpClientRequest request) {
     request.headers.add("X-Request-Header", "value");
@@ -218,7 +218,7 @@ void testAutoRedirect() {
 
   HttpClientConnection conn =
       client.getUrl(
-          new Uri.fromString("http://127.0.0.1:${server.port}/redirect"));
+          Uri.parse("http://127.0.0.1:${server.port}/redirect"));
   conn.onRequest = onRequest;
   conn.onResponse = onResponse;
   conn.onError = (e) => Expect.fail("Error not expected ($e)");
@@ -247,7 +247,7 @@ void testAutoRedirectWithHeaders() {
   };
 
   HttpClientConnection conn =
-      client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/src"));
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/src"));
   conn.onRequest = onRequest;
   conn.onResponse = onResponse;
   conn.onError = (e) => Expect.fail("Error not expected ($e)");
@@ -277,7 +277,7 @@ void testAutoRedirect301POST() {
 
   HttpClientConnection conn =
       client.postUrl(
-          new Uri.fromString("http://127.0.0.1:${server.port}/301src"));
+          Uri.parse("http://127.0.0.1:${server.port}/301src"));
   conn.onRequest = onRequest;
   conn.onResponse = onResponse;
   conn.onError = (e) => Expect.fail("Error not expected ($e)");
@@ -309,7 +309,7 @@ void testAutoRedirect303POST() {
 
   HttpClientConnection conn =
       client.postUrl(
-          new Uri.fromString("http://127.0.0.1:${server.port}/303src"));
+          Uri.parse("http://127.0.0.1:${server.port}/303src"));
   conn.onRequest = onRequest;
   conn.onResponse = onResponse;
   conn.onError = (e) => Expect.fail("Error not expected ($e)");
@@ -320,7 +320,7 @@ void testAutoRedirectLimit() {
   HttpClient client = new HttpClient();
 
   HttpClientConnection conn =
-      client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/1"));
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/1"));
   conn.onResponse = (HttpClientResponse response) {
     response.inputStream.onData = () => Expect.fail("Response not expected");
     response.inputStream.onClosed = () => Expect.fail("Response not expected");
@@ -339,7 +339,7 @@ void testRedirectLoop() {
 
   int redirectCount = 0;
   HttpClientConnection conn =
-      client.getUrl(new Uri.fromString("http://127.0.0.1:${server.port}/A"));
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/A"));
   conn.onResponse = (HttpClientResponse response) {
     response.inputStream.onData = () => Expect.fail("Response not expected");
     response.inputStream.onClosed = () => Expect.fail("Response not expected");

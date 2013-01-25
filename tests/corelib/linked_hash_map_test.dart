@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Dart test for linked hash-maps.
+library linkedHashMap.test;
+import 'dart:collection' show LinkedHashMap;
 
 class LinkedHashMapTest {
   static void testMain() {

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // A regression test for a dart2js crash.
+library type.argument.factory.nocrash.test;
+import 'dart:collection' show LinkedHashMap;
 
 void main() {
   // This constructor call causes a crash in dart2js.

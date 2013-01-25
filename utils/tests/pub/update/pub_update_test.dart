@@ -69,7 +69,7 @@ main() {
       'directory', () {
     // Using an SDK source, but this should be true of all sources.
     dir(sdkPath, [
-      file('revision', '1234'),
+      file('version', '0.1.2.3'),
       dir('pkg', [
         dir('foo', [
           libPubspec('foo', '0.0.0-not.used')

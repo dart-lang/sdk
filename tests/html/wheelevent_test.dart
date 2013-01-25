@@ -36,16 +36,10 @@ main() {
       expect(e.deltaY, 240);
     }));
     var event = new WheelEvent(wheelEvent,
-      window,
-      0,
-      240,
-      0,
-      100,
-      200,
-      10,
-      20,
-      0);
-    element.$dom_dispatchEvent(event);
+      deltaX: 0,
+      deltaY: 240,
+      screenX: 100);
+    element.dispatchEvent(event);
   });
 
   test('wheelEvent Stream', () {
@@ -56,15 +50,9 @@ main() {
       expect(e.deltaY, 240);
     }));
     var event = new WheelEvent(wheelEvent,
-      window,
-      0,
-      240,
-      0,
-      100,
-      200,
-      10,
-      20,
-      0);
-    element.$dom_dispatchEvent(event);
+      deltaX: 0,
+      deltaY: 240,
+      screenX: 100);
+    element.dispatchEvent(event);
   });
 }

@@ -199,6 +199,9 @@ patch class _StdIOUtils {
   patch static OutputStream _getStdioOutputStream(int fd) {
     throw new UnsupportedError("StdIOUtils._getStdioOutputStream");
   }
+  patch static int _socketType(Socket socket) {
+    throw new UnsupportedError("StdIOUtils._socketType");
+  }
 }
 
 patch class _WindowsCodePageDecoder {

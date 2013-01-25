@@ -5,7 +5,14 @@
 library _isolate_helper;
 
 import 'dart:async';
+import 'dart:collection' show Queue, HashMap;
 import 'dart:isolate';
+import 'dart:_js_helper' show convertDartClosureToJS,
+                              Null;
+import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
+                                   JS,
+                                   JS_CREATE_ISOLATE,
+                                   JS_SET_CURRENT_ISOLATE;
 
 ReceivePort lazyPort;
 
@@ -401,10 +408,11 @@ class IsolateNatives {
   static String computeThisScript() {
     // TODO(7369): Find a cross-platform non-brittle way of getting the
     // currently running script.
-    var scripts = JS('=List', r"document.getElementsByTagName('script')");
+    var scripts = JS('', r"document.getElementsByTagName('script')");
     // The scripts variable only contains the scripts that have already been
     // executed. The last one is the currently running script.
-    for (var script in scripts) {
+    for (int i = 0, len = JS('int', '#.length', scripts); i < len; i++) {
+      var script = JS('', '#[#]', scripts, i);
       var src = JS('String|Null', '# && #.src', script, script);
       // Filter out the test controller script, and the Dart
       // bootstrap script.
@@ -502,22 +510,6 @@ class IsolateNatives {
 
   static void _consoleLog(msg) {
     JS("void", r"#.console.log(#)", globalThis, msg);
-  }
-
-  /**
-   * Extract the constructor of runnable, so it can be allocated in another
-   * isolate.
-   */
-  static dynamic _getJSConstructor(Isolate runnable) {
-    return JS("", "#.constructor", runnable);
-  }
-
-  /** Extract the constructor name of a runnable */
-  // TODO(sigmund): find a browser-generic way to support this.
-  // TODO(floitsch): is this function still used? If yes, should we use
-  // Primitives.objectTypeName instead?
-  static dynamic _getJSConstructorName(Isolate runnable) {
-    return JS("", "#.constructor.name", runnable);
   }
 
   /** Find a constructor given its name. */
@@ -1282,7 +1274,7 @@ class TimerImpl implements Timer {
       // loop instead of setTimeout, to make sure the futures get executed in
       // order.
       _globalState.topEventLoop.enqueue(_globalState.currentContext, () {
-        callback(this); 
+        callback(this);
       }, 'timer');
       _inEventLoop = true;
     } else if (hasTimer()) {

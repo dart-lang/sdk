@@ -117,9 +117,9 @@ _convertDartToNative_PrepareForStructuredClone(value) {
     if (e is bool) return e;
     if (e is num) return e;
     if (e is String) return e;
-    if (e is Date) {
+    if (e is DateTime) {
       // TODO(sra).
-      throw new UnimplementedError('structured clone of Date');
+      throw new UnimplementedError('structured clone of DateTime');
     }
     if (e is RegExp) {
       // TODO(sra).
@@ -265,7 +265,7 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
 
     if (isJavaScriptDate(e)) {
       // TODO(sra).
-      throw new UnimplementedError('structured clone of Date');
+      throw new UnimplementedError('structured clone of DateTime');
     }
 
     if (isJavaScriptRegExp(e)) {

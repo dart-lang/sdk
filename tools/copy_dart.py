@@ -123,7 +123,7 @@ def main(outdir = None, *inputs):
         mergefiles([normjoin(dirname(lib), s) for s in library.sources], f)
 
       for suffix in library.imports:
-        m = re.match(r'[\'"]([^\'"]+)[\'"](\s+as\s+\w+)?$', suffix)
+        m = re.match(r'[\'"]([^\'"]+)[\'"](\s+as\s+\w+)?.*$', suffix)
         uri = m.group(1)
         if not uri.startswith('dart:'):
           worklist.append(normjoin(dirname(lib), uri));

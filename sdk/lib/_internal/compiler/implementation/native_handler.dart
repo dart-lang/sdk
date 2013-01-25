@@ -4,6 +4,7 @@
 
 library native;
 
+import 'dart:collection' show Queue;
 import 'dart:uri';
 import 'dart2jslib.dart' hide SourceString;
 import 'elements/elements.dart';
@@ -223,18 +224,20 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   registerElement(Element element) {
-    if (element.isFunction() || element.isGetter() || element.isSetter()) {
-      handleMethodAnnotations(element);
-      if (element.isNative()) {
-        registerMethodUsed(element);
+    compiler.withCurrentElement(element, () {
+      if (element.isFunction() || element.isGetter() || element.isSetter()) {
+        handleMethodAnnotations(element);
+        if (element.isNative()) {
+          registerMethodUsed(element);
+        }
+      } else if (element.isField()) {
+        handleFieldAnnotations(element);
+        if (element.isNative()) {
+          registerFieldLoad(element);
+          registerFieldStore(element);
+        }
       }
-    } else if (element.isField()) {
-      handleFieldAnnotations(element);
-      if (element.isNative()) {
-        registerFieldLoad(element);
-        registerFieldStore(element);
-      }
-    }
+    });
   }
 
   handleFieldAnnotations(Element element) {
@@ -436,8 +439,17 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       subtypes.add(cls);
     }
 
+    // Skip through all the mixin applications in the super class
+    // chain. That way, the direct subtypes set only contain the
+    // natives classes.
+    ClassElement superclass = cls.superclass;
+    while (superclass != null && superclass.isMixinApplication) {
+      assert(!superclass.isNative());
+      superclass = superclass.superclass;
+    }
+
     List<Element> directSubtypes = emitter.directSubtypes.putIfAbsent(
-        cls.superclass,
+        superclass,
         () => <ClassElement>[]);
     directSubtypes.add(cls);
   }
@@ -449,9 +461,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
 }
 
 void maybeEnableNative(Compiler compiler,
-                       LibraryElement library,
-                       Uri uri) {
-  String libraryName = uri.toString();
+                       LibraryElement library) {
+  String libraryName = library.canonicalUri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'dart/tests/compiler/dart2js_native')
       || libraryName == 'dart:async'
@@ -804,7 +815,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     HInstruction arity = builder.graph.addConstant(arityConstant);
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
-    Element helper = builder.interceptors.getClosureConverter();
+    Element helper = builder.backend.getClosureConverter();
     builder.pushInvokeHelper2(helper, local, arity);
     HInstruction closure = builder.pop();
     return closure;

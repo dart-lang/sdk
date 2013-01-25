@@ -10,6 +10,8 @@ library indexed_db;
 import 'dart:async';
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:_js_helper' show Creates, Returns, JSName, Null;
+import 'dart:_foreign_helper' show JS;
 
 $!GENERATED_DART_FILES
 
@@ -97,7 +99,7 @@ _convertNativeToDart_IDBKey(nativeKey) {
     return false;  // number, string.
   }
   if (containsDate(nativeKey)) {
-    throw new UnimplementedError('Key containing Date');
+    throw new UnimplementedError('Key containing DateTime');
   }
   // TODO: Cache conversion somewhere?
   return nativeKey;
@@ -124,6 +126,6 @@ _convertNativeToDart_IDBAny(object) {
 }
 
 
-const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add Date.
+const String _idbKey = '=List|=Object|num|String';  // TODO(sra): Add DateTime.
 const _annotation_Creates_IDBKey = const Creates(_idbKey);
 const _annotation_Returns_IDBKey = const Returns(_idbKey);

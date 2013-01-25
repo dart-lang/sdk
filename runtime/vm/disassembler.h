@@ -28,7 +28,6 @@ class DisassemblyFormatter {
                                   intptr_t human_size,
                                   uword pc) = 0;
 
-  // TODO(regis): Remove Print function once we have a real x64 disassembler.
   // Print a formatted message.
   virtual void Print(const char* format, ...) = 0;
 };

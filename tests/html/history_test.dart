@@ -22,6 +22,12 @@ main() {
     });
   });
 
+  group('supported_HashChangeEvent', () {
+    test('supported', () {
+      expect(HashChangeEvent.supported, true);
+    });
+  });
+
   var expectation = History.supportsState ? returnsNormally : throws;
 
   group('history', () {
@@ -64,6 +70,23 @@ main() {
         window.history.replaceState(null, document.title, '?foo=baz');
         expect(window.history.length, length);
         expect(window.location.href.endsWith('foo=baz'), isTrue);
+      }, expectation);
+    });
+
+    test('popstatevent', () {
+      expect(() {
+        var event = new Event.eventType('PopStateEvent', 'popstate');
+        expect(event is PopStateEvent, true);
+      }, expectation);
+    });
+
+    test('hashchangeevent', () {
+      var expectation = HashChangeEvent.supported ? returnsNormally : throws;
+      expect(() {
+        var event = new HashChangeEvent('change', oldUrl:'old', newUrl: 'new');
+        expect(event is HashChangeEvent, true);
+        expect(event.oldUrl, 'old');
+        expect(event.newUrl, 'new');
       }, expectation);
     });
   });

@@ -110,7 +110,7 @@ class _HttpHeaders implements HttpHeaders {
     _updateHostHeader();
   }
 
-  Date get ifModifiedSince {
+  DateTime get ifModifiedSince {
     List<String> values = _headers["if-modified-since"];
     if (values != null) {
       try {
@@ -122,14 +122,14 @@ class _HttpHeaders implements HttpHeaders {
     return null;
   }
 
-  void set ifModifiedSince(Date ifModifiedSince) {
+  void set ifModifiedSince(DateTime ifModifiedSince) {
     _checkMutable();
     // Format "ifModifiedSince" header with date in Greenwich Mean Time (GMT).
     String formatted = _HttpUtils.formatDate(ifModifiedSince.toUtc());
     _set("if-modified-since", formatted);
   }
 
-  Date get date {
+  DateTime get date {
     List<String> values = _headers["date"];
     if (values != null) {
       try {
@@ -141,14 +141,14 @@ class _HttpHeaders implements HttpHeaders {
     return null;
   }
 
-  void set date(Date date) {
+  void set date(DateTime date) {
     _checkMutable();
-    // Format "Date" header with date in Greenwich Mean Time (GMT).
+    // Format "DateTime" header with date in Greenwich Mean Time (GMT).
     String formatted = _HttpUtils.formatDate(date.toUtc());
     _set("date", formatted);
   }
 
-  Date get expires {
+  DateTime get expires {
     List<String> values = _headers["expires"];
     if (values != null) {
       try {
@@ -160,7 +160,7 @@ class _HttpHeaders implements HttpHeaders {
     return null;
   }
 
-  void set expires(Date expires) {
+  void set expires(DateTime expires) {
     _checkMutable();
     // Format "Expires" header with date in Greenwich Mean Time (GMT).
     String formatted = _HttpUtils.formatDate(expires.toUtc());
@@ -199,7 +199,7 @@ class _HttpHeaders implements HttpHeaders {
         _addValue(lowerCaseName, value);
       }
     } else if (lowerCaseName == "date") {
-      if (value is Date) {
+      if (value is DateTime) {
         date = value;
       } else if (value is String) {
         _set("date", value);
@@ -207,7 +207,7 @@ class _HttpHeaders implements HttpHeaders {
         throw new HttpException("Unexpected type for header named $name");
       }
     } else if (lowerCaseName == "expires") {
-      if (value is Date) {
+      if (value is DateTime) {
         expires = value;
       } else if (value is String) {
         _set("expires", value);
@@ -215,7 +215,7 @@ class _HttpHeaders implements HttpHeaders {
         throw new HttpException("Unexpected type for header named $name");
       }
     } else if (lowerCaseName == "if-modified-since") {
-      if (value is Date) {
+      if (value is DateTime) {
         ifModifiedSince = value;
       } else if (value is String) {
         _set("if-modified-since", value);
@@ -257,7 +257,7 @@ class _HttpHeaders implements HttpHeaders {
       values = new List<String>();
       _headers[name] = values;
     }
-    if (value is Date) {
+    if (value is DateTime) {
       values.add(_HttpUtils.formatDate(value));
     } else {
       values.add(value.toString());
@@ -683,7 +683,7 @@ class _Cookie implements Cookie {
 
   String name;
   String value;
-  Date expires;
+  DateTime expires;
   int maxAge;
   String domain;
   String path;

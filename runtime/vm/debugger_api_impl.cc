@@ -361,6 +361,42 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
 }
 
 
+DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
+                            Dart_Handle library_in,
+                            Dart_Handle class_name_in,
+                            Dart_Handle function_name_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  UNWRAP_AND_CHECK_PARAM(Library, library, library_in);
+  UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
+  UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
+
+  const char* msg = CheckIsolateState(isolate);
+  if (msg != NULL) {
+    return Api::NewError("%s", msg);
+  }
+
+  // Resolve the breakpoint target function.
+  Debugger* debugger = isolate->debugger();
+  const Function& bp_target = Function::Handle(
+      debugger->ResolveFunction(library, class_name, function_name));
+  if (bp_target.IsNull()) {
+    const bool toplevel = class_name.Length() == 0;
+    return Api::NewError("%s: could not find function '%s%s%s'",
+                         CURRENT_FUNC,
+                         toplevel ? "" : class_name.ToCString(),
+                         toplevel ? "" : ".",
+                         function_name.ToCString());
+  }
+
+  debugger->OneTimeBreakAtEntry(bp_target);
+  return Api::True(isolate);
+}
+
+
+
+
+
 DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -574,7 +610,7 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
   Script& script = Script::Handle();
   String& url = String::Handle();
   for (int i = 0; i < num_scripts; i++) {
-    script |= loaded_scripts.At(i);
+    script ^= loaded_scripts.At(i);
     url = script.url();
     script_list.SetAt(i, url);
   }
@@ -595,7 +631,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryIds() {
   Library &lib = Library::Handle();
   const Array& library_id_list = Array::Handle(Array::New(num_libs));
   for (int i = 0; i < num_libs; i++) {
-    lib |= libs.At(i);
+    lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
     ASSERT(Smi::IsValid(lib.index()));
     library_id_list.SetAt(i, Smi::Handle(Smi::New(lib.index())));
@@ -670,7 +706,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURLs() {
   String& lib_url = String::Handle();
   const Array& library_url_list = Array::Handle(Array::New(num_libs));
   for (int i = 0; i < num_libs; i++) {
-    lib |= libs.At(i);
+    lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
     lib_url = lib.url();
     library_url_list.SetAt(i, lib_url);
