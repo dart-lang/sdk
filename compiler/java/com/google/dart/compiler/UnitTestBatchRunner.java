@@ -44,7 +44,7 @@ public class UnitTestBatchRunner {
         // TODO(zundel): These are shell script cmdlines: be smarter about quoted strings.
         String[] args = line.trim().split("\\s+");
         Result result = toolInvocation.invoke(args);
-        boolean resultPass = result.code >= DartCompiler.RESULT_ERRORS;
+        boolean resultPass = result.code < DartCompiler.RESULT_ERRORS;
         if (resultPass) {
           testsFailed++;
         }

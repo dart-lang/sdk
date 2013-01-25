@@ -1068,7 +1068,18 @@ public class DartCompiler {
       t.printStackTrace();
       crash();
     }
-    System.exit(result.code);
+    // exit
+    {
+      int exitCode = result.code;
+      if (!topCompilerOptions.extendedExitCode()) {
+        if (exitCode == RESULT_ERRORS) {
+          exitCode = 1;
+        } else {
+          exitCode = 0;
+        }
+      }
+      System.exit(exitCode);
+    }
   }
 
   /**

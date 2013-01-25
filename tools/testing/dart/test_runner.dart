@@ -840,13 +840,13 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     }
 
     if (errors.length == 0) {
-      if (!hasFatalTypeErrors && !(exitCode == 0 || exitCode == 1)) {
+      if (!hasFatalTypeErrors && exitCode != 0) {
         diagnostics.add("EXIT CODE MISMATCH: Expected error message:");
         diagnostics.add("  command[0]:${testCase.commands[0]}");
         diagnostics.add("  exitCode:${exitCode}");
         return true;
       }
-    } else if (exitCode == 0 || exitCode == 1) {
+    } else if (exitCode == 0) {
       diagnostics.add("EXIT CODE MISMATCH: Unexpected error message:");
       diagnostics.add("  errors[0]:${errors[0]}");
       diagnostics.add("  command[0]:${testCase.commands[0]}");
