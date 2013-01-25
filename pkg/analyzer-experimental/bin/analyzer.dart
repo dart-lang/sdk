@@ -36,7 +36,7 @@ class AnalysisResult {
  */
 Future<AnalysisResult> run(List<String> args) {
 
-  var options = CommandLineOptions.parse(args);
+  var options = new CommandLineOptions.parse(args);
   if (options == null) {
     return new Future.immediate(new AnalysisResult.forFailure());
   }
