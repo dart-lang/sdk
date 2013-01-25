@@ -203,7 +203,10 @@ switch_label_test: Fail # error: target of continue is not a loop or switch case
 
 
 # Failing tests for mixin type parameters.
+mixin_type_parameters_mixin_test: Fail # http://dartbug.com/8116
 mixin_type_parameters_super_test: Fail # http://dartbug.com/8116
+mixin_type_parameters_mixin_extends_test: Fail # http://dartbug.com/8116
+mixin_type_parameters_super_extends_test: Fail # http://dartbug.com/8116
 
 
 # External tests.

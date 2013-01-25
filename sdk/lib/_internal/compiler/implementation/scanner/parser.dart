@@ -490,7 +490,7 @@ class Parser {
     Token extendsKeyword;
     if (optional('extends', token)) {
       extendsKeyword = token;
-      if (optional('with', token.next.next)) {
+      if (optional('with', peekAfterType(token.next))) {
         token = parseMixinApplication(token.next);
       } else {
         token = parseType(token.next);
