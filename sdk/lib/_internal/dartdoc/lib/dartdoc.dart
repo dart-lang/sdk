@@ -188,9 +188,6 @@ class Dartdoc {
   /** Set this to add footer text to each generated page. */
   String footerText = null;
 
-  /** Set this to add content before the footer */
-  String preFooterText = '';
-
   /** Set this to omit generation timestamp from output */
   bool omitGenerationTime = false;
 
@@ -506,7 +503,6 @@ class Dartdoc {
         </div>
         <div class="clear"></div>
         </div>
-        ${preFooterText}
         <div class="footer">
           $footerContent
         </div>
