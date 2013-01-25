@@ -286,7 +286,7 @@ svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 transferables_test: Fail   # Issue 3392.
-websql_test: Fail # FF does not support web SQL
+websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
