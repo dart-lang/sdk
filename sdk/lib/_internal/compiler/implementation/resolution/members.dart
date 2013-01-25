@@ -2869,7 +2869,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return element.computeType(compiler);
   }
 
-  DartType visitMixinApplication(MixinApplication node) {
+  DartType visitNamedMixinApplication(NamedMixinApplication node) {
     compiler.ensure(element != null);
     compiler.ensure(element.resolutionState == STATE_STARTED);
 
