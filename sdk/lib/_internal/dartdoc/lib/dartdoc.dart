@@ -132,7 +132,8 @@ Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
   var jsPath = outputDir.append('client-$clientScript.js');
 
   var completer = new Completer<bool>();
-  var compilation = new Compilation(dartPath, libPath);
+  var compilation = new Compilation(
+      dartPath, libPath, null, const <String>['--categories=Client,Server']);
   Future<String> result = compilation.compileToJavaScript();
   result.then((jsCode) {
     writeString(new File.fromPath(jsPath), jsCode);
@@ -240,6 +241,9 @@ class Dartdoc {
   int get totalTypes => _totalTypes;
   int get totalMembers => _totalMembers;
 
+  static const List<String> COMPILER_OPTIONS =
+      const <String>['--preserve-comments', '--categories=Client,Server'];
+
   Dartdoc() {
     // Patch in support for [:...:]-style code to the markdown parser.
     // TODO(rnystrom): Markdown already has syntax for this. Phase this out?
@@ -317,13 +321,13 @@ class Dartdoc {
 
   void documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
     final compilation = new Compilation(entrypoint, libPath, pkgPath,
-        <String>['--preserve-comments']);
+        COMPILER_OPTIONS);
     _document(compilation);
   }
 
   void documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
     final compilation = new Compilation.library(libraryList, libPath, pkgPath,
-        <String>['--preserve-comments']);
+        COMPILER_OPTIONS);
     _document(compilation);
   }
 

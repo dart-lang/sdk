@@ -15,6 +15,7 @@ import 'source_file.dart';
 import 'source_file_provider.dart';
 import 'filenames.dart';
 import 'util/uri_extras.dart';
+import '../../libraries.dart';
 
 const String LIBRARY_ROOT = '../../../../..';
 const String OUTPUT_LANGUAGE_DART = 'Dart';
@@ -127,6 +128,30 @@ void compile(List<String> argv) {
     passThrough(argument);
   }
 
+  setCategories(String argument) {
+    List<String> categories = extractParameter(argument).split(',');
+    Set<String> allowedCategories =
+        LIBRARIES.values.mappedBy((x) => x.category).toSet();
+    allowedCategories.remove('Shared');
+    allowedCategories.remove('Internal');
+    List<String> allowedCategoriesList =
+        new List<String>.from(allowedCategories);
+    allowedCategoriesList.sort();
+    if (categories.contains('all')) {
+      categories = allowedCategoriesList;
+    } else {
+      String allowedCategoriesString =
+          Strings.join(allowedCategoriesList, ', ');
+      for (String category in categories) {
+        if (!allowedCategories.contains(category)) {
+          fail('Error: unsupported library category "$category", '
+               'supported categories are: $allowedCategoriesString');
+        }
+      }
+    }
+    return passThrough('--categories=${Strings.join(categories, ",")}');
+  }
+
   handleShortOptions(String argument) {
     var shortOptions = argument.substring(1).splitChars();
     for (var shortOption in shortOptions) {
@@ -180,6 +205,7 @@ void compile(List<String> argv) {
     new OptionHandler('--reject-deprecated-language-features', passThrough),
     new OptionHandler('--report-sdk-use-of-deprecated-language-features',
                       passThrough),
+    new OptionHandler('--categories=.*', setCategories),
 
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
@@ -377,6 +403,13 @@ be removed in a future version:
     deprecated language features from these libraries.  The option
     --reject-deprecated-language-features controls if these usages are
     reported as errors or warnings.
+
+  --categories=<categories>
+
+    A comma separated list of allowed library categories.  The default
+    is "Client".  Possible categories can be seen by providing an
+    unsupported category, for example, --categories=help.  To enable
+    all categories, use --categories=all.
 
 '''.trim());
 }

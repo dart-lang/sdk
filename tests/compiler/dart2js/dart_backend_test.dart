@@ -118,6 +118,8 @@ testDart2DartWithLibrary(
   }
 
   final options = <String>['--output-type=dart'];
+  // Some tests below are using dart:io.
+  options.add('--categories=Client,Server');
   if (minify) options.add('--minify');
   if (stripTypes) options.add('--force-strip=types');
 

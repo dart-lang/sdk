@@ -43,12 +43,12 @@ void main() {
   });
   var provider = new SourceFileProvider();
   var handler = new CollectingDiagnosticHandler(provider);
-  handler.verbose = true;
   var compiler = new Compiler(
       provider.readStringFromUri,
       handler.diagnosticHandler,
       libraryRoot, libraryRoot,
-      <String>['--analyze-only', '--analyze-all']);
+      <String>['--analyze-only', '--analyze-all',
+               '--categories=Client,Server']);
   compiler.librariesToAnalyzeWhenRun = uriList;
   compiler.run(null);
   Expect.isFalse(handler.hasWarnings);

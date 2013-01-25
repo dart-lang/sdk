@@ -22,10 +22,12 @@ class Compiler extends leg.Compiler {
   final Uri packageRoot;
   List<String> options;
   bool mockableLibraryUsed = false;
+  final Set<String> allowedLibraryCategories;
 
   Compiler(this.provider, this.handler, this.libraryRoot, this.packageRoot,
            List<String> options)
       : this.options = options,
+        this.allowedLibraryCategories = getAllowedLibraryCategories(options),
         super(
             tracer: new ssa.HTracer(),
             enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
@@ -60,7 +62,19 @@ class Compiler extends leg.Compiler {
         return option.substring('--force-strip='.length).split(',');
       }
     }
-    return [];
+    return const <String>[];
+  }
+
+  static Set<String> getAllowedLibraryCategories(List<String> options) {
+    for (String option in options) {
+      if (option.startsWith('--categories=')) {
+        var result = option.substring('--categories='.length).split(',');
+        result.add('Shared');
+        result.add('Internal');
+        return new Set<String>.from(result);
+      }
+    }
+    return new Set<String>.from(['Client', 'Shared', 'Internal']);
   }
 
   static bool hasOption(List<String> options, String option) {
@@ -73,6 +87,7 @@ class Compiler extends leg.Compiler {
     LibraryInfo info = LIBRARIES[dartLibraryName];
     if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
+    if (!allowedLibraryCategories.contains(info.category)) return null;
     String path = info.dart2jsPath;
     if (path == null) {
       path = info.path;
@@ -210,6 +225,7 @@ class Compiler extends leg.Compiler {
   translatePackageUri(Uri uri, tree.Node node) => packageRoot.resolve(uri.path);
 
   bool run(Uri uri) {
+    log('Allowed library categories: $allowedLibraryCategories');
     bool success = super.run(uri);
     int cumulated = 0;
     for (final task in tasks) {
