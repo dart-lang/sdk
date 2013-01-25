@@ -28,7 +28,10 @@ const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
  *         $interface_name: {
  *           comment: "$comment"
  *           members: {
- *             $member: "$comment",
+ *             $member: [
+ *               $comment1,
+ *               ...
+ *             ],
  *             ...
  *           }
  *         },
@@ -92,14 +95,20 @@ Map _generateJsonFromLibraries(Compilation compilation) {
       var membersJson = {};
       for (var memberMirror in sortedMembers) {
         var memberDomName = domNames(memberMirror)[0];
-        var memberComment = computeComment(memberMirror);
-        if (memberComment != null) {
+        var memberComment = computeUntrimmedCommentAsList(memberMirror);
+
+        // Remove interface name from Dom Name.
+        if (memberDomName.indexOf('.') >= 0) {
+          memberDomName = memberDomName.slice(memberDomName.indexOf('.') + 1);
+        }
+
+        if (!memberComment.isEmpty) {
           membersJson.putIfAbsent(memberDomName, () => memberComment);
         }
       }
 
-      var classComment = computeComment(classMirror);
-      if (classComment != null) {
+      var classComment = computeUntrimmedCommentAsList(classMirror);
+      if (!classComment.isEmpty) {
         classJson.putIfAbsent('comment', () => classComment);
       }
       if (!membersJson.isEmpty) {

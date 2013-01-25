@@ -401,8 +401,9 @@ class HtmlDartInterfaceGenerator(object):
     if implements:
       implements_str = ' implements ' + ', '.join(set(implements))
 
-    annotations = FormatAnnotations(
-        FindCommonAnnotations(self._interface.doc_js_name), '')
+    annotations = FormatAnnotationsAndComments(
+        GetAnnotationsAndComments(self._interface.doc_js_name,
+                              library_name=self._library_name), '')
 
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
@@ -419,7 +420,8 @@ class HtmlDartInterfaceGenerator(object):
     self._event_generator.EmitStreamProviders(
         self._interface,
         self._backend.CustomJSMembers(),
-        self._implementation_members_emitter)
+        self._implementation_members_emitter,
+        self._library_name)
     self._backend.AddConstructors(
         constructors, factory_provider, factory_constructor_name)
 
@@ -442,7 +444,8 @@ class HtmlDartInterfaceGenerator(object):
     self._event_generator.EmitStreamGetters(
         self._interface,
         [],
-        self._implementation_members_emitter)
+        self._implementation_members_emitter,
+        self._library_name)
     self._backend.FinishInterface()
 
   def _ImplementationEmitter(self):
@@ -473,6 +476,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._renamer = options.renamer
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._current_secondary_parent = None
+    self._library_name = self._renamer.GetLibraryName(self._interface)
 
   def ImplementsMergedMembers(self):
     return True
@@ -912,8 +916,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     return ''
 
   def _Annotations(self, idl_type, idl_member_name, indent='  '):
-    anns = FindDart2JSAnnotations(idl_type, self._interface.id,
-        idl_member_name)
+    anns = FindDart2JSAnnotationsAndComments(idl_type, self._interface.id,
+        idl_member_name, self._library_name)
 
     if not AnyConversionAnnotations(idl_type, self._interface.id,
                                   idl_member_name):
@@ -924,7 +928,7 @@ class Dart2JSBackend(HtmlDartGenerator):
           "@Returns('%s')" % native_type,
           "@Creates('%s')" % native_type,
         ]
-    return FormatAnnotations(anns, indent);
+    return FormatAnnotationsAndComments(anns, indent);
 
   def CustomJSMembers(self):
     return _js_custom_members

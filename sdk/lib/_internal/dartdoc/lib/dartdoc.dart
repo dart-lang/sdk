@@ -1861,7 +1861,7 @@ class InternalError {
 
 /**
  * Computes the doc comment for the declaration mirror.
-*
+ *
  * Multiple comments are concatenated with newlines in between.
  */
 String computeComment(DeclarationMirror mirror) {
@@ -1875,6 +1875,22 @@ String computeComment(DeclarationMirror mirror) {
         } else {
           text = '$text\n${comment.trimmedText}';
         }
+      }
+    }
+  }
+  return text;
+}
+
+/**
+ * Computes the doc comment for the declaration mirror as a list.
+ */
+List<String> computeUntrimmedCommentAsList(DeclarationMirror mirror) {
+  var text = <String>[];
+  for (InstanceMirror metadata in mirror.metadata) {
+    if (metadata is CommentInstanceMirror) {
+      CommentInstanceMirror comment = metadata;
+      if (comment.isDocComment) {
+        text.add(comment.text);
       }
     }
   }

@@ -6,7 +6,7 @@
 """This module provides functionality to generate dart:html event classes."""
 
 import logging
-from generator import FindCommonAnnotations, FormatAnnotations
+from generator import GetAnnotationsAndComments, FormatAnnotationsAndComments
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -383,7 +383,7 @@ class HtmlEventGenerator(object):
     self._template_loader = template_loader
 
   def EmitStreamProviders(self, interface, custom_events,
-      members_emitter):
+      members_emitter, library_name):
     events = self._GetEvents(interface, custom_events)
     if not events:
       return
@@ -395,8 +395,8 @@ class HtmlEventGenerator(object):
       if self._GetEventRedirection(interface, html_name, event_type):
         continue
 
-      annotations = FormatAnnotations(
-          FindCommonAnnotations(interface.id, dom_name), '  ')
+      annotations = FormatAnnotationsAndComments(
+          GetAnnotationsAndComments(interface.id, dom_name, library_name), '  ')
 
       members_emitter.Emit(
           "\n"
@@ -408,7 +408,7 @@ class HtmlEventGenerator(object):
           TYPE=event_type)
 
   def EmitStreamGetters(self, interface, custom_events,
-      members_emitter):
+      members_emitter, library_name):
     events = self._GetEvents(interface, custom_events)
     if not events:
       return
@@ -424,8 +424,8 @@ class HtmlEventGenerator(object):
       else:
         provider = html_name + 'Event'
 
-      annotations = FormatAnnotations(
-          FindCommonAnnotations(interface.id, dom_name), '  ')
+      annotations = FormatAnnotationsAndComments(
+          GetAnnotationsAndComments(interface.id, dom_name, library_name), '  ')
 
       members_emitter.Emit(
           "\n"

@@ -7,8 +7,15 @@
 Dart APIs from the IDL database."""
 
 import copy
+import json
+import os
 import re
 from htmlrenamer import html_interface_renames
+
+# Set up json file for retrieving comments.
+_current_dir = os.path.dirname(__file__)
+_json_path = os.path.join(_current_dir, '..', 'docs', 'docs.json')
+_dom_json = json.load(open(_json_path))
 
 _pure_interfaces = set([
     # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
@@ -795,7 +802,29 @@ dart_annotations = {
   'XMLHttpRequestProgressEvent': _webkit_experimental_annotations,
 }
 
-def FindCommonAnnotations(interface_name, member_name=None):
+def GetComments(interface_name, member_name=None, library_name=None):
+  """ Finds all comments for the interface or member and returns a list. """
+
+  # Add documentation from JSON.
+  comments = []
+
+  if library_name in _dom_json and interface_name in _dom_json[library_name]:
+    if member_name and (member_name in
+                        _dom_json[library_name][interface_name]['members']):
+      comments = _dom_json[library_name][interface_name]['members'][member_name]
+    elif 'comment' in _dom_json[library_name][interface_name]:
+      comments = _dom_json[library_name][interface_name]['comment']
+
+  return comments
+
+def GetAnnotationsAndComments(interface_name, member_name=None,
+                              library_name=None):
+  annotations = GetComments(interface_name, member_name, library_name)
+  annotations.extend(FindCommonAnnotations(interface_name, member_name,
+                                           library_name))
+  return annotations
+
+def FindCommonAnnotations(interface_name, member_name=None, library_name=None):
   """ Finds annotations common between dart2js and dartium.
   """
   if member_name:
@@ -803,7 +832,8 @@ def FindCommonAnnotations(interface_name, member_name=None):
   else:
     key = interface_name
 
-  annotations = ["@DomName('" + key + "')",]
+  annotations = ["@DomName('" + key + "')"]
+
   # Only add this for members, so we don't add DocsEditable to templated classes
   # (they get it from the default class template)
   if member_name:
@@ -814,11 +844,13 @@ def FindCommonAnnotations(interface_name, member_name=None):
 
   return annotations
 
-def FindDart2JSAnnotations(idl_type, interface_name, member_name):
+def FindDart2JSAnnotationsAndComments(idl_type, interface_name, member_name,
+                           library_name=None):
   """ Finds all annotations for Dart2JS members- including annotations for
   both dart2js and dartium.
   """
-  annotations = FindCommonAnnotations(interface_name, member_name)
+  annotations = GetAnnotationsAndComments(interface_name, member_name,
+                                          library_name)
 
   ann2 = _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name)
   if ann2:
@@ -835,7 +867,7 @@ def AnyConversionAnnotations(idl_type, interface_name, member_name):
   else:
     return False
 
-def FormatAnnotations(annotations, indentation):
+def FormatAnnotationsAndComments(annotations, indentation):
   if annotations:
     newline = '\n%s' % indentation
     result = newline.join(annotations) + newline

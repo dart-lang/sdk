@@ -113,7 +113,7 @@ class DartiumBackend(HtmlDartGenerator):
   def NativeSpec(self):
     return ''
 
-  def StartInterface(self, memebers_emitter):
+  def StartInterface(self, members_emitter):
     # Create emitters for c++ implementation.
     if not IsPureInterface(self._interface.id):
       self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(
@@ -125,7 +125,7 @@ class DartiumBackend(HtmlDartGenerator):
       self._cpp_impl_emitter = emitter.Emitter()
 
     self._interface_type_info = self._TypeInfo(self._interface.id)
-    self._members_emitter = memebers_emitter
+    self._members_emitter = members_emitter
     self._cpp_declarations_emitter = emitter.Emitter()
     self._cpp_impl_includes = set()
     self._cpp_definitions_emitter = emitter.Emitter()
@@ -733,8 +733,8 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
-    annotations = FormatAnnotations(
-        FindCommonAnnotations(self._interface.id, idl_name), '  ')
+    annotations = FormatAnnotationsAndComments(
+        GetAnnotationsAndComments(self._interface.id, idl_name), '  ')
 
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
     self._members_emitter.Emit(
