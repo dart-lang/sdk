@@ -101,7 +101,7 @@ function(cls, desc) {
   }
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   for (var method in desc) {
-    if (method) {  """/* Short version of: if (method != '') */"""
+    if (method) {
       if (hasOwnProperty.call(desc, method)) {
         $dynamicName(method)[cls] = desc[method];
       }

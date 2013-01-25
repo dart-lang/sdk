@@ -735,14 +735,32 @@ $lazyInitializerLogic
       return;
     }
 
+    void visitMember(ClassElement enclosing, Element member) {
+      assert(invariant(classElement, member.isDeclaration));
+      if (member.isInstanceMember()) {
+        addInstanceMember(member, builder);
+      }
+    }
+
+    // TODO(kasperl): We should make sure to only emit one version of
+    // overridden methods. Right now, we rely on the ordering so the
+    // methods pulled in from mixins are replaced with the members
+    // from the class definition.
+
+    // If the class is a native class, we have to add the instance
+    // members defined in the non-native mixin applications used by
+    // the class.
+    visitNativeMixins(classElement, (MixinApplicationElement mixin) {
+      mixin.forEachMember(
+          visitMember,
+          includeBackendMembers: true,
+          includeSuperMembers: false);
+    });
+
     classElement.implementation.forEachMember(
-        (ClassElement enclosing, Element member) {
-          assert(invariant(classElement, member.isDeclaration));
-          if (member.isInstanceMember()) {
-            addInstanceMember(member, builder);
-          }
-        },
-        includeBackendMembers: true);
+        visitMember,
+        includeBackendMembers: true,
+        includeSuperMembers: false);
 
     generateIsTestsOn(classElement, (Element other) {
       js.Expression code;
@@ -826,6 +844,22 @@ $lazyInitializerLogic
     }
   }
 
+  void visitNativeMixins(ClassElement classElement,
+                         void visit(MixinApplicationElement mixinApplication)) {
+    if (!classElement.isNative()) return;
+    // Use recursion to make sure to visit the superclasses before the
+    // subclasses. Once we start keeping track of the emitted fields
+    // and members, we're going to want to visit these in the other
+    // order so we get the most specialized definition first.
+    void recurse(ClassElement cls) {
+      if (cls == null || !cls.isMixinApplication) return;
+      recurse(cls.superclass);
+      assert(!cls.isNative());
+      visit(cls);
+    }
+    recurse(classElement.superclass);
+  }
+
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -890,6 +924,20 @@ $lazyInitializerLogic
                  needsCheckedSetter);
       }
     }
+
+    // TODO(kasperl): We should make sure to only emit one version of
+    // overridden fields. Right now, we rely on the ordering so the
+    // fields pulled in from mixins are replaced with the fields from
+    // the class definition.
+
+    // If the class is a native class, we have to add the fields
+    // defined in the non-native mixin applications used by the class.
+    visitNativeMixins(classElement, (MixinApplicationElement mixin) {
+      mixin.forEachInstanceField(
+          visitField,
+          includeBackendMembers: true,
+          includeSuperMembers: false);
+    });
 
     // If a class is not instantiated then we add the field just so we can
     // generate the field getter/setter dynamically. Since this is only
@@ -1068,7 +1116,13 @@ $lazyInitializerLogic
 
     needsDefineClass = true;
     String className = namer.getName(classElement);
+
+    // Find the first non-native superclass.
     ClassElement superclass = classElement.superclass;
+    while (superclass != null && superclass.isNative()) {
+      superclass = superclass.superclass;
+    }
+
     String superName = "";
     if (superclass != null) {
       superName = namer.getName(superclass);
@@ -1162,9 +1216,20 @@ $lazyInitializerLogic
         getTypedefChecksOn(call.computeType(compiler)).forEach(emitIsTest);
       }
     }
+
     for (DartType interfaceType in cls.interfaces) {
       generateInterfacesIsTests(interfaceType.element, emitIsTest, generated);
     }
+
+    // For native classes, we also have to run through their mixin
+    // applications and make sure we deal with 'is' tests correctly
+    // for those.
+    visitNativeMixins(cls, (MixinApplicationElement mixin) {
+      for (DartType interfaceType in mixin.interfaces) {
+        ClassElement interfaceElement = interfaceType.element;
+        generateInterfacesIsTests(interfaceType.element, emitIsTest, generated);
+      }
+    });
   }
 
   /**

@@ -439,8 +439,17 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       subtypes.add(cls);
     }
 
+    // Skip through all the mixin applications in the super class
+    // chain. That way, the direct subtypes set only contain the
+    // natives classes.
+    ClassElement superclass = cls.superclass;
+    while (superclass != null && superclass.isMixinApplication) {
+      assert(!superclass.isNative());
+      superclass = superclass.superclass;
+    }
+
     List<Element> directSubtypes = emitter.directSubtypes.putIfAbsent(
-        cls.superclass,
+        superclass,
         () => <ClassElement>[]);
     directSubtypes.add(cls);
   }
