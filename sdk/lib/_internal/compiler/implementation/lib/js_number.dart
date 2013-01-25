@@ -133,6 +133,7 @@ class JSNumber {
     return JS('String', r'#.toString(#)', this, radix);
   }
 
+  // Note: if you change this, also change the function [S].
   String toString() {
     if (this == 0 && JS('bool', '(1 / #) < 0', this)) {
       return '-0.0';

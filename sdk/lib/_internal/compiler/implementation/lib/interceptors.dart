@@ -65,6 +65,8 @@ class JSFunction implements Function {
  */
 class JSBool implements bool {
   const JSBool();
+
+  // Note: if you change this, also change the function [S].
   String toString() => JS('String', r'String(#)', this);
 
   // The values here are SMIs, co-prime and differ about half of the bit
@@ -79,7 +81,10 @@ class JSBool implements bool {
  */
 class JSNull implements Null {
   const JSNull();
+
+  // Note: if you change this, also change the function [S].
   String toString() => 'null';
+
   int get hashCode => 0;
   Type get runtimeType => createRuntimeType('Null');
 }

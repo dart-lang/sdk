@@ -11,7 +11,8 @@ import 'dart:_js_helper' show checkNull,
                               JSSyntaxRegExp,
                               Primitives,
                               TypeImpl,
-                              stringJoinUnchecked;
+                              stringJoinUnchecked,
+                              JsStringBuffer;
 
 // Patch for 'print' function.
 patch void print(var object) {
@@ -264,4 +265,10 @@ patch class RegExp {
 // Patch for 'identical' function.
 patch bool identical(Object a, Object b) {
   return Primitives.identicalImplementation(a, b);
+}
+
+patch class StringBuffer {
+  patch factory StringBuffer([Object content = ""]) {
+    return new JsStringBuffer(content);
+  }
 }

@@ -37,6 +37,11 @@ checkGrowable(list, reason) {
 }
 
 String S(value) {
+  if (value is String) return value;
+  if ((value is num && value != 0) || value is bool) {
+    return JS('String', r'String(#)', value);
+  }
+  if (value == null) return 'null';
   var res = value.toString();
   if (res is !String) throw new ArgumentError(value);
   return res;
