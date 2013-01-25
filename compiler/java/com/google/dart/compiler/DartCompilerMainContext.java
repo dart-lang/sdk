@@ -89,7 +89,8 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
     // Increment counters.
     if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
       incrementTypeErrorCount();
-    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+    }
+    if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
       incrementErrorCount();
     } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
       incrementWarningCount();

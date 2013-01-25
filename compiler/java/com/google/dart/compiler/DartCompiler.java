@@ -75,6 +75,26 @@ import java.util.Set;
  */
 public class DartCompiler {
 
+  static final int RESULT_OK = 0;
+  static final int RESULT_WARNINGS = 1;
+  static final int RESULT_ERRORS = 2;
+  static final int RESULT_OTHER = 127;
+
+  static class Result {
+    final int code;
+    final String message;
+    public Result(int code, String message) {
+      this.code = code;
+      this.message = message;
+    }
+    Result merge(Result other) {
+      if (other.code > code) {
+        return other;
+      }
+      return this;
+    }
+  }
+
   public static final String EXTENSION_DEPS = "deps";
   public static final String EXTENSION_LOG = "log";
   public static final String EXTENSION_TIMESTAMP = "timestamp";
@@ -1006,7 +1026,7 @@ public class DartCompiler {
     Tracer.init();
 
     CompilerOptions topCompilerOptions = processCommandLineOptions(topArgs);
-    boolean result = false;
+    Result result = null;
     try {
       // configure UTF-8 output
       System.setOut(new PrintStream(System.out, true, "UTF-8"));
@@ -1014,7 +1034,7 @@ public class DartCompiler {
 
       if (topCompilerOptions.showVersion()) {
         showVersion(topCompilerOptions);
-        System.exit(0);
+        System.exit(RESULT_OK);
       }
       if (topCompilerOptions.shouldBatch()) {
         if (topArgs.length > 1) {
@@ -1022,7 +1042,7 @@ public class DartCompiler {
         }
         result = UnitTestBatchRunner.runAsBatch(topArgs, new Invocation() {
           @Override
-          public boolean invoke(String[] lineArgs) throws Throwable {
+          public Result invoke(String[] lineArgs) throws Throwable {
             List<String> allArgs = new ArrayList<String>();
             for (String arg: topArgs) {
               if (!arg.equals("-batch")) {
@@ -1048,31 +1068,30 @@ public class DartCompiler {
       t.printStackTrace();
       crash();
     }
-    if (!result) {
-      System.exit(1);
-    }
+    System.exit(result.code);
   }
 
   /**
    * Invoke the compiler to build single application.
-   *
+   * 
    * @param compilerOptions parsed command line arguments
-   *
-   * @return <code> true</code> on success, <code>false</code> on failure.
+   * @return the result as integer when <code>0</code> means clean; <code>1</code> there were
+   *         warnings; <code>2</code> there were errors; <code>127</code> other problems or
+   *         exceptions.
    */
-  public static boolean compilerMain(CompilerOptions compilerOptions) throws IOException {
+  public static Result compilerMain(CompilerOptions compilerOptions) throws IOException {
     List<String> sourceFiles = compilerOptions.getSourceFiles();
     if (sourceFiles.size() == 0) {
       System.err.println("dart_analyzer: no source files were specified.");
       showUsage(null, System.err);
-      return false;
+      return new Result(RESULT_OTHER, null);
     }
 
     File sourceFile = new File(sourceFiles.get(0));
     if (!sourceFile.exists()) {
       System.err.println("dart_analyzer: file not found: " + sourceFile);
       showUsage(null, System.err);
-      return false;
+      return new Result(RESULT_OTHER, null);
     }
 
     CompilerConfiguration config = new DefaultCompilerConfiguration(compilerOptions);
@@ -1085,15 +1104,14 @@ public class DartCompiler {
    *
    * @param sourceFile file passed on the command line to build
    * @param config compiler configuration built from parsed command line options
-   *
-   * @return <code> true</code> on success, <code>false</code> on failure.
    */
-  public static boolean compilerMain(File sourceFile, CompilerConfiguration config)
+  public static Result compilerMain(File sourceFile, CompilerConfiguration config)
       throws IOException {
-    String errorMessage = compileApp(sourceFile, config);
+    Result result = compileApp(sourceFile, config);
+    String errorMessage = result.message;
     if (errorMessage != null) {
       System.err.println(errorMessage);
-      return false;
+      return result;
     }
 
     TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.WRITE_METRICS) : null;
@@ -1102,7 +1120,7 @@ public class DartCompiler {
     } finally {
       Tracer.end(logEvent);
     }
-    return true;
+    return result;
   }
 
   public static void crash() {
@@ -1132,8 +1150,12 @@ public class DartCompiler {
    * Treats the <code>sourceFile</code> as the top level library and generates compiled output by
    * linking the dart source in this file with all libraries referenced with <code>#import</code>
    * statements.
+   * 
+   * @return the result as integer when <code>0</code> means clean; <code>1</code> there were
+   *         warnings; <code>2</code> there were errors; <code>127</code> other problems or
+   *         exceptions.
    */
-  public static String compileApp(File sourceFile, CompilerConfiguration config) throws IOException {
+  public static Result compileApp(File sourceFile, CompilerConfiguration config) throws IOException {
     TraceEvent logEvent =
         Tracer.canTrace() ? Tracer.start(DartEventType.COMPILE_APP, "src", sourceFile.toString())
             : null;
@@ -1160,8 +1182,7 @@ public class DartCompiler {
       } else {
         listener = new DefaultDartCompilerListener(config.printErrorFormat());
       }
-      String errorString = compileLib(lib, config, provider, listener);
-      return errorString;
+      return compileLib(lib, config, provider, listener);
     } finally {
       Tracer.end(logEvent);
     }
@@ -1176,7 +1197,7 @@ public class DartCompiler {
    * @param provider A mechanism for specifying where code should be generated
    * @param listener An object notified when compilation errors occur
    */
-  public static String compileLib(LibrarySource lib, CompilerConfiguration config,
+  public static Result compileLib(LibrarySource lib, CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
     return compileLib(lib, Collections.<LibrarySource>emptyList(), config, provider, listener);
   }
@@ -1185,7 +1206,7 @@ public class DartCompiler {
    * Same method as above, but also takes a list of libraries that should be
    * implicitly imported by all libraries. These libraries are provided by the embedder.
    */
-  public static String compileLib(LibrarySource lib,
+  public static Result compileLib(LibrarySource lib,
                                   List<LibrarySource> embeddedLibraries,
                                   CompilerConfiguration config,
                                   DartArtifactProvider provider,
@@ -1201,8 +1222,8 @@ public class DartCompiler {
       errorCount += context.getWarningCount();
     }
     if (errorCount > 0) {
-      return "Compilation failed with " + errorCount
-          + (errorCount == 1 ? " problem." : " problems.");
+      return new Result(RESULT_ERRORS, "Compilation failed with " + errorCount
+          + (errorCount == 1 ? " problem." : " problems."));
     }
     if (!context.getFilesHaveChanged()) {
       return null;
@@ -1220,7 +1241,13 @@ public class DartCompiler {
         Closeables.close(writer, threw);
       }
     }
-    return null;
+    {
+      int resultCode = RESULT_OK;
+      if (context.getWarningCount() != 0) {
+        resultCode = RESULT_WARNINGS;
+      }
+      return new Result(resultCode, null);
+    }
   }
 
   /**

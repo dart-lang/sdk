@@ -5,6 +5,8 @@
 package com.google.dart.compiler;
 
 
+import com.google.dart.compiler.DartCompiler.Result;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -16,7 +18,7 @@ import java.io.InputStreamReader;
 public class UnitTestBatchRunner {
 
   public interface Invocation {
-    public boolean invoke (String[] args) throws Throwable;
+    public Result invoke (String[] args) throws Throwable;
   }
 
   /**
@@ -25,7 +27,7 @@ public class UnitTestBatchRunner {
    *
    * @param batchArgs command line arguments forwarded from main().
    */
-  public static boolean runAsBatch(String[] batchArgs, Invocation toolInvocation) throws Throwable {
+  public static Result runAsBatch(String[] batchArgs, Invocation toolInvocation) throws Throwable {
     System.out.println(">>> BATCH START");
 
     // Read command lines in from stdin and create a new compiler for each one.
@@ -34,23 +36,23 @@ public class UnitTestBatchRunner {
     long startTime = System.currentTimeMillis();
     int testsFailed = 0;
     int totalTests = 0;
-    boolean batchResult = true;
+    Result batchResult = new Result(DartCompiler.RESULT_OK, null);
     try {
       String line;
       for (; (line = cmdlineReader.readLine()) != null; totalTests++) {
         long testStart = System.currentTimeMillis();
-        // TODO(zundel): These are shell script cmdlines: be smarter about
-        // quoted strings.
+        // TODO(zundel): These are shell script cmdlines: be smarter about quoted strings.
         String[] args = line.trim().split("\\s+");
-        boolean result = toolInvocation.invoke(args);
-        if (!result) {
+        Result result = toolInvocation.invoke(args);
+        boolean resultPass = result.code >= DartCompiler.RESULT_ERRORS;
+        if (resultPass) {
           testsFailed++;
         }
-        batchResult &= result;
+        batchResult = batchResult.merge(result);
         // Write stderr end token and flush.
         System.err.println(">>> EOF STDERR");
         System.err.flush();
-        System.out.println(">>> TEST " + (result ? "PASS" : "FAIL") + " "
+        System.out.println(">>> TEST " + (resultPass ? "PASS" : "FAIL") + " "
             + (System.currentTimeMillis() - testStart) + "ms");
         System.out.flush();
       }
