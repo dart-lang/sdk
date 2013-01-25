@@ -372,6 +372,7 @@ public class Resolver {
         }
         onError(errorTarget, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
       }
+      checkMixinObjectIsSupertype(cls.getMixins());
       checkMixinNoConstructors(cls.getMixins());
       checkMixinNoSuperInvocations(cls.getMixins());
       return classElement;
@@ -490,6 +491,7 @@ public class Resolver {
       }
 
       // check mixins
+      checkMixinObjectIsSupertype(cls.getMixins());
       checkMixinNoConstructors(cls.getMixins());
       checkMixinNoSuperInvocations(cls.getMixins());
 
@@ -517,7 +519,27 @@ public class Resolver {
     }
     
     /**
-     * Checks that the types of the given mixin type node don't have super invocations.
+     * Checks that the types of the given mixin type nodes se subtypes of Object.
+     */
+    private void checkMixinObjectIsSupertype(List<DartTypeNode> mixins) {
+      for (DartTypeNode mixNode : mixins) {
+        if (mixNode.getType() instanceof InterfaceType) {
+          InterfaceType mixType = (InterfaceType) mixNode.getType();
+          ClassElement mixElement = mixType.getElement();
+          if (!mixElement.getMixins().isEmpty()) {
+            topLevelContext.onError(mixNode, ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_MIXINS);
+            continue;
+          }
+          if (!Objects.equal(mixElement.getSupertype(), typeProvider.getObjectType())) {
+            topLevelContext.onError(mixNode, ResolverErrorCode.ONLY_OBJECT_MIXIN_SUPERCLASS);
+            continue;
+          }
+        }
+      }
+    }
+    
+    /**
+     * Checks that the types of the given mixin type nodes don't have super invocations.
      */
     private void checkMixinNoSuperInvocations(List<DartTypeNode> mixins) {
       for (DartTypeNode mixNode : mixins) {

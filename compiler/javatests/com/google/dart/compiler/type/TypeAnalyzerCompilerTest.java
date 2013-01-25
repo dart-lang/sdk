@@ -6479,5 +6479,15 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(TypeErrorCode.NOT_A_MEMBER_OF, 13, 5, 2));
   }
+
+  public void test_mixin_disallowMixinApplication_asMixin() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef M = Object with M;",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_MIXINS, 2, 25, 1));
+  }
   
 }

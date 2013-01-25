@@ -292,8 +292,10 @@ prefix2_negative_test: Fail
 # test issue 7523 (const declared without type, so not-a-function warning should not be reported)
 call_through_getter_test: Fail
 
-mixin_illegal_cycles_test/01: Fail # issue 8027
-mixin_illegal_cycles_test/02: Fail # issue 8027
+
+# test issue 8127 (using mixin application as mixin)
+mixin_mixin_test: Fail
+
 
 #
 # Add new dartc annotations above in alphabetical order
