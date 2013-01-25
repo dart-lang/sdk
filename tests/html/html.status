@@ -89,7 +89,7 @@ websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
 xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
 xhr_test/supported_HttpRequestProgressEvent: Fail
-xsltprocessor_test: Fail
+xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 ]
 document_test/supports_cssCanvasContext: Fail
@@ -153,11 +153,11 @@ svgelement2_test: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 websocket_test/supported: Fail
 window_open_test: Skip      # BUG(4016)
-xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
 xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_cross_origin_test: Fail # Issue 6016.
+xsltprocessor_test/supported: Fail
 
 [ $runtime == safari ]
 element_types_test/supported_content: Fail

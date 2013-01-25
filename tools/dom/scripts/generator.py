@@ -818,6 +818,11 @@ dart_annotations = {
   'WorkerContext.webkitResolveLocalFileSystemSyncURL': _file_system_annotations,
   'WorkerContext.webkitResolveLocalFileSystemURL': _file_system_annotations,
   'XMLHttpRequestProgressEvent': _webkit_experimental_annotations,
+  'XSLTProcessor': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
 }
 
 def GetComments(interface_name, member_name=None, library_name=None):

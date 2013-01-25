@@ -100,6 +100,7 @@ js_support_checks = {
   'WebKitCSSMatrix': "JS('bool', '!!(window.WebKitCSSMatrix)')",
   'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
   'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
+  'XSLTProcessor': "JS('bool', '!!(window.XSLTProcessor)')",
 }
 
 # Classes that offer only static methods, and therefore we should suppress

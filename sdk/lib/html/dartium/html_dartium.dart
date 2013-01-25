@@ -29453,12 +29453,18 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('XSLTProcessor')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class XsltProcessor extends NativeFieldWrapperClass1 {
   XsltProcessor.internal();
 
   @DocsEditable
   factory XsltProcessor() => XsltProcessor._create();
   static XsltProcessor _create() native "XSLTProcessor_constructor_Callback";
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('XSLTProcessor.clearParameters')
   @DocsEditable

@@ -27195,11 +27195,17 @@ class XmlSerializer native "*XMLSerializer" {
 
 @DocsEditable
 @DomName('XSLTProcessor')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class XsltProcessor native "*XSLTProcessor" {
 
   @DocsEditable
   factory XsltProcessor() => XsltProcessor._create();
   static XsltProcessor _create() => JS('XsltProcessor', 'new XSLTProcessor()');
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.XSLTProcessor)');
 
   @DomName('XSLTProcessor.clearParameters')
   @DocsEditable
