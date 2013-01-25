@@ -82,7 +82,8 @@ class PackageId implements Comparable {
   /// The name of the package being identified.
   final String name;
 
-  /// The [Source] used to look up this package given its [description].
+  /// The [Source] used to look up this package given its [description]. If
+  /// this is a root package ID, this will be `null`.
   final Source source;
 
   /// The package's version.
@@ -96,9 +97,10 @@ class PackageId implements Comparable {
 
   PackageId(this.name, this.source, this.version, this.description);
 
-  int get hashCode => name.hashCode ^
-                      source.name.hashCode ^
-                      version.hashCode;
+  /// Whether this ID identifies the root package.
+  bool get isRoot => source == null;
+
+  int get hashCode => name.hashCode ^ source.hashCode ^ version.hashCode;
 
   bool operator ==(other) {
     if (other is! PackageId) return false;
@@ -106,11 +108,12 @@ class PackageId implements Comparable {
     // enough to uniquely identify the package and that we don't need to delve
     // into the description.
     return other.name == name &&
-           other.source.name == source.name &&
+           other.source == source &&
            other.version == version;
   }
 
   String toString() {
+    if (isRoot) return "$name $version (root)";
     if (source.isDefault) return "$name $version";
     return "$name $version from $source";
   }
@@ -141,7 +144,8 @@ class PackageRef {
   /// The name of the package being identified.
   final String name;
 
-  /// The [Source] used to look up the package.
+  /// The [Source] used to look up the package. If this refers to a root
+  /// package, this will be `null`.
   final Source source;
 
   /// The allowed package versions.
@@ -153,7 +157,20 @@ class PackageRef {
 
   PackageRef(this.name, this.source, this.constraint, this.description);
 
-  String toString() => "$name $constraint from $source ($description)";
+  /// Creates a reference to the given root package.
+  PackageRef.root(Package package)
+      : name = package.name,
+        source = null,
+        constraint = package.version,
+        description = package.name;
+
+  /// Whether this refers to the root package.
+  bool get isRoot => source == null;
+
+  String toString() {
+    if (isRoot) return "$name $constraint (root)";
+    return "$name $constraint from $source ($description)";
+  }
 
   /// Returns a [PackageId] generated from this [PackageRef] with the given
   /// concrete version.

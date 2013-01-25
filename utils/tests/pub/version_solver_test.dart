@@ -10,7 +10,6 @@ import 'dart:io';
 import '../../pub/lock_file.dart';
 import '../../pub/package.dart';
 import '../../pub/pubspec.dart';
-import '../../pub/root_source.dart';
 import '../../pub/source.dart';
 import '../../pub/source_registry.dart';
 import '../../pub/system_cache.dart';
@@ -69,7 +68,6 @@ Matcher sourceMismatch(String package1, String package2) {
 MockSource source1;
 MockSource source2;
 Source versionlessSource;
-Source rootSource;
 
 main() {
   testResolve('no dependencies', {
@@ -405,8 +403,6 @@ testResolve(description, packages, {lockfile, result, Matcher error}) {
         // doesn't try to look up information about the local package on the
         // remote server.
         root = package;
-        rootSource = new RootSource(root);
-        cache.register(rootSource);
       } else {
         source.addPackage(package);
       }
@@ -545,7 +541,7 @@ Pair<String, Source> parseSource(String name) {
   switch (match[2]) {
   case 'mock1': return new Pair<String, Source>(match[1], source1);
   case 'mock2': return new Pair<String, Source>(match[1], source2);
-  case 'root': return new Pair<String, Source>(match[1], rootSource);
+  case 'root': return new Pair<String, Source>(match[1], null);
   case 'versionless':
     return new Pair<String, Source>(match[1], versionlessSource);
   }

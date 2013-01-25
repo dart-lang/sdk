@@ -43,7 +43,6 @@ import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
-import 'root_source.dart';
 import 'source.dart';
 import 'source_registry.dart';
 import 'utils.dart';
@@ -91,8 +90,7 @@ class VersionSolver {
   Future<List<PackageId>> solve() {
     // Kick off the work by adding the root package at its concrete version to
     // the dependency graph.
-    var ref = new PackageRef(
-        _root.name, new RootSource(_root), _root.version, _root.name);
+    var ref = new PackageRef.root(_root);
     enqueue(new AddConstraint('(entrypoint)', ref));
     _pubspecs.cache(ref.atVersion(_root.version), _root.pubspec);
 
@@ -242,9 +240,7 @@ class ChangeVersion implements WorkItem {
   /// The new selected version.
   final Version version;
 
-  ChangeVersion(this.package, this.source, this.description, this.version) {
-    if (source == null) throw "null source";
-  }
+  ChangeVersion(this.package, this.source, this.description, this.version);
 
   Future process(VersionSolver solver) {
     log.fine("Changing $package to version $version.");
@@ -529,14 +525,14 @@ class Dependency {
   }
 
   /// Return the PackageRef that has the canonical source and description for
-  /// this package. If any dependency requires that this package come from a
-  /// [RootSource], that will be used; otherwise, it will be the source and
-  /// description that all dependencies agree upon.
+  /// this package. If any dependency is on the root package, that will be used;
+  /// otherwise, it will be the source and description that all dependencies
+  /// agree upon.
   PackageRef _canonicalRef() {
     if (_refs.isEmpty) return null;
     var refs = _refs.values;
     for (var ref in refs) {
-      if (ref is RootSource) return ref;
+      if (ref.isRoot) return ref;
     }
     return refs.first;
   }
@@ -582,7 +578,7 @@ class Dependency {
     var dependers = _refs.keys.toList();
     if (dependers.length == 1) {
       var depender = dependers[0];
-      if (_refs[depender].source is RootSource) return null;
+      if (_refs[depender].isRoot) return null;
       return depender;
     }
 

@@ -45,7 +45,7 @@ Version _getVersion() {
   var match = _versionPattern.firstMatch(version);
   if (match == null) {
     throw new FormatException("The Dart SDK's 'version' file was not in a "
-        "format pub could recognize. Found: $revision");
+        "format pub could recognize. Found: $version");
   }
 
   var build = match[4];

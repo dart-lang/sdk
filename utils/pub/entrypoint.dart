@@ -9,7 +9,6 @@ import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
-import 'root_source.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 import 'version.dart';
@@ -132,7 +131,7 @@ class Entrypoint {
   Future _installDependencies(List<PackageId> packageVersions) {
     return cleanDir(path).then((_) {
       return Future.wait(packageVersions.mappedBy((id) {
-        if (id.source is RootSource) return new Future.immediate(id);
+        if (id.isRoot) return new Future.immediate(id);
         return install(id);
       }));
     }).then(_saveLockFile)
@@ -161,7 +160,7 @@ class Entrypoint {
   Future _saveLockFile(List<PackageId> packageIds) {
     var lockFile = new LockFile.empty();
     for (var id in packageIds) {
-      if (id.source is! RootSource) lockFile.packages[id.name] = id;
+      if (!id.isRoot) lockFile.packages[id.name] = id;
     }
 
     var lockFilePath = join(root.dir, 'pubspec.lock');
