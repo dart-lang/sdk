@@ -9435,6 +9435,14 @@ abstract class Element extends Node implements ElementTraversal {
    */
   var xtag;
 
+  /**
+   * Checks if the matches function is supported on the current platform.
+   *
+   * See also:
+   *
+   * * [matches]
+   */
+  static bool get supportsMatches => true;
 
   Element.internal() : super.internal();
 
@@ -9889,6 +9897,10 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.webkitMatchesSelector')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
 
   @DomName('Element.webkitRequestFullScreen')

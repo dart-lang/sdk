@@ -120,7 +120,7 @@ cache_test/supported: Fail
 css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
 dom_constructors_test: Fail
-element_test/matches: Fail # IE9 does not support matches
+element_test/supports_matches: Fail
 fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
 history_test/supported_state: Fail

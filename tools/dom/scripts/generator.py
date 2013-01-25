@@ -738,6 +738,7 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental",
   ],
+  'Element.webkitMatchesSelector': _all_but_ie9_annotations,
   'FileSystem': _file_system_annotations,
   'FileSystemSync': _file_system_annotations,
   'HashChangeEvent': [
