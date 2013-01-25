@@ -202,6 +202,10 @@ super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
 
 
+# Failing tests for mixin type parameters.
+mixin_type_parameters_super_test: Fail # http://dartbug.com/8116
+
+
 # External tests.
 external_test/01: Fail
 external_test/02: Fail

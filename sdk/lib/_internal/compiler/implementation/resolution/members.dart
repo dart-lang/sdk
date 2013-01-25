@@ -2873,6 +2873,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     compiler.ensure(element != null);
     compiler.ensure(element.resolutionState == STATE_STARTED);
 
+    InterfaceType type = element.computeType(compiler);
+    scope = new TypeDeclarationScope(scope, element);
+    resolveTypeVariableBounds(node.typeParameters);
+
     // Generate anonymous mixin application elements for the
     // intermediate mixin applications (excluding the last).
     DartType supertype = resolveSupertype(element, node.superclass);
