@@ -2441,6 +2441,9 @@ class CssKeyframesRule extends CssRule {
 
 @DocsEditable
 @DomName('WebKitCSSMatrix')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class CssMatrix extends NativeFieldWrapperClass1 {
   CssMatrix.internal();
 
@@ -2452,6 +2455,9 @@ class CssMatrix extends NativeFieldWrapperClass1 {
     return CssMatrix._create(cssValue);
   }
   static CssMatrix _create([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('WebKitCSSMatrix.a')
   @DocsEditable
@@ -8206,6 +8212,45 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   @DomName('DOMPluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitPoint')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class DomPoint extends NativeFieldWrapperClass1 {
+  DomPoint.internal();
+
+  @DocsEditable
+  factory DomPoint(num x, num y) => DomPoint._create(x, y);
+  static DomPoint _create(num x, num y) native "WebKitPoint_constructor_Callback";
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
+  @DomName('WebKitPoint.x')
+  @DocsEditable
+  num get x native "WebKitPoint_x_Getter";
+
+  @DomName('WebKitPoint.x')
+  @DocsEditable
+  void set x(num value) native "WebKitPoint_x_Setter";
+
+  @DomName('WebKitPoint.y')
+  @DocsEditable
+  num get y native "WebKitPoint_y_Getter";
+
+  @DomName('WebKitPoint.y')
+  @DocsEditable
+  void set y(num value) native "WebKitPoint_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20003,39 +20048,6 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
-@DomName('WebKitPoint')
-class Point extends NativeFieldWrapperClass1 {
-  Point.internal();
-
-  @DocsEditable
-  factory Point(num x, num y) => Point._create(x, y);
-  static Point _create(num x, num y) native "WebKitPoint_constructor_Callback";
-
-  @DomName('WebKitPoint.x')
-  @DocsEditable
-  num get x native "WebKitPoint_x_Getter";
-
-  @DomName('WebKitPoint.x')
-  @DocsEditable
-  void set x(num value) native "WebKitPoint_x_Setter";
-
-  @DomName('WebKitPoint.y')
-  @DocsEditable
-  num get y native "WebKitPoint_y_Getter";
-
-  @DomName('WebKitPoint.y')
-  @DocsEditable
-  void set y(num value) native "WebKitPoint_y_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('PopStateEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -28478,11 +28490,11 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
   @DocsEditable
-  Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
+  DomPoint convertPointFromNodeToPage(Node node, DomPoint p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
   @DomName('DOMWindow.webkitConvertPointFromPageToNode')
   @DocsEditable
-  Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
+  DomPoint convertPointFromPageToNode(Node node, DomPoint p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
   @DomName('DOMWindow.webkitRequestAnimationFrame')
   @DocsEditable

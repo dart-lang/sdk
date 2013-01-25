@@ -2002,6 +2002,9 @@ class CssKeyframesRule extends CssRule native "*WebKitCSSKeyframesRule" {
 
 @DocsEditable
 @DomName('WebKitCSSMatrix')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class CssMatrix native "*WebKitCSSMatrix" {
 
   @DocsEditable
@@ -2017,6 +2020,9 @@ class CssMatrix native "*WebKitCSSMatrix" {
     }
     return JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
   }
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.WebKitCSSMatrix)');
 
   @DomName('WebKitCSSMatrix.a')
   @DocsEditable
@@ -7514,6 +7520,33 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
   @DomName('DOMPluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebKitPoint')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class DomPoint native "*WebKitPoint" {
+
+  @DocsEditable
+  factory DomPoint(num x, num y) => DomPoint._create(x, y);
+  static DomPoint _create(num x, num y) => JS('DomPoint', 'new WebKitPoint(#,#)', x, y);
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.WebKitPoint)');
+
+  @DomName('WebKitPoint.x')
+  @DocsEditable
+  num x;
+
+  @DomName('WebKitPoint.y')
+  @DocsEditable
+  num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18352,27 +18385,6 @@ class PerformanceTiming native "*PerformanceTiming" {
 
 
 @DocsEditable
-@DomName('WebKitPoint')
-class Point native "*WebKitPoint" {
-
-  @DocsEditable
-  factory Point(num x, num y) => Point._create(x, y);
-  static Point _create(num x, num y) => JS('Point', 'new WebKitPoint(#,#)', x, y);
-
-  @DomName('WebKitPoint.x')
-  @DocsEditable
-  num x;
-
-  @DomName('WebKitPoint.y')
-  @DocsEditable
-  num y;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('PopStateEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -26219,13 +26231,15 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   void stop() native;
 
+  @JSName('webkitConvertPointFromNodeToPage')
   @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
   @DocsEditable
-  Point webkitConvertPointFromNodeToPage(Node node, Point p) native;
+  DomPoint convertPointFromNodeToPage(Node node, DomPoint p) native;
 
+  @JSName('webkitConvertPointFromPageToNode')
   @DomName('DOMWindow.webkitConvertPointFromPageToNode')
   @DocsEditable
-  Point webkitConvertPointFromPageToNode(Node node, Point p) native;
+  DomPoint convertPointFromPageToNode(Node node, DomPoint p) native;
 
   @JSName('webkitRequestFileSystem')
   @DomName('DOMWindow.webkitRequestFileSystem')

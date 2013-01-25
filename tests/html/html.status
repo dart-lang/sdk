@@ -21,7 +21,6 @@ input_element_test/supported_month: Fail
 input_element_test/supported_week: Fail
 speechrecognition_test/supported: Pass, Fail       # Chrome stable does not support it.
 shadow_dom_test/supported: Fail
-css_test: Pass, Fail # Issue 7978
 speechrecognition_test/types: Pass, Fail
 
 [ $runtime == chrome || $runtime == drt]
@@ -48,7 +47,8 @@ audiobuffersourcenode_test: Pass, Fail
 # TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
-css_test: Fail
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
 document_test/supports_cssCanvasContext: Fail
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
@@ -117,7 +117,8 @@ audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
 cache_test/supported: Fail
-css_test: Fail
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
 dom_constructors_test: Fail
 element_test/matches: Fail # IE9 does not support matches
 fileapi_test/supported: Fail
@@ -222,7 +223,8 @@ audiocontext_test: Fail
 blob_constructor_test: Fail
 canvas_using_html_test: Fail
 canvas_test: Fail
-css_test: Fail
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
 cssstyledeclaration_test: Fail
 element_add_test: Fail
 element_constructor_1_test: Fail
@@ -253,7 +255,8 @@ websql_test: Skip # Timeout.
 [ $runtime == ff ]
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
-css_test: Fail               # No analog to WebKitCssMatrix
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail

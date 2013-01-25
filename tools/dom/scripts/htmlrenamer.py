@@ -37,7 +37,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'WebKitCSSKeyframesRule': 'CssKeyframesRule',
     'WebKitCSSMatrix': 'CssMatrix',
     'WebKitCSSTransformValue': 'CssTransformValue',
-    'WebKitPoint': 'Point',
+    'WebKitPoint': 'DomPoint',
     'WebKitTransitionEvent': 'TransitionEvent',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestException': 'HttpRequestException',
@@ -154,6 +154,8 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
 _renamed_html_members = monitored.Dict('htmlrenamer._renamed_html_members', {
     'DOMURL.createObjectURL': 'createObjectUrl',
     'DOMURL.revokeObjectURL': 'revokeObjectUrl',
+    'DOMWindow.webkitConvertPointFromNodeToPage': 'convertPointFromNodeToPage',
+    'DOMWindow.webkitConvertPointFromPageToNode': 'convertPointFromPageToNode',
     'DOMWindow.webkitNotifications': 'notifications',
     'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
     'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',

@@ -96,6 +96,8 @@ js_support_checks = {
       "window.webkitSpeechRecognition)')",
   'XMLHttpRequestProgressEvent':
       "Event._isTypeSupported('XMLHttpRequestProgressEvent')",
+  'WebKitCSSMatrix': "JS('bool', '!!(window.WebKitCSSMatrix)')",
+  'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
   'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
 }
 
