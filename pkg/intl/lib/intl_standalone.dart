@@ -35,24 +35,16 @@ import "intl.dart";
 Future<String> findSystemLocale() {
   // On *nix systems we expect this is an environment variable, which is the
   // easiest thing to check. On a Mac the environment variable may be present
-  // so always check it first.
+  // so always check it first. We have no mechanism for this right now on
+  // Windows, so it will just fail.
   String baseLocale = _checkEnvironmentVariable();
   if (baseLocale != null) return _setLocale(baseLocale);
-  if (Platform.operatingSystem == 'windows') {
-    return _getWindowsSystemInfo();
-  }
   if (Platform.operatingSystem == 'macos') {
     return _getAppleDefaults();
   }
   // We can't find anything, don't set the system locale and return null.
   return new Future.immediate(null);
 }
-
-/**
- * Regular expression to match the expected output of systeminfo on
- * Windows. e.g. System Locale:<tab>en_US;English (United States)
- */
-RegExp sysInfoRegex = new RegExp(r"System Locale:\s+((\w\w;)|(\w\w-\w+;))");
 
 /**
  * Regular expression to match the expected output of reading the defaults
@@ -82,15 +74,6 @@ String _checkEnvironmentVariable() {
 Future _getAppleDefaults() {
   var p = Process.run('defaults', ['read', '-g', 'AppleLocale']);
   var myResult = p.then((result) => _checkResult(result, _appleDefaultsRegex));
-  return myResult;
-}
-
-/**
- * Run the "systemlocale" command and return the output in a future.
- */
-Future _getWindowsSystemInfo() {
-  var p = Process.run('systeminfo', []);
-  var myResult = p.then((result) => _checkResult(result, sysInfoRegex));
   return myResult;
 }
 
