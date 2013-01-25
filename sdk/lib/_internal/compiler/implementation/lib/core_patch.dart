@@ -4,6 +4,15 @@
 
 // Patch file for dart:core classes.
 
+import 'dart:_interceptors';
+import 'dart:_js_helper' show checkNull,
+                              getRuntimeTypeString,
+                              isJsArray,
+                              JSSyntaxRegExp,
+                              Primitives,
+                              TypeImpl,
+                              stringJoinUnchecked;
+
 // Patch for 'print' function.
 patch void print(var object) {
   if (object is String) {

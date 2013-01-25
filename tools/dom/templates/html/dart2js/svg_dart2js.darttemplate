@@ -8,6 +8,9 @@ import 'dart:collection';
 import 'dart:collection-dev';
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:_js_helper' show Creates, Returns, JavaScriptIndexingBehavior, JSName;
+import 'dart:_foreign_helper' show JS;
+
 
 part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
 

@@ -4,6 +4,8 @@
 
 // Patch file for the dart:async library.
 
+import 'dart:_isolate_helper' show TimerImpl;
+
 patch class Timer {
   patch factory Timer(int milliseconds, void callback(Timer timer)) {
     return new TimerImpl(milliseconds, callback);

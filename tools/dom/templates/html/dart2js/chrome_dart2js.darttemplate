@@ -7,4 +7,6 @@
 
 library chrome;
 
+import 'dart:_foreign_helper' show JS;
+
 part '$AUXILIARY_DIR/chrome/sample.dart';

@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'dart:collection-dev';
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT
 // Auto-generated dart:audio library.
 

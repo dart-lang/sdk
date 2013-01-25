@@ -7,6 +7,8 @@ library html_common;
 import 'dart:collection';
 import 'dart:collection-dev';
 import 'dart:html';
+import 'dart:_js_helper' show Creates, Returns;
+import 'dart:_foreign_helper' show JS;
 
 import 'metadata.dart';
 export 'metadata.dart';

@@ -6,6 +6,25 @@ library _interceptors;
 
 import 'dart:collection';
 import 'dart:collection-dev';
+import 'dart:_js_helper' show allMatchesInStringUnchecked,
+                              Null,
+                              JSSyntaxRegExp,
+                              Primitives,
+                              checkGrowable,
+                              checkMutable,
+                              checkNull,
+                              checkNum,
+                              checkString,
+                              getRuntimeTypeString,
+                              listInsertRange,
+                              regExpGetNative,
+                              stringContainsUnchecked,
+                              stringLastIndexOfUnchecked,
+                              stringReplaceAllFuncUnchecked,
+                              stringReplaceAllUnchecked,
+                              stringReplaceFirstUnchecked,
+                              TypeImpl;
+import 'dart:_foreign_helper' show JS;
 
 part 'js_array.dart';
 part 'js_number.dart';

@@ -5,6 +5,15 @@
 library _js_helper;
 
 import 'dart:collection';
+import 'dart:collection-dev';
+import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
+                                   JS,
+                                   JS_CALL_IN_ISOLATE,
+                                   JS_CURRENT_ISOLATE,
+                                   JS_OPERATOR_IS_PREFIX,
+                                   JS_HAS_EQUALS,
+                                   RAW_DART_FUNCTION_REF,
+                                   UNINTERCEPTED;
 
 part 'constant_map.dart';
 part 'native_helper.dart';

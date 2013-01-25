@@ -4,6 +4,10 @@
 
 // Patch file for the dart:isolate library.
 
+import 'dart:_isolate_helper' show IsolateNatives,
+                                   lazyPort,
+                                   ReceivePortImpl;
+
 patch class _Isolate {
   patch ReceivePort get port {
     if (lazyPort == null) {

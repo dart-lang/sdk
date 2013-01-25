@@ -289,9 +289,6 @@ class LibraryCompiler extends api.Compiler {
     for (var uri in uriList) {
       elementList.add(libraryLoader.loadLibrary(uri, null, uri));
     }
-    libraries.forEach((_, library) {
-      maybeEnableJSHelper(library);
-    });
 
     world.populate();
 
