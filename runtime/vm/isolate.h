@@ -36,6 +36,7 @@ class RawDouble;
 class RawMint;
 class RawInteger;
 class RawError;
+class Simulator;
 class StackResource;
 class StackZone;
 class StubCode;
@@ -201,6 +202,10 @@ class Isolate : public BaseIsolate {
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
+  static uword GetSpecifiedStackSize();
+
+  static const intptr_t kStackSizeBuffer = (16 * KB);
+
   enum {
     kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
     kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
@@ -237,6 +242,9 @@ class Isolate : public BaseIsolate {
   ICData* GetICDataForDeoptId(intptr_t deopt_id) const;
 
   Debugger* debugger() const { return debugger_; }
+
+  Simulator* simulator() const { return simulator_; }
+  void set_simulator(Simulator* value) { simulator_ = value; }
 
   GcPrologueCallbacks& gc_prologue_callbacks() {
     return gc_prologue_callbacks_;
@@ -342,10 +350,6 @@ class Isolate : public BaseIsolate {
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
 
-  static uword GetSpecifiedStackSize();
-
-  static const intptr_t kStackSizeBuffer = (16 * KB);
-
   static ThreadLocalKey isolate_key;
   StoreBufferBlock store_buffer_block_;
   StoreBuffer store_buffer_;
@@ -364,6 +368,7 @@ class Isolate : public BaseIsolate {
   ApiState* api_state_;
   StubCode* stub_code_;
   Debugger* debugger_;
+  Simulator* simulator_;
   LongJump* long_jump_base_;
   TimerList timer_list_;
   intptr_t deopt_id_;

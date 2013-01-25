@@ -309,6 +309,11 @@ void OS::Sleep(int64_t millis) {
 }
 
 
+void OS::DebugBreak() {
+  UNIMPLEMENTED();
+}
+
+
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);

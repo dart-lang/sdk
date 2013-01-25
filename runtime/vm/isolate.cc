@@ -17,6 +17,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -270,6 +271,7 @@ Isolate::Isolate()
       api_state_(NULL),
       stub_code_(NULL),
       debugger_(NULL),
+      simulator_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
       deopt_id_(0),
@@ -297,6 +299,9 @@ Isolate::~Isolate() {
   delete api_state_;
   delete stub_code_;
   delete debugger_;
+#if defined(USING_SIMULATOR)
+  delete simulator_;
+#endif
   delete mutex_;
   mutex_ = NULL;  // Fail fast if interrupts are scheduled on a dead isolate.
   delete message_handler_;

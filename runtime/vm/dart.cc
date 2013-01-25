@@ -15,6 +15,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
+#include "vm/simulator.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -94,6 +95,9 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   FreeListElement::InitOnce();
   Api::InitOnce();
   CodeObservers::InitOnce();
+#if defined(USING_SIMULATOR)
+  Simulator::InitOnce();
+#endif
   // Create the read-only handles area.
   ASSERT(predefined_handles_ == NULL);
   predefined_handles_ = new ReadOnlyHandles();
