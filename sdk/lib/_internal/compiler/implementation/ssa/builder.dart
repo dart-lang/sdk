@@ -136,14 +136,19 @@ class LocalsHandler {
   /**
    * The values of locals that can be directly accessed (without redirections
    * to boxes or closure-fields).
+   *
+   * [directLocals] is iterated, so it is a [LinkedHashMap] to make the
+   * iteration order a function only of insertions and not a function of
+   * e.g. Element hash codes.  I'd prefer to use a SortedMap but some elements
+   * don't have source locations for [Elements.compareByPosition].
    */
-  Map<Element, HInstruction> directLocals;
+  LinkedHashMap<Element, HInstruction> directLocals;
   Map<Element, Element> redirectionMapping;
   SsaBuilder builder;
   ClosureClassMap closureData;
 
   LocalsHandler(this.builder)
-      : directLocals = new Map<Element, HInstruction>(),
+      : directLocals = new LinkedHashMap<Element, HInstruction>(),
         redirectionMapping = new Map<Element, Element>();
 
   get typesTask => builder.compiler.typesTask;
@@ -154,7 +159,8 @@ class LocalsHandler {
    * throughout the AST visit.
    */
   LocalsHandler.from(LocalsHandler other)
-      : directLocals = new Map<Element, HInstruction>.from(other.directLocals),
+      : directLocals =
+            new LinkedHashMap<Element, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
         builder = other.builder,
         closureData = other.closureData;
@@ -524,10 +530,9 @@ class LocalsHandler {
   }
 
   void beginLoopHeader(Node node, HBasicBlock loopEntry) {
-    // Create a copy because we modify the map while iterating over
-    // it.
+    // Create a copy because we modify the map while iterating over it.
     Map<Element, HInstruction> saved =
-        new Map<Element, HInstruction>.from(directLocals);
+        new LinkedHashMap<Element, HInstruction>.from(directLocals);
 
     // Create phis for all elements in the definitions environment.
     saved.forEach((Element element, HInstruction instruction) {
@@ -590,7 +595,8 @@ class LocalsHandler {
     // block. Since variable declarations are scoped the declared
     // variable cannot be alive outside the block. Note: this is only
     // true for nodes where we do joins.
-    Map<Element, HInstruction> joinedLocals = new Map<Element, HInstruction>();
+    Map<Element, HInstruction> joinedLocals =
+        new LinkedHashMap<Element, HInstruction>();
     otherLocals.directLocals.forEach((element, instruction) {
       // We know 'this' cannot be modified.
       if (identical(element, closureData.thisElement)) {
@@ -622,7 +628,7 @@ class LocalsHandler {
                               HBasicBlock joinBlock) {
     assert(locals.length > 0);
     if (locals.length == 1) return locals[0];
-    Map<Element, HInstruction> joinedLocals = new Map<Element,HInstruction>();
+    Map<Element, HInstruction> joinedLocals = new LinkedHashMap<Element,HInstruction>();
     HInstruction thisValue = null;
     directLocals.forEach((Element element, HInstruction instruction) {
       if (!identical(element, closureData.thisElement)) {

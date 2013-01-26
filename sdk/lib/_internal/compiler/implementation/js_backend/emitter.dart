@@ -85,7 +85,7 @@ class CodeEmitterTask extends CompilerTask {
    */
   final Map<int, String> interceptorClosureCache;
   Set<ClassElement> checkedClasses;
-  Set<TypedefElement> checkedTypedefs;
+  List<TypedefElement> checkedTypedefs;
 
   final bool generateSourceMap;
 
@@ -103,7 +103,7 @@ class CodeEmitterTask extends CompilerTask {
   void computeRequiredTypeChecks() {
     assert(checkedClasses == null);
     checkedClasses = new Set<ClassElement>();
-    checkedTypedefs = new Set<TypedefElement>();
+    checkedTypedefs = new List<TypedefElement>();
     compiler.codegenWorld.isChecks.forEach((DartType t) {
       if (t is InterfaceType) {
         checkedClasses.add(t.element);
@@ -111,6 +111,7 @@ class CodeEmitterTask extends CompilerTask {
         checkedTypedefs.add(t.element);
       }
     });
+    checkedTypedefs.sort(Elements.compareByPosition);
   }
 
   js.Expression constantReference(Constant value) {
