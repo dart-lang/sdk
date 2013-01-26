@@ -95,6 +95,7 @@ namespace dart {
   V(_Int16Array, [], Int16Array_getIndexed, 870098766)                         \
   V(_Int16Array, _new, Int16Array_new, 903723993)                              \
   V(_Uint16Array, [], Uint16Array_getIndexed, 1019828411)                      \
+  V(_Uint16Array, []=, Uint16Array_setIndexed, 1457955615)                     \
   V(_Uint16Array, _new, Uint16Array_new, 133542762)                            \
   V(_Int32Array, [], Int32Array_getIndexed, 1999321436)                        \
   V(_Int32Array, _new, Int32Array_new, 8218286)                                \

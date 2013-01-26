@@ -468,13 +468,11 @@ bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
 }
 
 
-// Places the address of the ByteArray in EAX.
-// Places the Smi index in EBX.
-// Tests if EBX contains an Smi, jumps to label fall_through if false.
-// Tests if index in EBX is within bounds, jumps to label fall_through if not.
-// Leaves the index as an Smi in EBX.
-// Leaves the ByteArray address in EAX.
-static void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
+// Tests if index is a valid length (Smi and within valid index range),
+// jumps to fall_through if it is not.
+// Returns index in EBX, array in EAX.
+// This should be used only on getIndexed intrinsics.
+static void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
   __ testl(EBX, Immediate(kSmiTagMask));
@@ -486,7 +484,9 @@ static void TestByteArrayIndex(Assembler* assembler, Label* fall_through) {
 }
 
 
-// Operates in the same manner as TestByteArrayIndex.
+// Tests if index is a valid length (Smi and within valid index range),
+// jumps to fall_through if it is not.
+// Returns index in EBX, array in EAX.
 // This should be used only for setIndexed intrinsics.
 static void TestByteArraySetIndex(Assembler* assembler, Label* fall_through) {
   __ movl(EAX, Address(ESP, + 3 * kWordSize));  // Array.
@@ -502,7 +502,9 @@ static void TestByteArraySetIndex(Assembler* assembler, Label* fall_through) {
 
 bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   __ SmiUntag(EBX);
   __ movsxb(EAX, FieldAddress(EAX,
                               EBX,
@@ -517,12 +519,9 @@ bool Intrinsifier::Int8Array_getIndexed(Assembler* assembler) {
 
 bool Intrinsifier::Int8Array_setIndexed(Assembler* assembler) {
   Label fall_through;
-  // Verify that the array index is valid.
   TestByteArraySetIndex(assembler, &fall_through);
-  // After TestByteArraySetIndex:
-  // * EAX has the base address of the byte array.
-  // * EBX has the index into the array.
-  // EBX contains the SMI index which is shifted by 1.
+  // EBX: index as Smi.
+  // EAX: array.
   __ SmiUntag(EBX);
   // Free EBX for the value since we want a byte register.
   __ movl(EDI, EBX);
@@ -638,7 +637,9 @@ bool Intrinsifier::Int8Array_new(Assembler* assembler) {
 
 bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   __ SmiUntag(EBX);
   __ movzxb(EAX, FieldAddress(EAX,
                               EBX,
@@ -653,12 +654,9 @@ bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
 
 bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
   Label fall_through;
-  // Verify that the array index is valid.
   TestByteArraySetIndex(assembler, &fall_through);
-  // After TestByteArraySetIndex:
-  // * EAX has the base address of the byte array.
-  // * EBX has the index into the array.
-  // EBX contains the SMI index which is shifted by 1.
+  // EBX: index as Smi.
+  // EAX: array.
   __ SmiUntag(EBX);
   // Free EBX for the value since we want a byte register.
   __ movl(EDI, EBX);
@@ -684,7 +682,9 @@ bool Intrinsifier::Uint8Array_new(Assembler* assembler) {
 
 bool Intrinsifier::UintClamped8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   __ SmiUntag(EBX);
   __ movzxb(EAX, FieldAddress(EAX,
                               EBX,
@@ -699,12 +699,9 @@ bool Intrinsifier::UintClamped8Array_getIndexed(Assembler* assembler) {
 
 bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
   Label fall_through, store_value, load_0xff;
-  // Verify that the array index is valid.
   TestByteArraySetIndex(assembler, &fall_through);
-  // After TestByteArraySetIndex:
-  // * EAX has the base address of the byte array.
-  // * EBX has the index into the array.
-  // EBX contains the SMI index which is shifted by 1.
+  // EBX: index as Smi.
+  // EAX: array.
   __ SmiUntag(EBX);
   // Free EBX for the value since we need a byte register.
   __ leal(EAX, FieldAddress(EAX, EBX, TIMES_1,
@@ -739,7 +736,9 @@ bool Intrinsifier::Uint8ClampedArray_new(Assembler* assembler) {
 
 bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   __ movsxw(EAX, FieldAddress(EAX,
                               EBX,
                               TIMES_1,
@@ -759,12 +758,31 @@ bool Intrinsifier::Int16Array_new(Assembler* assembler) {
 
 bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   __ movzxw(EAX, FieldAddress(EAX,
                               EBX,
                               TIMES_1,
                               Uint16Array::data_offset()));
   __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Uint16Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArraySetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
+  __ movl(EDI, Address(ESP, + 1 * kWordSize));
+  __ SmiUntag(EDI);
+  // EDI: undtagged value.
+  __ testl(EDI, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  __ movw(FieldAddress(EAX, EBX, TIMES_1, Uint16Array::data_offset()), EDI);
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -779,12 +797,9 @@ bool Intrinsifier::Uint16Array_new(Assembler* assembler) {
 
 bool Intrinsifier::Int32Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
-  // After TestByteArrayIndex:
-  // * EAX has the base address of the byte array.
-  // * EBX has the index into the array.
-  // EBX contains the SMI index which is shifted left by 1.
-  // This shift means we only multiply the index by 2 not 4 (sizeof Int32).
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   __ movl(EAX, FieldAddress(EAX,
                             EBX,
                             TIMES_2,
@@ -807,17 +822,14 @@ bool Intrinsifier::Int32Array_new(Assembler* assembler) {
 
 bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
-  // After TestByteArrayIndex:
-  // * EAX has the base address of the byte array.
-  // * EBX has the index into the array.
-  // EBX contains the SMI index which is shifted left by 1.
-  // This shift means we only multiply the index by 2 not 4 (sizeof Uint32).
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   __ movl(EAX, FieldAddress(EAX,
                             EBX,
                             TIMES_2,
                             Uint32Array::data_offset()));
-    // Verify that the unsigned value in EAX can be stored in a Smi.
+  // Verify that the unsigned value in EAX can be stored in a Smi.
   __ testl(EAX,  Immediate(0xC0000000));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Won't fit Smi.
   __ SmiTag(EAX);
@@ -857,12 +869,9 @@ bool Intrinsifier::Uint64Array_new(Assembler* assembler) {
 
 bool Intrinsifier::Float32Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
-  // After TestByteArrayIndex:
-  // * EAX has the base address of the byte array.
-  // * EBX has the index into the array.
-  // EBX contains the SMI index which is shifted left by 1.
-  // This shift means we only multiply the index by 2 not 4 (sizeof float).
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   // Load single precision float into XMM7.
   __ movss(XMM7, FieldAddress(EAX, EBX, TIMES_2,
                               Float32Array::data_offset()));
@@ -895,11 +904,8 @@ bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
   // Load double value into XMM7.
   __ movsd(XMM7, FieldAddress(EAX, Double::value_offset()));
   TestByteArraySetIndex(assembler, &fall_through);
-  // After TestByteArraySetIndex:
-  // * EAX has the base address of the byte array.
-  // * EBX has the index into the array.
-  // EBX contains the SMI index which is shifted by 1.
-  // This shift means we only multiply the index by 2 not 4 (sizeof float).
+  // EBX: index as Smi.
+  // EAX: array.
   // Convert from double precision float to single precision float.
   __ cvtsd2ss(XMM7, XMM7);
   // Store into array.
@@ -919,12 +925,9 @@ bool Intrinsifier::Float32Array_new(Assembler* assembler) {
 
 bool Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
-  // After TestByteArrayIndex:
-  // * EAX has the base address of the byte array.
-  // * EBX has the index into the array.
-  // EBX contains the SMI index which is shifted left by 1.
-  // This shift means we only multiply the index by 4 not 8 (sizeof double).
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   // Load double precision float into XMM7.
   __ movsd(XMM7, FieldAddress(EAX, EBX, TIMES_4,
                               Float64Array::data_offset()));
@@ -954,12 +957,8 @@ bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
   // Load double value into XMM7.
   __ movsd(XMM7, FieldAddress(EAX, Double::value_offset()));
   TestByteArraySetIndex(assembler, &fall_through);
-  // After TestByteArraySetIndex:
-  // * EAX has the base address of the byte array.
-  // * EBX has the index into the array.
-  // EBX contains the SMI index which is shifted by 1.
-  // This shift means we only multiply the index by 4 not 8 (sizeof float).
-  // Store into array.
+  // EBX: index as Smi.
+  // EAX: array.
   __ movsd(FieldAddress(EAX, EBX, TIMES_4, Float64Array::data_offset()), XMM7);
   __ ret();
   __ Bind(&fall_through);
@@ -975,7 +974,9 @@ bool Intrinsifier::Float64Array_new(Assembler* assembler) {
 
 bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
   Label fall_through;
-  TestByteArrayIndex(assembler, &fall_through);
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
   __ SmiUntag(EBX);
   __ movl(EAX, FieldAddress(EAX, ExternalUint8Array::external_data_offset()));
   __ movl(EAX, Address(EAX, ExternalByteArrayData<uint8_t>::data_offset()));

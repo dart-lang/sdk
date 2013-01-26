@@ -144,6 +144,11 @@ bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Uint16Array_setIndexed(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Uint16Array_new(Assembler* assembler) {
   return false;
 }
