@@ -15,10 +15,11 @@ import 'dart:json' as json;
 import 'dart:math';
 import 'dart:uri';
 
+import '../../../pkg/http/lib/testing.dart';
 import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
 import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
-import '../../../pkg/http/lib/testing.dart';
+import '../../../pkg/yaml/lib/yaml.dart';
 import '../../lib/file_system.dart' as fs;
 import '../../pub/entrypoint.dart';
 // TODO(rnystrom): Using "gitlib" as the prefix here is ugly, but "git" collides
@@ -33,7 +34,6 @@ import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
 import '../../pub/validator.dart';
-import '../../pub/yaml/yaml.dart';
 import 'command_line_config.dart';
 
 /// This should be called at the top of a test file to set up an appropriate

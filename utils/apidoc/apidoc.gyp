@@ -53,6 +53,7 @@
             '--exclude-lib=oauth2',
             '--exclude-lib=path',
             '--exclude-lib=webdriver',
+            '--exclude-lib=yaml',
             '--include-lib=matcher',
             '--include-lib=mock',
           ],

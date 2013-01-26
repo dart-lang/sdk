@@ -1,0 +1,7 @@
+name: yaml
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+description: A parser for YAML.
+dependencies:
+  unittest:
+    sdk: unittest

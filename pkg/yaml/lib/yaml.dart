@@ -2,6 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// A parser for [YAML](http://www.yaml.org/).
+///
+/// Use [loadYaml] to load a single document, or [loadYamlStream] to load a
+/// stream of documents. For example:
+///
+///     import 'package:yaml/yaml.dart';
+///     main() {
+///       var doc = loadYaml("YAML: YAML Ain't Markup Language");
+///       print(doc['YAML']);
+///     }
+///
+/// This library currently doesn't support dumping to YAML. You should use
+/// `stringify` from `dart:json` instead:
+///
+///     import 'dart:json' as json;
+///     import 'package:yaml/yaml.dart';
+///     main() {
+///       var doc = loadYaml("YAML: YAML Ain't Markup Language");
+///       print(json.stringify(doc));
+///     }
 library yaml;
 
 import 'dart:math' as Math;

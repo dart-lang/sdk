@@ -5,13 +5,13 @@
 library lock_file_test;
 
 import '../../../pkg/unittest/lib/unittest.dart';
+import '../../../pkg/yaml/lib/yaml.dart';
 import '../../pub/lock_file.dart';
 import '../../pub/package.dart';
 import '../../pub/source.dart';
 import '../../pub/source_registry.dart';
 import '../../pub/utils.dart';
 import '../../pub/version.dart';
-import '../../pub/yaml/yaml.dart';
 
 class MockSource extends Source {
   final String name = 'mock';

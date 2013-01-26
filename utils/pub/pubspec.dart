@@ -9,7 +9,7 @@ import 'source.dart';
 import 'source_registry.dart';
 import 'utils.dart';
 import 'version.dart';
-import 'yaml/yaml.dart';
+import '../../pkg/yaml/lib/yaml.dart';
 
 /// The parsed and validated contents of a pubspec file.
 class Pubspec {

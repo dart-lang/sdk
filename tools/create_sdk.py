@@ -221,8 +221,8 @@ def Main(argv):
   # Create and populate pkg/{args, intl, logging, meta, unittest, ...}
   #
 
-  for library in ['args', 'http', 'intl', 'logging',
-                  'meta', 'oauth2', 'path', 'serialization', 'unittest']:
+  for library in ['args', 'http', 'intl', 'logging', 'meta', 'oauth2', 'path',
+                  'serialization', 'unittest', 'yaml']:
 
     copytree(join(HOME, 'pkg', library), join(PKG, library),
              ignore=ignore_patterns('*.svn', 'doc', 'docs',
