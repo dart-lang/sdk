@@ -10,6 +10,6 @@ if %SCRIPTPATH:~-1%== set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set arguments=%*
 set SNAPSHOTNAME="%SCRIPTPATH%dart2js.snapshot"
-if exist %SNAPSHOTNAME% set SNAPSHOT=--use_script_snapshot=%SNAPSHOTNAME%
+if exist %SNAPSHOTNAME% set SNAPSHOT=--use-script-snapshot=%SNAPSHOTNAME%
 
 "%SCRIPTPATH%dart" --no_use_inlining --heap_growth_rate=512 %SNAPSHOT% "%SCRIPTPATH%..\lib\_internal\compiler\implementation\dart2js.dart" %arguments%

@@ -149,8 +149,8 @@ static bool ProcessUseScriptSnapshotOption(const char* filename) {
   if (filename != NULL && strlen(filename) != 0) {
     use_script_snapshot = true;
     if (generate_script_snapshot) {
-      Log::PrintErr("Incompatible options specified --generate_script_snapshot "
-                    "and --use_script_snapshot\n");
+      Log::PrintErr("Incompatible options specified --generate-script-snapshot "
+                    "and --use-script-snapshot\n");
       return false;
     }
     snapshot_file = File::Open(filename, File::kRead);
@@ -173,8 +173,8 @@ static bool ProcessGenScriptSnapshotOption(const char* filename) {
       return false;
     }
     if (use_script_snapshot) {
-      Log::PrintErr("Incompatible options specified --use_script_snapshot "
-                    "and --generate_script_snapshot\n");
+      Log::PrintErr("Incompatible options specified --use-script-snapshot "
+                    "and --generate-script-snapshot\n");
       return false;
     }
     snapshot_file = File::Open(filename, File::kWriteTruncate);
@@ -205,7 +205,6 @@ static struct {
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
-  { "--use_script_snapshot=", ProcessUseScriptSnapshotOption },
   { "--use-script-snapshot=", ProcessUseScriptSnapshotOption },
   { "--generate-script-snapshot=", ProcessGenScriptSnapshotOption },
   { NULL, NULL }
@@ -545,10 +544,10 @@ static void PrintUsage() {
 "  url:<line_num> e.g. test.dart:10\n"
 "  [<class_name>.]<function_name> e.g. B.foo\n"
 "\n"
-"--use_script_snapshot=<file_name>\n"
+"--use-script-snapshot=<file_name>\n"
 "  executes Dart script present in the specified snapshot file\n"
 "\n"
-"--generate_script_snapshot=<file_name>\n"
+"--generate-script-snapshot=<file_name>\n"
 "  loads Dart script and generates a snapshot in the specified file\n"
 "\n"
 "The following options are only used for VM development and may\n"

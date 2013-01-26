@@ -110,8 +110,8 @@ def CopyDartScripts(home, build_dir, sdk_root, version):
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
-  subprocess.call([os.path.join(build_dir, 'gen_snapshot'),
-                   '--script_snapshot=%s' %
+  subprocess.call([os.path.join(build_dir, 'dart'),
+                   '--generate-script-snapshot=%s' %
                    os.path.join(sdk_root, 'lib', '_internal', 'compiler',
                                 'implementation', 'dart2js.dart.snapshot'),
                    os.path.join(sdk_root, 'lib', '_internal', 'compiler',
