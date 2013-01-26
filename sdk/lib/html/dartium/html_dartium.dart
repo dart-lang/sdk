@@ -9366,27 +9366,20 @@ abstract class Element extends Node implements ElementTraversal {
    * [style] property, which contains only the values specified directly on this
    * element.
    *
+   * PseudoElement can be values such as `::after`, `::before`, `::marker`,
+   * `::line-marker`.
+   *
    * See also:
    *
    * * [CSS Inheritance and Cascade](http://docs.webplatform.org/wiki/tutorials/inheritance_and_cascade)
-   */
-  Future<CssStyleDeclaration> get computedStyle {
-     // TODO(jacobr): last param should be null, see b/5045788
-     return getComputedStyle('');
-  }
-
-  /**
-   * Returns the computed styles for pseudo-elements such as `::after`,
-   * `::before`, `::marker`, `::line-marker`.
-   *
-   * See also:
-   *
    * * [Pseudo-elements](http://docs.webplatform.org/wiki/css/selectors/pseudo-elements)
    */
-  Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) {
-    return _createMeasurementFuture(
-        () => window.$dom_getComputedStyle(this, pseudoElement),
-        new Completer<CssStyleDeclaration>());
+  CssStyleDeclaration getComputedStyle([String pseudoElement]) {
+    if (pseudoElement == null) {
+      pseudoElement = '';
+    }
+    // TODO(jacobr): last param should be null, see b/5045788
+    return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
   /**
@@ -28038,12 +28031,13 @@ class WheelEvent extends MouseEvent {
 class Window extends EventTarget implements WindowBase {
 
   /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
+   * Executes a [callback] after the immediate execution stack has completed.
+   *
+   * This will cause the callback to be executed after all processing has
+   * completed for the current event, but before any subsequent events.
    */
-  void requestLayoutFrame(TimeoutHandler callback) {
-    _addMeasurementFrameCallback(callback);
+  void setImmediate(TimeoutHandler callback) {
+    _addMicrotaskCallback(callback);
   }
 
   /**
@@ -28063,6 +28057,14 @@ class Window extends EventTarget implements WindowBase {
   registerPort(String name, var port) {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
+  }
+
+  /// Checks if _setImmediate is supported.
+  static bool get _supportsSetImmediate => false;
+
+  /// Dartium stub for IE's setImmediate.
+  void _setImmediate(void callback()) {
+    throw new UnsupportedError('setImmediate is not supported');
   }
 
   Window.internal() : super.internal();
@@ -34167,46 +34169,38 @@ String _getPortSyncEventData(CustomEvent event) => event.detail;
 // BSD-style license that can be found in the LICENSE file.
 
 
-typedef Object ComputeValue();
-
-class _MeasurementRequest<T> {
-  final ComputeValue computeValue;
-  final Completer<T> completer;
-  Object value;
-  bool exception = false;
-  _MeasurementRequest(this.computeValue, this.completer);
-}
-
-typedef void _MeasurementCallback();
+typedef void _MicrotaskCallback();
 
 /**
  * This class attempts to invoke a callback as soon as the current event stack
  * unwinds, but before the browser repaints.
  */
-abstract class _MeasurementScheduler {
-  bool _nextMeasurementFrameScheduled = false;
-  _MeasurementCallback _callback;
+abstract class _MicrotaskScheduler {
+  bool _nextMicrotaskFrameScheduled = false;
+  _MicrotaskCallback _callback;
 
-  _MeasurementScheduler(this._callback);
+  _MicrotaskScheduler(this._callback);
 
   /**
-   * Creates the best possible measurement scheduler for the current platform.
+   * Creates the best possible microtask scheduler for the current platform.
    */
-  factory _MeasurementScheduler.best(_MeasurementCallback callback) {
-    if (MutationObserver.supported) {
+  factory _MicrotaskScheduler.best(_MicrotaskCallback callback) {
+    if (Window._supportsSetImmediate) {
+      return new _SetImmediateScheduler(callback);
+    } else if (MutationObserver.supported) {
       return new _MutationObserverScheduler(callback);
     }
     return new _PostMessageScheduler(callback);
   }
 
   /**
-   * Schedules a measurement callback if one has not been scheduled already.
+   * Schedules a microtask callback if one has not been scheduled already.
    */
   void maybeSchedule() {
-    if (this._nextMeasurementFrameScheduled) {
+    if (this._nextMicrotaskFrameScheduled) {
       return;
     }
-    this._nextMeasurementFrameScheduled = true;
+    this._nextMicrotaskFrameScheduled = true;
     this._schedule();
   }
 
@@ -34216,14 +34210,14 @@ abstract class _MeasurementScheduler {
   void _schedule();
 
   /**
-   * Handles the measurement callback and forwards it if necessary.
+   * Handles the microtask callback and forwards it if necessary.
    */
   void _onCallback() {
     // Ignore spurious messages.
-    if (!_nextMeasurementFrameScheduled) {
+    if (!_nextMicrotaskFrameScheduled) {
       return;
     }
-    _nextMeasurementFrameScheduled = false;
+    _nextMicrotaskFrameScheduled = false;
     this._callback();
   }
 }
@@ -34231,22 +34225,22 @@ abstract class _MeasurementScheduler {
 /**
  * Scheduler which uses window.postMessage to schedule events.
  */
-class _PostMessageScheduler extends _MeasurementScheduler {
-  const _MEASUREMENT_MESSAGE = "DART-MEASURE";
+class _PostMessageScheduler extends _MicrotaskScheduler {
+  const _MICROTASK_MESSAGE = "DART-MICROTASK";
 
-  _PostMessageScheduler(_MeasurementCallback callback): super(callback) {
+  _PostMessageScheduler(_MicrotaskCallback callback): super(callback) {
       // Messages from other windows do not cause a security risk as
       // all we care about is that _handleMessage is called
       // after the current event loop is unwound and calling the function is
       // a noop when zero requests are pending.
-      window.on.message.add(this._handleMessage);
+      window.onMessage.listen(this._handleMessage);
   }
 
   void _schedule() {
-    window.postMessage(_MEASUREMENT_MESSAGE, "*");
+    window.postMessage(_MICROTASK_MESSAGE, "*");
   }
 
-  _handleMessage(e) {
+  void _handleMessage(e) {
     this._onCallback();
   }
 }
@@ -34254,11 +34248,11 @@ class _PostMessageScheduler extends _MeasurementScheduler {
 /**
  * Scheduler which uses a MutationObserver to schedule events.
  */
-class _MutationObserverScheduler extends _MeasurementScheduler {
+class _MutationObserverScheduler extends _MicrotaskScheduler {
   MutationObserver _observer;
   Element _dummy;
 
-  _MutationObserverScheduler(_MeasurementCallback callback): super(callback) {
+  _MutationObserverScheduler(_MicrotaskCallback callback): super(callback) {
     // Mutation events get fired as soon as the current event stack is unwound
     // so we just make a dummy event and listen for that.
     _observer = new MutationObserver(this._handleMutation);
@@ -34276,89 +34270,53 @@ class _MutationObserverScheduler extends _MeasurementScheduler {
   }
 }
 
+/**
+ * Scheduler which uses window.setImmediate to schedule events.
+ */
+class _SetImmediateScheduler extends _MicrotaskScheduler {
+  _SetImmediateScheduler(_MicrotaskCallback callback): super(callback);
 
-List<_MeasurementRequest> _pendingRequests;
-List<TimeoutHandler> _pendingMeasurementFrameCallbacks;
-_MeasurementScheduler _measurementScheduler = null;
-
-void _maybeScheduleMeasurementFrame() {
-  if (_measurementScheduler == null) {
-    _measurementScheduler =
-      new _MeasurementScheduler.best(_completeMeasurementFutures);
+  void _schedule() {
+    window._setImmediate(_handleImmediate);
   }
-  _measurementScheduler.maybeSchedule();
+
+  void _handleImmediate() {
+    this._onCallback();
+  }
+}
+
+List<TimeoutHandler> _pendingMicrotasks;
+_MicrotaskScheduler _microtaskScheduler = null;
+
+void _maybeScheduleMicrotaskFrame() {
+  if (_microtaskScheduler == null) {
+    _microtaskScheduler =
+      new _MicrotaskScheduler.best(_completeMicrotasks);
+  }
+  _microtaskScheduler.maybeSchedule();
 }
 
 /**
- * Registers a [callback] which is called after the next batch of measurements
- * completes. Even if no measurements completed, the callback is triggered
- * when they would have completed to avoid confusing bugs if it happened that
- * no measurements were actually requested.
+ * Registers a [callback] which is called after the current execution stack
+ * unwinds.
  */
-void _addMeasurementFrameCallback(TimeoutHandler callback) {
-  if (_pendingMeasurementFrameCallbacks == null) {
-    _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
-    _maybeScheduleMeasurementFrame();
+void _addMicrotaskCallback(TimeoutHandler callback) {
+  if (_pendingMicrotasks == null) {
+    _pendingMicrotasks = <TimeoutHandler>[];
+    _maybeScheduleMicrotaskFrame();
   }
-  _pendingMeasurementFrameCallbacks.add(callback);
+  _pendingMicrotasks.add(callback);
 }
 
-/**
- * Returns a [Future] whose value will be the result of evaluating
- * [computeValue] during the next safe measurement interval.
- * The next safe measurement interval is after the current event loop has
- * unwound but before the browser has rendered the page.
- * It is important that the [computeValue] function only queries the html
- * layout and html in any way.
- */
-Future _createMeasurementFuture(ComputeValue computeValue,
-                                Completer completer) {
-  if (_pendingRequests == null) {
-    _pendingRequests = <_MeasurementRequest>[];
-    _maybeScheduleMeasurementFrame();
-  }
-  _pendingRequests.add(new _MeasurementRequest(computeValue, completer));
-  return completer.future;
-}
 
 /**
- * Complete all pending measurement futures evaluating them in a single batch
- * so that the the browser is guaranteed to avoid multiple layouts.
+ * Complete all pending microtasks.
  */
-void _completeMeasurementFutures() {
-  // We must compute all new values before fulfilling the futures as
-  // the onComplete callbacks for the futures could modify the DOM making
-  // subsequent measurement calculations expensive to compute.
-  if (_pendingRequests != null) {
-    for (_MeasurementRequest request in _pendingRequests) {
-      try {
-        request.value = request.computeValue();
-      } catch (e) {
-        request.value = e;
-        request.exception = true;
-      }
-    }
-  }
-
-  final completedRequests = _pendingRequests;
-  final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
-  _pendingRequests = null;
-  _pendingMeasurementFrameCallbacks = null;
-  if (completedRequests != null) {
-    for (_MeasurementRequest request in completedRequests) {
-      if (request.exception) {
-        request.completer.completeError(request.value);
-      } else {
-        request.completer.complete(request.value);
-      }
-    }
-  }
-
-  if (readyMeasurementFrameCallbacks != null) {
-    for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
-      // TODO(jacobr): wrap each call to a handler in a try-catch block.
-      handler();
-    }
+void _completeMicrotasks() {
+  var callbacks = _pendingMicrotasks;
+  _pendingMicrotasks = null;
+  for (var callback in callbacks) {
+    callback();
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

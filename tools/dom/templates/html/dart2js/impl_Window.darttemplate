@@ -71,12 +71,13 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   }
 
   /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
+   * Executes a [callback] after the immediate execution stack has completed.
+   *
+   * This will cause the callback to be executed after all processing has
+   * completed for the current event, but before any subsequent events.
    */
-  void requestLayoutFrame(TimeoutHandler callback) {
-    _addMeasurementFrameCallback(callback);
+  void setImmediate(TimeoutHandler callback) {
+    _addMicrotaskCallback(callback);
   }
 
   @DomName('DOMWindow.requestAnimationFrame')
@@ -158,6 +159,15 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
   @DomName('Window.console')
   Console get console => Console.safeConsole;
+
+  /// Checks if _setImmediate is supported.
+  static bool get _supportsSetImmediate =>
+      JS('bool', '!!(window.setImmediate)');
+
+  // Set immediate implementation for IE
+  void _setImmediate(void callback()) {
+    JS('void', '#.setImmediate(#)', this, convertDartClosureToJS(callback, 0));
+  }
 
 $!MEMBERS
 }

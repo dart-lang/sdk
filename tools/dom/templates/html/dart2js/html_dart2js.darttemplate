@@ -38,7 +38,7 @@ part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Timer.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/Isolates.dart';
-part '$AUXILIARY_DIR/Measurement.dart';
+part '$AUXILIARY_DIR/Microtask.dart';
 part '$AUXILIARY_DIR/Serialization.dart';
 part '$AUXILIARY_DIR/shared_FactoryProviders.dart';
 part '$AUXILIARY_DIR/dart2js_Conversions.dart';

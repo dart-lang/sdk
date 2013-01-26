@@ -7,12 +7,13 @@ part of html;
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
+   * Executes a [callback] after the immediate execution stack has completed.
+   *
+   * This will cause the callback to be executed after all processing has
+   * completed for the current event, but before any subsequent events.
    */
-  void requestLayoutFrame(TimeoutHandler callback) {
-    _addMeasurementFrameCallback(callback);
+  void setImmediate(TimeoutHandler callback) {
+    _addMicrotaskCallback(callback);
   }
 
   /**
@@ -32,6 +33,14 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   registerPort(String name, var port) {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
+  }
+
+  /// Checks if _setImmediate is supported.
+  static bool get _supportsSetImmediate => false;
+
+  /// Dartium stub for IE's setImmediate.
+  void _setImmediate(void callback()) {
+    throw new UnsupportedError('setImmediate is not supported');
   }
 
 $!MEMBERS
