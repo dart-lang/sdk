@@ -790,7 +790,7 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
   // it will be possible to disassemble the code and inspect registers.
   char buffer[128];
   snprintf(buffer, sizeof(buffer),
-           "illegal memory access at 0x%x, pc=0x%x\n",
+           "illegal memory access at 0x%"Px", pc=0x%"Px"\n",
            addr, fault_pc);
   SimulatorDebugger dbg(this);
   dbg.Stop(instr, buffer);
@@ -812,7 +812,7 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
   // it will be possible to disassemble the code and inspect registers.
   char buffer[64];
   snprintf(buffer, sizeof(buffer),
-           "unaligned %s at 0x%x, pc=%p\n", msg, addr, instr);
+           "unaligned %s at 0x%"Px", pc=%p\n", msg, addr, instr);
   SimulatorDebugger dbg(this);
   dbg.Stop(instr, buffer);
   // The debugger will return control in non-interactive mode.

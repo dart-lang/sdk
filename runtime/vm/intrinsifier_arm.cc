@@ -94,12 +94,22 @@ bool Intrinsifier::Int8Array_setIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Int8Array_new(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
 
 bool Intrinsifier::Uint8Array_setIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint8Array_new(Assembler* assembler) {
   return false;
 }
 
@@ -114,7 +124,17 @@ bool Intrinsifier::Uint8ClampedArray_setIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Uint8ClampedArray_new(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Int16Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Int16Array_new(Assembler* assembler) {
   return false;
 }
 
@@ -124,7 +144,17 @@ bool Intrinsifier::Uint16Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Uint16Array_new(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Int32Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Int32Array_new(Assembler* assembler) {
   return false;
 }
 
@@ -134,12 +164,27 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Uint32Array_new(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
 
+bool Intrinsifier::Int64Array_new(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Uint64Array_new(Assembler* assembler) {
   return false;
 }
 
@@ -154,12 +199,22 @@ bool Intrinsifier::Float32Array_setIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Float32Array_new(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
   return false;
 }
 
 
 bool Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Float64Array_new(Assembler* assembler) {
   return false;
 }
 
