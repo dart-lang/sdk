@@ -18,7 +18,7 @@ main() {
     window.setTimeout(expectAsync0(() {
       timeoutCalled = true;
       expect(immediateCalled, true);
-    }), 5);
+    }), 0);
 
 
     window.requestAnimationFrame((_) {

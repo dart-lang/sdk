@@ -74,6 +74,7 @@ media_stream_test/supported_media: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 messageevent_test: Fail
+microtask_test: Fail, Pass # Appears to be flaky
 mutationobserver_test/supported: Fail
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 notifications_test/supported: Fail
