@@ -8833,6 +8833,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     } else if (JS('bool', '!!#.msMatchesSelector', this)) {
       return JS('bool', '#.msMatchesSelector(#)', this, selectors);
     }
+    throw new UnsupportedError("Not supported on this platform");
   }
 
   /**
