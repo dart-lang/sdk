@@ -69,33 +69,34 @@ main() {
   Element makeElementWithChildren() =>
     new Element.html("<div><br/><img/><input/></div>");
 
-  test('computedStyle', () {
-    final element = document.body;
-    element.computedStyle.then(expectAsync1((style) {
+  group('position', () {
+    test('computedStyle', () {
+      final element = document.body;
+      var style = element.getComputedStyle();
       expect(style.getPropertyValue('left'), 'auto');
-    }));
-  });
+    });
 
-  test('client position synchronous', () {
-    final container = new Element.tag("div");
-    container.style.position = 'absolute';
-    container.style.top = '8px';
-    container.style.left = '8px';
-    final element = new Element.tag("div");
-    element.style.width = '200px';
-    element.style.height = '200px';
-    container.children.add(element);
-    document.body.children.add(container);
+    test('client position synchronous', () {
+      final container = new Element.tag("div");
+      container.style.position = 'absolute';
+      container.style.top = '8px';
+      container.style.left = '8px';
+      final element = new Element.tag("div");
+      element.style.width = '200px';
+      element.style.height = '200px';
+      container.children.add(element);
+      document.body.children.add(container);
 
-    expect(element.clientWidth, greaterThan(100));
-    expect(element.clientHeight, greaterThan(100));
-    expect(element.offsetWidth, greaterThan(100));
-    expect(element.offsetHeight, greaterThan(100));
-    expect(element.scrollWidth, greaterThan(100));
-    expect(element.scrollHeight, greaterThan(100));
-    expect(element.getBoundingClientRect().left, 8);
-    expect(element.getBoundingClientRect().top, 8);
-    container.remove();
+      expect(element.clientWidth, greaterThan(100));
+      expect(element.clientHeight, greaterThan(100));
+      expect(element.offsetWidth, greaterThan(100));
+      expect(element.offsetHeight, greaterThan(100));
+      expect(element.scrollWidth, greaterThan(100));
+      expect(element.scrollHeight, greaterThan(100));
+      expect(element.getBoundingClientRect().left, 8);
+      expect(element.getBoundingClientRect().top, 8);
+      container.remove();
+    });
   });
 
   group('constructors', () {
