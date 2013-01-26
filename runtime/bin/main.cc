@@ -29,6 +29,7 @@ extern const uint8_t* snapshot_buffer;
 
 // Global state that stores a pointer to the application script snapshot.
 static bool use_script_snapshot = false;
+static bool generate_script_snapshot = false;
 static File* snapshot_file = NULL;
 
 
@@ -144,10 +145,45 @@ static bool ProcessDebugOption(const char* port) {
 }
 
 
-static bool ProcessScriptSnapshotOption(const char* filename) {
+static bool ProcessUseScriptSnapshotOption(const char* filename) {
   if (filename != NULL && strlen(filename) != 0) {
     use_script_snapshot = true;
+    if (generate_script_snapshot) {
+      Log::PrintErr("Incompatible options specified --generate_script_snapshot "
+                    "and --use_script_snapshot\n");
+      return false;
+    }
     snapshot_file = File::Open(filename, File::kRead);
+    if (snapshot_file == NULL) {
+      Log::PrintErr("Unable to open file %s for reading the snapshot\n",
+                    filename);
+      return false;
+    }
+  }
+  return true;
+}
+
+
+static bool ProcessGenScriptSnapshotOption(const char* filename) {
+  if (filename != NULL && strlen(filename) != 0) {
+    // Ensure that are already running using a full snapshot.
+    if (snapshot_buffer == NULL) {
+      Log::PrintErr("Script snapshots cannot be generated in this version of"
+                    " dart\n");
+      return false;
+    }
+    if (use_script_snapshot) {
+      Log::PrintErr("Incompatible options specified --use_script_snapshot "
+                    "and --generate_script_snapshot\n");
+      return false;
+    }
+    snapshot_file = File::Open(filename, File::kWriteTruncate);
+    if (snapshot_file == NULL) {
+      Log::PrintErr("Unable to open file %s for writing the snapshot\n",
+                    filename);
+      return false;
+    }
+    generate_script_snapshot = true;
   }
   return true;
 }
@@ -169,7 +205,9 @@ static struct {
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
-  { "--use_script_snapshot=", ProcessScriptSnapshotOption },
+  { "--use_script_snapshot=", ProcessUseScriptSnapshotOption },
+  { "--use-script-snapshot=", ProcessUseScriptSnapshotOption },
+  { "--generate-script-snapshot=", ProcessGenScriptSnapshotOption },
   { NULL, NULL }
 };
 
@@ -510,6 +548,9 @@ static void PrintUsage() {
 "--use_script_snapshot=<file_name>\n"
 "  executes Dart script present in the specified snapshot file\n"
 "\n"
+"--generate_script_snapshot=<file_name>\n"
+"  loads Dart script and generates a snapshot in the specified file\n"
+"\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
@@ -673,44 +714,63 @@ int main(int argc, char** argv) {
 
   Dart_EnterScope();
 
-  if (has_compile_all) {
-    result = Dart_CompileAll();
+  if (generate_script_snapshot) {
+    // First create a snapshot.
+    Dart_Handle result;
+    uint8_t* buffer = NULL;
+    intptr_t size = 0;
+    result = Dart_CreateScriptSnapshot(&buffer, &size);
+    if (Dart_IsError(result)) {
+      Log::PrintErr("%s\n", Dart_GetError(result));
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      return kErrorExitCode;  // Indicates we encountered an error.
+    }
+
+    // Now write the snapshot out to specified file.
+    bool bytes_written = snapshot_file->WriteFully(buffer, size);
+    ASSERT(bytes_written);
+    delete snapshot_file;
+  } else {
+    if (has_compile_all) {
+      result = Dart_CompileAll();
+      if (Dart_IsError(result)) {
+        return ErrorExit("%s\n", Dart_GetError(result));
+      }
+    }
+
+    // Create a dart options object that can be accessed from dart code.
+    Dart_Handle options_result =
+        SetupRuntimeOptions(&dart_options, executable_name, script_name);
+    if (Dart_IsError(options_result)) {
+      return ErrorExit("%s\n", Dart_GetError(options_result));
+    }
+    // Lookup the library of the root script.
+    Dart_Handle library = Dart_RootLibrary();
+    if (Dart_IsNull(library)) {
+      return ErrorExit("Unable to find root library for '%s'\n",
+                       script_name);
+    }
+    // Set debug breakpoint if specified on the command line.
+    if (breakpoint_at != NULL) {
+      result = SetBreakpoint(breakpoint_at, library);
+      if (Dart_IsError(result)) {
+        return ErrorExit("Error setting breakpoint at '%s': %s\n",
+                         breakpoint_at,
+                         Dart_GetError(result));
+      }
+    }
+
+    // Lookup and invoke the top level main function.
+    result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
     if (Dart_IsError(result)) {
       return ErrorExit("%s\n", Dart_GetError(result));
     }
-  }
-
-  // Create a dart options object that can be accessed from dart code.
-  Dart_Handle options_result =
-      SetupRuntimeOptions(&dart_options, executable_name, script_name);
-  if (Dart_IsError(options_result)) {
-    return ErrorExit("%s\n", Dart_GetError(options_result));
-  }
-  // Lookup the library of the root script.
-  Dart_Handle library = Dart_RootLibrary();
-  if (Dart_IsNull(library)) {
-    return ErrorExit("Unable to find root library for '%s'\n",
-                     script_name);
-  }
-  // Set debug breakpoint if specified on the command line.
-  if (breakpoint_at != NULL) {
-    result = SetBreakpoint(breakpoint_at, library);
+    // Keep handling messages until the last active receive port is closed.
+    result = Dart_RunLoop();
     if (Dart_IsError(result)) {
-      return ErrorExit("Error setting breakpoint at '%s': %s\n",
-                       breakpoint_at,
-                       Dart_GetError(result));
+      return ErrorExit("%s\n", Dart_GetError(result));
     }
-  }
-
-  // Lookup and invoke the top level main function.
-  result = Dart_Invoke(library, DartUtils::NewString("main"), 0, NULL);
-  if (Dart_IsError(result)) {
-    return ErrorExit("%s\n", Dart_GetError(result));
-  }
-  // Keep handling messages until the last active receive port is closed.
-  result = Dart_RunLoop();
-  if (Dart_IsError(result)) {
-    return ErrorExit("%s\n", Dart_GetError(result));
   }
 
   Dart_ExitScope();
