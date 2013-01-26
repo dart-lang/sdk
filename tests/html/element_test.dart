@@ -596,23 +596,14 @@ main() {
     });
   });
 
-  group('supported_matches', () {
-    test('supported', () {
-      expect(Element.supportsMatches, true);
-    });
-  });
-
   group('matches', () {
     test('matches', () {
-      var expectation = Element.supportsMatches ? returnsNormally : throws;
-      expect(() {
-        var element = new DivElement();
-        element.classes.add('test');
+      var element = new DivElement();
+      element.classes.add('test');
 
-        expect(element.matches('div'), true);
-        expect(element.matches('span'), false);
-        expect(element.matches('.test'), true);
-      }, expectation);
+      expect(element.matches('div'), true);
+      expect(element.matches('span'), false);
+      expect(element.matches('.test'), true);
     });
   });
 

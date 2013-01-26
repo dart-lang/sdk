@@ -8810,18 +8810,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   /**
    * Checks if this element matches the CSS selectors.
-   *
-   * Use [supportsMatches] to check if this is supported on the current
-   * platform.
-   *
-   * See also:
-   *
-   * * [supportsMatches]
    */
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   bool matches(String selectors) {
     if (JS('bool', '!!#.matches', this)) {
@@ -8834,19 +8823,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
       return JS('bool', '#.msMatchesSelector(#)', this, selectors);
     }
     throw new UnsupportedError("Not supported on this platform");
-  }
-
-  /**
-   * Checks if the matches function is supported on the current platform.
-   *
-   * See also:
-   *
-   * * [matches]
-   */
-  static bool get supportsMatches {
-    var e = new DivElement();
-    return JS('bool', '!!(#.matches || #.webkitMatchesSelector || '
-      '#.mozMatchesSelector || #.msMatchesSelector)', e, e, e, e);
   }
 
 
