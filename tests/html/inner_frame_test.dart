@@ -10,7 +10,7 @@ main() {
     // The child's frame should not be able to access its parent's
     // document.
 
-    window.on.message.add((Event e) {
+    window.onMessage.listen((Event e) {
       switch (e.data) {
       case 'frameElement': {
         // Check window.frameElement.
@@ -74,13 +74,13 @@ main() {
   var child;
 
   test('prepare', () {
-      iframe.on.load.add(expectAsync1((e) { child = iframe.contentWindow;}));
+      iframe.onLoad.listen(expectAsync1((e) { child = iframe.contentWindow;}));
       document.body.nodes.add(iframe);
     });
 
   final validate = (testName, verify) {
     final expectedVerify = expectAsync0(verify);
-    window.on.message.add((e) {
+    window.onMessage.listen((e) {
       guardAsync(() {
           if (e.data == 'pass_$testName') {
             expectedVerify();

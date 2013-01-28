@@ -37,9 +37,8 @@ class KeyboardEventController {
   // The distance to shift from upper case alphabet Roman letters to lower case.
   final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
 
-  // Instance members referring to the internal event handlers because closures
-  // are not hashable.
-  var _keyUp, _keyDown, _keyPress;
+  StreamSubscription _keyUpSubscription, _keyDownSubscription,
+      _keyPressSubscription;
 
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
@@ -95,9 +94,6 @@ class KeyboardEventController {
     _callbacks = [];
     _type = type;
     _target = target;
-    _keyDown = processKeyDown;
-    _keyUp = processKeyUp;
-    _keyPress = processKeyPress;
   }
 
   /**
@@ -106,9 +102,14 @@ class KeyboardEventController {
    */
   void _initializeAllEventListeners() {
     _keyDownList = [];
-    _target.on.keyDown.add(_keyDown, true);
-    _target.on.keyPress.add(_keyPress, true);
-    _target.on.keyUp.add(_keyUp, true);
+    if (_keyDownSubscription == null) {
+      _keyDownSubscription = Element.keyDownEvent.forTarget(
+          _target, useCapture: true).listen(processKeyDown);
+      _keyPressSubscription = Element.keyPressEvent.forTarget(
+          _target, useCapture: true).listen(processKeyUp);
+      _keyUpSubscription = Element.keyUpEvent.forTarget(
+          _target, useCapture: true).listen(processKeyPress);
+    }
   }
 
   /** Add a callback that wishes to be notified when a KeyEvent occurs. */
@@ -142,9 +143,12 @@ class KeyboardEventController {
     }
     if (_callbacks.length == 0) {
       // If we have no listeners, don't bother keeping track of keypresses.
-      _target.on.keyDown.remove(_keyDown);
-      _target.on.keyPress.remove(_keyPress);
-      _target.on.keyUp.remove(_keyUp);
+      _keyDownSubscription.cancel();
+      _keyDownSubscription = null;
+      _keyPressSubscription.cancel();
+      _keyPressSubscription = null;
+      _keyUpSubscription.cancel();
+      _keyUpSubscription = null;
     }
   }
 

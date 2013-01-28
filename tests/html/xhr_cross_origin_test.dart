@@ -38,7 +38,7 @@ main() {
       expect(data['feed'], contains('entry'));
       expect(data, isMap);
     });
-    xhr.on.readyStateChange.add((e) {
+    xhr.onReadyStateChange.listen((e) {
       guardAsync(() {
         if (xhr.readyState == HttpRequest.DONE) {
           validate(json.parse(xhr.response));

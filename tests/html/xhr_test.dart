@@ -35,7 +35,7 @@ main() {
     test('XHR No file', () {
       HttpRequest xhr = new HttpRequest();
       xhr.open("GET", "NonExistingFile", true);
-      xhr.on.readyStateChange.add(expectAsyncUntil1((event) {
+      xhr.onReadyStateChange.listen(expectAsyncUntil1((event) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate404(xhr);
         }
@@ -46,7 +46,7 @@ main() {
     test('XHR file', () {
       var xhr = new HttpRequest();
       xhr.open('GET', url, true);
-      xhr.on.readyStateChange.add(expectAsyncUntil1((e) {
+      xhr.onReadyStateChange.listen(expectAsyncUntil1((e) {
         if (xhr.readyState == HttpRequest.DONE) {
           validate200Response(xhr);
         }

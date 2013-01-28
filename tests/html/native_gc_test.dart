@@ -3,6 +3,8 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 
+var testEvent = new EventStreamProvider<Event>('test');
+
 main() {
   useHtmlConfiguration();
 
@@ -20,15 +22,15 @@ main() {
         l[N - 1] = i;
 
         div = new Element.tag('div');
-        div.on['test'].add((_) {
+        testEvent.forTarget(div).listen((_) {
             // Only the final iteration's listener should be invoked.
             // Note: the reference to l keeps the entire list alive.
             expect(l[N - 1], M - 1);
-          }, false);
+          });
       }
 
       final event = new Event('test');
-      div.on['test'].dispatch(event);
+      div.dispatchEvent(event);
   });
 
   test('WindowEventListener', () {
@@ -37,7 +39,7 @@ main() {
     Element testDiv = new DivElement();
     testDiv.id = '#TestDiv';
     document.body.nodes.add(testDiv);
-    window.on.message.add((e) {
+    window.onMessage.listen((e) {
       if (e.data == message) testDiv.click();
     });
 
@@ -45,7 +47,7 @@ main() {
       triggerMajorGC();
     }
 
-    testDiv.on.click.add(expectAsync1((e) {}));
+    testDiv.onClick.listen(expectAsync1((e) {}));
     window.postMessage(message, '*');
   });
 }
@@ -53,5 +55,5 @@ main() {
 void triggerMajorGC() {
   List list = new List.fixedLength(1000000);
   Element div = new DivElement();
-  div.on.click.add((e) => print(list[0]));
+  div.onClick.listen((e) => print(list[0]));
 }

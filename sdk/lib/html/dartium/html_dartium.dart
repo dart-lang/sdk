@@ -1304,7 +1304,7 @@ class CanvasGradient extends NativeFieldWrapperClass1 {
  *     var ctx = canvas.context2d;
  *     var img = new ImageElement();
  *     // Image src needs to be loaded before pattern is applied.
- *     img.on.load.add((event) {
+ *     img.onLoad.listen((event) {
  *       // When the image is loaded, create a pattern
  *       // from the ImageElement.
  *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');
@@ -32441,9 +32441,8 @@ class KeyboardEventController {
   // The distance to shift from upper case alphabet Roman letters to lower case.
   final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
 
-  // Instance members referring to the internal event handlers because closures
-  // are not hashable.
-  var _keyUp, _keyDown, _keyPress;
+  StreamSubscription _keyUpSubscription, _keyDownSubscription,
+      _keyPressSubscription;
 
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
@@ -32499,9 +32498,6 @@ class KeyboardEventController {
     _callbacks = [];
     _type = type;
     _target = target;
-    _keyDown = processKeyDown;
-    _keyUp = processKeyUp;
-    _keyPress = processKeyPress;
   }
 
   /**
@@ -32510,9 +32506,14 @@ class KeyboardEventController {
    */
   void _initializeAllEventListeners() {
     _keyDownList = [];
-    _target.on.keyDown.add(_keyDown, true);
-    _target.on.keyPress.add(_keyPress, true);
-    _target.on.keyUp.add(_keyUp, true);
+    if (_keyDownSubscription == null) {
+      _keyDownSubscription = Element.keyDownEvent.forTarget(
+          _target, useCapture: true).listen(processKeyDown);
+      _keyPressSubscription = Element.keyPressEvent.forTarget(
+          _target, useCapture: true).listen(processKeyUp);
+      _keyUpSubscription = Element.keyUpEvent.forTarget(
+          _target, useCapture: true).listen(processKeyPress);
+    }
   }
 
   /** Add a callback that wishes to be notified when a KeyEvent occurs. */
@@ -32546,9 +32547,12 @@ class KeyboardEventController {
     }
     if (_callbacks.length == 0) {
       // If we have no listeners, don't bother keeping track of keypresses.
-      _target.on.keyDown.remove(_keyDown);
-      _target.on.keyPress.remove(_keyPress);
-      _target.on.keyUp.remove(_keyUp);
+      _keyDownSubscription.cancel();
+      _keyDownSubscription = null;
+      _keyPressSubscription.cancel();
+      _keyPressSubscription = null;
+      _keyUpSubscription.cancel();
+      _keyUpSubscription = null;
     }
   }
 
@@ -33645,7 +33649,7 @@ class _HttpRequestUtils {
 
     request.withCredentials = withCredentials;
 
-    request.on.readyStateChange.add((e) {
+    request.onReadyStateChange.listen((e) {
       if (request.readyState == HttpRequest.DONE) {
         onComplete(request);
       }
@@ -34498,26 +34502,6 @@ abstract class _Deserializer {
   }
 }
 
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-// TODO(rnystrom): add a way to supress public classes from DartDoc output.
-// TODO(jacobr): we can remove this class now that we are using the $dom_
-// convention for deprecated methods rather than truly private methods.
-/**
- * This class is intended for testing purposes only.
- */
-class Testing {
-  static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target.$dom_addEventListener(type, listener, useCapture);
-  }
-  static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target.$dom_removeEventListener(type, listener, useCapture);
-  }
-
-}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

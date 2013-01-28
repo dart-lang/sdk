@@ -34,43 +34,43 @@ class Test {
     var request = window.indexedDB.open(DB_NAME, VERSION);
     if (request is OpenDBRequest) {
       // New upgrade protocol. FireFox 15, Chrome 24, hopefully IE10.
-      request.on.success.add(expectAsync1((e) {
+      request.onSuccess.listen(expectAsync1((e) {
             db = e.target.result;
             afterOpen();
           }));
-      request.on.upgradeNeeded.add((e) {
+      request.onUpgradeNeeded.listen((e) {
           guardAsync(() {
               _createObjectStore(e.target.result);
             });
         });
-      request.on.error.add(fail('open'));
+      request.onError.listen(fail('open'));
     } else {
       // Legacy setVersion upgrade protocol. Chrome < 23.
-      request.on.success.add(expectAsync1((e) {
+      request.onSuccess.listen(expectAsync1((e) {
             db = e.target.result;
             if (db.version != '$VERSION') {
               var setRequest = db.setVersion('$VERSION');
-              setRequest.on.success.add(
+              setRequest.onSuccess.listen(
                   expectAsync1((e) {
                       _createObjectStore(db);
                       var transaction = e.target.result;
-                      transaction.on.complete.add(
+                      transaction.onComplete.listen(
                           expectAsync1((e) => afterOpen()));
-                      transaction.on.error.add(fail('Upgrade'));
+                      transaction.onError.listen(fail('Upgrade'));
                     }));
-              setRequest.on.error.add(fail('setVersion error'));
+              setRequest.onError.listen(fail('setVersion error'));
             } else {
               afterOpen();
             }
           }));
-      request.on.error.add(fail('open'));
+      request.onError.listen(fail('open'));
     }
   }
 
   _createAndOpenDb(afterOpen()) {
     var request = window.indexedDB.deleteDatabase(DB_NAME);
-    request.on.success.add(expectAsync1((e) { _openDb(afterOpen); }));
-    request.on.error.add(fail('delete old Db'));
+    request.onSuccess.listen(expectAsync1((e) { _openDb(afterOpen); }));
+    request.onError.listen(fail('delete old Db'));
   }
 
   writeItems(int index) {
@@ -78,11 +78,11 @@ class Test {
       var transaction = db.transaction([STORE_NAME], 'readwrite');
       var request = transaction.objectStore(STORE_NAME)
           .put('Item $index', index);
-      request.on.success.add(expectAsync1((e) {
+      request.onSuccess.listen(expectAsync1((e) {
           writeItems(index + 1);
         }
       ));
-      request.on.error.add(fail('put'));
+      request.onError.listen(fail('put'));
     }
   }
 
@@ -95,7 +95,7 @@ class Test {
     int itemCount = 0;
     int sumKeys = 0;
     int lastKey = null;
-    cursorRequest.on.success.add(expectAsync1((e) {
+    cursorRequest.onSuccess.listen(expectAsync1((e) {
       var cursor = e.target.result;
       if (cursor != null) {
         lastKey = cursor.key;
@@ -111,7 +111,7 @@ class Test {
         expect(sumKeys, (100 * 99) ~/ 2);
       }
     }, count:101));
-    cursorRequest.on.error.add(fail('openCursor'));
+    cursorRequest.onError.listen(fail('openCursor'));
   }
 
   readAllReversedViaCursor() {
@@ -122,7 +122,7 @@ class Test {
     int itemCount = 0;
     int sumKeys = 0;
     int lastKey = null;
-    cursorRequest.on.success.add(expectAsync1((e) {
+    cursorRequest.onSuccess.listen(expectAsync1((e) {
       var cursor = e.target.result;
       if (cursor != null) {
         lastKey = cursor.key;
@@ -137,7 +137,7 @@ class Test {
         expect(sumKeys, (100 * 99) ~/ 2);
       }
     }, count:101));
-    cursorRequest.on.error.add(fail('openCursor'));
+    cursorRequest.onError.listen(fail('openCursor'));
   }
 }
 

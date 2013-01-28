@@ -5,6 +5,7 @@
 library ElementTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
+import 'dart:async';
 import 'dart:html';
 import 'dart:svg' as svg;
 
@@ -15,34 +16,6 @@ expectLargeRect(ClientRect rect) {
   expect(rect.height, greaterThan(100));
   expect(rect.bottom, rect.top + rect.height);
   expect(rect.right, rect.left + rect.width);
-}
-
-void testEventHelper(EventListenerList listenerList, String type,
-    [Function registerOnEventListener = null]) {
-  testMultipleEventHelper(listenerList, [type], registerOnEventListener);
-}
-// Allows testing where we polyfill different browsers firing different events.
-void testMultipleEventHelper(EventListenerList listenerList, List<String> types,
-    [Function registerOnEventListener = null]) {
-  bool firedWhenAddedToListenerList = false;
-  bool firedOnEvent = false;
-  listenerList.add((e) {
-    firedWhenAddedToListenerList = true;
-  });
-  if (registerOnEventListener != null) {
-    registerOnEventListener((e) {
-      firedOnEvent = true;
-    });
-  }
-  for (var type in types) {
-    final event = new Event(type);
-    listenerList.dispatch(event);
-  }
-
-  expect(firedWhenAddedToListenerList, isTrue);
-  if (registerOnEventListener != null) {
-    expect(firedOnEvent, isTrue);
-  }
 }
 
 main() {
@@ -232,143 +205,65 @@ main() {
   });
 
   group('eventListening', () {
-    test('eventListeners', () {
-      final element = new Element.tag('div');
-      final on = element.on;
+    test('streams', () {
+      final target = new Element.tag('div');
 
-      testEventHelper(on.abort, 'abort',
-          (listener) => Testing.addEventListener(
-              element, 'abort', listener, true));
-      testEventHelper(on.beforeCopy, 'beforecopy',
-          (listener) => Testing.addEventListener(
-              element, 'beforecopy', listener, true));
-      testEventHelper(on.beforeCut, 'beforecut',
-          (listener) => Testing.addEventListener(
-              element, 'beforecut', listener, true));
-      testEventHelper(on.beforePaste, 'beforepaste',
-          (listener) => Testing.addEventListener(
-              element, 'beforepaste', listener, true));
-      testEventHelper(on.blur, 'blur',
-          (listener) => Testing.addEventListener(
-              element, 'blur', listener, true));
-      testEventHelper(on.change, 'change',
-          (listener) => Testing.addEventListener(
-              element, 'change', listener, true));
-      testEventHelper(on.contextMenu, 'contextmenu',
-          (listener) => Testing.addEventListener(
-              element, 'contextmenu', listener, true));
-      testEventHelper(on.copy, 'copy',
-          (listener) => Testing.addEventListener(
-              element, 'copy', listener, true));
-      testEventHelper(on.cut, 'cut',
-          (listener) => Testing.addEventListener(
-              element, 'cut', listener, true));
-      testEventHelper(on.doubleClick, 'dblclick',
-          (listener) => Testing.addEventListener(
-              element, 'dblclick', listener, true));
-      testEventHelper(on.drag, 'drag',
-          (listener) => Testing.addEventListener(
-              element, 'drag', listener, true));
-      testEventHelper(on.dragEnd, 'dragend',
-          (listener) => Testing.addEventListener(
-              element, 'dragend', listener, true));
-      testEventHelper(on.dragEnter, 'dragenter',
-          (listener) => Testing.addEventListener(
-              element, 'dragenter', listener, true));
-      testEventHelper(on.dragLeave, 'dragleave',
-          (listener) => Testing.addEventListener(
-              element, 'dragleave', listener, true));
-      testEventHelper(on.dragOver, 'dragover',
-          (listener) => Testing.addEventListener(
-              element, 'dragover', listener, true));
-      testEventHelper(on.dragStart, 'dragstart',
-          (listener) => Testing.addEventListener(
-              element, 'dragstart', listener, true));
-      testEventHelper(on.drop, 'drop',
-          (listener) => Testing.addEventListener(
-              element, 'drop', listener, true));
-      testEventHelper(on.error, 'error',
-          (listener) => Testing.addEventListener(
-              element, 'error', listener, true));
-      testEventHelper(on.focus, 'focus',
-          (listener) => Testing.addEventListener(
-              element, 'focus', listener, true));
-      testEventHelper(on.input, 'input',
-          (listener) => Testing.addEventListener(
-              element, 'input', listener, true));
-      testEventHelper(on.invalid, 'invalid',
-          (listener) => Testing.addEventListener(
-              element, 'invalid', listener, true));
-      testEventHelper(on.keyDown, 'keydown',
-          (listener) => Testing.addEventListener(
-              element, 'keydown', listener, true));
-      testEventHelper(on.keyPress, 'keypress',
-          (listener) => Testing.addEventListener(
-              element, 'keypress', listener, true));
-      testEventHelper(on.keyUp, 'keyup',
-          (listener) => Testing.addEventListener(
-              element, 'keyup', listener, true));
-      testEventHelper(on.load, 'load',
-          (listener) => Testing.addEventListener(
-              element, 'load', listener, true));
-      testEventHelper(on.mouseDown, 'mousedown',
-          (listener) => Testing.addEventListener(
-              element, 'mousedown', listener, true));
-      testEventHelper(on.mouseMove, 'mousemove',
-          (listener) => Testing.addEventListener(
-              element, 'mousemove', listener, true));
-      testEventHelper(on.mouseOut, 'mouseout',
-          (listener) => Testing.addEventListener(
-              element, 'mouseout', listener, true));
-      testEventHelper(on.mouseOver, 'mouseover',
-          (listener) => Testing.addEventListener(
-              element, 'mouseover', listener, true));
-      testEventHelper(on.mouseUp, 'mouseup',
-          (listener) => Testing.addEventListener(
-              element, 'mouseup', listener, true));
-      // Browsers have different events that they use, so fire all variants.
-      testMultipleEventHelper(on.mouseWheel,
-          ['mousewheel', 'wheel', 'DOMMouseScroll'],
-          (listener) => Testing.addEventListener(
-              element, 'mousewheel', listener, true));
-      testEventHelper(on.paste, 'paste',
-          (listener) => Testing.addEventListener(
-              element, 'paste', listener, true));
-      testEventHelper(on.reset, 'reset',
-          (listener) => Testing.addEventListener(
-              element, 'reset', listener, true));
-      testEventHelper(on.scroll, 'scroll',
-          (listener) => Testing.addEventListener(
-              element, 'scroll', listener, true));
-      testEventHelper(on.search, 'search',
-          (listener) => Testing.addEventListener(
-              element, 'search', listener, true));
-      testEventHelper(on.select, 'select',
-          (listener) => Testing.addEventListener(
-              element, 'select', listener, true));
-      testEventHelper(on.selectStart, 'selectstart',
-          (listener) => Testing.addEventListener(
-              element, 'selectstart', listener, true));
-      testEventHelper(on.submit, 'submit',
-          (listener) => Testing.addEventListener(
-              element, 'submit', listener, true));
-      testEventHelper(on.touchCancel, 'touchcancel',
-          (listener) => Testing.addEventListener(
-              element, 'touchcancel', listener, true));
-      testEventHelper(on.touchEnd, 'touchend',
-          (listener) => Testing.addEventListener(
-              element, 'touchend', listener, true));
-      testEventHelper(on.touchLeave, 'touchleave');
-      testEventHelper(on.touchMove, 'touchmove',
-          (listener) => Testing.addEventListener(
-              element, 'touchmove', listener, true));
-      testEventHelper(on.touchStart, 'touchstart',
-          (listener) => Testing.addEventListener(
-              element, 'touchstart', listener, true));
-      testEventHelper(on.transitionEnd, 'webkitTransitionEnd');
-      testEventHelper(on.fullscreenChange, 'webkitfullscreenchange',
-          (listener) => Testing.addEventListener(element,
-             'webkitfullscreenchange', listener, true));
+      void testEvent(Stream stream, String type) {
+        var firedOnEvent = false;
+        stream.listen((e) {
+          firedOnEvent = true;
+        });
+        expect(firedOnEvent, isFalse);
+        var event = new Event(type);
+        target.dispatchEvent(event);
+
+        expect(firedOnEvent, isTrue);
+      }
+
+      testEvent(target.onAbort, 'abort');
+      testEvent(target.onBeforeCopy, 'beforecopy');
+      testEvent(target.onBeforeCut, 'beforecut');
+      testEvent(target.onBeforePaste, 'beforepaste');
+      testEvent(target.onBlur, 'blur');
+      testEvent(target.onChange, 'change');
+      testEvent(target.onContextMenu, 'contextmenu');
+      testEvent(target.onCopy, 'copy');
+      testEvent(target.onCut, 'cut');
+      testEvent(target.onDoubleClick, 'dblclick');
+      testEvent(target.onDrag, 'drag');
+      testEvent(target.onDragEnd, 'dragend');
+      testEvent(target.onDragEnter, 'dragenter');
+      testEvent(target.onDragLeave, 'dragleave');
+      testEvent(target.onDragOver, 'dragover');
+      testEvent(target.onDragStart, 'dragstart');
+      testEvent(target.onDrop, 'drop');
+      testEvent(target.onError, 'error');
+      testEvent(target.onFocus, 'focus');
+      testEvent(target.onFullscreenChange, 'webkitfullscreenchange');
+      testEvent(target.onInput, 'input');
+      testEvent(target.onInvalid, 'invalid');
+      testEvent(target.onKeyDown, 'keydown');
+      testEvent(target.onKeyPress, 'keypress');
+      testEvent(target.onKeyUp, 'keyup');
+      testEvent(target.onLoad, 'load');
+      testEvent(target.onMouseDown, 'mousedown');
+      testEvent(target.onMouseMove, 'mousemove');
+      testEvent(target.onMouseOut, 'mouseout');
+      testEvent(target.onMouseOver, 'mouseover');
+      testEvent(target.onMouseUp, 'mouseup');
+      testEvent(target.onPaste, 'paste');
+      testEvent(target.onReset, 'reset');
+      testEvent(target.onScroll, 'scroll');
+      testEvent(target.onSearch, 'search');
+      testEvent(target.onSelect, 'select');
+      testEvent(target.onSelectStart, 'selectstart');
+      testEvent(target.onSubmit, 'submit');
+      testEvent(target.onTouchCancel, 'touchcancel');
+      testEvent(target.onTouchEnd, 'touchend');
+      testEvent(target.onTouchLeave, 'touchleave');
+      testEvent(target.onTouchMove, 'touchmove');
+      testEvent(target.onTouchStart, 'touchstart');
+      testEvent(target.onTransitionEnd, 'webkitTransitionEnd');
     });
   });
 
@@ -376,7 +271,7 @@ main() {
     test('clickEvent', () {
       var e = new DivElement();
       var firedEvent = false;
-      e.on.click.add((event) {
+      e.onClick.listen((event) {
         firedEvent = true;
       });
       expect(firedEvent, false);

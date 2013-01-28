@@ -41,10 +41,10 @@ main() {
       expect(url, startsWith('blob:'));
 
       var img = new ImageElement();
-      img.on.load.add(expectAsync1((_) {
+      img.onLoad.listen(expectAsync1((_) {
         expect(img.complete, true);
       }));
-      img.on.error.add((_) {
+      img.onError.listen((_) {
         guardAsync(() {
           expect(true, isFalse, reason: 'URL failed to load.');
         });
@@ -60,9 +60,9 @@ main() {
 
       var img = new ImageElement();
       // Image should fail to load since the URL was revoked.
-      img.on.error.add(expectAsync1((_) {
+      img.onError.listen(expectAsync1((_) {
       }));
-      img.on.load.add((_) {
+      img.onLoad.listen((_) {
         guardAsync(() {
           expect(true, isFalse, reason: 'URL should not have loaded.');
         });

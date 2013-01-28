@@ -61,10 +61,10 @@ void main() {
     var xhr = new HttpRequest();
     xhr.open("POST", "http://localhost:${window.location.port}/echo");
 
-    xhr.on.load.add(expectAsync1((e) {
+    xhr.onLoad.listen(expectAsync1((e) {
       expect(xhr.responseText.contains(blobString), true);
     }));
-    xhr.on.error.add((e) {
+    xhr.onError.listen((e) {
       fail('$e');
     });
     xhr.send(form);

@@ -40,7 +40,6 @@ part '$AUXILIARY_DIR/Device.dart';
 part '$AUXILIARY_DIR/Isolates.dart';
 part '$AUXILIARY_DIR/Microtask.dart';
 part '$AUXILIARY_DIR/Serialization.dart';
-part '$AUXILIARY_DIR/_Testing.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
 
 part '$AUXILIARY_DIR/native_DOMPublic.dart';

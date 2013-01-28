@@ -26,20 +26,18 @@ main() {
       final JS_CODE = """
         window.postMessage({eggs: 3}, '*');
         """;
-      var callback;
-      var onSuccess = expectAsync1((e) {
-          window.on.message.remove(callback);
-        });
-      callback = (e) {
-        guardAsync(() {
-            var data = e.data;
-            if (data is String) return;    // Messages from unit test protocol.
-            expect(data, isMap);
-            expect(data['eggs'], equals(3));
-            onSuccess(e);
-          });
-      };
-      window.on.message.add(callback);
+      var completed = false;
+      var subscription = null;
+      subscription = window.onMessage.listen(expectAsyncUntil1(
+        (e) {
+          var data = e.data;
+          if (data is String) return;    // Messages from unit test protocol.
+          completed = true;
+          subscription.cancel();
+          expect(data, isMap);
+          expect(data['eggs'], equals(3));
+        },
+        () => completed));
       injectSource(JS_CODE);
     });
 
@@ -58,21 +56,19 @@ main() {
           window.postMessage(response, '*');
         }
         """;
-      var callback;
-      var onSuccess = expectAsync1((e) {
-          window.on.message.remove(callback);
-        });
-      callback = (e) {
-        guardAsync(() {
-            var data = e.data;
-            if (data is String) return;    // Messages from unit test protocol.
-            expect(data, isMap);
-            if (data['recipient'] != 'DART') return;  // Hearing the sent message.
-            expect(data['peas'], equals(50));
-            onSuccess(e);
-          });
-      };
-      window.on.message.add(callback);
+      var completed = false;
+      var subscription = null;
+      subscription = window.onMessage.listen(expectAsyncUntil1(
+        (e) {
+          var data = e.data;
+          if (data is String) return;    // Messages from unit test protocol.
+          if (data['recipient'] != 'DART') return;  // Hearing the sent message.
+          completed = true;
+          subscription.cancel();
+          expect(data, isMap);
+          expect(data['peas'], equals(50));
+        },
+        () => completed));
       injectSource(JS_CODE);
       window.postMessage({'recipient': 'JS', 'curry': 'peas'}, '*');
     });
@@ -93,22 +89,21 @@ main() {
               window.postMessage(response, '*');
             }
             """;
-          var onSuccess = expectAsync0(() {});
-          callback(e) {
-            guardAsync(() {
-                var data = e.data;
-                if (data is String) return;    // Messages from unit test protocol.
-                expect(data, isMap);
-                if (data['recipient'] != 'DART') return;  // Not for me.
-                var returnedValue = data['data'];
-
-                window.on.message.remove(callback);
-                expect(returnedValue, isNot(same(value)));
-                verifyGraph(value, returnedValue);
-                onSuccess();
-              });
-          };
-          window.on.message.add(callback);
+          var completed = false;
+          var subscription = null;
+          subscription = window.onMessage.listen(expectAsyncUntil1(
+            (e) {
+              var data = e.data;
+              if (data is String) return; // Messages from unit test protocol.
+              if (data['recipient'] != 'DART') return;  // Not for me.
+              completed = true;
+              subscription.cancel();
+              expect(data, isMap);
+              var returnedValue = data['data'];
+              expect(returnedValue, isNot(same(value)));
+              verifyGraph(value, returnedValue);
+            },
+            () => completed));
           injectSource(JS_CODE);
           window.postMessage({'recipient': 'JS', 'data': value}, '*');
         });
