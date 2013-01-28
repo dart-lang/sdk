@@ -2538,7 +2538,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
         // of the control flow (controlled by the state argument passed
         // above).  We need to pass it to get later arguments in the right
         // position.
-        arguments.add(new js.LiteralNull());
+        arguments.add(new js.LiteralNumber('0'));
       }
       use(parameter);
       arguments.add(pop());
@@ -2843,14 +2843,14 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     // undefined for the trailing arguments.
     node.padding = new List<int>(node.inputs.length);
     int j = 0;
-    int pendingNulls = 0;
+    int pendingUnusedArguments = 0;
     for (int i = 0; i < newInputs.length; i++) {
       HInstruction input = newInputs[i];
       if (input == null) {
-        pendingNulls++;
+        pendingUnusedArguments++;
       } else {
-        node.padding[j] = pendingNulls;
-        pendingNulls = 0;
+        node.padding[j] = pendingUnusedArguments;
+        pendingUnusedArguments = 0;
         node.updateInput(j, input);
         j++;
       }
