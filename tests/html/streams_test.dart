@@ -190,7 +190,7 @@ main() {
   });
 
   test('reduce', () {
-    stream.reduce(null, (_) => null).then((_) {});
+    stream.reduce(null, (a, b) => null).then((_) {});
   });
 
   test('contains', () {
