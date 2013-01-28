@@ -366,6 +366,9 @@ class Unparser implements Visitor {
       sb.add(' ');
     }
     visit(node.definitions);
+    if (node.endToken.value == const SourceString(';')) {
+      add(node.endToken.value);
+    }
   }
 
   visitDoWhile(DoWhile node) {

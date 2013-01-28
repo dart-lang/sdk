@@ -695,16 +695,13 @@ class ResolverTask extends CompilerTask {
     if (value == null) return;
     if (!(isUserDefinableOperator(value) || identical(value, 'unary-'))) return;
 
-    bool isMinus = false;
     int requiredParameterCount;
     MessageKind messageKind;
     FunctionSignature signature = function.computeSignature(compiler);
     if (identical(value, 'unary-')) {
-      isMinus = true;
       messageKind = MessageKind.MINUS_OPERATOR_BAD_ARITY;
       requiredParameterCount = 0;
     } else if (isMinusOperator(value)) {
-      isMinus = true;
       messageKind = MessageKind.MINUS_OPERATOR_BAD_ARITY;
       requiredParameterCount = 1;
     } else if (isUnaryOperator(value)) {
@@ -720,40 +717,17 @@ class ResolverTask extends CompilerTask {
       compiler.internalErrorOnElement(function,
           'Unexpected user defined operator $value');
     }
-    checkArity(function, requiredParameterCount, messageKind, isMinus);
+    checkArity(function, requiredParameterCount, messageKind);
   }
 
   void checkArity(FunctionElement function,
-                  int requiredParameterCount, MessageKind messageKind,
-                  bool isMinus) {
+                  int requiredParameterCount, MessageKind messageKind) {
     FunctionExpression node = function.parseNode(compiler);
     FunctionSignature signature = function.computeSignature(compiler);
     if (signature.requiredParameterCount != requiredParameterCount) {
       Node errorNode = node;
       if (node.parameters != null) {
-        if (isMinus ||
-            signature.requiredParameterCount < requiredParameterCount) {
-          // If there are too few parameters, point to the whole parameter list.
-          // For instance
-          //
-          //     int operator +() {}
-          //                   ^^
-          //
-          //     int operator []=(value) {}
-          //                     ^^^^^^^
-          //
-          // For operator -, always point the whole parameter list, like
-          //
-          //     int operator -(a, b) {}
-          //                   ^^^^^^
-          //
-          // instead of
-          //
-          //     int operator -(a, b) {}
-          //                       ^
-          //
-          // since the correction might not be to remove 'b' but instead to
-          // remove 'a, b'.
+        if (signature.requiredParameterCount < requiredParameterCount) {
           errorNode = node.parameters;
         } else {
           errorNode = node.parameters.nodes.skip(requiredParameterCount).head;

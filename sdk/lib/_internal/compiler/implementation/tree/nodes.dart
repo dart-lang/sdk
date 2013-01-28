@@ -1069,10 +1069,12 @@ class TypeVariable extends Node {
 }
 
 class VariableDefinitions extends Statement {
+  final Token endToken;
   final TypeAnnotation type;
   final Modifiers modifiers;
   final NodeList definitions;
-  VariableDefinitions(this.type, this.modifiers, this.definitions) {
+  VariableDefinitions(this.type, this.modifiers, this.definitions,
+                      this.endToken) {
     assert(modifiers != null);
   }
 
@@ -1093,7 +1095,7 @@ class VariableDefinitions extends Statement {
     return token;
   }
 
-  Token getEndToken() => definitions.getEndToken();
+  Token getEndToken() => endToken;
 }
 
 abstract class Loop extends Statement {

@@ -213,7 +213,8 @@ class CloningVisitor implements Visitor<Node> {
       visit(node.name), visit(node.bound));
 
   visitVariableDefinitions(VariableDefinitions node) => new VariableDefinitions(
-      visit(node.type), visit(node.modifiers), visit(node.definitions));
+      visit(node.type), visit(node.modifiers), visit(node.definitions),
+      node.endToken);
 
   visitWhile(While node) => new While(
       visit(node.condition), visit(node.body), node.whileKeyword);

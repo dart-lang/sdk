@@ -105,7 +105,7 @@ class Listener {
   void beginFormalParameter(Token token) {
   }
 
-  void endFormalParameter(Token thisKeyword) {
+  void endFormalParameter(Token token, Token thisKeyword) {
   }
 
   void handleNoFormalParameters(Token token) {
@@ -1252,9 +1252,9 @@ class NodeListener extends ElementListener {
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    NodeList variables = makeNodeList(count, null, endToken, ",");
+    NodeList variables = makeNodeList(count, null, null, ",");
     Modifiers modifiers = popNode();
-    pushNode(new VariableDefinitions(null, modifiers, variables));
+    pushNode(new VariableDefinitions(null, modifiers, variables, endToken));
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
@@ -1275,7 +1275,7 @@ class NodeListener extends ElementListener {
                                            modifiers, compilationUnitElement));
   }
 
-  void endFormalParameter(Token thisKeyword) {
+  void endFormalParameter(Token token, Token thisKeyword) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -1287,8 +1287,8 @@ class NodeListener extends ElementListener {
     }
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(
-        new VariableDefinitions(type, modifiers, new NodeList.singleton(name)));
+    pushNode(new VariableDefinitions(type, modifiers,
+                                     new NodeList.singleton(name), token));
   }
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {
@@ -1507,10 +1507,10 @@ class NodeListener extends ElementListener {
   void endVariablesDeclaration(int count, Token endToken) {
     // TODO(ahe): Pick one name for this concept, either
     // VariablesDeclaration or VariableDefinitions.
-    NodeList variables = makeNodeList(count, null, endToken, ",");
+    NodeList variables = makeNodeList(count, null, null, ",");
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new VariableDefinitions(type, modifiers, variables));
+    pushNode(new VariableDefinitions(type, modifiers, variables, endToken));
   }
 
   void endInitializer(Token assignmentOperator) {
@@ -1617,10 +1617,10 @@ class NodeListener extends ElementListener {
   }
 
   void endFields(int count, Token beginToken, Token endToken) {
-    NodeList variables = makeNodeList(count, null, endToken, ",");
+    NodeList variables = makeNodeList(count, null, null, ",");
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new VariableDefinitions(type, modifiers, variables));
+    pushNode(new VariableDefinitions(type, modifiers, variables, endToken));
   }
 
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
