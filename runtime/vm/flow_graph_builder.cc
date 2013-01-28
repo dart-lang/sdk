@@ -1786,6 +1786,34 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 }
 
 
+static intptr_t GetResultCidOfNative(const Function& function) {
+  const Class& function_class = Class::Handle(function.Owner());
+  if (function_class.library() == Library::ScalarlistLibrary()) {
+    const String& function_name = String::Handle(function.name());
+    if (!String::EqualsIgnoringPrivateKey(function_name, Symbols::_New())) {
+      return kDynamicCid;
+    }
+    switch (function_class.id()) {
+      case kInt8ArrayCid:
+      case kUint8ArrayCid:
+      case kUint8ClampedArrayCid:
+      case kInt16ArrayCid:
+      case kUint16ArrayCid:
+      case kInt32ArrayCid:
+      case kUint32ArrayCid:
+      case kInt64ArrayCid:
+      case kUint64ArrayCid:
+      case kFloat32ArrayCid:
+      case kFloat64ArrayCid:
+        return function_class.id();
+      default:
+        return kDynamicCid;  // Unknown.
+    }
+  }
+  return kDynamicCid;
+}
+
+
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
@@ -1821,6 +1849,10 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
                           node->function(),
                           node->arguments()->names(),
                           arguments);
+  if (node->function().is_native()) {
+    const intptr_t result_cid = GetResultCidOfNative(node->function());
+    call->set_result_cid(result_cid);
+  }
   ReturnDefinition(call);
 }
 
