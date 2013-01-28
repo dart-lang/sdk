@@ -628,7 +628,8 @@ class LocalsHandler {
                               HBasicBlock joinBlock) {
     assert(locals.length > 0);
     if (locals.length == 1) return locals[0];
-    Map<Element, HInstruction> joinedLocals = new LinkedHashMap<Element,HInstruction>();
+    Map<Element, HInstruction> joinedLocals =
+        new LinkedHashMap<Element,HInstruction>();
     HInstruction thisValue = null;
     directLocals.forEach((Element element, HInstruction instruction) {
       if (!identical(element, closureData.thisElement)) {

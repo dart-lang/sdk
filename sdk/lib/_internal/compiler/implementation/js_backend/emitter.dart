@@ -84,8 +84,21 @@ class CodeEmitterTask extends CompilerTask {
    * interceptor instance, and the actual receiver of the method.
    */
   final Map<int, String> interceptorClosureCache;
+
+  /**
+   * Raw ClassElement symbols occuring in is-checks and type assertions.  If the
+   * program contains parameterized checks `x is Set<int>` and
+   * `x is Set<String>` then the ClassElement `Set` will occur once in
+   * [checkedClasses].
+   */
   Set<ClassElement> checkedClasses;
-  List<TypedefElement> checkedTypedefs;
+
+  /**
+   * Raw Typedef symbols occuring in is-checks and type assertions.  If the
+   * program contains `x is F<int>` and `x is F<bool>` then the TypedefElement
+   * `F` will occur once in [checkedTypedefs].
+   */
+  Set<TypedefElement> checkedTypedefs;
 
   final bool generateSourceMap;
 
@@ -103,7 +116,7 @@ class CodeEmitterTask extends CompilerTask {
   void computeRequiredTypeChecks() {
     assert(checkedClasses == null);
     checkedClasses = new Set<ClassElement>();
-    checkedTypedefs = new List<TypedefElement>();
+    checkedTypedefs = new Set<TypedefElement>();
     compiler.codegenWorld.isChecks.forEach((DartType t) {
       if (t is InterfaceType) {
         checkedClasses.add(t.element);
@@ -111,7 +124,6 @@ class CodeEmitterTask extends CompilerTask {
         checkedTypedefs.add(t.element);
       }
     });
-    checkedTypedefs.sort(Elements.compareByPosition);
   }
 
   js.Expression constantReference(Constant value) {
@@ -1187,11 +1199,13 @@ $lazyInitializerLogic
   }
 
   Iterable<Element> getTypedefChecksOn(DartType type) {
-    return checkedTypedefs.where((TypedefElement typedef) {
+    bool isSubtype(TypedefElement typedef) {
       FunctionType typedefType =
           typedef.computeType(compiler).unalias(compiler);
       return compiler.types.isSubtype(type, typedefType);
-    });
+    }
+    return checkedTypedefs.where(isSubtype).toList()
+        ..sort(Elements.compareByPosition);
   }
 
   /**
