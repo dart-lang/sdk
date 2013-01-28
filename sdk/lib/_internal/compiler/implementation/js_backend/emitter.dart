@@ -885,12 +885,10 @@ $lazyInitializerLogic
       SourceString name = member.name;
       bool isPrivate = name.isPrivate();
 
-      // If we're dealing with a native class and we've found the
-      // field in an applied mixin, we treat it as if we've found the
-      // field in the class itself.
-      if (classElement.isNative() && enclosingClass.isMixinApplication) {
-        enclosingClass = classElement;
-      }
+      // Keep track of whether or not we're dealing with a field mixin
+      // into a native class.
+      bool isMixinNativeField =
+          classElement.isNative() && enclosingClass.isMixinApplication;
 
       // See if we can dynamically create getters and setters.
       // We can only generate getters and setters for [classElement] since
@@ -901,7 +899,7 @@ $lazyInitializerLogic
       // We need to name shadowed fields differently, so they don't clash with
       // the non-shadowed field.
       bool isShadowed = false;
-      if (identical(enclosingClass, classElement)) {
+      if (isMixinNativeField || identical(enclosingClass, classElement)) {
         needsGetter = instanceFieldNeedsGetter(member);
         needsSetter = instanceFieldNeedsSetter(member);
       } else {
@@ -916,7 +914,7 @@ $lazyInitializerLogic
             : namer.getName(member);
         String fieldName = member.hasFixedBackendName()
             ? member.fixedBackendName()
-            : accessorName;
+            : (isMixinNativeField ? member.name.slowToString() : accessorName);
         bool needsCheckedSetter = false;
         if (needsSetter && compiler.enableTypeAssertions
             && canGenerateCheckedSetter(member)) {

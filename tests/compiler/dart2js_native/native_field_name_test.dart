@@ -23,7 +23,7 @@ function getter() {
 function setter(x) {
   this.getValue += 10;
 }
-  
+
 function A(){
   var a = Object.create(
       { constructor: { name: 'A'}},
