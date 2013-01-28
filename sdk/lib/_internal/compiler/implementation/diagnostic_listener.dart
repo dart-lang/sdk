@@ -16,7 +16,7 @@ abstract class DiagnosticListener {
                      {Node node, Token token, HInstruction instruction,
                       Element element});
 
-  SourceSpan spanFromSpannable(Node node, [Uri uri]);
+  SourceSpan spanFromSpannable(Spannable node, [Uri uri]);
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind);
 

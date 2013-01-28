@@ -243,6 +243,10 @@ class ResolverTask extends CompilerTask {
       }
       return compiler.withCurrentElement(element, () {
         FunctionExpression tree = element.parseNode(compiler);
+        if (tree.modifiers.isExternal()) {
+          error(tree, MessageKind.EXTERNAL_WITHOUT_IMPLEMENTATION);
+          return;
+        }
         if (isConstructor) {
           if (tree.returnType != null) {
             error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);

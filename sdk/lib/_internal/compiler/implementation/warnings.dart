@@ -375,6 +375,9 @@ Length: #{3}''');
       "Patch method parameter '#{3}' doesn't match '#{2}' on origin method "
       "#{1}.");
 
+  static const EXTERNAL_WITHOUT_IMPLEMENTATION = const MessageKind(
+      "External method without an implementation.");
+
   static const TOP_LEVEL_VARIABLE_DECLARED_STATIC = const MessageKind(
       "Top-level variable cannot be declared static.");
 
