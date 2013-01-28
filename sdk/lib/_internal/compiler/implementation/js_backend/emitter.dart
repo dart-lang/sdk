@@ -881,10 +881,17 @@ $lazyInitializerLogic
 
     void visitField(ClassElement enclosingClass, Element member) {
       assert(invariant(classElement, member.isDeclaration));
-
       LibraryElement library = member.getLibrary();
       SourceString name = member.name;
       bool isPrivate = name.isPrivate();
+
+      // If we're dealing with a native class and we've found the
+      // field in an applied mixin, we treat it as if we've found the
+      // field in the class itself.
+      if (classElement.isNative() && enclosingClass.isMixinApplication) {
+        enclosingClass = classElement;
+      }
+
       // See if we can dynamically create getters and setters.
       // We can only generate getters and setters for [classElement] since
       // the fields of super classes could be overwritten with getters or
