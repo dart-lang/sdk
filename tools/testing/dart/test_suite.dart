@@ -971,8 +971,17 @@ class StandardTestSuite extends TestSuite {
             htmlPath.substring(basePath.length) : htmlPath;
         String fullHtmlPath = htmlPath;
         if (!htmlPath.startsWith('http')) {
-          fullHtmlPath = 'http://127.0.0.1:${serverList[0].port}$htmlPath?'
-              'crossOriginPort=${serverList[1].port}';
+          // Note: If we run test.py with the "--list" option, no http servers
+          // will be started. Therefore serverList is an empty list in this
+          // case. So we use PORT/CROSS_ORIGIN_PORT instead of real ports.
+          var serverPort = "PORT";
+          var crossOriginPort = "CROSS_ORIGIN_PORT";
+          if (!configuration['list']) {
+            serverPort = serverList[0].port.toString();
+            crossOriginPort = serverList[1].port.toString();
+          }
+          fullHtmlPath = 'http://127.0.0.1:$serverPort$htmlPath?'
+              'crossOriginPort=$crossOriginPort';
         }
         if (info.optionsFromFile['isMultiHtmlTest']
             && subtestNames.length > 0) {
