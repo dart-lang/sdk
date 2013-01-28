@@ -28,7 +28,7 @@ abstract class SerializationRule {
    * be identified within it by number.
    */
   void set number(x) {
-    if (_number != null) throw
+    if (_number != null && _number != x) throw
         new SerializationException("Rule numbers cannot be changed, once set");
     _number = x;
   }
@@ -48,23 +48,32 @@ abstract class SerializationRule {
   extractState(object, void f(value));
 
   /**
+   * Allows rules to tell us how they expect to store their state. If this
+   * isn't specified we can also just look at the data to tell.
+   */
+  bool get storesStateAsLists => false;
+  bool get storesStateAsMaps => false;
+  bool get storesStateAsPrimitives => false;
+
+  /**
    * Given the variables representing the state of an object, flatten it
    * by turning object pointers into Reference objects where needed. This
    * destructively modifies the state object.
    *
    * This has a default implementation which assumes that object is indexable,
    * so either conforms to Map or List. Subclasses may override to do something
-   * different.
+   * different, including returning a new state object to be used in place
+   * of the original.
    */
   // This has to be a separate operation from extracting, because we extract
   // as we are traversing the objects, so we don't yet have the objects to
   // generate references for them. It might be possible to avoid that by
   // doing a depth-first rather than breadth-first traversal, but I'm not
   // sure it's worth it.
-  void flatten(state, Writer writer) {
+  flatten(state, Writer writer) {
     keysAndValues(state).forEach((key, value) {
       var reference = writer._referenceFor(value);
-      state[key] = (reference == null) ? value : reference;
+      state[key] = reference;
     });
   }
 
@@ -131,7 +140,7 @@ class ListRule extends SerializationRule {
 
   appliesTo(object, Writer w) => object is List;
 
-  state(List list) => new List.from(list);
+  bool get storesStateAsLists => true;
 
   List extractState(List list, f) {
     var result = new List();
@@ -180,6 +189,84 @@ class ListRuleEssential extends ListRule {
 }
 
 /**
+ * This rule handles things that implement Map. It will recreate them as
+ * whatever the default implemenation of Map is on the target platform. If a
+ * map has string keys it will attempt to retain it as a map for JSON formats,
+ * otherwise it will store it as a list of references to keys and values.
+ */
+class MapRule extends SerializationRule {
+
+  appliesTo(object, Writer w) => object is Map;
+
+  bool get storesStateAsMaps => true;
+
+  extractState(Map map, f) {
+    // Note that we make a copy here because flattening may be destructive.
+    var newMap = new Map.from(map);
+    newMap.forEach((key, value) {
+      f(key);
+      f(value);
+    });
+    return newMap;
+  }
+
+  /**
+   * Change the keys and values of [state] into references in [writer].
+   * If [state] is a map whose keys are all strings then we leave the keys
+   * as is so that JSON formats will be more readable. If the keys are
+   * arbitrary then we need to turn them into references and replace the
+   * state with a new Map whose keys are the references.
+   */
+  flatten(Map state, Writer writer) {
+    bool keysAreAllStrings = state.keys.every((x) => x is String);
+    if (keysAreAllStrings) {
+      keysAndValues(state).forEach(
+          (key, value) => state[key] = writer._referenceFor(value));
+      return state;
+    } else {
+      var newState = [];
+      keysAndValues(state).forEach((key, value) {
+        newState.add(writer._referenceFor(key));
+        newState.add(writer._referenceFor(value));
+      });
+      return newState;
+    }
+  }
+
+  inflateEssential(state, Reader r) => new Map();
+
+  // For a map, we consider all of its state non-essential and add it
+  // after creation.
+  inflateNonEssential(state, Map newMap, Reader r) {
+    if (state is List) {
+      inflateNonEssentialFromList(state, newMap, r);
+    } else {
+      inflateNonEssentialFromMap(state, newMap, r);
+    }
+  }
+
+  void inflateNonEssentialFromList(List state, Map newMap, Reader r) {
+    var key;
+    for (var each in state) {
+      if (key == null) {
+        key = each;
+      } else {
+        newMap[r.inflateReference(key)] = r.inflateReference(each);
+        key = null;
+      }
+    }
+  }
+
+  void inflateNonEssentialFromMap(Map state, Map newMap, Reader r) {
+    state.forEach((key, value) {
+      newMap[r.inflateReference(key)] = r.inflateReference(value);
+    });
+  }
+
+  bool get hasVariableLengthEntries => true;
+}
+
+/**
  * This rule handles primitive types, defined as those that we can normally
  * represent directly in the output format. We hard-code that to mean
  * num, String, and bool.
@@ -189,9 +276,11 @@ class PrimitiveRule extends SerializationRule {
     return isPrimitive(object);
   }
   extractState(object, Function f) => object;
-  void flatten(object, Writer writer) {}
+  flatten(object, Writer writer) {}
   inflateEssential(state, Reader r) => state;
   inflateNonEssential(object, _, Reader r) {}
+
+  bool get storesStateAsPrimitives => true;
 
   /**
    * Indicate whether we should save pointers to this object as references
@@ -274,7 +363,7 @@ class NamedObjectRule extends SerializationRule {
   // reference to that. But that requires adding the Writer as a parameter to
   // extractState, and I'm reluctant to add yet another parameter until
   // proven necessary.
-  void flatten(state, Writer writer) {
+  flatten(state, Writer writer) {
     state[0] = nameFor(state.first, writer);
   }
 
@@ -445,8 +534,8 @@ class _LazyList extends Iterable implements List {
   sort([f]) => _throw();
   clear() => _throw();
   removeAt(x) => _throw();
-  removeLast() => _throw();
   remove(x) => _throw();
+  removeLast() => _throw();
   removeAll(x) => _throw();
   retainAll(x) => _throw();
   removeMatching(x) => _throw();
@@ -455,6 +544,6 @@ class _LazyList extends Iterable implements List {
   setRange(x, y, z, [a]) => _throw();
   removeRange(x, y) => _throw();
   insertRange(x, y, [z]) => _throw();
+  get reversed => _throw();
   void set length(x) => _throw();
-  List get reversed => _throw();
 }

@@ -183,7 +183,9 @@ import 'src/mirrors_helpers.dart';
 import 'src/serialization_helpers.dart';
 import 'dart:async';
 import 'dart:json' as json;
-import 'dart:collection' show Queue;
+import 'dart:collection';
+// TODO(alanknight): Ugh. Remove this if we can resolve bug 7982/7940.
+import 'dart:collection-dev';
 
 part 'src/reader_writer.dart';
 part 'src/serialization_rule.dart';
@@ -311,6 +313,7 @@ class Serialization {
     // Both these rules apply to lists, so unless otherwise indicated,
     // it will always find the first one.
     addRule(new ListRuleEssential());
+    addRule(new MapRule());
   }
 
   /**
@@ -426,6 +429,7 @@ class Serialization {
     var meta = new Serialization()
       ..selfDescribing = false
       ..addRuleFor(new ListRule())
+      ..addRuleFor(new MapRule())
       ..addRuleFor(new PrimitiveRule())
       ..addRuleFor(new ListRuleEssential())
       ..addRuleFor(basicRule,
@@ -463,4 +467,5 @@ class Serialization {
 class SerializationException implements Exception {
   final String message;
   const SerializationException([this.message]);
+  toString() => "SerializationException($message)";
 }

@@ -47,15 +47,19 @@ main() {
     // actually writing.
     var w = new Writer(s);
     w.write(p1);
-    var flatPerson = w.states[3].first;
+    var personRule = s.rules.firstMatching(
+        (x) => x is BasicRule && x.type == reflect(p1).type);
+    var flatPerson = w.states[personRule.number].first;
     var primStates = w.states.first;
     expect(primStates.isEmpty, true);
     expect(flatPerson["name"], "Alice");
     var ref = flatPerson["address"];
     expect(ref is Reference, true);
-    expect(ref.ruleNumber, 4);
+    var addressRule = s.rules.firstMatching(
+        (x) => x is BasicRule && x.type == reflect(a1).type);
+    expect(ref.ruleNumber, addressRule.number);
     expect(ref.objectNumber, 0);
-    expect(w.states[4].first['street'], 'N 34th');
+    expect(w.states[addressRule.number].first['street'], 'N 34th');
   });
 
   test('exclude fields', () {
@@ -206,9 +210,11 @@ main() {
     var w = new Writer(s);
     w.trace = new Trace(w);
     w.write(n1);
-    expect(w.states.length, 4); // prims, lists, essential lists, basic
+    expect(w.states.length, 5); // prims, lists, essential lists, basic
     var children = 0, name = 1, parent = 2;
-    List rootNode = w.states[3].where((x) => x[name] == "1").toList();
+    var nodeRule = s.rules.firstMatching((x) => x is BasicRule);
+    List rootNode = w.states[nodeRule.number].where(
+        (x) => x[name] == "1").toList();
     rootNode = rootNode.first;
     expect(rootNode[parent], isNull);
     var list = w.states[1].first;
@@ -372,6 +378,25 @@ main() {
     expect(a2.city, "Seattle");
   });
 
+  test("Straight JSON format, root is a Map", () {
+    // Note that we can't use the usual round-trip test because it has cycles.
+    var p1 = new Person()..name = 'Alice'..address = a1;
+    // Use maps for one rule, lists for the other.
+    var s = new Serialization()
+      ..addRuleFor(a1)
+      ..addRuleFor(p1).configureForMaps();
+    var format = new SimpleJsonFormat(storeRoundTripInfo: true);
+    var writer = s.newWriter(format);
+    var out = writer.write({"stuff" : p1});
+    var reader = s.newReader(format);
+    var p2 = reader.read(out)["stuff"];
+    expect(p2.name, "Alice");
+    var a2 = p2.address;
+    expect(a2.street, "N 34th");
+    expect(a2.city, "Seattle");
+  });
+
+
   test("Straight JSON format, round-trip with named objects", () {
     // Note that we can't use the usual round-trip test because it has cycles.
     var p1 = new Person()..name = 'Alice'..address = a1;
@@ -388,6 +413,54 @@ main() {
     expect(p2.name, "Alice");
     var a2 = p2.address;
     expect(a2, 12);
+  });
+
+  test("Maps", () {
+    var s = new Serialization()..selfDescribing = false;
+    var p1 = new Person()..name = 'Alice'..address = a1;
+    var data = new Map();
+    data["simple data"] = 1;
+    data[p1] = a1;
+    data[a1] = p1;
+    var formats = [new SimpleFlatFormat(), new SimpleMapFormat(),
+        new SimpleJsonFormat(storeRoundTripInfo: true)];
+    for (var eachFormat in formats) {
+      var output = s.write(data, eachFormat);
+      var reader = s.newReader(eachFormat);
+      var input = reader.read(output);
+      expect(input["simple data"], data["simple data"]);
+      var p2 = input.keys.firstMatching((x) => x is Person);
+      var a2 = input.keys.firstMatching((x) => x is Address);
+      if (eachFormat is SimpleJsonFormat) {
+        // JSON doesn't handle cycles, so these won't be identical.
+        expect(input[p2] is Address, isTrue);
+        expect(input[a2] is Person, isTrue);
+        var a3 = input[p2];
+        expect(a3.city, a2.city);
+        expect(a3.state, a2.state);
+        expect(a3.state, a2.state);
+        var p3 = input[a2];
+        expect(p3.name, p2.name);
+        expect(p3.rank, p2.rank);
+        expect(p3.address.city, a2.city);
+      } else {
+        expect(input[p2], same(a2));
+        expect(input[a2], same(p2));
+      }
+    }
+  });
+
+  test("Map with string keys stays that way", () {
+    var s = new Serialization()..addRuleFor(new Person());
+    var data = {"abc" : 1, "def" : "ghi"};
+    data["person"] = new Person()..name = "Foo";
+    var output = s.write(data, new SimpleMapFormat());
+    var mapRule = s.rules.firstMatching((x) => x is MapRule);
+    var map = json.parse(output)["data"][mapRule.number][0];
+    expect(map is Map, isTrue);
+    expect(map["abc"], 1);
+    expect(map["def"], "ghi");
+    expect(new Reader(s).asReference(map["person"]) is Reference, isTrue);
   });
 }
 
@@ -413,10 +486,11 @@ Serialization metaSerialization() {
           'constructorName',
           'constructorFields', 'regularFields', []],
         fields: [])
-     ..addRuleFor(new Serialization()).setFieldWith('rules',
-         (InstanceMirror s, List rules) {
+     ..addRuleFor(new Serialization(), constructor: "blank")
+         .setFieldWith('rules',
+           (InstanceMirror s, List rules) {
              rules.forEach((x) => s.reflectee.addRule(x));
-         })
+           })
     ..addRule(new NamedObjectRule())
     ..addRule(new MirrorRule());
   return meta;
@@ -441,7 +515,7 @@ Reader setUpReader(aSerialization, sampleData) {
   var reader = new Reader(aSerialization);
   // We're not sure which rule needs the sample data, so put it everywhere
   // and trust that the extra will just be ignored.
-  reader.data = [[sampleData], [sampleData], [sampleData], [sampleData]];
+  reader.data = new List.filled(10, [sampleData]);
   return reader;
 }
 

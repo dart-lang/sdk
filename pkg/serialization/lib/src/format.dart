@@ -95,6 +95,11 @@ class SimpleJsonFormat extends Format {
    */
   final bool storeRoundTripInfo;
 
+  /**
+   * If we store the rule numbers, what key should we use to store them.
+   */
+  String ruleIdentifier = "__rule";
+
   SimpleJsonFormat({this.storeRoundTripInfo : false});
 
   /**
@@ -129,7 +134,7 @@ class SimpleJsonFormat extends Format {
         if (storeRoundTripInfo) ruleData[i].add(rule.number);
       } else if (each is Map) {
         jsonifyEntry(each, w);
-        if (storeRoundTripInfo) each["__rule"] = rule.number;
+        if (storeRoundTripInfo) each[ruleIdentifier] = rule.number;
       }
     }
   }
@@ -157,7 +162,6 @@ class SimpleJsonFormat extends Format {
     result["rules"] = null;
     var ruleData =
         new List(r.serialization.rules.length).mappedBy((x) => []).toList();
-    var rootRule = data["__rule"];
     var top = recursivelyFixUp(data, r, ruleData);
     result["data"] = ruleData;
     result["roots"] = [top];
@@ -172,12 +176,22 @@ class SimpleJsonFormat extends Format {
       result[r._primitiveRule().number].add(data);
       return data;
     }
-    var ruleNumber =
-        (data is List) ? data.removeLast() : data.remove("__rule");
+    var ruleNumber;
+    if (data is List) {
+      ruleNumber = data.removeLast();
+    } else if (data is Map) {
+      ruleNumber = data.remove(ruleIdentifier);
+    } else {
+      throw new SerializationException("Invalid data format");
+    }
     var newData = values(data).mappedBy(
         (x) => recursivelyFixUp(x, r, result));
+    // TODO(alanknight): Ugh. Get rid of this if we can resolve bug 7982/7940.
+    if (newData is MappedList) {
+      newData = newData.toList();
+    }
     result[ruleNumber].add(newData);
-    return new Reference(this, ruleNumber, result[ruleNumber].length - 1);
+    return new Reference(r, ruleNumber, result[ruleNumber].length - 1);
   }
 }
 
@@ -225,12 +239,14 @@ class SimpleFlatFormat extends Format {
   void writeStateInto(SerializationRule rule, List ruleData, List target) {
     if (!ruleData.isEmpty) {
       var sample = ruleData.first;
-      if (sample is List) {
+      if (rule.storesStateAsLists || sample is List) {
         writeLists(rule, ruleData, target);
-      } else if (sample is Map) {
+      } else if (rule.storesStateAsMaps || sample is Map) {
         writeMaps(rule, ruleData, target);
-      } else {
+      } else if (rule.storesStateAsPrimitives || isPrimitive(sample)) {
         writeObjects(ruleData, target);
+      } else {
+        throw new SerializationException("Invalid data format");
       }
     } else {
       // If there is no data, write a zero for the length.
@@ -271,13 +287,8 @@ class SimpleFlatFormat extends Format {
       if (rule.hasVariableLengthEntries) {
         target.add(eachEntry.length);
       }
-      // We take advantage of this being only a semi-flat format, and expecting
-      // that the keys here are field names, i.e. strings. So we write
-      // the keys as literals and the values as references. This duplicates the
-      // keys, so is quite inefficient. But generating maps rather than lists is
-      // not very efficient in the first place.
       eachEntry.forEach((key, value) {
-        target.add(key);
+        writeReference(key, target);
         writeReference(value, target);
       });
     }
@@ -289,6 +300,9 @@ class SimpleFlatFormat extends Format {
    */
   writeObjects(List entries, List target) {
     target.add(STORED_AS_PRIMITIVE);
+    for (var each in entries) {
+      if (!isPrimitive(each)) throw new SerializationException("Invalid data");
+    }
     target.addAll(entries);
   }
 
@@ -312,6 +326,9 @@ class SimpleFlatFormat extends Format {
    * format.
    */
   Map<String, dynamic> read(List rawInput, Reader r) {
+    // TODO(alanknight): It's annoying to have to pass the reader around so
+    // much, consider having the format be specific to a particular
+    // serialization operation along with the reader and having it as a field.
     var input = {};
     input["rules"] = rawInput[0];
     r.readRules(input["rules"]);
@@ -320,14 +337,14 @@ class SimpleFlatFormat extends Format {
     var stream = flatData.iterator;
     var tempData = new List(r.rules.length);
     for (var eachRule in r.rules) {
-       tempData[eachRule.number] = readRuleDataFrom(stream, eachRule);
+       tempData[eachRule.number] = readRuleDataFrom(stream, eachRule, r);
     }
     input["data"] = tempData;
 
     var roots = [];
     var rootsAsInts = rawInput[2].iterator;
     do {
-      roots.add(nextReferenceFrom(rootsAsInts));
+      roots.add(nextReferenceFrom(rootsAsInts, r));
     } while (rootsAsInts.current != null);
 
     input["roots"] = roots;
@@ -337,14 +354,14 @@ class SimpleFlatFormat extends Format {
   /**
    * Read the data for [rule] from [input] and return it.
    */
-  readRuleDataFrom(Iterator input, SerializationRule rule) {
+  readRuleDataFrom(Iterator input, SerializationRule rule, Reader r) {
     var numberOfEntries = _next(input);
     var entryType = _next(input);
     if (entryType == STORED_AS_LIST) {
-      return readLists(input, rule, numberOfEntries);
+      return readLists(input, rule, numberOfEntries, r);
     }
     if (entryType == STORED_AS_MAP) {
-      return readMaps(input, rule, numberOfEntries);
+      return readMaps(input, rule, numberOfEntries, r);
     }
     if (entryType == STORED_AS_PRIMITIVE) {
       return readPrimitives(input, rule, numberOfEntries);
@@ -360,7 +377,7 @@ class SimpleFlatFormat extends Format {
    * Read data for [rule] from [input] with [length] number of entries,
    * creating lists from the results.
    */
-  readLists(Iterator input, SerializationRule rule, int length) {
+  readLists(Iterator input, SerializationRule rule, int length, Reader r) {
     var ruleData = [];
     for (var i = 0; i < length; i++) {
       var subLength =
@@ -368,7 +385,7 @@ class SimpleFlatFormat extends Format {
       var subList = [];
       ruleData.add(subList);
       for (var j = 0; j < subLength; j++) {
-        subList.add(nextReferenceFrom(input));
+        subList.add(nextReferenceFrom(input, r));
       }
     }
     return ruleData;
@@ -378,15 +395,17 @@ class SimpleFlatFormat extends Format {
    * Read data for [rule] from [input] with [length] number of entries,
    * creating maps from the results.
    */
-  readMaps(Iterator input, SerializationRule rule, int length) {
+  readMaps(Iterator input, SerializationRule rule, int length, Reader r) {
     var ruleData = [];
     for (var i = 0; i < length; i++) {
       var subLength =
           rule.hasVariableLengthEntries ? _next(input) : rule.dataLength;
-      var map = {};
+      var map = new Map();
       ruleData.add(map);
       for (var j = 0; j < subLength; j++) {
-        map[_next(input)] = nextReferenceFrom(input);
+        var key = nextReferenceFrom(input, r);
+        var value = nextReferenceFrom(input, r);
+        map[key] = value;
       }
     }
     return ruleData;
@@ -405,13 +424,13 @@ class SimpleFlatFormat extends Format {
   }
 
   /** Read the next Reference from the input. */
-  nextReferenceFrom(Iterator input) {
+  nextReferenceFrom(Iterator input, Reader r) {
     var a = _next(input);
     var b = _next(input);
     if (a == null) {
       return null;
     } else {
-      return new Reference(this, a, b);
+      return new Reference(r, a, b);
     }
   }
 

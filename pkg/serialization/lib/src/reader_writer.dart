@@ -13,7 +13,7 @@ part of serialization;
 // that isn't necessary, e.g. detecting cycles and maintaining references.
 // Consider having an abstract superclass with the basic functionality and
 // simple serialization subclasses where we know there aren't cycles.
-class Writer {
+class Writer implements ReaderOrWriter {
   /**
    * The [serialization] holds onto the rules that define how objects
    * are serialized.
@@ -88,8 +88,13 @@ class Writer {
     for (var eachRule in rules) {
       _growStates(eachRule);
       var index = eachRule.number;
-      for (var eachState in states[index]) {
-        eachRule.flatten(eachState, this);
+      var statesForThisRule = states[index];
+      for (var i = 0; i < statesForThisRule.length; i++) {
+        var eachState = statesForThisRule[i];
+        var newState = eachRule.flatten(eachState, this);
+        if (newState != null) {
+          statesForThisRule[i] = newState;
+        }
       }
     }
   }
@@ -196,11 +201,14 @@ class Writer {
 
   /**
    * Given an object, return a reference for it if one exists. If there's
-   * no reference, return null. Once we have finished the tracing step, all
-   * objects that should have a reference (roughly speaking, non-primitives)
-   * can be relied on to have a reference.
+   * no reference, return the object itself. Once we have finished the tracing
+   * step, all objects that should have a reference (roughly speaking,
+   * non-primitives) can be relied on to have a reference.
    */
-  _referenceFor(object) => references[object];
+  _referenceFor(object) {
+    var result = references[object];
+    return (result == null) ? object : result;
+  }
 
   /**
    * Return true if the [namedObjects] collection has a reference to [object].
@@ -217,13 +225,32 @@ class Writer {
 
   // For debugging/testing purposes. Find what state a reference points to.
   stateForReference(Reference r) => states[r.ruleNumber][r.objectNumber];
+
+  /** Return the state pointed to by [reference]. */
+  resolveReference(reference) => stateForReference(reference);
+}
+
+/**
+ * An abstract class for Reader and Writer, which primarily exists so we can
+ * type things that will refer to one or the other, depending on which
+ * operation we're doing.
+ */
+abstract class ReaderOrWriter {
+  /** Return the list of serialization rules we are using.*/
+  List<SerializationRule> get rules;
+
+  /**
+   * Return the object, or state, that ref points to, depending on which
+   * we're generating.
+   */
+  resolveReference(Reference ref);
 }
 
 /**
  * The main class responsible for reading. It holds
  * onto the necessary state and to the objects that have been inflated.
  */
-class Reader {
+class Reader implements ReaderOrWriter {
 
   /**
    * The serialization that specifies how we read. Note that in contrast
@@ -388,6 +415,9 @@ class Reader {
         });
   }
 
+  /** Return the object pointed to by [reference]. */
+  resolveReference(reference) => inflateReference(reference);
+
   /**
    * Given [reference], return what we have stored as an object for it. Note
    * that, depending on the current state, this might be null or a Sentinel.
@@ -518,13 +548,27 @@ class Trace {
  */
 class Reference {
   /** The [Reader] or [Writer] that owns this reference. */
-  final parent;
+  final ReaderOrWriter parent;
   /** The position of the rule that controls this reference in [parent]. */
   final int ruleNumber;
   /** The index of the referred-to object in the storage of [parent] */
   final int objectNumber;
 
-  const Reference(this.parent, this.ruleNumber, this.objectNumber);
+  Reference(this.parent, this.ruleNumber, this.objectNumber) {
+    if (ruleNumber == null || objectNumber == null) {
+      throw new SerializationException("Invalid Reference");
+    }
+    if (parent.rules.length < ruleNumber) {
+      throw new SerializationException("Invalid Reference");
+    }
+  }
+
+  /**
+   * Return the thing this reference points to. Assumes that we have a valid
+   * parent and that it is a Reader, as inflating is not meaningful when
+   * writing.
+   */
+  inflated() => parent.resolveReference(this);
 
   /**
    * Convert the reference to a map in JSON format. This is specific to the
@@ -545,7 +589,7 @@ class Reference {
     list.add(objectNumber);
   }
 
-  toString() => "Reference $ruleNumber, $objectNumber";
+  toString() => "Reference($ruleNumber, $objectNumber)";
 }
 
 /**
