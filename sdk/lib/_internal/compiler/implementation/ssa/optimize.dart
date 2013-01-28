@@ -1529,6 +1529,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     HOneShotInterceptor interceptor = new HOneShotInterceptor(
         user.selector, inputs, node.interceptedClasses);
     interceptor.sourcePosition = user.sourcePosition;
+    interceptor.sourceElement = user.sourceElement;
 
     HBasicBlock block = user.block;
     block.addAfter(user, interceptor);
