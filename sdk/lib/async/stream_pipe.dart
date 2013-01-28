@@ -171,7 +171,9 @@ class _ForwardingStreamSubscription<S, T>
 
   // Methods used as listener on source subscription.
 
-  void _handleData(S data) {
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode. http://dartbug.com/7733
+  void _handleData(/*S*/ data) {
     _stream._handleData(data, this);
   }
 

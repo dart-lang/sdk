@@ -169,4 +169,111 @@ main() {
     helper.pulse();
     expect(callCountOne, 1);
   });
+
+  var stream = new StreamHelper().stream;
+  // Streams have had some type-checking issues, these tests just validate that
+  // those are OK.
+  test('first', () {
+    stream.first.then((_) {});
+  });
+
+  test('asBroadcastStream', () {
+    stream.asBroadcastStream().listen((_) {});
+  });
+
+  test('where', () {
+    stream.where((_) => true).listen((_) {});
+  });
+
+  test('mappedBy', () {
+    stream.mappedBy((_) => null).listen((_) {});
+  });
+
+  test('reduce', () {
+    stream.reduce(null, (_) => null).then((_) {});
+  });
+
+  test('contains', () {
+    stream.contains((_) => true).then((_) {});
+  });
+
+  test('every', () {
+    stream.every((_) => true).then((_) {});
+  });
+
+  test('any', () {
+    stream.any((_) => true).then((_) {});
+  });
+
+  test('length', () {
+    stream.length.then((_) {});
+  });
+
+  test('min', () {
+    stream.min((a, b) => 0).then((_) {});
+  });
+
+  test('max', () {
+    stream.max((a, b) => 0).then((_) {});
+  });
+
+  test('isEmpty', () {
+    stream.isEmpty.then((_) {});
+  });
+
+  test('toList', () {
+    stream.toList().then((_) {});
+  });
+
+  test('toSet', () {
+    stream.toSet().then((_) {});
+  });
+
+  test('take', () {
+    stream.take(1).listen((_) {});
+  });
+
+  test('takeWhile', () {
+    stream.takeWhile((_) => false).listen((_) {});
+  });
+
+  test('skip', () {
+    stream.skip(0).listen((_) {});
+  });
+
+  test('skipWhile', () {
+    stream.skipWhile((_) => false).listen((_) {});
+  });
+
+  test('distinct', () {
+    stream.distinct((a, b) => false).listen((_) {});
+  });
+
+  test('first', () {
+    stream.first.then((_) {});
+  });
+
+  test('last', () {
+    stream.last.then((_) {});
+  });
+
+  test('single', () {
+    stream.single.then((_) {});
+  });
+
+  test('firstMatching', () {
+    stream.firstMatching((_) => true).then((_) {});
+  });
+
+  test('lastMatching', () {
+    stream.lastMatching((_) => true).then((_) {});
+  });
+
+  test('singleMatching', () {
+    stream.singleMatching((_) => true).then((_) {});
+  });
+
+  test('elementAt', () {
+    stream.elementAt(0).then((_) {});
+  });
 }
