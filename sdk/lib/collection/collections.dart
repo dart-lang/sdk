@@ -339,7 +339,7 @@ class IterableMixinWorkaround {
 
   static void sortList(List l, int compare(a, b)) {
     if (compare == null) compare = Comparable.compare;
-    _Sort.sort(l, compare);
+    Sort.sort(l, compare);
   }
 }
 

@@ -117,7 +117,7 @@ abstract class FixedLengthListBase<E> extends ListBase<E> {
   List<E> get reversed => new ReversedListView<E>(this, 0, null);
 
   void sort([Comparator<E> compare]) {
-    coreSort(this, compare);
+    Sort.sort(this, compare);
   }
 
   void setRange(int start, int length, List<E> from, [int startFrom]) {

@@ -7,5 +7,6 @@
   'sources': [
     'iterable.dart',
     'list.dart',
+    'sort.dart',
   ],
 }

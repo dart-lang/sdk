@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.collection;
+part of dart.collection.dev;
 
 /**
  * Dual-Pivot Quicksort algorithm.
@@ -12,7 +12,7 @@ part of dart.collection;
  *
  * Some improvements have been copied from Android's implementation.
  */
-class _Sort {
+class Sort {
   // When a list has less then [:_INSERTION_SORT_THRESHOLD:] elements it will
   // be sorted by an insertion sort.
   static const int _INSERTION_SORT_THRESHOLD = 32;
