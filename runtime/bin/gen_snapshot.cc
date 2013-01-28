@@ -31,7 +31,6 @@
 // Global state that indicates whether a snapshot is to be created and
 // if so which file to write the snapshot into.
 static const char* snapshot_filename = NULL;
-static bool script_snapshot = false;
 static const char* package_root = NULL;
 static uint8_t* snapshot_buffer = NULL;
 
@@ -66,13 +65,6 @@ static const char* ProcessOption(const char* option, const char* name) {
 static bool ProcessSnapshotOption(const char* option) {
   const char* name = ProcessOption(option, "--snapshot=");
   if (name != NULL) {
-    script_snapshot = false;
-    snapshot_filename = name;
-    return true;
-  }
-  name = ProcessOption(option, "--script_snapshot=");
-  if (name != NULL) {
-    script_snapshot = true;
     snapshot_filename = name;
     return true;
   }
@@ -367,14 +359,12 @@ static void PrintUsage() {
 "Usage:\n"
 "\n"
 "  gen_snapshot [<vm-flags>] [<options>] \\\n"
-"               {--script_snapshot=<out-file> | --snapshot=<out-file>} \\\n"
-"               [<dart-script-file>]\n"
+"               --snapshot=<out-file> [<dart-script-file>]\n"
 "\n"
 "  Writes a snapshot of <dart-script-file> to <out-file>. If no\n"
 "  <dart-script-file> is passed, a generic snapshot of all the corelibs is\n"
-"  created. One of the following is required:\n"
+"  created. It is required to specify an output file name:\n"
 "\n"
-"    --script_snapshot=<file>   Generates a script snapshot.\n"
 "    --snapshot=<file>          Generates a complete snapshot. Uses the url\n"
 "                               mapping specified on the command line to load\n"
 "                               the libraries.\n"
@@ -401,19 +391,13 @@ static void VerifyLoaded(Dart_Handle library) {
 }
 
 
-static void CreateAndWriteSnapshot(bool script_snapshot) {
+static void CreateAndWriteSnapshot() {
   Dart_Handle result;
   uint8_t* buffer = NULL;
   intptr_t size = 0;
 
   // First create a snapshot.
-  if (script_snapshot) {
-    // Script snapshot specified so create a script snapshot.
-    result = Dart_CreateScriptSnapshot(&buffer, &size);
-  } else {
-    // Create a full snapshot.
-    result = Dart_CreateSnapshot(&buffer, &size);
-  }
+  result = Dart_CreateSnapshot(&buffer, &size);
   CHECK_RESULT(result);
 
   // Now write the snapshot out to specified file and exit.
@@ -505,103 +489,49 @@ int main(int argc, char** argv) {
   ASSERT(snapshot_filename != NULL);
   // Load up the script before a snapshot is created.
   if (app_script_name != NULL) {
-    if (!script_snapshot) {
-      // This is the case of a custom embedder (e.g: dartium) trying to
-      // create a full snapshot. The current isolate is set up so that we can
-      // invoke the dart uri resolution code like _resolveURI. App script is
-      // loaded into a separate isolate.
+    // This is the case of a custom embedder (e.g: dartium) trying to
+    // create a full snapshot. The current isolate is set up so that we can
+    // invoke the dart uri resolution code like _resolveURI. App script is
+    // loaded into a separate isolate.
 
-      SetupForUriResolution();
+    SetupForUriResolution();
 
-      // Get handle to builtin library.
-      Dart_Handle builtin_lib =
-          Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-      CHECK_RESULT(builtin_lib);
+    // Get handle to builtin library.
+    Dart_Handle builtin_lib =
+        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+    CHECK_RESULT(builtin_lib);
 
-      // Prepare for script loading by setting up the 'print' and 'timer'
-      // closures and setting up 'package root' for URI resolution.
-      result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
-      CHECK_RESULT(result);
-      Dart_ExitScope();
+    // Prepare for script loading by setting up the 'print' and 'timer'
+    // closures and setting up 'package root' for URI resolution.
+    result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
+    CHECK_RESULT(result);
+    Dart_ExitScope();
 
-      UriResolverIsolateScope::isolate = isolate;
+    UriResolverIsolateScope::isolate = isolate;
 
-      // Now we create an isolate into which we load all the code that needs to
-      // be in the snapshot.
-      if (Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error) == NULL) {
-        fprintf(stderr, "%s", error);
-        free(error);
-        exit(255);
-      }
-      Dart_EnterScope();
-
-      // Set up the library tag handler in such a manner that it will use the
-      // URL mapping specified on the command line to load the libraries.
-      result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
-      CHECK_RESULT(result);
-      // Load the specified script.
-      library = LoadSnapshotCreationScript(app_script_name);
-      VerifyLoaded(library);
-      CreateAndWriteSnapshot(false);
-
-      Dart_EnterIsolate(UriResolverIsolateScope::isolate);
-      Dart_ShutdownIsolate();
-    } else {
-      // This is the case where we want to create a script snapshot of
-      // the specified script. There will be no URL mapping specified for
-      // this case, use the generic library tag handler.
-
-      // First setup and create a generic full snapshot.
-      SetupForGenericSnapshotCreation();
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      result = Dart_CreateSnapshot(&buffer, &size);
-      CHECK_RESULT(result);
-
-      // Save the snapshot buffer as we are about to shutdown the isolate.
-      snapshot_buffer = reinterpret_cast<uint8_t*>(malloc(size));
-      ASSERT(snapshot_buffer != NULL);
-      memmove(snapshot_buffer, buffer, size);
-
-      // Shutdown the isolate.
-      Dart_ExitScope();
-      Dart_ShutdownIsolate();
-
-      // Now load the specified script and create a script snapshot.
-      if (Dart_CreateIsolate(
-              NULL, NULL, snapshot_buffer, NULL, &error) == NULL) {
-        Log::PrintErr("%s", error);
-        free(error);
-        free(snapshot_buffer);
-        exit(255);
-      }
-      Dart_EnterScope();
-
-      // Setup generic library tag handler.
-      result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
-      CHECK_RESULT(result);
-
-      // Get handle to builtin library.
-      Dart_Handle builtin_lib =
-          Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-      CHECK_RESULT(builtin_lib);
-
-      // Prepare for script loading by setting up the 'print' and 'timer'
-      // closures and setting up 'package root' for URI resolution.
-      result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
-      CHECK_RESULT(result);
-
-      // Load specified script.
-      library = DartUtils::LoadScript(app_script_name, builtin_lib);
-
-      // Now create and write snapshot of script.
-      CreateAndWriteSnapshot(true);
-
-      free(snapshot_buffer);
+    // Now we create an isolate into which we load all the code that needs to
+    // be in the snapshot.
+    if (Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error) == NULL) {
+      fprintf(stderr, "%s", error);
+      free(error);
+      exit(255);
     }
+    Dart_EnterScope();
+
+    // Set up the library tag handler in such a manner that it will use the
+    // URL mapping specified on the command line to load the libraries.
+    result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
+    CHECK_RESULT(result);
+    // Load the specified script.
+    library = LoadSnapshotCreationScript(app_script_name);
+    VerifyLoaded(library);
+    CreateAndWriteSnapshot();
+
+    Dart_EnterIsolate(UriResolverIsolateScope::isolate);
+    Dart_ShutdownIsolate();
   } else {
     SetupForGenericSnapshotCreation();
-    CreateAndWriteSnapshot(false);
+    CreateAndWriteSnapshot();
   }
   return 0;
 }
