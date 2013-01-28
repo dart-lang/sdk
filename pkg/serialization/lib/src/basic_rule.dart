@@ -142,21 +142,20 @@ class BasicRule extends SerializationRule {
    * resolve them to the strings we expect. We leave the previous keys in there
    * as well, as they shouldn't be harmful, and it costs more to remove them.
    */
-  makeIndexableByNumber(state) {
-    if (!(state is Map)) return state;
-    // TODO(alanknight): This is quite inefficient, and we do it twice per
-    // instance. If the keys are references, we need to turn them into strings
-    // before we can look at indexing them by field position. It's also eager,
-    // but we know our keys are always primitives, so we don't have to worry
-    // about their instances not having been created yet.
-    for (var each in state.keys) {
-      if (each is Reference) {
-        var inflated = each.inflated();
-        state[inflated] = state[each];
-      }
-    }
-    return new _MapWrapper.fromMap(state, fields.contents);
-  }
+   makeIndexableByNumber(state) {
+     if (!(state is Map)) return state;
+     // TODO(alanknight): This is quite inefficient, and we do it twice per
+     // instance. If the keys are references, we need to turn them into strings
+     // before we can look at indexing them by field position. It's also eager,
+     // but we know our keys are always primitives, so we don't have to worry
+     // about their instances not having been created yet.
+     var newState = new Map();
+     for (var each in state.keys) {
+       var newKey = (each is Reference) ? each.inflated() : each;
+       newState[newKey] = state[each];
+     }
+     return new _MapWrapper.fromMap(newState, fields.contents);
+   }
 
   /**
    * Extract the state from [object] using an instanceMirror and the field
