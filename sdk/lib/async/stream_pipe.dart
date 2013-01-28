@@ -190,10 +190,10 @@ class _ForwardingStreamSubscription<S, T>
 
 typedef bool _Predicate<T>(T value);
 
-class WhereStream<T> extends _ForwardingStream<T, T> {
+class _WhereStream<T> extends _ForwardingStream<T, T> {
   final _Predicate<T> _test;
 
-  WhereStream(Stream<T> source, bool test(T value))
+  _WhereStream(Stream<T> source, bool test(T value))
       : _test = test, super(source);
 
   void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
@@ -216,10 +216,10 @@ typedef T _Transformation<S, T>(S value);
 /**
  * A stream pipe that converts data events before passing them on.
  */
-class MapStream<S, T> extends _ForwardingStream<S, T> {
+class _MapStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation _transform;
 
-  MapStream(Stream<S> source, T transform(S event))
+  _MapStream(Stream<S> source, T transform(S event))
       : this._transform = transform, super(source);
 
   void _handleData(S inputEvent, _StreamOutputSink<T> sink) {
@@ -237,10 +237,10 @@ class MapStream<S, T> extends _ForwardingStream<S, T> {
 /**
  * A stream pipe that converts data events before passing them on.
  */
-class ExpandStream<S, T> extends _ForwardingStream<S, T> {
+class _ExpandStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation<S, Iterable<T>> _expand;
 
-  ExpandStream(Stream<S> source, Iterable<T> expand(S event))
+  _ExpandStream(Stream<S> source, Iterable<T> expand(S event))
       : this._expand = expand, super(source);
 
   void _handleData(S inputEvent, _StreamOutputSink<T> sink) {
@@ -264,11 +264,11 @@ typedef bool _ErrorTest(error);
  * A stream pipe that converts or disposes error events
  * before passing them on.
  */
-class HandleErrorStream<T> extends _ForwardingStream<T, T> {
+class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
   final _ErrorTransformation _transform;
   final _ErrorTest _test;
 
-  HandleErrorStream(Stream<T> source,
+  _HandleErrorStream(Stream<T> source,
                     void transform(AsyncError event),
                     bool test(error))
       : this._transform = transform, this._test = test, super(source);
@@ -297,10 +297,10 @@ class HandleErrorStream<T> extends _ForwardingStream<T, T> {
 }
 
 
-class TakeStream<T> extends _ForwardingStream<T, T> {
+class _TakeStream<T> extends _ForwardingStream<T, T> {
   int _remaining;
 
-  TakeStream(Stream<T> source, int count)
+  _TakeStream(Stream<T> source, int count)
       : this._remaining = count, super(source) {
     // This test is done early to avoid handling an async error
     // in the _handleData method.
@@ -321,10 +321,10 @@ class TakeStream<T> extends _ForwardingStream<T, T> {
 }
 
 
-class TakeWhileStream<T> extends _ForwardingStream<T, T> {
+class _TakeWhileStream<T> extends _ForwardingStream<T, T> {
   final _Predicate<T> _test;
 
-  TakeWhileStream(Stream<T> source, bool test(T value))
+  _TakeWhileStream(Stream<T> source, bool test(T value))
       : this._test = test, super(source);
 
   void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
@@ -345,10 +345,10 @@ class TakeWhileStream<T> extends _ForwardingStream<T, T> {
   }
 }
 
-class SkipStream<T> extends _ForwardingStream<T, T> {
+class _SkipStream<T> extends _ForwardingStream<T, T> {
   int _remaining;
 
-  SkipStream(Stream<T> source, int count)
+  _SkipStream(Stream<T> source, int count)
       : this._remaining = count, super(source) {
     // This test is done early to avoid handling an async error
     // in the _handleData method.
@@ -364,11 +364,11 @@ class SkipStream<T> extends _ForwardingStream<T, T> {
   }
 }
 
-class SkipWhileStream<T> extends _ForwardingStream<T, T> {
+class _SkipWhileStream<T> extends _ForwardingStream<T, T> {
   final _Predicate<T> _test;
   bool _hasFailed = false;
 
-  SkipWhileStream(Stream<T> source, bool test(T value))
+  _SkipWhileStream(Stream<T> source, bool test(T value))
       : this._test = test, super(source);
 
   void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
@@ -393,13 +393,13 @@ class SkipWhileStream<T> extends _ForwardingStream<T, T> {
 
 typedef bool _Equality<T>(T a, T b);
 
-class DistinctStream<T> extends _ForwardingStream<T, T> {
+class _DistinctStream<T> extends _ForwardingStream<T, T> {
   static var _SENTINEL = new Object();
 
   _Equality<T> _equals;
   var _previous = _SENTINEL;
 
-  DistinctStream(Stream<T> source, bool equals(T a, T b))
+  _DistinctStream(Stream<T> source, bool equals(T a, T b))
       : _equals = equals, super(source);
 
   void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
@@ -507,5 +507,3 @@ class _StreamImplSink<T> implements StreamSink<T> {
   void signalError(AsyncError error) { _target._signalError(error); }
   void close() { _target._close(); }
 }
-
-

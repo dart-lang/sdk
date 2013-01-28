@@ -5,7 +5,7 @@
 part of dart.async;
 
 class _SupercedeEntry<T> {
-  final SupercedeStream stream;
+  final _SupercedeStream stream;
   Stream<T> source;
   StreamSubscription subscription = null;
   _SupercedeEntry next;
@@ -57,22 +57,22 @@ class _SupercedeEntry<T> {
 /**
  * [Stream] that forwards data from its active source with greatest priority.
  *
- * The [SupercedeStream] gets data from some source [Stream]s which
+ * The [_SupercedeStream] gets data from some source [Stream]s which
  * are ordered in order of increasing priority.
  * When a higher priority stream provides data, all lower priority streams
  * are dropped.
  *
  * Errors from all (undropped) streams are forwarded.
  */
-class SupercedeStream<T> extends _MultiStreamImpl<T> {
+class _SupercedeStream<T> extends _MultiStreamImpl<T> {
   _SupercedeEntry _entries = null;
 
   /**
-   * Create [SupercedeStream] from the given [sources].
+   * Create [_SupercedeStream] from the given [sources].
    *
    * The [sources] are iterated in order of increasing priority.
    */
-  SupercedeStream(Iterable<Stream<T>> sources) {
+  _SupercedeStream(Iterable<Stream<T>> sources) {
     // Set up linked list of sources in decreasing priority order.
     // The order allows us to drop all lower priority streams when a higher
     // priority stream provides a value.
@@ -142,7 +142,7 @@ class SupercedeStream<T> extends _MultiStreamImpl<T> {
 }
 
 /**
- * Helper class for [CyclicScheduleStream].
+ * Helper class for [_CyclicScheduleStream].
  *
  * Used to maintain a list of source streams which are activated in cyclic
  * order.
@@ -154,8 +154,8 @@ class SupercedeStream<T> extends _MultiStreamImpl<T> {
  * If the source completes, the entry is removed from [stream].
  */
 class _CycleEntry<T> {
-  final CyclicScheduleStream stream;
-  /** A single source stream for the [CyclicScheduleStream]. */
+  final _CyclicScheduleStream stream;
+  /** A single source stream for the [_CyclicScheduleStream]. */
   Stream source;
   /** The active subscription, if any. */
   StreamSubscription subscription = null;
@@ -206,7 +206,7 @@ class _CycleEntry<T> {
  * changing the schedule. When a source stream ends, it is removed from
  * the schedule.
  */
-class CyclicScheduleStream<T> extends _MultiStreamImpl<T> {
+class _CyclicScheduleStream<T> extends _MultiStreamImpl<T> {
   _CycleEntry _currentEntry = null;
   _CycleEntry _lastEntry = null;
 
@@ -216,7 +216,7 @@ class CyclicScheduleStream<T> extends _MultiStreamImpl<T> {
    * The data are provided as one event from each stream in the order they are
    * given by the [Iterable], and then cycling as long as there are data.
    */
-  CyclicScheduleStream(Iterable<Stream<T>> sources) {
+  _CyclicScheduleStream(Iterable<Stream<T>> sources) {
     _CycleEntry entry = null;
     for (Stream<T> source in sources) {
       _CycleEntry newEntry = new _CycleEntry(this, source);
