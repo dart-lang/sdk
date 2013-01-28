@@ -51,6 +51,11 @@ main() {
           validate200Response(xhr);
         }
       }, () => xhr.readyState == HttpRequest.DONE));
+
+      xhr.onLoadEnd.listen(expectAsync1((ProgressEvent e) {
+        expect(e.currentTarget, xhr);
+        expect(e.target, xhr);
+      }));
       xhr.send();
     });
 
