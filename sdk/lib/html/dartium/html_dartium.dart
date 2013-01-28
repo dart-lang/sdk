@@ -8814,7 +8814,7 @@ class _ChildrenElementList implements List {
   void remove(Object object) {
     if (object is Element) {
       Element element = object;
-      if (identical(element.parentNode, this)) {
+      if (identical(element.parentNode, _element)) {
         _element.$dom_removeChild(element);
       }
     }
