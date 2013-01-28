@@ -363,7 +363,7 @@ class Parser {
       token = parseExpression(token.next);
       listener.handleValuedFormalParameter(equal, token);
     }
-    listener.endFormalParameter(token, thisKeyword);
+    listener.endFormalParameter(thisKeyword);
     return token;
   }
 
