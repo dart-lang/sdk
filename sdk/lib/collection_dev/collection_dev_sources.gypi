@@ -8,5 +8,6 @@
     'iterable.dart',
     'list.dart',
     'sort.dart',
+    'to_string.dart',
   ],
 }

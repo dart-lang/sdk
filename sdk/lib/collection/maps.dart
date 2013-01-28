@@ -74,38 +74,5 @@ class Maps {
    * A typical implementation of a map's [toString] method will
    * simply return the results of this method applied to the collection.
    */
-  static String mapToString(Map m) {
-    var result = new StringBuffer();
-    _emitMap(m, result, new List());
-    return result.toString();
-  }
-
-  /**
-   * Appends a string representing the specified map to the specified
-   * string buffer. The string is formatted as per [mapToString].
-   * The [:visiting:] list contains references to all of the enclosing
-   * collections and maps (which are currently in the process of being
-   * emitted into [:result:]). The [:visiting:] parameter allows this method
-   * to generate a [:'[...]':] or [:'{...}':] where required. In other words,
-   * it allows this method and [_emitCollection] to identify recursive maps
-   * and collections.
-   */
-  static void _emitMap(Map m, StringBuffer result, List visiting) {
-    visiting.add(m);
-    result.add('{');
-
-    bool first = true;
-    m.forEach((k, v) {
-      if (!first) {
-        result.add(', ');
-      }
-      first = false;
-      Collections._emitObject(k, result, visiting);
-      result.add(': ');
-      Collections._emitObject(v, result, visiting);
-    });
-
-    result.add('}');
-    visiting.removeLast();
-  }
+  static String mapToString(Map m) => ToString.mapToString(m);
 }

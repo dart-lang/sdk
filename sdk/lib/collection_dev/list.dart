@@ -105,7 +105,7 @@ abstract class ListBase<E> extends Collection<E> implements List<E> {
     return new ListView(this, n, null);
   }
 
-  String toString() => Collections.collectionToString(this);
+  String toString() => ToString.collectionToString(this);
 }
 
 /**
