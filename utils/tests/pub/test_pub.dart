@@ -808,7 +808,9 @@ abstract class Descriptor {
     if (name is String) {
       var path = join(dir, name);
       return exists(path).then((exists) {
-        if (!exists) Expect.fail('File $name in $dir not found.');
+        if (!exists) {
+          throw new ExpectException('File $name in $dir not found.');
+        }
         return validate(path);
       });
     }
@@ -824,7 +826,7 @@ abstract class Descriptor {
     return listDir(dir).then((files) {
       var matches = files.where((file) => endsWithPattern(file, name)).toList();
       if (matches.isEmpty) {
-        Expect.fail('No files in $dir match pattern $name.');
+        throw new ExpectException('No files in $dir match pattern $name.');
       }
       if (matches.length == 1) return validate(matches[0]);
 
@@ -888,8 +890,9 @@ class FileDescriptor extends Descriptor {
       return readTextFile(file).then((text) {
         if (text == contents) return null;
 
-        Expect.fail('File $file should contain:\n\n$contents\n\n'
-                    'but contained:\n\n$text');
+        throw new ExpectException(
+            'File $file should contain:\n\n$contents\n\n'
+            'but contained:\n\n$text');
       });
     });
   }
@@ -1133,7 +1136,9 @@ class NothingDescriptor extends Descriptor {
 
   Future validate(String dir) {
     return exists(join(dir, name)).then((exists) {
-      if (exists) Expect.fail('File $name in $dir should not exist.');
+      if (exists) {
+        throw new ExpectException('File $name in $dir should not exist.');
+      }
     });
   }
 

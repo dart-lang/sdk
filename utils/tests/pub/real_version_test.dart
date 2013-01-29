@@ -25,7 +25,7 @@ main() {
   // Note that this test expects to be invoked from a Dart executable that is
   // in the built SDK's "bin" directory. Note also that this invokes pub from
   // the built SDK directory, and not the live pub code directly in the repo.
-  test('Pub can parse the real SDK "version" file', () {
+  test('parse the real SDK "version" file', () {
     // Get the path to the pub binary in the SDK.
     var dartPath = new Options().executable;
     var pubPath = path.join(path.dirname(dartPath), "pub");

@@ -6,6 +6,7 @@ library command_line_config;
 
 import 'dart:io';
 
+import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/utils.dart';
 
@@ -70,6 +71,8 @@ class CommandLineConfiguration extends Configuration {
   void _printStackTrace(String stackTrace) {
     if (stackTrace == null || stackTrace == '') return;
 
+    print('');
+
     // Parse out each stack entry.
     var stack = [];
     for (var line in stackTrace.split('\n')) {
@@ -78,33 +81,6 @@ class CommandLineConfiguration extends Configuration {
     }
 
     if (stack.length == 0) return;
-
-    // Find the common prefixes of the paths.
-    var common = 0;
-    while (true) {
-      var matching = true;
-      var c;
-      for (var frame in stack) {
-        if (frame.isCore) continue;
-        if (c == null) c = frame.library[common];
-
-        if (frame.library.length <= common || frame.library[common] != c) {
-          matching = false;
-          break;
-        }
-      }
-
-      if (!matching) break;
-      common++;
-    }
-
-    // Remove them.
-    if (common > 0) {
-      for (var frame in stack) {
-        if (frame.isCore) continue;
-        frame.library = frame.library.substring(common);
-      }
-    }
 
     // Figure out the longest path so we know how much to pad.
     int longest = stack.mappedBy((frame) => frame.location.length).max();
@@ -138,7 +114,7 @@ class CommandLineConfiguration extends Configuration {
 
 class _StackFrame {
   static final fileRegExp = new RegExp(
-      r'#\d+\s+(.*) \((file:///.+):(\d+):(\d+)\)');
+      r'#\d+\s+(.*) \(file://(/.+):(\d+):(\d+)\)');
   static final coreRegExp = new RegExp(r'#\d+\s+(.*) \((.+):(\d+):(\d+)\)');
 
   /// If `true`, then this stack frame is for a library built into Dart and
@@ -172,7 +148,13 @@ class _StackFrame {
       isCore = true;
     }
 
+    var library = match[2];
+    if (!isCore) {
+      // Make the library path relative to the entrypoint.
+      library = path.relative(library);
+    }
+
     var member = match[1].replaceAll("<anonymous closure>", _LAMBDA);
-    return new _StackFrame._(isCore, match[2], match[3], match[4], member);
+    return new _StackFrame._(isCore, library, match[3], match[4], member);
   }
 }

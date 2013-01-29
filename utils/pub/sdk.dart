@@ -14,7 +14,7 @@ import 'version.dart';
 /// Matches an Eclipse-style SDK version number. This is four dotted numbers
 /// (major, minor, patch, build) with an optional suffix attached to the build
 /// number.
-final _versionPattern = new RegExp(r'^(\d+)\.(\d+)\.(\d+)\.(\d+)(.*)$');
+final _versionPattern = new RegExp(r'^(\d+)\.(\d+)\.(\d+)\.(\d+.*)$');
 
 /// Gets the path to the root directory of the SDK.
 String get rootDirectory {
@@ -41,15 +41,15 @@ Version _getVersion() {
   var version = new File(revisionPath).readAsStringSync().trim();
 
   // Given a version file like: 0.1.2.0_r17495
-  // We create a semver like:   0.1.2+0._r17495
+  // We create a semver like:   0.1.2+0.r17495
   var match = _versionPattern.firstMatch(version);
   if (match == null) {
     throw new FormatException("The Dart SDK's 'version' file was not in a "
         "format pub could recognize. Found: $version");
   }
 
-  var build = match[4];
-  if (match[5].length > 0) build = '$build.${match[5]}';
+  // Semantic versions cannot use "_".
+  var build = match[4].replaceAll('_', '.');
 
   return new Version(
       int.parse(match[1]), int.parse(match[2]), int.parse(match[3]),

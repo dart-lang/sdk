@@ -123,11 +123,31 @@ main() {
 
   });
 
-  integration('displays the current version', () {
-    dir(sdkPath, [
-      file('version', '0.1.2.3'),
-    ]).scheduleCreate();
+  group('version', () {
+    integration('displays the current version', () {
+      dir(sdkPath, [
+        file('version', '0.1.2.3'),
+      ]).scheduleCreate();
 
-    schedulePub(args: ['version'], output: VERSION_STRING);
+      schedulePub(args: ['version'], output: VERSION_STRING);
+    });
+
+    integration('parses a release-style version', () {
+      dir(sdkPath, [
+        file('version', '0.1.2.0_r17645'),
+      ]).scheduleCreate();
+
+      schedulePub(args: ['version'], output: "Pub 0.1.2+0.r17645\n");
+    });
+
+    integration('parses a dev-only style version', () {
+      // The "version" file generated on developer builds is a little funky and
+      // we need to make sure we don't choke on it.
+      dir(sdkPath, [
+        file('version', '0.1.2.0_r16279_bobross'),
+      ]).scheduleCreate();
+
+      schedulePub(args: ['version'], output: "Pub 0.1.2+0.r16279.bobross\n");
+    });
   });
 }
