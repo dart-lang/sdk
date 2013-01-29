@@ -734,7 +734,10 @@ class DartiumBackend(HtmlDartGenerator):
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
     annotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._interface.id, idl_name), '  ')
+        GetAnnotationsAndComments(self._interface.id, idl_name,
+                                  self._renamer.GetLibraryName(
+                                      self._interface)),
+                                  '  ')
 
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
     self._members_emitter.Emit(

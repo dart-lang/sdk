@@ -1211,18 +1211,22 @@ class CanvasElement extends _Element_Merged {
     return e;
   }
 
+  /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
   @DocsEditable
   int get height native "HTMLCanvasElement_height_Getter";
 
+  /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
   @DocsEditable
   void set height(int value) native "HTMLCanvasElement_height_Setter";
 
+  /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
   @DocsEditable
   int get width native "HTMLCanvasElement_width_Getter";
 
+  /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
   @DocsEditable
   void set width(int value) native "HTMLCanvasElement_width_Setter";
@@ -1231,6 +1235,46 @@ class CanvasElement extends _Element_Merged {
   @DocsEditable
   Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
 
+  /**
+   * Returns a data URI containing a representation of the image in the
+   * format specified by type (defaults to 'image/png').
+   *
+   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
+   *
+   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
+   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
+   * value is used. Note: the default value varies by browser.
+   *
+   * If the height or width of this canvas element is 0, then 'data:' is returned,
+   * representing no data.
+   *
+   * If the type requested is not 'image/png', and the returned value is
+   * 'data:image/png', then the requested type is not supported.
+   *
+   * Example usage:
+   *
+   *     CanvasElement canvas = new CanvasElement();
+   *     var ctx = canvas.context2d
+   *     ..fillStyle = "rgb(200,0,0)"
+   *     ..fillRect(10, 10, 55, 50);
+   *     var dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+   *     // The Data Uri would look similar to
+   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
+   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
+   *     //Create a new image element from the data URI.
+   *     var img = new ImageElement();
+   *     img.src = dataUrl;
+   *     document.body.children.add(img);
+   *
+   * See also:
+   *
+   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
+   *
+   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
+   *
+   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
+   */
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable
   String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
@@ -1276,10 +1320,18 @@ class CanvasElement extends _Element_Merged {
  * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
  */
 @DomName('CanvasGradient')
-@DomName('CanvasGradient')
 class CanvasGradient extends NativeFieldWrapperClass1 {
   CanvasGradient.internal();
 
+  /**
+   * Adds a color stop to this gradient at the offset.
+   *
+   * The [offset] can range between 0.0 and 1.0.
+   *
+   * See also:
+   *
+   * * [Multiple Color Stops](https://developer.mozilla.org/en-US/docs/CSS/linear-gradient#Gradient_with_multiple_color_stops) from MDN.
+   */
   @DomName('CanvasGradient.addColorStop')
   @DocsEditable
   void addColorStop(num offset, String color) native "CanvasGradient_addColorStop_Callback";
@@ -1321,7 +1373,6 @@ class CanvasGradient extends NativeFieldWrapperClass1 {
  * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
  */
 @DomName('CanvasPattern')
-@DomName('CanvasPattern')
 class CanvasPattern extends NativeFieldWrapperClass1 {
   CanvasPattern.internal();
 
@@ -1341,10 +1392,10 @@ class CanvasPattern extends NativeFieldWrapperClass1 {
  * [WebGLRenderingContext].
  */
 @DomName('CanvasRenderingContext')
-@DomName('CanvasRenderingContext')
 class CanvasRenderingContext extends NativeFieldWrapperClass1 {
   CanvasRenderingContext.internal();
 
+  /// Reference to the canvas element to which this context belongs.
   @DomName('CanvasRenderingContext.canvas')
   @DocsEditable
   CanvasElement get canvas native "CanvasRenderingContext_canvas_Getter";
@@ -7041,10 +7092,12 @@ class Document extends Node
   DocumentEvents get on =>
     new DocumentEvents(this);
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable
   Element get $dom_body native "Document_body_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable
   void set $dom_body(Element value) native "Document_body_Setter";
@@ -7077,6 +7130,7 @@ class Document extends Node
   @DocsEditable
   String get domain native "Document_domain_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.head')
   @DocsEditable
   HeadElement get $dom_head native "Document_head_Getter";
@@ -7085,6 +7139,7 @@ class Document extends Node
   @DocsEditable
   DomImplementation get implementation native "Document_implementation_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.lastModified')
   @DocsEditable
   String get $dom_lastModified native "Document_lastModified_Getter";
@@ -7097,6 +7152,7 @@ class Document extends Node
   @DocsEditable
   String get readyState native "Document_readyState_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.referrer')
   @DocsEditable
   String get $dom_referrer native "Document_referrer_Getter";
@@ -7109,34 +7165,42 @@ class Document extends Node
   @DocsEditable
   void set $dom_selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
+  /// Moved to [HtmlDocument]
   @DomName('Document.styleSheets')
   @DocsEditable
   List<StyleSheet> get $dom_styleSheets native "Document_styleSheets_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable
   String get $dom_title native "Document_title_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable
   void set $dom_title(String value) native "Document_title_Setter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable
   Element get $dom_webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable
   bool get $dom_webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
   @DocsEditable
   bool get $dom_webkitHidden native "Document_webkitHidden_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
   @DocsEditable
   bool get $dom_webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable
   Element get $dom_webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
@@ -7145,6 +7209,7 @@ class Document extends Node
   @DocsEditable
   String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
+  /// Use the [Range] constructor instead.
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable
   Range $dom_caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
@@ -7157,6 +7222,7 @@ class Document extends Node
   @DocsEditable
   DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
 
+  /// Deprecated: use new Element.tag(tagName) instead.
   @DomName('Document.createElement')
   @DocsEditable
   Element $dom_createElement(String tagName) native "Document_createElement_Callback";
@@ -7181,6 +7247,7 @@ class Document extends Node
   @DocsEditable
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
+  /// Use the [TouchList] constructor isntead.
   @DomName('Document.createTouchList')
   @DocsEditable
   TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
@@ -7193,10 +7260,12 @@ class Document extends Node
   @DocsEditable
   bool execCommand(String command, bool userInterface, String value) native "Document_execCommand_Callback";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.getCSSCanvasContext')
   @DocsEditable
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
+  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.getElementById')
   @DocsEditable
   Element $dom_getElementById(String elementId) native "Document_getElementById_Callback";
@@ -7233,22 +7302,27 @@ class Document extends Node
   @DocsEditable
   String queryCommandValue(String command) native "Document_queryCommandValue_Callback";
 
+  /// Deprecated: renamed to the shorter name [query].
   @DomName('Document.querySelector')
   @DocsEditable
   Element $dom_querySelector(String selectors) native "Document_querySelector_Callback";
 
+  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.querySelectorAll')
   @DocsEditable
   List<Node> $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
   @DocsEditable
   void $dom_webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable
   void $dom_webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable
   void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";

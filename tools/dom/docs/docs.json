@@ -25,6 +25,73 @@
         ]
       }
     },
+    "Document": {
+      "members": {
+        "body": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "caretRangeFromPoint": [
+          "/// Use the [Range] constructor instead."
+        ],
+        "createElement": [
+          "/// Deprecated: use new Element.tag(tagName) instead."
+        ],
+        "createTouchList": [
+          "/// Use the [TouchList] constructor isntead."
+        ],
+        "getCSSCanvasContext": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "getElementById": [
+          "/// Deprecated: use query(\"#$elementId\") instead."
+        ],
+        "head": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "lastModified": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "querySelector": [
+          "/// Deprecated: renamed to the shorter name [query]."
+        ],
+        "querySelectorAll": [
+          "/// Deprecated: use query(\"#$elementId\") instead."
+        ],
+        "referrer": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "styleSheets": [
+          "/// Moved to [HtmlDocument]"
+        ],
+        "title": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitCancelFullScreen": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitExitFullscreen": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitExitPointerLock": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitFullscreenElement": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitFullscreenEnabled": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitHidden": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitIsFullScreen": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitPointerLockElement": [
+          "/// Moved to [HtmlDocument]."
+        ]
+      }
+    },
     "HTMLCanvasElement": {
       "members": {
         "height": [

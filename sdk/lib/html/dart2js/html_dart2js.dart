@@ -6336,6 +6336,7 @@ class Document extends Node  native "*Document"
     new DocumentEvents(this);
 
   @JSName('body')
+  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable
   Element $dom_body;
@@ -6365,6 +6366,7 @@ class Document extends Node  native "*Document"
   final String domain;
 
   @JSName('head')
+  /// Moved to [HtmlDocument].
   @DomName('Document.head')
   @DocsEditable
   final HeadElement $dom_head;
@@ -6374,6 +6376,7 @@ class Document extends Node  native "*Document"
   final DomImplementation implementation;
 
   @JSName('lastModified')
+  /// Moved to [HtmlDocument].
   @DomName('Document.lastModified')
   @DocsEditable
   final String $dom_lastModified;
@@ -6388,6 +6391,7 @@ class Document extends Node  native "*Document"
   final String readyState;
 
   @JSName('referrer')
+  /// Moved to [HtmlDocument].
   @DomName('Document.referrer')
   @DocsEditable
   final String $dom_referrer;
@@ -6398,6 +6402,7 @@ class Document extends Node  native "*Document"
   String $dom_selectedStylesheetSet;
 
   @JSName('styleSheets')
+  /// Moved to [HtmlDocument]
   @DomName('Document.styleSheets')
   @DocsEditable
   @Returns('_StyleSheetList')
@@ -6405,31 +6410,37 @@ class Document extends Node  native "*Document"
   final List<StyleSheet> $dom_styleSheets;
 
   @JSName('title')
+  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable
   String $dom_title;
 
   @JSName('webkitFullscreenElement')
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable
   final Element $dom_webkitFullscreenElement;
 
   @JSName('webkitFullscreenEnabled')
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable
   final bool $dom_webkitFullscreenEnabled;
 
   @JSName('webkitHidden')
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
   @DocsEditable
   final bool $dom_webkitHidden;
 
   @JSName('webkitIsFullScreen')
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
   @DocsEditable
   final bool $dom_webkitIsFullScreen;
 
   @JSName('webkitPointerLockElement')
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable
   final Element $dom_webkitPointerLockElement;
@@ -6440,6 +6451,7 @@ class Document extends Node  native "*Document"
   final String $dom_webkitVisibilityState;
 
   @JSName('caretRangeFromPoint')
+  /// Use the [Range] constructor instead.
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable
   Range $dom_caretRangeFromPoint(int x, int y) native;
@@ -6454,6 +6466,7 @@ class Document extends Node  native "*Document"
   DocumentFragment createDocumentFragment() native;
 
   @JSName('createElement')
+  /// Deprecated: use new Element.tag(tagName) instead.
   @DomName('Document.createElement')
   @DocsEditable
   Element $dom_createElement(String tagName) native;
@@ -6488,6 +6501,7 @@ class Document extends Node  native "*Document"
   Touch _$dom_createTouch_1(Window window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
   @JSName('createTouchList')
+  /// Use the [TouchList] constructor isntead.
   @DomName('Document.createTouchList')
   @DocsEditable
   TouchList $dom_createTouchList() native;
@@ -6502,11 +6516,13 @@ class Document extends Node  native "*Document"
   bool execCommand(String command, bool userInterface, String value) native;
 
   @JSName('getCSSCanvasContext')
+  /// Moved to [HtmlDocument].
   @DomName('Document.getCSSCanvasContext')
   @DocsEditable
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native;
 
   @JSName('getElementById')
+  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.getElementById')
   @DocsEditable
   Element $dom_getElementById(String elementId) native;
@@ -6553,11 +6569,13 @@ class Document extends Node  native "*Document"
   String queryCommandValue(String command) native;
 
   @JSName('querySelector')
+  /// Deprecated: renamed to the shorter name [query].
   @DomName('Document.querySelector')
   @DocsEditable
   Element $dom_querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
+  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.querySelectorAll')
   @DocsEditable
   @Returns('NodeList')
@@ -6565,16 +6583,19 @@ class Document extends Node  native "*Document"
   List<Node> $dom_querySelectorAll(String selectors) native;
 
   @JSName('webkitCancelFullScreen')
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
   @DocsEditable
   void $dom_webkitCancelFullScreen() native;
 
   @JSName('webkitExitFullscreen')
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable
   void $dom_webkitExitFullscreen() native;
 
   @JSName('webkitExitPointerLock')
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable
   void $dom_webkitExitPointerLock() native;

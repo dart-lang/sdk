@@ -842,8 +842,10 @@ def GetComments(interface_name, member_name=None, library_name=None):
 def GetAnnotationsAndComments(interface_name, member_name=None,
                               library_name=None):
   annotations = GetComments(interface_name, member_name, library_name)
-  annotations.extend(FindCommonAnnotations(interface_name, member_name,
-                                           library_name))
+  annotations = annotations + (FindCommonAnnotations(interface_name,
+                                                     member_name,
+                                                     library_name))
+
   return annotations
 
 def FindCommonAnnotations(interface_name, member_name=None, library_name=None):
@@ -891,6 +893,7 @@ def AnyConversionAnnotations(idl_type, interface_name, member_name):
 
 def FormatAnnotationsAndComments(annotations, indentation):
   if annotations:
+
     newline = '\n%s' % indentation
     result = newline.join(annotations) + newline
     return result
