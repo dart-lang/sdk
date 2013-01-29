@@ -483,61 +483,6 @@ void _defaultHandleDone(StreamSink sink) {
 }
 
 
-/**
- * A stream transformer that intercepts all events and can generate any event as
- * output.
- *
- * Each incoming event on the source stream is passed to the corresponding
- * provided event handler, along with a [StreamSink] linked to the output
- * Stream.
- * The handler can then decide exactly which events to send to the output.
- */
-class _StreamTransformerImpl<S, T> implements StreamTransformer<S, T> {
-  final _TransformDataHandler<S, T> _onData;
-  final _TransformErrorHandler<T> _onError;
-  final _TransformDoneHandler<T> _onDone;
-  StreamSink<T> _sink;
-
-  _StreamTransformerImpl(void onData(S data, StreamSink<T> sink),
-                         void onError(AsyncError data, StreamSink<T> sink),
-                         void onDone(StreamSink<T> sink))
-      : this._onData = (onData == null ? _defaultHandleData : onData),
-        this._onError = (onError == null ? _defaultHandleError : onError),
-        this._onDone = (onDone == null ? _defaultHandleDone : onDone);
-
-  Stream<T> bind(Stream<S> source) {
-    Stream<T> stream = new _SingleStreamImpl<T>();
-    // Cache a Sink object to avoid creating a new one for each event.
-    _sink = new _StreamImplSink(stream);
-    source.listen(_handleData, onError: _handleError, onDone: _handleDone);
-    return stream;
-  }
-
-  void _handleData(S data) {
-    try {
-      _onData(data, _sink);
-    } catch (e, s) {
-      _sink.signalError(_asyncError(e, s));
-    }
-  }
-
-  void _handleError(AsyncError error) {
-    try {
-      _onError(error, _sink);
-    } catch (e, s) {
-      _sink.signalError(_asyncError(e, s, error));
-    }
-  }
-
-  void _handleDone() {
-    try {
-      _onDone(_sink);
-    } catch (e, s) {
-      _sink.signalError(_asyncError(e, s));
-    }
-  }
-}
-
 /** Creates a [StreamSink] from a [_StreamImpl]'s input methods. */
 class _StreamImplSink<T> implements StreamSink<T> {
   _StreamImpl<T> _target;
@@ -547,52 +492,43 @@ class _StreamImplSink<T> implements StreamSink<T> {
   void close() { _target._close(); }
 }
 
-
 /**
- * A stream transformer that intercepts all events and can generate any event as
- * output.
+ * A [StreamTransformer] that modifies stream events.
  *
- * Each incoming event on the source stream is passed to the corresponding
- * provided event handler, along with a [StreamSink] linked to the output
- * Stream.
- * The handler can then decide exactly which events to send to the output.
+ * This class is used by [StreamTransformer]'s factory constructor.
+ * It is actually an [StreamEventTransformer] where the functions used to
+ * modify the events are passed as constructor arguments.
+ *
+ * If an argument is omitted, it acts as the default method from
+ * [StreamEventTransformer].
  */
-class _StreamEventTransformerImpl<S, T>
-    implements StreamEventTransformer<S, T> {
+class _StreamTransformerImpl<S, T> extends StreamEventTransformer<S, T> {
   // TODO(ahe): Restore type when feature is implemented in dart2js
   // checked mode. http://dartbug.com/7733
   final Function /*_TransformDataHandler<S, T>*/ _handleData;
   final _TransformErrorHandler<T> _handleError;
   final _TransformDoneHandler<T> _handleDone;
 
-  _StreamEventTransformerImpl(void onData(S data, StreamSink<T> sink),
-                              void onError(AsyncError data, StreamSink<T> sink),
-                              void onDone(StreamSink<T> sink))
-      : this._handleData = (onData == null ? _defaultHandleData : onData),
-        this._handleError = (onError == null ? _defaultHandleError : onError),
-        this._handleDone = (onDone == null ? _defaultHandleDone : onDone);
+  _StreamTransformerImpl(void handleData(S data, StreamSink<T> sink),
+                         void handleError(AsyncError data, StreamSink<T> sink),
+                         void handleDone(StreamSink<T> sink))
+      : this._handleData  = (handleData == null  ? _defaultHandleData
+                                                 : handleData),
+        this._handleError = (handleError == null ? _defaultHandleError
+                                                 : handleError),
+        this._handleDone  = (handleDone == null  ? _defaultHandleDone
+                                                 : handleDone);
 
   void handleData(S data, StreamSink<T> sink) {
-    try {
-      _handleData(data, sink);
-    } catch (e, s) {
-      sink.signalError(_asyncError(e, s));
-    }
+    _handleData(data, sink);
   }
 
   void handleError(AsyncError error, StreamSink<T> sink) {
-    try {
-      _handleError(error, sink);
-    } catch (e, s) {
-      sink.signalError(_asyncError(e, s, error));
-    }
+    _handleError(error, sink);
   }
 
   void handleDone(StreamSink<T> sink) {
-    try {
-      _handleDone(sink);
-    } catch (e, s) {
-      sink.signalError(_asyncError(e, s));
-    }
+    _handleDone(sink);
   }
 }
+

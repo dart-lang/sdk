@@ -209,27 +209,6 @@ abstract class Stream<T> {
     return streamTransformer.bind(this);
   }
 
-  /**
-   * Create a new stream from this by modifying events.
-   *
-   * Subscribing on the returned stream is the same as subscribing on
-   * this stream, except that events are passed through the [transformer]
-   * before being emitted. The transformer may generate any number and
-   * types of events for each incoming event. Pauses on the returned
-   * subscription are pauses on this stream.
-   *
-   * An example that duplicates all data events:
-   *
-   *     someStream.transformEvents(new StreamEventTransformer.from(
-   *       handleData: (var value, StreamSink sink) {
-   *         sink.add(value);
-   *         sink.add(value);
-   *       }));
-   */
-  Stream transformEvents(StreamEventTransformer<T, dynamic> transformer) {
-    return new EventTransformStream<T, dynamic>(this, transformer);
-  }
-
   /** Reduces a sequence of values by repeatedly applying [combine]. */
   Future reduce(var initialValue, combine(var previous, T element)) {
     _FutureImpl result = new _FutureImpl();
@@ -933,6 +912,7 @@ abstract class StreamConsumer<S, T> {
   Future<T> consume(Stream<S> stream);
 }
 
+
 /**
  * The target of a [Stream.transform] call.
  *
@@ -943,16 +923,27 @@ abstract class StreamTransformer<S, T> {
   /**
    * Create a [StreamTransformer] that delegates events to the given functions.
    *
-   * If a parameter is omitted, a default handler is used that forwards the
-   * event directly to the sink.
+   * This is actually a [StreamEventTransformer] where the event handling is
+   * performed by the function arguments.
+   * If an argument is omitted, it acts as the corresponding default method from
+   * [StreamEventTransformer].
    *
-   * Pauses on the returned stream are forwarded to the input stream as well.
+   * Example use:
+   *
+   *     stringStream.transform(new StreamTransformer<String, String>(
+   *         handleData: (Strung value, StreamSink<String> sink) {
+   *           sink.add(value);
+   *           sink.add(value);  // Duplicate the incoming events.
+   *         }));
+   *
    */
-  factory StreamTransformer.from({
-      void onData(S data, StreamSink<T> sink),
-      void onError(AsyncError error, StreamSink<T> sink),
-      void onDone(StreamSink<T> sink)}) {
-    return new _StreamTransformerImpl<S, T>(onData, onError, onDone);
+  factory StreamTransformer({
+      void handleData(S data, StreamSink<T> sink),
+      void handleError(AsyncError error, StreamSink<T> sink),
+      void handleDone(StreamSink<T> sink)}) {
+    return new _StreamTransformerImpl<S, T>(handleData,
+                                            handleError,
+                                            handleDone);
   }
 
   Stream<T> bind(Stream<S> stream);
@@ -960,37 +951,37 @@ abstract class StreamTransformer<S, T> {
 
 
 /**
- * A transformer of stream events.
+ * Base class for transformers that modifies stream events.
  *
  * A [StreamEventTransformer] transforms incoming Stream
- * events of one kind into outgoing events of another kind.
+ * events of one kind into outgoing events of (possibly) another kind.
+ *
+ * Subscribing on the stream returned by [bind] is the same as subscribing on
+ * the source stream, except that events are passed through the [transformer]
+ * before being emitted. The transformer may generate any number and
+ * types of events for each incoming event. Pauses on the returned
+ * subscription are forwarded to this stream.
+ *
+ * An example that duplicates all data events:
+ *
+ *     class DoubleTransformer<T> extends StreamEventTransformerBase<T, T> {
+ *       void handleData(T data, StreamSink<T> sink) {
+ *         sink.add(value);
+ *         sink.add(value);
+ *       }
+ *     }
+ *     someTypeStream.transform(new DoubleTransformer<Type>());
  *
  * The default implementations of the "handle" methods forward
- * the events unmodified. In that case the generic type [T] needs to be
- * assignable to [S].
- *
- * You can use a [StreamEventTransformer] to modify a Stream's events using
- * the [Stream.transformEvents] method.
+ * the events unmodified. If using the default [handleData] the generic type [T]
+ * needs to be assignable to [S].
  */
-abstract class StreamEventTransformer<S, T> {
+abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
   const StreamEventTransformer();
 
-  /**
-   * Create a [StreamEventTransformer] that delegates to the provided methods.
-   *
-   * The created transformer acts as if the provided functions were the
-   * methods of the same name.
-   */
-  factory StreamEventTransformer.from({
-    void handleData(S data, StreamSink<T> sink),
-    void handleError(AsyncError error, StreamSink<T> sink),
-    void handleDone(StreamSink<T> sink)
-  }) {
-    return new _StreamEventTransformerImpl<S, T>(handleData,
-                                                 handleError,
-                                                 handleDone);
+  Stream<T> bind(Stream<S> source) {
+    return new EventTransformStream<S, T>(source, this);
   }
-
 
   /**
    * Act on incoming data event.
@@ -1024,6 +1015,7 @@ abstract class StreamEventTransformer<S, T> {
   }
 }
 
+
 /**
  * Stream that transforms another stream by intercepting and replacing events.
  *
@@ -1033,8 +1025,8 @@ abstract class StreamEventTransformer<S, T> {
  * events on this stream.
  */
 class EventTransformStream<S, T> extends Stream<T> {
-  Stream<S> _source;
-  StreamEventTransformer _transformer;
+  final Stream<S> _source;
+  final StreamEventTransformer _transformer;
   EventTransformStream(Stream<S> source,
                        StreamEventTransformer<S, T> transformer)
       : _source = source, _transformer = transformer;
@@ -1090,15 +1082,27 @@ class _EventTransformStreamSubscription<S, T>
   }
 
   void _handleData(S data) {
-    _transformer.handleData(data, _sink);
+    try {
+      _transformer.handleData(data, _sink);
+    } catch (e, s) {
+      _sendError(_asyncError(e, s));
+    }
   }
 
   void _handleError(AsyncError error) {
-    _transformer.handleError(error, _sink);
+    try {
+      _transformer.handleError(error, _sink);
+    } catch (e, s) {
+      _sendError(_asyncError(e, s, error));
+    }
   }
 
   void _handleDone() {
-    _transformer.handleDone(_sink);
+    try {
+      _transformer.handleDone(_sink);
+    } catch (e, s) {
+      _sendError(_asyncError(e, s));
+    }
   }
 
   // StreamOutputSink interface.

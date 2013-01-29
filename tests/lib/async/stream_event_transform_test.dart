@@ -30,6 +30,7 @@ class EventTransformer extends StreamEventTransformer<int,int> {
     sink.signalError(new AsyncError("$data"));
     sink.add(data + 1);
   }
+
   void handleError(AsyncError e, StreamSink<int> sink) {
     String value = e.error;
     int data = int.parse(value);
@@ -52,7 +53,7 @@ main() {
                                   ..add(99)..close();
     Events input = new Events()..add(0)..add(1)..error("3")..close();
     Events actual = new Events.capture(
-        c.stream.transformEvents(new EventTransformer()));
+        c.stream.transform(new EventTransformer()));
     actual.onDone(() {
       Expect.listEquals(expected.events, actual.events);
     });
@@ -67,7 +68,7 @@ main() {
                                   ..add(99)..close();
     Events input = new Events()..add(0)..add(1)..error("3")..close();
     Events actual = new Events.capture(
-        c.stream.transformEvents(new StreamEventTransformer.from(
+        c.stream.transform(new StreamTransformer(
             handleData: handleData,
             handleError: handleError,
             handleDone: handleDone
