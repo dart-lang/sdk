@@ -162,12 +162,6 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
      - test_set: Specification of a non standard test set, default None
   """
 
-  if system.startswith('win') and runtime.startswith('ie'):
-    # There should not be more than one InternetExplorerDriver instance
-    # running at a time. For details, see
-    # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
-    flags += ['-j1']
-
   def GetPath(runtime):
     """ Helper to get the path to the Chrome or Firefox executable for a
     particular platform on the buildbot. Throws a KeyError if runtime is not

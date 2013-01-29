@@ -128,7 +128,9 @@ main() {
   var testSuites = new List<TestSuite>();
   var maxBrowserProcesses = maxProcesses;
   for (var conf in configurations) {
-    // We can't run multiple IE processes in parallel.
+    // There should not be more than one InternetExplorerDriver instance
+    // running at a time. For details, see
+    // http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
     if (conf['runtime'].startsWith('ie')) {
       maxBrowserProcesses = 1;
     }
