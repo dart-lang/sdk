@@ -1076,7 +1076,7 @@ class TypeArguments : public AbstractTypeArguments {
   RawAbstractType** TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(TypeArguments, AbstractTypeArguments);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, AbstractTypeArguments);
   friend class Class;
 };
 
@@ -1131,7 +1131,8 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
       const AbstractTypeArguments& value) const;
   static RawInstantiatedTypeArguments* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(InstantiatedTypeArguments, AbstractTypeArguments);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(InstantiatedTypeArguments,
+                                   AbstractTypeArguments);
   friend class Class;
 };
 
@@ -3558,7 +3559,7 @@ class Type : public AbstractType {
 
   static RawType* New(Heap::Space space = Heap::kOld);
 
-  HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
   friend class Class;
 };
 
@@ -3618,7 +3619,7 @@ class TypeParameter : public AbstractType {
   void set_type_state(int8_t state) const;
   static RawTypeParameter* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
   friend class Class;
 };
 
