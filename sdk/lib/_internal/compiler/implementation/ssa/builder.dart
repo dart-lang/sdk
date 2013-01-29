@@ -1627,7 +1627,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     SourceFileLocation location = new SourceFileLocation(sourceFile, token);
     if (!location.isValid()) {
       throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
-          [token.charOffset, sourceFile.filename, sourceFile.text.length]);
+          {'offset': token.charOffset,
+           'fileName': sourceFile.filename,
+           'length': sourceFile.text.length});
     }
     return location;
 }

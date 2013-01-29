@@ -444,12 +444,12 @@ class Elements {
 
 abstract class ErroneousElement extends Element implements FunctionElement {
   MessageKind get messageKind;
-  List get messageArguments;
+  Map get messageArguments;
 }
 
 abstract class AmbiguousElement extends Element {
   MessageKind get messageKind;
-  List get messageArguments;
+  Map get messageArguments;
   Element get existingElement;
   Element get newElement;
 }

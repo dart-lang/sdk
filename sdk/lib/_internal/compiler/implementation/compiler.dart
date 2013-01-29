@@ -409,7 +409,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void pleaseReportCrash() {
-    print(MessageKind.PLEASE_REPORT_THE_CRASH.message([BUILD_ID]));
+    print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': BUILD_ID}));
   }
 
   void cancel(String reason, {Node node, Token token,
@@ -433,6 +433,9 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   SourceSpan spanFromSpannable(Spannable node, [Uri uri]) {
+    if (node == CURRENT_ELEMENT_SPANNABLE) {
+      node = currentElement;
+    }
     if (node is Node) {
       return spanFromNode(node, uri);
     } else if (node is Token) {
@@ -862,8 +865,9 @@ abstract class Compiler implements DiagnosticListener {
     var kind = rejectDeprecatedFeatures
         ? api.Diagnostic.ERROR : api.Diagnostic.WARNING;
     var message = rejectDeprecatedFeatures
-        ? MessageKind.DEPRECATED_FEATURE_ERROR.error([feature])
-        : MessageKind.DEPRECATED_FEATURE_WARNING.error([feature]);
+        ? MessageKind.DEPRECATED_FEATURE_ERROR.error({'featureName': feature})
+        : MessageKind.DEPRECATED_FEATURE_WARNING.error(
+            {'featureName': feature});
     reportMessage(spanFromSpannable(span), message, kind);
     return true;
   }

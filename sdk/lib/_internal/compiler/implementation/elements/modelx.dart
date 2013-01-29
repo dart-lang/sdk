@@ -297,7 +297,7 @@ class ElementX implements Element {
  */
 class ErroneousElementX extends ElementX implements ErroneousElement {
   final MessageKind messageKind;
-  final List messageArguments;
+  final Map messageArguments;
 
   ErroneousElementX(this.messageKind, this.messageArguments,
                     SourceString name, Element enclosing)
@@ -357,7 +357,7 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
   /**
    * The message arguments to report on resolving this element.
    */
-  final List messageArguments;
+  final Map messageArguments;
 
   /**
    * The first element that this ambiguous element might refer to.
@@ -512,7 +512,8 @@ class CompilationUnitElementX extends ElementX
       if (expectedName != actualName) {
         listener.reportMessage(
             listener.spanFromSpannable(tag.name),
-            MessageKind.LIBRARY_NAME_MISMATCH.error([expectedName]),
+            MessageKind.LIBRARY_NAME_MISMATCH.error(
+                {'libraryName': expectedName}),
             api.Diagnostic.WARNING);
       }
     }
@@ -603,7 +604,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
       // TODO(johnniwinther): Provide access to the import tags from which
       // the elements came.
       importScope[element.name] = new AmbiguousElementX(
-          MessageKind.DUPLICATE_IMPORT, [element.name],
+          MessageKind.DUPLICATE_IMPORT, {'name': element.name},
           this, existing, element);
     } else {
       importScope[element.name] = element;

@@ -16,6 +16,17 @@ part 'link.dart';
 // TODO(ahe): How about "Bolt"?
 abstract class Spannable {}
 
+class _SpannableSentinel implements Spannable {
+  final String name;
+
+  const _SpannableSentinel(this.name);
+
+  String toString() => name;
+}
+
+const Spannable CURRENT_ELEMENT_SPANNABLE =
+    const _SpannableSentinel("Current element");
+
 class SpannableAssertionFailure {
   final Spannable node;
   final String message;

@@ -319,12 +319,12 @@ class LibraryLoaderTask extends LibraryLoader {
         Uri uri = library.entryCompilationUnit.script.uri;
         compiler.reportMessage(
             compiler.spanFromSpannable(tag.name, uri),
-            MessageKind.DUPLICATED_LIBRARY_NAME.error([name]),
+            MessageKind.DUPLICATED_LIBRARY_NAME.error({'libraryName': name}),
             api.Diagnostic.WARNING);
         Uri existingUri = existing.entryCompilationUnit.script.uri;
         compiler.reportMessage(
             compiler.spanFromSpannable(existing.libraryTag.name, existingUri),
-            MessageKind.DUPLICATED_LIBRARY_NAME.error([name]),
+            MessageKind.DUPLICATED_LIBRARY_NAME.error({'libraryName': name}),
             api.Diagnostic.WARNING);
       }
     }
@@ -374,7 +374,7 @@ class LibraryLoaderTask extends LibraryLoader {
         if (wasDiagnosticEmitted) {
           compiler.reportMessage(
               compiler.spanFromElement(unit),
-              MessageKind.MISSING_PART_OF_TAG.error([]),
+              MessageKind.MISSING_PART_OF_TAG.error(),
               api.Diagnostic.INFO);
         }
       }
@@ -676,16 +676,19 @@ class LibraryDependencyNode {
     if (existingElement != null) {
       if (existingElement.isErroneous()) {
         compiler.reportMessage(compiler.spanFromElement(element),
-            MessageKind.DUPLICATE_EXPORT.error([name]), api.Diagnostic.ERROR);
+            MessageKind.DUPLICATE_EXPORT.error({'name': name}),
+            api.Diagnostic.ERROR);
         element = existingElement;
       } else if (existingElement.getLibrary() != library) {
         // Declared elements hide exported elements.
         compiler.reportMessage(compiler.spanFromElement(existingElement),
-            MessageKind.DUPLICATE_EXPORT.error([name]), api.Diagnostic.ERROR);
+            MessageKind.DUPLICATE_EXPORT.error({'name': name}),
+            api.Diagnostic.ERROR);
         compiler.reportMessage(compiler.spanFromElement(element),
-            MessageKind.DUPLICATE_EXPORT.error([name]), api.Diagnostic.ERROR);
+            MessageKind.DUPLICATE_EXPORT.error({'name': name}),
+            api.Diagnostic.ERROR);
         element = exportScope[name] = new ErroneousElementX(
-            MessageKind.DUPLICATE_EXPORT, [name], name, library);
+            MessageKind.DUPLICATE_EXPORT, {'name': name}, name, library);
       }
     } else {
       exportScope[name] = element;

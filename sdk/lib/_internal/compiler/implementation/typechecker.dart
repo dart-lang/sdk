@@ -739,7 +739,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     throw new CancelTypeCheckException(node, message);
   }
 
-  reportTypeWarning(Node node, MessageKind kind, [List arguments = const []]) {
+  reportTypeWarning(Node node, MessageKind kind, [Map arguments = const {}]) {
     compiler.reportWarning(node, new TypeWarning(kind, arguments));
   }
 
@@ -784,7 +784,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
    */
   checkAssignable(Node node, DartType s, DartType t) {
     if (!types.isAssignable(s, t)) {
-      reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE, [s, t]);
+      reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE,
+                        {'fromType': s, 'toType': t});
     }
   }
 
@@ -924,7 +925,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       return computeType(member);
     }
     reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
-                      [classElement.name, name]);
+                      {'className': classElement.name, 'methodName': name});
     return types.dynamicType;
   }
 
@@ -948,7 +949,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
         reportTypeWarning(arguments.head, MessageKind.ADDITIONAL_ARGUMENT);
       } else if (!parameterTypes.isEmpty) {
         reportTypeWarning(send, MessageKind.MISSING_ARGUMENT,
-                          [parameterTypes.head]);
+                          {'argumentType': parameterTypes.head});
       }
     }
   }
@@ -1156,8 +1157,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       final expressionType = analyze(expression);
       if (isVoidFunction
           && !types.isAssignable(expressionType, types.voidType)) {
-        reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID,
-                          [expressionType]);
+        reportTypeWarning(expression, MessageKind.RETURN_VALUE_IN_VOID);
       } else {
         checkAssignable(expression, expectedReturnType, expressionType);
       }
@@ -1168,7 +1168,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     // - f is not a generative constructor.
     // - The return type of f may not be assigned to void.
     } else if (!types.isAssignable(expectedReturnType, types.voidType)) {
-      reportTypeWarning(node, MessageKind.RETURN_NOTHING, [expectedReturnType]);
+      reportTypeWarning(node, MessageKind.RETURN_NOTHING,
+                        {'returnType': expectedReturnType});
     }
     return StatementType.RETURNING;
   }

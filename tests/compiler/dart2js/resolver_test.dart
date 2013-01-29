@@ -219,7 +219,7 @@ testLocalsOne() {
   MockCompiler compiler = testLocals([["foo", false], ["foo", false]]);
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
-      new Message(MessageKind.DUPLICATE_DEFINITION, ['foo']),
+      new Message(MessageKind.DUPLICATE_DEFINITION, {'name': 'foo'}),
       compiler.errors[0].message);
 }
 
@@ -401,7 +401,7 @@ testTypeAnnotation() {
   Node warningNode = compiler.warnings[0].node;
 
   Expect.equals(
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Foo']),
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE,  {'typeName': 'Foo'}),
       compiler.warnings[0].message);
   VariableDefinitions definition = compiler.parsedTree;
   Expect.equals(warningNode, definition.type);
@@ -427,7 +427,8 @@ testSuperclass() {
   // ClassResolverVisitor, and once from ClassSupertypeResolver. We
   // should only the get the error once.
   Expect.equals(2, compiler.errors.length);
-  var cannotResolveBar = new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Bar']);
+  var cannotResolveBar = new Message(MessageKind.CANNOT_RESOLVE_TYPE,
+                                     {'typeName': 'Bar'});
   Expect.equals(cannotResolveBar, compiler.errors[0].message);
   Expect.equals(cannotResolveBar, compiler.errors[1].message);
   compiler.clearErrors();
@@ -452,7 +453,7 @@ testVarSuperclass() {
   compiler.resolveStatement("Foo bar;");
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['var']),
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': 'var'}),
       compiler.errors[0].message);
   compiler.clearErrors();
 }
@@ -463,7 +464,7 @@ testOneInterface() {
   compiler.resolveStatement("Foo bar;");
   Expect.equals(1, compiler.errors.length);
   Expect.equals(
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['bar']),
+      new Message(MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': 'bar'}),
       compiler.errors[0].message);
   compiler.clearErrors();
 

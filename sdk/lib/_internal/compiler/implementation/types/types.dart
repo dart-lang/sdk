@@ -219,7 +219,7 @@ class ConcreteTypeInferencer extends Visitor {
   }
 
   void interest(Node node, String note) {
-    var message = MessageKind.GENERIC.message([note]);
+    var message = MessageKind.GENERIC.message({'text': note});
     task.compiler.reportWarning(node, message);
   }
 
