@@ -113,7 +113,7 @@ abstract class Future<T> {
    * See [Completer]s, for futures with values that are computed asynchronously.
    */
   factory Future.delayed(int milliseconds, T value()) {
-    _FutureImpl<T> future = new _ThenFuture<dynamic, T>((_) => value());
+    _ThenFuture<dynamic, T> future = new _ThenFuture<dynamic, T>((_) => value());
     new Timer(milliseconds, (_) => future._sendValue(null));
     return future;
   }

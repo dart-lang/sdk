@@ -62,10 +62,10 @@ abstract class _StreamImpl<T> extends Stream<T> {
   // ------------------------------------------------------------------
   // Stream interface.
 
-  StreamSubscription listen(void onData(T data),
-                            { void onError(AsyncError error),
-                              void onDone(),
-                              bool unsubscribeOnError }) {
+  StreamSubscription<T> listen(void onData(T data),
+                               { void onError(AsyncError error),
+                                 void onDone(),
+                                 bool unsubscribeOnError }) {
     if (_isComplete) {
       return new _DoneSubscription(onDone);
     }
@@ -73,7 +73,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
     if (onError == null) onError = _nullErrorHandler;
     if (onDone == null) onDone = _nullDoneHandler;
     unsubscribeOnError = identical(true, unsubscribeOnError);
-    _StreamListener subscription =
+    _StreamSubscriptionImpl subscription =
         _createSubscription(onData, onError, onDone, unsubscribeOnError);
     _addListener(subscription);
     return subscription;
@@ -1092,8 +1092,10 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
   bool get _isComplete => _timer == null && _pauseCount == 0;
 
   void onData(void handleAction(T value)) {}
-  void onError(void handleError(StateError error)) {}
-  void onDone(void handleDone(T value)) {
+
+  void onError(void handleError(AsyncError error)) {}
+
+  void onDone(void handleDone()) {
     _handler = handleDone;
   }
 

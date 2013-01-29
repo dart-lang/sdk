@@ -159,29 +159,34 @@ class _CycleEntry<T> {
   Stream source;
   /** The active subscription, if any. */
   StreamSubscription subscription = null;
+  /** Whether the subscription is currently paused. */
+  bool isPaused = false;
   /** Next entry in a linked list of entries. */
   _CycleEntry next;
 
   _CycleEntry(this.stream, this.source);
 
   void cancel() {
-    // This method may be called event if this entry has never been activated.
+    // This method may be called even if this entry has never been activated.
     if (subscription != null) {
       subscription.cancel();
       subscription = null;
+      isPaused = false;
     }
   }
 
   void pause() {
     ensureSubscribed();
-    if (!subscription.isPaused) {
+    if (!isPaused) {
       subscription.pause();
+      isPaused = true;
     }
   }
 
   void activate() {
     ensureSubscribed();
-    if (subscription.isPaused) {
+    if (isPaused) {
+      isPaused = false;
       subscription.resume();
     }
   }

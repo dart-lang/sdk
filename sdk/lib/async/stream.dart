@@ -40,12 +40,11 @@ part of dart.async;
  * A broadcast stream allows any number of listeners, and it fires
  * its events when they are ready, whether there are listeners or not.
  *
- * Braodcast streams are used for independent events/observers.
+ * Broadcast streams are used for independent events/observers.
  *
- * The default implementation of [isBroadcast] and
- * [asBroadcastStream] are assuming this is a single-subscription stream
- * and a broadcast stream inheriting from [Stream] must override these
- * to return [:true:] and [:this:] respectively.
+ * The default implementation of [isBroadcast] returns false.
+ * A broadcast stream inheriting from [Stream] must override [isBroadcast]
+ * to return [:true:].
  */
 abstract class Stream<T> {
   Stream();
@@ -93,6 +92,7 @@ abstract class Stream<T> {
    * If this stream is already a broadcast stream, it is returned unmodified.
    */
   Stream<T> asBroadcastStream() {
+    if (isBroadcast) return this;
     return new _SingleStreamMultiplexer<T>(this);
   }
 
@@ -172,8 +172,11 @@ abstract class Stream<T> {
    * If the error is intercepted, the [handle] function can decide what to do
    * with it. It can throw if it wants to raise a new (or the same) error,
    * or simply return to make the stream forget the error.
+   *
+   * If you need to transform an error into a data event, use the more generic
+   * [Stream.transformEvent] to handle the event by writing a data event to
+   * the output sink
    */
-   // TODO(lrn): Say what to do if you want to convert the error to a value.
   Stream<T> handleError(void handle(AsyncError error), { bool test(error) }) {
     return new _HandleErrorStream<T>(this, handle, test);
   }
@@ -206,6 +209,26 @@ abstract class Stream<T> {
     return streamTransformer.bind(this);
   }
 
+  /**
+   * Create a new stream from this by modifying events.
+   *
+   * Subscribing on the returned stream is the same as subscribing on
+   * this stream, except that events are passed through the [transformer]
+   * before being emitted. The transformer may generate any number and
+   * types of events for each incoming event. Pauses on the returned
+   * subscription are pauses on this stream.
+   *
+   * An example that duplicates all data events:
+   *
+   *     someStream.transformEvents(new StreamEventTransformer.from(
+   *       handleData: (var value, StreamSink sink) {
+   *         sink.add(value);
+   *         sink.add(value);
+   *       }));
+   */
+  Stream transformEvents(StreamEventTransformer<T, dynamic> transformer) {
+    return new EventTransformStream<T, dynamic>(this, transformer);
+  }
 
   /** Reduces a sequence of values by repeatedly applying [combine]. */
   Future reduce(var initialValue, combine(var previous, T element)) {
@@ -263,11 +286,11 @@ abstract class Stream<T> {
         // checked mode. http://dartbug.com/7733
         (/*T*/ element) {
           _runUserCode(
-            () => match(element),
+            () => (element == match),
             (bool isMatch) {
               if (isMatch) {
                 subscription.cancel();
-                future._setValue(element);
+                future._setValue(true);
               }
             },
             _cancelAndError(subscription, future)
@@ -933,4 +956,175 @@ abstract class StreamTransformer<S, T> {
   }
 
   Stream<T> bind(Stream<S> stream);
+}
+
+
+/**
+ * A transformer of stream events.
+ *
+ * A [StreamEventTransformer] transforms incoming Stream
+ * events of one kind into outgoing events of another kind.
+ *
+ * The default implementations of the "handle" methods forward
+ * the events unmodified. In that case the generic type [T] needs to be
+ * assignable to [S].
+ *
+ * You can use a [StreamEventTransformer] to modify a Stream's events using
+ * the [Stream.transformEvents] method.
+ */
+abstract class StreamEventTransformer<S, T> {
+  const StreamEventTransformer();
+
+  /**
+   * Create a [StreamEventTransformer] that delegates to the provided methods.
+   *
+   * The created transformer acts as if the provided functions were the
+   * methods of the same name.
+   */
+  factory StreamEventTransformer.from({
+    void handleData(S data, StreamSink<T> sink),
+    void handleError(AsyncError error, StreamSink<T> sink),
+    void handleDone(StreamSink<T> sink)
+  }) {
+    return new _StreamEventTransformerImpl<S, T>(handleData,
+                                                 handleError,
+                                                 handleDone);
+  }
+
+
+  /**
+   * Act on incoming data event.
+   *
+   * The method may generate any number of events on the sink, but should
+   * not throw.
+   */
+  void handleData(S event, StreamSink<T> sink) {
+    var data = event;
+    sink.add(data);
+  }
+
+  /**
+   * Act on incoming error event.
+   *
+   * The method may generate any number of events on the sink, but should
+   * not throw.
+   */
+  void handleError(AsyncError error, StreamSink<T> sink) {
+    sink.signalError(error);
+  }
+
+  /**
+   * Act on incoming done event.
+   *
+   * The method may generate any number of events on the sink, but should
+   * not throw.
+   */
+  void handleDone(StreamSink<T> sink){
+    sink.close();
+  }
+}
+
+/**
+ * Stream that transforms another stream by intercepting and replacing events.
+ *
+ * This [Stream] is a transformation of a source stream. Listening on this
+ * stream is the same as listening on the source stream, except that events
+ * are intercepted and modified by a [StreamEventTransformer] before becoming
+ * events on this stream.
+ */
+class EventTransformStream<S, T> extends Stream<T> {
+  Stream<S> _source;
+  StreamEventTransformer _transformer;
+  EventTransformStream(Stream<S> source,
+                       StreamEventTransformer<S, T> transformer)
+      : _source = source, _transformer = transformer;
+
+  StreamSubscription<T> listen(void onData(T data),
+                               { void onError(AsyncError error),
+                                 void onDone(),
+                                 bool unsubscribeOnError }) {
+    return new _EventTransformStreamSubscription(_source, _transformer,
+                                                 onData, onError, onDone,
+                                                 unsubscribeOnError);
+  }
+}
+
+class _EventTransformStreamSubscription<S, T>
+    extends _BaseStreamSubscription<T>
+    implements _StreamOutputSink<T> {
+  /** The transformer used to transform events. */
+  final StreamEventTransformer<S, T> _transformer;
+  /** Whether to unsubscribe when emitting an error. */
+  final bool _unsubscribeOnError;
+  /** Source of incoming events. */
+  StreamSubscription<S> _subscription;
+  /** Cached StreamSink wrapper for this class. */
+  StreamSink<T> _sink;
+
+  _EventTransformStreamSubscription(Stream<S> source,
+                                    this._transformer,
+                                    void onData(T data),
+                                    void onError(AsyncError error),
+                                    void onDone(),
+                                    this._unsubscribeOnError)
+      : super(onData, onError, onDone) {
+    _sink = new _StreamOutputSinkWrapper<T>(this);
+    _subscription = source.listen(_handleData,
+                                  onError: _handleError,
+                                  onDone: _handleDone);
+  }
+
+  void pause([Future pauseSignal]) {
+    if (_subscription != null) _subscription.pause(pauseSignal);
+  }
+
+  void resume() {
+    if (_subscription != null) _subscription.resume();
+  }
+
+  void cancel() {
+    if (_subscription != null) {
+      _subscription.cancel();
+      _subscription = null;
+    }
+  }
+
+  void _handleData(S data) {
+    _transformer.handleData(data, _sink);
+  }
+
+  void _handleError(AsyncError error) {
+    _transformer.handleError(error, _sink);
+  }
+
+  void _handleDone() {
+    _transformer.handleDone(_sink);
+  }
+
+  // StreamOutputSink interface.
+  void _sendData(T data) {
+    _onData(data);
+  }
+
+  void _sendError(AsyncError error) {
+    _onError(error);
+    if (_unsubscribeOnError) {
+      cancel();
+    }
+  }
+
+  void _sendDone() {
+    // It's ok to cancel even if we have been unsubscribed already.
+    cancel();
+    _onDone();
+  }
+}
+
+class _StreamOutputSinkWrapper<T> implements StreamSink<T> {
+  _StreamOutputSink _sink;
+  _StreamOutputSinkWrapper(this._sink);
+
+  void add(T data) => _sink._sendData(data);
+  void signalError(AsyncError error) => _sink._sendError(error);
+  void close() => _sink._sendDone();
 }

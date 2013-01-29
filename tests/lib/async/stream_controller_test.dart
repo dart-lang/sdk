@@ -240,6 +240,42 @@ testSingleController() {
   c.add(9);
   c.close();
 
+  // test contains.
+  {
+    c = new StreamController();
+    // Error after match is not important.
+    sentEvents = new Events()..add("a")..add("x")..error("FAIL")..close();
+    Future<bool> contains = c.stream.contains("x");
+    contains.then((var c) {
+      Expect.isTrue(c);
+    });
+    sentEvents.replay(c);
+  }
+
+  {
+    c = new StreamController();
+    // Not matching is ok.
+    sentEvents = new Events()..add("a")..add("x")..add("b")..close();
+    Future<bool> contains = c.stream.contains("y");
+    contains.then((var c) {
+      Expect.isFalse(c);
+    });
+    sentEvents.replay(c);
+  }
+
+  {
+    c = new StreamController();
+    // Error before match makes future err.
+    sentEvents = new Events()..add("a")..error("FAIL")..add("b")..close();
+    Future<bool> contains = c.stream.contains("b");
+    contains.then((var c) {
+      Expect.fail("no value expected");
+    }).catchError((AsyncError e) {
+      Expect.equals("FAIL", e.error);
+    });
+    sentEvents.replay(c);
+  }
+
   // Test transform.
   c = new StreamController();
   sentEvents = new Events()..add("a")..error(42)..add("b")..close();
