@@ -184,8 +184,6 @@ import 'src/serialization_helpers.dart';
 import 'dart:async';
 import 'dart:json' as json;
 import 'dart:collection';
-// TODO(alanknight): Ugh. Remove this if we can resolve bug 7982/7940.
-import 'dart:collection-dev';
 
 part 'src/reader_writer.dart';
 part 'src/serialization_rule.dart';

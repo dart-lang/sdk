@@ -184,12 +184,7 @@ class SimpleJsonFormat extends Format {
     } else {
       throw new SerializationException("Invalid data format");
     }
-    var newData = values(data).mappedBy(
-        (x) => recursivelyFixUp(x, r, result));
-    // TODO(alanknight): Ugh. Get rid of this if we can resolve bug 7982/7940.
-    if (newData is MappedList) {
-      newData = newData.toList();
-    }
+    var newData = mapValues(data, (x) => recursivelyFixUp(x, r, result));
     result[ruleNumber].add(newData);
     return new Reference(r, ruleNumber, result[ruleNumber].length - 1);
   }

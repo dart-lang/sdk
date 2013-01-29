@@ -5,7 +5,6 @@
 library _js_helper;
 
 import 'dart:collection';
-import 'dart:collection-dev';
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CALL_IN_ISOLATE,

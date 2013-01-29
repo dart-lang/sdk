@@ -2,7 +2,6 @@ library svg;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';

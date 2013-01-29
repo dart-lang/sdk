@@ -5,7 +5,6 @@
 library html_common;
 
 import 'dart:collection';
-import 'dart:collection-dev';
 import 'dart:html';
 
 import 'metadata.dart';
