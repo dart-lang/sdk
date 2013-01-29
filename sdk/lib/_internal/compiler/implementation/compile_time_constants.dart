@@ -229,7 +229,9 @@ class ConstantHandler extends CompilerTask {
     return initialVariableValues.keys.where((element) {
       return element.kind == ElementKind.FIELD
           && !element.isInstanceMember()
-          && !element.modifiers.isFinal();
+          && !element.modifiers.isFinal()
+          // The const fields are all either emitted elsewhere or inlined.
+          && !element.modifiers.isConst();
     });
   }
 
