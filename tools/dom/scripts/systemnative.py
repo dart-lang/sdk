@@ -702,7 +702,8 @@ class DartiumBackend(HtmlDartGenerator):
           type_info.to_native_info(argument, self._interface.id)
 
       if ((IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or
-          (argument.ext_attrs.get('Optional') == 'DefaultIsNullString')):
+          (argument.ext_attrs.get('Optional') == 'DefaultIsNullString') or
+          _IsOptionalStringArgumentInInitEventMethod(self._interface, node, argument)):
         function += 'WithNullCheck'
 
       argument_name = DartDomNameOfAttribute(argument)
@@ -890,3 +891,10 @@ class CPPLibraryEmitter():
             '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
             '        return func;\n',
             CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
+
+def _IsOptionalStringArgumentInInitEventMethod(interface, operation, argument):
+  return (
+      interface.id.endswith('Event') and
+      operation.id.startswith('init') and
+      argument.ext_attrs.get('Optional') == 'DefaultIsUndefined' and
+      argument.type.id == 'DOMString')
