@@ -1374,7 +1374,9 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         RemovePushArguments(call);
         return true;
       }
-      case MethodRecognizer::kDoubleMod:
+      // TODO(srdjan): C's modulo does not correspond to Dart's modulo.
+      // Additional checks are required.
+      // case MethodRecognizer::kDoubleMod:
       case MethodRecognizer::kDoublePow:
         ReplaceWithMathCFunction(call, recognized_kind);
         return true;
