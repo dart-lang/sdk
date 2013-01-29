@@ -733,6 +733,8 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
 
 bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   const intptr_t class_id = ReceiverClassId(call);
+  // Set deopt_id to a valid id if the LoadIndexedInstr can cause deopt.
+  intptr_t deopt_id = Isolate::kNoDeoptId;
   switch (class_id) {
     case kArrayCid:
     case kImmutableArrayCid:
@@ -753,6 +755,14 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
       if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
         return false;
       }
+      {
+        // Set deopt_id if we can optimistically assume that the result is Smi.
+        // Assume mixed Mint/Smi if this instruction caused deoptimization once.
+        ASSERT(call->HasICData());
+        const ICData& ic_data = *call->ic_data();
+        deopt_id = (ic_data.deopt_reason() == kDeoptUnknown) ?
+            call->deopt_id() : Isolate::kNoDeoptId;
+      }
       break;
     default:
       return false;
@@ -760,7 +770,8 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   Value* array = NULL;
   Value* index = NULL;
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
-  Definition* array_op = new LoadIndexedInstr(array, index, array_cid);
+  Definition* array_op =
+      new LoadIndexedInstr(array, index, array_cid, deopt_id);
   call->ReplaceWith(array_op, current_iterator());
   RemovePushArguments(call);
   return true;
@@ -1289,7 +1300,7 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
                  call->env(),
                  Definition::kEffect);
   }
-  return new LoadIndexedInstr(str, index, cid);
+  return new LoadIndexedInstr(str, index, cid, Isolate::kNoDeoptId);
 }
 
 

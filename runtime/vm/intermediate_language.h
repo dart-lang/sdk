@@ -520,6 +520,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class DoubleToDoubleInstr;
   friend class InvokeMathCFunctionInstr;
   friend class FlowGraphOptimizer;
+  friend class LoadIndexedInstr;
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
@@ -2695,12 +2696,16 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
 
 class LoadIndexedInstr : public TemplateDefinition<2> {
  public:
-  LoadIndexedInstr(Value* array, Value* index, intptr_t class_id)
+  LoadIndexedInstr(Value* array,
+                   Value* index,
+                   intptr_t class_id,
+                   intptr_t deopt_id)
       : class_id_(class_id) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
     inputs_[1] = index;
+    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(LoadIndexed)
@@ -2710,7 +2715,9 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   Value* index() const { return inputs_[1]; }
   intptr_t class_id() const { return class_id_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const {
+    return deopt_id_ != Isolate::kNoDeoptId;
+  }
 
   virtual bool HasSideEffect() const { return false; }
 

@@ -73,6 +73,8 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
   V(CheckArrayBound)                                                           \
   V(AtCall)                                                                    \
   V(DoubleToSmi)                                                               \
+  V(Int32Load)                                                                 \
+  V(Uint32Load)                                                                \
   V(NumReasons)                                                                \
 
 enum DeoptReasonId {

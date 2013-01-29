@@ -1113,8 +1113,10 @@ intptr_t LoadIndexedInstr::ResultCid() const {
       return kSmiCid;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
-      // Result can be smi or mint when boxed.
-      return kDynamicCid;
+      // Result can be Smi or Mint when boxed.
+      // Instruction can deoptimize if we optimistically assumed that the result
+      // fits into Smi.
+      return CanDeoptimize() ? kSmiCid : kDynamicCid;
     default:
       UNIMPLEMENTED();
       return kDynamicCid;
@@ -1137,7 +1139,9 @@ Representation LoadIndexedInstr::representation() const {
       return kTagged;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
-      return kUnboxedMint;
+      // Instruction can deoptimize if we optimistically assumed that the result
+      // fits into Smi.
+      return CanDeoptimize() ? kTagged : kUnboxedMint;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return kUnboxedDouble;
@@ -1252,6 +1256,24 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTwoByteStringCid:
       __ movzxw(result, element_address);
       __ SmiTag(result);
+      break;
+    case kInt32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptInt32Load);
+        __ movl(result, element_address);
+        // Verify that the signed value in 'result' can fit inside a Smi.
+        __ cmpl(result, Immediate(0xC0000000));
+        __ j(NEGATIVE, deopt);
+        __ SmiTag(result);
+      }
+      break;
+    case kUint32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptUint32Load);
+        __ movl(result, element_address);
+        // Verify that the unsigned value in 'result' can fit inside a Smi.
+        __ testl(result, Immediate(0xC0000000));
+        __ j(NOT_ZERO, deopt);
+        __ SmiTag(result);
+      }
       break;
     default:
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
