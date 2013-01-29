@@ -387,8 +387,13 @@ class DartBackend extends Backend {
       SynthesizedConstructorElementX constructor =
           new SynthesizedConstructorElementX(classElement);
       constructor.type = new FunctionType(
-          compiler.types.voidType, const Link<DartType>(),
-          constructor);
+          constructor,
+          compiler.types.voidType,
+          const Link<DartType>(),
+          const Link<DartType>(),
+          const Link<SourceString>(),
+          const Link<DartType>()
+          );
       constructor.cachedNode = new FunctionExpression(
           new Send(classNode.name, synthesizedIdentifier),
           new NodeList(new StringToken(OPEN_PAREN_INFO, '(', -1),

@@ -360,8 +360,12 @@ testFunctionSubtyping() {
   bool isSubtype(List<DartType> in1, DartType out1, List<DartType> in2,
                  DartType out2) {
     return compiler.types.isSubtype(
-        new FunctionType(out1, new Link<DartType>.fromList(in1), null),
-        new FunctionType(out2, new Link<DartType>.fromList(in2), null));
+        new FunctionType(null, out1, new Link<DartType>.fromList(in1),
+                         const Link<DartType>(),
+                         const Link<SourceString>(), const Link<DartType>()),
+        new FunctionType(null, out2, new Link<DartType>.fromList(in2),
+                         const Link<DartType>(),
+                         const Link<SourceString>(), const Link<DartType>()));
   }
   Expect.isTrue(isSubtype([], intType, [], intType));
   Expect.isTrue(isSubtype([], intType, [], objectType));

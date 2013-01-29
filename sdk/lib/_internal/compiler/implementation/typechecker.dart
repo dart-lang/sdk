@@ -409,17 +409,46 @@ class InterfaceType extends DartType {
 
 class FunctionType extends DartType {
   final Element element;
-  DartType returnType;
-  Link<DartType> parameterTypes;
+  final DartType returnType;
+  final Link<DartType> parameterTypes;
+  final Link<DartType> optionalParameterTypes;
+  final Link<SourceString> namedParameters;
+  final Link<DartType> namedParameterTypes;
   final bool isMalformed;
 
-  FunctionType(DartType returnType, Link<DartType> parameterTypes,
-               Element this.element)
-      : this.returnType = returnType,
-        this.parameterTypes = parameterTypes,
-        this.isMalformed = returnType != null && returnType.isMalformed ||
-            hasMalformed(parameterTypes) {
+  factory FunctionType(Element element,
+                       DartType returnType,
+                       Link<DartType> parameterTypes,
+                       Link<DartType> optionalParameterTypes,
+                       Link<SourceString> namedParameters,
+                       Link<DartType> namedParameterTypes) {
+    // Compute [isMalformed] eagerly since it is faster than a lazy computation
+    // and since [isMalformed] most likely will be accessed in [Types.isSubtype]
+    // anyway.
+    bool isMalformed = returnType != null &&
+                       returnType.isMalformed ||
+                       hasMalformed(parameterTypes) ||
+                       hasMalformed(optionalParameterTypes) ||
+                       hasMalformed(namedParameterTypes);
+    return new FunctionType.internal(element,
+                                     returnType,
+                                     parameterTypes,
+                                     optionalParameterTypes,
+                                     namedParameters,
+                                     namedParameterTypes,
+                                     isMalformed);
+  }
+
+  FunctionType.internal(Element this.element,
+                        DartType this.returnType,
+                        Link<DartType> this.parameterTypes,
+                        Link<DartType> this.optionalParameterTypes,
+                        Link<SourceString> this.namedParameters,
+                        Link<DartType> this.namedParameterTypes,
+                        bool this.isMalformed) {
     assert(element == null || invariant(element, element.isDeclaration));
+    // Assert that optional and named parameters are not used at the same time.
+    assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
   }
 
   TypeKind get kind => TypeKind.FUNCTION;
@@ -432,14 +461,26 @@ class FunctionType extends DartType {
     }
     var newReturnType = returnType.subst(arguments, parameters);
     bool changed = !identical(newReturnType, returnType);
-    var newParameterTypes = Types.substTypes(parameterTypes, arguments,
-                                             parameters);
-    if (!changed && !identical(parameterTypes, newParameterTypes)) {
+    var newParameterTypes =
+        Types.substTypes(parameterTypes, arguments, parameters);
+    var newOptionalParameterTypes =
+        Types.substTypes(optionalParameterTypes, arguments, parameters);
+    var newNamedParameterTypes =
+        Types.substTypes(namedParameterTypes, arguments, parameters);
+    if (!changed &&
+        (!identical(parameterTypes, newParameterTypes) ||
+         !identical(optionalParameterTypes, newOptionalParameterTypes) ||
+         !identical(namedParameterTypes, newNamedParameterTypes))) {
       changed = true;
     }
     if (changed) {
       // Create a new type only if necessary.
-      return new FunctionType(newReturnType, newParameterTypes, element);
+      return new FunctionType(element,
+                              newReturnType,
+                              newParameterTypes,
+                              newOptionalParameterTypes,
+                              namedParameters,
+                              newNamedParameterTypes);
     }
     return this;
   }
@@ -453,6 +494,16 @@ class FunctionType extends DartType {
         return false;
       }
     }
+    for (DartType parameterType in optionalParameterTypes) {
+      if (!parameterType.forEachMalformedType(f)) {
+        return false;
+      }
+    }
+    for (DartType parameterType in namedParameterTypes) {
+      if (!parameterType.forEachMalformedType(f)) {
+        return false;
+      }
+    }
     return true;
   }
 
@@ -460,9 +511,39 @@ class FunctionType extends DartType {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    bool first = true;
     sb.add('(');
     parameterTypes.printOn(sb, ', ');
+    bool first = parameterTypes.isEmpty;
+    if (!optionalParameterTypes.isEmpty) {
+      if (!first) {
+        sb.add(', ');
+      }
+      sb.add('[');
+      optionalParameterTypes.printOn(sb, ', ');
+      sb.add(']');
+      first = false;
+    }
+    if (!namedParameterTypes.isEmpty) {
+      if (!first) {
+        sb.add(', ');
+      }
+      sb.add('{');
+      Link<SourceString> namedParameter = namedParameters;
+      Link<DartType> namedParameterType = namedParameterTypes;
+      first = true;
+      while (!namedParameter.isEmpty && !namedParameterType.isEmpty) {
+        if (!first) {
+          sb.add(', ');
+        }
+        sb.add(namedParameterType.head);
+        sb.add(' ');
+          sb.add(namedParameter.head.slowToString());
+        namedParameter = namedParameter.tail;
+        namedParameterType = namedParameterType.tail;
+        first = false;
+      }
+      sb.add('}');
+    }
     sb.add(') -> ${returnType}');
     return sb.toString();
   }
@@ -473,13 +554,6 @@ class FunctionType extends DartType {
     int arity = 0;
     parameterTypes.forEach((_) { arity++; });
     return arity;
-  }
-
-  void initializeFrom(FunctionType other) {
-    assert(returnType == null);
-    assert(parameterTypes == null);
-    returnType = other.returnType;
-    parameterTypes = other.parameterTypes;
   }
 
   int get hashCode {

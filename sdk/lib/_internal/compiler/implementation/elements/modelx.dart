@@ -1258,10 +1258,12 @@ class SynthesizedConstructorElementX extends FunctionElementX {
                                             Compiler compiler)
     : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
             Modifiers.EMPTY, enclosing) {
-    type = new FunctionType(
+    type = new FunctionType(this,
         compiler.types.voidType,
         const Link<DartType>(),
-        this);
+        const Link<DartType>(),
+        const Link<SourceString>(),
+        const Link<DartType>());
     cachedNode = new FunctionExpression(
         new Identifier(enclosing.position()),
         new NodeList.empty(),

@@ -854,16 +854,35 @@ class ResolverTask extends CompilerTask {
 
   FunctionType computeFunctionType(Element element,
                                    FunctionSignature signature) {
-    LinkBuilder<DartType> parameterTypes = new LinkBuilder<DartType>();
-    for (Link<Element> link = signature.requiredParameters;
-         !link.isEmpty;
-         link = link.tail) {
-       parameterTypes.addLast(link.head.computeType(compiler));
-       // TODO(karlklose): optional parameters.
+    var parameterTypes = new LinkBuilder<DartType>();
+    for (Element parameter in signature.requiredParameters) {
+       parameterTypes.addLast(parameter.computeType(compiler));
     }
-    return new FunctionType(signature.returnType,
-                            parameterTypes.toLink(),
-                            element);
+    var optionalParameterTypes = const Link<DartType>();
+    var namedParameters = const Link<SourceString>();
+    var namedParameterTypes = const Link<DartType>();
+    if (signature.optionalParametersAreNamed) {
+      var namedParametersBuilder = new LinkBuilder<SourceString>();
+      var namedParameterTypesBuilder = new LinkBuilder<DartType>();
+      for (Element parameter in signature.optionalParameters) {
+        namedParametersBuilder.addLast(parameter.name);
+        namedParameterTypesBuilder.addLast(parameter.computeType(compiler));
+      }
+      namedParameters = namedParametersBuilder.toLink();
+      namedParameterTypes = namedParametersBuilder.toLink();
+    } else {
+      var optionalParameterTypesBuilder = new LinkBuilder<DartType>();
+      for (Element parameter in signature.optionalParameters) {
+        optionalParameterTypesBuilder.addLast(parameter.computeType(compiler));
+      }
+      optionalParameterTypes = optionalParameterTypesBuilder.toLink();
+    }
+    return new FunctionType(element,
+        signature.returnType,
+        parameterTypes.toLink(),
+        optionalParameterTypes,
+        namedParameters,
+        namedParameterTypes);
   }
 
   void resolveMetadataAnnotation(PartialMetadataAnnotation annotation) {
