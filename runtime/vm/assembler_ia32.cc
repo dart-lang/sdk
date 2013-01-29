@@ -16,8 +16,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
-DEFINE_FLAG(bool, code_comments, false,
-            "Include comments into code and disassembly");
 DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
 
 
@@ -2049,33 +2047,6 @@ void Assembler::CompareClassId(Register object,
                                Register scratch) {
   LoadClassId(scratch, object);
   cmpl(scratch, Immediate(class_id));
-}
-
-
-void Assembler::Comment(const char* format, ...) {
-  if (FLAG_code_comments) {
-    char buffer[1024];
-
-    va_list args;
-    va_start(args, format);
-    OS::VSNPrint(buffer, sizeof(buffer), format, args);
-    va_end(args);
-
-    comments_.Add(new CodeComment(buffer_.GetPosition(),
-                                  String::Handle(String::New(buffer))));
-  }
-}
-
-
-const Code::Comments& Assembler::GetCodeComments() const {
-  Code::Comments& comments = Code::Comments::New(comments_.length());
-
-  for (intptr_t i = 0; i < comments_.length(); i++) {
-    comments.SetPCOffsetAt(i, comments_[i]->pc_offset());
-    comments.SetCommentAt(i, comments_[i]->comment());
-  }
-
-  return comments;
 }
 
 

@@ -153,14 +153,9 @@ class Assembler : public ValueObject {
     UNIMPLEMENTED();
   }
 
-  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
-    UNIMPLEMENTED();
-  }
+  void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
-  const Code::Comments& GetCodeComments() const {
-    UNIMPLEMENTED();
-    return Code::Comments::New(0);
-  }
+  const Code::Comments& GetCodeComments() const;
 
   static const char* RegisterName(Register reg) {
     UNIMPLEMENTED();
@@ -173,7 +168,27 @@ class Assembler : public ValueObject {
   }
 
  private:
+  AssemblerBuffer buffer_;
   ZoneGrowableArray<int>* pointer_offsets_;
+  int prologue_offset_;
+
+  class CodeComment : public ZoneAllocated {
+   public:
+    CodeComment(intptr_t pc_offset, const String& comment)
+        : pc_offset_(pc_offset), comment_(comment) { }
+
+    intptr_t pc_offset() const { return pc_offset_; }
+    const String& comment() const { return comment_; }
+
+   private:
+    intptr_t pc_offset_;
+    const String& comment_;
+
+    DISALLOW_COPY_AND_ASSIGN(CodeComment);
+  };
+
+  GrowableArray<CodeComment*> comments_;
+
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };
