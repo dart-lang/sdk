@@ -89,7 +89,7 @@ class FunctionBodyRewriter extends CloningVisitor {
       return false;
     }
 
-    rewiteStatement(Statement statement) {
+    rewriteStatement(Statement statement) {
       if (statement is Block) {
         Link statements = statement.statements.nodes;
         if (!statements.isEmpty && statements.tail.isEmpty) {
@@ -106,7 +106,7 @@ class FunctionBodyRewriter extends CloningVisitor {
     LinkBuilder<Statement> builder = new LinkBuilder<Statement>();
     for (Statement statement in statements.nodes) {
       if (!shouldOmit(statement)) {
-        builder.addLast(visit(rewiteStatement(statement)));
+        builder.addLast(visit(rewriteStatement(statement)));
       }
     }
     return new Block(rewriteNodeList(statements, builder.toLink()));
