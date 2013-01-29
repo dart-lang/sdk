@@ -100,8 +100,9 @@ $else
   // clear() defined by IDL.
 $endif
 
-  List<$E> get reversed =>
-      new ReversedListView<$E>(this, 0, null);
+  List<$E> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare($E a, $E b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");

@@ -3685,8 +3685,9 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 
   // clear() defined by IDL.
 
-  List<Length> get reversed =>
-      new ReversedListView<Length>(this, 0, null);
+  List<Length> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Length a, Length b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -4369,8 +4370,9 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   // clear() defined by IDL.
 
-  List<Number> get reversed =>
-      new ReversedListView<Number>(this, 0, null);
+  List<Number> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Number a, Number b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -5275,8 +5277,9 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 
   // clear() defined by IDL.
 
-  List<PathSeg> get reversed =>
-      new ReversedListView<PathSeg>(this, 0, null);
+  List<PathSeg> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(PathSeg a, PathSeg b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -6200,8 +6203,9 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   // clear() defined by IDL.
 
-  List<String> get reversed =>
-      new ReversedListView<String>(this, 0, null);
+  List<String> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(String a, String b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -7420,8 +7424,9 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
 
   // clear() defined by IDL.
 
-  List<Transform> get reversed =>
-      new ReversedListView<Transform>(this, 0, null);
+  List<Transform> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Transform a, Transform b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -7956,8 +7961,9 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<ElementInstance> get reversed =>
-      new ReversedListView<ElementInstance>(this, 0, null);
+  List<ElementInstance> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(ElementInstance a, ElementInstance b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");

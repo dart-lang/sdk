@@ -337,6 +337,10 @@ class IterableMixinWorkaround {
     return new SkipWhileIterable(iterable, test);
   }
 
+  static List reversedList(List l) {
+    return new ReversedListView(l, 0, null);
+  }
+
   static void sortList(List l, int compare(a, b)) {
     if (compare == null) compare = Comparable.compare;
     Sort.sort(l, compare);
