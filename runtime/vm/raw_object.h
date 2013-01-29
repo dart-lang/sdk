@@ -253,10 +253,12 @@ class RawObject {
   }
 
   bool IsNewObject() const {
+    ASSERT(IsHeapObject());
     uword addr = reinterpret_cast<uword>(this);
     return (addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset;
   }
   bool IsOldObject() const {
+    ASSERT(IsHeapObject());
     uword addr = reinterpret_cast<uword>(this);
     return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   }
