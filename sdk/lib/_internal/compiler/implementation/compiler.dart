@@ -848,10 +848,19 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnostic(span, 'Warning: $message', api.Diagnostic.WARNING);
   }
 
+  // TODO(ahe): Remove this method.
   reportError(Node node, var message) {
     SourceSpan span = spanFromNode(node);
     reportDiagnostic(span, 'Error: $message', api.Diagnostic.ERROR);
     throw new CompilerCancelledException(message.toString());
+  }
+
+  // TODO(ahe): Rename to reportError when that method has been removed.
+  void reportErrorCode(Spannable node, MessageKind errorCode,
+                       [Map arguments = const {}]) {
+    reportMessage(spanFromSpannable(node),
+                  errorCode.error(arguments),
+                  api.Diagnostic.ERROR);
   }
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind) {

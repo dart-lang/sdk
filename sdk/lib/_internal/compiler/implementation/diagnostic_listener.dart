@@ -20,6 +20,9 @@ abstract class DiagnosticListener {
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind);
 
+  // TODO(ahe): Rename to reportError when that method has been removed.
+  void reportErrorCode(Spannable node, MessageKind errorCode, [Map arguments]);
+
   /// Returns true if a diagnostic was emitted.
   bool onDeprecatedFeature(Spannable span, String feature);
 }
