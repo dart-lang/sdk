@@ -5956,7 +5956,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertErrors(result.getErrors(), errEx(TypeErrorCode.NOT_A_MEMBER_OF_INFERRED, 16, 11, 7));
+    // don't report error, because there IS member, we just don't know which one
+    assertErrors(result.getErrors());
   }
   
   /**

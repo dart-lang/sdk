@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.type;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.DynamicElement;
 import com.google.dart.compiler.resolver.Element;
@@ -144,7 +145,7 @@ class DynamicTypeImplementation extends AbstractType implements DynamicType {
   }
 
   @Override
-  public Member lookupSubTypeMember(String name) {
-    return null;
+  public List<Member> lookupSubTypeMembers(String name) {
+    return Lists.newArrayList();
   }
 }
