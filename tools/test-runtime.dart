@@ -102,9 +102,12 @@ main() {
     if (runningBrowserTests) startHttpServer('127.0.0.1', 9876);
   }
 
+  var maxBrowserProcesses = maxProcesses;
+
   // Start process queue.
   new ProcessQueue(
       maxProcesses,
+      maxBrowserProcesses,
       progressIndicator,
       startTime,
       printTiming,

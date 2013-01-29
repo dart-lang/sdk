@@ -2,74 +2,99 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:io";
 import "dart:isolate";
 import "dart:async";
 import "dart:utf";
 import "../../../tools/testing/dart/test_runner.dart";
+import "../../../tools/testing/dart/test_suite.dart";
 import "../../../tools/testing/dart/status_file_parser.dart";
 import "../../../tools/testing/dart/test_options.dart";
 import "process_test_util.dart";
 
+final DEFAULT_TIMEOUT = 2;
+final LONG_TIMEOUT = 30;
+
 class TestController {
-  static const int numTests = 4;
+  static int numTests = 0;
   static int numCompletedTests = 0;
 
   // Used as TestCase.completedCallback.
   static processCompletedTest(TestCase testCase) {
+    numCompletedTests++;
     CommandOutput output = testCase.lastCommandOutput;
-    print("Test: ${testCase.commands.last.commandLine}");
-    if (output.unexpectedOutput) {
-      throw "Unexpected output: ${output.result}";
+    if (testCase.displayName == "fail-unexpected") {
+      Expect.isTrue(output.unexpectedOutput);
+    } else {
+      Expect.isFalse(output.unexpectedOutput);
     }
-    print("stdout: ");
-    print(decodeUtf8(output.stdout));
-    print("stderr: ");
-    print(decodeUtf8(output.stderr));
+  }
 
-    print("Time: ${output.time}");
-    print("Exit code: ${output.exitCode}");
-
-    ++numCompletedTests;
-    print("$numCompletedTests/$numTests");
-    if (numCompletedTests == numTests) {
-      print("test_runner_test.dart PASSED");
-    }
+  static void finished() {
+    Expect.equals(numTests, numCompletedTests);
   }
 }
 
-TestCase MakeTestCase(String testName, List<String> expectations) {
-  var configuration = new TestOptionsParser().parse(['--timeout', '2'])[0];
-  return new TestCase(testName,
-                      [new Command(new Options().executable,
-                                   <String>[new Options().script,
-                                            testName])],
-                      configuration,
-                      TestController.processCompletedTest,
-                      new Set<String>.from(expectations));
+
+class CustomTestSuite extends TestSuite {
+  CustomTestSuite() : super({}, "CustomTestSuite");
+
+  void forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) {
+    void enqueueTestCase(testCase) {
+      TestController.numTests++;
+      onTest(testCase);
+    }
+
+    var testCaseCrash = _makeCrashTestCase("crash", [CRASH]);
+    var testCasePass = _makeNormalTestCase("pass", [PASS]);
+    var testCaseFail = _makeNormalTestCase("fail", [FAIL]);
+    var testCaseTimeout = _makeNormalTestCase("timeout", [TIMEOUT]);
+    var testCaseFailUnexpected =
+        _makeNormalTestCase("fail-unexpected", [PASS]);
+
+    enqueueTestCase(testCaseCrash);
+    enqueueTestCase(testCasePass);
+    enqueueTestCase(testCaseFail);
+    enqueueTestCase(testCaseTimeout);
+    enqueueTestCase(testCaseFailUnexpected);
+
+    if (onDone != null) {
+      onDone();
+    }
+  }
+
+  TestCase _makeNormalTestCase(name, expectations) {
+    var command = new Command(new Options().executable,
+                              [new Options().script, name]);
+    return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
+  }
+
+  _makeCrashTestCase(name, expectations) {
+    var crashCommand = new Command(getProcessTestFileName(),
+                                   ["0", "0", "1", "1"]);
+    // The crash test sometimes times out. Run it with a large timeout
+    // to help diagnose the delay. 
+    // The test loads a new executable, which may sometimes take a long time. 
+    // It involves a wait on the VM event loop, and possible system
+    // delays.
+    return _makeTestCase(name, LONG_TIMEOUT, crashCommand, expectations);
+  }
+
+  _makeTestCase(name, timeout, command, expectations) {
+    var configuration = new TestOptionsParser()
+        .parse(['--timeout', '$timeout'])[0];
+    return new TestCase(name,
+                        [command],
+                        configuration,
+                        TestController.processCompletedTest,
+                        new Set<String>.from(expectations));
+  }
 }
 
-void testTestRunner() {
-  new RunningProcess(MakeTestCase("pass", [PASS])).start();
-  new RunningProcess(MakeTestCase("fail", [FAIL])).start();
-  new RunningProcess(MakeTestCase("timeout", [TIMEOUT])).start();
-
-  // The crash test sometimes times out.  Run it with a large timeout to help
-  // diagnose the delay.
-  // The test loads a new executable, which may sometimes take a long time.
-  // It involves a wait on the VM event loop, and possible system delays.
-  var configuration = new TestOptionsParser().parse(['--timeout', '60'])[0];
-  new RunningProcess(new TestCase("CrashTest",
-                                  [new Command(getProcessTestFileName(),
-                                               const ["0", "0", "1", "1"])],
-                                  configuration,
-                                  TestController.processCompletedTest,
-                                  new Set<String>.from([CRASH]))).start();
-  Expect.equals(4, TestController.numTests);
-  // Test that the test runner throws an exception if a test with
-  // expectation SKIP is run.  The RunningProcess constructor must throw
-  // the exception synchronously, for it to be caught here at the call site.
-  Expect.throws(new RunningProcess(MakeTestCase("pass", [SKIP])).start);
+void testProcessQueue() {
+  var maxProcesses = 2;
+  var maxBrowserProcesses = maxProcesses;
+  new ProcessQueue(maxProcesses, maxBrowserProcesses, "silent",
+      new Date.now(), false, [new CustomTestSuite()], TestController.finished);
 }
 
 void main() {
@@ -78,14 +103,15 @@ void main() {
   // fail, or timeout.
   var arguments = new Options().arguments;
   if (arguments.isEmpty) {
-    testTestRunner();
+    testProcessQueue();
   } else {
     switch (arguments[0]) {
       case 'pass':
         return;
+      case 'fail-unexpected':
       case 'fail':
         Expect.fail("This test always fails, to test the test scripts.");
-	break;
+        break;
       case 'timeout':
         // Run for 10 seconds, then exit.  This tests a 2 second timeout.
         new Timer(10 * 1000, (t){ });

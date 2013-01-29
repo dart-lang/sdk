@@ -932,124 +932,69 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
  * be garbage collected as soon as it is done.
  */
 class RunningProcess {
-  ProcessQueue processQueue;
-  io.Process process;
   TestCase testCase;
+  Command command;
   bool timedOut = false;
   Date startTime;
   Timer timeoutTimer;
-  List<int> stdout;
-  List<int> stderr;
-  List<String> notifications;
-  bool compilationSkipped;
-  bool allowRetries;
+  List<int> stdout = <int>[];
+  List<int> stderr = <int>[];
+  bool compilationSkipped = false;
+  Completer<CommandOutput> completer;
 
-  /** Which command of [testCase.commands] is currently being executed. */
-  int currentStep;
+  RunningProcess(TestCase this.testCase, Command this.command);
 
-  RunningProcess(TestCase this.testCase,
-      [this.allowRetries = false, this.processQueue]);
+  Future<CommandOutput> start() {
+    Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
 
-  /**
-   * Called when all commands are executed.
-   */
-  void testComplete(CommandOutput lastCommandOutput) {
-    var command = lastCommandOutput.command;
+    completer = new Completer<CommandOutput>();
+    startTime = new Date.now();
+    _runCommand();
+    return completer.future;
+  }
 
+  void _runCommand() {
+    command.outputIsUpToDate.then((bool isUpToDate) {
+      if (isUpToDate) {
+        compilationSkipped = true;
+        _commandComplete(0);
+      } else {
+        var processOptions = _createProcessOptions();
+        Future processFuture = io.Process.start(command.executable,
+                                                command.arguments,
+                                                processOptions);
+        processFuture.then((io.Process process) {
+          void timeoutHandler(_) {
+            timedOut = true;
+            if (process != null) {
+              process.kill();
+            }
+          }
+          process.onExit = _commandComplete;
+          _drainStream(process.stdout, stdout);
+          _drainStream(process.stderr, stderr);
+          timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
+        }).catchError((e) {
+          print("Process error:");
+          print("  Command: $command");
+          print("  Error: $e");
+          _commandComplete(-1);
+          return true;
+        });
+      }
+    });
+  }
+
+  void _commandComplete(int exitCode) {
     if (timeoutTimer != null) {
       timeoutTimer.cancel();
     }
-    if (lastCommandOutput.unexpectedOutput
-        && testCase.configuration['verbose'] != null
-        && testCase.configuration['verbose']) {
-      print(testCase.displayName);
-
-      print(decodeUtf8(lastCommandOutput.stderr));
-      if (!lastCommandOutput.command.isPixelTest) {
-        print(decodeUtf8(lastCommandOutput.stdout));
-      } else {
-        print("DRT pixel test failed! stdout is not printed because it "
-              "contains binary data!");
-      }
-      print('');
-      if (notifications.length > 0) {
-        print("Notifications:");
-        for (var line in notifications) {
-          print(notifications);
-        }
-        print('');
-      }
-    }
-    if (allowRetries && testCase.usesWebDriver
-        && lastCommandOutput.unexpectedOutput
-        && (testCase as BrowserTestCase).numRetries > 0) {
-      // Selenium tests can be flaky. Try rerunning.
-      lastCommandOutput.requestRetry = true;
-    }
-    if (lastCommandOutput.requestRetry) {
-      lastCommandOutput.requestRetry = false;
-      this.timedOut = false;
-      (testCase as BrowserTestCase).numRetries--;
-      print("Potential flake. Re-running ${testCase.displayName} "
-          "(${(testCase as BrowserTestCase).numRetries} attempt(s) remains)");
-      // When retrying we need to reset the timeout as well.
-      // Otherwise there will be no timeout handling for the retry.
-      timeoutTimer = null;
-      this.start();
-    } else {
-      testCase.completed();
-    }
+    var commandOutput = _createCommandOutput(command, exitCode);
+    completer.complete(commandOutput);
   }
 
-  /**
-   * Process exit handler called at the end of every command. It internally
-   * treats all but the last command as compilation steps. The last command is
-   * the actual test and its output is analyzed in [testComplete].
-   */
-  void commandComplete(Command command, int exitCode) {
-    process = null;
-    int totalSteps = testCase.commands.length;
-    String suffix =' (step $currentStep of $totalSteps)';
-    if (timedOut) {
-      // Non-webdriver test timed out before it could complete. Webdriver tests
-      // run their own timeouts by timing from the launch of the browser (which
-      // could be delayed).
-      testComplete(createCommandOutput(command, 0, true));
-    } else if (currentStep == totalSteps) {
-      // Done with all test commands.
-      testComplete(createCommandOutput(command, exitCode, false));
-    } else if (exitCode != 0) {
-      // One of the steps failed.
-      notifications.add('test.dart: Compilation failed$suffix, '
-                        'exit code $exitCode\n');
-      testComplete(createCommandOutput(command, exitCode, true));
-    } else {
-      createCommandOutput(command, exitCode, true);
-      // One compilation step successfully completed, move on to the
-      // next step.
-      notifications.add('test.dart: Compilation finished $suffix\n\n');
-      if (currentStep == totalSteps - 1 && testCase.usesWebDriver &&
-          !testCase.configuration['noBatch']) {
-        // Note: processQueue will always be non-null for runtime == ie9, ie10,
-        // ff, safari, chrome, opera. (It is only null for runtime == vm)
-        // This RunningProcess object is done, and hands over control to
-        // BatchRunner.startTest(), which handles reporting, etc.
-        if (timeoutTimer != null) {
-          timeoutTimer.cancel();
-        }
-        processQueue._getBatchRunner(testCase).startTest(testCase);
-      } else {
-        runCommand(testCase.commands[currentStep++], commandComplete);
-      }
-    }
-  }
-
-  /**
-   * Called for all executed commands.
-   */
-  CommandOutput createCommandOutput(Command command,
-                                    int exitCode,
-                                    bool incomplete) {
+  CommandOutput _createCommandOutput(Command command, int exitCode) {
+    var incomplete = command != testCase.commands.last;
     var commandOutput = new CommandOutput.fromCase(
         testCase,
         command,
@@ -1060,18 +1005,10 @@ class RunningProcess {
         stderr,
         new Date.now().difference(startTime),
         compilationSkipped);
-    resetLocalOutputInformation();
     return commandOutput;
   }
 
-  void resetLocalOutputInformation() {
-    stdout = new List<int>();
-    stderr = new List<int>();
-    notifications = new List<String>();
-    compilationSkipped = false;
-  }
-
-  void drainStream(io.InputStream source, List<int> destination) {
+  void _drainStream(io.InputStream source, List<int> destination) {
     void onDataHandler () {
       if (source.closed) {
         return;  // TODO(whesse): Remove when bug is fixed.
@@ -1086,77 +1023,14 @@ class RunningProcess {
     source.onClosed = onDataHandler;
   }
 
-  void start() {
-    Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
-    resetLocalOutputInformation();
-    currentStep = 0;
-    startTime = new Date.now();
-    runCommand(testCase.commands[currentStep++], commandComplete);
-  }
-
-  void runCommand(Command command, void commandCompleteHandler(Command, int)) {
-    void processExitHandler(int returnCode) {
-      commandCompleteHandler(command, returnCode);
-    }
-
-    command.outputIsUpToDate.then((bool isUpToDate) {
-      if (isUpToDate) {
-        notifications.add("Skipped compilation because the old output is "
-                          "still up to date!");
-        compilationSkipped = true;
-        commandComplete(command, 0);
-      } else {
-        io.ProcessOptions options = new io.ProcessOptions();
-        if (command.environment != null) {
-          options.environment =
-              new Map<String, String>.from(command.environment);
-        } else {
-          options.environment =
-              new Map<String, String>.from(io.Platform.environment);
-        }
-
-        options.environment['DART_CONFIGURATION'] =
-            TestUtils.configurationDir(testCase.configuration);
-        Future processFuture = io.Process.start(command.executable,
-                                             command.arguments,
-                                             options);
-        processFuture.then((io.Process p) {
-          process = p;
-          process.onExit = processExitHandler;
-          drainStream(process.stdout, stdout);
-          drainStream(process.stderr, stderr);
-          if (timeoutTimer == null) {
-            // Create one timeout timer when starting test case, remove it at
-            // the end.
-            timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
-          }
-          // If the timeout fired in between two commands, kill the just
-          // started process immediately.
-          if (timedOut) safeKill(process);
-        }).catchError((e) {
-          print("Process error:");
-          print("  Command: $command");
-          print("  Error: $e");
-          testComplete(createCommandOutput(command, -1, false));
-          return true;
-        });
-      }
-    });
-  }
-
-  void timeoutHandler(Timer unusedTimer) {
-    timedOut = true;
-    safeKill(process);
-  }
-
-  void safeKill(io.Process p) {
-    if (p != null) {
-      try {
-        p.kill();
-      } on io.ProcessException {
-        // Hopefully, this means that the process died on its own.
-      }
-    }
+  io.ProcessOptions _createProcessOptions() {
+    var baseEnvironment = command.environment != null ?
+        command.environment : io.Platform.environment;
+    io.ProcessOptions options = new io.ProcessOptions();
+    options.environment = new Map<String, String>.from(baseEnvironment);
+    options.environment['DART_CONFIGURATION'] =
+        TestUtils.configurationDir(testCase.configuration);
+    return options;
   }
 }
 
@@ -1441,6 +1315,8 @@ class BatchRunnerProcess {
 class ProcessQueue {
   int _numProcesses = 0;
   int _maxProcesses;
+  int _numBrowserProcesses = 0;
+  int _maxBrowserProcesses;
   bool _allTestsWereEnqueued = false;
 
   /** The number of tests we allow to actually fail before we stop retrying. */
@@ -1477,7 +1353,8 @@ class ProcessQueue {
   /** True if we find that there is already a selenium jar running. */
   bool _seleniumAlreadyRunning = false;
 
-  ProcessQueue(int this._maxProcesses,
+  ProcessQueue(this._maxProcesses,
+               this._maxBrowserProcesses,
                String progress,
                Date startTime,
                bool printTiming,
@@ -1714,7 +1591,7 @@ class ProcessQueue {
         // The test is not yet ready to run. Put the test back in
         // the queue.  Avoid spin-polling by using a timeout.
         _tests.add(test);
-        new Timer(100, (timer) {_tryRunTest();});  // Don't lose a process.
+        new Timer(100, (_) => _tryRunTest());  // Don't lose a process.
         return;
       }
       if (_verbose) {
@@ -1722,11 +1599,11 @@ class ProcessQueue {
         if (test is BrowserTestCase) {
           // Additional command for rerunning the steps locally after the fact.
           print('$i. ${TestUtils.dartTestExecutable.toNativePath()} '
-              '${TestUtils.dartDir().toNativePath()}/tools/testing/dart/'
-              'http_server.dart -m ${test.configuration["mode"]} '
-              '-a ${test.configuration["arch"]} '
-              '-p ${http_server.TestingServerRunner.serverList[0].port} '
-              '-c ${http_server.TestingServerRunner.serverList[1].port}');
+                '${TestUtils.dartDir().toNativePath()}/tools/testing/dart/'
+                'http_server.dart -m ${test.configuration["mode"]} '
+                '-a ${test.configuration["arch"]} '
+                '-p ${http_server.TestingServerRunner.serverList[0].port} '
+                '-c ${http_server.TestingServerRunner.serverList[1].port}');
           i++;
         }
         for (Command command in test.commands) {
@@ -1734,23 +1611,40 @@ class ProcessQueue {
           i++;
         }
       }
-      _progress.start(test);
-      TestCaseEvent oldCallback = test.completedHandler;
-      void wrapper(TestCase test_arg) {
-        _numProcesses--;
-        _progress.done(test_arg);
-        if (test_arg is BrowserTestCase) test_arg.notifyObservers();
-        _tryRunTest();
-        oldCallback(test_arg);
-      };
-      test.completedHandler = wrapper;
 
-      if ((test.configuration['compiler'] == 'dartc' &&
-           test.displayName != 'dartc/junit_tests') ||
-          (test.commands.length == 1 && test.usesWebDriver &&
-           !test.configuration['noBatch'])) {
-        // Dartc and browser test cases that do not require a precompilation
-        // step, start with the batch runner right away.
+      var isLastCommand =
+          ((test.commands.length-1) == test.commandOutputs.length);
+      var isBrowserCommand = isLastCommand && (test is BrowserTestCase);
+      if (isBrowserCommand && _numBrowserProcesses == _maxBrowserProcesses) {
+        // If there is no free browser runner, put it back into the queue.
+        _tests.add(test);
+        new Timer(100, (_) => _tryRunTest());  // Don't lose a process.
+        return;
+      }
+
+      _progress.start(test);
+
+      // Dartc and browser test commands can be run by a [BatchRunnerProcess]
+      var nextCommandIndex = test.commandOutputs.keys.length;
+      var numberOfCommands = test.commands.length;
+      var useBatchRunnerForDartc = test.configuration['compiler'] == 'dartc' &&
+                                   test.displayName != 'dartc/junit_tests';
+      var isWebdriverCommand = nextCommandIndex == (numberOfCommands - 1) &&
+                               test.usesWebDriver &&
+                               !test.configuration['noBatch'];
+      if (useBatchRunnerForDartc || isWebdriverCommand) {
+        TestCaseEvent oldCallback = test.completedHandler;
+        void testCompleted(TestCase test_arg) {
+          _numProcesses--;
+          if (isBrowserCommand) {
+            _numBrowserProcesses--;
+          }
+          _progress.done(test_arg);
+          if (test_arg is BrowserTestCase) test_arg.notifyObservers();
+          oldCallback(test_arg);
+          _tryRunTest();
+        };
+        test.completedHandler = testCompleted;
         _getBatchRunner(test).startTest(test);
       } else {
         // Once we've actually failed a test, technically, we wouldn't need to
@@ -1761,9 +1655,97 @@ class ProcessQueue {
         // tests that appear to be broken but were actually just flakes that
         // didn't get retried because there had already been one failure.
         bool allowRetry = _MAX_FAILED_NO_RETRY > _progress.numFailedTests;
-        new RunningProcess(test, allowRetry, this).start();
+        runNextCommandWithRetries(test, allowRetry).then((TestCase testCase) {
+          _numProcesses--;
+          if (isBrowserCommand) {
+            _numBrowserProcesses--;
+          }
+          if (isTestCaseFinished(testCase)) {
+            testCase.completed();
+            _progress.done(testCase);
+            if (testCase is BrowserTestCase) testCase.notifyObservers();
+          } else {
+            _tests.add(testCase);
+          }
+          _tryRunTest();
+        });
       }
+
       _numProcesses++;
+      if (isBrowserCommand) {
+        _numBrowserProcesses++;
+      }
     }
   }
+
+  bool isTestCaseFinished(TestCase testCase) {
+    var numberOfCommandOutputs = testCase.commandOutputs.keys.length;
+    var numberOfCommands = testCase.commands.length;
+
+    var lastCommandCompleted = (numberOfCommandOutputs == numberOfCommands);
+    var lastCommandOutput = testCase.lastCommandOutput;
+    var lastCommand = lastCommandOutput.command;
+    var timedOut = lastCommandOutput.hasTimedOut;
+    var nonZeroExitCode = lastCommandOutput.exitCode != 0;
+    // NOTE: If this was the last command or there was unexpected output
+    // we're done with the test.
+    // Otherwise we need to enqueue it again into the test queue.
+    if (lastCommandCompleted || timedOut || nonZeroExitCode) {
+      var verbose = testCase.configuration['verbose'];
+      if (nonZeroExitCode && verbose != null && verbose) {
+        print(testCase.displayName);
+        print("stderr:");
+        print(decodeUtf8(lastCommandOutput.stderr));
+        if (!lastCommand.isPixelTest) {
+          print("stdout:");
+          print(decodeUtf8(lastCommandOutput.stdout));
+        } else {
+          print("");
+          print("DRT pixel test failed! stdout is not printed because it "
+                "contains binary data!");
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future runNextCommandWithRetries(TestCase testCase, bool allowRetry) {
+    var completer = new Completer();
+
+    var nextCommandIndex = testCase.commandOutputs.keys.length;
+    var numberOfCommands = testCase.commands.length;
+    Expect.isTrue(nextCommandIndex < numberOfCommands);
+    var command = testCase.commands[nextCommandIndex];
+    var isLastCommand = nextCommandIndex == (numberOfCommands - 1);
+
+    void runCommand() {
+      var runningProcess = new RunningProcess(testCase, command);
+      runningProcess.start().then((CommandOutput commandOutput) {
+        if (isLastCommand) {
+          if (allowRetry && testCase.usesWebDriver
+              && commandOutput.unexpectedOutput
+              && (testCase as BrowserTestCase).numRetries > 0) {
+            // Selenium tests can be flaky. Try rerunning.
+            commandOutput.requestRetry = true;
+          }
+        }
+        if (commandOutput.requestRetry) {
+          commandOutput.requestRetry = false;
+          (testCase as BrowserTestCase).numRetries--;
+          DebugLogger.warning("Rerunning Test: ${testCase.displayName} "
+                              "(${(testCase as BrowserTestCase).numRetries} "
+                              "attempt(s) remains) [cmd:$command]");
+          runCommand();
+        } else {
+          completer.complete(testCase);
+        }
+      });
+    }
+    runCommand();
+
+    return completer.future;
+  }
 }
+

@@ -126,7 +126,12 @@ main() {
   }
 
   var testSuites = new List<TestSuite>();
+  var maxBrowserProcesses = maxProcesses;
   for (var conf in configurations) {
+    // We can't run multiple IE processes in parallel.
+    if (conf['runtime'].startsWith('ie')) {
+      maxBrowserProcesses = 1;
+    }
     TestingServerRunner.setPackageRootDir(conf);
     for (String key in selectors.keys) {
       if (key == 'co19') {
@@ -158,6 +163,7 @@ main() {
 
   // Start process queue.
   new ProcessQueue(maxProcesses,
+                   maxBrowserProcesses,
                    progressIndicator,
                    startTime,
                    printTiming,
