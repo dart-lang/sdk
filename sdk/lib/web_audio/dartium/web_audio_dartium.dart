@@ -231,10 +231,10 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.complete')
   @DocsEditable
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+  factory AudioContext() => _create();
 
   @DocsEditable
-  factory AudioContext() => AudioContext._create();
-  static AudioContext _create() native "AudioContext_constructor_Callback";
+  static AudioContext _create() native "AudioContext_constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -905,8 +905,12 @@ class OfflineAudioContext extends AudioContext implements EventTarget {
   OfflineAudioContext.internal() : super.internal();
 
   @DocsEditable
-  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) => OfflineAudioContext._create(numberOfChannels, numberOfFrames, sampleRate);
-  static OfflineAudioContext _create(int numberOfChannels, int numberOfFrames, num sampleRate) native "OfflineAudioContext_constructor_Callback";
+  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
+    return OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);
+  }
+
+  @DocsEditable
+  static OfflineAudioContext _create_1(numberOfChannels, numberOfFrames, sampleRate) native "OfflineAudioContext__create_1constructorCallback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -91,7 +91,7 @@ $if DART2JS
   @JSName('observe')
   void _call(target, options) native;
 
-  static MutationObserver _create(MutationCallback callback) {
+  factory MutationObserver(MutationCallback callback) {
     // Dummy statement to mark types as instantiated.
     JS('MutationObserver|MutationRecord', '0');
 

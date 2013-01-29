@@ -6,6 +6,7 @@
 """This module provides shared functionality for the system to generate
 dart:html APIs from the IDL database."""
 
+import emitter
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
     IsPureInterface, TypeOrNothing
@@ -176,8 +177,9 @@ class HtmlDartGenerator(object):
     else:
       self.EmitOperation(info, method_name)
 
-  def _GenerateDispatcherBody(self,
-      operations,
+  def _GenerateOverloadDispatcher(self,
+      signatures,
+      is_void,
       parameter_names,
       declaration,
       generate_call,
@@ -192,7 +194,7 @@ class HtmlDartGenerator(object):
         DECLARATION=declaration)
 
     version = [0]
-    def GenerateCall(operation, argument_count, checks):
+    def GenerateCall(signature_index, argument_count, checks):
       if checks:
         (stmts_emitter, call_emitter) = body_emitter.Emit(
             '    if ($CHECKS) {\n$!STMTS$!CALL    }\n',
@@ -203,19 +205,19 @@ class HtmlDartGenerator(object):
             '$!STMTS$!CALL',
             INDENT='    ');
 
-      if operation.type.id == 'void':
+      if is_void:
         call_emitter = call_emitter.Emit('$(INDENT)$!CALL;\n$(INDENT)return;\n')
       else:
         call_emitter = call_emitter.Emit('$(INDENT)return $!CALL;\n')
 
       version[0] += 1
-      generate_call(
-          stmts_emitter, call_emitter, version[0], operation, argument_count)
+      generate_call(stmts_emitter, call_emitter,
+          version[0], signature_index, argument_count)
 
-    def GenerateChecksAndCall(operation, argument_count):
+    def GenerateChecksAndCall(signature_index, argument_count):
       checks = []
       for i in range(0, argument_count):
-        argument = operation.arguments[i]
+        argument = signatures[signature_index][i]
         parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
         if test_type in ['dynamic', 'Object']:
@@ -227,34 +229,60 @@ class HtmlDartGenerator(object):
       # optional argument could have been passed by name, leaving 'holes'.
       checks.extend(['!?%s' % name for name in parameter_names[argument_count:]])
 
-      GenerateCall(operation, argument_count, checks)
+      GenerateCall(signature_index, argument_count, checks)
 
     # TODO: Optimize the dispatch to avoid repeated checks.
-    if len(operations) > 1:
-      for operation in operations:
-        for position, argument in enumerate(operation.arguments):
-          if is_optional(operation, argument):
-            GenerateChecksAndCall(operation, position)
-        GenerateChecksAndCall(operation, len(operation.arguments))
+    if len(signatures) > 1:
+      for signature_index, signature in enumerate(signatures):
+        for argument_position, argument in enumerate(signature):
+          if is_optional(signature_index, argument):
+            GenerateChecksAndCall(signature_index, argument_position)
+        GenerateChecksAndCall(signature_index, len(signature))
       body_emitter.Emit(
           '    throw new ArgumentError("Incorrect number or type of arguments");'
           '\n');
     else:
-      operation = operations[0]
-      argument_count = len(operation.arguments)
-      for position, argument in list(enumerate(operation.arguments))[::-1]:
-        if is_optional(operation, argument):
-          check = '?%s' % parameter_names[position]
-          # argument_count instead of position + 1 is used here to cover one
+      signature = signatures[0]
+      argument_count = len(signature)
+      for argument_position, argument in list(enumerate(signature))[::-1]:
+        if is_optional(0, argument):
+          check = '?%s' % parameter_names[argument_position]
+          # argument_count instead of argument_position + 1 is used here to cover one
           # complicated case with the effectively optional argument in the middle.
           # Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
           # (as of now it's modelled after HTMLMediaElement.webkitAddKey).
           # y is optional in WebCore, while z is not.
           # In this case, if y was actually passed, we'd like to emit foo(x, y, z) invocation,
           # not foo(x, y).
-          GenerateCall(operation, argument_count, [check])
-          argument_count = position
-      GenerateCall(operation, argument_count, [])
+          GenerateCall(0, argument_count, [check])
+          argument_count = argument_position
+      GenerateCall(0, argument_count, [])
+
+  def _GenerateDispatcherBody(self,
+      operations,
+      parameter_names,
+      declaration,
+      generate_call,
+      is_optional,
+      can_omit_type_check=lambda type, pos: False):
+
+    def GenerateCall(
+        stmts_emitter, call_emitter, version, signature_index, argument_count):
+      generate_call(
+          stmts_emitter, call_emitter,
+          version, operations[signature_index], argument_count)
+
+    def IsOptional(signature_index, argument):
+      return is_optional(operations[signature_index], argument)
+
+    self._GenerateOverloadDispatcher(
+        [operation.arguments for operation in operations],
+        operations[0].type.id == 'void',
+        parameter_names,
+        declaration,
+        GenerateCall,
+        IsOptional,
+        can_omit_type_check)
 
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
@@ -306,6 +334,9 @@ class HtmlDartGenerator(object):
 
   def _AddConstructor(self,
       constructor_info, factory_name, factory_constructor_name):
+    if self.GenerateCustomFactory(constructor_info):
+      return
+
     self._members_emitter.Emit('\n  @DocsEditable');
 
     if not factory_constructor_name:
@@ -316,61 +347,86 @@ class HtmlDartGenerator(object):
       factory_parameters = ', '.join(constructor_info.factory_parameters)
       has_factory_provider = False
 
-    has_optional = any(param_info.is_optional
-        for param_info in constructor_info.param_infos)
+    if constructor_info.pure_dart_constructor:
+      # TODO(antonm): use common dispatcher generation for this case as well.
+      has_optional = any(param_info.is_optional
+          for param_info in constructor_info.param_infos)
 
-    if not has_optional:
-      self._members_emitter.Emit(
-          '\n'
-          '  factory $CTOR($PARAMS) => '
-          '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
-          CTOR=constructor_info._ConstructorFullName(self._DartType),
-          PARAMS=constructor_info.ParametersDeclaration(self._DartType),
-          FACTORY=factory_name,
-          CTOR_FACTORY_NAME=factory_constructor_name,
-          FACTORY_PARAMS=factory_parameters)
-    else:
-      if has_factory_provider:
-        dispatcher_emitter = self._members_emitter.Emit(
+      if not has_optional:
+        self._members_emitter.Emit(
             '\n'
-            '  factory $CTOR($PARAMS) {\n'
-            '$!DISPATCHER'
-            '    return $FACTORY._create($FACTORY_PARAMS);\n'
-            '  }\n',
+            '  factory $CTOR($PARAMS) => '
+            '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
             CTOR=constructor_info._ConstructorFullName(self._DartType),
             PARAMS=constructor_info.ParametersDeclaration(self._DartType),
             FACTORY=factory_name,
-            FACTORY_PARAMS=constructor_info.ParametersAsArgumentList())
-
-        for index, param_info in enumerate(constructor_info.param_infos):
-          if param_info.is_optional:
-            dispatcher_emitter.Emit(
-              '    if (!?$OPT_PARAM_NAME) {\n'
-              '      return $FACTORY._create($FACTORY_PARAMS);\n'
-              '    }\n',
-              OPT_PARAM_NAME=param_info.name,
-              FACTORY=factory_name,
-              FACTORY_PARAMS=constructor_info.ParametersAsArgumentList(index))
-      else:
-        inits = self._members_emitter.Emit(
-            '\n'
-            '  factory $CONSTRUCTOR($PARAMS) {\n'
-            '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
-            '$!INITS'
-            '    return e;\n'
-            '  }\n',
-            CONSTRUCTOR=constructor_info._ConstructorFullName(self._DartType),
-            FACTORY=factory_name,
             CTOR_FACTORY_NAME=factory_constructor_name,
-            PARAMS=constructor_info.ParametersDeclaration(self._DartType),
             FACTORY_PARAMS=factory_parameters)
+      else:
+        if has_factory_provider:
+          dispatcher_emitter = self._members_emitter.Emit(
+              '\n'
+              '  factory $CTOR($PARAMS) {\n'
+              '$!DISPATCHER'
+              '    return $FACTORY._create($FACTORY_PARAMS);\n'
+              '  }\n',
+              CTOR=constructor_info._ConstructorFullName(self._DartType),
+              PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+              FACTORY=factory_name,
+              FACTORY_PARAMS=constructor_info.ParametersAsArgumentList())
 
-        for index, param_info in enumerate(constructor_info.param_infos):
-          if param_info.is_optional:
-            inits.Emit('    if ($E != null) e.$E = $E;\n', E=param_info.name)
+          for index, param_info in enumerate(constructor_info.param_infos):
+            if param_info.is_optional:
+              dispatcher_emitter.Emit(
+                '    if (!?$OPT_PARAM_NAME) {\n'
+                '      return $FACTORY._create($FACTORY_PARAMS);\n'
+                '    }\n',
+                OPT_PARAM_NAME=param_info.name,
+                FACTORY=factory_name,
+                FACTORY_PARAMS=constructor_info.ParametersAsArgumentList(index))
+        else:
+          inits = self._members_emitter.Emit(
+              '\n'
+              '  factory $CONSTRUCTOR($PARAMS) {\n'
+              '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+              '$!INITS'
+              '    return e;\n'
+              '  }\n',
+              CONSTRUCTOR=constructor_info._ConstructorFullName(self._DartType),
+              FACTORY=factory_name,
+              CTOR_FACTORY_NAME=factory_constructor_name,
+              PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+              FACTORY_PARAMS=factory_parameters)
 
-    if not constructor_info.pure_dart_constructor:
-      self.EmitStaticFactory(constructor_info)
+          for index, param_info in enumerate(constructor_info.param_infos):
+            if param_info.is_optional:
+              inits.Emit('    if ($E != null) e.$E = $E;\n', E=param_info.name)
+    else:
+      def GenerateCall(
+          stmts_emitter, call_emitter,
+          version, signature_index, argument_count):
+        name = emitter.Format('_create_$VERSION', VERSION=version)
+        call_emitter.Emit('$FACTORY.$NAME($FACTORY_PARAMS)',
+            FACTORY=factory_name,
+            NAME=name,
+            FACTORY_PARAMS= \
+                constructor_info.ParametersAsArgumentList(argument_count))
+        self.EmitStaticFactoryOverload(
+            constructor_info, name,
+            constructor_info.idl_args[signature_index][:argument_count])
+
+      def IsOptional(signature_index, argument):
+        return self.IsConstructorArgumentOptional(argument)
+
+      self._GenerateOverloadDispatcher(
+          constructor_info.idl_args,
+          False,
+          [info.name for info in constructor_info.param_infos],
+          emitter.Format('factory $CTOR($PARAMS)',
+            CTOR=constructor_info._ConstructorFullName(self._DartType),
+            PARAMS=constructor_info.ParametersDeclaration(self._DartType)),
+          GenerateCall,
+          IsOptional)
 
   def EmitHelpers(self, base_class):
     pass

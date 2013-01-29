@@ -553,10 +553,10 @@ class AreaElement extends _Element_Merged {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBuffer extends NativeFieldWrapperClass1 {
   ArrayBuffer.internal();
+  factory ArrayBuffer(int length) => _create(length);
 
   @DocsEditable
-  factory ArrayBuffer(int length) => ArrayBuffer._create(length);
-  static ArrayBuffer _create(int length) native "ArrayBuffer_constructor_Callback";
+  static ArrayBuffer _create(length) native "ArrayBuffer_constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -637,12 +637,11 @@ class AudioElement extends MediaElement {
 
   @DocsEditable
   factory AudioElement([String src]) {
-    if (!?src) {
-      return AudioElement._create();
-    }
-    return AudioElement._create(src);
+    return AudioElement._create_1(src);
   }
-  static AudioElement _create([String src]) native "HTMLAudioElement_constructor_Callback";
+
+  @DocsEditable
+  static AudioElement _create_1(src) native "HTMLAudioElement__create_1constructorCallback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -833,18 +832,10 @@ class BeforeLoadEvent extends Event {
 @DomName('Blob')
 class Blob extends NativeFieldWrapperClass1 {
   Blob.internal();
+  factory Blob(List blobParts, [String type, String endings]) => _create(blobParts, type, endings);
 
   @DocsEditable
-  factory Blob(List blobParts, [String type, String endings]) {
-    if (!?type) {
-      return Blob._create(blobParts);
-    }
-    if (!?endings) {
-      return Blob._create(blobParts, type);
-    }
-    return Blob._create(blobParts, type, endings);
-  }
-  static Blob _create(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
+  static Blob _create(blobParts, type, endings) native "Blob_constructorCallback";
 
   @DomName('Blob.size')
   @DocsEditable
@@ -2500,12 +2491,11 @@ class CssMatrix extends NativeFieldWrapperClass1 {
 
   @DocsEditable
   factory CssMatrix([String cssValue]) {
-    if (!?cssValue) {
-      return CssMatrix._create();
-    }
-    return CssMatrix._create(cssValue);
+    return CssMatrix._create_1(cssValue);
   }
-  static CssMatrix _create([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
+
+  @DocsEditable
+  static CssMatrix _create_1(cssValue) native "WebKitCSSMatrix__create_1constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -6513,18 +6503,10 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 @DomName('DataView')
 class DataView extends ArrayBufferView {
   DataView.internal() : super.internal();
+  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) => _create(buffer, byteOffset, byteLength);
 
   @DocsEditable
-  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
-    if (!?byteOffset) {
-      return DataView._create(buffer);
-    }
-    if (!?byteLength) {
-      return DataView._create(buffer, byteOffset);
-    }
-    return DataView._create(buffer, byteOffset, byteLength);
-  }
-  static DataView _create(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
+  static DataView _create(buffer, byteOffset, byteLength) native "DataView_constructorCallback";
 
   num getFloat32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -8048,8 +8030,12 @@ class DomParser extends NativeFieldWrapperClass1 {
   DomParser.internal();
 
   @DocsEditable
-  factory DomParser() => DomParser._create();
-  static DomParser _create() native "DOMParser_constructor_Callback";
+  factory DomParser() {
+    return DomParser._create_1();
+  }
+
+  @DocsEditable
+  static DomParser _create_1() native "DOMParser__create_1constructorCallback";
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable
@@ -8311,10 +8297,10 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 @Experimental
 class DomPoint extends NativeFieldWrapperClass1 {
   DomPoint.internal();
+  factory DomPoint(num x, num y) => _create(x, y);
 
   @DocsEditable
-  factory DomPoint(num x, num y) => DomPoint._create(x, y);
-  static DomPoint _create(num x, num y) native "WebKitPoint_constructor_Callback";
+  static DomPoint _create(x, y) native "WebKitPoint_constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -10967,12 +10953,11 @@ class EventSource extends EventTarget {
 
   @DocsEditable
   factory EventSource(String url, [Map eventSourceInit]) {
-    if (!?eventSourceInit) {
-      return EventSource._create(url);
-    }
-    return EventSource._create(url, eventSourceInit);
+    return EventSource._create_1(url, eventSourceInit);
   }
-  static EventSource _create(String url, [Map eventSourceInit]) native "EventSource_constructor_Callback";
+
+  @DocsEditable
+  static EventSource _create_1(url, eventSourceInit) native "EventSource__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -11620,8 +11605,12 @@ class FileReader extends EventTarget {
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DocsEditable
-  factory FileReader() => FileReader._create();
-  static FileReader _create() native "FileReader_constructor_Callback";
+  factory FileReader() {
+    return FileReader._create_1();
+  }
+
+  @DocsEditable
+  static FileReader _create_1() native "FileReader__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -11755,8 +11744,12 @@ class FileReaderSync extends NativeFieldWrapperClass1 {
   FileReaderSync.internal();
 
   @DocsEditable
-  factory FileReaderSync() => FileReaderSync._create();
-  static FileReaderSync _create() native "FileReaderSync_constructor_Callback";
+  factory FileReaderSync() {
+    return FileReaderSync._create_1();
+  }
+
+  @DocsEditable
+  static FileReaderSync _create_1() native "FileReaderSync__create_1constructorCallback";
 
   @DomName('FileReaderSync.readAsArrayBuffer')
   @DocsEditable
@@ -12481,15 +12474,10 @@ class Float64Array extends ArrayBufferView implements List<num> {
 @DomName('FormData')
 class FormData extends NativeFieldWrapperClass1 {
   FormData.internal();
+  factory FormData([FormElement form]) => _create(form);
 
   @DocsEditable
-  factory FormData([FormElement form]) {
-    if (!?form) {
-      return FormData._create();
-    }
-    return FormData._create(form);
-  }
-  static FormData _create([FormElement form]) native "DOMFormData_constructor_Callback";
+  static FormData _create(form) native "DOMFormData_constructorCallback";
 
   @DomName('DOMFormData.append')
   @DocsEditable
@@ -13518,8 +13506,12 @@ class HttpRequest extends EventTarget {
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
   @DocsEditable
-  factory HttpRequest() => HttpRequest._create();
-  static HttpRequest _create() native "XMLHttpRequest_constructor_Callback";
+  factory HttpRequest() {
+    return HttpRequest._create_1();
+  }
+
+  @DocsEditable
+  static HttpRequest _create_1() native "XMLHttpRequest__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -16353,8 +16345,12 @@ class MediaController extends EventTarget {
   MediaController.internal() : super.internal();
 
   @DocsEditable
-  factory MediaController() => MediaController._create();
-  static MediaController _create() native "MediaController_constructor_Callback";
+  factory MediaController() {
+    return MediaController._create_1();
+  }
+
+  @DocsEditable
+  static MediaController _create_1() native "MediaController__create_1constructorCallback";
 
   @DomName('MediaController.buffered')
   @DocsEditable
@@ -17221,8 +17217,12 @@ class MediaSource extends EventTarget {
   MediaSource.internal() : super.internal();
 
   @DocsEditable
-  factory MediaSource() => MediaSource._create();
-  static MediaSource _create() native "MediaSource_constructor_Callback";
+  factory MediaSource() {
+    return MediaSource._create_1();
+  }
+
+  @DocsEditable
+  static MediaSource _create_1() native "MediaSource__create_1constructorCallback";
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable
@@ -17284,8 +17284,12 @@ class MediaStream extends EventTarget {
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
   @DocsEditable
-  factory MediaStream() => MediaStream._create();
-  static MediaStream _create() native "MediaStream_constructor_Callback";
+  factory MediaStream() {
+    return MediaStream._create_1();
+  }
+
+  @DocsEditable
+  static MediaStream _create_1() native "MediaStream__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -17562,8 +17566,12 @@ class MessageChannel extends NativeFieldWrapperClass1 {
   MessageChannel.internal();
 
   @DocsEditable
-  factory MessageChannel() => MessageChannel._create();
-  static MessageChannel _create() native "MessageChannel_constructor_Callback";
+  factory MessageChannel() {
+    return MessageChannel._create_1();
+  }
+
+  @DocsEditable
+  static MessageChannel _create_1() native "MessageChannel__create_1constructorCallback";
 
   @DomName('MessageChannel.port1')
   @DocsEditable
@@ -18031,10 +18039,10 @@ class MutationEvent extends Event {
 @Experimental
 class MutationObserver extends NativeFieldWrapperClass1 {
   MutationObserver.internal();
+  factory MutationObserver(MutationCallback callback) => _create(callback);
 
   @DocsEditable
-  factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
-  static MutationObserver _create(MutationCallback callback) native "MutationObserver_constructor_Callback";
+  static MutationObserver _create(callback) native "MutationObserver_constructorCallback";
 
   @DomName('MutationObserver.disconnect')
   @DocsEditable
@@ -19264,12 +19272,11 @@ class Notification extends EventTarget {
 
   @DocsEditable
   factory Notification(String title, [Map options]) {
-    if (!?options) {
-      return Notification._create(title);
-    }
-    return Notification._create(title, options);
+    return Notification._create_1(title, options);
   }
-  static Notification _create(String title, [Map options]) native "Notification_constructor_Callback";
+
+  @DocsEditable
+  static Notification _create_1(title, options) native "Notification__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -19679,21 +19686,11 @@ class OptionElement extends _Element_Merged {
 
   @DocsEditable
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
-    if (!?data) {
-      return OptionElement._create();
-    }
-    if (!?value) {
-      return OptionElement._create(data);
-    }
-    if (!?defaultSelected) {
-      return OptionElement._create(data, value);
-    }
-    if (!?selected) {
-      return OptionElement._create(data, value, defaultSelected);
-    }
-    return OptionElement._create(data, value, defaultSelected, selected);
+    return OptionElement._create_1(data, value, defaultSelected, selected);
   }
-  static OptionElement _create([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
+
+  @DocsEditable
+  static OptionElement _create_1(data, value, defaultSelected, selected) native "HTMLOptionElement__create_1constructorCallback";
 
   @DomName('HTMLOptionElement.defaultSelected')
   @DocsEditable
@@ -20796,8 +20793,12 @@ class RtcIceCandidate extends NativeFieldWrapperClass1 {
   RtcIceCandidate.internal();
 
   @DocsEditable
-  factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
-  static RtcIceCandidate _create(Map dictionary) native "RTCIceCandidate_constructor_Callback";
+  factory RtcIceCandidate(Map dictionary) {
+    return RtcIceCandidate._create_1(dictionary);
+  }
+
+  @DocsEditable
+  static RtcIceCandidate _create_1(dictionary) native "RTCIceCandidate__create_1constructorCallback";
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable
@@ -20875,12 +20876,11 @@ class RtcPeerConnection extends EventTarget {
 
   @DocsEditable
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    if (!?mediaConstraints) {
-      return RtcPeerConnection._create(rtcIceServers);
-    }
-    return RtcPeerConnection._create(rtcIceServers, mediaConstraints);
+    return RtcPeerConnection._create_1(rtcIceServers, mediaConstraints);
   }
-  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
+
+  @DocsEditable
+  static RtcPeerConnection _create_1(rtcIceServers, mediaConstraints) native "RTCPeerConnection__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -21046,8 +21046,12 @@ class RtcSessionDescription extends NativeFieldWrapperClass1 {
   RtcSessionDescription.internal();
 
   @DocsEditable
-  factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
-  static RtcSessionDescription _create(Map dictionary) native "RTCSessionDescription_constructor_Callback";
+  factory RtcSessionDescription(Map dictionary) {
+    return RtcSessionDescription._create_1(dictionary);
+  }
+
+  @DocsEditable
+  static RtcSessionDescription _create_1(dictionary) native "RTCSessionDescription__create_1constructorCallback";
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable
@@ -21627,12 +21631,11 @@ class SharedWorker extends AbstractWorker {
 
   @DocsEditable
   factory SharedWorker(String scriptURL, [String name]) {
-    if (!?name) {
-      return SharedWorker._create(scriptURL);
-    }
-    return SharedWorker._create(scriptURL, name);
+    return SharedWorker._create_1(scriptURL, name);
   }
-  static SharedWorker _create(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
+
+  @DocsEditable
+  static SharedWorker _create_1(scriptURL, name) native "SharedWorker__create_1constructorCallback";
 
   @DomName('SharedWorker.port')
   @DocsEditable
@@ -21990,8 +21993,12 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
   SpeechGrammar.internal();
 
   @DocsEditable
-  factory SpeechGrammar() => SpeechGrammar._create();
-  static SpeechGrammar _create() native "SpeechGrammar_constructor_Callback";
+  factory SpeechGrammar() {
+    return SpeechGrammar._create_1();
+  }
+
+  @DocsEditable
+  static SpeechGrammar _create_1() native "SpeechGrammar__create_1constructorCallback";
 
   @DomName('SpeechGrammar.src')
   @DocsEditable
@@ -22023,8 +22030,12 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   SpeechGrammarList.internal();
 
   @DocsEditable
-  factory SpeechGrammarList() => SpeechGrammarList._create();
-  static SpeechGrammarList _create() native "SpeechGrammarList_constructor_Callback";
+  factory SpeechGrammarList() {
+    return SpeechGrammarList._create_1();
+  }
+
+  @DocsEditable
+  static SpeechGrammarList _create_1() native "SpeechGrammarList__create_1constructorCallback";
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable
@@ -22341,8 +22352,12 @@ class SpeechRecognition extends EventTarget {
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
   @DocsEditable
-  factory SpeechRecognition() => SpeechRecognition._create();
-  static SpeechRecognition _create() native "SpeechRecognition_constructor_Callback";
+  factory SpeechRecognition() {
+    return SpeechRecognition._create_1();
+  }
+
+  @DocsEditable
+  static SpeechRecognition _create_1() native "SpeechRecognition__create_1constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -23878,8 +23893,12 @@ class TextTrackCue extends EventTarget {
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
   @DocsEditable
-  factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
-  static TextTrackCue _create(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
+  factory TextTrackCue(num startTime, num endTime, String text) {
+    return TextTrackCue._create_1(startTime, endTime, text);
+  }
+
+  @DocsEditable
+  static TextTrackCue _create_1(startTime, endTime, text) native "TextTrackCue__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -27905,8 +27924,27 @@ class WebSocket extends EventTarget {
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
-  factory WebSocket(String url) => WebSocket._create(url);
-  static WebSocket _create(String url) native "WebSocket_constructor_Callback";
+  factory WebSocket(String url, [protocol_OR_protocols]) {
+    if ((url is String || url == null) && !?protocol_OR_protocols) {
+      return WebSocket._create_1(url);
+    }
+    if ((url is String || url == null) && (protocol_OR_protocols is List<String> || protocol_OR_protocols == null)) {
+      return WebSocket._create_2(url, protocol_OR_protocols);
+    }
+    if ((url is String || url == null) && (protocol_OR_protocols is String || protocol_OR_protocols == null)) {
+      return WebSocket._create_3(url, protocol_OR_protocols);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DocsEditable
+  static WebSocket _create_1(url) native "WebSocket__create_1constructorCallback";
+
+  @DocsEditable
+  static WebSocket _create_2(url, protocol_OR_protocols) native "WebSocket__create_2constructorCallback";
+
+  @DocsEditable
+  static WebSocket _create_3(url, protocol_OR_protocols) native "WebSocket__create_3constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -29069,8 +29107,12 @@ class Worker extends AbstractWorker {
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
   @DocsEditable
-  factory Worker(String scriptUrl) => Worker._create(scriptUrl);
-  static Worker _create(String scriptUrl) native "Worker_constructor_Callback";
+  factory Worker(String scriptUrl) {
+    return Worker._create_1(scriptUrl);
+  }
+
+  @DocsEditable
+  static Worker _create_1(scriptUrl) native "Worker__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -29335,8 +29377,12 @@ class XPathEvaluator extends NativeFieldWrapperClass1 {
   XPathEvaluator.internal();
 
   @DocsEditable
-  factory XPathEvaluator() => XPathEvaluator._create();
-  static XPathEvaluator _create() native "XPathEvaluator_constructor_Callback";
+  factory XPathEvaluator() {
+    return XPathEvaluator._create_1();
+  }
+
+  @DocsEditable
+  static XPathEvaluator _create_1() native "XPathEvaluator__create_1constructorCallback";
 
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable
@@ -29500,8 +29546,12 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
   XmlSerializer.internal();
 
   @DocsEditable
-  factory XmlSerializer() => XmlSerializer._create();
-  static XmlSerializer _create() native "XMLSerializer_constructor_Callback";
+  factory XmlSerializer() {
+    return XmlSerializer._create_1();
+  }
+
+  @DocsEditable
+  static XmlSerializer _create_1() native "XMLSerializer__create_1constructorCallback";
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable
@@ -29524,8 +29574,12 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
   XsltProcessor.internal();
 
   @DocsEditable
-  factory XsltProcessor() => XsltProcessor._create();
-  static XsltProcessor _create() native "XSLTProcessor_constructor_Callback";
+  factory XsltProcessor() {
+    return XsltProcessor._create_1();
+  }
+
+  @DocsEditable
+  static XsltProcessor _create_1() native "XSLTProcessor__create_1constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;

@@ -222,19 +222,14 @@ def AnalyzeConstructor(interface):
   """
   if 'Constructor' in interface.ext_attrs:
     name = None
-    func_value = interface.ext_attrs.get('Constructor')
-    if not func_value:
-      args = []
-      idl_args = []
+    overloads = interface.ext_attrs['Constructor']
+    idl_args = [[] if f is None else f.arguments for f in overloads]
   elif 'NamedConstructor' in interface.ext_attrs:
     func_value = interface.ext_attrs.get('NamedConstructor')
+    idl_args = [func_value.arguments]
     name = func_value.id
   else:
     return None
-
-  if func_value:
-    idl_args = func_value.arguments
-    args =_BuildArguments([idl_args], interface, True)
 
   info = OperationInfo()
   info.overloads = None
@@ -244,7 +239,7 @@ def AnalyzeConstructor(interface):
   info.constructor_name = None
   info.js_name = name
   info.type_name = interface.id
-  info.param_infos = args
+  info.param_infos = _BuildArguments(idl_args, interface, constructor=True)
   info.requires_named_arguments = False
   info.pure_dart_constructor = False
   return info

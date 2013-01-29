@@ -160,44 +160,72 @@ class DartiumBackend(HtmlDartGenerator):
         CLASSNAME=self._interface_type_info.implementation_name(),
         SUPERCONSTRUCTOR=super_constructor)
 
-  def EmitStaticFactory(self, constructor_info):
-    constructor_callback_id = self._interface.id + '_constructor_Callback'
+  def _EmitConstructorInfrastructure(self,
+      constructor_info, constructor_callback_cpp_name, factory_method_name,
+      argument_count=None):
+    constructor_callback_id = self._interface.id + '_' + constructor_callback_cpp_name
+    if argument_count is None:
+      argument_count = len(constructor_info.param_infos)
 
     self._members_emitter.Emit(
-        '  static $INTERFACE_NAME _create($PARAMETERS_DECLARATION) '
-          'native "$CONSTRUCTOR_CALLBACK_ID";\n',
+        '\n  @DocsEditable\n'
+        '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) '
+            'native "$ID";\n',
         INTERFACE_NAME=self._interface_type_info.interface_name(),
-        PARAMETERS_DECLARATION=constructor_info.ParametersDeclaration(
-            self._DartType),
-        CONSTRUCTOR_CALLBACK_ID=constructor_callback_id)
+        FACTORY_METHOD_NAME=factory_method_name,
+        # TODO: add types to parameters.
+        PARAMETERS=constructor_info.ParametersAsArgumentList(argument_count),
+        ID=constructor_callback_id)
 
-    # TODO(antonm): currently we don't have information about number of arguments expected by
-    # the constructor, so name only dispatch.
     self._cpp_resolver_emitter.Emit(
-        '    if (name == "$CONSTRUCTOR_CALLBACK_ID")\n'
-        '        return Dart$(WEBKIT_INTERFACE_NAME)Internal::constructorCallback;\n',
-        CONSTRUCTOR_CALLBACK_ID=constructor_callback_id,
-        WEBKIT_INTERFACE_NAME=self._interface.id)
+        '    if (name == "$ID")\n'
+        '        return Dart$(WEBKIT_INTERFACE_NAME)Internal::$CPP_CALLBACK;\n',
+        ID=constructor_callback_id,
+        WEBKIT_INTERFACE_NAME=self._interface.id,
+        CPP_CALLBACK=constructor_callback_cpp_name)
+
+  def GenerateCustomFactory(self, constructor_info):
+    if 'CustomConstructor' not in self._interface.ext_attrs:
+        return False
+
+    self._members_emitter.Emit(
+        '  factory $CTOR($PARAMS) => _create($FACTORY_PARAMS);\n',
+        CTOR=constructor_info._ConstructorFullName(self._DartType),
+        PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+        FACTORY_PARAMS= \
+            constructor_info.ParametersAsArgumentList())
+
+    constructor_callback_cpp_name = 'constructorCallback'
+    self._EmitConstructorInfrastructure(
+        constructor_info, constructor_callback_cpp_name, '_create')
+
+    self._cpp_declarations_emitter.Emit(
+        '\n'
+        'void $CPP_CALLBACK(Dart_NativeArguments);\n',
+        CPP_CALLBACK=constructor_callback_cpp_name)
+
+    return True
+
+  def IsConstructorArgumentOptional(self, argument):
+    return False
+
+  def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
+    constructor_callback_cpp_name = name + 'constructorCallback'
+    self._EmitConstructorInfrastructure(
+        constructor_info, constructor_callback_cpp_name, name, len(arguments))
 
     ext_attrs = self._interface.ext_attrs
-
-    if 'CustomConstructor' in ext_attrs:
-      # We have a custom implementation for it.
-      self._cpp_declarations_emitter.Emit(
-          '\n'
-          'void constructorCallback(Dart_NativeArguments);\n')
-      return
 
     create_function = 'create'
     if 'NamedConstructor' in ext_attrs:
       create_function = 'createForJSConstructor'
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     self._GenerateNativeCallback(
-        'constructorCallback',
+        constructor_callback_cpp_name,
         False,
         function_expression,
         self._interface,
-        constructor_info.idl_args,
+        arguments,
         self._interface.id,
         'ConstructorRaisesException' in ext_attrs)
 

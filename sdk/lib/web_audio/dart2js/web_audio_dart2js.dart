@@ -182,9 +182,6 @@ class AudioContext extends EventTarget native "*AudioContext" {
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
   @DocsEditable
-  factory AudioContext() => AudioContext._create();
-
-  @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
   @deprecated
   AudioContextEvents get on =>
@@ -286,7 +283,7 @@ class AudioContext extends EventTarget native "*AudioContext" {
   @DocsEditable
   Stream<Event> get onComplete => completeEvent.forTarget(this);
 
-  static AudioContext _create() => JS('AudioContext',
+  factory AudioContext() => JS('AudioContext',
       'new (window.AudioContext || window.webkitAudioContext)()');
 
   GainNode createGain() {
@@ -691,8 +688,10 @@ class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionE
 class OfflineAudioContext extends AudioContext implements EventTarget native "*OfflineAudioContext" {
 
   @DocsEditable
-  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) => OfflineAudioContext._create(numberOfChannels, numberOfFrames, sampleRate);
-  static OfflineAudioContext _create(int numberOfChannels, int numberOfFrames, num sampleRate) => JS('OfflineAudioContext', 'new OfflineAudioContext(#,#,#)', numberOfChannels, numberOfFrames, sampleRate);
+  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
+    return OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);
+  }
+  static OfflineAudioContext _create_1(numberOfChannels, numberOfFrames, sampleRate) => JS('OfflineAudioContext', 'new OfflineAudioContext(#,#,#)', numberOfChannels, numberOfFrames, sampleRate);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

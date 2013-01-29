@@ -438,8 +438,10 @@ class AreaElement extends Element native "*HTMLAreaElement" {
 class ArrayBuffer native "*ArrayBuffer" {
 
   @DocsEditable
-  factory ArrayBuffer(int length) => ArrayBuffer._create(length);
-  static ArrayBuffer _create(int length) => JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
+  factory ArrayBuffer(int length) {
+    return ArrayBuffer._create_1(length);
+  }
+  static ArrayBuffer _create_1(length) => JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.ArrayBuffer != "undefined"');
@@ -522,17 +524,13 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
 
   @DocsEditable
   factory AudioElement([String src]) {
-    if (!?src) {
-      return AudioElement._create();
+    if (?src) {
+      return AudioElement._create_1(src);
     }
-    return AudioElement._create(src);
+    return AudioElement._create_2();
   }
-  static AudioElement _create([String src]) {
-    if (!?src) {
-      return JS('AudioElement', 'new Audio()');
-    }
-    return JS('AudioElement', 'new Audio(#)', src);
-  }
+  static AudioElement _create_1(src) => JS('AudioElement', 'new Audio(#)', src);
+  static AudioElement _create_2() => JS('AudioElement', 'new Audio()');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -696,17 +694,6 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 @DomName('Blob')
 class Blob native "*Blob" {
 
-  @DocsEditable
-  factory Blob(List blobParts, [String type, String endings]) {
-    if (!?type) {
-      return Blob._create(blobParts);
-    }
-    if (!?endings) {
-      return Blob._create(blobParts, type);
-    }
-    return Blob._create(blobParts, type, endings);
-  }
-
   @DomName('Blob.size')
   @DocsEditable
   final int size;
@@ -719,7 +706,7 @@ class Blob native "*Blob" {
   @DocsEditable
   Blob slice([int start, int end, String contentType]) native;
 
-  static Blob _create([List blobParts = null, String type, String endings]) {
+  factory Blob(List blobParts, [String type, String endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
     // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
     // array to ArrayBuffer if it is a total view.
@@ -2009,17 +1996,13 @@ class CssMatrix native "*WebKitCSSMatrix" {
 
   @DocsEditable
   factory CssMatrix([String cssValue]) {
-    if (!?cssValue) {
-      return CssMatrix._create();
+    if (?cssValue) {
+      return CssMatrix._create_1(cssValue);
     }
-    return CssMatrix._create(cssValue);
+    return CssMatrix._create_2();
   }
-  static CssMatrix _create([String cssValue]) {
-    if (!?cssValue) {
-      return JS('CssMatrix', 'new WebKitCSSMatrix()');
-    }
-    return JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
-  }
+  static CssMatrix _create_1(cssValue) => JS('CssMatrix', 'new WebKitCSSMatrix(#)', cssValue);
+  static CssMatrix _create_2() => JS('CssMatrix', 'new WebKitCSSMatrix()');
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebKitCSSMatrix)');
@@ -5850,23 +5833,17 @@ class DataView extends ArrayBufferView native "*DataView" {
 
   @DocsEditable
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
-    if (!?byteOffset) {
-      return DataView._create(buffer);
+    if (?byteLength) {
+      return DataView._create_1(buffer, byteOffset, byteLength);
     }
-    if (!?byteLength) {
-      return DataView._create(buffer, byteOffset);
+    if (?byteOffset) {
+      return DataView._create_2(buffer, byteOffset);
     }
-    return DataView._create(buffer, byteOffset, byteLength);
+    return DataView._create_3(buffer);
   }
-  static DataView _create(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
-    if (!?byteOffset) {
-      return JS('DataView', 'new DataView(#)', buffer);
-    }
-    if (!?byteLength) {
-      return JS('DataView', 'new DataView(#,#)', buffer, byteOffset);
-    }
-    return JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
-  }
+  static DataView _create_1(buffer, byteOffset, byteLength) => JS('DataView', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
+  static DataView _create_2(buffer, byteOffset) => JS('DataView', 'new DataView(#,#)', buffer, byteOffset);
+  static DataView _create_3(buffer) => JS('DataView', 'new DataView(#)', buffer);
 
   @DomName('DataView.getFloat32')
   @DocsEditable
@@ -7311,8 +7288,10 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 class DomParser native "*DOMParser" {
 
   @DocsEditable
-  factory DomParser() => DomParser._create();
-  static DomParser _create() => JS('DomParser', 'new DOMParser()');
+  factory DomParser() {
+    return DomParser._create_1();
+  }
+  static DomParser _create_1() => JS('DomParser', 'new DOMParser()');
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable
@@ -7564,8 +7543,10 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 class DomPoint native "*WebKitPoint" {
 
   @DocsEditable
-  factory DomPoint(num x, num y) => DomPoint._create(x, y);
-  static DomPoint _create(num x, num y) => JS('DomPoint', 'new WebKitPoint(#,#)', x, y);
+  factory DomPoint(num x, num y) {
+    return DomPoint._create_1(x, y);
+  }
+  static DomPoint _create_1(x, y) => JS('DomPoint', 'new WebKitPoint(#,#)', x, y);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebKitPoint)');
@@ -10240,17 +10221,13 @@ class EventSource extends EventTarget native "*EventSource" {
 
   @DocsEditable
   factory EventSource(String url, [Map eventSourceInit]) {
-    if (!?eventSourceInit) {
-      return EventSource._create(url);
+    if (?eventSourceInit) {
+      return EventSource._create_1(url, eventSourceInit);
     }
-    return EventSource._create(url, eventSourceInit);
+    return EventSource._create_2(url);
   }
-  static EventSource _create(String url, [Map eventSourceInit]) {
-    if (!?eventSourceInit) {
-      return JS('EventSource', 'new EventSource(#)', url);
-    }
-    return JS('EventSource', 'new EventSource(#,#)', url, eventSourceInit);
-  }
+  static EventSource _create_1(url, eventSourceInit) => JS('EventSource', 'new EventSource(#,#)', url, eventSourceInit);
+  static EventSource _create_2(url) => JS('EventSource', 'new EventSource(#)', url);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -10857,8 +10834,10 @@ class FileReader extends EventTarget native "*FileReader" {
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DocsEditable
-  factory FileReader() => FileReader._create();
-  static FileReader _create() => JS('FileReader', 'new FileReader()');
+  factory FileReader() {
+    return FileReader._create_1();
+  }
+  static FileReader _create_1() => JS('FileReader', 'new FileReader()');
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -10979,8 +10958,10 @@ class FileReaderEvents extends Events {
 class FileReaderSync native "*FileReaderSync" {
 
   @DocsEditable
-  factory FileReaderSync() => FileReaderSync._create();
-  static FileReaderSync _create() => JS('FileReaderSync', 'new FileReaderSync()');
+  factory FileReaderSync() {
+    return FileReaderSync._create_1();
+  }
+  static FileReaderSync _create_1() => JS('FileReaderSync', 'new FileReaderSync()');
 
   @DomName('FileReaderSync.readAsArrayBuffer')
   @DocsEditable
@@ -11642,17 +11623,13 @@ class FormData native "*FormData" {
 
   @DocsEditable
   factory FormData([FormElement form]) {
-    if (!?form) {
-      return FormData._create();
+    if (?form) {
+      return FormData._create_1(form);
     }
-    return FormData._create(form);
+    return FormData._create_2();
   }
-  static FormData _create([FormElement form]) {
-    if (!?form) {
-      return JS('FormData', 'new FormData()');
-    }
-    return JS('FormData', 'new FormData(#)', form);
-  }
+  static FormData _create_1(form) => JS('FormData', 'new FormData(#)', form);
+  static FormData _create_2() => JS('FormData', 'new FormData()');
 
   @DomName('DOMFormData.append')
   @DocsEditable
@@ -12598,8 +12575,10 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
   @DocsEditable
-  factory HttpRequest() => HttpRequest._create();
-  static HttpRequest _create() => JS('HttpRequest', 'new XMLHttpRequest()');
+  factory HttpRequest() {
+    return HttpRequest._create_1();
+  }
+  static HttpRequest _create_1() => JS('HttpRequest', 'new XMLHttpRequest()');
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -14969,8 +14948,10 @@ class MapElement extends Element native "*HTMLMapElement" {
 class MediaController extends EventTarget native "*MediaController" {
 
   @DocsEditable
-  factory MediaController() => MediaController._create();
-  static MediaController _create() => JS('MediaController', 'new MediaController()');
+  factory MediaController() {
+    return MediaController._create_1();
+  }
+  static MediaController _create_1() => JS('MediaController', 'new MediaController()');
 
   @DomName('MediaController.buffered')
   @DocsEditable
@@ -15677,8 +15658,10 @@ abstract class MediaQueryListListener {
 class MediaSource extends EventTarget native "*MediaSource" {
 
   @DocsEditable
-  factory MediaSource() => MediaSource._create();
-  static MediaSource _create() => JS('MediaSource', 'new MediaSource()');
+  factory MediaSource() {
+    return MediaSource._create_1();
+  }
+  static MediaSource _create_1() => JS('MediaSource', 'new MediaSource()');
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable
@@ -15736,8 +15719,10 @@ class MediaStream extends EventTarget native "*MediaStream" {
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
   @DocsEditable
-  factory MediaStream() => MediaStream._create();
-  static MediaStream _create() => JS('MediaStream', 'new MediaStream()');
+  factory MediaStream() {
+    return MediaStream._create_1();
+  }
+  static MediaStream _create_1() => JS('MediaStream', 'new MediaStream()');
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -15997,8 +15982,10 @@ class MenuElement extends Element native "*HTMLMenuElement" {
 class MessageChannel native "*MessageChannel" {
 
   @DocsEditable
-  factory MessageChannel() => MessageChannel._create();
-  static MessageChannel _create() => JS('MessageChannel', 'new MessageChannel()');
+  factory MessageChannel() {
+    return MessageChannel._create_1();
+  }
+  static MessageChannel _create_1() => JS('MessageChannel', 'new MessageChannel()');
 
   @DomName('MessageChannel.port1')
   @DocsEditable
@@ -16456,9 +16443,6 @@ class MutationEvent extends Event native "*MutationEvent" {
 @Experimental
 class MutationObserver native "*MutationObserver" {
 
-  @DocsEditable
-  factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
-
   @DomName('MutationObserver.disconnect')
   @DocsEditable
   void disconnect() native;
@@ -16548,7 +16532,7 @@ class MutationObserver native "*MutationObserver" {
   @JSName('observe')
   void _call(target, options) native;
 
-  static MutationObserver _create(MutationCallback callback) {
+  factory MutationObserver(MutationCallback callback) {
     // Dummy statement to mark types as instantiated.
     JS('MutationObserver|MutationRecord', '0');
 
@@ -17700,17 +17684,13 @@ class Notification extends EventTarget native "*Notification" {
 
   @DocsEditable
   factory Notification(String title, [Map options]) {
-    if (!?options) {
-      return Notification._create(title);
+    if (?options) {
+      return Notification._create_1(title, options);
     }
-    return Notification._create(title, options);
+    return Notification._create_2(title);
   }
-  static Notification _create(String title, [Map options]) {
-    if (!?options) {
-      return JS('Notification', 'new Notification(#)', title);
-    }
-    return JS('Notification', 'new Notification(#,#)', title, options);
-  }
+  static Notification _create_1(title, options) => JS('Notification', 'new Notification(#,#)', title, options);
+  static Notification _create_2(title) => JS('Notification', 'new Notification(#)', title);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -18031,35 +18011,25 @@ class OptionElement extends Element native "*HTMLOptionElement" {
 
   @DocsEditable
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
-    if (!?data) {
-      return OptionElement._create();
+    if (?selected) {
+      return OptionElement._create_1(data, value, defaultSelected, selected);
     }
-    if (!?value) {
-      return OptionElement._create(data);
+    if (?defaultSelected) {
+      return OptionElement._create_2(data, value, defaultSelected);
     }
-    if (!?defaultSelected) {
-      return OptionElement._create(data, value);
+    if (?value) {
+      return OptionElement._create_3(data, value);
     }
-    if (!?selected) {
-      return OptionElement._create(data, value, defaultSelected);
+    if (?data) {
+      return OptionElement._create_4(data);
     }
-    return OptionElement._create(data, value, defaultSelected, selected);
+    return OptionElement._create_5();
   }
-  static OptionElement _create([String data, String value, bool defaultSelected, bool selected]) {
-    if (!?data) {
-      return JS('OptionElement', 'new Option()');
-    }
-    if (!?value) {
-      return JS('OptionElement', 'new Option(#)', data);
-    }
-    if (!?defaultSelected) {
-      return JS('OptionElement', 'new Option(#,#)', data, value);
-    }
-    if (!?selected) {
-      return JS('OptionElement', 'new Option(#,#,#)', data, value, defaultSelected);
-    }
-    return JS('OptionElement', 'new Option(#,#,#,#)', data, value, defaultSelected, selected);
-  }
+  static OptionElement _create_1(data, value, defaultSelected, selected) => JS('OptionElement', 'new Option(#,#,#,#)', data, value, defaultSelected, selected);
+  static OptionElement _create_2(data, value, defaultSelected) => JS('OptionElement', 'new Option(#,#,#)', data, value, defaultSelected);
+  static OptionElement _create_3(data, value) => JS('OptionElement', 'new Option(#,#)', data, value);
+  static OptionElement _create_4(data) => JS('OptionElement', 'new Option(#)', data);
+  static OptionElement _create_5() => JS('OptionElement', 'new Option()');
 
   @DomName('HTMLOptionElement.defaultSelected')
   @DocsEditable
@@ -18977,8 +18947,10 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 class RtcIceCandidate native "*RTCIceCandidate" {
 
   @DocsEditable
-  factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
-  static RtcIceCandidate _create(Map dictionary) => JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
+  factory RtcIceCandidate(Map dictionary) {
+    return RtcIceCandidate._create_1(dictionary);
+  }
+  static RtcIceCandidate _create_1(dictionary) => JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable
@@ -19048,17 +19020,13 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
   @DocsEditable
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    if (!?mediaConstraints) {
-      return RtcPeerConnection._create(rtcIceServers);
+    if (?mediaConstraints) {
+      return RtcPeerConnection._create_1(rtcIceServers, mediaConstraints);
     }
-    return RtcPeerConnection._create(rtcIceServers, mediaConstraints);
+    return RtcPeerConnection._create_2(rtcIceServers);
   }
-  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) {
-    if (!?mediaConstraints) {
-      return JS('RtcPeerConnection', 'new RTCPeerConnection(#)', rtcIceServers);
-    }
-    return JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
-  }
+  static RtcPeerConnection _create_1(rtcIceServers, mediaConstraints) => JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
+  static RtcPeerConnection _create_2(rtcIceServers) => JS('RtcPeerConnection', 'new RTCPeerConnection(#)', rtcIceServers);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -19304,8 +19272,10 @@ class RtcPeerConnectionEvents extends Events {
 class RtcSessionDescription native "*RTCSessionDescription" {
 
   @DocsEditable
-  factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
-  static RtcSessionDescription _create(Map dictionary) => JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
+  factory RtcSessionDescription(Map dictionary) {
+    return RtcSessionDescription._create_1(dictionary);
+  }
+  static RtcSessionDescription _create_1(dictionary) => JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable
@@ -19768,17 +19738,13 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 
   @DocsEditable
   factory SharedWorker(String scriptURL, [String name]) {
-    if (!?name) {
-      return SharedWorker._create(scriptURL);
+    if (?name) {
+      return SharedWorker._create_1(scriptURL, name);
     }
-    return SharedWorker._create(scriptURL, name);
+    return SharedWorker._create_2(scriptURL);
   }
-  static SharedWorker _create(String scriptURL, [String name]) {
-    if (!?name) {
-      return JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
-    }
-    return JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
-  }
+  static SharedWorker _create_1(scriptURL, name) => JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
+  static SharedWorker _create_2(scriptURL) => JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
 
   @DomName('SharedWorker.port')
   @DocsEditable
@@ -20098,8 +20064,10 @@ class SpanElement extends Element native "*HTMLSpanElement" {
 class SpeechGrammar native "*SpeechGrammar" {
 
   @DocsEditable
-  factory SpeechGrammar() => SpeechGrammar._create();
-  static SpeechGrammar _create() => JS('SpeechGrammar', 'new SpeechGrammar()');
+  factory SpeechGrammar() {
+    return SpeechGrammar._create_1();
+  }
+  static SpeechGrammar _create_1() => JS('SpeechGrammar', 'new SpeechGrammar()');
 
   @DomName('SpeechGrammar.src')
   @DocsEditable
@@ -20119,8 +20087,10 @@ class SpeechGrammar native "*SpeechGrammar" {
 class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
 
   @DocsEditable
-  factory SpeechGrammarList() => SpeechGrammarList._create();
-  static SpeechGrammarList _create() => JS('SpeechGrammarList', 'new SpeechGrammarList()');
+  factory SpeechGrammarList() {
+    return SpeechGrammarList._create_1();
+  }
+  static SpeechGrammarList _create_1() => JS('SpeechGrammarList', 'new SpeechGrammarList()');
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable
@@ -20399,9 +20369,6 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
   @DocsEditable
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
-  @DocsEditable
-  factory SpeechRecognition() => SpeechRecognition._create();
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.SpeechRecognition || window.webkitSpeechRecognition)');
 
@@ -20501,7 +20468,7 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
   @DocsEditable
   Stream<Event> get onStart => startEvent.forTarget(this);
 
-  static SpeechRecognition _create() {
+  factory SpeechRecognition() {
     return JS('SpeechRecognition',
         'new (window.SpeechRecognition || window.webkitSpeechRecognition)()');
   }
@@ -21703,8 +21670,10 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
   @DocsEditable
-  factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
-  static TextTrackCue _create(num startTime, num endTime, String text) => JS('TextTrackCue', 'new TextTrackCue(#,#,#)', startTime, endTime, text);
+  factory TextTrackCue(num startTime, num endTime, String text) {
+    return TextTrackCue._create_1(startTime, endTime, text);
+  }
+  static TextTrackCue _create_1(startTime, endTime, text) => JS('TextTrackCue', 'new TextTrackCue(#,#,#)', startTime, endTime, text);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -25367,8 +25336,21 @@ class WebSocket extends EventTarget native "*WebSocket" {
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
   @DocsEditable
-  factory WebSocket(String url) => WebSocket._create(url);
-  static WebSocket _create(String url) => JS('WebSocket', 'new WebSocket(#)', url);
+  factory WebSocket(String url, [protocol_OR_protocols]) {
+    if ((url is String || url == null) && !?protocol_OR_protocols) {
+      return WebSocket._create_1(url);
+    }
+    if ((url is String || url == null) && (protocol_OR_protocols is List<String> || protocol_OR_protocols == null)) {
+      return WebSocket._create_2(url, protocol_OR_protocols);
+    }
+    if ((url is String || url == null) && (protocol_OR_protocols is String || protocol_OR_protocols == null)) {
+      return WebSocket._create_3(url, protocol_OR_protocols);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  static WebSocket _create_1(url) => JS('WebSocket', 'new WebSocket(#)', url);
+  static WebSocket _create_2(url, protocol_OR_protocols) => JS('WebSocket', 'new WebSocket(#,#)', url, protocol_OR_protocols);
+  static WebSocket _create_3(url, protocol_OR_protocols) => JS('WebSocket', 'new WebSocket(#,#)', url, protocol_OR_protocols);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.WebSocket != "undefined"');
@@ -26758,8 +26740,10 @@ class Worker extends AbstractWorker native "*Worker" {
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
   @DocsEditable
-  factory Worker(String scriptUrl) => Worker._create(scriptUrl);
-  static Worker _create(String scriptUrl) => JS('Worker', 'new Worker(#)', scriptUrl);
+  factory Worker(String scriptUrl) {
+    return Worker._create_1(scriptUrl);
+  }
+  static Worker _create_1(scriptUrl) => JS('Worker', 'new Worker(#)', scriptUrl);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -27036,8 +27020,10 @@ class WorkerNavigator native "*WorkerNavigator" {
 class XPathEvaluator native "*XPathEvaluator" {
 
   @DocsEditable
-  factory XPathEvaluator() => XPathEvaluator._create();
-  static XPathEvaluator _create() => JS('XPathEvaluator', 'new XPathEvaluator()');
+  factory XPathEvaluator() {
+    return XPathEvaluator._create_1();
+  }
+  static XPathEvaluator _create_1() => JS('XPathEvaluator', 'new XPathEvaluator()');
 
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable
@@ -27182,8 +27168,10 @@ class XPathResult native "*XPathResult" {
 class XmlSerializer native "*XMLSerializer" {
 
   @DocsEditable
-  factory XmlSerializer() => XmlSerializer._create();
-  static XmlSerializer _create() => JS('XmlSerializer', 'new XMLSerializer()');
+  factory XmlSerializer() {
+    return XmlSerializer._create_1();
+  }
+  static XmlSerializer _create_1() => JS('XmlSerializer', 'new XMLSerializer()');
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable
@@ -27202,8 +27190,10 @@ class XmlSerializer native "*XMLSerializer" {
 class XsltProcessor native "*XSLTProcessor" {
 
   @DocsEditable
-  factory XsltProcessor() => XsltProcessor._create();
-  static XsltProcessor _create() => JS('XsltProcessor', 'new XSLTProcessor()');
+  factory XsltProcessor() {
+    return XsltProcessor._create_1();
+  }
+  static XsltProcessor _create_1() => JS('XsltProcessor', 'new XSLTProcessor()');
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.XSLTProcessor)');

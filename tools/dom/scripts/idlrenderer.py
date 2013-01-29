@@ -121,6 +121,11 @@ def render(idl_node, indent_str='  '):
               if v.id:
                 w('=')
               w(v)
+            elif isinstance(v, list):
+              assert k == 'Constructor'
+              w(v[0])
+              for c in v[1:]:
+                w(', '); w(k); w(c)
             else:
               w('=%s' % v.__str__())
           i += 1

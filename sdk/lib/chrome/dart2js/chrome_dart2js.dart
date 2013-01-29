@@ -1,3 +1,8 @@
+library chrome;
+
+import 'dart:_foreign_helper' show JS;
+import 'dart:html_common';
+import 'dart:html';
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -5,11 +10,12 @@
 // DO NOT EDIT
 // Auto-generated dart:chrome library.
 
-library chrome;
 
-import 'dart:_foreign_helper' show JS;
-import 'dart:html_common';
-import 'dart:html';
+
+
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 /**
  * A set of utilities for use with the Chrome Extension APIs.
