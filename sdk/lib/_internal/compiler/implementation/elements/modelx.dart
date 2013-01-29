@@ -491,10 +491,7 @@ class CompilationUnitElementX extends ElementX
       return;
     }
     if (!localMembers.isEmpty) {
-      listener.reportMessage(
-          listener.spanFromSpannable(tag),
-          MessageKind.BEFORE_TOP_LEVEL.error(),
-          api.Diagnostic.ERROR);
+      listener.reportErrorCode(tag, MessageKind.BEFORE_TOP_LEVEL);
       return;
     }
     if (partTag != null) {

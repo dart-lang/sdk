@@ -421,10 +421,8 @@ class ResolverTask extends CompilerTask {
     compiler.withCurrentElement(cls, () => measure(() {
       if (cls.supertypeLoadState == STATE_DONE) return;
       if (cls.supertypeLoadState == STATE_STARTED) {
-        compiler.reportMessage(
-          compiler.spanFromSpannable(from),
-          MessageKind.CYCLIC_CLASS_HIERARCHY.error({'className': cls.name}),
-          Diagnostic.ERROR);
+        compiler.reportErrorCode(from, MessageKind.CYCLIC_CLASS_HIERARCHY,
+                                 {'className': cls.name});
         cls.supertypeLoadState = STATE_DONE;
         cls.allSupertypes = const Link<DartType>().prepend(
             compiler.objectClass.computeType(compiler));
@@ -533,11 +531,10 @@ class ResolverTask extends CompilerTask {
     int illegalFlags = modifiers.flags & ~Modifiers.FLAG_ABSTRACT;
     if (illegalFlags != 0) {
       Modifiers illegalModifiers = new Modifiers.withFlags(null, illegalFlags);
-      CompilationError error =
-          MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS.error(
-              {'modifiers': illegalModifiers});
-      compiler.reportMessage(compiler.spanFromSpannable(modifiers),
-                             error, Diagnostic.ERROR);
+      compiler.reportErrorCode(
+          modifiers,
+          MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS,
+          {'modifiers': illegalModifiers});
     }
 
     // In case of cyclic mixin applications, the mixin chain will have
@@ -548,18 +545,14 @@ class ResolverTask extends CompilerTask {
 
     // Check that the mixed in class has Object as its superclass.
     if (!mixin.superclass.isObject(compiler)) {
-      CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPERCLASS.error();
-      compiler.reportMessage(compiler.spanFromElement(mixin),
-                             error, Diagnostic.ERROR);
+      compiler.reportErrorCode(mixin, MessageKind.ILLEGAL_MIXIN_SUPERCLASS);
     }
 
     // Check that the mixed in class doesn't have any constructors and
     // make sure we aren't mixing in methods that use 'super'.
     mixin.forEachLocalMember((Element member) {
       if (member.isGenerativeConstructor() && !member.isSynthesized) {
-        CompilationError error = MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR.error();
-        compiler.reportMessage(compiler.spanFromElement(member),
-                               error, Diagnostic.ERROR);
+        compiler.reportErrorCode(member, MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR);
       } else {
         // Get the resolution tree and check that the resolved member
         // doesn't use 'super'. This is the part of the 'super' mixin
@@ -579,10 +572,9 @@ class ResolverTask extends CompilerTask {
     if (resolutionTree == null) return;
     Set<Node> superUses = resolutionTree.superUses;
     if (superUses.isEmpty) return;
-    CompilationError error = MessageKind.ILLEGAL_MIXIN_WITH_SUPER.error(
-        {'className': mixin.name});
-    compiler.reportMessage(compiler.spanFromElement(mixinApplication),
-                           error, Diagnostic.ERROR);
+    compiler.reportErrorCode(mixinApplication,
+                             MessageKind.ILLEGAL_MIXIN_WITH_SUPER,
+                             {'className': mixin.name});
     // Show the user the problematic uses of 'super' in the mixin.
     for (Node use in superUses) {
       CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPER_USE.error();
@@ -603,10 +595,8 @@ class ResolverTask extends CompilerTask {
 
         // Check modifiers.
         if (member.isFunction() && member.modifiers.isFinal()) {
-          compiler.reportMessage(
-              compiler.spanFromElement(member),
-              MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER.error(),
-              Diagnostic.ERROR);
+          compiler.reportErrorCode(
+              member, MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER);
         }
         if (member.isConstructor()) {
           final mismatchedFlagsBits =
@@ -615,11 +605,10 @@ class ResolverTask extends CompilerTask {
           if (mismatchedFlagsBits != 0) {
             final mismatchedFlags =
                 new Modifiers.withFlags(null, mismatchedFlagsBits);
-            compiler.reportMessage(
-                compiler.spanFromElement(member),
-                MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS.error(
-                    {'modifiers': mismatchedFlags}),
-                Diagnostic.ERROR);
+            compiler.reportErrorCode(
+                member,
+                MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS,
+                {'modifiers': mismatchedFlags});
           }
           checkConstructorNameHack(holder, member);
         }
@@ -684,14 +673,14 @@ class ResolverTask extends CompilerTask {
     if (!identical(getterFlags, setterFlags)) {
       final mismatchedFlags =
         new Modifiers.withFlags(null, getterFlags ^ setterFlags);
-      compiler.reportMessage(
-          compiler.spanFromElement(field.getter),
-          MessageKind.GETTER_MISMATCH.error({'modifiers': mismatchedFlags}),
-          Diagnostic.ERROR);
-      compiler.reportMessage(
-          compiler.spanFromElement(field.setter),
-          MessageKind.SETTER_MISMATCH.error({'modifiers': mismatchedFlags}),
-          Diagnostic.ERROR);
+      compiler.reportErrorCode(
+          field.getter,
+          MessageKind.GETTER_MISMATCH,
+          {'modifiers': mismatchedFlags});
+      compiler.reportErrorCode(
+          field.setter,
+          MessageKind.SETTER_MISMATCH,
+          {'modifiers': mismatchedFlags});
     }
   }
 
@@ -740,26 +729,22 @@ class ResolverTask extends CompilerTask {
           errorNode = node.parameters.nodes.skip(requiredParameterCount).head;
         }
       }
-      compiler.reportMessage(
-          compiler.spanFromSpannable(errorNode),
-          messageKind.error({'operatorName': function.name}),
-          Diagnostic.ERROR);
+      compiler.reportErrorCode(
+          errorNode, messageKind, {'operatorName': function.name});
     }
     if (signature.optionalParameterCount != 0) {
       Node errorNode =
           node.parameters.nodes.skip(signature.requiredParameterCount).head;
       if (signature.optionalParametersAreNamed) {
-        compiler.reportMessage(
-            compiler.spanFromSpannable(errorNode),
-            MessageKind.OPERATOR_NAMED_PARAMETERS.error(
-                {'operatorName': function.name}),
-            Diagnostic.ERROR);
+        compiler.reportErrorCode(
+            errorNode,
+            MessageKind.OPERATOR_NAMED_PARAMETERS,
+            {'operatorName': function.name});
       } else {
-        compiler.reportMessage(
-            compiler.spanFromSpannable(errorNode),
-            MessageKind.OPERATOR_OPTIONAL_PARAMETERS.error(
-                {'operatorName': function.name}),
-            Diagnostic.ERROR);
+        compiler.reportErrorCode(
+            errorNode,
+            MessageKind.OPERATOR_OPTIONAL_PARAMETERS,
+            {'operatorName': function.name});
       }
     }
   }
@@ -768,12 +753,11 @@ class ResolverTask extends CompilerTask {
                          MessageKind errorMessage,
                          Element contextElement,
                          MessageKind contextMessage) {
-    compiler.reportMessage(
-        compiler.spanFromElement(errorneousElement),
-        errorMessage.error(
-            {'memberName': contextElement.name,
-             'className': contextElement.getEnclosingClass().name}),
-        Diagnostic.ERROR);
+    compiler.reportErrorCode(
+        errorneousElement,
+        errorMessage,
+        {'memberName': contextElement.name,
+         'className': contextElement.getEnclosingClass().name});
     compiler.reportMessage(
         compiler.spanFromElement(contextElement),
         contextMessage.error(),
@@ -1551,17 +1535,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element result = scope.lookup(name);
     if (!Elements.isUnresolved(result)) {
       if (!inInstanceContext && result.isInstanceMember()) {
-        compiler.reportMessage(compiler.spanFromSpannable(node),
-            MessageKind.NO_INSTANCE_AVAILABLE.error({'name': name}),
-            Diagnostic.ERROR);
+        compiler.reportErrorCode(
+            node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': name});
         return new ErroneousElementX(MessageKind.NO_INSTANCE_AVAILABLE,
                                      {'name': name},
                                      name, enclosingElement);
       } else if (result.isAmbiguous()) {
         AmbiguousElement ambiguous = result;
-        compiler.reportMessage(compiler.spanFromSpannable(node),
-            ambiguous.messageKind.error(ambiguous.messageArguments),
-            Diagnostic.ERROR);
+        compiler.reportErrorCode(
+            node, ambiguous.messageKind, ambiguous.messageArguments);
         return new ErroneousElementX(ambiguous.messageKind,
                                      ambiguous.messageArguments,
                                      name, enclosingElement);
@@ -2276,14 +2258,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   void handleRedirectingFactoryBody(Return node) {
     if (!enclosingElement.isFactoryConstructor()) {
-      compiler.reportMessage(
-          compiler.spanFromSpannable(node),
-          MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY.error(),
-          Diagnostic.ERROR);
-      compiler.reportMessage(
-          compiler.spanFromSpannable(enclosingElement),
-          MessageKind.MISSING_FACTORY_KEYWORD.error(),
-          Diagnostic.INFO);
+      compiler.reportErrorCode(
+          node, MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY);
+      compiler.reportErrorCode(
+          enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
     Element redirectionTarget = resolveRedirectingFactory(node);
     var type = mapping.getType(node.expression);
@@ -2984,10 +2962,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     while (current != null && current.isMixinApplication) {
       MixinApplicationElement currentMixinApplication = current;
       if (currentMixinApplication == mixinApplication) {
-        CompilationError error = MessageKind.ILLEGAL_MIXIN_CYCLE.error(
+        compiler.reportErrorCode(
+            mixinApplication, MessageKind.ILLEGAL_MIXIN_CYCLE,
             {'mixinName1': current.name, 'mixinName2': previous.name});
-        compiler.reportMessage(compiler.spanFromElement(mixinApplication),
-                               error, Diagnostic.ERROR);
         // We have found a cycle in the mixin chain. Return null as
         // the mixin for this application to avoid getting into
         // infinite recursion when traversing members.
@@ -3085,22 +3062,20 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED);
         } else {
           if (interfaceType == element.supertype) {
-            compiler.reportMessage(
-                compiler.spanFromSpannable(superclass),
-                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error(
-                    {'type': interfaceType}),
-                Diagnostic.ERROR);
-            compiler.reportMessage(
-                compiler.spanFromSpannable(link.head),
-                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error(
-                    {'type': interfaceType}),
-                Diagnostic.ERROR);
+            compiler.reportErrorCode(
+                superclass,
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS,
+                {'type': interfaceType});
+            compiler.reportErrorCode(
+                link.head,
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS,
+                {'type': interfaceType});
           }
           if (result.contains(interfaceType)) {
-            compiler.reportMessage(
-                compiler.spanFromSpannable(link.head),
-                MessageKind.DUPLICATE_IMPLEMENTS.error({'type': interfaceType}),
-                Diagnostic.ERROR);
+            compiler.reportErrorCode(
+                link.head,
+                MessageKind.DUPLICATE_IMPLEMENTS,
+                {'type': interfaceType});
           }
           result = result.prepend(interfaceType);
           if (isBlackListed(interfaceType)) {
@@ -3220,10 +3195,7 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
       if (element.isClass()) {
         loadSupertype(element, node);
       } else {
-        compiler.reportMessage(
-          compiler.spanFromSpannable(node),
-          MessageKind.CLASS_NAME_EXPECTED.error(),
-          Diagnostic.ERROR);
+        compiler.reportErrorCode(node, MessageKind.CLASS_NAME_EXPECTED);
       }
     }
   }
@@ -3439,9 +3411,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     int requiredParameterCount = 0;
     if (formalParameters == null) {
       if (!element.isGetter()) {
-        compiler.reportMessage(compiler.spanFromElement(element),
-                               MessageKind.MISSING_FORMALS.error(),
-                               Diagnostic.ERROR);
+        compiler.reportErrorCode(element, MessageKind.MISSING_FORMALS);
       }
     } else {
       if (element.isGetter()) {
@@ -3451,9 +3421,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
           if (compiler.rejectDeprecatedFeatures &&
               // TODO(ahe): Remove isPlatformLibrary check.
               !element.getLibrary().isPlatformLibrary) {
-            compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
-                                   MessageKind.EXTRA_FORMALS.error(),
-                                   Diagnostic.ERROR);
+            compiler.reportErrorCode(formalParameters,
+                                     MessageKind.EXTRA_FORMALS);
           } else {
             compiler.onDeprecatedFeature(formalParameters, 'getter parameters');
           }
@@ -3469,16 +3438,13 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                visitor.optionalParameterCount != 0)) {
       // If there are no formal parameters, we already reported an error above.
       if (formalParameters != null) {
-        compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
-                               MessageKind.ILLEGAL_SETTER_FORMALS.error(),
-                               Diagnostic.ERROR);
+        compiler.reportErrorCode(formalParameters,
+                                 MessageKind.ILLEGAL_SETTER_FORMALS);
       }
     }
     if (element.isGetter() && (requiredParameterCount != 0
                                || visitor.optionalParameterCount != 0)) {
-      compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
-                             MessageKind.EXTRA_FORMALS.error(),
-                             Diagnostic.ERROR);
+      compiler.reportErrorCode(formalParameters, MessageKind.EXTRA_FORMALS);
     }
     return new FunctionSignatureX(parameters,
                                   visitor.optionalParameters,

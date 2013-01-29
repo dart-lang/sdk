@@ -675,18 +675,15 @@ class LibraryDependencyNode {
     Element existingElement = exportScope[name];
     if (existingElement != null) {
       if (existingElement.isErroneous()) {
-        compiler.reportMessage(compiler.spanFromElement(element),
-            MessageKind.DUPLICATE_EXPORT.error({'name': name}),
-            api.Diagnostic.ERROR);
+        compiler.reportErrorCode(element, MessageKind.DUPLICATE_EXPORT,
+                                 {'name': name});
         element = existingElement;
       } else if (existingElement.getLibrary() != library) {
         // Declared elements hide exported elements.
-        compiler.reportMessage(compiler.spanFromElement(existingElement),
-            MessageKind.DUPLICATE_EXPORT.error({'name': name}),
-            api.Diagnostic.ERROR);
-        compiler.reportMessage(compiler.spanFromElement(element),
-            MessageKind.DUPLICATE_EXPORT.error({'name': name}),
-            api.Diagnostic.ERROR);
+        compiler.reportErrorCode(existingElement, MessageKind.DUPLICATE_EXPORT,
+                                 {'name': name});
+        compiler.reportErrorCode(element, MessageKind.DUPLICATE_EXPORT,
+                                 {'name': name});
         element = exportScope[name] = new ErroneousElementX(
             MessageKind.DUPLICATE_EXPORT, {'name': name}, name, library);
       }
