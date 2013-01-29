@@ -324,7 +324,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   computeSignature(compiler) => unsupported();
   requiredParameterCount(compiler) => unsupported();
   optionalParameterCount(compiler) => unsupported();
-  parameterCount(copmiler) => unsupported();
+  parameterCount(compiler) => unsupported();
 
   // TODO(kasperl): These seem unnecessary.
   set patch(value) => unsupported();
