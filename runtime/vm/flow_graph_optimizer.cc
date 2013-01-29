@@ -4527,13 +4527,9 @@ void ConstantPropagator::Transform() {
       // Replace constant-valued instructions without observable side
       // effects.  Do this for smis only to avoid having to copy other
       // objects into the heap's old generation.
-      //
-      // TODO(kmillikin): Extend this to handle booleans, other number
-      // types, etc.
       if ((defn != NULL) &&
-          (defn->constant_value().IsSmi() ||
-           defn->constant_value().IsNull() ||
-           defn->constant_value().IsTypeArguments()) &&
+          IsConstant(defn->constant_value()) &&
+          (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
           !defn->IsConstant() &&
           !defn->IsPushArgument() &&
           !defn->IsStoreIndexed() &&
