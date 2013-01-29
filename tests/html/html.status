@@ -22,6 +22,7 @@ input_element_test/supported_week: Fail
 speechrecognition_test/supported: Pass, Fail       # Chrome stable does not support it.
 shadow_dom_test/supported: Fail
 speechrecognition_test/types: Pass, Fail
+touchevent_test/supported: Fail
 
 [ $runtime == chrome || $runtime == drt]
 audiobuffersourcenode_test: Pass, Fail, Timeout # AudiobufferSourceNode is flaky on Chrome and Dartium - filed issue 8021 for the timeout.
@@ -85,6 +86,7 @@ storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 svg_3_test: Fail
+touchevent_test/supported: Fail
 websql_test/supported: Fail
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
@@ -152,6 +154,7 @@ speechrecognition_test/supported: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
+touchevent_test/supported: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 websocket_test/supported: Fail
 window_open_test: Skip      # BUG(4016)
@@ -192,6 +195,7 @@ notifications_test/supported: Fail # Issue: 7414
 performance_api_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
+touchevent_test/supported: Fail
 
 audiocontext_test: Crash, Fail # Issue: 7414
 datalistelement_test: Fail # Issue: 7414
@@ -287,6 +291,7 @@ speechrecognition_test/supported: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
+touchevent_test/supported: Fail
 transferables_test: Fail   # Issue 3392.
 websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail

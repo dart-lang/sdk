@@ -21,4 +21,24 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return e;
   }
 $!MEMBERS
+
+  /**
+   * Checks if touch events supported on the current platform.
+   *
+   * Note that touch events are only supported if the user is using a touch
+   * device.
+   */
+  static bool get supported {
+$if DART2JS
+    if (JS('bool', '"ontouchstart" in window')) {
+      return Event._isTypeSupported('TouchEvent');
+    }
+    return false;
+$else
+    // Bug #8186 add equivalent 'ontouchstart' check for Dartium.
+    // Basically, this is a fairly common check and it'd be great if it did not
+    // throw exceptions.
+    return Event._isTypeSupported('TouchEvent');
+$endif
+  }
 }

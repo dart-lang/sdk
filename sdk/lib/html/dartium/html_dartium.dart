@@ -24655,6 +24655,19 @@ class TouchEvent extends UIEvent {
   @DocsEditable
   void $dom_initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
+
+  /**
+   * Checks if touch events supported on the current platform.
+   *
+   * Note that touch events are only supported if the user is using a touch
+   * device.
+   */
+  static bool get supported {
+    // Bug #8186 add equivalent 'ontouchstart' check for Dartium.
+    // Basically, this is a fairly common check and it'd be great if it did not
+    // throw exceptions.
+    return Event._isTypeSupported('TouchEvent');
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
