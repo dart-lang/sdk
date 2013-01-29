@@ -690,7 +690,11 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
                                   type_args,
                                   value_type,
                                   Symbols::Value());
-    InsertBefore(call, assert_value, NULL, Definition::kValue);
+    // Newly inserted instructions that can deoptimize or throw an exception
+    // must have a deoptimization id that is valid for lookup in the unoptimized
+    // code.
+    assert_value->deopt_id_ = call->deopt_id();
+    InsertBefore(call, assert_value, call->env(), Definition::kValue);
   }
 
   Value* array = NULL;

@@ -33,6 +33,8 @@ dart/isolate_mirror_local_test: Skip
 dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/isolate_unhandled*: Skip
+# The source positions do not match with dart2js.
+dart/optimized_stacktrace_test: Fail
 
 [ $compiler == dart2js && $minified ]
 # Methods in stack traces are renamed.

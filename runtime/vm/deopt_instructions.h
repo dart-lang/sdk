@@ -115,6 +115,8 @@ class DeoptInstr : public ZoneAllocated {
   virtual void Execute(DeoptimizationContext* deopt_context,
                        intptr_t to_index) = 0;
 
+  virtual DeoptInstr::Kind kind() const = 0;
+
   bool Equals(const DeoptInstr& other) const {
     return (kind() == other.kind()) && (from_index() == other.from_index());
   }
@@ -125,12 +127,11 @@ class DeoptInstr : public ZoneAllocated {
 
   // Get the function and return address which is encoded in this
   // kRetAfterAddress deopt instruction.
-  static uword GetRetAfterAddress(intptr_t deopt_from_index,
+  static uword GetRetAfterAddress(DeoptInstr* instr,
                                   const Array& object_table,
                                   Function* func);
 
  protected:
-  virtual DeoptInstr::Kind kind() const = 0;
   virtual intptr_t from_index() const = 0;
 
   friend class DeoptInfoBuilder;

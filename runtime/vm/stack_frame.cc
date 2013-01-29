@@ -282,16 +282,21 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
 
 InlinedFunctionsInDartFrameIterator::InlinedFunctionsInDartFrameIterator(
     StackFrame* frame) : index_(0),
-                         frame_(frame),
-                         func_(Function::Handle()),
-                         deopt_info_(DeoptInfo::Handle()),
+                         deopt_instructions_(),
                          object_table_(Array::Handle()) {
-  ASSERT(frame_ != NULL);
-  const Code& code = Code::Handle(frame_->LookupDartCode());
+  ASSERT(frame != NULL);
+  const Code& code = Code::Handle(frame->LookupDartCode());
   ASSERT(code.is_optimized());
-  func_ = code.function();
   intptr_t deopt_reason = kDeoptUnknown;
-  deopt_info_ = code.GetDeoptInfoAtPc(frame_->pc(), &deopt_reason);
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(
+      code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason));
+  ASSERT(!deopt_info.IsNull());
+
+  // Unpack deopt info into instructions (translate away suffixes).
+  const Array& deopt_table = Array::Handle(code.deopt_info_array());
+  ASSERT(!deopt_table.IsNull());
+  deopt_info.ToInstructions(deopt_table, &deopt_instructions_);
+
   object_table_ = code.object_table();
 }
 
@@ -300,27 +305,19 @@ RawFunction* InlinedFunctionsInDartFrameIterator::GetNextFunction(uword* pc) {
   if (index_ == -1) {
     return Function::null();
   }
-  if (deopt_info_.IsNull()) {
-    // We are at a PC that has no deoptimization info so there are no
-    // inlined functions to iterate over, we return the function.
-    index_ = -1;  // No more functions.
-    *pc = frame_->pc();
-    return func_.raw();
-  }
+
   // Iterate over the deopt instructions and determine the inlined
   // functions if any and iterate over them.
-  ASSERT(deopt_info_.Length() != 0);
-  while (index_ < deopt_info_.Length()) {
-    intptr_t cur_index = index_;
-    index_ += 1;
-    intptr_t deopt_instr = deopt_info_.Instruction(cur_index);
-    ASSERT(deopt_instr != DeoptInstr::kRetBeforeAddress);
-    if (deopt_instr == DeoptInstr::kRetAfterAddress) {
-      intptr_t deopt_from_index = deopt_info_.FromIndex(cur_index);
-      *pc = DeoptInstr::GetRetAfterAddress(deopt_from_index,
+  Function& func = Function::Handle();
+  ASSERT(deopt_instructions_.length() != 0);
+  while (index_ < deopt_instructions_.length()) {
+    DeoptInstr* deopt_instr = deopt_instructions_[index_++];
+    ASSERT(deopt_instr->kind() != DeoptInstr::kRetBeforeAddress);
+    if (deopt_instr->kind() == DeoptInstr::kRetAfterAddress) {
+      *pc = DeoptInstr::GetRetAfterAddress(deopt_instr,
                                            object_table_,
-                                           &func_);
-      return func_.raw();
+                                           &func);
+      return func.raw();
     }
   }
   index_ = -1;

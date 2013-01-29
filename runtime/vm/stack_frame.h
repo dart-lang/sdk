@@ -236,9 +236,7 @@ class InlinedFunctionsInDartFrameIterator : public ValueObject {
 
  private:
   intptr_t index_;
-  StackFrame* frame_;
-  Function& func_;
-  DeoptInfo& deopt_info_;
+  GrowableArray<DeoptInstr*> deopt_instructions_;
   Array& object_table_;
 
   DISALLOW_COPY_AND_ASSIGN(InlinedFunctionsInDartFrameIterator);

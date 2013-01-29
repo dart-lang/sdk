@@ -519,6 +519,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
   friend class InvokeMathCFunctionInstr;
+  friend class FlowGraphOptimizer;
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.
@@ -1407,7 +1408,7 @@ class ThrowInstr : public TemplateInstruction<0> {
 
   intptr_t token_pos() const { return token_pos_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
 
@@ -1428,7 +1429,7 @@ class ReThrowInstr : public TemplateInstruction<0> {
 
   intptr_t token_pos() const { return token_pos_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
 
@@ -1905,7 +1906,7 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
@@ -1952,7 +1953,7 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
@@ -1994,7 +1995,7 @@ class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
 
@@ -2224,7 +2225,9 @@ inline void BranchInstr::SetInputAt(intptr_t i, Value* value) {
 
 
 inline bool BranchInstr::CanDeoptimize() const {
-  return comparison()->CanDeoptimize();
+  // Branches need a deoptimization info in checked mode if they
+  // can throw a type check error.
+  return comparison()->CanDeoptimize() || is_checked();
 }
 
 
@@ -2872,7 +2875,7 @@ class InstanceOfInstr : public TemplateDefinition<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
 
@@ -2949,7 +2952,7 @@ class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
 
@@ -3166,7 +3169,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
 
@@ -3315,7 +3318,7 @@ class CloneContextInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(CloneContext)
   virtual RawAbstractType* CompileType() const;
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 
@@ -3915,7 +3918,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
 

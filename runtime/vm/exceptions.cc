@@ -63,9 +63,10 @@ static bool FindExceptionHandler(uword* handler_pc,
             break;
           }
           ASSERT(pc != 0);
-          code = func.unoptimized_code();
-          offset = Smi::New(pc - code.EntryPoint());
           if (ShouldShowFunction(func)) {
+            code = func.unoptimized_code();
+            offset = Smi::New(pc - code.EntryPoint());
+            ASSERT(0 <= offset.Value() && offset.Value() < code.Size());
             func_list.Add(func);
             code_list.Add(code);
             pc_offset_list.Add(offset);

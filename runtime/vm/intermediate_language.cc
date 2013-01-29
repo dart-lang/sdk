@@ -2010,6 +2010,7 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!is_eliminated()) {
     compiler->GenerateAssertAssignable(token_pos(),
+                                       deopt_id(),
                                        dst_type(),
                                        dst_name(),
                                        locs());

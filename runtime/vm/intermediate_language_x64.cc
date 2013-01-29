@@ -192,6 +192,7 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary() const {
 
 static void EmitAssertBoolean(Register reg,
                               intptr_t token_pos,
+                              intptr_t deopt_id,
                               LocationSummary* locs,
                               FlowGraphCompiler* compiler) {
   // Check that the type of the value is allowed in conditional context.
@@ -205,6 +206,7 @@ static void EmitAssertBoolean(Register reg,
 
   __ pushq(reg);  // Push the source object.
   compiler->GenerateCallRuntime(token_pos,
+                                deopt_id,
                                 kConditionTypeErrorRuntimeEntry,
                                 locs);
   // We should never return here.
@@ -218,7 +220,7 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   if (!is_eliminated()) {
-    EmitAssertBoolean(obj, token_pos(), locs(), compiler);
+    EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
   }
   ASSERT(obj == result);
 }
@@ -245,6 +247,7 @@ void ArgumentDefinitionTestInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(formal_parameter_name());
   __ pushq(saved_args_desc);
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kArgumentDefinitionTestRuntimeEntry,
                                 locs());
   __ Drop(3);
@@ -496,7 +499,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
         }
       } else {
         if (branch->is_checked()) {
-          EmitAssertBoolean(RAX, token_pos, locs, compiler);
+          EmitAssertBoolean(RAX, token_pos, deopt_id, locs, compiler);
         }
         __ CompareObject(RAX, Bool::True());
         branch->EmitBranchOnCondition(compiler, cond);
@@ -751,7 +754,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                              locs(),
                              *ic_data());
   if (branch->is_checked()) {
-    EmitAssertBoolean(RAX, token_pos(), locs(), compiler);
+    EmitAssertBoolean(RAX, token_pos(), deopt_id(), locs(), compiler);
   }
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
   __ CompareObject(RAX, Bool::True());
@@ -1382,6 +1385,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(2).reg() == RDX);  // Instantiator type arguments.
 
   compiler->GenerateInstanceOf(token_pos(),
+                               deopt_id(),
                                type(),
                                negate_result(),
                                locs());
@@ -1444,6 +1448,7 @@ void AllocateObjectWithBoundsCheckInstr::EmitNativeCode(
   __ pushq(type_arguments);
   __ pushq(instantiator_type_arguments);
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kAllocateObjectWithBoundsCheckRuntimeEntry,
                                 locs());
   // Pop instantiator type arguments, type arguments, and class.
@@ -1516,6 +1521,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ PushObject(type_arguments());
   __ pushq(instantiator_reg);  // Push instantiator type arguments.
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kInstantiateTypeArgumentsRuntimeEntry,
                                 locs());
   __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
@@ -1690,6 +1696,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushq(context_value);
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kCloneContextRuntimeEntry,
                                 locs());
   __ popq(result);  // Remove argument.
@@ -1745,9 +1752,15 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
     compiler->SaveLiveRegisters(instruction_->locs());
+    // pending_deoptimization_env_ is needed to generate a runtime call that
+    // may throw an exception.
+    ASSERT(compiler->pending_deoptimization_env_ == NULL);
+    compiler->pending_deoptimization_env_ = instruction_->env();
     compiler->GenerateCallRuntime(instruction_->token_pos(),
+                                  instruction_->deopt_id(),
                                   kStackOverflowRuntimeEntry,
                                   instruction_->locs());
+    compiler->pending_deoptimization_env_ = NULL;
     compiler->RestoreLiveRegisters(instruction_->locs());
     __ jmp(exit_label());
   }
@@ -2678,6 +2691,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kThrowRuntimeEntry,
                                 locs());
   __ int3();
@@ -2691,6 +2705,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kReThrowRuntimeEntry,
                                 locs());
   __ int3();
