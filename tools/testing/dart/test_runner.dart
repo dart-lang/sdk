@@ -1692,7 +1692,7 @@ class ProcessQueue {
     // Otherwise we need to enqueue it again into the test queue.
     if (lastCommandCompleted || timedOut || nonZeroExitCode) {
       var verbose = testCase.configuration['verbose'];
-      if (nonZeroExitCode && verbose != null && verbose) {
+      if (lastCommandOutput.unexpectedOutput && verbose != null && verbose) {
         print(testCase.displayName);
         print("stderr:");
         print(decodeUtf8(lastCommandOutput.stderr));
