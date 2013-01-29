@@ -27,6 +27,8 @@ import "utils.dart";
 const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
+const int CRASHING_BROWSER_EXITCODE = -10;
+
 typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
 typedef void EnqueueMoreWork(ProcessQueue queue);
@@ -564,6 +566,11 @@ class CommandOutputImpl implements CommandOutput {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
       if (exitCode == 3) {
+        return !timedOut;
+      }
+      // TODO(ricow): Remove this dirty hack ones we have a selenium
+      // replacement.
+      if (exitCode == CRASHING_BROWSER_EXITCODE) {
         return !timedOut;
       }
       // If a program receives an uncaught system exception, the program
@@ -1280,7 +1287,7 @@ class BatchRunnerProcess {
 
     var outcome = _status.split(" ")[2];
     var exitCode = 0;
-    if (outcome == "CRASH") exitCode = -10;
+    if (outcome == "CRASH") exitCode = CRASHING_BROWSER_EXITCODE;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
     new CommandOutput.fromCase(_currentTest,
                                _command,

@@ -43,6 +43,7 @@ import urllib2
 import threading
 
 TIMEOUT_ERROR_MSG = 'FAIL (timeout)'
+CRASH_ERROR_MSG = 'CRASH'
 
 def correctness_test_done(source):
   """Checks if test has completed."""
@@ -84,12 +85,21 @@ def run_test_in_browser(browser, html_out, timeout, mode, refresh):
   if refresh:
     browser.refresh()
   try:
+    def pythonTimeout():
+      close_browser(browser)
+    # If the browser is crashing selenium may not time out.
+    # Explicitly catch this case with a python timer.
+    t = threading.Timer(timeout, pythonTimeout)
+    t.start()
     test_done = CONFIGURATIONS[mode]
     element = WebDriverWait(browser, float(timeout)).until(
         lambda driver: test_done(driver.page_source))
+    t.cancel()
     return browser.page_source
   except selenium.common.exceptions.TimeoutException:
     return TIMEOUT_ERROR_MSG
+  except:
+    return CRASH_ERROR_MSG
 
 def run_test_in_browser_selenium_rc(sel, html_out, timeout, mode, refresh):
   """ Run the desired test in the browser using Selenium 1.0 syntax, and wait
@@ -226,7 +236,18 @@ def close_browser(browser):
   if (type(browser) is not selenium.webdriver.chrome.webdriver.WebDriver and
       type(browser) is not selenium.webdriver.ie.webdriver.WebDriver):
     browser.close()
-  browser.quit()
+
+  # The builtin quit call will call close on the RemoteDriver which
+  # may hang. Explicitly call browser.service.stop()
+  if (type(browser) is selenium.webdriver.chrome.webdriver.WebDriver):
+    # We may have called stop before if chrome was hanging.
+    try:
+      browser.service.stop()
+    except:
+      print("Trying to close browser that has already been closed")
+      pass
+  else:
+    browser.quit()
 
 def report_results(mode, source, browser):
   # TODO(vsm): Add a failure check for Dromaeo.
@@ -321,6 +342,11 @@ def run_batch_tests():
           print '>>> TEST PASS'
         elif source == TIMEOUT_ERROR_MSG:
           print '>>> TEST TIMEOUT'
+        elif source == CRASH_ERROR_MSG:
+          print '>>> TEST CRASH'
+          # The browser crashed, set the browser to None so that we will
+          # create a new instance on next iteration.
+          browser = None
         else:
           print '>>> TEST FAIL'
         sys.stdout.flush()
