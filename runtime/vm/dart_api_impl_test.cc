@@ -695,6 +695,10 @@ TEST_CASE(ListAccess) {
       "  a.add(20);"
       "  a.add(30);"
       "  return a;"
+      "}"
+      ""
+      "List immutable() {"
+      "  return const [0, 1, 2];"
       "}";
   Dart_Handle result;
 
@@ -706,71 +710,71 @@ TEST_CASE(ListAccess) {
   EXPECT_VALID(result);
 
   // First ensure that the returned object is an array.
-  Dart_Handle ListAccessTestObj = result;
+  Dart_Handle list_access_test_obj = result;
 
-  EXPECT(Dart_IsList(ListAccessTestObj));
+  EXPECT(Dart_IsList(list_access_test_obj));
 
   // Get length of array object.
   intptr_t len = 0;
-  result = Dart_ListLength(ListAccessTestObj, &len);
+  result = Dart_ListLength(list_access_test_obj, &len);
   EXPECT_VALID(result);
   EXPECT_EQ(3, len);
 
   // Access elements in the array.
   int64_t value;
 
-  result = Dart_ListGetAt(ListAccessTestObj, 0);
+  result = Dart_ListGetAt(list_access_test_obj, 0);
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(10, value);
 
-  result = Dart_ListGetAt(ListAccessTestObj, 1);
+  result = Dart_ListGetAt(list_access_test_obj, 1);
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(20, value);
 
-  result = Dart_ListGetAt(ListAccessTestObj, 2);
+  result = Dart_ListGetAt(list_access_test_obj, 2);
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(30, value);
 
   // Set some elements in the array.
-  result = Dart_ListSetAt(ListAccessTestObj, 0, Dart_NewInteger(0));
+  result = Dart_ListSetAt(list_access_test_obj, 0, Dart_NewInteger(0));
   EXPECT_VALID(result);
-  result = Dart_ListSetAt(ListAccessTestObj, 1, Dart_NewInteger(1));
+  result = Dart_ListSetAt(list_access_test_obj, 1, Dart_NewInteger(1));
   EXPECT_VALID(result);
-  result = Dart_ListSetAt(ListAccessTestObj, 2, Dart_NewInteger(2));
+  result = Dart_ListSetAt(list_access_test_obj, 2, Dart_NewInteger(2));
   EXPECT_VALID(result);
 
   // Get length of array object.
-  result = Dart_ListLength(ListAccessTestObj, &len);
+  result = Dart_ListLength(list_access_test_obj, &len);
   EXPECT_VALID(result);
   EXPECT_EQ(3, len);
 
   // Now try and access these elements in the array.
-  result = Dart_ListGetAt(ListAccessTestObj, 0);
+  result = Dart_ListGetAt(list_access_test_obj, 0);
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(0, value);
 
-  result = Dart_ListGetAt(ListAccessTestObj, 1);
+  result = Dart_ListGetAt(list_access_test_obj, 1);
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(1, value);
 
-  result = Dart_ListGetAt(ListAccessTestObj, 2);
+  result = Dart_ListGetAt(list_access_test_obj, 2);
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(2, value);
 
   uint8_t native_array[3];
-  result = Dart_ListGetAsBytes(ListAccessTestObj, 0, native_array, 3);
+  result = Dart_ListGetAsBytes(list_access_test_obj, 0, native_array, 3);
   EXPECT_VALID(result);
   EXPECT_EQ(0, native_array[0]);
   EXPECT_EQ(1, native_array[1]);
@@ -779,22 +783,36 @@ TEST_CASE(ListAccess) {
   native_array[0] = 10;
   native_array[1] = 20;
   native_array[2] = 30;
-  result = Dart_ListSetAsBytes(ListAccessTestObj, 0, native_array, 3);
+  result = Dart_ListSetAsBytes(list_access_test_obj, 0, native_array, 3);
   EXPECT_VALID(result);
-  result = Dart_ListGetAsBytes(ListAccessTestObj, 0, native_array, 3);
+  result = Dart_ListGetAsBytes(list_access_test_obj, 0, native_array, 3);
   EXPECT_VALID(result);
   EXPECT_EQ(10, native_array[0]);
   EXPECT_EQ(20, native_array[1]);
   EXPECT_EQ(30, native_array[2]);
-  result = Dart_ListGetAt(ListAccessTestObj, 2);
+  result = Dart_ListGetAt(list_access_test_obj, 2);
   EXPECT_VALID(result);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(30, value);
 
   // Check if we get an exception when accessing beyond limit.
-  result = Dart_ListGetAt(ListAccessTestObj, 4);
+  result = Dart_ListGetAt(list_access_test_obj, 4);
   EXPECT(Dart_IsError(result));
+
+  // Check that we get an exception (and not a fatal error) when
+  // calling ListSetAt and ListSetAsBytes with an immutable list.
+  list_access_test_obj = Dart_Invoke(lib, NewString("immutable"), 0, NULL);
+  EXPECT_VALID(list_access_test_obj);
+  EXPECT(Dart_IsList(list_access_test_obj));
+
+  result = Dart_ListSetAsBytes(list_access_test_obj, 0, native_array, 3);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_IsUnhandledExceptionError(result));
+
+  result = Dart_ListSetAt(list_access_test_obj, 0, Dart_NewInteger(42));
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_IsUnhandledExceptionError(result));
 }
 
 

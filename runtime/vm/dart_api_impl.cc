@@ -1989,10 +1989,9 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
-  if (obj.IsArray()) {
-    if (obj.IsImmutableArray()) {
-      return Api::NewError("Cannot modify immutable array");
-    }
+  // If the list is immutable we call into Dart for the indexed setter to
+  // get the unsupported operation exception as the result.
+  if (obj.IsArray() && !obj.IsImmutableArray()) {
     SET_LIST_ELEMENT(isolate, Array, obj, index, value);
   } else if (obj.IsGrowableObjectArray()) {
     SET_LIST_ELEMENT(isolate, GrowableObjectArray, obj, index, value);
@@ -2153,10 +2152,9 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
       return Api::Success(isolate);
     }
     return Api::NewError("Invalid length passed in to set list elements");
-  } else if (obj.IsArray()) {
-    if (obj.IsImmutableArray()) {
-      return Api::NewError("Cannot modify immutable array");
-    }
+  } else if (obj.IsArray() && !obj.IsImmutableArray()) {
+    // If the list is immutable we call into Dart for the indexed setter to
+    // get the unsupported operation exception as the result.
     SET_LIST_ELEMENT_AS_BYTES(isolate,
                               Array,
                               obj,
@@ -2173,7 +2171,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   } else if (obj.IsError()) {
     return list;
   } else {
-  // Check and handle a dart object that implements the List interface.
+    // Check and handle a dart object that implements the List interface.
     const Instance& instance =
         Instance::Handle(isolate, GetListInstance(isolate, obj));
     if (!instance.IsNull()) {
