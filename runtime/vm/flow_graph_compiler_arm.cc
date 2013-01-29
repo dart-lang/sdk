@@ -110,6 +110,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 
 
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
+                                           intptr_t deopt_id,
                                            const AbstractType& type,
                                            bool negate_result,
                                            LocationSummary* locs) {
@@ -118,6 +119,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 
 
 void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
+                                                 intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
@@ -178,6 +180,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 
 
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
+                                            intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
   UNIMPLEMENTED();
