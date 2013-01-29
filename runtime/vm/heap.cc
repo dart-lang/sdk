@@ -158,7 +158,8 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
       RecordAfterGC();
       PrintStats();
       if (new_space_->HadPromotionFailure()) {
-        CollectGarbage(kOld, api_callbacks);
+        // Old collections should call the API callbacks.
+        CollectGarbage(kOld, kInvokeApiCallbacks);
       }
       break;
     }
