@@ -91,7 +91,7 @@ window_open_test: Skip
 xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
 xhr_test/supported_HttpRequestProgressEvent: Fail
 xsltprocessor_test/supported: Fail
-history_test/history: Fail # issue 8183
+history_test/history: Pass, Fail # issue 8183
 
 [ $runtime == ie9 ]
 document_test/supports_cssCanvasContext: Fail
