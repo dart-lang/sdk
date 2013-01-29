@@ -16,6 +16,7 @@ class Printer implements NodeVisitor {
   bool pendingSemicolon = false;
   bool pendingSpace = false;
   static final identifierCharacterRegExp = new RegExp(r'^[a-zA-Z_0-9$]');
+  static final expressionContinuationRegExp = new RegExp(r'^[-+([]');
 
   Printer(leg.Compiler compiler, { allowVariableMinification: true })
       : shouldCompressOutput = compiler.enableMinification,
@@ -52,8 +53,23 @@ class Printer implements NodeVisitor {
 
   void out(String str) {
     if (str != "") {
-      if (pendingSemicolon && (!shouldCompressOutput || str != "}")) {
-        outBuffer.add(";");
+      if (pendingSemicolon) {
+        if (!shouldCompressOutput) {
+          outBuffer.add(";");
+        } else if (str != "}") {
+          // We want to output newline instead of semicolon because it makes
+          // the raw stack traces much easier to read and it also makes line-
+          // based tools like diff work much better.  JavaScript will
+          // automatically insert the semicolon at the newline if it means a
+          // parsing error is avoided, so we can only do this trick if the
+          // next line is not something that can be glued onto a valid
+          // expression to make a new valid expression.
+          if (expressionContinuationRegExp.hasMatch(str)) {
+            outBuffer.add(";");
+          } else {
+            outBuffer.add("\n");
+          }
+        }
       }
       if (pendingSpace &&
           (!shouldCompressOutput || identifierCharacterRegExp.hasMatch(str))) {
