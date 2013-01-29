@@ -504,6 +504,19 @@ class _UnsupportedError extends TypeMatcher {
   bool matches(item, MatchState matchState) => item is UnsupportedError;
 }
 
+/** A matcher for StateErrors. */
+const isStateError = const _StateError();
+
+/** A matcher for functions that throw StateError. */
+const Matcher throwsStateError =
+    const Throws(isStateError);
+
+class _StateError extends TypeMatcher {
+  const _StateError() : super("StateError");
+  bool matches(item, MatchState matchState) => item is StateError;
+}
+
+
 /** A matcher for Map types. */
 const isMap = const _IsMap();
 
