@@ -29,7 +29,7 @@ class SourceFileProvider {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = getCurrentDirectory();
   Map<String, SourceFile> sourceFiles = <String, SourceFile>{};
-  int dartBytesRead = 0;
+  int dartCharactersRead = 0;
 
   Future<String> readStringFromUri(Uri resourceUri) {
     if (resourceUri.scheme != 'file') {
@@ -42,7 +42,7 @@ class SourceFileProvider {
       throw 'Error: Cannot read "${relativize(cwd, resourceUri, isWindows)}" '
             '(${ex.osError}).';
     }
-    dartBytesRead += source.length;
+    dartCharactersRead += source.length;
     sourceFiles[resourceUri.toString()] =
       new SourceFile(relativize(cwd, resourceUri, isWindows), source);
     return new Future.immediate(source);

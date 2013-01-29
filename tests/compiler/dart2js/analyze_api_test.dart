@@ -45,6 +45,7 @@ void main() {
   var handler = new CollectingDiagnosticHandler(provider);
   var compiler = new Compiler(
       provider.readStringFromUri,
+      null,
       handler.diagnosticHandler,
       libraryRoot, libraryRoot,
       <String>['--analyze-only', '--analyze-all',

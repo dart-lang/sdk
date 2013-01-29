@@ -233,12 +233,6 @@ void compile(List<String> argv) {
 
   void handler(Uri uri, int begin, int end, String message,
                api.Diagnostic kind) {
-    if (identical(kind.name, 'source map')) {
-      // TODO(podivilov): We should find a better way to return source maps from
-      // emitter. Using diagnostic handler for that purpose is a temporary hack.
-      writeString(sourceMapOut, message);
-      return;
-    }
     diagnosticHandler.diagnosticHandler(uri, begin, end, message, kind);
   }
 
@@ -249,34 +243,89 @@ void compile(List<String> argv) {
 
   diagnosticHandler.info('package root is $packageRoot');
 
-  // TODO(ahe): We expect the future to be complete and call value
-  // directly. In effect, we don't support truly asynchronous API.
-  String code = deprecatedFutureValue(
-      api.compile(uri, libraryRoot, packageRoot,
-                  inputProvider.readStringFromUri,
-                  handler,
-                  options));
-  if (analyzeOnly) return;
+  int charactersWritten = 0;
 
-  if (code == null) {
-    fail('Error: Compilation failed.');
+  compilationDone(String code) {
+    if (analyzeOnly) return;
+    if (code == null) {
+      fail('Error: Compilation failed.');
+    }
+    writeString(Uri.parse('$out.deps'),
+                getDepsOutput(inputProvider.sourceFiles));
+    diagnosticHandler.info(
+         'compiled ${inputProvider.dartCharactersRead} characters Dart '
+         '-> $charactersWritten characters $outputLanguage '
+         'in ${relativize(cwd, out, isWindows)}');
+    if (!explicitOut) {
+      String input = uriPathToNative(arguments[0]);
+      String output = relativize(cwd, out, isWindows);
+      print('Dart file $input compiled to $outputLanguage: $output');
+    }
   }
-  String sourceMapFileName =
-      sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
-  code = '$code\n//@ sourceMappingURL=${sourceMapFileName}';
-  writeString(out, code);
-  writeString(Uri.parse('$out.deps'),
-              getDepsOutput(inputProvider.sourceFiles));
-  int dartBytesRead = inputProvider.dartBytesRead;
-  int bytesWritten = code.length;
-  diagnosticHandler.info(
-      'compiled $dartBytesRead bytes Dart -> $bytesWritten bytes '
-      '$outputLanguage in ${relativize(cwd, out, isWindows)}');
-  if (!explicitOut) {
-    String input = uriPathToNative(arguments[0]);
-    String output = relativize(cwd, out, isWindows);
-    print('Dart file $input compiled to $outputLanguage: $output');
+
+  Sink<String> outputProvider(String name, String extension) {
+    Uri uri;
+    String sourceMapFileName;
+    bool isPrimaryOutput = false;
+    if (name == '') {
+      if (extension == 'js' || extension == 'dart') {
+        isPrimaryOutput = true;
+        uri = out;
+        sourceMapFileName =
+            sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
+      } else if (extension == 'js.map' || extension == 'dart.map') {
+        uri = sourceMapOut;
+      } else {
+        fail('Error: Unknown extension: $extension');
+      }
+    } else {
+      uri = out.resolve('$name.$extension');
+    }
+
+    if (uri.scheme != 'file') {
+      fail('Error: Unhandled scheme ${uri.scheme} in $uri.');
+    }
+    var outputStream = new File(uriPathToNative(uri.path)).openOutputStream();
+
+    CountingSink sink;
+
+    onDone() {
+      if (sourceMapFileName != null) {
+        String sourceMapTag = '//@ sourceMappingURL=$sourceMapFileName\n';
+        sink.count += sourceMapTag.length;
+        outputStream.writeString(sourceMapTag);
+      }
+      outputStream.close();
+      if (isPrimaryOutput) {
+        charactersWritten += sink.count;
+      }
+    }
+
+    var controller = new StreamController<String>();
+    controller.stream.listen(outputStream.writeString, onDone: onDone);
+    sink = new CountingSink(controller);
+    return sink;
   }
+
+  api.compile(uri, libraryRoot, packageRoot,
+              inputProvider.readStringFromUri, handler,
+              options, outputProvider)
+      .then(compilationDone);
+}
+
+// TODO(ahe): Get rid of this class if http://dartbug.com/8118 is fixed.
+class CountingSink implements Sink<String> {
+  final Sink<String> sink;
+  int count = 0;
+
+  CountingSink(this.sink);
+
+  add(String value) {
+    sink.add(value);
+    count += value.length;
+  }
+
+  close() => sink.close();
 }
 
 class AbortLeg {

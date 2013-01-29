@@ -203,6 +203,8 @@ abstract class Compiler implements DiagnosticListener {
    */
   final bool preserveComments;
 
+  final api.CompilerOutputProvider outputProvider;
+
   bool disableInlining = false;
 
   List<Uri> librariesToAnalyzeWhenRun;
@@ -331,9 +333,13 @@ abstract class Compiler implements DiagnosticListener {
             this.rejectDeprecatedFeatures: false,
             this.checkDeprecationInSdk: false,
             this.preserveComments: false,
+            outputProvider,
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
-        progress = new Stopwatch() {
+        progress = new Stopwatch(),
+        this.outputProvider =
+            (outputProvider == null) ? NullSink.outputProvider : outputProvider
+  {
     progress.start();
     world = new World(this);
 
@@ -1090,4 +1096,22 @@ bool invariant(Spannable spannable, var condition, {String message: null}) {
     throw new SpannableAssertionFailure(spannable, message);
   }
   return true;
+}
+
+/// A sink that drains into /dev/null.
+class NullSink extends Sink<String> {
+  final String name;
+
+  NullSink(this.name);
+
+  add(String value) {}
+
+  void close() {}
+
+  toString() => name;
+
+  /// Convenience method for getting an [api.CompilerOutputProvider].
+  static NullSink outputProvider(String name, String extension) {
+    return new NullSink('$name.$extension');
+  }
 }

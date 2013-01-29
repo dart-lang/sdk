@@ -248,7 +248,7 @@ class LibraryCompiler extends api.Compiler {
                   diagnostics.DiagnosticHandler handler,
                   Uri libraryRoot, Uri packageRoot,
                   List<String> options)
-      : super(provider, handler, libraryRoot, packageRoot, options) {
+      : super(provider, null, handler, libraryRoot, packageRoot, options) {
     checker = new LibraryTypeCheckerTask(this);
     resolver = new LibraryResolverTask(this);
   }
@@ -389,7 +389,7 @@ class Dart2JsCompilation implements Compilation {
     } else {
       packageUri = libraryUri;
     }
-    _compiler = new api.Compiler(provider, handler,
+    _compiler = new api.Compiler(provider, null, handler,
         libraryUri, packageUri, opts);
     var scriptUri = cwd.resolve(script.toString());
     // TODO(johnniwinther): Detect file not found

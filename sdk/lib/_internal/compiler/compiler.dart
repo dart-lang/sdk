@@ -16,7 +16,32 @@ import 'implementation/apiimpl.dart';
  * [uri]. If an exception occurs, the future completes with this
  * exception.
  */
+typedef Future<String> CompilerInputProvider(Uri uri);
+
+/// Deprecated, please use [CompilerInputProvider] instead.
 typedef Future<String> ReadStringFromUri(Uri uri);
+
+/**
+ * Returns a [Sink] that will serve as compiler output for the given
+ * component.
+ *
+ * Components are identified by [name] and [extension]. By convention,
+ * the empty string [:"":] will represent the main script
+ * (corresponding to the script parameter of [compile]) even if the
+ * main script is a library. For libraries that are compiled
+ * separately, the library name is used.
+ *
+ * At least the following extensions can be expected:
+ *
+ * * "js" for JavaScript output.
+ * * "js.map" for source maps.
+ * * "dart" for Dart output.
+ * * "dart.map" for source maps.
+ *
+ * As more features are added to the compiler, new names and
+ * extensions may be introduced.
+ */
+typedef Sink CompilerOutputProvider(String name, String extension);
 
 /**
  * Invoked by the compiler to report diagnostics. If [uri] is
@@ -32,17 +57,27 @@ typedef void DiagnosticHandler(Uri uri, int begin, int end,
                                String message, Diagnostic kind);
 
 /**
- * Returns a future that completes to [script] compiled to JavaScript. If
- * the compilation fails, the future's value will be [:null:] and
+ * Returns a future that completes to a non-null String when [script]
+ * has been successfully compiled.
+ *
+ * The compiler output is obtained by providing an [outputProvider].
+ *
+ * If the compilation fails, the future's value will be [:null:] and
  * [handler] will have been invoked at least once with [:kind ==
  * Diagnostic.ERROR:] or [:kind == Diagnostic.CRASH:].
+ *
+ * Deprecated: if no [outputProvider] is given, the future completes
+ * to the compiled script. This behavior will be removed in the future
+ * as the compiler may create multiple files to support lazy loading
+ * of libraries.
  */
 Future<String> compile(Uri script,
                        Uri libraryRoot,
                        Uri packageRoot,
-                       ReadStringFromUri provider,
+                       CompilerInputProvider inputProvider,
                        DiagnosticHandler handler,
-                       [List<String> options = const []]) {
+                       [List<String> options = const [],
+                        CompilerOutputProvider outputProvider]) {
   if (!libraryRoot.path.endsWith("/")) {
     throw new ArgumentError("libraryRoot must end with a /");
   }
@@ -51,10 +86,24 @@ Future<String> compile(Uri script,
   }
   // TODO(ahe): Consider completing the future with an exception if
   // code is null.
-  Compiler compiler = new Compiler(provider, handler, libraryRoot, packageRoot,
+  Compiler compiler = new Compiler(inputProvider,
+                                   outputProvider,
+                                   handler,
+                                   libraryRoot,
+                                   packageRoot,
                                    options);
   compiler.run(script);
   String code = compiler.assembledCode;
+  if (code != null && outputProvider != null) {
+    String outputType = 'js';
+    if (options.contains('--output-type=dart')) {
+      outputType = 'dart';
+    }
+    outputProvider('', outputType)
+        ..add(code)
+        ..close();
+    code = ''; // Non-null signals success.
+  }
   return new Future.immediate(code);
 }
 

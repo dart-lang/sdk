@@ -2285,11 +2285,9 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       if (generateSourceMap) {
         SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
         String sourceMap = buildSourceMap(mainBuffer, compiledFile);
-        // TODO(podivilov): We should find a better way to return source maps to
-        // compiler. Using diagnostic handler for that purpose is a temporary
-        // hack.
-        compiler.reportDiagnostic(
-            null, sourceMap, new api.Diagnostic(-1, 'source map'));
+        compiler.outputProvider('', 'js.map')
+            ..add(sourceMap)
+            ..close();
       }
     });
     return compiler.assembledCode;
