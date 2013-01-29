@@ -559,7 +559,9 @@ class _StreamImplSink<T> implements StreamSink<T> {
  */
 class _StreamEventTransformerImpl<S, T>
     implements StreamEventTransformer<S, T> {
-  final _TransformDataHandler<S, T> _handleData;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode. http://dartbug.com/7733
+  final Function /*_TransformDataHandler<S, T>*/ _handleData;
   final _TransformErrorHandler<T> _handleError;
   final _TransformDoneHandler<T> _handleDone;
 

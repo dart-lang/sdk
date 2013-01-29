@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library stream_event_transform_test;
+
 import 'dart:async';
 import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';
@@ -10,6 +12,7 @@ void handleData(int data, StreamSink<int> sink) {
   sink.signalError(new AsyncError("$data"));
   sink.add(data + 1);
 }
+
 void handleError(AsyncError e, StreamSink<int> sink) {
   String value = e.error;
   int data = int.parse(value);
