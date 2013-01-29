@@ -832,6 +832,9 @@ def GetComments(interface_name, member_name=None, library_name=None):
     elif 'comment' in _dom_json[library_name][interface_name]:
       comments = _dom_json[library_name][interface_name]['comment']
 
+  if (len(comments)):
+    comments = ['\n'.join(comments)]
+
   return comments
 
 def GetAnnotationsAndComments(interface_name, member_name=None,

@@ -29,7 +29,9 @@ const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
  *           comment: "$comment"
  *           members: {
  *             $member: [
- *               $comment1,
+ *               [$comment1line1,
+ *                $comment1line2,
+ *                ...],
  *               ...
  *             ],
  *             ...
@@ -95,7 +97,8 @@ Map _generateJsonFromLibraries(Compilation compilation) {
       var membersJson = {};
       for (var memberMirror in sortedMembers) {
         var memberDomName = domNames(memberMirror)[0];
-        var memberComment = computeUntrimmedCommentAsList(memberMirror);
+        var memberComment = _splitCommentsByNewline(
+            computeUntrimmedCommentAsList(memberMirror));
 
         // Remove interface name from Dom Name.
         if (memberDomName.indexOf('.') >= 0) {
@@ -108,7 +111,8 @@ Map _generateJsonFromLibraries(Compilation compilation) {
       }
 
       // Only include the comment if DocsEditable is set.
-      var classComment = computeUntrimmedCommentAsList(classMirror);
+      var classComment = _splitCommentsByNewline(
+          computeUntrimmedCommentAsList(classMirror));
       if (!classComment.isEmpty &&
           findMetadata(classMirror.metadata, 'DocsEditable') != null) {
         classJson.putIfAbsent('comment', () => classComment);
@@ -153,6 +157,16 @@ List<DeclarationMirror> _sortAndFilterMirrors(List<DeclarationMirror> mirrors,
     domNames(y)[0].toUpperCase()));
 
   return filteredMirrors;
+}
+
+List<String> _splitCommentsByNewline(List<String> comments) {
+  var out = [];
+
+  comments.forEach((c) {
+    out.addAll(c.split(new RegExp('\n')));
+  });
+
+  return out;
 }
 
 /// Given the class mirror, returns the names found or an empty list.
