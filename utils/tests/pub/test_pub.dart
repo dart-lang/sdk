@@ -462,11 +462,6 @@ final _TIMEOUT = 30000;
 /// operations which will be run asynchronously.
 void integration(String description, void body()) {
   test(description, () {
-    // Sanity check. Make sure we cleaned up the last test.
-    assert(_scheduled == null);
-    assert(_scheduledCleanup == null);
-    assert(_scheduledOnException == null);
-
     // Schedule the test.
     body();
 
