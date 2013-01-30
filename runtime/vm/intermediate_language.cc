@@ -2124,7 +2124,10 @@ static Definition* UnwrapConstraint(Definition* defn) {
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);
-  return (a == b) || (!a->AffectedBySideEffect() && a->Equals(b));
+  return (a == b) ||
+      (!a->AffectedBySideEffect() &&
+       !b->AffectedBySideEffect() &&
+       a->Equals(b));
 }
 
 
