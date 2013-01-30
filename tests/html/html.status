@@ -24,8 +24,8 @@ speechrecognition_test/types: Pass, Fail
 touchevent_test/supported: Fail
 async_window_test: Pass, Fail # Issue: 8209
 
-[$runtime == drt]
-webgl_1_test: Fail # Does not work on DRT
+[$compiler == dart2js && ($runtime == drt || $runtime == dartium)]
+webgl_1_test: Pass, Fail # Issue 8219
 
 [ $runtime == chrome || $runtime == drt]
 audiobuffersourcenode_test: Pass, Fail, Timeout # AudiobufferSourceNode is flaky on Chrome and Dartium - filed issue 8021 for the timeout.
@@ -201,7 +201,7 @@ performance_api_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
-webgl_1_test/supported: Fail
+webgl_1_test: Pass, Fail # Issue 8219
 
 audiocontext_test: Crash, Fail # Issue: 7414
 datalistelement_test: Fail # Issue: 7414
@@ -300,7 +300,7 @@ svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
 touchevent_test/supported: Fail
 transferables_test: Fail   # Issue 3392.
-websql_test/supported: Fail
+webgl_1_test: Pass, Fail   # Issue 8219
 xhr_test/supported_HttpRequestProgressEvent: Fail
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
