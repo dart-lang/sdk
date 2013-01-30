@@ -24,6 +24,8 @@ import '../dart2jslib.dart' show InterfaceType,
                                  Constant,
                                  Compiler;
 
+import '../dart_types.dart';
+
 import '../scanner/scannerlib.dart' show Token,
                                          isUserDefinableOperator,
                                          isMinusOperator;

@@ -9,6 +9,7 @@ import 'dart:collection' show Queue, LinkedHashMap;
 
 import 'closure.dart' as closureMapping;
 import 'dart_backend/dart_backend.dart' as dart_backend;
+import 'dart_types.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
     show ErroneousElementX,

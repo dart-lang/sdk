@@ -26,6 +26,8 @@ import '../dart2jslib.dart' show invariant,
                                  Constant,
                                  Compiler;
 
+import '../dart_types.dart';
+
 import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
 
 

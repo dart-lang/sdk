@@ -11,6 +11,7 @@ import '../../compiler.dart' as api;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionElementX;
 import '../dart2jslib.dart' hide Selector;
+import '../dart_types.dart';
 import '../js/js.dart' as js;
 import '../native_handler.dart' as native;
 import '../source_file.dart';

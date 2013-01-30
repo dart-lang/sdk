@@ -16,6 +16,7 @@ import '../apiimpl.dart' as api;
 import '../scanner/scannerlib.dart' hide SourceString;
 import '../ssa/ssa.dart';
 import '../dart2jslib.dart';
+import '../dart_types.dart';
 import '../filenames.dart';
 import '../source_file.dart';
 import '../tree/tree.dart';

@@ -6,6 +6,7 @@ library closureToClassMapper;
 
 import "elements/elements.dart";
 import "dart2jslib.dart";
+import "dart_types.dart";
 import "scanner/scannerlib.dart" show Token;
 import "tree/tree.dart";
 import "util/util.dart";
