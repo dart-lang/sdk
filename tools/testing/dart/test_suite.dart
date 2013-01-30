@@ -1122,8 +1122,7 @@ class StandardTestSuite extends TestSuite {
     var minified = configuration['minified'] ? '-minified' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
                   "$checked$minified";
-    Path generatedTestPath = new Path(dartDir.toNativePath())
-        .append(buildDir)
+    Path generatedTestPath = new Path(buildDir)
         .append('generated_tests')
         .append(dirName)
         .append(testUniqueName);

@@ -39,10 +39,11 @@ main() {
         .join(new Path('../../test.dart'))
         .canonicalize()
         .toNativePath();
-    TestingServerRunner.setPackageRootDir({'mode': args['mode'],
-        'arch': args['arch'], 'system': Platform.operatingSystem,
-        'build_directory': ''});
-
+    var conf = {'mode': args['mode'],
+                'arch': args['arch'], 'system': Platform.operatingSystem,
+                'build_directory': ''};
+    TestingServerRunner.setPackageRootDir(conf);
+    TestingServerRunner.setBuildDir(conf);
     TestingServerRunner.startHttpServer('127.0.0.1',
         port: int.parse(args['port']));
     print('Server listening on port '
@@ -61,14 +62,20 @@ main() {
 class TestingServerRunner {
   static List serverList = [];
   static Path _packageRootDir = null;
+  static Path _buildDirectory = null;
 
   // Added as a getter so that the function will be called again each time the
   // default request handler closure is executed.
   static Path get packageRootDir => _packageRootDir;
+  static Path get buildDirectory => _buildDirectory;
 
   static setPackageRootDir(Map configuration) {
     _packageRootDir = TestUtils.currentWorkingDirectory.join(
         new Path(TestUtils.buildDir(configuration)));
+  }
+
+  static setBuildDir(Map configuration) {
+    _buildDirectory = new Path(TestUtils.buildDir(configuration));
   }
 
   static startHttpServer(String host, {int allowedPort:-1, int port: 0}) {
@@ -83,7 +90,14 @@ class TestingServerRunner {
       var requestPath = new Path(request.path.substring(1)).canonicalize();
       var path = basePath.join(requestPath);
       var file = new File(path.toNativePath());
-
+      // Since the build directory may not be located directly beneath the dart
+      // root directory (if we pass it in, e.g., for dartium testing) we serve
+      // files from the build directory explicitly. Please note that if
+      // buildDirectory has the same name as a directory inside the dart repo
+      // we will server files from the buildDirectory.
+      if (path.toString().startsWith(buildDirectory.toString())) {
+        file = new File(path.toNativePath());
+      }
       if (requestPath.segments().contains(packagesDirName)) {
         // Essentially implement the packages path rewriting, so we don't have
         // to pass environment variables to the browsers.

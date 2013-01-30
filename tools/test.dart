@@ -126,6 +126,8 @@ main() {
   }
 
   var testSuites = new List<TestSuite>();
+  TestingServerRunner.setBuildDir(firstConf);
+  TestingServerRunner.setPackageRootDir(firstConf);
   var maxBrowserProcesses = maxProcesses;
   for (var conf in configurations) {
     // There should not be more than one InternetExplorerDriver instance
@@ -134,7 +136,6 @@ main() {
     if (conf['runtime'].startsWith('ie')) {
       maxBrowserProcesses = 1;
     }
-    TestingServerRunner.setPackageRootDir(conf);
     for (String key in selectors.keys) {
       if (key == 'co19') {
         testSuites.add(new Co19TestSuite(conf));
