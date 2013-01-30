@@ -1617,53 +1617,6 @@ class ClientRect native "*ClientRect" {
 
 
 @DocsEditable
-@DomName('Clipboard')
-class Clipboard native "*Clipboard" {
-
-  @DomName('Clipboard.dropEffect')
-  @DocsEditable
-  String dropEffect;
-
-  @DomName('Clipboard.effectAllowed')
-  @DocsEditable
-  String effectAllowed;
-
-  @DomName('Clipboard.files')
-  @DocsEditable
-  @Returns('FileList')
-  @Creates('FileList')
-  final List<File> files;
-
-  @DomName('Clipboard.items')
-  @DocsEditable
-  final DataTransferItemList items;
-
-  @DomName('Clipboard.types')
-  @DocsEditable
-  final List types;
-
-  @DomName('Clipboard.clearData')
-  @DocsEditable
-  void clearData([String type]) native;
-
-  @DomName('Clipboard.getData')
-  @DocsEditable
-  String getData(String type) native;
-
-  @DomName('Clipboard.setData')
-  @DocsEditable
-  bool setData(String type, String data) native;
-
-  @DomName('Clipboard.setDragImage')
-  @DocsEditable
-  void setDragImage(ImageElement image, int x, int y) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('CloseEvent')
 class CloseEvent extends Event native "*CloseEvent" {
 
@@ -5801,6 +5754,53 @@ class DataListElement extends Element native "*HTMLDataListElement" {
   @DomName('HTMLDataListElement.options')
   @DocsEditable
   final HtmlCollection options;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('Clipboard')
+class DataTransfer native "*Clipboard" {
+
+  @DomName('Clipboard.dropEffect')
+  @DocsEditable
+  String dropEffect;
+
+  @DomName('Clipboard.effectAllowed')
+  @DocsEditable
+  String effectAllowed;
+
+  @DomName('Clipboard.files')
+  @DocsEditable
+  @Returns('FileList')
+  @Creates('FileList')
+  final List<File> files;
+
+  @DomName('Clipboard.items')
+  @DocsEditable
+  final DataTransferItemList items;
+
+  @DomName('Clipboard.types')
+  @DocsEditable
+  final List types;
+
+  @DomName('Clipboard.clearData')
+  @DocsEditable
+  void clearData([String type]) native;
+
+  @DomName('Clipboard.getData')
+  @DocsEditable
+  String getData(String type) native;
+
+  @DomName('Clipboard.setData')
+  @DocsEditable
+  bool setData(String type, String data) native;
+
+  @DomName('Clipboard.setDragImage')
+  @DocsEditable
+  void setDragImage(ImageElement image, int x, int y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10140,7 +10140,7 @@ class Event native "*Event" {
 
   @DomName('Event.clipboardData')
   @DocsEditable
-  final Clipboard clipboardData;
+  final DataTransfer clipboardData;
 
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._currentTarget);
   @JSName('currentTarget')
@@ -16329,7 +16329,7 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   @DomName('MouseEvent.dataTransfer')
   @DocsEditable
-  final Clipboard dataTransfer;
+  final DataTransfer dataTransfer;
 
   @DomName('MouseEvent.fromElement')
   @DocsEditable
@@ -32167,7 +32167,7 @@ class KeyEvent implements KeyboardEvent {
     _parent.cancelBubble = cancel;
   }
   /** Accessor to the clipboardData available for this event. */
-  Clipboard get clipboardData => _parent.clipboardData;
+  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   /** Accessor to the target this event is listening to for changes. */

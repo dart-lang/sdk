@@ -2026,63 +2026,6 @@ class ClientRect extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
-@DomName('Clipboard')
-class Clipboard extends NativeFieldWrapperClass1 {
-  Clipboard.internal();
-
-  @DomName('Clipboard.dropEffect')
-  @DocsEditable
-  String get dropEffect native "Clipboard_dropEffect_Getter";
-
-  @DomName('Clipboard.dropEffect')
-  @DocsEditable
-  void set dropEffect(String value) native "Clipboard_dropEffect_Setter";
-
-  @DomName('Clipboard.effectAllowed')
-  @DocsEditable
-  String get effectAllowed native "Clipboard_effectAllowed_Getter";
-
-  @DomName('Clipboard.effectAllowed')
-  @DocsEditable
-  void set effectAllowed(String value) native "Clipboard_effectAllowed_Setter";
-
-  @DomName('Clipboard.files')
-  @DocsEditable
-  List<File> get files native "Clipboard_files_Getter";
-
-  @DomName('Clipboard.items')
-  @DocsEditable
-  DataTransferItemList get items native "Clipboard_items_Getter";
-
-  @DomName('Clipboard.types')
-  @DocsEditable
-  List get types native "Clipboard_types_Getter";
-
-  @DomName('Clipboard.clearData')
-  @DocsEditable
-  void clearData([String type]) native "Clipboard_clearData_Callback";
-
-  @DomName('Clipboard.getData')
-  @DocsEditable
-  String getData(String type) native "Clipboard_getData_Callback";
-
-  @DomName('Clipboard.setData')
-  @DocsEditable
-  bool setData(String type, String data) native "Clipboard_setData_Callback";
-
-  @DomName('Clipboard.setDragImage')
-  @DocsEditable
-  void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('CloseEvent')
 class CloseEvent extends Event {
   CloseEvent.internal() : super.internal();
@@ -6431,6 +6374,63 @@ class DataListElement extends _Element_Merged {
   @DomName('HTMLDataListElement.options')
   @DocsEditable
   HtmlCollection get options native "HTMLDataListElement_options_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Clipboard')
+class DataTransfer extends NativeFieldWrapperClass1 {
+  DataTransfer.internal();
+
+  @DomName('Clipboard.dropEffect')
+  @DocsEditable
+  String get dropEffect native "Clipboard_dropEffect_Getter";
+
+  @DomName('Clipboard.dropEffect')
+  @DocsEditable
+  void set dropEffect(String value) native "Clipboard_dropEffect_Setter";
+
+  @DomName('Clipboard.effectAllowed')
+  @DocsEditable
+  String get effectAllowed native "Clipboard_effectAllowed_Getter";
+
+  @DomName('Clipboard.effectAllowed')
+  @DocsEditable
+  void set effectAllowed(String value) native "Clipboard_effectAllowed_Setter";
+
+  @DomName('Clipboard.files')
+  @DocsEditable
+  List<File> get files native "Clipboard_files_Getter";
+
+  @DomName('Clipboard.items')
+  @DocsEditable
+  DataTransferItemList get items native "Clipboard_items_Getter";
+
+  @DomName('Clipboard.types')
+  @DocsEditable
+  List get types native "Clipboard_types_Getter";
+
+  @DomName('Clipboard.clearData')
+  @DocsEditable
+  void clearData([String type]) native "Clipboard_clearData_Callback";
+
+  @DomName('Clipboard.getData')
+  @DocsEditable
+  String getData(String type) native "Clipboard_getData_Callback";
+
+  @DomName('Clipboard.setData')
+  @DocsEditable
+  bool setData(String type, String data) native "Clipboard_setData_Callback";
+
+  @DomName('Clipboard.setDragImage')
+  @DocsEditable
+  void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10855,7 +10855,7 @@ class Event extends NativeFieldWrapperClass1 {
 
   @DomName('Event.clipboardData')
   @DocsEditable
-  Clipboard get clipboardData native "Event_clipboardData_Getter";
+  DataTransfer get clipboardData native "Event_clipboardData_Getter";
 
   @DomName('Event.currentTarget')
   @DocsEditable
@@ -17940,7 +17940,7 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.dataTransfer')
   @DocsEditable
-  Clipboard get dataTransfer native "MouseEvent_dataTransfer_Getter";
+  DataTransfer get dataTransfer native "MouseEvent_dataTransfer_Getter";
 
   @DomName('MouseEvent.fromElement')
   @DocsEditable
@@ -33974,7 +33974,7 @@ class KeyEvent implements KeyboardEvent {
     _parent.cancelBubble = cancel;
   }
   /** Accessor to the clipboardData available for this event. */
-  Clipboard get clipboardData => _parent.clipboardData;
+  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   /** Accessor to the target this event is listening to for changes. */

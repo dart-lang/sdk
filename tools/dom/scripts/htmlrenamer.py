@@ -8,6 +8,7 @@ import re
 
 html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'CDATASection': 'CDataSection',
+    'Clipboard': 'DataTransfer',
     'DOMApplicationCache': 'ApplicationCache',
     'DOMCoreException': 'DomException',
     'DOMFileSystem': 'FileSystem',

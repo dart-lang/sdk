@@ -59,7 +59,7 @@ class KeyEvent implements KeyboardEvent {
     _parent.cancelBubble = cancel;
   }
   /** Accessor to the clipboardData available for this event. */
-  Clipboard get clipboardData => _parent.clipboardData;
+  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   /** Accessor to the target this event is listening to for changes. */
