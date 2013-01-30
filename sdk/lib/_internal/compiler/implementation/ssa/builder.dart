@@ -2049,7 +2049,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     endLoop(loopEntryBlock, conditionEndBlock, jumpHandler, localsHandler);
     if (!isAbortingBody || hasContinues) {
       loopEntryBlock.postProcessLoopHeader();
-      SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+      SubGraph bodyGraph = new SubGraph(loopEntryBlock, bodyExitBlock);
       HLoopBlockInformation loopBlockInfo =
           new HLoopBlockInformation(
               HLoopBlockInformation.DO_WHILE_LOOP,

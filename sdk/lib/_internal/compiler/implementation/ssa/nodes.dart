@@ -2589,7 +2589,10 @@ class HLoopBlockInformation implements HStatementInformation {
                         this.target,
                         this.labels,
                         this.sourcePosition,
-                        this.endSourcePosition);
+                        this.endSourcePosition) {
+    assert(
+        (kind == DO_WHILE_LOOP ? body.start : condition.start).isLoopHeader());
+  }
 
   HBasicBlock get start {
     if (initializer != null) return initializer.start;

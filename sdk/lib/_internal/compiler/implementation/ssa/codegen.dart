@@ -337,10 +337,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   beginGraph(HGraph graph);
   endGraph(HGraph graph);
 
-  beginLoop(HBasicBlock block);
-  endLoop(HBasicBlock block);
-  handleLoopCondition(HLoopBranch node);
-
   preLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
   startLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
   endLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
@@ -959,11 +955,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         assignPhisOfSuccessors(avoidEdge);
         bool hasPhiUpdates = !updateBody.statements.isEmpty;
         currentContainer = body;
-        if (hasPhiUpdates || !isConditionExpression || info.updates != null) {
-          wrapLoopBodyForContinue(info);
-        } else {
-          visitBodyIgnoreLabels(info);
-        }
+        visitBodyIgnoreLabels(info);
         if (info.updates != null) {
           generateStatements(info.updates);
         }
@@ -1125,14 +1117,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentBlock = node;
     // If this node has block-structure based information attached,
     // try using that to traverse from here.
-    if (node.blockFlow != null &&
-        handleBlockFlow(node.blockFlow)) {
+    if (node.blockFlow != null && handleBlockFlow(node.blockFlow)) {
       return;
-    }
-    // Flow based traversal.
-    if (node.isLoopHeader() &&
-        !identical(node.loopInformation.loopBlockInformation, currentBlockInformation)) {
-      beginLoop(node);
     }
     iterateBasicBlock(node);
   }
@@ -1361,6 +1347,18 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     assert(dominated[0] == currentBlock.successors[0]);
     visitBasicBlock(dominated[0]);
+  }
+
+  visitLoopBranch(HLoopBranch node) {
+    assert(node.block == subGraph.end);
+    // We are generating code for a loop condition.
+    // If we are generating the subgraph as an expression, the
+    // condition will be generated as the expression.
+    // Otherwise, we don't generate the expression, and leave that
+    // to the code that called [visitSubGraph].
+    if (isGeneratingExpression) {
+      use(node.inputs[0]);
+    }
   }
 
   /**
@@ -1831,43 +1829,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       handler.registerCompileTimeConstant(node.constant);
     }
     world.registerInstantiatedClass(type.element);
-  }
-
-  visitLoopBranch(HLoopBranch node) {
-    if (subGraph != null && identical(node.block, subGraph.end)) {
-      // We are generating code for a loop condition.
-      // If doing this as part of a SubGraph traversal, the
-      // calling code will handle the control flow logic.
-
-      // If we are generating the subgraph as an expression, the
-      // condition will be generated as the expression.
-      // Otherwise, we don't generate the expression, and leave that
-      // to the code that called [visitSubGraph].
-      if (isGeneratingExpression) {
-        use(node.inputs[0]);
-      }
-      return;
-    }
-    HBasicBlock branchBlock = currentBlock;
-    handleLoopCondition(node);
-    List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
-    if (!node.isDoWhile()) {
-      // For a do while loop, the body has already been visited.
-      visitBasicBlock(dominated[0]);
-    }
-    endLoop(node.block);
-
-    // If the branch does not dominate the code after the loop, the
-    // dominator will visit it.
-    if (!identical(branchBlock.successors[1].dominator, branchBlock)) return;
-
-    visitBasicBlock(branchBlock.successors[1]);
-    // With labeled breaks we can have more dominated blocks.
-    if (dominated.length >= 3) {
-      for (int i = 2; i < dominated.length; i++) {
-        visitBasicBlock(dominated[i]);
-      }
-    }
   }
 
   visitNot(HNot node) {
@@ -2655,33 +2616,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     // Do nothing. Bailout targets are only used in the non-optimized version.
   }
 
-  void beginLoop(HBasicBlock block) {
-    oldContainerStack.add(currentContainer);
-    currentContainer = new js.Block.empty();
-  }
-
-  void endLoop(HBasicBlock block) {
-    js.Statement body = currentContainer;
-    currentContainer = oldContainerStack.removeLast();
-    body = unwrapStatement(body);
-    js.While loop = new js.While(newLiteralBool(true), body);
-
-    HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
-    HLoopInformation info = header.loopInformation;
-    attachLocationRange(loop,
-                        info.loopBlockInformation.sourcePosition,
-                        info.loopBlockInformation.endSourcePosition);
-    pushStatement(wrapIntoLabels(loop, info.labels));
-  }
-
-  void handleLoopCondition(HLoopBranch node) {
-    use(node.inputs[0]);
-    js.Expression test = new js.Prefix('!', pop());
-    js.Statement then = new js.Break(null);
-    pushStatement(new js.If.noElse(test, then), node);
-  }
-
-
   void preLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
   }
 
@@ -2795,6 +2729,25 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;
 
+  visitLoopBranch(HLoopBranch node) {
+    HBasicBlock header = node.isDoWhile()
+        ? node.block.successors[0]
+        : node.block;
+    if (header.hasBailoutTargets()) {
+      // The graph visitor in [visitLoopInfo] does not handle the
+      // condition. We must instead manually emit it here.
+      handleLoopCondition(node);
+      // We must also visit the body from here.
+      // For a do while loop, the body has already been visited.
+      if (!node.isDoWhile()) {
+        visitBasicBlock(node.block.dominatedBlocks[0]);
+      }
+    } else {
+      super.visitLoopBranch(node);
+    }
+  }
+
+
   bool visitIfInfo(HIfBlockInformation info) {
     if (info.thenGraph.start.hasBailoutTargets()) return false;
     if (info.elseGraph.start.hasBailoutTargets()) return false;
@@ -2802,8 +2755,22 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   bool visitLoopInfo(HLoopBlockInformation info) {
-    if (info.start.hasBailoutTargets()) return false;
-    if (info.loopHeader.hasBailoutTargets()) return false;
+    // Always emit with block flow traversal.
+    if (info.loopHeader.hasBailoutTargets()) {
+      // If there are any bailout targets in the loop, we cannot use
+      // the pretty [SsaCodeGenerator.visitLoopInfo] printer.
+      if (info.initializer != null) {
+        generateStatements(info.initializer);
+      }
+      beginLoop(info.loopHeader);
+      generateStatements(info.condition);
+      generateStatements(info.body);
+      if (info.updates != null) {
+        generateStatements(info.updates);
+      }
+      endLoop(info.end);
+      return true;
+    }
     return super.visitLoopInfo(info);
   }
 
