@@ -95,6 +95,8 @@ RawCode* ResolveCompileInstanceCallTarget(
 void DeoptimizeAll();
 void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes);
 
+double DartModulo(double a, double b);
+
 }  // namespace dart
 
 #endif  // VM_CODE_GENERATOR_H_

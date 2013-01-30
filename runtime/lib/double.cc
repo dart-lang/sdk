@@ -7,6 +7,7 @@
 #include "vm/bootstrap_natives.h"
 
 #include "vm/bigint_operations.h"
+#include "vm/code_generator.h"  // DartModulo.
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
@@ -103,19 +104,7 @@ DEFINE_NATIVE_ENTRY(Double_modulo, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
   double right = right_object.value();
-
-  double remainder = fmod_ieee(left, right);
-  if (remainder == 0.0) {
-    // We explicitely switch to the positive 0.0 (just in case it was negative).
-    remainder = +0.0;
-  } else if (remainder < 0) {
-    if (right < 0) {
-      remainder -= right;
-    } else {
-      remainder += right;
-    }
-  }
-  return Double::New(remainder);
+  return Double::New(DartModulo(left, right));
 }
 
 

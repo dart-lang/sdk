@@ -2722,8 +2722,8 @@ extern const RuntimeEntry kPowRuntimeEntry(
         static_cast<BinaryMathCFunction>(&pow)), 0, true);
 
 extern const RuntimeEntry kModRuntimeEntry(
-    "libc_fmod", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&fmod)), 0, true);
+    "DartModulo", reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&DartModulo)), 0, true);
 
 extern const RuntimeEntry kFloorRuntimeEntry(
     "libc_floor", reinterpret_cast<RuntimeFunction>(
