@@ -373,7 +373,10 @@ abstract class Stream<T> {
    * If [compare] is omitted, it defaults to [Comparable.compare].
    */
   Future<T> min([int compare(T a, T b)]) {
-    if (compare == null) compare = Comparable.compare;
+    if (compare == null) {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     T min = null;
@@ -414,7 +417,10 @@ abstract class Stream<T> {
    * If [compare] is omitted, it defaults to [Comparable.compare].
    */
   Future<T> max([int compare(T a, T b)]) {
-    if (compare == null) compare = Comparable.compare;
+    if (compare == null)  {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     T max = null;

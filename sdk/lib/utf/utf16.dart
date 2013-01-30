@@ -206,7 +206,7 @@ class IterableUtf16Decoder extends Iterable<int> {
  * to produce the code unit (0-(2^16)-1). Relies on BOM to determine
  * endian-ness, and defaults to BE.
  */
-class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
+abstract class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
   final _ListRangeIterator utf16EncodedBytesIterator;
   final int replacementCodepoint;
   int _current = null;

@@ -99,7 +99,7 @@ abstract class Date implements Comparable {
 }
 
 /**
- * Date is the public interface to a point in time.
+ * A DateTime object represents a point in time.
  *
  * It can represent time values that are at a distance of at most
  * 8,640,000,000,000,000ms (100,000,000 days) from epoch (1970-01-01 UTC). In
