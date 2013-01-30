@@ -14,6 +14,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     hide SourceString;
 
+import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
+
 DartType intType;
 DartType boolType;
 DartType stringType;

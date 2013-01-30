@@ -5,6 +5,7 @@
 library type_substitution_test;
 
 import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
+import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
