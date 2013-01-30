@@ -1010,6 +1010,22 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
   @DocsEditable
   int width;
 
+  CanvasRenderingContext getContext(String contextId, [Map attrs]) {
+    if (?attrs) {
+      var attrs_1 = convertDartToNative_Dictionary(attrs);
+      return _getContext_1(contextId, attrs_1);
+    }
+    return _getContext_2(contextId);
+  }
+  @JSName('getContext')
+  @DomName('HTMLCanvasElement.getContext')
+  @DocsEditable
+  CanvasRenderingContext _getContext_1(contextId, attrs) native;
+  @JSName('getContext')
+  @DomName('HTMLCanvasElement.getContext')
+  @DocsEditable
+  CanvasRenderingContext _getContext_2(contextId) native;
+
   @JSName('toDataURL')
   /**
    * Returns a data URI containing a representation of the image in the
@@ -1055,9 +1071,28 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
   @DocsEditable
   String toDataUrl(String type, [num quality]) native;
 
-
-  CanvasRenderingContext getContext(String contextId) native;
   CanvasRenderingContext2D get context2d => getContext('2d');
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @Experimental
+  WebGLRenderingContext getContext3d({alpha: true, depth: true, stencil: false,
+    antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false}) {
+
+    var options = {
+      'alpha': alpha,
+      'depth': depth,
+      'stencil': stencil,
+      'antialias': antialias,
+      'premultipliedAlpha': premultipliedAlpha,
+      'preserveDrawingBuffer': preserveDrawingBuffer,
+    };
+    var context = getContext('webgl', options);
+    if (context == null) {
+      context = getContext('experimental-webgl', options);
+    }
+    return context;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23958,7 +23993,13 @@ class WebGLRenderbuffer native "*WebGLRenderbuffer" {
 
 @DocsEditable
 @DomName('WebGLRenderingContext')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@Experimental
 class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(window.WebGLRenderingContext)');
 
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
 

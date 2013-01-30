@@ -6,9 +6,26 @@ part of html;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
-
-$if DART2JS
-  CanvasRenderingContext getContext(String contextId) native;
-$endif
   CanvasRenderingContext2D get context2d => getContext('2d');
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @Experimental
+  WebGLRenderingContext getContext3d({alpha: true, depth: true, stencil: false,
+    antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false}) {
+
+    var options = {
+      'alpha': alpha,
+      'depth': depth,
+      'stencil': stencil,
+      'antialias': antialias,
+      'premultipliedAlpha': premultipliedAlpha,
+      'preserveDrawingBuffer': preserveDrawingBuffer,
+    };
+    var context = getContext('webgl', options);
+    if (context == null) {
+      context = getContext('experimental-webgl', options);
+    }
+    return context;
+  }
 }

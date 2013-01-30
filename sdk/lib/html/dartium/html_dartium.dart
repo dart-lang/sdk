@@ -1223,7 +1223,7 @@ class CanvasElement extends _Element_Merged {
 
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable
-  Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
+  CanvasRenderingContext getContext(String contextId, [Map attrs]) native "HTMLCanvasElement_getContext_Callback";
 
   /**
    * Returns a data URI containing a representation of the image in the
@@ -1269,8 +1269,28 @@ class CanvasElement extends _Element_Merged {
   @DocsEditable
   String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
-
   CanvasRenderingContext2D get context2d => getContext('2d');
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @Experimental
+  WebGLRenderingContext getContext3d({alpha: true, depth: true, stencil: false,
+    antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false}) {
+
+    var options = {
+      'alpha': alpha,
+      'depth': depth,
+      'stencil': stencil,
+      'antialias': antialias,
+      'premultipliedAlpha': premultipliedAlpha,
+      'preserveDrawingBuffer': preserveDrawingBuffer,
+    };
+    var context = getContext('webgl', options);
+    if (context == null) {
+      context = getContext('experimental-webgl', options);
+    }
+    return context;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26479,8 +26499,14 @@ class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLRenderingContext')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@Experimental
 class WebGLRenderingContext extends CanvasRenderingContext {
   WebGLRenderingContext.internal() : super.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
 

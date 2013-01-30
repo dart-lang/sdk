@@ -705,6 +705,12 @@ _web_sql_annotations = [
   "@Experimental",
 ]
 
+_webgl_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+  "@Experimental",
+]
+
 # Annotations to be placed on generated members.
 # The table is indexed as:
 #   INTERFACE:     annotations to be added to the interface declaration
@@ -801,6 +807,7 @@ dart_annotations = {
   'SpeechRecognitionResult': _speech_recognition_annotations,
   'SQLTransaction': _web_sql_annotations,
   'SQLTransactionSync': _web_sql_annotations,
+  'WebGLRenderingContext': _webgl_annotations,
   'WebKitCSSMatrix': _webkit_experimental_annotations,
   'WebKitPoint': _webkit_experimental_annotations,
   'WebSocket': _all_but_ie9_annotations,

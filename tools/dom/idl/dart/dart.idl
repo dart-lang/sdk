@@ -44,6 +44,9 @@ interface Console {
 interface HTMLCanvasElement {
   [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type) raises(DOMException);
   [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality) raises(DOMException);
+
+  [Suppressed] DOMObject getContext(in DOMString contextId);
+  [Custom] CanvasRenderingContext getContext(in DOMString contextId, [Optional] in Dictionary attrs);
 };
 
 [Supplemental]
