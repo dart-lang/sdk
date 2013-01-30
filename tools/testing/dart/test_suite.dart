@@ -970,6 +970,7 @@ class StandardTestSuite extends TestSuite {
         htmlPath = htmlPath.startsWith(basePath) ?
             htmlPath.substring(basePath.length) : htmlPath;
         String fullHtmlPath = htmlPath;
+        var searchStr = '?';
         if (!htmlPath.startsWith('http')) {
           // Note: If we run test.py with the "--list" option, no http servers
           // will be started. Therefore serverList is an empty list in this
@@ -980,12 +981,14 @@ class StandardTestSuite extends TestSuite {
             serverPort = serverList[0].port.toString();
             crossOriginPort = serverList[1].port.toString();
           }
-          fullHtmlPath = 'http://127.0.0.1:$serverPort$htmlPath?'
+          fullHtmlPath = 'http://127.0.0.1:$serverPort$htmlPath${searchStr}'
               'crossOriginPort=$crossOriginPort';
+          searchStr = '&';
         }
         if (info.optionsFromFile['isMultiHtmlTest']
             && subtestNames.length > 0) {
-          fullHtmlPath = '${fullHtmlPath}#${subtestNames[subtestIndex]}';
+          fullHtmlPath = '${fullHtmlPath}${searchStr}group='
+              '${subtestNames[subtestIndex]}';
         }
 
         if (TestUtils.usesWebDriver(runtime)) {

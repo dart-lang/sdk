@@ -24,11 +24,16 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
   HtmlIndividualConfiguration(isLayoutTest): super(isLayoutTest);
 
   void onStart() {
-    var testGroupName = window.location.hash;
-    if (testGroupName != '') {
+    var testGroupName = window.location.search;
+    var groupVar = '&group=';
+    if (testGroupName != '' && testGroupName.contains(groupVar)) {
       try {
-        testGroupName = testGroupName.substring(1); // cut off the #
-        unittest.filterTests('^$testGroupName');
+        testGroupName = testGroupName.substring(
+            testGroupName.indexOf(groupVar) + groupVar.length);
+        var endIndex = testGroupName.indexOf('&');
+        testGroupName = testGroupName.substring(0,
+            endIndex == -1 ? testGroupName.length : endIndex);
+        unittest.filterTests('^$testGroupName${unittest.groupSep}');
       } catch (e) {
         print('tried to match "$testGroupName"');
         print('NO_SUCH_TEST');
