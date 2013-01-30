@@ -911,7 +911,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
     controller.signalError(e.error, e.stackTrace);
     controller.close();
   });
-  return new ByteStream(controller);
+  return new ByteStream(controller.stream);
 }
 
 /// Exception thrown when an operation times out.
