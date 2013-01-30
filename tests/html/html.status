@@ -24,7 +24,7 @@ speechrecognition_test/types: Pass, Fail
 touchevent_test/supported: Fail
 async_window_test: Pass, Fail # Issue: 8209
 
-[$compiler == dart2js && ($runtime == drt || $runtime == dartium)]
+[$runtime == drt || $runtime == dartium]
 webgl_1_test: Pass, Fail # Issue 8219
 
 [ $runtime == chrome || $runtime == drt]
