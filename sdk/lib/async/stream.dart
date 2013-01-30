@@ -97,33 +97,6 @@ abstract class Stream<T> {
   }
 
   /**
-   * Stream that outputs events from the [sources] in cyclic order.
-   *
-   * The merged streams are paused and resumed in order to ensure the proper
-   * order of output events.
-   */
-  factory Stream.cyclic(Iterable<Stream> sources) {
-    return new _CyclicScheduleStream<T>(sources);
-  }
-
- /**
-   * Create a stream that forwards data from the highest priority active source.
-   *
-   * Sources are provided in order of increasing priority, and only data from
-   * the highest priority source stream that has provided data are output
-   * on the created stream.
-   *
-   * Errors from the most recent active stream, and any higher priority stream,
-   * are forwarded to the created stream.
-   *
-   * If a higher priority source stream completes without providing data,
-   * it will have no effect on lower priority streams.
-   */
-  factory Stream.superceding(Iterable<Stream<T>> sources) {
-    return new _SupercedeStream<T>(sources);
-  }
-
-  /**
    * Add a subscription to this stream.
    *
    * On each data event from this stream, the subscribers [onData] handler
@@ -196,7 +169,7 @@ abstract class Stream<T> {
   /**
    * Bind this stream as the input of the provided [StreamConsumer].
    */
-  Future pipe(StreamConsumer<dynamic, T> streamConsumer) {
+  Future pipe(StreamConsumer<T, dynamic> streamConsumer) {
     return streamConsumer.consume(this);
   }
 

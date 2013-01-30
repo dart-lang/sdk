@@ -7,7 +7,6 @@ library dart.async;
 part 'async_error.dart';
 part 'future.dart';
 part 'future_impl.dart';
-part 'merge_stream.dart';
 part 'stream.dart';
 part 'stream_controller.dart';
 part 'stream_impl.dart';
