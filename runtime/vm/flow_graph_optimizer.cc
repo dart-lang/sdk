@@ -975,6 +975,13 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                  new CheckSmiInstr(right->Copy(), call->deopt_id()),
                  call->env(),
                  Definition::kEffect);
+    if (left->BindsToConstant() &&
+        ((op_kind == Token::kADD) || (op_kind == Token::kMUL))) {
+      // Constant should be on the right side.
+      Value* temp = left;
+      left = right;
+      right = temp;
+    }
     BinarySmiOpInstr* bin_op = new BinarySmiOpInstr(op_kind, call, left, right);
     call->ReplaceWith(bin_op, current_iterator());
     RemovePushArguments(call);
