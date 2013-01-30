@@ -179,7 +179,7 @@ class _ErrorGroupFuture implements Future {
     _completer.future.catchError((_) {});
   }
 
-  Future then(onValue(T value), {onError(AsyncError asyncError)}) {
+  Future then(onValue(value), {onError(AsyncError asyncError)}) {
     _hasListeners = true;
     return _completer.future.then(onValue, onError: onError);
   }
@@ -194,7 +194,7 @@ class _ErrorGroupFuture implements Future {
     return _completer.future.whenComplete(action);
   }
 
-  Stream<T> asStream() {
+  Stream asStream() {
     _hasListeners = true;
     return _completer.future.asStream();
   }

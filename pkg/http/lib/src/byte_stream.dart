@@ -33,4 +33,7 @@ class ByteStream extends StreamView<List<int>> {
   /// [encoding], which defaults to `Encoding.UTF_8`.
   Future<String> bytesToString([Encoding encoding=Encoding.UTF_8]) =>
       toBytes().then((bytes) => decodeString(bytes, encoding));
+
+  Stream<String> toStringStream([Encoding encoding=Encoding.UTF_8]) =>
+      mappedBy((bytes) => decodeString(bytes, encoding));
 }
