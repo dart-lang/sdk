@@ -15,6 +15,7 @@ import "parser_helper.dart";
 
 import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
     hide TreeElementMapping, TreeElements, SourceString;
+import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
