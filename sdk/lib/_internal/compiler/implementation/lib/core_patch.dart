@@ -194,25 +194,6 @@ patch class List<E> {
     }
     return result;
   }
-
-  /**
-   * Creates an extendable list of the given [length] where each entry is
-   * filled with [fill].
-   */
-  patch factory List.filled(int length, E fill) {
-    // Explicit type test is necessary to protect Primitives.newGrowableList in
-    // unchecked mode.
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError("Length must be a positive integer: $length.");
-    }
-    List result = Primitives.newGrowableList(length);
-    if (length != 0 && fill != null) {
-      for (int i = 0; i < result.length; i++) {
-        result[i] = fill;
-      }
-    }
-    return result;
-  }
 }
 
 

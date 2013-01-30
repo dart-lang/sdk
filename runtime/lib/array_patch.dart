@@ -27,21 +27,6 @@ patch class List<E> {
     return result;
   }
 
-  /* patch */ factory List.filled(int length, E fill) {
-    if ((length is! int) || (length < 0)) {
-      _throwArgumentError(length);
-    }
-    _GrowableObjectArray<E> result =
-        new _GrowableObjectArray<E>.withCapacity(length < 4 ? 4 : length);
-    result.length = length;
-    if (fill != null) {
-      for (int i = 0; i < length; i++) {
-        result[i] = fill;
-      }
-    }
-    return result;
-  }
-
   // Factory constructing a mutable List from a parser generated List literal.
   // [elements] contains elements that are already type checked.
   factory List._fromLiteral(List elements) {

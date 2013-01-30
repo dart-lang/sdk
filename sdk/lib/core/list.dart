@@ -23,14 +23,6 @@ abstract class List<E> implements Collection<E> {
   external factory List.fixedLength(int length, {E fill: null});
 
   /**
-   * Creates an list of the given [length] where each entry is
-   * filled with [fill].
-   *
-   * The length of the returned list is not fixed.
-   */
-  external factory List.filled(int length, E fill);
-
-  /**
    * Creates an list with the elements of [other]. The order in
    * the list will be the order provided by the iterator of [other].
    *

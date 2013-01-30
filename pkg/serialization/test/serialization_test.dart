@@ -515,7 +515,12 @@ Reader setUpReader(aSerialization, sampleData) {
   var reader = new Reader(aSerialization);
   // We're not sure which rule needs the sample data, so put it everywhere
   // and trust that the extra will just be ignored.
-  reader.data = new List.filled(10, [sampleData]);
+  var fillValue = [sampleData];
+  var data = [];
+  for (int i = 0; i < 10; i++) {
+    data.add(fillValue);
+  }
+  reader.data = data;
   return reader;
 }
 
