@@ -301,6 +301,7 @@ svgelement2_test: Fail
 touchevent_test/supported: Fail
 transferables_test: Fail   # Issue 3392.
 webgl_1_test: Pass, Fail   # Issue 8219
+websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
