@@ -64,7 +64,7 @@ main() {
     confirmPublish(pub);
 
     server.handle('POST', '/token', (request, response) {
-      return wrapInputStream(request.inputStream).toBytes().then((bytes) {
+      return consumeInputStream(request.inputStream).then((bytes) {
         var body = new String.fromCharCodes(bytes);
         expect(body, matches(
             new RegExp(r'(^|&)refresh_token=refresh\+token(&|$)')));
@@ -198,7 +198,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
 
 void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
   server.handle('POST', '/token', (request, response) {
-    return wrapInputStream(request.inputStream).toBytes().then((bytes) {
+    return consumeInputStream(request.inputStream).then((bytes) {
       var body = new String.fromCharCodes(bytes);
       expect(body, matches(new RegExp(r'(^|&)code=access\+code(&|$)')));
 

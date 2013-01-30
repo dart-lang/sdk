@@ -6,6 +6,7 @@
 library log;
 
 import 'dart:async';
+import 'dart:io';
 import 'io.dart';
 
 typedef LogFn(Entry entry);
@@ -153,11 +154,11 @@ void recordTranscript() {
 void dumpTranscript() {
   if (_transcript == null) return;
 
-  stderrSink.add('---- Log transcript ----\n'.charCodes);
+  stderr.writeString('---- Log transcript ----\n');
   for (var entry in _transcript) {
     _logToStderrWithLabel(entry);
   }
-  stderrSink.add('---- End log transcript ----\n'.charCodes);
+  stderr.writeString('---- End log transcript ----\n');
 }
 
 /// Sets the verbosity to "normal", which shows errors, warnings, and messages.
@@ -190,38 +191,38 @@ void showAll() {
 
 /// Log function that prints the message to stdout.
 void _logToStdout(Entry entry) {
-  _logToStream(stdoutSink, entry, showLabel: false);
+  _logToStream(stdout, entry, showLabel: false);
 }
 
 /// Log function that prints the message to stdout with the level name.
 void _logToStdoutWithLabel(Entry entry) {
-  _logToStream(stdoutSink, entry, showLabel: true);
+  _logToStream(stdout, entry, showLabel: true);
 }
 
 /// Log function that prints the message to stderr.
 void _logToStderr(Entry entry) {
-  _logToStream(stderrSink, entry, showLabel: false);
+  _logToStream(stderr, entry, showLabel: false);
 }
 
 /// Log function that prints the message to stderr with the level name.
 void _logToStderrWithLabel(Entry entry) {
-  _logToStream(stderrSink, entry, showLabel: true);
+  _logToStream(stderr, entry, showLabel: true);
 }
 
-void _logToStream(Sink<List<int>> sink, Entry entry, {bool showLabel}) {
+void _logToStream(OutputStream stream, Entry entry, {bool showLabel}) {
   bool firstLine = true;
   for (var line in entry.lines) {
     if (showLabel) {
       if (firstLine) {
-        sink.add(entry.level.name.charCodes);
-        sink.add(': '.charCodes);
+        stream.writeString(entry.level.name);
+        stream.writeString(': ');
       } else {
-        sink.add('    | '.charCodes);
+        stream.writeString('    | ');
       }
     }
 
-    sink.add(line.charCodes);
-    sink.add('\n'.charCodes);
+    stream.writeString(line);
+    stream.writeString('\n');
 
     firstLine = false;
   }
