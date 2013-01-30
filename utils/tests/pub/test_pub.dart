@@ -461,42 +461,47 @@ final _TIMEOUT = 30000;
 /// operations which will be run asynchronously.
 void integration(String description, void body()) {
   test(description, () {
+    // Sanity check. Make sure we cleaned up the last test.
+    assert(_scheduled == null);
+    assert(_scheduledCleanup == null);
+    assert(_scheduledOnException == null);
+
+    // Schedule the test.
     body();
-    _run();
-  });
-}
 
-/// Runs all the scheduled events for a test case. This should only be called
-/// once per test case.
-void _run() {
-  var createdSandboxDir;
-  var asyncDone = expectAsync0(() {});
-
-  Future cleanup() {
-    return _runScheduled(createdSandboxDir, _scheduledCleanup).then((_) {
-      _scheduled = null;
-      _scheduledCleanup = null;
-      _scheduledOnException = null;
-      if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
-    });
-  }
-
-  timeout(_setUpSandbox().then((sandboxDir) {
-    createdSandboxDir = sandboxDir;
-    return _runScheduled(sandboxDir, _scheduled);
-  }).catchError((e) {
-    // If an error occurs during testing, delete the sandbox, throw the error so
-    // that the test framework sees it, then finally call asyncDone so that the
-    // test framework knows we're done doing asynchronous stuff.
-    return _runScheduled(createdSandboxDir, _scheduledOnException)
-        .then((_) => registerException(e.error, e.stackTrace)).catchError((e) {
-      print("Exception while cleaning up: ${e.error}");
-      print(e.stackTrace);
+    // Run all of the scheduled tasks. If an error occurs, it will propagate
+    // through the futures back up to here where we can hand it off to unittest.
+    var asyncDone = expectAsync0(() {});
+    var createdSandboxDir;
+    _setUpSandbox().then((sandboxDir) {
+      createdSandboxDir = sandboxDir;
+      return timeout(_runScheduled(sandboxDir, _scheduled),
+          _TIMEOUT, 'waiting for a test to complete');
+    }).catchError((e) {
+      return _runScheduled(createdSandboxDir, _scheduledOnException).then((_) {
+        // Rethrow the original error so it keeps propagating.
+        throw e;
+      });
+    }).whenComplete(() {
+      // Clean up after ourselves. Do this first before reporting back to
+      // unittest because it will advance to the next test immediately.
+      return _runScheduled(createdSandboxDir, _scheduledCleanup).then((_) {
+        _scheduled = null;
+        _scheduledCleanup = null;
+        _scheduledOnException = null;
+        if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
+      });
+    }).then((_) {
+      // If we got here, the test completed successfully so tell unittest so.
+      asyncDone();
+    }).catchError((e) {
+      // If we got here, an error occurred. We will register it with unittest
+      // directly so that the error message isn't wrapped in any matcher stuff.
+      // We do this call last because it will cause unittest to *synchronously*
+      // advance to the next test and run it.
       registerException(e.error, e.stackTrace);
     });
-  }), _TIMEOUT, 'waiting for a test to complete')
-      .then((_) => cleanup())
-      .then((_) => asyncDone());
+  });
 }
 
 /// Get the path to the root "util/test/pub" directory containing the pub
@@ -513,8 +518,7 @@ String get testDirectory {
 void schedulePub({List args, Pattern output, Pattern error,
     Future<Uri> tokenEndpoint, int exitCode: 0}) {
   _schedule((sandboxDir) {
-    return _doPub(runProcess, sandboxDir, args, tokenEndpoint)
-        .then((result) {
+    return _doPub(runProcess, sandboxDir, args, tokenEndpoint).then((result) {
       var failures = [];
 
       _validateOutput(failures, 'stdout', output, result.stdout);
