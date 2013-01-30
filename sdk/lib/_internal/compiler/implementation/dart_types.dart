@@ -396,7 +396,16 @@ class FunctionType extends DartType {
   final DartType returnType;
   final Link<DartType> parameterTypes;
   final Link<DartType> optionalParameterTypes;
+
+  /**
+   * The names of the named parameters ordered lexicographically.
+   */
   final Link<SourceString> namedParameters;
+
+  /**
+   * The types of the named parameters in the order corresponding to the
+   * [namedParameters].
+   */
   final Link<DartType> namedParameterTypes;
   final bool isMalformed;
 
@@ -433,6 +442,7 @@ class FunctionType extends DartType {
     assert(element == null || invariant(element, element.isDeclaration));
     // Assert that optional and named parameters are not used at the same time.
     assert(optionalParameterTypes.isEmpty || namedParameterTypes.isEmpty);
+    assert(namedParameters.slowLength() == namedParameterTypes.slowLength());
   }
 
   TypeKind get kind => TypeKind.FUNCTION;
@@ -542,10 +552,17 @@ class FunctionType extends DartType {
 
   int get hashCode {
     int hash = 17 * element.hashCode + 3 * returnType.hashCode;
-    for (Link<DartType> parameters = parameterTypes;
-         !parameters.isEmpty;
-        parameters = parameters.tail) {
-      hash = 17 * hash + 3 * parameters.head.hashCode;
+    for (DartType parameter  in parameterTypes) {
+      hash = 17 * hash + 3 * parameter.hashCode;
+    }
+    for (DartType parameter  in optionalParameterTypes) {
+      hash = 17 * hash + 3 * parameter.hashCode;
+    }
+    for (SourceString name  in namedParameters) {
+      hash = 17 * hash + 3 * name.hashCode;
+    }
+    for (DartType parameter  in namedParameterTypes) {
+      hash = 17 * hash + 3 * parameter.hashCode;
     }
     return hash;
   }
@@ -553,7 +570,10 @@ class FunctionType extends DartType {
   bool operator ==(other) {
     if (other is !FunctionType) return false;
     return returnType == other.returnType
-           && parameterTypes == other.parameterTypes;
+           && parameterTypes == other.parameterTypes
+           && optionalParameterTypes == other.optionalParameterTypes
+           && namedParameters == other.namedParameters
+           && namedParameterTypes == other.namedParameterTypes;
   }
 }
 
@@ -697,6 +717,46 @@ class Types {
       }
       if (!tps.isEmpty || !sps.isEmpty) return false;
       if (!isAssignable(sf.returnType, tf.returnType)) return false;
+      if (!sf.namedParameters.isEmpty) {
+        // Since named parameters are globally ordered we can determine the
+        // subset relation with a linear search for [:sf.NamedParameters:]
+        // within [:tf.NamedParameters:].
+        Link<SourceString> tNames = tf.namedParameters;
+        Link<DartType> tTypes = tf.namedParameterTypes;
+        Link<SourceString> sNames = sf.namedParameters;
+        Link<DartType> sTypes = sf.namedParameterTypes;
+        while (!tNames.isEmpty && !sNames.isEmpty) {
+          if (sNames.head == tNames.head) {
+            if (!isAssignable(tTypes.head, sTypes.head)) return false;
+
+            sNames = sNames.tail;
+            sTypes = sTypes.tail;
+          }
+          tNames = tNames.tail;
+          tTypes = tTypes.tail;
+        }
+        if (!sNames.isEmpty) {
+          // We didn't find all names.
+          return false;
+        }
+      }
+      if (!sf.optionalParameterTypes.isEmpty) {
+        Link<DartType> tOptionalParameterType = tf.optionalParameterTypes;
+        Link<DartType> sOptionalParameterType = sf.optionalParameterTypes;
+        while (!tOptionalParameterType.isEmpty &&
+               !sOptionalParameterType.isEmpty) {
+          if (!isAssignable(tOptionalParameterType.head,
+                            sOptionalParameterType.head)) {
+            return false;
+          }
+          sOptionalParameterType = sOptionalParameterType.tail;
+          tOptionalParameterType = tOptionalParameterType.tail;
+        }
+        if (!sOptionalParameterType.isEmpty) {
+          // We didn't find enough optional parameters.
+          return false;
+        }
+      }
       return true;
     } else if (t is TypeVariableType) {
       if (s is !TypeVariableType) return false;

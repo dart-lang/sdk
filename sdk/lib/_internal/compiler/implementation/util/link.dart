@@ -66,6 +66,8 @@ class Link<T> extends Iterable<T> {
   get length {
     throw new UnsupportedError('get:length');
   }
+
+  int slowLength() => 0;
 }
 
 abstract class LinkBuilder<T> {

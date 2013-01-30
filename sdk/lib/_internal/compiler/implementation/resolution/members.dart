@@ -848,12 +848,12 @@ class ResolverTask extends CompilerTask {
     if (signature.optionalParametersAreNamed) {
       var namedParametersBuilder = new LinkBuilder<SourceString>();
       var namedParameterTypesBuilder = new LinkBuilder<DartType>();
-      for (Element parameter in signature.optionalParameters) {
+      for (Element parameter in signature.orderedOptionalParameters) {
         namedParametersBuilder.addLast(parameter.name);
         namedParameterTypesBuilder.addLast(parameter.computeType(compiler));
       }
       namedParameters = namedParametersBuilder.toLink();
-      namedParameterTypes = namedParametersBuilder.toLink();
+      namedParameterTypes = namedParameterTypesBuilder.toLink();
     } else {
       var optionalParameterTypesBuilder = new LinkBuilder<DartType>();
       for (Element parameter in signature.optionalParameters) {

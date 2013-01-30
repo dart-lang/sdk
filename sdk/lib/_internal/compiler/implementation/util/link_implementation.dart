@@ -107,6 +107,8 @@ class LinkEntry<T> extends Link<T> {
     }
     return myElements.isEmpty && other.isEmpty;
   }
+
+  int slowLength() => 1 + tail.slowLength();
 }
 
 class LinkBuilderImplementation<T> implements LinkBuilder<T> {

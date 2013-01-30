@@ -37,7 +37,9 @@ main() {
                 testConditionalExpression,
                 testIfStatement,
                 testThis,
-                testFunctionSubtyping];
+                testFunctionSubtyping,
+                testFunctionSubtypingOptional,
+                testFunctionSubtypingNamed];
   for (Function test in tests) {
     setup();
     test();
@@ -378,6 +380,129 @@ testFunctionSubtyping() {
   Expect.isFalse(isSubtype([intType], intType, [intType, intType], intType));
   Expect.isFalse(isSubtype([intType, intType], intType, [intType], intType));
 }
+
+testFunctionSubtypingOptional() {
+  // Checks whether the type (in1,[opt1] -> void) is a subtype of
+  // (in2,[opt2] -> void).
+  expect(bool value, List<DartType> in1, List<DartType> opt1,
+                     List<DartType> in2, List<DartType> opt2) {
+    var fn1 = new FunctionType(null,
+        compiler.types.dynamicType,
+        new Link<DartType>.fromList(in1),
+        new Link<DartType>.fromList(opt1),
+        const Link<SourceString>(), const Link<DartType>());
+    var fn2 = new FunctionType(null,
+        compiler.types.dynamicType,
+        new Link<DartType>.fromList(in2),
+        new Link<DartType>.fromList(opt2),
+        const Link<SourceString>(), const Link<DartType>());
+    Expect.equals(value, compiler.types.isSubtype(fn1, fn2), "$fn1 <: $fn2");
+  }
+
+  // Test ()->void <: ()->void.
+  expect(true, [], [], [], []);
+  // Test ([int])->void <: ()->void.
+  expect(true, [], [intType], [], []);
+  // Test ([int])->void <: (int)->void.
+  expect(false, [], [intType], [intType], []);
+  // Test (int)->void <: ([int])->void.
+  expect(false, [intType], [], [], [intType]);
+  // Test ([int])->void <: ([int])->void.
+  expect(true, [], [intType], [], [intType]);
+  // Test ([Object])->void <: ([int])->void.
+  expect(true, [], [objectType], [], [intType]);
+  // Test ([int])->void <: ([Object])->void.
+  expect(true, [], [intType], [], [objectType]);
+  // Test (int,[int])->void <: (int,[int])->void.
+  expect(true, [intType], [intType], [intType], [intType]);
+  // Test ([int])->void <: ([double])->void.
+  expect(false, [], [intType], [], [doubleType]);
+  // Test ([int])->void <: ([int,int])->void.
+  expect(false, [], [intType], [], [intType, intType]);
+  // Test ([int,int])->void <: ([int])->void.
+  expect(true, [], [intType, intType], [], [intType]);
+  // Test ([Object,int])->void <: ([int])->void.
+  expect(true, [], [objectType, intType], [], [intType]);
+}
+
+
+testFunctionSubtypingNamed() {
+  // Checks whether the type (in1,{nm1} -> out1) is a subtype of
+  // (in2,{nm2} -> out2).
+  expect(bool value, List<DartType> in1, Map<String,DartType> nm1,
+                     List<DartType> in2, Map<String,DartType> nm2) {
+
+    SourceString convertString(String string) => new SourceString(string);
+    int compareString(a, b) => a.compareTo(b);
+
+    Link<SourceString> createNames(Map<String,DartType> nm) {
+      List<String> nmSorted = new List<String>.from(nm.keys)..sort();
+      List<SourceString> nmSourceStrings =
+          nmSorted.mappedBy((string) => new SourceString(string));
+      return new Link<SourceString>.fromList(nmSourceStrings);
+    }
+
+    Link<DartType> createTypes(Map<String,DartType> nm,
+                               Link<SourceString> names) {
+      var types = new LinkBuilder<DartType>();
+      for (SourceString name in names) {
+        types.addLast(nm[name.slowToString()]);
+      }
+      return types.toLink();
+    }
+
+    Link<SourceString> names1 = createNames(nm1);
+    Link<DartType> types1 = createTypes(nm1, names1);
+    Link<SourceString> names2 = createNames(nm2);
+    Link<DartType> types2 = createTypes(nm2, names2);
+    var fn1 = new FunctionType(null,
+        compiler.types.dynamicType,
+        new Link<DartType>.fromList(in1),
+        const Link<DartType>(),
+        names1, types1);
+    var fn2 = new FunctionType(null,
+        compiler.types.dynamicType,
+        new Link<DartType>.fromList(in2),
+        const Link<DartType>(),
+        names2, types2);
+    Expect.equals(value, compiler.types.isSubtype(fn1, fn2), "$fn1 <: $fn2");
+  }
+
+  // Test ()->void <: ()->void.
+  expect(true, [], {}, [], {});
+  // Test ({int a})->void <: ()->void.
+  expect(true, [], {'a': intType}, [], {});
+  // Test ({int a})->void <: (int)->void.
+  expect(false, [], {'a': intType}, [intType], {});
+  // Test (int)->void <: ({int a})->void.
+  expect(false, [intType], {}, [], {'a': intType});
+  // Test ({int a})->void <: ({int a})->void.
+  expect(true, [], {'a': intType}, [], {'a': intType});
+  // Test ({int a})->void <: ({int b})->void.
+  expect(false, [], {'a': intType}, [], {'b': intType});
+  // Test ({Object a})->void <: ({int a})->void.
+  expect(true, [], {'a': objectType}, [], {'a': intType});
+  // Test ({int a})->void <: ([Object])->void.
+  expect(true, [], {'a': intType}, [], {'a': objectType});
+  // Test (int,{int a})->void <: (int,{int a})->void.
+  expect(true, [intType], {'a': intType}, [intType], {'a': intType});
+  // Test ({int a})->void <: ({double a})->void.
+  expect(false, [], {'a': intType}, [], {'a': doubleType});
+  // Test ({int a})->void <: ({int a,int b})->void.
+  expect(false, [], {'a': intType}, [], {'a': intType, 'b': intType});
+  // Test ({int a,int b})->void <: ({int a})->void.
+  expect(true, [], {'a': intType, 'b': intType}, [], {'a': intType});
+  // Test ({int a,int b,int c})->void <: ({int a,int c})->void.
+  expect(true, [], {'a': intType, 'b': intType, 'c': intType},
+               [], {'a': intType, 'c': intType});
+  // Test ({int a,int b,int c})->void <: ({int b,int c})->void.
+  expect(true, [], {'a': intType, 'b': intType, 'c': intType},
+               [], {'b': intType, 'c': intType});
+  // Test ({int a,int b,int c})->void <: ({int c})->void.
+  expect(true, [], {'a': intType, 'b': intType, 'c': intType},
+               [], {'c': intType});
+}
+
 
 const CLASS_WITH_METHODS = '''
 class ClassWithMethods {

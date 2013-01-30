@@ -26,7 +26,6 @@ class TypeCheckerTask extends CompilerTask {
   }
 }
 
-
 class CancelTypeCheckException {
   final Node node;
   final String reason;
