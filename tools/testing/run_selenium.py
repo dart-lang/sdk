@@ -86,7 +86,14 @@ def run_test_in_browser(browser, html_out, timeout, mode, refresh):
     browser.refresh()
   try:
     def pythonTimeout():
-      close_browser(browser)
+      # The builtin quit call for chrome will call close on the RemoteDriver
+      # which may hang. Explicitly call browser.service.stop()
+      if (type(browser) is selenium.webdriver.chrome.webdriver.WebDriver):
+        # Browser may be dead
+        try:
+          browser.service.stop()
+        except:
+          print("Trying to close browser that has already been closed")
     # If the browser is crashing selenium may not time out.
     # Explicitly catch this case with a python timer.
     t = threading.Timer(timeout, pythonTimeout)
@@ -237,17 +244,7 @@ def close_browser(browser):
       type(browser) is not selenium.webdriver.ie.webdriver.WebDriver):
     browser.close()
 
-  # The builtin quit call will call close on the RemoteDriver which
-  # may hang. Explicitly call browser.service.stop()
-  if (type(browser) is selenium.webdriver.chrome.webdriver.WebDriver):
-    # We may have called stop before if chrome was hanging.
-    try:
-      browser.service.stop()
-    except:
-      print("Trying to close browser that has already been closed")
-      pass
-  else:
-    browser.quit()
+  browser.quit()
 
 def report_results(mode, source, browser):
   # TODO(vsm): Add a failure check for Dromaeo.
