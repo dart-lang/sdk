@@ -10,7 +10,7 @@ class A {
   var array;
 
   initArray() {
-    return global[0] == null ? [null] : {}; 
+    return global[0] == null ? [null] : new Map(); 
   }
 
   bar() {
@@ -41,7 +41,7 @@ void main() {
     Expect.equals(1, new A().baz());
     Expect.equals(1, new A().bar());
   }
-  global = {};
+  global = new Map();
   for (int i = 0; i < 2; i++) {
     Expect.equals(null, new A().baz());
     Expect.equals(null, new A().bar());
