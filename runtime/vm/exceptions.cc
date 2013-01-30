@@ -55,18 +55,15 @@ static bool FindExceptionHandler(uword* handler_pc,
       if (code.is_optimized()) {
         // For optimized frames, extract all the inlined functions if any
         // into the stack trace.
-        InlinedFunctionsInDartFrameIterator optimized_frames(frame);
-        while (true) {
-          uword pc = 0;
-          func = optimized_frames.GetNextFunction(&pc);
-          if (func.IsNull()) {
-            break;
-          }
+        for (InlinedFunctionsIterator it(frame); !it.Done(); it.Advance()) {
+          func = it.function();
+          code = it.code();
+          uword pc = it.pc();
           ASSERT(pc != 0);
+          ASSERT(code.EntryPoint() <= pc);
+          ASSERT(pc < (code.EntryPoint() + code.Size()));
           if (ShouldShowFunction(func)) {
-            code = func.unoptimized_code();
             offset = Smi::New(pc - code.EntryPoint());
-            ASSERT(0 <= offset.Value() && offset.Value() < code.Size());
             func_list.Add(func);
             code_list.Add(code);
             pc_offset_list.Add(offset);

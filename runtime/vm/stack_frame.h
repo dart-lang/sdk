@@ -229,17 +229,39 @@ class DartFrameIterator : public ValueObject {
 // Iterator for iterating over all inlined dart functions in an optimized
 // dart frame (the iteration includes the function that is inlining the
 // other functions).
-class InlinedFunctionsInDartFrameIterator : public ValueObject {
+class InlinedFunctionsIterator : public ValueObject {
  public:
-  explicit InlinedFunctionsInDartFrameIterator(StackFrame* frame);
-  RawFunction* GetNextFunction(uword* pc);
+  explicit InlinedFunctionsIterator(StackFrame* frame);
+  bool Done() const { return index_ == -1; }
+  void Advance();
+
+  RawFunction* function() const {
+    ASSERT(!Done());
+    return function_.raw();
+  }
+
+  uword pc() const {
+    ASSERT(!Done());
+    return pc_;
+  }
+
+  RawCode* code() const {
+    ASSERT(!Done());
+    return code_.raw();
+  }
 
  private:
+  void SetDone() { index_ = -1; }
+
   intptr_t index_;
+  Code& code_;
+  DeoptInfo& deopt_info_;
+  Function& function_;
+  uword pc_;
   GrowableArray<DeoptInstr*> deopt_instructions_;
   Array& object_table_;
 
-  DISALLOW_COPY_AND_ASSIGN(InlinedFunctionsInDartFrameIterator);
+  DISALLOW_COPY_AND_ASSIGN(InlinedFunctionsIterator);
 };
 
 }  // namespace dart

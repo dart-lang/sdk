@@ -280,48 +280,62 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
 }
 
 
-InlinedFunctionsInDartFrameIterator::InlinedFunctionsInDartFrameIterator(
-    StackFrame* frame) : index_(0),
-                         deopt_instructions_(),
-                         object_table_(Array::Handle()) {
+InlinedFunctionsIterator::InlinedFunctionsIterator(StackFrame* frame)
+  : index_(0),
+    code_(Code::Handle()),
+    deopt_info_(DeoptInfo::Handle()),
+    function_(Function::Handle()),
+    pc_(0),
+    deopt_instructions_(),
+    object_table_(Array::Handle()) {
   ASSERT(frame != NULL);
-  const Code& code = Code::Handle(frame->LookupDartCode());
-  ASSERT(code.is_optimized());
+  code_ = frame->LookupDartCode();
+  ASSERT(code_.is_optimized());
   intptr_t deopt_reason = kDeoptUnknown;
-  const DeoptInfo& deopt_info = DeoptInfo::Handle(
-      code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason));
-  ASSERT(!deopt_info.IsNull());
-
-  // Unpack deopt info into instructions (translate away suffixes).
-  const Array& deopt_table = Array::Handle(code.deopt_info_array());
-  ASSERT(!deopt_table.IsNull());
-  deopt_info.ToInstructions(deopt_table, &deopt_instructions_);
-
-  object_table_ = code.object_table();
+  deopt_info_ = code_.GetDeoptInfoAtPc(frame->pc(), &deopt_reason);
+  if (deopt_info_.IsNull()) {
+    // This is the case when a call without deopt info in optimzed code
+    // throws an exception. (e.g. in the parameter copying prologue).
+    // In that case there won't be any inlined frames.
+    function_ = code_.function();
+    pc_ = frame->pc();
+    ASSERT(pc_ != 0);
+  } else {
+    // Unpack deopt info into instructions (translate away suffixes).
+    const Array& deopt_table = Array::Handle(code_.deopt_info_array());
+    ASSERT(!deopt_table.IsNull());
+    deopt_info_.ToInstructions(deopt_table, &deopt_instructions_);
+    object_table_ = code_.object_table();
+    Advance();
+  }
 }
 
 
-RawFunction* InlinedFunctionsInDartFrameIterator::GetNextFunction(uword* pc) {
-  if (index_ == -1) {
-    return Function::null();
-  }
-
+void InlinedFunctionsIterator::Advance() {
   // Iterate over the deopt instructions and determine the inlined
   // functions if any and iterate over them.
+  ASSERT(!Done());
+
+  if (deopt_info_.IsNull()) {
+    SetDone();
+    return;
+  }
+
   Function& func = Function::Handle();
   ASSERT(deopt_instructions_.length() != 0);
   while (index_ < deopt_instructions_.length()) {
     DeoptInstr* deopt_instr = deopt_instructions_[index_++];
     ASSERT(deopt_instr->kind() != DeoptInstr::kRetBeforeAddress);
     if (deopt_instr->kind() == DeoptInstr::kRetAfterAddress) {
-      *pc = DeoptInstr::GetRetAfterAddress(deopt_instr,
+      pc_ = DeoptInstr::GetRetAfterAddress(deopt_instr,
                                            object_table_,
                                            &func);
-      return func.raw();
+      code_ = func.unoptimized_code();
+      function_ = func.raw();
+      return;
     }
   }
-  index_ = -1;
-  return Function::null();
+  SetDone();
 }
 
 }  // namespace dart
