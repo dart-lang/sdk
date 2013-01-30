@@ -57,7 +57,9 @@ class IOClient extends BaseClient {
 
     connection.onResponse = (response) {
       var headers = {};
-      response.headers.forEach((key, value) => headers[key] = value);
+      response.headers.forEach((key, values) {
+        headers[key] = values.join(',');
+      });
 
       if (completed) return;
 

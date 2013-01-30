@@ -55,6 +55,7 @@ void startServer() {
     consumeInputStream(request.inputStream).then((requestBodyBytes) {
       response.statusCode = 200;
       response.headers.contentType = new ContentType("application", "json");
+      response.headers.set('single', 'value');
 
       var requestBody;
       if (requestBodyBytes.isEmpty) {
