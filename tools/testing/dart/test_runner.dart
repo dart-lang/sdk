@@ -1724,8 +1724,15 @@ class ProcessQueue {
       var runningProcess = new RunningProcess(testCase, command);
       runningProcess.start().then((CommandOutput commandOutput) {
         if (isLastCommand) {
+          // NOTE: We need to call commandOutput.unexpectedOutput here.
+          // Calling this getter may result in the side-effect, that
+          // commandOutput.requestRetry is set to true.
+          // (BrowserCommandOutputImpl._failedBecauseOfMissingXDisplay
+          // does that for example)
+          // TODO(ricow/kustermann): Issue 8206
+          var unexpectedOutput = commandOutput.unexpectedOutput;
           if (allowRetry && testCase.usesWebDriver
-              && commandOutput.unexpectedOutput
+              && unexpectedOutput
               && (testCase as BrowserTestCase).numRetries > 0) {
             // Selenium tests can be flaky. Try rerunning.
             commandOutput.requestRetry = true;
