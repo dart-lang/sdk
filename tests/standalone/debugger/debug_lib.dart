@@ -8,7 +8,7 @@ library DartDebugger;
 
 import "dart:io";
 import "dart:utf";
-import "dart:json";
+import "dart:json" as JSON;
 
 // TODO(hausner): need to select a different port number for each
 // test that runs in parallel.
@@ -519,6 +519,7 @@ bool RunScript(List script) {
     process.stdout.onData = process.stdout.read;
     process.stderr.onData = process.stderr.read;
     process.onExit = (int exitCode) {
+      Expect.equals(0, exitCode);
       print("Debug target process exited with exit code $exitCode");
     };
     var debugger = new Debugger(process, debugPort);
