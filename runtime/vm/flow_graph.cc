@@ -107,15 +107,15 @@ static void ResetUseListsInInstruction(Instruction* instr) {
     Value* use = instr->InputAt(i);
     use->set_instruction(NULL);
     use->set_use_index(-1);
+    use->set_previous_use(NULL);
     use->set_next_use(NULL);
   }
-  if (instr->env() != NULL) {
-    for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
-      Value* use = it.CurrentValue();
-      use->set_instruction(NULL);
-      use->set_use_index(-1);
-      use->set_next_use(NULL);
-    }
+  for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
+    use->set_instruction(NULL);
+    use->set_use_index(-1);
+    use->set_previous_use(NULL);
+    use->set_next_use(NULL);
   }
 }
 
@@ -164,18 +164,25 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
   }
   Definition* defn = instr->AsDefinition();
   if (defn != NULL) {
-    for (Value* use = defn->input_use_list();
-         use != NULL;
-         use = use->next_use()) {
-      ASSERT(defn == use->definition());
-      ASSERT(use == use->instruction()->InputAt(use->use_index()));
+    Value* prev = NULL;
+    Value* curr = defn->input_use_list();
+    while (curr != NULL) {
+      ASSERT(prev == curr->previous_use());
+      ASSERT(defn == curr->definition());
+      ASSERT(curr == curr->instruction()->InputAt(curr->use_index()));
+      prev = curr;
+      curr = curr->next_use();
     }
-    for (Value* use = defn->env_use_list();
-         use != NULL;
-         use = use->next_use()) {
-      ASSERT(defn == use->definition());
-      ASSERT(use ==
-             use->instruction()->env()->ValueAtUseIndex(use->use_index()));
+
+    prev = NULL;
+    curr = defn->env_use_list();
+    while (curr != NULL) {
+      ASSERT(prev == curr->previous_use());
+      ASSERT(defn == curr->definition());
+      ASSERT(curr ==
+             curr->instruction()->env()->ValueAtUseIndex(curr->use_index()));
+      prev = curr;
+      curr = curr->next_use();
     }
   }
 }
@@ -220,6 +227,7 @@ static void RecordInputUses(Instruction* instr) {
     Value* use = instr->InputAt(i);
     ASSERT(use->instruction() == NULL);
     ASSERT(use->use_index() == -1);
+    ASSERT(use->previous_use() == NULL);
     ASSERT(use->next_use() == NULL);
     DEBUG_ASSERT(!FLAG_verify_compiler ||
         (0 == MembershipCount(use, use->definition()->input_use_list())));
@@ -238,6 +246,7 @@ static void RecordEnvUses(Instruction* instr) {
     Value* use = it.CurrentValue();
     ASSERT(use->instruction() == NULL);
     ASSERT(use->use_index() == -1);
+    ASSERT(use->previous_use() == NULL);
     ASSERT(use->next_use() == NULL);
     DEBUG_ASSERT(!FLAG_verify_compiler ||
         (0 == MembershipCount(use, use->definition()->env_use_list())));
@@ -282,6 +291,7 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
         Value* use = phi->InputAt(pred_index);
         ASSERT(use->instruction() == NULL);
         ASSERT(use->use_index() == -1);
+        ASSERT(use->previous_use() == NULL);
         ASSERT(use->next_use() == NULL);
         DEBUG_ASSERT(!FLAG_verify_compiler ||
             (0 == MembershipCount(use, use->definition()->input_use_list())));

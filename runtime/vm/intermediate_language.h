@@ -73,6 +73,7 @@ class Value : public ZoneAllocated {
  public:
   explicit Value(Definition* definition)
       : definition_(definition),
+        previous_use_(NULL),
         next_use_(NULL),
         instruction_(NULL),
         use_index_(-1),
@@ -80,6 +81,9 @@ class Value : public ZoneAllocated {
 
   Definition* definition() const { return definition_; }
   void set_definition(Definition* definition) { definition_ = definition; }
+
+  Value* previous_use() const { return previous_use_; }
+  void set_previous_use(Value* previous) { previous_use_ = previous; }
 
   Value* next_use() const { return next_use_; }
   void set_next_use(Value* next) { next_use_ = next; }
@@ -133,6 +137,7 @@ class Value : public ZoneAllocated {
 
  private:
   Definition* definition_;
+  Value* previous_use_;
   Value* next_use_;
   Instruction* instruction_;
   intptr_t use_index_;

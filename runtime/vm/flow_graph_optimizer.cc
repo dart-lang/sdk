@@ -2229,29 +2229,19 @@ void RangeAnalysis::RenameDominatedUses(Definition* def,
                                         Instruction* dom,
                                         Definition* other) {
   Value* next_use = NULL;
-  Value* prev_use = NULL;
   for (Value* use = def->input_use_list();
        use != NULL;
        use = next_use) {
     next_use = use->next_use();
 
     // Skip dead phis.
-    if (use->instruction()->IsPhi() &&
-        !use->instruction()->AsPhi()->is_alive()) {
-      prev_use = use;
-      continue;
-    }
+    PhiInstr* phi = use->instruction()->AsPhi();
+    if ((phi != NULL) && !phi->is_alive()) continue;
 
     if (IsDominatedUse(dom, use)) {
-      if (prev_use != NULL) {
-        prev_use->set_next_use(next_use);
-      } else {
-        def->set_input_use_list(next_use);
-      }
+      use->RemoveFromInputUseList();
       use->set_definition(other);
       use->AddToInputUseList();
-    } else {
-      prev_use = use;
     }
   }
 }

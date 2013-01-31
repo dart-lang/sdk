@@ -627,47 +627,57 @@ void Instruction::RecordAssignedVars(BitVector* assigned_vars,
 
 
 void Value::AddToInputUseList() {
-  set_next_use(definition()->input_use_list());
+  Value* next = definition()->input_use_list();
   definition()->set_input_use_list(this);
+  set_next_use(next);
+  set_previous_use(NULL);
+  if (next != NULL) next->set_previous_use(this);
 }
 
 
 void Value::AddToEnvUseList() {
-  set_next_use(definition()->env_use_list());
+  Value* next = definition()->env_use_list();
   definition()->set_env_use_list(this);
+  set_next_use(next);
+  set_previous_use(NULL);
+  if (next != NULL) next->set_previous_use(this);
 }
 
 
 void Value::RemoveFromInputUseList() {
-  if (definition_->input_use_list() == this) {
-    definition_->set_input_use_list(next_use_);
-    return;
+  Value* previous = previous_use();
+  Value* next = next_use();
+  if (previous == NULL) {
+    definition()->set_input_use_list(next);
+  } else {
+    previous->set_next_use(next);
   }
-
-  Value* prev = definition_->input_use_list();
-  while (prev->next_use_ != this) {
-    prev = prev->next_use_;
-  }
-  prev->next_use_ = next_use_;
-  definition_ = NULL;
+  if (next != NULL) next->set_previous_use(previous);
+  set_definition(NULL);
 }
 
 
 void Definition::ReplaceUsesWith(Definition* other) {
   ASSERT(other != NULL);
   ASSERT(this != other);
-  while (input_use_list_ != NULL) {
-    Value* current = input_use_list_;
-    input_use_list_ = input_use_list_->next_use();
+  Value* next = input_use_list();
+  while (next != NULL) {
+    Value* current = next;
+    next = current->next_use();
     current->set_definition(other);
     current->AddToInputUseList();
   }
-  while (env_use_list_ != NULL) {
-    Value* current = env_use_list_;
-    env_use_list_ = env_use_list_->next_use();
+
+  next = env_use_list();
+  while (next != NULL) {
+    Value* current = next;
+    next = current->next_use();
     current->set_definition(other);
     current->AddToEnvUseList();
   }
+
+  set_input_use_list(NULL);
+  set_env_use_list(NULL);
 }
 
 
