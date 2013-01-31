@@ -25,14 +25,13 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
 
   void onStart() {
     var testGroupName = window.location.search;
-    var groupVar = 'group=';
-    if (testGroupName != '' && testGroupName.contains(groupVar)) {
+    if (testGroupName != '') {
       try {
-        testGroupName = testGroupName.substring(
-            testGroupName.indexOf(groupVar) + groupVar.length);
-        var endIndex = testGroupName.indexOf('&');
-        testGroupName = testGroupName.substring(0,
-            endIndex == -1 ? testGroupName.length : endIndex);
+        for (var parameter in testGroupName.substring(1).split('&')) {
+          if (parameter.startsWith('group=')) {
+            testGroupName = parameter.split('=')[1];
+          }
+        }
         unittest.filterTests('^$testGroupName${unittest.groupSep}');
       } catch (e) {
         print('tried to match "$testGroupName"');
