@@ -15,6 +15,7 @@ import '../../../pkg/http/lib/testing.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
+import '../../pub/validator/compiled_dartdoc.dart';
 import '../../pub/validator/dependency.dart';
 import '../../pub/validator/directory.dart';
 import '../../pub/validator/lib.dart';
@@ -33,6 +34,9 @@ void expectValidationError(ValidatorCreator fn) {
 void expectValidationWarning(ValidatorCreator fn) {
   expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isNot(isEmpty)));
 }
+
+Validator compiledDartdoc(Entrypoint entrypoint) =>
+  new CompiledDartdocValidator(entrypoint);
 
 Validator dependency(Entrypoint entrypoint) =>
   new DependencyValidator(entrypoint);
@@ -124,6 +128,18 @@ main() {
         dir("foo", [dir("tools")])
       ]).scheduleCreate();
       expectNoValidationError(directory);
+    });
+
+    integration('has most but not all files from compiling dartdoc', () {
+      dir(appPath, [
+        dir("doc-out", [
+          file("nav.json", ""),
+          file("index.html", ""),
+          file("styles.css", ""),
+          file("dart-logo-small.png", "")
+        ])
+      ]).scheduleCreate();
+      expectNoValidationError(compiledDartdoc);
     });
   });
 
@@ -519,6 +535,20 @@ main() {
           expectValidationWarning(directory);
         });
       }
+    });
+
+    test('contains compiled dartdoc', () {
+      dir(appPath, [
+        dir('doc-out', [
+          file('nav.json', ''),
+          file('index.html', ''),
+          file('styles.css', ''),
+          file('dart-logo-small.png', ''),
+          file('client-live-nav.js', '')
+        ])
+      ]).scheduleCreate();
+
+      expectValidationWarning(compiledDartdoc);
     });
   });
 }

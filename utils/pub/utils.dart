@@ -118,6 +118,18 @@ void chainToCompleter(Future future, Completer completer) {
       onError: (e) => completer.completeError(e.error, e.stackTrace));
 }
 
+/// Like [Iterable.where], but allows [test] to return [Future]s and uses the
+/// results of those [Future]s as the test.
+Future<Iterable> futureWhere(Iterable iter, test(value)) {
+  return Future.wait(iter.mappedBy((e) {
+    var result = test(e);
+    if (result is! Future) result = new Future.immediate(result);
+    return result.then((result) => new Pair(e, result));
+  }))
+      .then((pairs) => pairs.where((pair) => pair.last))
+      .then((pairs) => pairs.mappedBy((pair) => pair.first));
+}
+
 // TODO(nweiz): unify the following functions with the utility functions in
 // pkg/http.
 

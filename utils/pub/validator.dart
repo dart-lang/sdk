@@ -11,6 +11,7 @@ import 'log.dart' as log;
 import 'io.dart';
 import 'system_cache.dart';
 import 'utils.dart';
+import 'validator/compiled_dartdoc.dart';
 import 'validator/dependency.dart';
 import 'validator/directory.dart';
 import 'validator/lib.dart';
@@ -50,7 +51,8 @@ abstract class Validator {
       new NameValidator(entrypoint),
       new PubspecFieldValidator(entrypoint),
       new DependencyValidator(entrypoint),
-      new DirectoryValidator(entrypoint)
+      new DirectoryValidator(entrypoint),
+      new CompiledDartdocValidator(entrypoint)
     ];
 
     return Future.wait(validators.map((validator) => validator.validate()))
