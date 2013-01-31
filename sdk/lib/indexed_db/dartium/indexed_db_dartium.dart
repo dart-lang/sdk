@@ -1056,7 +1056,7 @@ class VersionChangeRequestEvents extends RequestEvents {
 
 @DocsEditable
 @DomName('IDBAny')
-class _IDBAny extends NativeFieldWrapperClass1 {
-  _IDBAny.internal();
+class _Any extends NativeFieldWrapperClass1 {
+  _Any.internal();
 
 }

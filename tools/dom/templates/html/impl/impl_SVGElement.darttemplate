@@ -111,14 +111,5 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     throw new UnsupportedError("Cannot invoke click SVG.");
   }
 
-  /**
-   * Checks to see if the SVG element type is supported by the current platform.
-   *
-   * The tag should be a valid SVG element tag name.
-   */
-  static bool isTagSupported(String tag) {
-    var e = new $CLASSNAME.tag(tag);
-    return e is $CLASSNAME && !(e is UnknownElement);
-  }
 $!MEMBERS
 }

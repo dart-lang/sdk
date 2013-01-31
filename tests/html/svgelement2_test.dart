@@ -4,7 +4,7 @@
 
 library SVGElement2Test;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
+import '../../pkg/unittest/lib/html_config.dart';
 import 'svgelement_test.dart' as originalTest;
 
 class A {
@@ -13,13 +13,9 @@ class A {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
-  group('supported', () {
-    // The svgelement_test requires the field "_this" to map to "_this". In this
-    // test-case we use another library's '_this' first (see issue 3039 and
-    // _ChildNodeListLazy.first).
-    expect(new A(499)._this, 499);
-    originalTest.main();
-  });
+  // The svgelement_test requires the field "_this" to map to "_this". In this
+  // test-case we use another library's '_this' first (see issue 3039 and
+  // _ChildNodeListLazy.first).
+  expect(new A(499)._this, 499);
+  originalTest.main();
 }

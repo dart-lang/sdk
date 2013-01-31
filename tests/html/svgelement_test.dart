@@ -27,316 +27,126 @@ main() {
     return out;
   };
 
-  testConstructor(String tagName, Function isExpectedClass,
-      [bool expectation = true]) {
+  testConstructor(String tagName, Function isExpectedClass) {
     test(tagName, () {
-      expect(isExpectedClass(new svg.SvgElement.tag(tagName)), expectation);
+      expect(isExpectedClass(new svg.SvgElement.tag(tagName)), isTrue);
       expect(isExpectedClass(
-          new svg.SvgElement.svg('<$tagName></$tagName>')), expectation);
+          new svg.SvgElement.svg('<$tagName></$tagName>')), isTrue);
     });
   }
   group('additionalConstructors', () {
-    test('valid', () {
-      final svgContent = """
+    group('svg', () {
+      test('valid', () {
+        final svgContent = """
 <svg version="1.1">
   <circle></circle>
   <path></path>
 </svg>""";
-      final el = new svg.SvgElement.svg(svgContent);
-      expect(el, isSvgSvgElement);
-      expect(el.innerHtml, anyOf("<circle></circle><path></path>", '<circle '
-          'xmlns="http://www.w3.org/2000/svg" /><path '
-          'xmlns="http://www.w3.org/2000/svg" />'));
-      expect(el.outerHtml, anyOf(svgContent,
-          '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n  '
-          '<circle />\n  <path />\n</svg>'));
-    });
+        final el = new svg.SvgElement.svg(svgContent);
+        expect(el, isSvgSvgElement);
+        expect(el.innerHtml, "<circle></circle><path></path>");
+        expect(el.outerHtml, svgContent);
+      });
 
-    test('has no parent', () =>
-      expect(new svg.SvgElement.svg('<circle/>').parent, isNull)
-    );
+      test('has no parent', () =>
+        expect(new svg.SvgElement.svg('<circle/>').parent, isNull)
+      );
 
-    test('empty', () {
-      expect(() => new svg.SvgElement.svg(""), throwsArgumentError);
-    });
+      test('empty', () {
+        expect(() => new svg.SvgElement.svg(""), throwsArgumentError);
+      });
 
-    test('too many elements', () {
-      expect(() => new svg.SvgElement.svg("<circle></circle><path></path>"),
-          throwsArgumentError);
+      test('too many elements', () {
+        expect(() => new svg.SvgElement.svg("<circle></circle><path></path>"),
+            throwsArgumentError);
+      });
     });
-  });
-
-  // Unfortunately, because the filtering mechanism in unitttest is a regex done
-  group('supported_altGlyph', () {
-    test('supported', () {
-      expect(svg.AltGlyphElement.supported, true);
-    });
-  });
-
-  group('supported_animate', () {
-    test('supported', () {
-      expect(svg.AnimateElement.supported, true);
-    });
-  });
-
-  group('supported_animateMotion', () {
-    test('supported', () {
-      expect(svg.AnimateMotionElement.supported, true);
-    });
-  });
-
-  group('supported_animateTransform', () {
-    test('supported', () {
-      expect(svg.AnimateTransformElement.supported, true);
-    });
-  });
-
-  group('supported_feBlend', () {
-    test('supported', () {
-      expect(svg.FEBlendElement.supported, true);
-    });
-  });
-
-  group('supported_feColorMatrix', () {
-    test('supported', () {
-      expect(svg.FEColorMatrixElement.supported, true);
-    });
-  });
-
-  group('supported_feComponentTransfer', () {
-    test('supported', () {
-      expect(svg.FEComponentTransferElement.supported, true);
-    });
-  });
-
-  group('supported_feConvolveMatrix', () {
-    test('supported', () {
-      expect(svg.FEConvolveMatrixElement.supported, true);
-    });
-  });
-
-  group('supported_feDiffuseLighting', () {
-    test('supported', () {
-      expect(svg.FEDiffuseLightingElement.supported, true);
-    });
-  });
-
-  group('supported_feDisplacementMap', () {
-    test('supported', () {
-      expect(svg.FEDisplacementMapElement.supported, true);
-    });
-  });
-
-  group('supported_feDistantLight', () {
-    test('supported', () {
-      expect(svg.FEDistantLightElement.supported, true);
-    });
-  });
-
-  group('supported_feFlood', () {
-    test('supported', () {
-      expect(svg.FEFloodElement.supported, true);
-    });
-  });
-
-  group('supported_feFuncA', () {
-    test('supported', () {
-      expect(svg.FEFuncAElement.supported, true);
-    });
-  });
-
-  group('supported_feFuncB', () {
-    test('supported', () {
-      expect(svg.FEFuncBElement.supported, true);
-    });
-  });
-
-  group('supported_feFuncG', () {
-    test('supported', () {
-      expect(svg.FEFuncGElement.supported, true);
-    });
-  });
-
-  group('supported_feFuncR', () {
-    test('supported', () {
-      expect(svg.FEFuncRElement.supported, true);
-    });
-  });
-
-  group('supported_feGaussianBlur', () {
-    test('supported', () {
-      expect(svg.FEGaussianBlurElement.supported, true);
-    });
-  });
-
-  group('supported_feImage', () {
-    test('supported', () {
-      expect(svg.FEImageElement.supported, true);
-    });
-  });
-
-  group('supported_feMerge', () {
-    test('supported', () {
-      expect(svg.FEMergeElement.supported, true);
-    });
-  });
-
-  group('supported_feMergeNode', () {
-    test('supported', () {
-      expect(svg.FEMergeNodeElement.supported, true);
-    });
-  });
-
-  group('supported_feOffset', () {
-    test('supported', () {
-      expect(svg.FEOffsetElement.supported, true);
-    });
-  });
-
-  group('supported_feComponentTransfer', () {
-    test('supported', () {
-      expect(svg.FEPointLightElement.supported, true);
-    });
-  });
-
-  group('supported_feSpecularLighting', () {
-    test('supported', () {
-      expect(svg.FESpecularLightingElement.supported, true);
-    });
-  });
-
-  group('supported_feComponentTransfer', () {
-    test('supported', () {
-      expect(svg.FESpotLightElement.supported, true);
-    });
-  });
-
-  group('supported_feTile', () {
-    test('supported', () {
-      expect(svg.FETileElement.supported, true);
-    });
-  });
-
-  group('supported_feTurbulence', () {
-    test('supported', () {
-      expect(svg.FETurbulenceElement.supported, true);
-    });
-  });
-
-  group('supported_filter', () {
-    test('supported', () {
-      expect(svg.FilterElement.supported, true);
-    });
-  });
-
-  group('supported_foreignObject', () {
-    test('supported', () {
-      expect(svg.ForeignObjectElement.supported, true);
-    });
-  });
-
-  group('supported_set', () {
-    test('supported', () {
-      expect(svg.SetElement.supported, true);
-    });
+    testConstructor('altGlyphDef', (e) => e is svg.AltGlyphDefElement);
+    testConstructor('altGlyph', (e) => e is svg.AltGlyphElement);
+    testConstructor('animateColor', (e) => e is svg.AnimateColorElement);
+    testConstructor('animate', (e) => e is svg.AnimateElement);
+    // WebKit doesn't recognize animateMotion
+    // testConstructor('animateMotion', (e) => e is svg.AnimateMotionElement);
+    testConstructor('animateTransform', (e) => e is svg.AnimateTransformElement);
+    testConstructor('cursor', (e) => e is svg.CursorElement);
+    testConstructor('feBlend', (e) => e is svg.FEBlendElement);
+    testConstructor('feColorMatrix', (e) => e is svg.FEColorMatrixElement);
+    testConstructor('feComponentTransfer',
+        (e) => e is svg.FEComponentTransferElement);
+    testConstructor('feConvolveMatrix', (e) => e is svg.FEConvolveMatrixElement);
+    testConstructor('feDiffuseLighting',
+        (e) => e is svg.FEDiffuseLightingElement);
+    testConstructor('feDisplacementMap',
+        (e) => e is svg.FEDisplacementMapElement);
+    testConstructor('feDistantLight', (e) => e is svg.FEDistantLightElement);
+    testConstructor('feDropShadow', (e) => e is svg.FEDropShadowElement);
+    testConstructor('feFlood', (e) => e is svg.FEFloodElement);
+    testConstructor('feFuncA', (e) => e is svg.FEFuncAElement);
+    testConstructor('feFuncB', (e) => e is svg.FEFuncBElement);
+    testConstructor('feFuncG', (e) => e is svg.FEFuncGElement);
+    testConstructor('feFuncR', (e) => e is svg.FEFuncRElement);
+    testConstructor('feGaussianBlur', (e) => e is svg.FEGaussianBlurElement);
+    testConstructor('feImage', (e) => e is svg.FEImageElement);
+    testConstructor('feMerge', (e) => e is svg.FEMergeElement);
+    testConstructor('feMergeNode', (e) => e is svg.FEMergeNodeElement);
+    testConstructor('feOffset', (e) => e is svg.FEOffsetElement);
+    testConstructor('fePointLight', (e) => e is svg.FEPointLightElement);
+    testConstructor('feSpecularLighting',
+        (e) => e is svg.FESpecularLightingElement);
+    testConstructor('feSpotLight', (e) => e is svg.FESpotLightElement);
+    testConstructor('feTile', (e) => e is svg.FETileElement);
+    testConstructor('feTurbulence', (e) => e is svg.FETurbulenceElement);
+    testConstructor('filter', (e) => e is svg.FilterElement);
+    testConstructor('font', (e) => e is svg.FontElement);
+    testConstructor('font-face', (e) => e is svg.FontFaceElement);
+    testConstructor('font-face-format', (e) => e is svg.FontFaceFormatElement);
+    testConstructor('font-face-name', (e) => e is svg.FontFaceNameElement);
+    testConstructor('font-face-src', (e) => e is svg.FontFaceSrcElement);
+    testConstructor('font-face-uri', (e) => e is svg.FontFaceUriElement);
+    testConstructor('foreignObject', (e) => e is svg.ForeignObjectElement);
+    testConstructor('glyph', (e) => e is svg.GlyphElement);
+    testConstructor('glyphRef', (e) => e is svg.GlyphRefElement);
+    testConstructor('metadata', (e) => e is svg.MetadataElement);
+    testConstructor('missing-glyph', (e) => e is svg.MissingGlyphElement);
+    testConstructor('set', (e) => e is svg.SetElement);
+    testConstructor('tref', (e) => e is svg.TRefElement);
+    testConstructor('vkern', (e) => e is svg.VKernElement);
   });
 
   group('constructors', () {
-    test('supported', () {
-      testConstructor('a', (e) => e is svg.AElement);
-      testConstructor('circle', (e) => e is svg.CircleElement);
-      testConstructor('clipPath', (e) => e is svg.ClipPathElement);
-      testConstructor('defs', (e) => e is svg.DefsElement);
-      testConstructor('desc', (e) => e is svg.DescElement);
-      testConstructor('ellipse', (e) => e is svg.EllipseElement);
-      testConstructor('g', (e) => e is svg.GElement);
-      testConstructor('image', (e) => e is svg.ImageElement);
-      testConstructor('line', (e) => e is svg.LineElement);
-      testConstructor('linearGradient', (e) => e is svg.LinearGradientElement);
-      testConstructor('marker', (e) => e is svg.MarkerElement);
-      testConstructor('mask', (e) => e is svg.MaskElement);
-      testConstructor('path', (e) => e is svg.PathElement);
-      testConstructor('pattern', (e) => e is svg.PatternElement);
-      testConstructor('polygon', (e) => e is svg.PolygonElement);
-      testConstructor('polyline', (e) => e is svg.PolylineElement);
-      testConstructor('radialGradient', (e) => e is svg.RadialGradientElement);
-      testConstructor('rect', (e) => e is svg.RectElement);
-      testConstructor('script', (e) => e is svg.ScriptElement);
-      testConstructor('stop', (e) => e is svg.StopElement);
-      testConstructor('style', (e) => e is svg.StyleElement);
-      testConstructor('switch', (e) => e is svg.SwitchElement);
-      testConstructor('symbol', (e) => e is svg.SymbolElement);
-      testConstructor('tspan', (e) => e is svg.TSpanElement);
-      testConstructor('text', (e) => e is svg.TextElement);
-      testConstructor('textPath', (e) => e is svg.TextPathElement);
-      testConstructor('title', (e) => e is svg.TitleElement);
-      testConstructor('use', (e) => e is svg.UseElement);
-      testConstructor('view', (e) => e is svg.ViewElement);
-      testConstructor('altGlyph', (e) => e is svg.AltGlyphElement,
-          svg.AltGlyphElement.supported);
-      testConstructor('animate', (e) => e is svg.AnimateElement,
-          svg.AnimateElement.supported);
-      testConstructor('animateMotion', (e) => e is svg.AnimateMotionElement,
-          svg.AnimateMotionElement.supported);
-      testConstructor('animateTransform', (e) => e is svg.AnimateTransformElement,
-          svg.AnimateTransformElement.supported);
-      testConstructor('feBlend', (e) => e is svg.FEBlendElement,
-          svg.FEBlendElement.supported);
-      testConstructor('feColorMatrix', (e) => e is svg.FEColorMatrixElement,
-          svg.FEColorMatrixElement.supported);
-      testConstructor('feComponentTransfer',
-          (e) => e is svg.FEComponentTransferElement,
-          svg.FEComponentTransferElement.supported);
-      testConstructor('feConvolveMatrix',
-          (e) => e is svg.FEConvolveMatrixElement,
-          svg.FEConvolveMatrixElement.supported);
-      testConstructor('feDiffuseLighting',
-          (e) => e is svg.FEDiffuseLightingElement,
-          svg.FEDiffuseLightingElement.supported);
-      testConstructor('feDisplacementMap',
-          (e) => e is svg.FEDisplacementMapElement,
-          svg.FEDisplacementMapElement.supported);
-      testConstructor('feDistantLight', (e) => e is svg.FEDistantLightElement,
-          svg.FEDistantLightElement.supported);
-      testConstructor('feFlood', (e) => e is svg.FEFloodElement,
-          svg.FEFloodElement.supported);
-      testConstructor('feFuncA', (e) => e is svg.FEFuncAElement,
-          svg.FEFuncAElement.supported);
-      testConstructor('feFuncB', (e) => e is svg.FEFuncBElement,
-          svg.FEFuncBElement.supported);
-      testConstructor('feFuncG', (e) => e is svg.FEFuncGElement,
-          svg.FEFuncGElement.supported);
-      testConstructor('feFuncR', (e) => e is svg.FEFuncRElement,
-          svg.FEFuncRElement.supported);
-      testConstructor('feGaussianBlur', (e) => e is svg.FEGaussianBlurElement,
-          svg.FEGaussianBlurElement.supported);
-      testConstructor('feImage', (e) => e is svg.FEImageElement,
-          svg.FEImageElement.supported);
-      testConstructor('feMerge', (e) => e is svg.FEMergeElement,
-          svg.FEMergeElement.supported);
-      testConstructor('feMergeNode', (e) => e is svg.FEMergeNodeElement,
-          svg.FEMergeNodeElement.supported);
-      testConstructor('feOffset', (e) => e is svg.FEOffsetElement,
-          svg.FEOffsetElement.supported);
-      testConstructor('fePointLight', (e) => e is svg.FEPointLightElement,
-          svg.FEPointLightElement.supported);
-      testConstructor('feSpecularLighting',
-          (e) => e is svg.FESpecularLightingElement,
-          svg.FESpecularLightingElement.supported);
-      testConstructor('feSpotLight', (e) => e is svg.FESpotLightElement,
-          svg.FESpotLightElement.supported);
-      testConstructor('feTile', (e) => e is svg.FETileElement,
-          svg.FETileElement.supported);
-      testConstructor('feTurbulence', (e) => e is svg.FETurbulenceElement,
-          svg.FETurbulenceElement.supported);
-      testConstructor('filter', (e) => e is svg.FilterElement,
-          svg.FilterElement.supported);
-      testConstructor('foreignObject', (e) => e is svg.ForeignObjectElement,
-          svg.ForeignObjectElement.supported);
-      testConstructor('metadata', (e) => e is svg.MetadataElement);
-      testConstructor('set', (e) => e is svg.SetElement,
-          svg.SetElement.supported);
-    });
+    testConstructor('a', (e) => e is svg.AElement);
+    testConstructor('circle', (e) => e is svg.CircleElement);
+    testConstructor('clipPath', (e) => e is svg.ClipPathElement);
+    testConstructor('defs', (e) => e is svg.DefsElement);
+    testConstructor('desc', (e) => e is svg.DescElement);
+    testConstructor('ellipse', (e) => e is svg.EllipseElement);
+    testConstructor('g', (e) => e is svg.GElement);
+    // WebKit doesn't recognize hkern
+    // testConstructor('hkern', (e) => e is svg.HKernElement);
+    testConstructor('image', (e) => e is svg.ImageElement);
+    testConstructor('line', (e) => e is svg.LineElement);
+    testConstructor('linearGradient', (e) => e is svg.LinearGradientElement);
+    // WebKit doesn't recognize mpath
+    // testConstructor('mpath', (e) => e is svg.MPathElement);
+    testConstructor('marker', (e) => e is svg.MarkerElement);
+    testConstructor('mask', (e) => e is svg.MaskElement);
+    testConstructor('path', (e) => e is svg.PathElement);
+    testConstructor('pattern', (e) => e is svg.PatternElement);
+    testConstructor('polygon', (e) => e is svg.PolygonElement);
+    testConstructor('polyline', (e) => e is svg.PolylineElement);
+    testConstructor('radialGradient', (e) => e is svg.RadialGradientElement);
+    testConstructor('rect', (e) => e is svg.RectElement);
+    testConstructor('script', (e) => e is svg.ScriptElement);
+    testConstructor('stop', (e) => e is svg.StopElement);
+    testConstructor('style', (e) => e is svg.StyleElement);
+    testConstructor('switch', (e) => e is svg.SwitchElement);
+    testConstructor('symbol', (e) => e is svg.SymbolElement);
+    testConstructor('tspan', (e) => e is svg.TSpanElement);
+    testConstructor('text', (e) => e is svg.TextElement);
+    testConstructor('textPath', (e) => e is svg.TextPathElement);
+    testConstructor('title', (e) => e is svg.TitleElement);
+    testConstructor('use', (e) => e is svg.UseElement);
+    testConstructor('view', (e) => e is svg.ViewElement);
   });
 
   group('outerHtml', () {

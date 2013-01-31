@@ -27431,6 +27431,24 @@ class XsltProcessor native "*XSLTProcessor" {
 
 
 @DocsEditable
+@DomName('HTMLAppletElement')
+class _AppletElement extends Element native "*HTMLAppletElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('HTMLBaseFontElement')
+class _BaseFontElement extends Element native "*HTMLBaseFontElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('ClientRectList')
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
 
@@ -28022,6 +28040,15 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
 
 @DocsEditable
+@DomName('HTMLDirectoryElement')
+class _DirectoryElement extends Element native "*HTMLDirectoryElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('EntryArray')
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
@@ -28416,6 +28443,85 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
 
 @DocsEditable
+@DomName('HTMLFontElement')
+class _FontElement extends Element native "*HTMLFontElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('HTMLFrameElement')
+class _FrameElement extends Element native "*HTMLFrameElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('HTMLFrameSetElement')
+class _FrameSetElement extends Element native "*HTMLFrameSetElement" {
+
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
+  _FrameSetElementEvents get on =>
+    new _FrameSetElementEvents(this);
+}
+
+@DocsEditable
+@deprecated
+class _FrameSetElementEvents extends ElementEvents {
+  @DocsEditable
+  _FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
+
+  @DocsEditable
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  @DocsEditable
+  EventListenerList get blur => this['blur'];
+
+  @DocsEditable
+  EventListenerList get error => this['error'];
+
+  @DocsEditable
+  EventListenerList get focus => this['focus'];
+
+  @DocsEditable
+  EventListenerList get hashChange => this['hashchange'];
+
+  @DocsEditable
+  EventListenerList get load => this['load'];
+
+  @DocsEditable
+  EventListenerList get message => this['message'];
+
+  @DocsEditable
+  EventListenerList get offline => this['offline'];
+
+  @DocsEditable
+  EventListenerList get online => this['online'];
+
+  @DocsEditable
+  EventListenerList get popState => this['popstate'];
+
+  @DocsEditable
+  EventListenerList get resize => this['resize'];
+
+  @DocsEditable
+  EventListenerList get storage => this['storage'];
+
+  @DocsEditable
+  EventListenerList get unload => this['unload'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('GamepadList')
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
 
@@ -28613,114 +28719,8 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
 
 @DocsEditable
-@DomName('HTMLAppletElement')
-class _HTMLAppletElement extends Element native "*HTMLAppletElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('HTMLBaseFontElement')
-class _HTMLBaseFontElement extends Element native "*HTMLBaseFontElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('HTMLDirectoryElement')
-class _HTMLDirectoryElement extends Element native "*HTMLDirectoryElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('HTMLFontElement')
-class _HTMLFontElement extends Element native "*HTMLFontElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('HTMLFrameElement')
-class _HTMLFrameElement extends Element native "*HTMLFrameElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('HTMLFrameSetElement')
-class _HTMLFrameSetElement extends Element native "*HTMLFrameSetElement" {
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  _HTMLFrameSetElementEvents get on =>
-    new _HTMLFrameSetElementEvents(this);
-}
-
-@DocsEditable
-@deprecated
-class _HTMLFrameSetElementEvents extends ElementEvents {
-  @DocsEditable
-  _HTMLFrameSetElementEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  @DocsEditable
-  EventListenerList get blur => this['blur'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get focus => this['focus'];
-
-  @DocsEditable
-  EventListenerList get hashChange => this['hashchange'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get offline => this['offline'];
-
-  @DocsEditable
-  EventListenerList get online => this['online'];
-
-  @DocsEditable
-  EventListenerList get popState => this['popstate'];
-
-  @DocsEditable
-  EventListenerList get resize => this['resize'];
-
-  @DocsEditable
-  EventListenerList get storage => this['storage'];
-
-  @DocsEditable
-  EventListenerList get unload => this['unload'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('HTMLMarqueeElement')
-class _HTMLMarqueeElement extends Element native "*HTMLMarqueeElement" {
+class _MarqueeElement extends Element native "*HTMLMarqueeElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

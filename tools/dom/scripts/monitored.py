@@ -29,9 +29,6 @@ class Dict(MonitoredCollection):
     self._used_keys.add(key)
     return self._map[key]
 
-  def __setitem__(self, key, value):
-    self._map[key] = value
-
   def __contains__(self, key):
     self._used_keys.add(key)
     return key in self._map

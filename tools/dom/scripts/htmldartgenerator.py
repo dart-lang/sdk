@@ -32,16 +32,11 @@ class HtmlDartGenerator(object):
 
   def EmitSupportCheck(self):
     if self.HasSupportCheck():
-      check = self.GetSupportCheck()
-      if type(check) != tuple:
-        signature = 'get supported'
-      else:
-        signature = check[0]
-        check = check[1]
+      support_check = self.GetSupportCheck()
       self._members_emitter.Emit('\n'
           '  /// Checks if this type is supported on the current platform.\n'
-          '  static bool $SIGNATURE => $SUPPORT_CHECK;\n',
-          SIGNATURE=signature, SUPPORT_CHECK=check)
+          '  static bool get supported => $SUPPORT_CHECK;\n',
+          SUPPORT_CHECK=support_check)
 
   def EmitEventGetter(self, events_class_name):
     self._members_emitter.Emit(

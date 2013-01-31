@@ -16,7 +16,15 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'DOMFormData': 'FormData',
     'DOMURL': 'Url',
     'DOMWindow': 'Window',
+    'HTMLAppletElement' : '_AppletElement',
+    'HTMLBaseFontElement' : '_BaseFontElement',
+    'HTMLDirectoryElement' : '_DirectoryElement',
     'HTMLDocument' : 'HtmlDocument',
+    'HTMLFontElement' : '_FontElement',
+    'HTMLFrameElement' : '_FrameElement',
+    'HTMLFrameSetElement' : '_FrameSetElement',
+    'HTMLMarqueeElement' : '_MarqueeElement',
+    'IDBAny': '_Any', # Suppressed, but needs to exist for Dartium.
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
     'NavigatorUserMediaErrorCallback': '_NavigatorUserMediaErrorCallback',
     'NavigatorUserMediaSuccessCallback': '_NavigatorUserMediaSuccessCallback',
@@ -37,42 +45,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
 })
-
-# Interfaces that are suppressed, but need to still exist for Dartium and to
-# properly wrap DOM objects if/when encountered.
-_removed_html_interfaces = [
-  'HTMLAppletElement',
-  'HTMLBaseFontElement',
-  'HTMLDirectoryElement',
-  'HTMLFontElement',
-  'HTMLFrameElement',
-  'HTMLFrameSetElement',
-  'HTMLMarqueeElement',
-  'IDBAny',
-  'SVGAltGlyphDefElement', # Webkit only.
-  'SVGAltGlyphItemElement', # Webkit only.
-  'SVGAnimateColorElement', # Deprecated. Use AnimateElement instead.
-  'SVGComponentTransferFunctionElement', # Currently not supported anywhere.
-  'SVGCursorElement', # Webkit only.
-  'SVGGradientElement', # Currently not supported anywhere.
-  'SVGFEDropShadowElement', # Webkit only for the following:
-  'SVGFontElement',
-  'SVGFontFaceElement',
-  'SVGFontFaceFormatElement',
-  'SVGFontFaceNameElement',
-  'SVGFontFaceSrcElement',
-  'SVGFontFaceUriElement',
-  'SVGGlyphElement',
-  'SVGGlyphRefElement',
-  'SVGHKernElement',
-  'SVGMissingGlyphElement',
-  'SVGMPathElement',
-  'SVGTRefElement',
-  'SVGVKernElement',
-]
-
-for interface in _removed_html_interfaces:
-  html_interface_renames[interface] = '_' + interface
 
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard

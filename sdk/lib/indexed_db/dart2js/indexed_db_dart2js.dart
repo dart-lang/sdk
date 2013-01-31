@@ -930,5 +930,5 @@ class VersionChangeRequestEvents extends RequestEvents {
 
 @DocsEditable
 @DomName('IDBAny')
-class _IDBAny native "*IDBAny" {
+class _Any native "*IDBAny" {
 }
