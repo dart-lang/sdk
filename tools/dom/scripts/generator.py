@@ -835,7 +835,8 @@ def GetComments(library_name, interface_name, member_name=None):
     if (member_name and 'members' in _dom_json[library_name][interface_name] and
         (member_name in _dom_json[library_name][interface_name]['members'])):
       comments = _dom_json[library_name][interface_name]['members'][member_name]
-    elif 'comment' in _dom_json[library_name][interface_name]:
+    elif (not member_name and 'comment' in
+          _dom_json[library_name][interface_name]):
       comments = _dom_json[library_name][interface_name]['comment']
 
   if (len(comments)):

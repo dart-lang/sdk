@@ -7120,6 +7120,27 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+/**
+ * Represents an HTML <div> element.
+ *
+ * The [DivElement] is a generic container for content and does not have any
+ * special significance. It is functionally similar to [SpanElement].
+ *
+ * The [DivElement] is a block-level element, as opposed to [SpanElement],
+ * which is an inline-level element.
+ *
+ * Example usage:
+ *
+ *     DivElement div = new DivElement();
+ *     div.text = 'Here's my new DivElem
+ *     document.body.elements.add(elem);
+ *
+ * See also:
+ *
+ * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
+ * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
+ * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
+ */
 @DomName('HTMLDivElement')
 class DivElement extends _Element_Merged {
   DivElement.internal() : super.internal();
@@ -13647,7 +13668,11 @@ class HttpRequest extends EventTarget {
    *
    * The Future is completed when the response is available.
    *
-   * Details to keep in mind when using credentials:
+   * The [withCredentials] parameter specified that credentials such as a cookie
+   * (already) set in the header or
+   * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2)
+   * should be specified for the request. Details to keep in mind when using
+   * credentials:
    *
    * * Using credentials is only useful for cross-origin requests.
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
@@ -13703,6 +13728,13 @@ class HttpRequest extends EventTarget {
 
   HttpRequest.internal() : super.internal();
 
+  /**
+   * Stop the current request.
+   *
+   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
+   * `LOADING`. If this method is not in the process of being sent, the method
+   * has no effect.
+   */
   @DomName('XMLHttpRequest.abort')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
@@ -13773,18 +13805,48 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   int get readyState native "XMLHttpRequest_readyState_Getter";
 
+  /**
+   * The data received as a reponse from the request.
+   *
+   * The data could be in the
+   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a
+   * [String]). `null` indicates request failure.
+   */
   @DomName('XMLHttpRequest.response')
   @DocsEditable
   Object get response native "XMLHttpRequest_response_Getter";
 
+  /**
+   * The response in string form or `null on failure.
+   */
   @DomName('XMLHttpRequest.responseText')
   @DocsEditable
   String get responseText native "XMLHttpRequest_responseText_Getter";
 
+  /**
+   * [String] telling the server the desired response format.
+   *
+   * Default is `String`.
+   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
+   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
+   * `responseType` is set while performing a synchronous request.
+   *
+   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable
   String get responseType native "XMLHttpRequest_responseType_Getter";
 
+  /**
+   * [String] telling the server the desired response format.
+   *
+   * Default is `String`.
+   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
+   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
+   * `responseType` is set while performing a synchronous request.
+   *
+   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable
   void set responseType(String value) native "XMLHttpRequest_responseType_Setter";
@@ -13793,26 +13855,57 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   Document get responseXml native "XMLHttpRequest_responseXML_Getter";
 
+  /**
+   * The http result code from the request (200, 404, etc).
+   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   */
   @DomName('XMLHttpRequest.status')
   @DocsEditable
   int get status native "XMLHttpRequest_status_Getter";
 
+  /**
+   * The request response string (such as \"200 OK\").
+   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   */
   @DomName('XMLHttpRequest.statusText')
   @DocsEditable
   String get statusText native "XMLHttpRequest_statusText_Getter";
 
+  /**
+   * [EventTarget] that can hold listeners to track the progress of the request.
+   * The events fired will be members of [HttpRequestUploadEvents].
+   */
   @DomName('XMLHttpRequest.upload')
   @DocsEditable
   HttpRequestUpload get upload native "XMLHttpRequest_upload_Getter";
 
+  /**
+   * True if cross-site requests should use credentials such as cookies
+   * or authorization headers; false otherwise.
+   *
+   * This value is ignored for same-site requests.
+   */
   @DomName('XMLHttpRequest.withCredentials')
   @DocsEditable
   bool get withCredentials native "XMLHttpRequest_withCredentials_Getter";
 
+  /**
+   * True if cross-site requests should use credentials such as cookies
+   * or authorization headers; false otherwise.
+   *
+   * This value is ignored for same-site requests.
+   */
   @DomName('XMLHttpRequest.withCredentials')
   @DocsEditable
   void set withCredentials(bool value) native "XMLHttpRequest_withCredentials_Setter";
 
+  /**
+   * Stop the current request.
+   *
+   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
+   * `LOADING`. If this method is not in the process of being sent, the method
+   * has no effect.
+   */
   @DomName('XMLHttpRequest.abort')
   @DocsEditable
   void abort() native "XMLHttpRequest_abort_Callback";
@@ -13825,18 +13918,51 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   bool dispatchEvent(Event evt) native "XMLHttpRequest_dispatchEvent_Callback";
 
+  /**
+   * Retrieve all the response headers from a request.
+   *
+   * `null` if no headers have been received. For multipart requests,
+   * `getAllResponseHeaders` will return the response headers for the current
+   * part of the request.
+   *
+   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * for a list of common response headers.
+   */
   @DomName('XMLHttpRequest.getAllResponseHeaders')
   @DocsEditable
   String getAllResponseHeaders() native "XMLHttpRequest_getAllResponseHeaders_Callback";
 
+  /**
+   * Return the response header named `header`, or `null` if not found.
+   *
+   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * for a list of common response headers.
+   */
   @DomName('XMLHttpRequest.getResponseHeader')
   @DocsEditable
   String getResponseHeader(String header) native "XMLHttpRequest_getResponseHeader_Callback";
 
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   *
+   * By default the request is done asyncronously, with no user or password
+   * authentication information. If `async` is false, the request will be send
+   * synchronously.
+   *
+   * Calling `open` again on a currently active request is equivalent to
+   * calling `abort`.
+   */
   @DomName('XMLHttpRequest.open')
   @DocsEditable
   void open(String method, String url, [bool async, String user, String password]) native "XMLHttpRequest_open_Callback";
 
+  /**
+   * Specify a particular MIME type (such as `text/xml`) desired for the
+   * response.
+   *
+   * This value must be set before the request has been sent. See also the list
+   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
+   */
   @DomName('XMLHttpRequest.overrideMimeType')
   @DocsEditable
   void overrideMimeType(String override) native "XMLHttpRequest_overrideMimeType_Callback";
@@ -13845,6 +13971,13 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_removeEventListener_Callback";
 
+  /**
+   * Send the request with any given `data`.
+   *
+   * See also:
+   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
+   * from MDN.
+   */
   @DomName('XMLHttpRequest.send')
   @DocsEditable
   void send([data]) native "XMLHttpRequest_send_Callback";
@@ -13853,6 +13986,13 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
+  /**
+   * Stop the current request.
+   *
+   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
+   * `LOADING`. If this method is not in the process of being sent, the method
+   * has no effect.
+   */
   @DomName('XMLHttpRequest.abort')
   @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
