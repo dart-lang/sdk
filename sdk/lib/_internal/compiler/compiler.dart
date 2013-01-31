@@ -41,7 +41,7 @@ typedef Future<String> ReadStringFromUri(Uri uri);
  * As more features are added to the compiler, new names and
  * extensions may be introduced.
  */
-typedef Sink CompilerOutputProvider(String name, String extension);
+typedef Sink<String> CompilerOutputProvider(String name, String extension);
 
 /**
  * Invoked by the compiler to report diagnostics. If [uri] is
