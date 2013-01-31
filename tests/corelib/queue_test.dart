@@ -43,7 +43,7 @@ class QueueTest {
       return (value == 10);
     }
 
-    Queue mapped = new Queue.from(queue.map(mapTest));
+    Queue mapped = new Queue.from(queue.mappedBy(mapTest));
     checkQueue(mapped, 3, 111);
     checkQueue(queue, 3, 1110);
     Expect.equals(1, mapped.removeFirst());

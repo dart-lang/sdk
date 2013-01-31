@@ -218,12 +218,12 @@ runDateTests([List<String> subset]) {
     var date_format = new DateFormat("d");
     expect(
         date_format.parsePattern("hh:mm:ss")
-            .map((x) => x.pattern)
+            .mappedBy((x) => x.pattern)
             .toList(),
         orderedEquals(["hh",":", "mm",":","ss"]));
     expect(
         date_format.parsePattern("hh:mm:ss")
-            .map((x) => x.pattern)
+            .mappedBy((x) => x.pattern)
             .toList(),
         orderedEquals(["hh",":", "mm",":","ss"]));
   });

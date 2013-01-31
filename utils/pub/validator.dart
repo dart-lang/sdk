@@ -53,12 +53,12 @@ abstract class Validator {
       new DirectoryValidator(entrypoint)
     ];
 
-    return Future.wait(validators.map((validator) => validator.validate()))
+    return Future.wait(validators.mappedBy((validator) => validator.validate()))
       .then((_) {
       var errors =
-          flatten(validators.map((validator) => validator.errors));
+          flatten(validators.mappedBy((validator) => validator.errors));
       var warnings =
-          flatten(validators.map((validator) => validator.warnings));
+          flatten(validators.mappedBy((validator) => validator.warnings));
 
       if (!errors.isEmpty) {
         log.error("Missing requirements:");

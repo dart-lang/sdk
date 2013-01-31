@@ -101,8 +101,7 @@ class FilteredElementList implements List {
     return result;
   }
 
-  Iterable map(f(Element element)) => _filtered.map(f);
-  List mappedBy(f(Element element)) => _filtered.mappedBy(f);
+  Iterable mappedBy(f(Element element)) => _filtered.mappedBy(f);
   Iterable<Element> where(bool f(Element element)) => _filtered.where(f);
 
   Element removeAt(int index) {

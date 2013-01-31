@@ -19,7 +19,7 @@ class DirectoryValidator extends Validator {
 
   Future validate() {
     return listDir(entrypoint.root.dir).then((dirs) {
-      return Future.wait(dirs.map((dir) {
+      return Future.wait(dirs.mappedBy((dir) {
         return dirExists(dir).then((exists) {
           if (!exists) return;
 

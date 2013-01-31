@@ -38,7 +38,7 @@ String mapToQuery(Map<String, String> map) {
   var pairs = <List<String>>[];
   map.forEach((key, value) =>
       pairs.add([encodeUriComponent(key), encodeUriComponent(value)]));
-  return Strings.join(pairs.map((pair) => "${pair[0]}=${pair[1]}"), "&");
+  return Strings.join(pairs.mappedBy((pair) => "${pair[0]}=${pair[1]}"), "&");
 }
 
 /// Adds all key/value pairs from [source] to [destination], overwriting any

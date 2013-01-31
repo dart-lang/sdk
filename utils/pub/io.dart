@@ -22,7 +22,7 @@ final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
 /// [File] objects.
 String join(part1, [part2, part3, part4, part5, part6, part7, part8]) {
   var parts = [part1, part2, part3, part4, part5, part6, part7, part8]
-      .map((part) => part == null ? null : _getPath(part)).toList();
+      .mappedBy((part) => part == null ? null : _getPath(part)).toList();
 
   return path.join(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5],
       parts[6], parts[7]);
@@ -873,7 +873,7 @@ InputStream createTarGz(List contents, {baseDir}) {
 
   if (baseDir == null) baseDir = path.current;
   baseDir = getFullPath(baseDir);
-  contents = contents.map((entry) {
+  contents = contents.mappedBy((entry) {
     entry = getFullPath(entry);
     if (!isBeneath(entry, baseDir)) {
       throw 'Entry $entry is not inside $baseDir.';
@@ -883,7 +883,7 @@ InputStream createTarGz(List contents, {baseDir}) {
 
   if (Platform.operatingSystem != "windows") {
     var args = ["--create", "--gzip", "--directory", baseDir];
-    args.addAll(contents.map(_getPath));
+    args.addAll(contents.mappedBy(_getPath));
     // TODO(nweiz): It's possible that enough command-line arguments will make
     // the process choke, so at some point we should save the arguments to a
     // file and pass them in via --files-from for tar and -i@filename for 7zip.
@@ -903,7 +903,7 @@ InputStream createTarGz(List contents, {baseDir}) {
     // Create the tar file.
     var tarFile = join(tempDir, "intermediate.tar");
     var args = ["a", "-w$baseDir", tarFile];
-    args.addAll(contents.map((entry) => '-i!"$entry"'));
+    args.addAll(contents.mappedBy((entry) => '-i!"$entry"'));
 
     // Note: This line of code gets munged by create_sdk.py to be the correct
     // relative path to 7zip in the SDK.

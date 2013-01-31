@@ -51,7 +51,7 @@ class Maps {
   }
 
   static Iterable getValues(Map map) {
-    return map.keys.map((key) => map[key]);
+    return map.keys.mappedBy((key) => map[key]);
   }
 
   static int length(Map map) => map.keys.length;

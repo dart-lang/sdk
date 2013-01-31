@@ -29,7 +29,7 @@ class YamlMap implements Map {
   void clear() => _map.clear();
   void forEach(void f(key, value)) =>
     _map.forEach((k, v) => f(_unwrapKey(k), v));
-  Iterable get keys => _map.keys.map(_unwrapKey);
+  Iterable get keys => _map.keys.mappedBy(_unwrapKey);
   Iterable get values => _map.values;
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;

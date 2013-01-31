@@ -641,7 +641,7 @@ runRoundTripTestFlat(serializerSetUp) {
 /** Extract the state from [object] using the rules in [s] and return it. */
 states(object, Serialization s) {
   var rules = s.rulesFor(object, null);
-  return rules.map((x) => x.extractState(object, doNothing)).toList();
+  return rules.mappedBy((x) => x.extractState(object, doNothing)).toList();
 }
 
 /** A hard-coded rule for serializing Node instances. */

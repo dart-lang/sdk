@@ -39,7 +39,7 @@ class HostedSource extends Source {
     return httpClient.read(fullUrl).then((body) {
       var doc = json.parse(body);
       return doc['versions']
-          .map((version) => new Version.parse(version))
+          .mappedBy((version) => new Version.parse(version))
           .toList();
     }).catchError((ex) {
       _throwFriendlyError(ex, parsed.first, parsed.last);

@@ -161,7 +161,7 @@ class SimpleJsonFormat extends Format {
     var result = {};
     result["rules"] = null;
     var ruleData =
-        new List(r.serialization.rules.length).map((x) => []).toList();
+        new List(r.serialization.rules.length).mappedBy((x) => []).toList();
     var top = recursivelyFixUp(data, r, ruleData);
     result["data"] = ruleData;
     result["roots"] = [top];

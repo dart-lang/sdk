@@ -60,8 +60,8 @@ loadYaml(String yaml) {
 /// are YamlMaps. These have a few small behavioral differences from the default
 /// Map implementation; for details, see the YamlMap class.
 List loadYamlStream(String yaml) {
-  return new _Parser(yaml).l_yamlStream()
-      .map((doc) => new _Constructor(new _Composer(doc).compose()).construct())
+  return new _Parser(yaml).l_yamlStream().mappedBy((doc) =>
+      new _Constructor(new _Composer(doc).compose()).construct())
       .toList();
 }
 

@@ -51,7 +51,7 @@ class SetTest {
       return val * val;
     }
 
-    Set mapped = set.map(testMap).toSet();
+    Set mapped = set.mappedBy(testMap).toSet();
     Expect.equals(10, mapped.length);
 
     Expect.equals(true, mapped.contains(0));

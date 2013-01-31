@@ -83,7 +83,7 @@ class CommandLineConfiguration extends Configuration {
     if (stack.length == 0) return;
 
     // Figure out the longest path so we know how much to pad.
-    int longest = stack.map((frame) => frame.location.length).max();
+    int longest = stack.mappedBy((frame) => frame.location.length).max();
 
     // Print out the stack trace nicely formatted.
     for (var frame in stack) {
@@ -108,7 +108,7 @@ class CommandLineConfiguration extends Configuration {
   String _indent(String str) {
     // TODO(nweiz): Use this simpler code once issue 2980 is fixed.
     // return str.replaceAll(new RegExp("^", multiLine: true), "  ");
-    return Strings.join(str.split("\n").map((line) => "  $line"), "\n");
+    return Strings.join(str.split("\n").mappedBy((line) => "  $line"), "\n");
   }
 }
 

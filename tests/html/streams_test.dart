@@ -186,7 +186,7 @@ main() {
   });
 
   test('mappedBy', () {
-    stream.map((_) => null).listen((_) {});
+    stream.mappedBy((_) => null).listen((_) {});
   });
 
   test('reduce', () {

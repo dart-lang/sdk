@@ -42,7 +42,7 @@ testCollections() {
 
   void testArray(array) {
     testJoin("1,3,5,7,9", array.where((i) => i.isOdd), ",");
-    testJoin("0,2,4,6,8,10,12,14,16,18", array.map((i) => i * 2), ",");
+    testJoin("0,2,4,6,8,10,12,14,16,18", array.mappedBy((i) => i * 2), ",");
     testJoin("5,6,7,8,9", array.skip(5), ",");
     testJoin("5,6,7,8,9", array.skipWhile((i) => i < 5), ",");
     testJoin("0,1,2,3,4", array.take(5), ",");

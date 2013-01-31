@@ -128,7 +128,7 @@ class LishCommand extends PubCommand {
       }
 
       return listDir(rootDir, recursive: true).then((entries) {
-        return Future.wait(entries.map((entry) {
+        return Future.wait(entries.mappedBy((entry) {
           return fileExists(entry).then((isFile) {
             // Skip directories.
             if (!isFile) return null;

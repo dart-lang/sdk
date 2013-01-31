@@ -138,10 +138,6 @@ $endif
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  Iterable map(f(Node element)) {
-    return IterableMixinWorkaround.map(this, f);
-  }
-
   List mappedBy(f(Node element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -161,7 +157,7 @@ $endif
 
   // From List<Node>:
 
-  Iterable<Node> take(int n) {
+  List<Node> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -169,7 +165,7 @@ $endif
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Node> skip(int n) {
+  List<Node> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 

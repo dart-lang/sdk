@@ -242,10 +242,6 @@ class _GrowableObjectArray<T> implements List<T> {
     return buffer.toString();
   }
 
-  Iterable map(f(T element)) {
-    return IterableMixinWorkaround.map(this, f);
-  }
-
   List mappedBy(f(T element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -258,7 +254,7 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.where(this, f);
   }
 
-  Iterable<T> take(int n) {
+  List<T> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -266,7 +262,7 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<T> skip(int n) {
+  List<T> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 

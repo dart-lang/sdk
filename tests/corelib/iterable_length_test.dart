@@ -36,6 +36,6 @@ main() {
   a = new A(0);
   Expect.equals(0, a.length);
   a = new A(5);
-  Expect.equals(5, a.map((e) => e + 1).length);
+  Expect.equals(5, a.mappedBy((e) => e + 1).length);
   Expect.equals(3, a.where((e) => e >= 3).length);
 }

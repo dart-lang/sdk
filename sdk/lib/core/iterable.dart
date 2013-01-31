@@ -27,7 +27,7 @@ abstract class Iterable<E> {
    * with that index to create the next value.
    *
    * As an [Iterable], [:new Iterable.generate(n, generator)):] is equivalent to
-   * [:const [0, ..., n - 1].map(generator):]
+   * [:const [0, ..., n - 1].mappedBy(generator):]
    */
   factory Iterable.generate(int count, E generator(int index)) {
     return new _GeneratorIterable<E>(count, generator);
@@ -48,14 +48,7 @@ abstract class Iterable<E> {
    * multiple times over the the returned [Iterable] will invoke the supplied
    * function [f] multiple times on the same element.
    */
-  Iterable map(f(E element)) => new MappedIterable<E, dynamic>(this, f);
-
-  /**
-   * Deprecated alias for [map].
-   *
-   * @deprecated
-   */
-  Iterable mappedBy(f(E element)) => map(f);
+  Iterable mappedBy(f(E element)) => new MappedIterable<E, dynamic>(this, f);
 
   /**
     * Returns a lazy [Iterable] with all elements that satisfy the

@@ -439,7 +439,7 @@ testRethrow() {
   }
 
   testStream("where", (s, act) => s.where(act));
-  testStream("mappedBy", (s, act) => s.map(act));
+  testStream("mappedBy", (s, act) => s.mappedBy(act));
   testStream("expand", (s, act) => s.expand(act));
   testStream("where", (s, act) => s.where(act));
   testStreamError("handleError", (s, act) => s.handleError(act));

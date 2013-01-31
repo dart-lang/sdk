@@ -161,7 +161,7 @@ function(cls, desc) {
         compiler.findHelper(const SourceString('convertDartClosureToJS'));
     String closureConverter = backend.namer.isolateAccess(converter);
     Set<String> stubParameterNames = new Set<String>.from(
-        stubParameters.map((param) => param.name));
+        stubParameters.mappedBy((param) => param.name));
     parameters.forEachParameter((Element parameter) {
       String name = parameter.name.slowToString();
       // If [name] is not in [stubParameters], then the parameter is an optional
@@ -255,7 +255,7 @@ function(cls, desc) {
             js.use('Object').dot('prototype').dot(methodName).dot('call')
             .callWith(
                 <js.Expression>[js.use('this')]..addAll(
-                    parameters.map((param) => js.use(param.name))))));
+                    parameters.mappedBy((param) => js.use(param.name))))));
   }
 
   js.Block generateMethodBodyWithPrototypeCheckForElement(
@@ -406,7 +406,7 @@ function(cls, desc) {
       //   [['Node', 'Text|HTMLElement|HTMLDivElement|...'], ...]
       js.Expression table =
           new js.ArrayInitializer.from(
-              preorderDispatchClasses.map((cls) =>
+              preorderDispatchClasses.mappedBy((cls) =>
                   new js.ArrayInitializer.from([
                       js.string(toNativeTag(cls)),
                       tagDefns[cls]])));

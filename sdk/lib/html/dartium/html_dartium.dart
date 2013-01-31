@@ -7880,11 +7880,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(DomMimeType element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(DomMimeType element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(DomMimeType element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<DomMimeType> where(bool f(DomMimeType element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -7898,13 +7894,13 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -8147,11 +8143,7 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(DomPlugin element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(DomPlugin element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(DomPlugin element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<DomPlugin> where(bool f(DomPlugin element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -8165,13 +8157,13 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -8533,11 +8525,7 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(String element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(String element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(String element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -8551,13 +8539,13 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<String> takeWhile(bool test(String value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<String> skipWhile(bool test(String value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -8813,11 +8801,7 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
-  }
-
-  List mappedBy(f(ELement element)) {
+  List mappedBy(f(Element element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
 
@@ -8829,7 +8813,7 @@ class _ChildrenElementList implements List {
     return _element.$dom_firstElementChild == null;
   }
 
-  Iterable<Element> take(int n) {
+  List<Element> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -8837,7 +8821,7 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Element> skip(int n) {
+  List<Element> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -9030,11 +9014,7 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
-  }
-
-  List mappedBy(f(ELement element)) {
+  List mappedBy(f(Element element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
 
@@ -9063,7 +9043,7 @@ class _FrozenElementList implements List {
   List<Element> toList() => new List<Element>.from(this);
   Set<Element> toSet() => new Set<Element>.from(this);
 
-  Iterable<Element> take(int n) {
+  List<Element> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -9071,7 +9051,7 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Element> skip(int n) {
+  List<Element> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -11460,11 +11440,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(File element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(File element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(File element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<File> where(bool f(File element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -11478,13 +11454,13 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<File> takeWhile(bool test(File value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<File> skipWhile(bool test(File value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -12121,11 +12097,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(num element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(num element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -12139,13 +12111,13 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -12350,11 +12322,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(num element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(num element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -12368,13 +12336,13 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -12926,11 +12894,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -12944,13 +12908,13 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -13135,11 +13099,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -13153,13 +13113,13 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -15257,11 +15217,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -15275,13 +15231,13 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -15486,11 +15442,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -15504,13 +15456,13 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -15715,11 +15667,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -15733,13 +15681,13 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -18303,11 +18251,7 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -18321,13 +18265,13 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -18770,10 +18714,6 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  Iterable map(f(Node element)) {
-    return IterableMixinWorkaround.map(this, f);
-  }
-
   List mappedBy(f(Node element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -18793,7 +18733,7 @@ class _ChildNodeListLazy implements List {
 
   // From List<Node>:
 
-  Iterable<Node> take(int n) {
+  List<Node> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -18801,7 +18741,7 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Node> skip(int n) {
+  List<Node> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -19159,11 +19099,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -19177,13 +19113,13 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -21859,11 +21795,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(SourceBuffer element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(SourceBuffer element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(SourceBuffer element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<SourceBuffer> where(bool f(SourceBuffer element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -21877,13 +21809,13 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SourceBuffer> takeWhile(bool test(SourceBuffer value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SourceBuffer> skipWhile(bool test(SourceBuffer value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -22173,11 +22105,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(SpeechGrammar element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(SpeechGrammar element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(SpeechGrammar element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -22191,13 +22119,13 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechGrammar> takeWhile(bool test(SpeechGrammar value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechGrammar> skipWhile(bool test(SpeechGrammar value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -22873,11 +22801,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(Map element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(Map element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(Map element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Map> where(bool f(Map element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -22891,13 +22815,13 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Map> takeWhile(bool test(Map value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Map> skipWhile(bool test(Map value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -24194,11 +24118,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(TextTrackCue element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(TextTrackCue element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(TextTrackCue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<TextTrackCue> where(bool f(TextTrackCue element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -24212,13 +24132,13 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrackCue> takeWhile(bool test(TextTrackCue value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrackCue> skipWhile(bool test(TextTrackCue value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -24409,11 +24329,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(TextTrack element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(TextTrack element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(TextTrack element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<TextTrack> where(bool f(TextTrack element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -24427,13 +24343,13 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrack> takeWhile(bool test(TextTrack value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrack> skipWhile(bool test(TextTrack value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -24816,11 +24732,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(Touch element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(Touch element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(Touch element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Touch> where(bool f(Touch element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -24834,13 +24746,13 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Touch> takeWhile(bool test(Touch value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Touch> skipWhile(bool test(Touch value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -25295,11 +25207,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -25313,13 +25221,13 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -25524,11 +25432,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -25542,13 +25446,13 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -25753,11 +25657,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -25771,13 +25671,13 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -25980,11 +25880,7 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(int element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -25998,13 +25894,13 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -29855,11 +29751,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(ClientRect element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(ClientRect element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(ClientRect element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<ClientRect> where(bool f(ClientRect element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -29873,13 +29765,13 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -30056,11 +29948,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(CssRule element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(CssRule element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(CssRule element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<CssRule> where(bool f(CssRule element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30074,13 +29962,13 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssRule> takeWhile(bool test(CssRule value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssRule> skipWhile(bool test(CssRule value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -30257,11 +30145,7 @@ class _CssValueList extends CssValue implements List<CssValue> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(CssValue element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(CssValue element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(CssValue element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<CssValue> where(bool f(CssValue element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30275,13 +30159,13 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssValue> takeWhile(bool test(CssValue value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssValue> skipWhile(bool test(CssValue value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -30608,11 +30492,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(Entry element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(Entry element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(Entry element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Entry> where(bool f(Entry element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30626,13 +30506,13 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Entry> takeWhile(bool test(Entry value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Entry> skipWhile(bool test(Entry value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -30809,11 +30689,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(EntrySync element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(EntrySync element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(EntrySync element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<EntrySync> where(bool f(EntrySync element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30827,13 +30703,13 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -31101,11 +30977,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(Gamepad element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(Gamepad element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(Gamepad element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Gamepad> where(bool f(Gamepad element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -31119,13 +30991,13 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Gamepad> takeWhile(bool test(Gamepad value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Gamepad> skipWhile(bool test(Gamepad value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -31315,11 +31187,7 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(MediaStream element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(MediaStream element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(MediaStream element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<MediaStream> where(bool f(MediaStream element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -31333,13 +31201,13 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -31516,11 +31384,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(SpeechInputResult element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(SpeechInputResult element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(SpeechInputResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -31534,13 +31398,13 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechInputResult> takeWhile(bool test(SpeechInputResult value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechInputResult> skipWhile(bool test(SpeechInputResult value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -31717,11 +31581,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(SpeechRecognitionResult element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(SpeechRecognitionResult element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(SpeechRecognitionResult element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -31735,13 +31595,13 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechRecognitionResult> takeWhile(bool test(SpeechRecognitionResult value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechRecognitionResult> skipWhile(bool test(SpeechRecognitionResult value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -31918,11 +31778,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(StyleSheet element)) =>
-      IterableMixinWorkaround.map(this, f);
-
-  List mappedBy(f(StyleSheet element)) =>
-      IterableMixinWorkaround.mappedBy(this, f);
+  List mappedBy(f(StyleSheet element)) => IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<StyleSheet> where(bool f(StyleSheet element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -31936,13 +31792,13 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  List<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<StyleSheet> takeWhile(bool test(StyleSheet value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  List<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<StyleSheet> skipWhile(bool test(StyleSheet value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -32470,8 +32326,6 @@ abstract class CssClassSet implements Set<String> {
 
   String join([String separator]) => readClasses().join(separator);
 
-  Iterable map(f(String element)) => readClasses().map(f);
-
   Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
@@ -32569,7 +32423,7 @@ abstract class CssClassSet implements Set<String> {
    * Helper method used to modify the set of css classes on this element.
    *
    *   f - callback with:
-   *   s - a Set of all the css class name currently on this element.
+   *      s - a Set of all the css class name currently on this element.
    *
    *   After f returns, the modified set is written to the
    *       className property of this element.

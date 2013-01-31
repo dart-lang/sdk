@@ -131,7 +131,7 @@ void compile(List<String> argv) {
   setCategories(String argument) {
     List<String> categories = extractParameter(argument).split(',');
     Set<String> allowedCategories =
-        LIBRARIES.values.map((x) => x.category).toSet();
+        LIBRARIES.values.mappedBy((x) => x.category).toSet();
     allowedCategories.remove('Shared');
     allowedCategories.remove('Internal');
     List<String> allowedCategoriesList =

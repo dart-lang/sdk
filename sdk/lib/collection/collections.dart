@@ -313,18 +313,12 @@ class IterableMixinWorkaround {
     return new WhereIterable(iterable, f);
   }
 
-  static Iterable map(Iterable iterable, f(var element)) {
-    return new MappedIterable(iterable, f);
-  }
-
   static List mappedByList(List list, f(var element)) {
-    // This is currently a List as well as an Iterable.
     return new MappedList(list, f);
   }
 
-  static Iterable takeList(List list, int n) {
+  static List takeList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
-    // This is currently a List as well as an Iterable.
     return new ListView(list, 0, n);
   }
 
@@ -333,9 +327,8 @@ class IterableMixinWorkaround {
     return new TakeWhileIterable(iterable, test);
   }
 
-  static Iterable skipList(List list, int n) {
+  static List skipList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
-    // This is currently a List as well as an Iterable.
     return new ListView(list, n, null);
   }
 
@@ -450,7 +443,7 @@ class Collections {
       => IterableMixinWorkaround.mappedByList(list, f);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
-  static Iterable takeList(List list, int n)
+  static List takeList(List list, int n)
       => IterableMixinWorkaround.takeList(list, n);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
@@ -458,7 +451,7 @@ class Collections {
       => IterableMixinWorkaround.takeWhile(iterable, test);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
-  static Iterable skipList(List list, int n)
+  static List skipList(List list, int n)
       => IterableMixinWorkaround.skipList(list, n);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
