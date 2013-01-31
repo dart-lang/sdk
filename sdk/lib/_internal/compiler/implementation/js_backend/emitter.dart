@@ -1165,12 +1165,26 @@ $lazyInitializerLogic
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
 
+  int _selectorRank(Selector selector) {
+    int arity = selector.argumentCount * 3;
+    if (selector.isGetter()) return arity + 2;
+    if (selector.isSetter()) return arity + 1;
+    return arity;
+  }
+
+  int _compareSelectorNames(Selector selector1, Selector selector2) {
+    String name1 = selector1.name.toString();
+    String name2 = selector2.name.toString();
+    if (name1 != name2) return Comparable.compare(name1, name2);
+    return _selectorRank(selector1) - _selectorRank(selector2);
+  }
+
   void emitInterceptorMethods(ClassBuilder builder) {
     JavaScriptBackend backend = compiler.backend;
     // Emit forwarders for the ObjectInterceptor class. We need to
     // emit all possible sends on intercepted methods.
-    for (Selector selector in backend.usedInterceptors) {
-
+    for (Selector selector in
+         backend.usedInterceptors.toList()..sort(_compareSelectorNames)) {
       List<js.Parameter> parameters = <js.Parameter>[];
       List<js.Expression> arguments = <js.Expression>[];
       parameters.add(new js.Parameter('receiver'));
@@ -2162,10 +2176,11 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     // If no class needs to be intercepted, just return.
     if (backend.objectInterceptorClass == null) return;
     String objectName = namer.isolateAccess(backend.objectInterceptorClass);
-    backend.specializedGetInterceptors.forEach(
-        (String key, Collection<ClassElement> classes) {
-          emitGetInterceptorMethod(buffer, objectName, key, classes);
-        });
+    var specializedGetInterceptors = backend.specializedGetInterceptors;
+    for (String name in specializedGetInterceptors.keys.toList()..sort()) {
+      Collection<ClassElement> classes = specializedGetInterceptors[name];
+      emitGetInterceptorMethod(buffer, objectName, name, classes);
+    }
   }
 
   void computeNeededClasses() {
@@ -2183,9 +2198,27 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
   }
 
+  int _compareSelectors(Selector selector1, Selector selector2) {
+    int comparison = _compareSelectorNames(selector1, selector2);
+    if (comparison != 0) return comparison;
+
+    JavaScriptBackend backend = compiler.backend;
+    Set<ClassElement> classes1 = backend.getInterceptedClassesOn(selector1);
+    Set<ClassElement> classes2 = backend.getInterceptedClassesOn(selector2);
+    if (classes1.length != classes2.length) {
+      return classes1.length - classes2.length;
+    }
+    String getInterceptor1 =
+        namer.getInterceptorName(backend.getInterceptorMethod, classes1);
+    String getInterceptor2 =
+        namer.getInterceptorName(backend.getInterceptorMethod, classes2);
+    return Comparable.compare(getInterceptor1, getInterceptor2);
+  }
+
   void emitOneShotInterceptors(CodeBuffer buffer) {
     JavaScriptBackend backend = compiler.backend;
-    for (Selector selector in backend.oneShotInterceptors) {
+    for (Selector selector in
+         backend.oneShotInterceptors.toList()..sort(_compareSelectors)) {
       Set<ClassElement> classes = backend.getInterceptedClassesOn(selector);
       String oneShotInterceptorName = namer.oneShotInterceptorName(selector);
       String getInterceptorName =

@@ -52,17 +52,6 @@ class MinifyNamer extends Namer {
   // but it means that small changes in the input program will give smallish
   // changes in the output, which can be useful for diffing etc.
   String _getUnusedName(String proposedName, Set<String> usedNames) {
-    // Try single-character names with characters that occur in the
-    // input.
-    for (int i = 0; i < proposedName.length; i++) {
-      String candidate = proposedName[i];
-      int code = candidate.charCodeAt(0);
-      if (code < $A) continue;
-      if (code > $z) continue;
-      if (code > $Z && code < $a) continue;
-      if (!usedNames.contains(candidate)) return candidate;
-    }
-
     int hash = _calculateHash(proposedName);
     // Avoid very small hashes that won't try many names.
     hash = hash < 1000 ? hash * 314159 : hash;  // Yes, it's prime.
@@ -72,7 +61,7 @@ class MinifyNamer extends Namer {
     // in a predictable order determined by the proposed name.  This is in order
     // to make the renamer stable: small changes in the input should nornally
     // result in relatively small changes in the output.
-    for (var n = 1; n <= 3; n++) {
+    for (var n = 2; n <= 3; n++) {
       int h = hash;
       while (h > 10) {
         var codes = <int>[_letterNumber(h)];
