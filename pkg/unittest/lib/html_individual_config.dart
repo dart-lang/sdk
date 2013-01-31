@@ -25,7 +25,7 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
 
   void onStart() {
     var testGroupName = window.location.search;
-    var groupVar = '&group=';
+    var groupVar = 'group=';
     if (testGroupName != '' && testGroupName.contains(groupVar)) {
       try {
         testGroupName = testGroupName.substring(

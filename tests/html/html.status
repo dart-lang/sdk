@@ -172,13 +172,6 @@ xsltprocessor_test/supported: Fail
 [ $runtime == safari ]
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
-element_types_test/supported_details: Fail
-element_types_test/supported_embed: Fail
-element_types_test/supported_keygen: Fail
-element_types_test/supported_meter: Fail
-element_types_test/supported_object: Fail
-element_types_test/supported_output: Fail
-element_types_test/supported_progress: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Pass, Fail
 fileapi_test/supported: Fail
@@ -186,12 +179,8 @@ indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_datetime: Fail
-input_element_test/supported_email: Fail
 input_element_test/supported_month: Fail, Crash
-input_element_test/supported_number: Fail
-input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please triage this failure.
 input_element_test/supported_time: Fail, Crash
-input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail, Crash
 media_stream_test/supported_media: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
