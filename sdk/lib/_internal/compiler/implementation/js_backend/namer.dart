@@ -25,7 +25,128 @@ class Namer implements ClosureNamer {
   ];
 
   static const reservedPropertySymbols =
-      const <String>["__proto__", "prototype", "constructor"];
+      const <String>["__proto__", "prototype", "constructor", "call"];
+
+  // Symbols that we might be using in our JS snippets.
+  static const reservedGlobalSymbols = const <String>[
+    // Section references are from Ecma-262
+    // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
+
+    // 15.1.1 Value Properties of the Global Object
+    "NaN", "Infinity", "undefined",
+
+    // 15.1.2 Function Properties of the Global Object
+    "eval", "parseInt", "parseFloat", "isNaN", "isFinite",
+
+    // 15.1.3 URI Handling Function Properties
+    "decodeURI", "decodeURIComponent",
+    "encodeURI",
+    "encodeURIComponent",
+
+    // 15.1.4 Constructor Properties of the Global Object
+    "Object", "Function", "Array", "String", "Boolean", "Number", "Date",
+    "RegExp", "Error", "EvalError", "RangeError", "ReferenceError",
+    "SyntaxError", "TypeError", "URIError",
+
+    // 15.1.5 Other Properties of the Global Object
+    "Math",
+
+    // 10.1.6 Activation Object
+    "arguments",
+
+    // B.2 Additional Properties (non-normative)
+    "escape", "unescape",
+
+    // Window props (https://developer.mozilla.org/en/DOM/window)
+    "applicationCache", "closed", "Components", "content", "controllers",
+    "crypto", "defaultStatus", "dialogArguments", "directories",
+    "document", "frameElement", "frames", "fullScreen", "globalStorage",
+    "history", "innerHeight", "innerWidth", "length",
+    "location", "locationbar", "localStorage", "menubar",
+    "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel",
+    "name", "navigator", "opener", "outerHeight", "outerWidth",
+    "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11",
+    "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY",
+    "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar",
+    "top", "window",
+
+    // Window methods (https://developer.mozilla.org/en/DOM/window)
+    "alert", "addEventListener", "atob", "back", "blur", "btoa",
+    "captureEvents", "clearInterval", "clearTimeout", "close", "confirm",
+    "disableExternalCapture", "dispatchEvent", "dump",
+    "enableExternalCapture", "escape", "find", "focus", "forward",
+    "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount",
+    "getComputedStyle", "getSelection", "home", "maximize", "minimize",
+    "moveBy", "moveTo", "open", "openDialog", "postMessage", "print",
+    "prompt", "QueryInterface", "releaseEvents", "removeEventListener",
+    "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy",
+    "scrollByLines", "scrollByPages", "scrollTo", "setInterval",
+    "setResizeable", "setTimeout", "showModalDialog", "sizeToContent",
+    "stop", "uuescape", "updateCommands", "XPCNativeWrapper",
+    "XPCSafeJSOjbectWrapper",
+
+    // Mozilla Window event handlers, same cite
+    "onabort", "onbeforeunload", "onchange", "onclick", "onclose",
+    "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange",
+    "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown",
+    "onmousemove", "onmouseout", "onmouseover", "onmouseup",
+    "onmozorientation", "onpaint", "onreset", "onresize", "onscroll",
+    "onselect", "onsubmit", "onunload",
+
+    // Safari Web Content Guide
+    // http://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariWebContent/SafariWebContent.pdf
+    // WebKit Window member data, from WebKit DOM Reference
+    // (http://developer.apple.com/safari/library/documentation/AppleApplications/Reference/WebKitDOMRef/DOMWindow_idl/Classes/DOMWindow/index.html)
+    "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart",
+    "ongesturestart", "ongesturechange", "ongestureend",
+
+    // extra window methods
+    "uneval",
+
+    // keywords https://developer.mozilla.org/en/New_in_JavaScript_1.7,
+    // https://developer.mozilla.org/en/New_in_JavaScript_1.8.1
+    "getPrototypeOf", "let", "yield",
+
+    // "future reserved words"
+    "abstract", "int", "short", "boolean", "interface", "static", "byte",
+    "long", "char", "final", "native", "synchronized", "float", "package",
+    "throws", "goto", "private", "transient", "implements", "protected",
+    "volatile", "double", "public",
+
+    // IE methods
+    // (http://msdn.microsoft.com/en-us/library/ms535873(VS.85).aspx#)
+    "attachEvent", "clientInformation", "clipboardData", "createPopup",
+    "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth",
+    "onafterprint", "onbeforedeactivate", "onbeforeprint",
+    "oncontrolselect", "ondeactivate", "onhelp", "onresizeend",
+
+    // Common browser-defined identifiers not defined in ECMAScript
+    "event", "external", "Debug", "Enumerator", "Global", "Image",
+    "ActiveXObject", "VBArray", "Components",
+
+    // Functions commonly defined on Object
+    "toString", "getClass", "constructor", "prototype", "valueOf",
+
+    // Client-side JavaScript identifiers
+    "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient",
+    "CanvasPattern", "CanvasRenderingContext2D", "CDATASection",
+    "CharacterData", "Comment", "CSS2Properties", "CSSRule",
+    "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType",
+    "DOMException", "DOMImplementation", "DOMParser", "Element", "Event",
+    "ExternalInterface", "FlashPlayer", "Form", "Frame", "History",
+    "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image",
+    "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType",
+    "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin",
+    "ProcessingInstruction", "Range", "RangeException", "Screen", "Select",
+    "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea",
+    "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer",
+    "XPathException", "XPathResult", "XSLTProcessor",
+
+    // These keywords trigger the loading of the java-plugin. For the
+    // next-generation plugin, this results in starting a new Java process.
+    "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass",
+    "JavaArray", "JavaMember"
+  ];
 
   static Set<String> _jsReserved = null;
   Set<String> get jsReserved {
@@ -33,6 +154,7 @@ class Namer implements ClosureNamer {
       _jsReserved = new Set<String>();
       _jsReserved.addAll(javaScriptKeywords);
       _jsReserved.addAll(reservedPropertySymbols);
+      _jsReserved.addAll(reservedGlobalSymbols);
     }
     return _jsReserved;
   }

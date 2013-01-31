@@ -72,7 +72,7 @@ main() {
   Expect.isTrue(generated.contains(r"function(a, b) {"));
 
   generated = compile(BAR, entry: 'bar');
-  Expect.isTrue(generated.contains(r"function(eval, $$eval) {"));
+  Expect.isTrue(generated.contains(r"function($eval, $$eval) {"));
 
   generated = compile(PARAMETER_AND_TEMP, entry: 'bar');
   Expect.isTrue(generated.contains(r"print(t00)"));
