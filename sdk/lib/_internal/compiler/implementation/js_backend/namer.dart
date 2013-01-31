@@ -148,15 +148,28 @@ class Namer implements ClosureNamer {
     "JavaArray", "JavaMember"
   ];
 
-  static Set<String> _jsReserved = null;
+  Set<String> _jsReserved = null;
+  /// Names that cannot be used by members, top level and static
+  /// methods.
   Set<String> get jsReserved {
     if (_jsReserved == null) {
       _jsReserved = new Set<String>();
       _jsReserved.addAll(javaScriptKeywords);
       _jsReserved.addAll(reservedPropertySymbols);
-      _jsReserved.addAll(reservedGlobalSymbols);
     }
     return _jsReserved;
+  }
+
+  Set<String> _jsVariableReserved = null;
+  /// Names that cannot be used by local variables and parameters.
+  Set<String> get jsVariableReserved {
+    if (_jsVariableReserved == null) {
+      _jsVariableReserved = new Set<String>();
+      _jsVariableReserved.addAll(javaScriptKeywords);
+      _jsVariableReserved.addAll(reservedPropertySymbols);
+      _jsVariableReserved.addAll(reservedGlobalSymbols);
+    }
+    return _jsVariableReserved;
   }
 
   final String CURRENT_ISOLATE = r'$';
@@ -654,13 +667,16 @@ class Namer implements ClosureNamer {
    * Returns a name that does not clash with reserved JS keywords,
    * and also ensures it won't clash with other identifiers.
    */
-  String safeName(String name) {
-    if (jsReserved.contains(name) || name.startsWith(r'$')) {
+  String _safeName(String name, Set<String> reserved) {
+    if (reserved.contains(name) || name.startsWith(r'$')) {
       name = '\$$name';
     }
-    assert(!jsReserved.contains(name));
+    assert(!reserved.contains(name));
     return name;
   }
+
+  String safeName(String name) => _safeName(name, jsReserved);
+  String safeVariableName(String name) => _safeName(name, jsVariableReserved);
 
   String oneShotInterceptorName(Selector selector) {
     // TODO(ngeoffray): What to do about typed selectors? We could

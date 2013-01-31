@@ -473,9 +473,9 @@ class VariableNamer {
   String allocateWithHint(String originalName) {
     int i = 0;
     JavaScriptBackend backend = compiler.backend;
-    String name = backend.namer.safeName(originalName);
+    String name = backend.namer.safeVariableName(originalName);
     while (usedNames.contains(name)) {
-      name = backend.namer.safeName('$originalName${i++}');
+      name = backend.namer.safeVariableName('$originalName${i++}');
     }
     return name;
   }
