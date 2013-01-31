@@ -126,9 +126,9 @@ main() {
 
     test('XHR.request responseType', () {
       if (ArrayBuffer.supported) {
-        HttpRequest.request(url, responseType: 'ArrayBuffer').then(
+        HttpRequest.request(url, responseType: 'arraybuffer').then(
           expectAsync1((xhr) {
-            validate200Response(xhr);
+            expect(xhr.status, equals(200));
             var arrayBuffer = xhr.response;
             expect(arrayBuffer, new isInstanceOf<ArrayBuffer>());
             expect(arrayBuffer, isNotNull);
