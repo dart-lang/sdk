@@ -4,7 +4,7 @@
 
 pub_uploader_test: Pass, Fail # Issue 7905
 pub_lish_test: Pass, Fail # Issue 7905
-oauth2_test: Pass, Fail # Issue 7905, 7920
+oauth2_test: Pass, Fail, Timeout # Issue 7905, 7920
 curl_client_test: Pass, Fail # Issue 7920
 
 # Pub only runs on the VM, so just rule out all compilers.
