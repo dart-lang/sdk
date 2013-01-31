@@ -22,7 +22,7 @@ class TypesTask extends CompilerTask {
   final String name = 'Type inference';
   final Set<Element> untypedElements;
   final Map<Element, Link<Element>> typedSends;
-  final ConcreteTypesInferrer concreteTypesInferrer;
+  ConcreteTypesInferrer concreteTypesInferrer;
 
   TypesTask(Compiler compiler)
     : untypedElements = new Set<Element>(),
@@ -47,7 +47,13 @@ class TypesTask extends CompilerTask {
   void onResolutionComplete(Element mainElement) {
     measure(() {
       if (concreteTypesInferrer != null) {
-        concreteTypesInferrer.analyzeMain(mainElement);
+        bool success = concreteTypesInferrer.analyzeMain(mainElement);
+        if (!success) {
+          // If the concrete type inference bailed out, we pretend it didn't
+          // happen. In the future we might want to record that it failed but
+          // use the partial results as hints.
+          concreteTypesInferrer = null;
+        }
       }
     });
   }
