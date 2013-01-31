@@ -63,6 +63,7 @@ class _SvgSvgElementFactoryProvider {
 @DomName('SVGAElement')
 class AElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "*SVGAElement" {
 
+  @DomName('SVGAElement.SVGAElement')
   @DocsEditable
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
 
@@ -237,6 +238,7 @@ class Angle native "*SVGAngle" {
 @DomName('SVGAnimateColorElement')
 class AnimateColorElement extends AnimationElement native "*SVGAnimateColorElement" {
 
+  @DomName('SVGAnimateColorElement.SVGAnimateColorElement')
   @DocsEditable
   factory AnimateColorElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateColor");
 }
@@ -249,6 +251,7 @@ class AnimateColorElement extends AnimationElement native "*SVGAnimateColorEleme
 @DomName('SVGAnimateElement')
 class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 
+  @DomName('SVGAnimateElement.SVGAnimateElement')
   @DocsEditable
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
 }
@@ -261,6 +264,7 @@ class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 @DomName('SVGAnimateMotionElement')
 class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionElement" {
 
+  @DomName('SVGAnimateMotionElement.SVGAnimateMotionElement')
   @DocsEditable
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
 }
@@ -273,6 +277,7 @@ class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionEle
 @DomName('SVGAnimateTransformElement')
 class AnimateTransformElement extends AnimationElement native "*SVGAnimateTransformElement" {
 
+  @DomName('SVGAnimateTransformElement.SVGAnimateTransformElement')
   @DocsEditable
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
 }
@@ -489,6 +494,7 @@ class AnimatedTransformList native "*SVGAnimatedTransformList" {
 @DomName('SVGAnimationElement')
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired native "*SVGAnimationElement" {
 
+  @DomName('SVGAnimationElement.SVGAnimationElement')
   @DocsEditable
   factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
 
@@ -559,6 +565,7 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 @DomName('SVGCircleElement')
 class CircleElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGCircleElement" {
 
+  @DomName('SVGCircleElement.SVGCircleElement')
   @DocsEditable
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
 
@@ -651,6 +658,7 @@ class CircleElement extends StyledElement implements Transformable, Tests, Exter
 @DomName('SVGClipPathElement')
 class ClipPathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGClipPathElement" {
 
+  @DomName('SVGClipPathElement.SVGClipPathElement')
   @DocsEditable
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
 
@@ -823,6 +831,7 @@ class ComponentTransferFunctionElement extends SvgElement native "*SVGComponentT
 @DomName('SVGCursorElement')
 class CursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "*SVGCursorElement" {
 
+  @DomName('SVGCursorElement.SVGCursorElement')
   @DocsEditable
   factory CursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
 
@@ -873,6 +882,7 @@ class CursorElement extends SvgElement implements UriReference, Tests, ExternalR
 @DomName('SVGDefsElement')
 class DefsElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGDefsElement" {
 
+  @DomName('SVGDefsElement.SVGDefsElement')
   @DocsEditable
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
 
@@ -953,6 +963,7 @@ class DefsElement extends StyledElement implements Transformable, Tests, Externa
 @DomName('SVGDescElement')
 class DescElement extends StyledElement implements LangSpace native "*SVGDescElement" {
 
+  @DomName('SVGDescElement.SVGDescElement')
   @DocsEditable
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
 
@@ -1487,6 +1498,7 @@ abstract class ElementTimeControl {
 @DomName('SVGEllipseElement')
 class EllipseElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGEllipseElement" {
 
+  @DomName('SVGEllipseElement.SVGEllipseElement')
   @DocsEditable
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
 
@@ -2606,6 +2618,7 @@ class FETurbulenceElement extends StyledElement implements FilterPrimitiveStanda
 @DomName('SVGFilterElement')
 class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired, LangSpace native "*SVGFilterElement" {
 
+  @DomName('SVGFilterElement.SVGFilterElement')
   @DocsEditable
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
 
@@ -2706,6 +2719,7 @@ abstract class FitToViewBox {
 @DomName('SVGFontElement')
 class FontElement extends SvgElement native "*SVGFontElement" {
 
+  @DomName('SVGFontElement.SVGFontElement')
   @DocsEditable
   factory FontElement() => _SvgElementFactoryProvider.createSvgElement_tag("font");
 }
@@ -2718,6 +2732,7 @@ class FontElement extends SvgElement native "*SVGFontElement" {
 @DomName('SVGFontFaceElement')
 class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 
+  @DomName('SVGFontFaceElement.SVGFontFaceElement')
   @DocsEditable
   factory FontFaceElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face");
 }
@@ -2730,6 +2745,7 @@ class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 @DomName('SVGFontFaceFormatElement')
 class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement" {
 
+  @DomName('SVGFontFaceFormatElement.SVGFontFaceFormatElement')
   @DocsEditable
   factory FontFaceFormatElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-format");
 }
@@ -2742,6 +2758,7 @@ class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement
 @DomName('SVGFontFaceNameElement')
 class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 
+  @DomName('SVGFontFaceNameElement.SVGFontFaceNameElement')
   @DocsEditable
   factory FontFaceNameElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-name");
 }
@@ -2754,6 +2771,7 @@ class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 @DomName('SVGFontFaceSrcElement')
 class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 
+  @DomName('SVGFontFaceSrcElement.SVGFontFaceSrcElement')
   @DocsEditable
   factory FontFaceSrcElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-src");
 }
@@ -2766,6 +2784,7 @@ class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 @DomName('SVGFontFaceUriElement')
 class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 
+  @DomName('SVGFontFaceUriElement.SVGFontFaceUriElement')
   @DocsEditable
   factory FontFaceUriElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-uri");
 }
@@ -2778,6 +2797,7 @@ class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 @DomName('SVGForeignObjectElement')
 class ForeignObjectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGForeignObjectElement" {
 
+  @DomName('SVGForeignObjectElement.SVGForeignObjectElement')
   @DocsEditable
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
 
@@ -2874,6 +2894,7 @@ class ForeignObjectElement extends StyledElement implements Transformable, Tests
 @DomName('SVGGElement')
 class GElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGGElement" {
 
+  @DomName('SVGGElement.SVGGElement')
   @DocsEditable
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
 
@@ -2954,6 +2975,7 @@ class GElement extends StyledElement implements Transformable, Tests, ExternalRe
 @DomName('SVGGlyphElement')
 class GlyphElement extends SvgElement native "*SVGGlyphElement" {
 
+  @DomName('SVGGlyphElement.SVGGlyphElement')
   @DocsEditable
   factory GlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
 }
@@ -3046,6 +3068,7 @@ class GradientElement extends StyledElement implements UriReference, ExternalRes
 @DomName('SVGHKernElement')
 class HKernElement extends SvgElement native "*SVGHKernElement" {
 
+  @DomName('SVGHKernElement.SVGHKernElement')
   @DocsEditable
   factory HKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
 }
@@ -3058,6 +3081,7 @@ class HKernElement extends SvgElement native "*SVGHKernElement" {
 @DomName('SVGImageElement')
 class ImageElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "*SVGImageElement" {
 
+  @DomName('SVGImageElement.SVGImageElement')
   @DocsEditable
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
 
@@ -3452,6 +3476,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 @DomName('SVGLineElement')
 class LineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGLineElement" {
 
+  @DomName('SVGLineElement.SVGLineElement')
   @DocsEditable
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
 
@@ -3548,6 +3573,7 @@ class LineElement extends StyledElement implements Transformable, Tests, Externa
 @DomName('SVGLinearGradientElement')
 class LinearGradientElement extends GradientElement native "*SVGLinearGradientElement" {
 
+  @DomName('SVGLinearGradientElement.SVGLinearGradientElement')
   @DocsEditable
   factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
 
@@ -3596,6 +3622,7 @@ abstract class Locatable {
 @DomName('SVGMPathElement')
 class MPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGMPathElement" {
 
+  @DomName('SVGMPathElement.SVGMPathElement')
   @DocsEditable
   factory MPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
 
@@ -3620,6 +3647,7 @@ class MPathElement extends SvgElement implements UriReference, ExternalResources
 @DomName('SVGMarkerElement')
 class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace native "*SVGMarkerElement" {
 
+  @DomName('SVGMarkerElement.SVGMarkerElement')
   @DocsEditable
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
@@ -3706,6 +3734,7 @@ class MarkerElement extends StyledElement implements FitToViewBox, ExternalResou
 @DomName('SVGMaskElement')
 class MaskElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace native "*SVGMaskElement" {
 
+  @DomName('SVGMaskElement.SVGMaskElement')
   @DocsEditable
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
 
@@ -4150,6 +4179,7 @@ class Paint extends Color native "*SVGPaint" {
 @DomName('SVGPathElement')
 class PathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGPathElement" {
 
+  @DomName('SVGPathElement.SVGPathElement')
   @DocsEditable
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
 
@@ -5038,6 +5068,7 @@ class PathSegMovetoRel extends PathSeg native "*SVGPathSegMovetoRel" {
 @DomName('SVGPatternElement')
 class PatternElement extends StyledElement implements FitToViewBox, UriReference, Tests, ExternalResourcesRequired, LangSpace native "*SVGPatternElement" {
 
+  @DomName('SVGPatternElement.SVGPatternElement')
   @DocsEditable
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
 
@@ -5190,6 +5221,7 @@ class PointList native "*SVGPointList" {
 @DomName('SVGPolygonElement')
 class PolygonElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGPolygonElement" {
 
+  @DomName('SVGPolygonElement.SVGPolygonElement')
   @DocsEditable
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
 
@@ -5278,6 +5310,7 @@ class PolygonElement extends StyledElement implements Transformable, Tests, Exte
 @DomName('SVGPolylineElement')
 class PolylineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGPolylineElement" {
 
+  @DomName('SVGPolylineElement.SVGPolylineElement')
   @DocsEditable
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
 
@@ -5411,6 +5444,7 @@ class PreserveAspectRatio native "*SVGPreserveAspectRatio" {
 @DomName('SVGRadialGradientElement')
 class RadialGradientElement extends GradientElement native "*SVGRadialGradientElement" {
 
+  @DomName('SVGRadialGradientElement.SVGRadialGradientElement')
   @DocsEditable
   factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
 
@@ -5472,6 +5506,7 @@ class Rect native "*SVGRect" {
 @DomName('SVGRectElement')
 class RectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGRectElement" {
 
+  @DomName('SVGRectElement.SVGRectElement')
   @DocsEditable
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
 
@@ -5597,6 +5632,7 @@ class RenderingIntent native "*SVGRenderingIntent" {
 @DomName('SVGScriptElement')
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGScriptElement" {
 
+  @DomName('SVGScriptElement.SVGScriptElement')
   @DocsEditable
   factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
 
@@ -5625,6 +5661,7 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 @DomName('SVGSetElement')
 class SetElement extends AnimationElement native "*SVGSetElement" {
 
+  @DomName('SVGSetElement.SVGSetElement')
   @DocsEditable
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
 }
@@ -5637,6 +5674,7 @@ class SetElement extends AnimationElement native "*SVGSetElement" {
 @DomName('SVGStopElement')
 class StopElement extends StyledElement native "*SVGStopElement" {
 
+  @DomName('SVGStopElement.SVGStopElement')
   @DocsEditable
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
@@ -5874,6 +5912,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 @DomName('SVGStyleElement')
 class StyleElement extends SvgElement implements LangSpace native "*SVGStyleElement" {
 
+  @DomName('SVGStyleElement.SVGStyleElement')
   @DocsEditable
   factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
 
@@ -6377,6 +6416,7 @@ class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable
 @DomName('SVGSwitchElement')
 class SwitchElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGSwitchElement" {
 
+  @DomName('SVGSwitchElement.SVGSwitchElement')
   @DocsEditable
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
 
@@ -6457,6 +6497,7 @@ class SwitchElement extends StyledElement implements Transformable, Tests, Exter
 @DomName('SVGSymbolElement')
 class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace native "*SVGSymbolElement" {
 
+  @DomName('SVGSymbolElement.SVGSymbolElement')
   @DocsEditable
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
 
@@ -6495,6 +6536,7 @@ class SymbolElement extends StyledElement implements FitToViewBox, ExternalResou
 @DomName('SVGTRefElement')
 class TRefElement extends TextPositioningElement implements UriReference native "*SVGTRefElement" {
 
+  @DomName('SVGTRefElement.SVGTRefElement')
   @DocsEditable
   factory TRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
 
@@ -6513,6 +6555,7 @@ class TRefElement extends TextPositioningElement implements UriReference native 
 @DomName('SVGTSpanElement')
 class TSpanElement extends TextPositioningElement native "*SVGTSpanElement" {
 
+  @DomName('SVGTSpanElement.SVGTSpanElement')
   @DocsEditable
   factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
 }
@@ -6634,6 +6677,7 @@ class TextContentElement extends StyledElement implements Tests, ExternalResourc
 @DomName('SVGTextElement')
 class TextElement extends TextPositioningElement implements Transformable native "*SVGTextElement" {
 
+  @DomName('SVGTextElement.SVGTextElement')
   @DocsEditable
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
 
@@ -6748,6 +6792,7 @@ class TextPositioningElement extends TextContentElement native "*SVGTextPosition
 @DomName('SVGTitleElement')
 class TitleElement extends StyledElement implements LangSpace native "*SVGTitleElement" {
 
+  @DomName('SVGTitleElement.SVGTitleElement')
   @DocsEditable
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
 
@@ -7108,6 +7153,7 @@ abstract class UriReference {
 @DomName('SVGUseElement')
 class UseElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "*SVGUseElement" {
 
+  @DomName('SVGUseElement.SVGUseElement')
   @DocsEditable
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
 
@@ -7218,6 +7264,7 @@ class UseElement extends StyledElement implements UriReference, Tests, Transform
 @DomName('SVGVKernElement')
 class VKernElement extends SvgElement native "*SVGVKernElement" {
 
+  @DomName('SVGVKernElement.SVGVKernElement')
   @DocsEditable
   factory VKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 }
@@ -7230,6 +7277,7 @@ class VKernElement extends SvgElement native "*SVGVKernElement" {
 @DomName('SVGViewElement')
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan native "*SVGViewElement" {
 
+  @DomName('SVGViewElement.SVGViewElement')
   @DocsEditable
   factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
 

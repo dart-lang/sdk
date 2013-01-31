@@ -9,7 +9,8 @@ dart:html APIs from the IDL database."""
 import emitter
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
-    IsPureInterface, TypeOrNothing
+    IsPureInterface, TypeOrNothing, GetAnnotationsAndComments, \
+    FormatAnnotationsAndComments
 
 # Types that are accessible cross-frame in a limited fashion.
 # In these cases, the base type (e.g., WindowBase) provides restricted access
@@ -29,6 +30,7 @@ class HtmlDartGenerator(object):
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._renamer = options.renamer
+    self._library_name = self._renamer.GetLibraryName(self._interface)
 
   def EmitSupportCheck(self):
     if self.HasSupportCheck():
@@ -316,19 +318,32 @@ class HtmlDartGenerator(object):
       if type_info.is_typed_array():
         typed_array_type = type_info.list_item_type()
         break
+
+    annotations = FormatAnnotationsAndComments(
+        GetAnnotationsAndComments(self._library_name, self._interface.id,
+                                  self._interface.id), '  ')
+
+    fromListAnnotations = FormatAnnotationsAndComments(
+        GetAnnotationsAndComments(self._library_name, self._interface.id,
+                                  'fromList'), '  ')
+
+    fromBufferAnnotations = FormatAnnotationsAndComments(
+        GetAnnotationsAndComments(self._library_name, self._interface.id,
+                                  'fromBuffer'), '  ')
+
     if typed_array_type:
       self._members_emitter.Emit(
-          '\n'
-          '  factory $CTOR(int length) =>\n'
+          '\n  $(ANNOTATIONS)factory $CTOR(int length) =>\n'
           '    $FACTORY.create$(CTOR)(length);\n'
-          '\n'
-          '  factory $CTOR.fromList(List<$TYPE> list) =>\n'
+          '\n  $(LIST_ANNOTATIONS)factory $CTOR.fromList(List<$TYPE> list) =>\n'
           '    $FACTORY.create$(CTOR)_fromList(list);\n'
-          '\n'
-          '  factory $CTOR.fromBuffer(ArrayBuffer buffer, '
+          '\n  $(BUFFER_ANNOTATIONS)factory $CTOR.fromBuffer(ArrayBuffer buffer, '
               '[int byteOffset, int length]) => \n'
           '    $FACTORY.create$(CTOR)_fromBuffer(buffer, byteOffset, length);\n',
         CTOR=self._interface.id,
+        ANNOTATIONS=annotations,
+        LIST_ANNOTATIONS=fromListAnnotations,
+        BUFFER_ANNOTATIONS=fromBufferAnnotations,
         TYPE=self._DartType(typed_array_type),
         FACTORY=factory_name)
 
@@ -337,7 +352,9 @@ class HtmlDartGenerator(object):
     if self.GenerateCustomFactory(constructor_info):
       return
 
-    self._members_emitter.Emit('\n  @DocsEditable');
+    annotations = FormatAnnotationsAndComments(
+        GetAnnotationsAndComments(self._library_name, self._interface.id,
+                                  self._interface.id), '  ')
 
     if not factory_constructor_name:
       factory_constructor_name = '_create'
@@ -354,25 +371,27 @@ class HtmlDartGenerator(object):
 
       if not has_optional:
         self._members_emitter.Emit(
-            '\n'
-            '  factory $CTOR($PARAMS) => '
+            '\n  $(ANNOTATIONS)'
+            'factory $CTOR($PARAMS) => '
             '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
             CTOR=constructor_info._ConstructorFullName(self._DartType),
             PARAMS=constructor_info.ParametersDeclaration(self._DartType),
             FACTORY=factory_name,
+            ANNOTATIONS=annotations,
             CTOR_FACTORY_NAME=factory_constructor_name,
             FACTORY_PARAMS=factory_parameters)
       else:
         if has_factory_provider:
           dispatcher_emitter = self._members_emitter.Emit(
-              '\n'
-              '  factory $CTOR($PARAMS) {\n'
+              '\n  $(ANNOTATIONS)'
+              'factory $CTOR($PARAMS) {\n'
               '$!DISPATCHER'
               '    return $FACTORY._create($FACTORY_PARAMS);\n'
               '  }\n',
               CTOR=constructor_info._ConstructorFullName(self._DartType),
               PARAMS=constructor_info.ParametersDeclaration(self._DartType),
               FACTORY=factory_name,
+              ANNOTATIONS=annotations,
               FACTORY_PARAMS=constructor_info.ParametersAsArgumentList())
 
           for index, param_info in enumerate(constructor_info.param_infos):
@@ -386,13 +405,14 @@ class HtmlDartGenerator(object):
                 FACTORY_PARAMS=constructor_info.ParametersAsArgumentList(index))
         else:
           inits = self._members_emitter.Emit(
-              '\n'
-              '  factory $CONSTRUCTOR($PARAMS) {\n'
+              '\n  $(ANNOTATIONS)'
+              'factory $CONSTRUCTOR($PARAMS) {\n'
               '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
               '$!INITS'
               '    return e;\n'
               '  }\n',
               CONSTRUCTOR=constructor_info._ConstructorFullName(self._DartType),
+              ANNOTATIONS=annotations,
               FACTORY=factory_name,
               CTOR_FACTORY_NAME=factory_constructor_name,
               PARAMS=constructor_info.ParametersDeclaration(self._DartType),
@@ -422,8 +442,9 @@ class HtmlDartGenerator(object):
           constructor_info.idl_args,
           False,
           [info.name for info in constructor_info.param_infos],
-          emitter.Format('factory $CTOR($PARAMS)',
+          emitter.Format('$(ANNOTATIONS)factory $CTOR($PARAMS)',
             CTOR=constructor_info._ConstructorFullName(self._DartType),
+            ANNOTATIONS=annotations,
             PARAMS=constructor_info.ParametersDeclaration(self._DartType)),
           GenerateCall,
           IsOptional)

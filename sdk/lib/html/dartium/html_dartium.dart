@@ -126,6 +126,7 @@ class AbstractWorkerEvents extends Events {
 class AnchorElement extends _Element_Merged {
   AnchorElement.internal() : super.internal();
 
+  @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
@@ -457,6 +458,7 @@ class ApplicationCacheEvents extends Events {
 class AreaElement extends _Element_Merged {
   AreaElement.internal() : super.internal();
 
+  @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable
   factory AreaElement() => document.$dom_createElement("area");
 
@@ -634,6 +636,7 @@ class Attr extends Node {
 class AudioElement extends MediaElement {
   AudioElement.internal() : super.internal();
 
+  @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable
   factory AudioElement([String src]) {
     return AudioElement._create_1(src);
@@ -655,6 +658,7 @@ class AudioElement extends MediaElement {
 class BRElement extends _Element_Merged {
   BRElement.internal() : super.internal();
 
+  @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable
   factory BRElement() => document.$dom_createElement("br");
 
@@ -688,6 +692,7 @@ class BarInfo extends NativeFieldWrapperClass1 {
 class BaseElement extends _Element_Merged {
   BaseElement.internal() : super.internal();
 
+  @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable
   factory BaseElement() => document.$dom_createElement("base");
 
@@ -939,6 +944,7 @@ class BodyElement extends _Element_Merged {
   @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
+  @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable
   factory BodyElement() => document.$dom_createElement("body");
 
@@ -1059,6 +1065,7 @@ class BodyElementEvents extends ElementEvents {
 class ButtonElement extends _Element_Merged {
   ButtonElement.internal() : super.internal();
 
+  @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable
   factory ButtonElement() => document.$dom_createElement("button");
 
@@ -1193,6 +1200,7 @@ class CDataSection extends Text {
 class CanvasElement extends _Element_Merged {
   CanvasElement.internal() : super.internal();
 
+  @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable
   factory CanvasElement({int width, int height}) {
     var e = document.$dom_createElement("canvas");
@@ -2238,6 +2246,7 @@ class Console extends NativeFieldWrapperClass1 {
 class ContentElement extends _Element_Merged {
   ContentElement.internal() : super.internal();
 
+  @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable
   factory ContentElement() => document.$dom_createElement("content");
 
@@ -2513,6 +2522,7 @@ class CssKeyframesRule extends CssRule {
 class CssMatrix extends NativeFieldWrapperClass1 {
   CssMatrix.internal();
 
+  @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable
   factory CssMatrix([String cssValue]) {
     return CssMatrix._create_1(cssValue);
@@ -6409,6 +6419,7 @@ class CustomEvent extends Event {
 class DListElement extends _Element_Merged {
   DListElement.internal() : super.internal();
 
+  @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable
   factory DListElement() => document.$dom_createElement("dl");
 
@@ -6429,6 +6440,7 @@ class DListElement extends _Element_Merged {
 class DataListElement extends _Element_Merged {
   DataListElement.internal() : super.internal();
 
+  @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable
   factory DataListElement() => document.$dom_createElement("datalist");
 
@@ -6935,6 +6947,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 class DetailsElement extends _Element_Merged {
   DetailsElement.internal() : super.internal();
 
+  @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable
   factory DetailsElement() => document.$dom_createElement("details");
 
@@ -7111,6 +7124,7 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 class DivElement extends _Element_Merged {
   DivElement.internal() : super.internal();
 
+  @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable
   factory DivElement() => document.$dom_createElement("div");
 
@@ -8117,6 +8131,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 class DomParser extends NativeFieldWrapperClass1 {
   DomParser.internal();
 
+  @DomName('DOMParser.DOMParser')
   @DocsEditable
   factory DomParser() {
     return DomParser._create_1();
@@ -10587,6 +10602,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 class EmbedElement extends _Element_Merged {
   EmbedElement.internal() : super.internal();
 
+  @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable
   factory EmbedElement() => document.$dom_createElement("embed");
 
@@ -11059,6 +11075,7 @@ class EventSource extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
+  @DomName('EventSource.EventSource')
   @DocsEditable
   factory EventSource(String url, [Map eventSourceInit]) {
     return EventSource._create_1(url, eventSourceInit);
@@ -11259,6 +11276,7 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 class FieldSetElement extends _Element_Merged {
   FieldSetElement.internal() : super.internal();
 
+  @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
@@ -11717,6 +11735,7 @@ class FileReader extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  @DomName('FileReader.FileReader')
   @DocsEditable
   factory FileReader() {
     return FileReader._create_1();
@@ -11856,6 +11875,7 @@ class FileReaderEvents extends Events {
 class FileReaderSync extends NativeFieldWrapperClass1 {
   FileReaderSync.internal();
 
+  @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable
   factory FileReaderSync() {
     return FileReaderSync._create_1();
@@ -12140,12 +12160,18 @@ class FileWriterSync extends NativeFieldWrapperClass1 {
 class Float32Array extends ArrayBufferView implements List<num> {
   Float32Array.internal() : super.internal();
 
+  @DomName('Float32Array.Float32Array')
+  @DocsEditable
   factory Float32Array(int length) =>
     _TypedArrayFactoryProvider.createFloat32Array(length);
 
+  @DomName('Float32Array.fromList')
+  @DocsEditable
   factory Float32Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromList(list);
 
+  @DomName('Float32Array.fromBuffer')
+  @DocsEditable
   factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
@@ -12369,12 +12395,18 @@ class Float32Array extends ArrayBufferView implements List<num> {
 class Float64Array extends ArrayBufferView implements List<num> {
   Float64Array.internal() : super.internal();
 
+  @DomName('Float64Array.Float64Array')
+  @DocsEditable
   factory Float64Array(int length) =>
     _TypedArrayFactoryProvider.createFloat64Array(length);
 
+  @DomName('Float64Array.fromList')
+  @DocsEditable
   factory Float64Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromList(list);
 
+  @DomName('Float64Array.fromBuffer')
+  @DocsEditable
   factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
@@ -12619,6 +12651,7 @@ class FormData extends NativeFieldWrapperClass1 {
 class FormElement extends _Element_Merged {
   FormElement.internal() : super.internal();
 
+  @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable
   factory FormElement() => document.$dom_createElement("form");
 
@@ -12802,6 +12835,7 @@ class Geoposition extends NativeFieldWrapperClass1 {
 class HRElement extends _Element_Merged {
   HRElement.internal() : super.internal();
 
+  @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable
   factory HRElement() => document.$dom_createElement("hr");
 
@@ -12855,6 +12889,7 @@ class HashChangeEvent extends Event {
 class HeadElement extends _Element_Merged {
   HeadElement.internal() : super.internal();
 
+  @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable
   factory HeadElement() => document.$dom_createElement("head");
 
@@ -12871,21 +12906,27 @@ class HeadElement extends _Element_Merged {
 class HeadingElement extends _Element_Merged {
   HeadingElement.internal() : super.internal();
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h1() => document.$dom_createElement("h1");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h2() => document.$dom_createElement("h2");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h3() => document.$dom_createElement("h3");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h4() => document.$dom_createElement("h4");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h5() => document.$dom_createElement("h5");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h6() => document.$dom_createElement("h6");
 
@@ -13507,6 +13548,7 @@ class HtmlDocument extends Document {
 class HtmlElement extends _Element_Merged {
   HtmlElement.internal() : super.internal();
 
+  @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable
   factory HtmlElement() => document.$dom_createElement("html");
 
@@ -13689,6 +13731,20 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
+  /**
+   * General constructor for any type of request (GET, POST, etc).
+   *
+   * This call is used in conjunction with [open]:
+   *
+   *     var request = new HttpRequest();
+   *     request.open('GET', 'http://dartlang.org')
+   *     request.on.load.add((event) => print('Request complete'));
+   *
+   * is the (more verbose) equivalent of
+   *
+   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));
+   */
+  @DomName('XMLHttpRequest.XMLHttpRequest')
   @DocsEditable
   factory HttpRequest() {
     return HttpRequest._create_1();
@@ -14030,6 +14086,7 @@ class HttpRequestUploadEvents extends Events {
 class IFrameElement extends _Element_Merged {
   IFrameElement.internal() : super.internal();
 
+  @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable
   factory IFrameElement() => document.$dom_createElement("iframe");
 
@@ -14129,6 +14186,7 @@ class ImageData extends NativeFieldWrapperClass1 {
 class ImageElement extends _Element_Merged {
   ImageElement.internal() : super.internal();
 
+  @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
@@ -15327,12 +15385,18 @@ class InputElementEvents extends ElementEvents {
 class Int16Array extends ArrayBufferView implements List<int> {
   Int16Array.internal() : super.internal();
 
+  @DomName('Int16Array.Int16Array')
+  @DocsEditable
   factory Int16Array(int length) =>
     _TypedArrayFactoryProvider.createInt16Array(length);
 
+  @DomName('Int16Array.fromList')
+  @DocsEditable
   factory Int16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt16Array_fromList(list);
 
+  @DomName('Int16Array.fromBuffer')
+  @DocsEditable
   factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
@@ -15556,12 +15620,18 @@ class Int16Array extends ArrayBufferView implements List<int> {
 class Int32Array extends ArrayBufferView implements List<int> {
   Int32Array.internal() : super.internal();
 
+  @DomName('Int32Array.Int32Array')
+  @DocsEditable
   factory Int32Array(int length) =>
     _TypedArrayFactoryProvider.createInt32Array(length);
 
+  @DomName('Int32Array.fromList')
+  @DocsEditable
   factory Int32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt32Array_fromList(list);
 
+  @DomName('Int32Array.fromBuffer')
+  @DocsEditable
   factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
@@ -15785,12 +15855,18 @@ class Int32Array extends ArrayBufferView implements List<int> {
 class Int8Array extends ArrayBufferView implements List<int> {
   Int8Array.internal() : super.internal();
 
+  @DomName('Int8Array.Int8Array')
+  @DocsEditable
   factory Int8Array(int length) =>
     _TypedArrayFactoryProvider.createInt8Array(length);
 
+  @DomName('Int8Array.fromList')
+  @DocsEditable
   factory Int8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt8Array_fromList(list);
 
+  @DomName('Int8Array.fromBuffer')
+  @DocsEditable
   factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
@@ -16146,6 +16222,7 @@ class KeyboardEvent extends UIEvent {
 class KeygenElement extends _Element_Merged {
   KeygenElement.internal() : super.internal();
 
+  @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable
   factory KeygenElement() => document.$dom_createElement("keygen");
 
@@ -16237,6 +16314,7 @@ class KeygenElement extends _Element_Merged {
 class LIElement extends _Element_Merged {
   LIElement.internal() : super.internal();
 
+  @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable
   factory LIElement() => document.$dom_createElement("li");
 
@@ -16269,6 +16347,7 @@ class LIElement extends _Element_Merged {
 class LabelElement extends _Element_Merged {
   LabelElement.internal() : super.internal();
 
+  @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable
   factory LabelElement() => document.$dom_createElement("label");
 
@@ -16301,6 +16380,7 @@ class LabelElement extends _Element_Merged {
 class LegendElement extends _Element_Merged {
   LegendElement.internal() : super.internal();
 
+  @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable
   factory LegendElement() => document.$dom_createElement("legend");
 
@@ -16321,6 +16401,7 @@ class LegendElement extends _Element_Merged {
 class LinkElement extends _Element_Merged {
   LinkElement.internal() : super.internal();
 
+  @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable
   factory LinkElement() => document.$dom_createElement("link");
 
@@ -16515,6 +16596,7 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 class MapElement extends _Element_Merged {
   MapElement.internal() : super.internal();
 
+  @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable
   factory MapElement() => document.$dom_createElement("map");
 
@@ -16543,6 +16625,7 @@ class MapElement extends _Element_Merged {
 class MediaController extends EventTarget {
   MediaController.internal() : super.internal();
 
+  @DomName('MediaController.MediaController')
   @DocsEditable
   factory MediaController() {
     return MediaController._create_1();
@@ -17415,6 +17498,7 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 class MediaSource extends EventTarget {
   MediaSource.internal() : super.internal();
 
+  @DomName('MediaSource.MediaSource')
   @DocsEditable
   factory MediaSource() {
     return MediaSource._create_1();
@@ -17482,6 +17566,7 @@ class MediaStream extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
+  @DomName('MediaStream.MediaStream')
   @DocsEditable
   factory MediaStream() {
     return MediaStream._create_1();
@@ -17742,6 +17827,7 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 class MenuElement extends _Element_Merged {
   MenuElement.internal() : super.internal();
 
+  @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable
   factory MenuElement() => document.$dom_createElement("menu");
 
@@ -17758,6 +17844,7 @@ class MenuElement extends _Element_Merged {
 class MessageChannel extends NativeFieldWrapperClass1 {
   MessageChannel.internal();
 
+  @DomName('MessageChannel.MessageChannel')
   @DocsEditable
   factory MessageChannel() {
     return MessageChannel._create_1();
@@ -17965,6 +18052,7 @@ typedef void MetadataCallback(Metadata metadata);
 class MeterElement extends _Element_Merged {
   MeterElement.internal() : super.internal();
 
+  @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable
   factory MeterElement() => document.$dom_createElement("meter");
 
@@ -19478,6 +19566,7 @@ class Notification extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
+  @DomName('Notification.Notification')
   @DocsEditable
   factory Notification(String title, [Map options]) {
     return Notification._create_1(title, options);
@@ -19646,6 +19735,7 @@ typedef void NotificationPermissionCallback(String permission);
 class OListElement extends _Element_Merged {
   OListElement.internal() : super.internal();
 
+  @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable
   factory OListElement() => document.$dom_createElement("ol");
 
@@ -19689,6 +19779,7 @@ class OListElement extends _Element_Merged {
 class ObjectElement extends _Element_Merged {
   ObjectElement.internal() : super.internal();
 
+  @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable
   factory ObjectElement() => document.$dom_createElement("object");
 
@@ -19860,6 +19951,7 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 class OptGroupElement extends _Element_Merged {
   OptGroupElement.internal() : super.internal();
 
+  @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
@@ -19892,6 +19984,7 @@ class OptGroupElement extends _Element_Merged {
 class OptionElement extends _Element_Merged {
   OptionElement.internal() : super.internal();
 
+  @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     return OptionElement._create_1(data, value, defaultSelected, selected);
@@ -19964,6 +20057,7 @@ class OptionElement extends _Element_Merged {
 class OutputElement extends _Element_Merged {
   OutputElement.internal() : super.internal();
 
+  @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable
   factory OutputElement() => document.$dom_createElement("output");
 
@@ -20124,6 +20218,7 @@ class PageTransitionEvent extends Event {
 class ParagraphElement extends _Element_Merged {
   ParagraphElement.internal() : super.internal();
 
+  @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable
   factory ParagraphElement() => document.$dom_createElement("p");
 
@@ -20140,6 +20235,7 @@ class ParagraphElement extends _Element_Merged {
 class ParamElement extends _Element_Merged {
   ParamElement.internal() : super.internal();
 
+  @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable
   factory ParamElement() => document.$dom_createElement("param");
 
@@ -20397,6 +20493,7 @@ typedef void PositionErrorCallback(PositionError error);
 class PreElement extends _Element_Merged {
   PreElement.internal() : super.internal();
 
+  @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable
   factory PreElement() => document.$dom_createElement("pre");
 
@@ -20454,6 +20551,7 @@ class ProcessingInstruction extends Node {
 class ProgressElement extends _Element_Merged {
   ProgressElement.internal() : super.internal();
 
+  @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable
   factory ProgressElement() => document.$dom_createElement("progress");
 
@@ -21000,6 +21098,7 @@ class RtcDataChannelEvent extends Event {
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
   RtcIceCandidate.internal();
 
+  @DomName('RTCIceCandidate.RTCIceCandidate')
   @DocsEditable
   factory RtcIceCandidate(Map dictionary) {
     return RtcIceCandidate._create_1(dictionary);
@@ -21078,6 +21177,7 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
+  @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     return RtcPeerConnection._create_1(rtcIceServers, mediaConstraints);
@@ -21246,6 +21346,7 @@ class RtcPeerConnectionEvents extends Events {
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
   RtcSessionDescription.internal();
 
+  @DomName('RTCSessionDescription.RTCSessionDescription')
   @DocsEditable
   factory RtcSessionDescription(Map dictionary) {
     return RtcSessionDescription._create_1(dictionary);
@@ -21431,6 +21532,7 @@ class Screen extends NativeFieldWrapperClass1 {
 class ScriptElement extends _Element_Merged {
   ScriptElement.internal() : super.internal();
 
+  @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable
   factory ScriptElement() => document.$dom_createElement("script");
 
@@ -21586,6 +21688,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 class SelectElement extends _Element_Merged {
   SelectElement.internal() : super.internal();
 
+  @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable
   factory SelectElement() => document.$dom_createElement("select");
 
@@ -21830,6 +21933,7 @@ class ShadowRoot extends DocumentFragment {
 class SharedWorker extends AbstractWorker {
   SharedWorker.internal() : super.internal();
 
+  @DomName('SharedWorker.SharedWorker')
   @DocsEditable
   factory SharedWorker(String scriptURL, [String name]) {
     return SharedWorker._create_1(scriptURL, name);
@@ -22142,6 +22246,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 class SourceElement extends _Element_Merged {
   SourceElement.internal() : super.internal();
 
+  @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable
   factory SourceElement() => document.$dom_createElement("source");
 
@@ -22182,6 +22287,7 @@ class SourceElement extends _Element_Merged {
 class SpanElement extends _Element_Merged {
   SpanElement.internal() : super.internal();
 
+  @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable
   factory SpanElement() => document.$dom_createElement("span");
 
@@ -22198,6 +22304,7 @@ class SpanElement extends _Element_Merged {
 class SpeechGrammar extends NativeFieldWrapperClass1 {
   SpeechGrammar.internal();
 
+  @DomName('SpeechGrammar.SpeechGrammar')
   @DocsEditable
   factory SpeechGrammar() {
     return SpeechGrammar._create_1();
@@ -22235,6 +22342,7 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
   SpeechGrammarList.internal();
 
+  @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable
   factory SpeechGrammarList() {
     return SpeechGrammarList._create_1();
@@ -22562,6 +22670,7 @@ class SpeechRecognition extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
+  @DomName('SpeechRecognition.SpeechRecognition')
   @DocsEditable
   factory SpeechRecognition() {
     return SpeechRecognition._create_1();
@@ -23368,6 +23477,7 @@ typedef void StringCallback(String data);
 class StyleElement extends _Element_Merged {
   StyleElement.internal() : super.internal();
 
+  @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable
   factory StyleElement() => document.$dom_createElement("style");
 
@@ -23486,6 +23596,7 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 class TableCaptionElement extends _Element_Merged {
   TableCaptionElement.internal() : super.internal();
 
+  @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable
   factory TableCaptionElement() => document.$dom_createElement("caption");
 
@@ -23502,6 +23613,7 @@ class TableCaptionElement extends _Element_Merged {
 class TableCellElement extends _Element_Merged {
   TableCellElement.internal() : super.internal();
 
+  @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable
   factory TableCellElement() => document.$dom_createElement("td");
 
@@ -23546,6 +23658,7 @@ class TableCellElement extends _Element_Merged {
 class TableColElement extends _Element_Merged {
   TableColElement.internal() : super.internal();
 
+  @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable
   factory TableColElement() => document.$dom_createElement("col");
 
@@ -23570,6 +23683,7 @@ class TableColElement extends _Element_Merged {
 class TableElement extends _Element_Merged {
   TableElement.internal() : super.internal();
 
+  @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable
   factory TableElement() => document.$dom_createElement("table");
 
@@ -23662,6 +23776,7 @@ class TableElement extends _Element_Merged {
 class TableRowElement extends _Element_Merged {
   TableRowElement.internal() : super.internal();
 
+  @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable
   factory TableRowElement() => document.$dom_createElement("tr");
 
@@ -23748,6 +23863,7 @@ class Text extends CharacterData {
 class TextAreaElement extends _Element_Merged {
   TextAreaElement.internal() : super.internal();
 
+  @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
@@ -24108,6 +24224,7 @@ class TextTrackCue extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
+  @DomName('TextTrackCue.TextTrackCue')
   @DocsEditable
   factory TextTrackCue(num startTime, num endTime, String text) {
     return TextTrackCue._create_1(startTime, endTime, text);
@@ -24739,6 +24856,7 @@ typedef void TimeoutHandler();
 class TitleElement extends _Element_Merged {
   TitleElement.internal() : super.internal();
 
+  @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable
   factory TitleElement() => document.$dom_createElement("title");
 
@@ -25090,6 +25208,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 class TrackElement extends _Element_Merged {
   TrackElement.internal() : super.internal();
 
+  @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable
   factory TrackElement() => document.$dom_createElement("track");
 
@@ -25336,6 +25455,7 @@ class UIEvent extends Event {
 class UListElement extends _Element_Merged {
   UListElement.internal() : super.internal();
 
+  @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable
   factory UListElement() => document.$dom_createElement("ul");
 
@@ -25352,12 +25472,18 @@ class UListElement extends _Element_Merged {
 class Uint16Array extends ArrayBufferView implements List<int> {
   Uint16Array.internal() : super.internal();
 
+  @DomName('Uint16Array.Uint16Array')
+  @DocsEditable
   factory Uint16Array(int length) =>
     _TypedArrayFactoryProvider.createUint16Array(length);
 
+  @DomName('Uint16Array.fromList')
+  @DocsEditable
   factory Uint16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint16Array_fromList(list);
 
+  @DomName('Uint16Array.fromBuffer')
+  @DocsEditable
   factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
@@ -25581,12 +25707,18 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 class Uint32Array extends ArrayBufferView implements List<int> {
   Uint32Array.internal() : super.internal();
 
+  @DomName('Uint32Array.Uint32Array')
+  @DocsEditable
   factory Uint32Array(int length) =>
     _TypedArrayFactoryProvider.createUint32Array(length);
 
+  @DomName('Uint32Array.fromList')
+  @DocsEditable
   factory Uint32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint32Array_fromList(list);
 
+  @DomName('Uint32Array.fromBuffer')
+  @DocsEditable
   factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
@@ -25810,12 +25942,18 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 class Uint8Array extends ArrayBufferView implements List<int> {
   Uint8Array.internal() : super.internal();
 
+  @DomName('Uint8Array.Uint8Array')
+  @DocsEditable
   factory Uint8Array(int length) =>
     _TypedArrayFactoryProvider.createUint8Array(length);
 
+  @DomName('Uint8Array.fromList')
+  @DocsEditable
   factory Uint8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8Array_fromList(list);
 
+  @DomName('Uint8Array.fromBuffer')
+  @DocsEditable
   factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
@@ -26039,12 +26177,18 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 class Uint8ClampedArray extends Uint8Array implements List<int> {
   Uint8ClampedArray.internal() : super.internal();
 
+  @DomName('Uint8ClampedArray.Uint8ClampedArray')
+  @DocsEditable
   factory Uint8ClampedArray(int length) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray(length);
 
+  @DomName('Uint8ClampedArray.fromList')
+  @DocsEditable
   factory Uint8ClampedArray.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromList(list);
 
+  @DomName('Uint8ClampedArray.fromBuffer')
+  @DocsEditable
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
@@ -26374,6 +26518,7 @@ class ValidityState extends NativeFieldWrapperClass1 {
 class VideoElement extends MediaElement {
   VideoElement.internal() : super.internal();
 
+  @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable
   factory VideoElement() => document.$dom_createElement("video");
 
@@ -28193,6 +28338,7 @@ class WebSocket extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
+  @DomName('WebSocket.WebSocket')
   @DocsEditable
   factory WebSocket(String url, [protocol_OR_protocols]) {
     if ((url is String || url == null) && !?protocol_OR_protocols) {
@@ -29376,6 +29522,7 @@ class Worker extends AbstractWorker {
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  @DomName('Worker.Worker')
   @DocsEditable
   factory Worker(String scriptUrl) {
     return Worker._create_1(scriptUrl);
@@ -29646,6 +29793,7 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 class XPathEvaluator extends NativeFieldWrapperClass1 {
   XPathEvaluator.internal();
 
+  @DomName('XPathEvaluator.XPathEvaluator')
   @DocsEditable
   factory XPathEvaluator() {
     return XPathEvaluator._create_1();
@@ -29815,6 +29963,7 @@ class XPathResult extends NativeFieldWrapperClass1 {
 class XmlSerializer extends NativeFieldWrapperClass1 {
   XmlSerializer.internal();
 
+  @DomName('XMLSerializer.XMLSerializer')
   @DocsEditable
   factory XmlSerializer() {
     return XmlSerializer._create_1();
@@ -29843,6 +29992,7 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 class XsltProcessor extends NativeFieldWrapperClass1 {
   XsltProcessor.internal();
 
+  @DomName('XSLTProcessor.XSLTProcessor')
   @DocsEditable
   factory XsltProcessor() {
     return XsltProcessor._create_1();

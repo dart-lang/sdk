@@ -903,6 +903,7 @@ class OfflineAudioCompletionEvent extends Event {
 class OfflineAudioContext extends AudioContext implements EventTarget {
   OfflineAudioContext.internal() : super.internal();
 
+  @DomName('OfflineAudioContext.OfflineAudioContext')
   @DocsEditable
   factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
     return OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);

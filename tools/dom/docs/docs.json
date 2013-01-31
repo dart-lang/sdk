@@ -210,6 +210,25 @@
           "/// The width of this canvas element in CSS pixels."
         ]
       }
+    },
+    "XMLHttpRequest": {
+      "members": {
+        "XMLHttpRequest": [
+          "/**",
+          "   * General constructor for any type of request (GET, POST, etc).",
+          "   *",
+          "   * This call is used in conjunction with [open]:",
+          "   *",
+          "   *     var request = new HttpRequest();",
+          "   *     request.open('GET', 'http://dartlang.org')",
+          "   *     request.on.load.add((event) => print('Request complete'));",
+          "   *",
+          "   * is the (more verbose) equivalent of",
+          "   *",
+          "   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));",
+          "   */"
+        ]
+      }
     }
   }
 }

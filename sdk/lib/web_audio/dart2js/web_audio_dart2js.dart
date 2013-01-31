@@ -686,6 +686,7 @@ class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionE
 @DomName('OfflineAudioContext')
 class OfflineAudioContext extends AudioContext implements EventTarget native "*OfflineAudioContext" {
 
+  @DomName('OfflineAudioContext.OfflineAudioContext')
   @DocsEditable
   factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
     return OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);

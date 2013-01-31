@@ -108,6 +108,7 @@ class AbstractWorkerEvents extends Events {
 @DomName('HTMLAnchorElement')
 class AnchorElement extends Element native "*HTMLAnchorElement" {
 
+  @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
@@ -369,6 +370,7 @@ class ApplicationCacheEvents extends Events {
 @DomName('HTMLAreaElement')
 class AreaElement extends Element native "*HTMLAreaElement" {
 
+  @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable
   factory AreaElement() => document.$dom_createElement("area");
 
@@ -436,6 +438,7 @@ class AreaElement extends Element native "*HTMLAreaElement" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBuffer native "*ArrayBuffer" {
 
+  @DomName('ArrayBuffer.ArrayBuffer')
   @DocsEditable
   factory ArrayBuffer(int length) {
     return ArrayBuffer._create_1(length);
@@ -521,6 +524,7 @@ class Attr extends Node native "*Attr" {
 @DomName('HTMLAudioElement')
 class AudioElement extends MediaElement native "*HTMLAudioElement" {
 
+  @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable
   factory AudioElement([String src]) {
     if (?src) {
@@ -540,6 +544,7 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
 @DomName('HTMLBRElement')
 class BRElement extends Element native "*HTMLBRElement" {
 
+  @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable
   factory BRElement() => document.$dom_createElement("br");
 }
@@ -565,6 +570,7 @@ class BarInfo native "*BarInfo" {
 @DomName('HTMLBaseElement')
 class BaseElement extends Element native "*HTMLBaseElement" {
 
+  @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable
   factory BaseElement() => document.$dom_createElement("base");
 
@@ -786,6 +792,7 @@ class BodyElement extends Element native "*HTMLBodyElement" {
   @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
+  @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable
   factory BodyElement() => document.$dom_createElement("body");
 
@@ -902,6 +909,7 @@ class BodyElementEvents extends ElementEvents {
 @DomName('HTMLButtonElement')
 class ButtonElement extends Element native "*HTMLButtonElement" {
 
+  @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable
   factory ButtonElement() => document.$dom_createElement("button");
 
@@ -992,6 +1000,7 @@ class CDataSection extends Text native "*CDATASection" {
 @DomName('HTMLCanvasElement')
 class CanvasElement extends Element native "*HTMLCanvasElement" {
 
+  @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable
   factory CanvasElement({int width, int height}) {
     var e = document.$dom_createElement("canvas");
@@ -1783,6 +1792,7 @@ class Console {
 @Experimental
 class ContentElement extends Element native "*HTMLContentElement" {
 
+  @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable
   factory ContentElement() => document.$dom_createElement("content");
 
@@ -2004,6 +2014,7 @@ class CssKeyframesRule extends CssRule native "*WebKitCSSKeyframesRule" {
 @Experimental
 class CssMatrix native "*WebKitCSSMatrix" {
 
+  @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable
   factory CssMatrix([String cssValue]) {
     if (?cssValue) {
@@ -5754,6 +5765,7 @@ class CustomEvent extends Event native "*CustomEvent" {
 @DomName('HTMLDListElement')
 class DListElement extends Element native "*HTMLDListElement" {
 
+  @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable
   factory DListElement() => document.$dom_createElement("dl");
 }
@@ -5770,6 +5782,7 @@ class DListElement extends Element native "*HTMLDListElement" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class DataListElement extends Element native "*HTMLDataListElement" {
 
+  @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable
   factory DataListElement() => document.$dom_createElement("datalist");
 
@@ -5890,6 +5903,7 @@ class DataTransferItemList native "*DataTransferItemList" {
 @DomName('DataView')
 class DataView extends ArrayBufferView native "*DataView" {
 
+  @DomName('DataView.DataView')
   @DocsEditable
   factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
     if (?byteLength) {
@@ -6103,6 +6117,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 @Experimental
 class DetailsElement extends Element native "*HTMLDetailsElement" {
 
+  @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable
   factory DetailsElement() => document.$dom_createElement("details");
 
@@ -6327,6 +6342,7 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 @DomName('HTMLDivElement')
 class DivElement extends Element native "*HTMLDivElement" {
 
+  @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable
   factory DivElement() => document.$dom_createElement("div");
 }
@@ -7351,6 +7367,7 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 @DomName('DOMParser')
 class DomParser native "*DOMParser" {
 
+  @DomName('DOMParser.DOMParser')
   @DocsEditable
   factory DomParser() {
     return DomParser._create_1();
@@ -7611,6 +7628,7 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 @Experimental
 class DomPoint native "*WebKitPoint" {
 
+  @DomName('WebKitPoint.WebKitPoint')
   @DocsEditable
   factory DomPoint(num x, num y) {
     return DomPoint._create_1(x, y);
@@ -9903,6 +9921,7 @@ abstract class ElementTraversal {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class EmbedElement extends Element native "*HTMLEmbedElement" {
 
+  @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable
   factory EmbedElement() => document.$dom_createElement("embed");
 
@@ -10303,6 +10322,7 @@ class EventSource extends EventTarget native "*EventSource" {
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
+  @DomName('EventSource.EventSource')
   @DocsEditable
   factory EventSource(String url, [Map eventSourceInit]) {
     if (?eventSourceInit) {
@@ -10500,6 +10520,7 @@ class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 @DomName('HTMLFieldSetElement')
 class FieldSetElement extends Element native "*HTMLFieldSetElement" {
 
+  @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
@@ -10922,6 +10943,7 @@ class FileReader extends EventTarget native "*FileReader" {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  @DomName('FileReader.FileReader')
   @DocsEditable
   factory FileReader() {
     return FileReader._create_1();
@@ -11046,6 +11068,7 @@ class FileReaderEvents extends Events {
 @DomName('FileReaderSync')
 class FileReaderSync native "*FileReaderSync" {
 
+  @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable
   factory FileReaderSync() {
     return FileReaderSync._create_1();
@@ -11300,12 +11323,18 @@ class FileWriterSync native "*FileWriterSync" {
 @DomName('Float32Array')
 class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float32Array" {
 
+  @DomName('Float32Array.Float32Array')
+  @DocsEditable
   factory Float32Array(int length) =>
     _TypedArrayFactoryProvider.createFloat32Array(length);
 
+  @DomName('Float32Array.fromList')
+  @DocsEditable
   factory Float32Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromList(list);
 
+  @DomName('Float32Array.fromBuffer')
+  @DocsEditable
   factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
@@ -11510,12 +11539,18 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 @DomName('Float64Array')
 class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<num> native "*Float64Array" {
 
+  @DomName('Float64Array.Float64Array')
+  @DocsEditable
   factory Float64Array(int length) =>
     _TypedArrayFactoryProvider.createFloat64Array(length);
 
+  @DomName('Float64Array.fromList')
+  @DocsEditable
   factory Float64Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromList(list);
 
+  @DomName('Float64Array.fromBuffer')
+  @DocsEditable
   factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
@@ -11720,6 +11755,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 @DomName('FormData')
 class FormData native "*FormData" {
 
+  @DomName('DOMFormData.DOMFormData')
   @DocsEditable
   factory FormData([FormElement form]) {
     if (?form) {
@@ -11743,6 +11779,7 @@ class FormData native "*FormData" {
 @DomName('HTMLFormElement')
 class FormElement extends Element native "*HTMLFormElement" {
 
+  @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable
   factory FormElement() => document.$dom_createElement("form");
 
@@ -11874,6 +11911,7 @@ class Geoposition native "*Geoposition" {
 @DomName('HTMLHRElement')
 class HRElement extends Element native "*HTMLHRElement" {
 
+  @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable
   factory HRElement() => document.$dom_createElement("hr");
 }
@@ -11925,6 +11963,7 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
 @DomName('HTMLHeadElement')
 class HeadElement extends Element native "*HTMLHeadElement" {
 
+  @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable
   factory HeadElement() => document.$dom_createElement("head");
 }
@@ -11937,21 +11976,27 @@ class HeadElement extends Element native "*HTMLHeadElement" {
 @DomName('HTMLHeadingElement')
 class HeadingElement extends Element native "*HTMLHeadingElement" {
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h1() => document.$dom_createElement("h1");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h2() => document.$dom_createElement("h2");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h3() => document.$dom_createElement("h3");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h4() => document.$dom_createElement("h4");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h5() => document.$dom_createElement("h5");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h6() => document.$dom_createElement("h6");
 }
@@ -12566,6 +12611,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 @DomName('HTMLHtmlElement')
 class HtmlElement extends Element native "*HTMLHtmlElement" {
 
+  @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable
   factory HtmlElement() => document.$dom_createElement("html");
 }
@@ -12734,6 +12780,20 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
+  /**
+   * General constructor for any type of request (GET, POST, etc).
+   *
+   * This call is used in conjunction with [open]:
+   *
+   *     var request = new HttpRequest();
+   *     request.open('GET', 'http://dartlang.org')
+   *     request.on.load.add((event) => print('Request complete'));
+   *
+   * is the (more verbose) equivalent of
+   *
+   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));
+   */
+  @DomName('XMLHttpRequest.XMLHttpRequest')
   @DocsEditable
   factory HttpRequest() {
     return HttpRequest._create_1();
@@ -13056,6 +13116,7 @@ class HttpRequestUploadEvents extends Events {
 @DomName('HTMLIFrameElement')
 class IFrameElement extends Element native "*HTMLIFrameElement" {
 
+  @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable
   factory IFrameElement() => document.$dom_createElement("iframe");
 
@@ -13122,6 +13183,7 @@ class ImageData native "*ImageData" {
 @DomName('HTMLImageElement')
 class ImageElement extends Element native "*HTMLImageElement" {
 
+  @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
@@ -14075,12 +14137,18 @@ class InputElementEvents extends ElementEvents {
 @DomName('Int16Array')
 class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int16Array" {
 
+  @DomName('Int16Array.Int16Array')
+  @DocsEditable
   factory Int16Array(int length) =>
     _TypedArrayFactoryProvider.createInt16Array(length);
 
+  @DomName('Int16Array.fromList')
+  @DocsEditable
   factory Int16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt16Array_fromList(list);
 
+  @DomName('Int16Array.fromBuffer')
+  @DocsEditable
   factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
@@ -14285,12 +14353,18 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 @DomName('Int32Array')
 class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int32Array" {
 
+  @DomName('Int32Array.Int32Array')
+  @DocsEditable
   factory Int32Array(int length) =>
     _TypedArrayFactoryProvider.createInt32Array(length);
 
+  @DomName('Int32Array.fromList')
+  @DocsEditable
   factory Int32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt32Array_fromList(list);
 
+  @DomName('Int32Array.fromBuffer')
+  @DocsEditable
   factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
@@ -14495,12 +14569,18 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 @DomName('Int8Array')
 class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Int8Array" {
 
+  @DomName('Int8Array.Int8Array')
+  @DocsEditable
   factory Int8Array(int length) =>
     _TypedArrayFactoryProvider.createInt8Array(length);
 
+  @DomName('Int8Array.fromList')
+  @DocsEditable
   factory Int8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt8Array_fromList(list);
 
+  @DomName('Int8Array.fromBuffer')
+  @DocsEditable
   factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
@@ -14849,6 +14929,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 @Experimental
 class KeygenElement extends Element native "*HTMLKeygenElement" {
 
+  @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable
   factory KeygenElement() => document.$dom_createElement("keygen");
 
@@ -14918,6 +14999,7 @@ class KeygenElement extends Element native "*HTMLKeygenElement" {
 @DomName('HTMLLIElement')
 class LIElement extends Element native "*HTMLLIElement" {
 
+  @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable
   factory LIElement() => document.$dom_createElement("li");
 
@@ -14938,6 +15020,7 @@ class LIElement extends Element native "*HTMLLIElement" {
 @DomName('HTMLLabelElement')
 class LabelElement extends Element native "*HTMLLabelElement" {
 
+  @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable
   factory LabelElement() => document.$dom_createElement("label");
 
@@ -14962,6 +15045,7 @@ class LabelElement extends Element native "*HTMLLabelElement" {
 @DomName('HTMLLegendElement')
 class LegendElement extends Element native "*HTMLLegendElement" {
 
+  @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable
   factory LegendElement() => document.$dom_createElement("legend");
 
@@ -14978,6 +15062,7 @@ class LegendElement extends Element native "*HTMLLegendElement" {
 @DomName('HTMLLinkElement')
 class LinkElement extends Element native "*HTMLLinkElement" {
 
+  @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable
   factory LinkElement() => document.$dom_createElement("link");
 
@@ -15102,6 +15187,7 @@ class Location implements LocationBase native "*Location" {
 @DomName('HTMLMapElement')
 class MapElement extends Element native "*HTMLMapElement" {
 
+  @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable
   factory MapElement() => document.$dom_createElement("map");
 
@@ -15122,6 +15208,7 @@ class MapElement extends Element native "*HTMLMapElement" {
 @DomName('MediaController')
 class MediaController extends EventTarget native "*MediaController" {
 
+  @DomName('MediaController.MediaController')
   @DocsEditable
   factory MediaController() {
     return MediaController._create_1();
@@ -15832,6 +15919,7 @@ abstract class MediaQueryListListener {
 @DomName('MediaSource')
 class MediaSource extends EventTarget native "*MediaSource" {
 
+  @DomName('MediaSource.MediaSource')
   @DocsEditable
   factory MediaSource() {
     return MediaSource._create_1();
@@ -15893,6 +15981,7 @@ class MediaStream extends EventTarget native "*MediaStream" {
   @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
+  @DomName('MediaStream.MediaStream')
   @DocsEditable
   factory MediaStream() {
     return MediaStream._create_1();
@@ -16138,6 +16227,7 @@ class MemoryInfo native "*MemoryInfo" {
 @DomName('HTMLMenuElement')
 class MenuElement extends Element native "*HTMLMenuElement" {
 
+  @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable
   factory MenuElement() => document.$dom_createElement("menu");
 }
@@ -16150,6 +16240,7 @@ class MenuElement extends Element native "*HTMLMenuElement" {
 @DomName('MessageChannel')
 class MessageChannel native "*MessageChannel" {
 
+  @DomName('MessageChannel.MessageChannel')
   @DocsEditable
   factory MessageChannel() {
     return MessageChannel._create_1();
@@ -16353,6 +16444,7 @@ typedef void MetadataCallback(Metadata metadata);
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class MeterElement extends Element native "*HTMLMeterElement" {
 
+  @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable
   factory MeterElement() => document.$dom_createElement("meter");
 
@@ -17866,6 +17958,7 @@ class Notification extends EventTarget native "*Notification" {
   @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
+  @DomName('Notification.Notification')
   @DocsEditable
   factory Notification(String title, [Map options]) {
     if (?options) {
@@ -18019,6 +18112,7 @@ typedef void NotificationPermissionCallback(String permission);
 @DomName('HTMLOListElement')
 class OListElement extends Element native "*HTMLOListElement" {
 
+  @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable
   factory OListElement() => document.$dom_createElement("ol");
 
@@ -18046,6 +18140,7 @@ class OListElement extends Element native "*HTMLOListElement" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends Element native "*HTMLObjectElement" {
 
+  @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable
   factory ObjectElement() => document.$dom_createElement("object");
 
@@ -18173,6 +18268,7 @@ class OesVertexArrayObject native "*OESVertexArrayObject" {
 @DomName('HTMLOptGroupElement')
 class OptGroupElement extends Element native "*HTMLOptGroupElement" {
 
+  @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
@@ -18193,6 +18289,7 @@ class OptGroupElement extends Element native "*HTMLOptGroupElement" {
 @DomName('HTMLOptionElement')
 class OptionElement extends Element native "*HTMLOptionElement" {
 
+  @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
     if (?selected) {
@@ -18255,6 +18352,7 @@ class OptionElement extends Element native "*HTMLOptionElement" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class OutputElement extends Element native "*HTMLOutputElement" {
 
+  @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable
   factory OutputElement() => document.$dom_createElement("output");
 
@@ -18385,6 +18483,7 @@ class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 @DomName('HTMLParagraphElement')
 class ParagraphElement extends Element native "*HTMLParagraphElement" {
 
+  @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable
   factory ParagraphElement() => document.$dom_createElement("p");
 }
@@ -18397,6 +18496,7 @@ class ParagraphElement extends Element native "*HTMLParagraphElement" {
 @DomName('HTMLParamElement')
 class ParamElement extends Element native "*HTMLParamElement" {
 
+  @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable
   factory ParamElement() => document.$dom_createElement("param");
 
@@ -18626,6 +18726,7 @@ typedef void PositionErrorCallback(PositionError error);
 @DomName('HTMLPreElement')
 class PreElement extends Element native "*HTMLPreElement" {
 
+  @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable
   factory PreElement() => document.$dom_createElement("pre");
 
@@ -18667,6 +18768,7 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ProgressElement extends Element native "*HTMLProgressElement" {
 
+  @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable
   factory ProgressElement() => document.$dom_createElement("progress");
 
@@ -19130,6 +19232,7 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 @DomName('RTCIceCandidate')
 class RtcIceCandidate native "*RTCIceCandidate" {
 
+  @DomName('RTCIceCandidate.RTCIceCandidate')
   @DocsEditable
   factory RtcIceCandidate(Map dictionary) {
     return RtcIceCandidate._create_1(dictionary);
@@ -19198,6 +19301,7 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
+  @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     if (?mediaConstraints) {
@@ -19448,6 +19552,7 @@ class RtcPeerConnectionEvents extends Events {
 @DomName('RTCSessionDescription')
 class RtcSessionDescription native "*RTCSessionDescription" {
 
+  @DomName('RTCSessionDescription.RTCSessionDescription')
   @DocsEditable
   factory RtcSessionDescription(Map dictionary) {
     return RtcSessionDescription._create_1(dictionary);
@@ -19603,6 +19708,7 @@ class Screen native "*Screen" {
 @DomName('HTMLScriptElement')
 class ScriptElement extends Element native "*HTMLScriptElement" {
 
+  @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable
   factory ScriptElement() => document.$dom_createElement("script");
 
@@ -19717,6 +19823,7 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 @DomName('HTMLSelectElement')
 class SelectElement extends Element native "*HTMLSelectElement" {
 
+  @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable
   factory SelectElement() => document.$dom_createElement("select");
 
@@ -19913,6 +20020,7 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 @DomName('SharedWorker')
 class SharedWorker extends AbstractWorker native "*SharedWorker" {
 
+  @DomName('SharedWorker.SharedWorker')
   @DocsEditable
   factory SharedWorker(String scriptURL, [String name]) {
     if (?name) {
@@ -20209,6 +20317,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 @DomName('HTMLSourceElement')
 class SourceElement extends Element native "*HTMLSourceElement" {
 
+  @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable
   factory SourceElement() => document.$dom_createElement("source");
 
@@ -20233,6 +20342,7 @@ class SourceElement extends Element native "*HTMLSourceElement" {
 @DomName('HTMLSpanElement')
 class SpanElement extends Element native "*HTMLSpanElement" {
 
+  @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable
   factory SpanElement() => document.$dom_createElement("span");
 }
@@ -20245,6 +20355,7 @@ class SpanElement extends Element native "*HTMLSpanElement" {
 @DomName('SpeechGrammar')
 class SpeechGrammar native "*SpeechGrammar" {
 
+  @DomName('SpeechGrammar.SpeechGrammar')
   @DocsEditable
   factory SpeechGrammar() {
     return SpeechGrammar._create_1();
@@ -20268,6 +20379,7 @@ class SpeechGrammar native "*SpeechGrammar" {
 @DomName('SpeechGrammarList')
 class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
 
+  @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable
   factory SpeechGrammarList() {
     return SpeechGrammarList._create_1();
@@ -21307,6 +21419,7 @@ typedef void StringCallback(String data);
 @DomName('HTMLStyleElement')
 class StyleElement extends Element native "*HTMLStyleElement" {
 
+  @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable
   factory StyleElement() => document.$dom_createElement("style");
 
@@ -21393,6 +21506,7 @@ class StyleSheet native "*StyleSheet" {
 @DomName('HTMLTableCaptionElement')
 class TableCaptionElement extends Element native "*HTMLTableCaptionElement" {
 
+  @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable
   factory TableCaptionElement() => document.$dom_createElement("caption");
 }
@@ -21405,6 +21519,7 @@ class TableCaptionElement extends Element native "*HTMLTableCaptionElement" {
 @DomName('HTMLTableCellElement')
 class TableCellElement extends Element native "*HTMLTableCellElement" {
 
+  @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable
   factory TableCellElement() => document.$dom_createElement("td");
 
@@ -21433,6 +21548,7 @@ class TableCellElement extends Element native "*HTMLTableCellElement" {
 @DomName('HTMLTableColElement')
 class TableColElement extends Element native "*HTMLTableColElement" {
 
+  @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable
   factory TableColElement() => document.$dom_createElement("col");
 
@@ -21448,6 +21564,7 @@ class TableColElement extends Element native "*HTMLTableColElement" {
 @DomName('HTMLTableElement')
 class TableElement extends Element native "*HTMLTableElement" {
 
+  @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable
   factory TableElement() => document.$dom_createElement("table");
 
@@ -21529,6 +21646,7 @@ class TableElement extends Element native "*HTMLTableElement" {
 @DomName('HTMLTableRowElement')
 class TableRowElement extends Element native "*HTMLTableRowElement" {
 
+  @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable
   factory TableRowElement() => document.$dom_createElement("tr");
 
@@ -21606,6 +21724,7 @@ class Text extends CharacterData native "*Text" {
 @DomName('HTMLTextAreaElement')
 class TextAreaElement extends Element native "*HTMLTextAreaElement" {
 
+  @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
@@ -21861,6 +21980,7 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   @DocsEditable
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
+  @DomName('TextTrackCue.TextTrackCue')
   @DocsEditable
   factory TextTrackCue(num startTime, num endTime, String text) {
     return TextTrackCue._create_1(startTime, endTime, text);
@@ -22435,6 +22555,7 @@ typedef void TimeoutHandler();
 @DomName('HTMLTitleElement')
 class TitleElement extends Element native "*HTMLTitleElement" {
 
+  @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable
   factory TitleElement() => document.$dom_createElement("title");
 }
@@ -22778,6 +22899,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class TrackElement extends Element native "*HTMLTrackElement" {
 
+  @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable
   factory TrackElement() => document.$dom_createElement("track");
 
@@ -22991,6 +23113,7 @@ class UIEvent extends Event native "*UIEvent" {
 @DomName('HTMLUListElement')
 class UListElement extends Element native "*HTMLUListElement" {
 
+  @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable
   factory UListElement() => document.$dom_createElement("ul");
 }
@@ -23003,12 +23126,18 @@ class UListElement extends Element native "*HTMLUListElement" {
 @DomName('Uint16Array')
 class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint16Array" {
 
+  @DomName('Uint16Array.Uint16Array')
+  @DocsEditable
   factory Uint16Array(int length) =>
     _TypedArrayFactoryProvider.createUint16Array(length);
 
+  @DomName('Uint16Array.fromList')
+  @DocsEditable
   factory Uint16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint16Array_fromList(list);
 
+  @DomName('Uint16Array.fromBuffer')
+  @DocsEditable
   factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
@@ -23213,12 +23342,18 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 @DomName('Uint32Array')
 class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint32Array" {
 
+  @DomName('Uint32Array.Uint32Array')
+  @DocsEditable
   factory Uint32Array(int length) =>
     _TypedArrayFactoryProvider.createUint32Array(length);
 
+  @DomName('Uint32Array.fromList')
+  @DocsEditable
   factory Uint32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint32Array_fromList(list);
 
+  @DomName('Uint32Array.fromBuffer')
+  @DocsEditable
   factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
@@ -23423,12 +23558,18 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 @DomName('Uint8Array')
 class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, List<int> native "*Uint8Array" {
 
+  @DomName('Uint8Array.Uint8Array')
+  @DocsEditable
   factory Uint8Array(int length) =>
     _TypedArrayFactoryProvider.createUint8Array(length);
 
+  @DomName('Uint8Array.fromList')
+  @DocsEditable
   factory Uint8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8Array_fromList(list);
 
+  @DomName('Uint8Array.fromBuffer')
+  @DocsEditable
   factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
@@ -23633,12 +23774,18 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 @DomName('Uint8ClampedArray')
 class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior, List<int> native "*Uint8ClampedArray" {
 
+  @DomName('Uint8ClampedArray.Uint8ClampedArray')
+  @DocsEditable
   factory Uint8ClampedArray(int length) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray(length);
 
+  @DomName('Uint8ClampedArray.fromList')
+  @DocsEditable
   factory Uint8ClampedArray.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromList(list);
 
+  @DomName('Uint8ClampedArray.fromBuffer')
+  @DocsEditable
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
@@ -23916,6 +24063,7 @@ class ValidityState native "*ValidityState" {
 @DomName('HTMLVideoElement')
 class VideoElement extends MediaElement native "*HTMLVideoElement" {
 
+  @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable
   factory VideoElement() => document.$dom_createElement("video");
 
@@ -25581,6 +25729,7 @@ class WebSocket extends EventTarget native "*WebSocket" {
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
+  @DomName('WebSocket.WebSocket')
   @DocsEditable
   factory WebSocket(String url, [protocol_OR_protocols]) {
     if ((url is String || url == null) && !?protocol_OR_protocols) {
@@ -26985,6 +27134,7 @@ class Worker extends AbstractWorker native "*Worker" {
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  @DomName('Worker.Worker')
   @DocsEditable
   factory Worker(String scriptUrl) {
     return Worker._create_1(scriptUrl);
@@ -27265,6 +27415,7 @@ class WorkerNavigator native "*WorkerNavigator" {
 @DomName('XPathEvaluator')
 class XPathEvaluator native "*XPathEvaluator" {
 
+  @DomName('XPathEvaluator.XPathEvaluator')
   @DocsEditable
   factory XPathEvaluator() {
     return XPathEvaluator._create_1();
@@ -27413,6 +27564,7 @@ class XPathResult native "*XPathResult" {
 @DomName('XMLSerializer')
 class XmlSerializer native "*XMLSerializer" {
 
+  @DomName('XMLSerializer.XMLSerializer')
   @DocsEditable
   factory XmlSerializer() {
     return XmlSerializer._create_1();
@@ -27435,6 +27587,7 @@ class XmlSerializer native "*XMLSerializer" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class XsltProcessor native "*XSLTProcessor" {
 
+  @DomName('XSLTProcessor.XSLTProcessor')
   @DocsEditable
   factory XsltProcessor() {
     return XsltProcessor._create_1();

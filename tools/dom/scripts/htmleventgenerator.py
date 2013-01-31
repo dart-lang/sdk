@@ -396,7 +396,7 @@ class HtmlEventGenerator(object):
         continue
 
       annotations = FormatAnnotationsAndComments(
-          GetAnnotationsAndComments(interface.id, dom_name, library_name), '  ')
+          GetAnnotationsAndComments(library_name, interface.id, dom_name), '  ')
 
       members_emitter.Emit(
           "\n"
@@ -425,7 +425,7 @@ class HtmlEventGenerator(object):
         provider = html_name + 'Event'
 
       annotations = FormatAnnotationsAndComments(
-          GetAnnotationsAndComments(interface.id, dom_name, library_name), '  ')
+          GetAnnotationsAndComments(library_name, interface.id, dom_name), '  ')
 
       members_emitter.Emit(
           "\n"

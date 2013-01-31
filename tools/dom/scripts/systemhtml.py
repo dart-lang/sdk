@@ -407,8 +407,8 @@ class HtmlDartInterfaceGenerator(object):
       implements_str = ' implements ' + ', '.join(set(implements))
 
     annotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._interface.doc_js_name,
-                              library_name=self._library_name), '')
+        GetAnnotationsAndComments(self._library_name,
+                                  self._interface.doc_js_name), '')
 
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
@@ -898,8 +898,9 @@ class Dart2JSBackend(HtmlDartGenerator):
     return ''
 
   def _Annotations(self, idl_type, idl_member_name, indent='  '):
-    anns = FindDart2JSAnnotationsAndComments(idl_type, self._interface.id,
-        idl_member_name, self._library_name)
+    anns = FindDart2JSAnnotationsAndComments(idl_type, self._library_name,
+                                             self._interface.id,
+                                             idl_member_name)
 
     if not AnyConversionAnnotations(idl_type, self._interface.id,
                                   idl_member_name):

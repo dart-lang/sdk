@@ -825,15 +825,15 @@ dart_annotations = {
   ],
 }
 
-def GetComments(interface_name, member_name=None, library_name=None):
+def GetComments(library_name, interface_name, member_name=None):
   """ Finds all comments for the interface or member and returns a list. """
 
   # Add documentation from JSON.
   comments = []
   library_name = 'dart.dom.%s' % library_name
   if library_name in _dom_json and interface_name in _dom_json[library_name]:
-    if member_name and (member_name in
-                        _dom_json[library_name][interface_name]['members']):
+    if (member_name and 'members' in _dom_json[library_name][interface_name] and
+        (member_name in _dom_json[library_name][interface_name]['members'])):
       comments = _dom_json[library_name][interface_name]['members'][member_name]
     elif 'comment' in _dom_json[library_name][interface_name]:
       comments = _dom_json[library_name][interface_name]['comment']
@@ -843,16 +843,14 @@ def GetComments(interface_name, member_name=None, library_name=None):
 
   return comments
 
-def GetAnnotationsAndComments(interface_name, member_name=None,
-                              library_name=None):
-  annotations = GetComments(interface_name, member_name, library_name)
-  annotations = annotations + (FindCommonAnnotations(interface_name,
-                                                     member_name,
-                                                     library_name))
+def GetAnnotationsAndComments(library_name, interface_name, member_name=None):
+  annotations = GetComments(library_name, interface_name, member_name)
+  annotations = annotations + (FindCommonAnnotations(library_name, interface_name,
+                                                     member_name))
 
   return annotations
 
-def FindCommonAnnotations(interface_name, member_name=None, library_name=None):
+def FindCommonAnnotations(library_name, interface_name, member_name=None):
   """ Finds annotations common between dart2js and dartium.
   """
   if member_name:
@@ -872,13 +870,12 @@ def FindCommonAnnotations(interface_name, member_name=None, library_name=None):
 
   return annotations
 
-def FindDart2JSAnnotationsAndComments(idl_type, interface_name, member_name,
-                           library_name=None):
+def FindDart2JSAnnotationsAndComments(idl_type, library_name, interface_name,
+                                      member_name,):
   """ Finds all annotations for Dart2JS members- including annotations for
   both dart2js and dartium.
   """
-  annotations = GetAnnotationsAndComments(interface_name, member_name,
-                                          library_name)
+  annotations = GetAnnotationsAndComments(library_name, interface_name, member_name)
 
   ann2 = _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name)
   if ann2:
