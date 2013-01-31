@@ -195,7 +195,6 @@ webgl_1_test: Pass, Fail # Issue 8219
 audiocontext_test: Crash, Fail # Issue: 7414
 datalistelement_test: Fail # Issue: 7414
 element_test/elements: Crash, Fail # Issue: 7414
-node_test: Skip # Issue 6457
 wheelevent_test: Fail # Issue: 7414
 
 [ $runtime == opera ]
