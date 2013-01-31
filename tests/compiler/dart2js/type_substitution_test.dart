@@ -238,4 +238,21 @@ void testTypeSubstitution() {
   testSubstitution(compiler, arguments, parameters, "Typedef1c", "Typedef2c");
   testSubstitution(compiler, arguments, parameters, "Typedef1d", "Typedef2d");
   testSubstitution(compiler, arguments, parameters, "Typedef1e", "Typedef2e");
+
+  // Substitution in unalias.
+  DartType Typedef2_int_String = getType(compiler, "Typedef2a");
+  Expect.isNotNull(Typedef2_int_String);
+  DartType Function_int_String = getType(compiler, "Function2b");
+  Expect.isNotNull(Function_int_String);
+  DartType unalias1 = Typedef2_int_String.unalias(compiler);
+  Expect.equals(Function_int_String, unalias1,
+      '$Typedef2_int_String.unalias=$unalias1 != $Function_int_String');
+
+  DartType Typedef1 = getType(compiler, "Typedef1c");
+  Expect.isNotNull(Typedef1);
+  DartType Function_dynamic_dynamic = getType(compiler, "Function1c");
+  Expect.isNotNull(Function_dynamic_dynamic);
+  DartType unalias2 = Typedef1.unalias(compiler);
+  Expect.equals(Function_dynamic_dynamic, unalias2,
+      '$Typedef1.unalias=$unalias2 != $Function_dynamic_dynamic');
 }

@@ -622,8 +622,9 @@ class TypedefType extends DartType {
   DartType unalias(Compiler compiler) {
     // TODO(ahe): This should be [ensureResolved].
     compiler.resolveTypedef(element);
-    // TODO(johnniwinther): Perform substitution on the unaliased type.
-    return element.alias.unalias(compiler);
+    DartType definition = element.alias.unalias(compiler);
+    TypedefType declaration = element.computeType(compiler);
+    return definition.subst(typeArguments, declaration.typeArguments);
   }
 
   String toString() {
