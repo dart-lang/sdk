@@ -14,6 +14,7 @@ import 'dart:io';
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:uri';
+import 'dart:utf';
 
 import '../../../pkg/http/lib/testing.dart';
 import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
@@ -48,6 +49,10 @@ initConfig() {
 /// Creates a new [FileDescriptor] with [name] and [contents].
 FileDescriptor file(Pattern name, String contents) =>
     new FileDescriptor(name, contents);
+
+/// Creates a new [FileDescriptor] with [name] and [contents].
+FileDescriptor binaryFile(Pattern name, List<int> contents) =>
+    new FileDescriptor.bytes(name, contents);
 
 /// Creates a new [DirectoryDescriptor] with [name] and [contents].
 DirectoryDescriptor dir(Pattern name, [List<Descriptor> contents]) =>
@@ -866,16 +871,20 @@ abstract class Descriptor {
 /// tree before running a test, and for validating that the file system matches
 /// some expectations after running it.
 class FileDescriptor extends Descriptor {
-  /// The text contents of the file.
-  final String contents;
+  /// The contents of the file, in bytes.
+  final List<int> contents;
 
-  FileDescriptor(Pattern name, this.contents) : super(name);
+  String get textContents => new String.fromCharCodes(contents);
+
+  FileDescriptor.bytes(Pattern name, this.contents) : super(name);
+
+  FileDescriptor(Pattern name, String contents) :
+      this.bytes(name, encodeUtf8(contents));
 
   /// Creates the file within [dir]. Returns a [Future] that is completed after
   /// the creation is done.
-  Future<File> create(dir) {
-    return writeTextFile(join(dir, _stringName), contents);
-  }
+  Future<File> create(dir) => new Future.immediate(null).then((_) =>
+      writeBinaryFile(join(dir, _stringName), contents));
 
   /// Deletes the file within [dir]. Returns a [Future] that is completed after
   /// the deletion is done.
@@ -887,10 +896,10 @@ class FileDescriptor extends Descriptor {
   Future validate(String path) {
     return _validateOneMatch(path, (file) {
       return readTextFile(file).then((text) {
-        if (text == contents) return null;
+        if (text == textContents) return null;
 
         throw new ExpectException(
-            'File $file should contain:\n\n$contents\n\n'
+            'File $file should contain:\n\n$textContents\n\n'
             'but contained:\n\n$text');
       });
     });
@@ -904,7 +913,7 @@ class FileDescriptor extends Descriptor {
     }
 
     var stream = new ListInputStream();
-    stream.write(contents.charCodes);
+    stream.write(contents);
     stream.markEndOfStream();
     return stream;
   }

@@ -11,6 +11,8 @@ import 'source.dart';
 import 'source_registry.dart';
 import 'version.dart';
 
+final _README_REGEXP = new RegExp(r"^README($|\.)", caseSensitive: false);
+
 /// A named, versioned, unit of code and resource reuse.
 class Package {
   /// Loads the package whose root directory is [packageDir]. [name] is the
@@ -57,6 +59,26 @@ class Package {
   /// The ids of the packages that this package depends on. This is what is
   /// specified in the pubspec when this package depends on another.
   Collection<PackageRef> get dependencies => pubspec.dependencies;
+
+  /// Returns the path to the README file at the root of the entrypoint, or null
+  /// if no README file is found. If multiple READMEs are found, this uses the
+  /// same conventions as pub.dartlang.org for choosing the primary one: the
+  /// README with the fewest extensions that is lexically ordered first is
+  /// chosen.
+  Future<String> get readmePath {
+    return listDir(dir).then((entries) {
+      var readmes = entries.where((entry) => entry.contains(_README_REGEXP));
+      if (readmes.isEmpty) return;
+
+      return readmes.min((readme1, readme2) {
+        var extensions1 = ".".allMatches(readme1).length;
+        var extensions2 = ".".allMatches(readme2).length;
+        var comparison = extensions1.compareTo(extensions2);
+        if (comparison != 0) return comparison;
+        return readme1.compareTo(readme2);
+      });
+    });
+  }
 
   /// Constructs a package with the given pubspec. The package will have no
   /// directory associated with it.

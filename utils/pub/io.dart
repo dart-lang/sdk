@@ -85,6 +85,16 @@ Future<String> readTextFile(file) {
       });
 }
 
+/// Reads the contents of the binary file [file], which can either be a [String]
+/// or a [File].
+List<int> readBinaryFile(file) {
+  var path = _getPath(file);
+  log.io("Reading binary file $path.");
+  var contents = new File(path).readAsBytesSync();
+  log.io("Read ${contents.length} bytes from $path.");
+  return contents;
+}
+
 /// Creates [file] (which can either be a [String] or a [File]), and writes
 /// [contents] to it. Completes when the file is written and closed.
 ///
@@ -107,6 +117,20 @@ Future<File> writeTextFile(file, String contents, {dontLogContents: false}) {
         });
     });
   });
+}
+
+/// Creates [file] (which can either be a [String] or a [File]), and writes
+/// [contents] to it.
+File writeBinaryFile(file, List<int> contents) {
+  var path = _getPath(file);
+  file = new File(path);
+
+  log.io("Writing ${contents.length} bytes to binary file $path.");
+  file.openSync(FileMode.WRITE)
+      ..writeListSync(contents, 0, contents.length)
+      ..closeSync();
+  log.fine("Wrote text file $path.");
+  return file;
 }
 
 /// Asynchronously deletes [file], which can be a [String] or a [File]. Returns

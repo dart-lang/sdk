@@ -18,6 +18,7 @@ import 'validator/lib.dart';
 import 'validator/license.dart';
 import 'validator/name.dart';
 import 'validator/pubspec_field.dart';
+import 'validator/utf8_readme.dart';
 
 /// The base class for validators that check whether a package is fit for
 /// uploading. Each validator should override [errors], [warnings], or both to
@@ -52,7 +53,8 @@ abstract class Validator {
       new PubspecFieldValidator(entrypoint),
       new DependencyValidator(entrypoint),
       new DirectoryValidator(entrypoint),
-      new CompiledDartdocValidator(entrypoint)
+      new CompiledDartdocValidator(entrypoint),
+      new Utf8ReadmeValidator(entrypoint)
     ];
 
     return Future.wait(validators.map((validator) => validator.validate()))

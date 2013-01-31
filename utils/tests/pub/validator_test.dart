@@ -22,6 +22,7 @@ import '../../pub/validator/lib.dart';
 import '../../pub/validator/license.dart';
 import '../../pub/validator/name.dart';
 import '../../pub/validator/pubspec_field.dart';
+import '../../pub/validator/utf8_readme.dart';
 
 void expectNoValidationError(ValidatorCreator fn) {
   expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isEmpty));
@@ -52,6 +53,9 @@ Validator name(Entrypoint entrypoint) => new NameValidator(entrypoint);
 
 Validator pubspecField(Entrypoint entrypoint) =>
   new PubspecFieldValidator(entrypoint);
+
+Validator utf8Readme(Entrypoint entrypoint) =>
+  new Utf8ReadmeValidator(entrypoint);
 
 void scheduleNormalPackage() => normalPackage.scheduleCreate();
 
@@ -140,6 +144,14 @@ main() {
         ])
       ]).scheduleCreate();
       expectNoValidationError(compiledDartdoc);
+    });
+
+    integration('has a non-primary readme with invalid utf-8', () {
+      dir(appPath, [
+        file("README", "Valid utf-8"),
+        binaryFile("README.invalid", [192])
+      ]).scheduleCreate();
+      expectNoValidationError(utf8Readme);
     });
   });
 
@@ -549,6 +561,13 @@ main() {
       ]).scheduleCreate();
 
       expectValidationWarning(compiledDartdoc);
+    });
+
+    test('has a README with invalid utf-8', () {
+      dir(appPath, [
+        binaryFile("README", [192])
+      ]).scheduleCreate();
+      expectValidationWarning(utf8Readme);
     });
   });
 }
