@@ -32,7 +32,6 @@ main() {
   var isSvgExternalResourcesRequired =
       predicate((x) => x is svg.ExternalResourcesRequired,
           'is a svg.ExternalResourcesRequired');
-  var isSvgStylable = predicate((x) => x is svg.Stylable, 'is a svg.Stylable');
   var isSvgTransformable =
       predicate((x) => x is svg.Transformable, 'is a svg.Transformable');
   var isSvgLocatable =
