@@ -1504,6 +1504,11 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitOperatorSend(Send node) {
+    SourceString name =
+        canonicalizeMethodName(node.selector.asIdentifier().source);
+    if (name == const SourceString('is')) {
+      return inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
+    }
     return visitDynamicSend(node);
   }
 
