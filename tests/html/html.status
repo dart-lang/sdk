@@ -53,6 +53,7 @@ audiocontext_test: Fail
 css_test/supported_CssMatrix: Fail
 css_test/supported_DomPoint: Fail
 document_test/supports_cssCanvasContext: Fail
+dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
@@ -99,6 +100,7 @@ history_test/history: Pass, Fail # issue 8183
 
 [ $runtime == ie9 ]
 document_test/supports_cssCanvasContext: Fail
+dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
