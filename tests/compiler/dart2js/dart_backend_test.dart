@@ -21,8 +21,8 @@ interface int extends num {}
 interface double extends num {}
 abstract class String {}
 interface Function {}
-interface List<T> {}
-interface Map<K,V> {}
+interface List {}
+interface Map {}
 interface Closure {}
 interface Dynamic_ {}
 interface Null {}

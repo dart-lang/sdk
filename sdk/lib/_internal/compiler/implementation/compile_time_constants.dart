@@ -337,8 +337,7 @@ class CompileTimeConstantEvaluator extends Visitor {
       arguments.add(evaluateConstant(link.head));
     }
     // TODO(floitsch): get type parameters.
-    compiler.listClass.computeType(compiler);
-    DartType type = compiler.listClass.rawType;
+    DartType type = new InterfaceType(compiler.listClass);
     Constant constant = new ListConstant(type, arguments);
     handler.registerCompileTimeConstant(constant);
     return constant;
@@ -374,8 +373,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     }
     bool hasProtoKey = (protoValue != null);
     // TODO(floitsch): this should be a List<String> type.
-    compiler.listClass.computeType(compiler);
-    DartType keysType = compiler.listClass.rawType;
+    DartType keysType = new InterfaceType(compiler.listClass);
     ListConstant keysList = new ListConstant(keysType, keys);
     handler.registerCompileTimeConstant(keysList);
     SourceString className = hasProtoKey
@@ -384,7 +382,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     ClassElement classElement = compiler.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
     // TODO(floitsch): copy over the generic type.
-    DartType type = classElement.rawType;
+    DartType type = new InterfaceType(classElement);
     handler.registerInstantiatedClass(classElement);
     Constant constant = new MapConstant(type, keysList, values, protoValue);
     handler.registerCompileTimeConstant(constant);

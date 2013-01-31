@@ -304,16 +304,7 @@ class InterfaceType extends DartType {
       : this.typeArguments = typeArguments,
         this.isMalformed = hasMalformed(typeArguments) {
     assert(invariant(element, element.isDeclaration));
-    assert(invariant(element, element.thisType == null ||
-           typeArguments.slowLength() == element.typeVariables.slowLength(),
-           message: 'Invalid type argument count on ${element.thisType}. '
-                    'Provided type arguments: $typeArguments.'));
   }
-
-  InterfaceType.userProvidedBadType(this.element,
-                                    [Link<DartType> this.typeArguments =
-                                        const Link<DartType>()])
-      : this.isMalformed = true;
 
   TypeKind get kind => TypeKind.INTERFACE;
 
@@ -347,6 +338,10 @@ class InterfaceType extends DartType {
     return true;
   }
 
+  /**
+   * Returns the type as an instance of class [other], if possible, null
+   * otherwise.
+   */
   DartType asInstanceOf(ClassElement other) {
     if (element == other) return this;
     for (InterfaceType supertype in element.allSupertypes) {
@@ -590,14 +585,7 @@ class TypedefType extends DartType {
   TypedefType(this.element,
               [Link<DartType> typeArguments = const Link<DartType>()])
       : this.typeArguments = typeArguments,
-        this.isMalformed = hasMalformed(typeArguments) {
-  }
-
-  TypedefType.userProvidedBadType(this.element,
-                                  [Link<DartType> this.typeArguments =
-                                      const Link<DartType>()])
-      : this.isMalformed = true;
-
+        this.isMalformed = hasMalformed(typeArguments);
 
   TypeKind get kind => TypeKind.TYPEDEF;
 
@@ -707,29 +695,13 @@ class Types {
       return false;
     } else if (t is InterfaceType) {
       if (s is !InterfaceType) return false;
-
-      bool checkTypeArguments(InterfaceType instance) {
-        Link<DartType> tTypeArgs = instance.typeArguments;
-        Link<DartType> sTypeArgs = s.typeArguments;
-        while (!tTypeArgs.isEmpty) {
-          assert(!sTypeArgs.isEmpty);
-          if (!isSubtype(tTypeArgs.head, sTypeArgs.head)) {
-            return false;
-          }
-          tTypeArgs = tTypeArgs.tail;
-          sTypeArgs = sTypeArgs.tail;
-        }
-        assert(sTypeArgs.isEmpty);
-        return true;
-      }
-
-      // TODO(johnniwinther): Currently needed since literal types like int,
-      // double, bool etc. might not have been resolved yet.
-      t.element.ensureResolved(compiler);
-
-      InterfaceType instance = t.asInstanceOf(s.element);
-      if (instance != null && checkTypeArguments(instance)) {
-        return true;
+      ClassElement tc = t.element;
+      if (identical(tc, s.element)) return true;
+      for (Link<DartType> supertypes = tc.allSupertypes;
+           supertypes != null && !supertypes.isEmpty;
+           supertypes = supertypes.tail) {
+        DartType supertype = supertypes.head;
+        if (identical(supertype.element, s.element)) return true;
       }
       return false;
     } else if (t is FunctionType) {

@@ -9,9 +9,22 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
-import "compiler_helper.dart" show findElement;
-import "parser_helper.dart" show buildSourceString;
-import "type_test_helper.dart";
+import "compiler_helper.dart";
+import "parser_helper.dart";
+import "dart:uri";
+
+Element getElement(compiler, String name) {
+  var element = findElement(compiler, name);
+  Expect.isNotNull(element);
+  if (identical(element.kind, ElementKind.CLASS)) {
+    element.ensureResolved(compiler);
+  }
+  return element;
+}
+
+DartType getElementType(compiler, String name) {
+  return getElement(compiler, name).computeType(compiler);
+}
 
 DartType getType(compiler, String name) {
   var clazz = findElement(compiler, "Class");
@@ -46,43 +59,50 @@ int length(Link link) {
 }
 
 void main() {
-  testAsInstancesOf();
+  testAsInstanceOf();
   testTypeSubstitution();
 }
 
-void testAsInstancesOf() {
-  var env = new TypeEnvironment('''
+InterfaceType instantiate(ClassElement element, List<DartType> arguments) {
+  return new InterfaceType(element, new Link<DartType>.fromList(arguments));
+}
+
+void testAsInstanceOf() {
+  var uri = new Uri.fromComponents(scheme: 'source');
+  Compiler compiler = compilerFor('''
+      main() {}
       class A<T> {}
       class B<T> {}
       class C<T> extends A<T> {}
       class D<T> extends A<int> {}
       class E<T> extends A<A<T>> {}
-      class F<T, U> extends B<F<T, String>> implements A<F<B<U>, int>> {}''');
-  var compiler = env.compiler;
+      class F<T, U> extends B<F<T, String>> implements A<F<B<U>, int>> {}''',
+    uri);
+  compiler.runCompiler(uri);
 
-  ClassElement A = env.getElement("A");
-  ClassElement B = env.getElement("B");
-  ClassElement C = env.getElement("C");
-  ClassElement D = env.getElement("D");
-  ClassElement E = env.getElement("E");
-  ClassElement F = env.getElement("F");
+  ClassElement A = getElement(compiler, "A");
+  ClassElement B = getElement(compiler, "B");
+  ClassElement C = getElement(compiler, "C");
+  ClassElement D = getElement(compiler, "D");
+  ClassElement E = getElement(compiler, "E");
+  ClassElement F = getElement(compiler, "F");
 
-  DartType numType = env['num'];
-  DartType intType = env['int'];
-  DartType stringType = env['String'];
+  DartType numType = compiler.numClass.computeType(compiler);
+  DartType intType = compiler.intClass.computeType(compiler);
+  DartType stringType = compiler.stringClass.computeType(compiler);
 
-  InterfaceType C_int = instantiate(C, [intType]);
+  DartType C_int = instantiate(C, [intType]);
   Expect.equals(instantiate(C, [intType]), C_int);
   Expect.equals(instantiate(A, [intType]), C_int.asInstanceOf(A));
 
-  InterfaceType D_int = instantiate(D, [stringType]);
+  DartType D_int = instantiate(D, [stringType]);
   Expect.equals(instantiate(A, [intType]), D_int.asInstanceOf(A));
 
-  InterfaceType E_int = instantiate(E, [intType]);
+  DartType E_int = instantiate(E, [intType]);
   Expect.equals(instantiate(A, [instantiate(A, [intType])]),
                 E_int.asInstanceOf(A));
 
-  InterfaceType F_int_string = instantiate(F, [intType, stringType]);
+  DartType F_int_string = instantiate(F, [intType, stringType]);
   Expect.equals(instantiate(B, [instantiate(F, [intType, stringType])]),
                 F_int_string.asInstanceOf(B));
   Expect.equals(instantiate(A, [instantiate(F, [instantiate(B, [stringType]),
@@ -104,7 +124,9 @@ bool testSubstitution(compiler, arguments, parameters,
 }
 
 void testTypeSubstitution() {
-  var env = new TypeEnvironment(r"""
+  var uri = new Uri.fromComponents(scheme: 'source');
+  var compiler = compilerFor(
+      r"""
       typedef void Typedef1<X,Y>(X x1, Y y2);
       typedef void Typedef2<Z>(Z z1);
 
@@ -156,10 +178,13 @@ void testTypeSubstitution() {
         void Typedef1e(Typedef2<S> a) {}
         void Typedef2e(Typedef2<String> b) {}
       }
-      """);
-  var compiler = env.compiler;
 
-  InterfaceType Class_T_S = env["Class"];
+      void main() {}
+      """,
+      uri);
+  compiler.runCompiler(uri);
+
+  DartType Class_T_S = getElementType(compiler, "Class");
   Expect.isNotNull(Class_T_S);
   Expect.identical(Class_T_S.kind, TypeKind.INTERFACE);
   Expect.equals(2, length(Class_T_S.typeArguments));
@@ -172,11 +197,11 @@ void testTypeSubstitution() {
   Expect.isNotNull(S);
   Expect.identical(S.kind, TypeKind.TYPE_VARIABLE);
 
-  DartType intType = env['int'];//getType(compiler, "int1");
+  DartType intType = getType(compiler, "int1");
   Expect.isNotNull(intType);
   Expect.identical(intType.kind, TypeKind.INTERFACE);
 
-  DartType StringType = env['String'];//getType(compiler, "String1");
+  DartType StringType = getType(compiler, "String1");
   Expect.isNotNull(StringType);
   Expect.identical(StringType.kind, TypeKind.INTERFACE);
 
