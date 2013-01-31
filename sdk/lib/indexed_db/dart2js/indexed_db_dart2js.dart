@@ -1,4 +1,4 @@
-library indexed_db;
+library dart.dom.indexed_db;
 
 import 'dart:async';
 import 'dart:html';

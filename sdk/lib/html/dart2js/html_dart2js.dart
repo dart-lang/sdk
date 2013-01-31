@@ -1,4 +1,4 @@
-library html;
+library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';

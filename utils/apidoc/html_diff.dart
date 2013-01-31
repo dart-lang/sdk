@@ -26,9 +26,9 @@ const List<String> HTML_LIBRARY_NAMES = const [
     'dart:svg',
     'dart:web_audio'];
 const List<String> HTML_DECLARED_NAMES = const [
-    'html',
-    'svg',
-    'web_audio'];
+    'dart.dom.html',
+    'dart.dom.svg',
+    'dart.dom.web_audio'];
 
 /**
  * A class for computing a many-to-many mapping between the types and

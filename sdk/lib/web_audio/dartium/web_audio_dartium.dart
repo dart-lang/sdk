@@ -1,4 +1,4 @@
-library web_audio;
+library dart.dom.web_audio;
 
 import 'dart:async';
 import 'dart:collection';

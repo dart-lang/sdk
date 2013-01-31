@@ -335,6 +335,7 @@ class HtmlDartInterfaceGenerator(object):
 
     typedef_name = self._renamer.RenameInterface(self._interface)
     code.Emit('typedef void $NAME($PARAMS);\n',
+              LIBRARYNAME='dart.dom.%s' % self._library_name,
               NAME=typedef_name,
               PARAMS=info.ParametersDeclaration(self._DartType))
     self._backend.GenerateCallback(info)
@@ -411,7 +412,7 @@ class HtmlDartInterfaceGenerator(object):
 
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
-        LIBRARYNAME=self._library_name,
+        LIBRARYNAME='dart.dom.%s' % self._library_name,
         ANNOTATIONS=annotations,
         CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',

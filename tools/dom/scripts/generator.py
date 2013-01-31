@@ -830,7 +830,7 @@ def GetComments(interface_name, member_name=None, library_name=None):
 
   # Add documentation from JSON.
   comments = []
-
+  library_name = 'dart.dom.%s' % library_name
   if library_name in _dom_json and interface_name in _dom_json[library_name]:
     if member_name and (member_name in
                         _dom_json[library_name][interface_name]['members']):

@@ -5,7 +5,7 @@
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
-library html;
+library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';

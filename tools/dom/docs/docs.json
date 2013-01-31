@@ -1,5 +1,5 @@
 {
-  "html": {
+  "dart.dom.html": {
     "CanvasGradient": {
       "comment": [
         "/**",

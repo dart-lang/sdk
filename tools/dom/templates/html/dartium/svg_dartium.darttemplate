@@ -1,7 +1,7 @@
 // DO NOT EDIT
 // Auto-generated dart:svg library.
 
-library svg;
+library dart.dom.svg;
 
 import 'dart:async';
 import 'dart:collection';

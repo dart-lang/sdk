@@ -1,4 +1,4 @@
-library svg;
+library dart.dom.svg;
 
 import 'dart:async';
 import 'dart:collection';
