@@ -109,7 +109,7 @@ main() {
       expect(node.tHead.rows[0].cells.length, 3);
       expect(node.tBodies.length, 1);
       expect(node.tBodies[0].rows.length, 2);
-      expect(node.tBodies[0].rows[1].cells.mappedBy((c) => c.innerHtml),
+      expect(node.tBodies[0].rows[1].cells.map((c) => c.innerHtml),
           [' Failing\n   ', ' Grade\n   ', ' Passing\n']);
     });
 
@@ -182,7 +182,7 @@ main() {
           'is a TableRowElement'));
       expect(node.tagName, 'TR');
       expect(node.parent, isNull);
-      expect(node.cells.mappedBy((c) => c.innerHtml), ['foo', 'bar']);
+      expect(node.cells.map((c) => c.innerHtml), ['foo', 'bar']);
     });
 
     test('.html td', () {
@@ -539,7 +539,7 @@ main() {
     });
 
     test('mappedBy', () {
-      var texts = getQueryAll().mappedBy((el) => el.text).toList();
+      var texts = getQueryAll().map((el) => el.text).toList();
       expect(texts, equals(['Dart!', 'Hello', '']));
     });
 

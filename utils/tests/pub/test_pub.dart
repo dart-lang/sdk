@@ -190,7 +190,7 @@ void servePackages(List<Map> pubspecs) {
           file('$name.json',
               json.stringify({'versions': versions})),
           dir(name, [
-            dir('versions', flatten(versions.mappedBy((version) {
+            dir('versions', flatten(versions.map((version) {
               return [
                 file('$version.yaml', _servedPackages[name][version]),
                 tar('$version.tar.gz', [
@@ -529,7 +529,7 @@ void schedulePub({List args, Pattern output, Pattern error,
         if (error == null) {
           // If we aren't validating the error, still show it on failure.
           failures.add('Pub stderr:');
-          failures.addAll(result.stderr.mappedBy((line) => '| $line'));
+          failures.addAll(result.stderr.map((line) => '| $line'));
         }
 
         throw new ExpectException(Strings.join(failures, '\n'));
@@ -701,7 +701,7 @@ void _validateOutputRegex(List<String> failures, String pipe,
     failures.add('Expected $pipe to match "${expected.pattern}" but got none.');
   } else {
     failures.add('Expected $pipe to match "${expected.pattern}" but got:');
-    failures.addAll(actual.mappedBy((line) => '| $line'));
+    failures.addAll(actual.map((line) => '| $line'));
   }
 }
 
@@ -746,7 +746,7 @@ void _validateOutputString(List<String> failures, String pipe,
   // If any lines mismatched, show the expected and actual.
   if (failed) {
     failures.add('Expected $pipe:');
-    failures.addAll(expected.mappedBy((line) => '| $line'));
+    failures.addAll(expected.map((line) => '| $line'));
     failures.add('Got:');
     failures.addAll(results);
   }
@@ -930,7 +930,7 @@ class DirectoryDescriptor extends Descriptor {
 
       // Recursively create all of its children.
       final childFutures =
-          contents.mappedBy((child) => child.create(dir)).toList();
+          contents.map((child) => child.create(dir)).toList();
       // Only complete once all of the children have been created too.
       return Future.wait(childFutures).then((_) => dir);
     });
@@ -950,7 +950,7 @@ class DirectoryDescriptor extends Descriptor {
     return _validateOneMatch(path, (dir) {
       // Validate each of the items in this directory.
       final entryFutures =
-          contents.mappedBy((entry) => entry.validate(dir)).toList();
+          contents.map((entry) => entry.validate(dir)).toList();
 
       // If they are all valid, the directory is valid.
       return Future.wait(entryFutures).then((entries) => null);
@@ -1082,7 +1082,7 @@ class TarFileDescriptor extends Descriptor {
     var tempDir;
     return createTempDir().then((_tempDir) {
       tempDir = _tempDir;
-      return Future.wait(contents.mappedBy((child) => child.create(tempDir)));
+      return Future.wait(contents.map((child) => child.create(tempDir)));
     }).then((createdContents) {
       return consumeInputStream(createTarGz(createdContents, baseDir: tempDir));
     }).then((bytes) {
@@ -1493,7 +1493,7 @@ Future _awaitObject(object) {
   // Unroll nested futures.
   if (object is Future) return object.then(_awaitObject);
   if (object is Collection) {
-    return Future.wait(object.mappedBy(_awaitObject).toList());
+    return Future.wait(object.map(_awaitObject).toList());
   }
   if (object is! Map) return new Future.immediate(object);
 

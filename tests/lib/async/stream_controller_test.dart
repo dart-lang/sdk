@@ -53,7 +53,7 @@ testMultiController() {
   c = new StreamController.broadcast();
   expectedEvents = new Events()..add("abab")..error("error")..close();
   sentEvents = new Events()..add("ab")..error("error")..close();
-  actualEvents = new Events.capture(c.stream.mappedBy((v) => "$v$v"));
+  actualEvents = new Events.capture(c.stream.map((v) => "$v$v"));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -114,7 +114,7 @@ testMultiController() {
   expectedEvents = new Events()..add(42)..error("not FormatException");
   actualEvents = new Events.capture(
       c.stream.where((v) => v is String)
-       .mappedBy((v) => int.parse(v))
+       .map((v) => int.parse(v))
        .handleError((v) {
           if (v.error is! FormatException) throw v;
         })
@@ -194,7 +194,7 @@ testSingleController() {
   c = new StreamController();
   expectedEvents = new Events()..add("abab")..error("error")..close();
   sentEvents = new Events()..add("ab")..error("error")..close();
-  actualEvents = new Events.capture(c.stream.mappedBy((v) => "$v$v"));
+  actualEvents = new Events.capture(c.stream.map((v) => "$v$v"));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -303,7 +303,7 @@ testSingleController() {
   expectedEvents = new Events()..add(42)..error("not FormatException");
   actualEvents = new Events.capture(
       c.stream.where((v) => v is String)
-       .mappedBy((v) => int.parse(v))
+       .map((v) => int.parse(v))
        .handleError((v) {
           if (v.error is! FormatException) throw v;
         })

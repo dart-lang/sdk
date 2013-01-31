@@ -26,7 +26,7 @@ runWith([Function getSubset]) {
 void runEverything(Function getSubset) {
   // Initialize all locales and wait for them to finish before running tests.
   var futures = DateFormat.allLocalesWithSymbols()
-      .mappedBy((locale) => initializeDateFormatting(locale, null))
+      .map((locale) => initializeDateFormatting(locale, null))
       .toList();
   Future.wait(futures).then((results) => runDateTests(getSubset()));
 }

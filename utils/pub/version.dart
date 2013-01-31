@@ -192,7 +192,7 @@ class Version implements Comparable, VersionConstraint {
   /// Splits a string of dot-delimited identifiers into their component parts.
   /// Identifiers that are numeric are converted to numbers.
   List _splitParts(String text) {
-    return text.split('.').mappedBy((part) {
+    return text.split('.').map((part) {
       try {
         return int.parse(part);
       } on FormatException catch (ex) {

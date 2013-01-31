@@ -189,12 +189,12 @@ class VersionSolver {
       }
     }
 
-    return dependency.dependers.mappedBy(getDependency).any((subdependency) =>
+    return dependency.dependers.map(getDependency).any((subdependency) =>
         tryUnlockDepender(subdependency, seen));
   }
 
   List<PackageId> buildResults() {
-    return _packages.values.where((dep) => dep.isDependedOn).mappedBy((dep) {
+    return _packages.values.where((dep) => dep.isDependedOn).map((dep) {
       var description = dep.description;
 
       // If the lockfile contains a fully-resolved description for the package,
@@ -507,7 +507,7 @@ class Dependency {
   VersionConstraint get constraint {
     if (_refs.isEmpty) return null;
     return new VersionConstraint.intersection(
-        _refs.values.mappedBy((ref) => ref.constraint));
+        _refs.values.map((ref) => ref.constraint));
   }
 
   /// The source of this dependency's package.

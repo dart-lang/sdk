@@ -533,13 +533,13 @@ class _FieldList extends Iterable {
 
   List get constructorFields => _constructorFields;
   List constructorFieldNames() =>
-      constructorFields.mappedBy((x) => x.name).toList();
+      constructorFields.map((x) => x.name).toList();
   List constructorFieldIndices() =>
-      constructorFields.mappedBy((x) => x.index).toList();
+      constructorFields.map((x) => x.index).toList();
   List regularFields() => contents.where((x) => !x.usedInConstructor).toList();
-  List regularFieldNames() => regularFields().mappedBy((x) => x.name).toList();
+  List regularFieldNames() => regularFields().map((x) => x.name).toList();
   List regularFieldIndices() =>
-      regularFields().mappedBy((x) => x.index).toList();
+      regularFields().map((x) => x.index).toList();
 
   /**
    * If we weren't given any non-constructor fields to use, figure out what
@@ -549,7 +549,7 @@ class _FieldList extends Iterable {
    */
   void figureOutFields() {
     Iterable names(Iterable<DeclarationMirror> mirrors) =>
-        mirrors.mappedBy((each) => each.simpleName).toList();
+        mirrors.map((each) => each.simpleName).toList();
 
     if (!_shouldFigureOutFields || !regularFields().isEmpty) return;
     var fields = publicFields(mirror);
@@ -606,7 +606,7 @@ class Constructor {
    */
   constructFrom(state, Reader r) {
     // TODO(alanknight): Handle named parameters
-    Collection inflated = fieldNumbers.mappedBy(
+    Iterable inflated = fieldNumbers.map(
         (x) => (x is int) ? reflect(r.inflateReference(state[x])) : reflect(x));
     var result = type.newInstance(name, inflated.toList());
     return deprecatedFutureValue(result);

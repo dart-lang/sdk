@@ -179,7 +179,7 @@ _validateArgList(String method, List<String> args) {
     var message = new StringBuffer();
     message.add("$method(");
     message.add(args.take(numArgs)
-        .mappedBy((arg) => arg == null ? "null" : '"$arg"')
+        .map((arg) => arg == null ? "null" : '"$arg"')
         .join(", "));
     message.add("): part ${i - 1} was null, but part $i was not.");
     throw new ArgumentError(message.toString());

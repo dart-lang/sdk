@@ -10,45 +10,39 @@ main() {
   set1.addAll([11, 12, 13]);
   Set set2 = new Set();
 
-  Iterable mapped = list1.mappedBy((x) => x + 1);
-  Expect.isTrue(mapped is List);
-  Expect.listEquals([2, 3, 4], mapped);
+  Iterable mapped = list1.map((x) => x + 1);
+  Expect.listEquals([2, 3, 4], mapped.toList());
 
-  mapped = mapped.mappedBy((x) => x + 1);
-  Expect.isTrue(mapped is List);
-  Expect.listEquals([3, 4, 5], mapped);
+  mapped = mapped.map((x) => x + 1);
+  Expect.listEquals([3, 4, 5], mapped.toList());
 
-  mapped = list2.mappedBy((x) => x + 1);
-  Expect.isTrue(mapped is List);
-  Expect.listEquals([5, 6], mapped);
+  mapped = list2.map((x) => x + 1);
+  Expect.listEquals([5, 6], mapped.toList());
 
-  mapped = mapped.mappedBy((x) => x + 1);
-  Expect.isTrue(mapped is List);
-  Expect.listEquals([6, 7], mapped);
+  mapped = mapped.map((x) => x + 1);
+  Expect.listEquals([6, 7], mapped.toList());
 
-  mapped = list3.mappedBy((x) => x + 1);
-  Expect.isTrue(mapped is List);
-  Expect.listEquals([], mapped);
+  mapped = list3.map((x) => x + 1);
+  Expect.listEquals([], mapped.toList());
 
-  mapped = mapped.mappedBy((x) => x + 1);
-  Expect.isTrue(mapped is List);
-  Expect.listEquals([], mapped);
+  mapped = mapped.map((x) => x + 1);
+  Expect.listEquals([], mapped.toList());
 
   var expected = new Set<int>()..addAll([12, 13, 14]);
-  mapped = set1.mappedBy((x) => x + 1);
+  mapped = set1.map((x) => x + 1);
   Expect.isFalse(mapped is List);
   Expect.setEquals(expected, mapped.toSet());
 
   expected = new Set<int>()..addAll([13, 14, 15]);
-  mapped = mapped.mappedBy((x) => x + 1);
+  mapped = mapped.map((x) => x + 1);
   Expect.isFalse(mapped is List);
   Expect.setEquals(expected, mapped.toSet());
 
-  mapped = set2.mappedBy((x) => x + 1);
+  mapped = set2.map((x) => x + 1);
   Expect.isFalse(mapped is List);
   Expect.listEquals([], mapped.toList());
 
-  mapped = mapped.mappedBy((x) => x + 1);
+  mapped = mapped.map((x) => x + 1);
   Expect.isFalse(mapped is List);
   Expect.listEquals([], mapped.toList());
 

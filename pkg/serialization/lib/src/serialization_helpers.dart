@@ -77,7 +77,7 @@ abstract class MapLikeIterable {
    * [collection] is a List, it will be the same as the map() method if the
    * [key] parameter wasn't passed.
    */
-  mappedBy(Function f) {
+  map(Function f) {
     var result = copyEmpty();
     forEach((key, value) {
        result[key] = f(key, value);
@@ -131,9 +131,9 @@ values(x) {
 }
 
 mapValues(x, f) {
-  if (x is Set) return x.mappedBy(f).toSet();
-  if (x is Iterable) return x.mappedBy(f).toList();
-  if (x is Map) return new ListLikeIterable(x).mappedBy(f);
+  if (x is Set) return x.map(f).toSet();
+  if (x is Iterable) return x.map(f).toList();
+  if (x is Map) return new ListLikeIterable(x).map(f);
   throw new ArgumentError("Invalid argument");
 }
 
@@ -158,7 +158,7 @@ class ListLikeIterable {
    * [collection] is a List, it will be the same as if map() had been called
    * directly on [collection].
    */
-  mappedBy(Function f) {
+  map(Function f) {
       var result = new Map();
       collection.forEach((key, value) => result[key] = f(value));
       return result;

@@ -129,9 +129,16 @@ abstract class Stream<T> {
    * Create a new stream that converts each element of this stream
    * to a new value using the [convert] function.
    */
-  Stream mappedBy(convert(T event)) {
+  Stream map(convert(T event)) {
     return new _MapStream<T, dynamic>(this, convert);
   }
+
+  /**
+   * Deprecated alias for [map].
+   *
+   * @deprecated
+   */
+  Stream mappedBy(f(T element)) => map(f);
 
   /**
    * Create a wrapper Stream that intercepts some errors from this stream.
