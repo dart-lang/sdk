@@ -22,6 +22,10 @@ io/directory_fuzz_test: Skip
 io/regress_7191_test: Pass, Timeout # http://dartbug.com/8091
 
 [ $runtime == vm && $system == macos ]
+# Fails with a connection refused error on the buildbot.
+# Issue 8232.
+debugger/basic_debugger_test: Pass, Fail
+
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
