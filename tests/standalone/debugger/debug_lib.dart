@@ -8,7 +8,7 @@ library DartDebugger;
 
 import "dart:io";
 import "dart:utf";
-import "dart:json";
+import "dart:json" as JSON;
 
 // TODO(hausner): need to select a different port number for each
 // test that runs in parallel.
@@ -430,7 +430,7 @@ class Debugger {
       if (errorsDetected) {
         error("Error while handling script entry ${script.currentIndex}");
         error("Message received from debug target: $msg");
-        close();
+        close(killDebugee: true);
         return;
       }
       if (shutdownEventSeen) {
@@ -471,27 +471,29 @@ class Debugger {
         handleMessages();
       } catch(e, trace) {
         print("Unexpected exception:\n$e\n$trace");
-        close();
+        close(killDebugee: true);
       }
     };
     from.onClosed = () {
       print("Connection closed by debug target");
-      close();
+      close(killDebugee: true);
     };
     from.onError = (e) {
       print("Error '$e' detected in input stream from debug target");
-      close();
+      close(killDebugee: true);
     };
   }
 
-  void close() {
+  void close({killDebugee: false}) {
     if (errorsDetected) {
       for (int i = 0; i < errors.length; i++) print(errors[i]);
     }
     to.close();
     socket.close();
-    targetProcess.kill();
-    print("Target process killed");
+    if (killDebugee) {
+      targetProcess.kill();
+      print("Target process killed");
+    }
     Expect.isTrue(!errorsDetected);
     stdin.close();
     stdout.close();
@@ -519,11 +521,12 @@ bool RunScript(List script) {
     process.stdout.onData = process.stdout.read;
     process.stderr.onData = process.stderr.read;
     process.onExit = (int exitCode) {
+      Expect.equals(0, exitCode);
       print("Debug target process exited with exit code $exitCode");
     };
     var debugger = new Debugger(process, debugPort);
-    stdin.onClosed = () => debugger.close();
-    stdin.onError = (error) => debugger.close();
+    stdin.onClosed = () => debugger.close(killDebugee: true);
+    stdin.onError = (error) => debugger.close(killDebugee: true);
     debugger.runScript(script);
   });
   return true;
