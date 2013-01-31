@@ -22,7 +22,6 @@ speechrecognition_test/supported: Pass, Fail       # Chrome stable does not supp
 shadow_dom_test/supported: Fail
 speechrecognition_test/types: Pass, Fail
 touchevent_test/supported: Fail
-async_window_test: Pass, Fail # Issue: 8209
 
 [$runtime == drt || $runtime == dartium]
 webgl_1_test: Pass, Fail # Issue 8219
