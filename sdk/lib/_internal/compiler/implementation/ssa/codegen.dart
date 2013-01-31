@@ -2669,8 +2669,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       => new js.VariableUse(variableNames.stateName);
 
   HBasicBlock beginGraph(HGraph graph) {
-    propagator =
-        new SsaBailoutPropagator(compiler, generateAtUseSite, variableNames);
+    propagator = new SsaBailoutPropagator(compiler, variableNames);
     propagator.visitGraph(graph);
     // TODO(ngeoffray): We could avoid generating the state at the
     // call site for non-complex bailout methods.
@@ -2730,10 +2729,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;
 
   visitLoopBranch(HLoopBranch node) {
-    HBasicBlock header = node.isDoWhile()
-        ? node.block.successors[0]
-        : node.block;
-    if (header.hasBailoutTargets()) {
+    if (node.computeLoopHeader().hasBailoutTargets()) {
       // The graph visitor in [visitLoopInfo] does not handle the
       // condition. We must instead manually emit it here.
       handleLoopCondition(node);
@@ -2763,8 +2759,13 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
         generateStatements(info.initializer);
       }
       beginLoop(info.loopHeader);
-      generateStatements(info.condition);
+      if (!info.isDoWhile()) {
+        generateStatements(info.condition);
+      }
       generateStatements(info.body);
+      if (info.isDoWhile()) {
+        generateStatements(info.condition);
+      }
       if (info.updates != null) {
         generateStatements(info.updates);
       }
