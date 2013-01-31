@@ -1665,7 +1665,7 @@ class ProcessQueue {
             _progress.done(testCase);
             if (testCase is BrowserTestCase) testCase.notifyObservers();
           } else {
-            _tests.add(testCase);
+            _tests.addFirst(testCase);
           }
           _tryRunTest();
         });
