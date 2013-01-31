@@ -8,6 +8,12 @@ import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 import 'dart:json' as json;
 
+void fail(message) {
+  guardAsync(() {
+    expect(false, isTrue, reason: message);
+  });
+}
+
 main() {
   useHtmlIndividualConfiguration();
   var url = "/tests/html/xhr_cross_origin_data.txt";
@@ -59,32 +65,75 @@ main() {
       xhr.send();
     });
 
-    test('XHR.get No file', () {
-      new HttpRequest.get("NonExistingFile", expectAsync1((xhr) {
-        expect(xhr.readyState, equals(HttpRequest.DONE));
-        validate404(xhr);
-      }));
+    test('XHR.request No file', () {
+      HttpRequest.request('NonExistingFile').then(
+        (_) { fail('Request should not have succeeded.'); },
+        onError: expectAsync1((e) {
+          var xhr = e.error.target;
+          expect(xhr.readyState, equals(HttpRequest.DONE));
+          validate404(xhr);
+        }));
     });
 
-    test('XHR.get file', () {
-      var xhr = new HttpRequest.get(url, expectAsync1((event) {
-        expect(event.readyState, equals(HttpRequest.DONE));
-        validate200Response(event);
-      }));
-    });
-
-    test('XHR.getWithCredentials No file', () {
-      new HttpRequest.getWithCredentials("NonExistingFile", expectAsync1((xhr) {
-        expect(xhr.readyState, equals(HttpRequest.DONE));
-        validate404(xhr);
-      }));
-    });
-
-    test('XHR.getWithCredentials file', () {
-      new HttpRequest.getWithCredentials(url, expectAsync1((xhr) {
+    test('XHR.request file', () {
+      HttpRequest.request(url).then(expectAsync1((xhr) {
         expect(xhr.readyState, equals(HttpRequest.DONE));
         validate200Response(xhr);
       }));
+    });
+
+    test('XHR.request onProgress', () {
+      var progressCalled = false;
+      HttpRequest.request(url,
+        onProgress: (_) {
+          progressCalled = true;
+        }).then(expectAsync1(
+          (xhr) {
+            expect(xhr.readyState, equals(HttpRequest.DONE));
+            expect(progressCalled, isTrue);
+            validate200Response(xhr);
+          }));
+    });
+
+    test('XHR.request withCredentials No file', () {
+      HttpRequest.request('NonExistingFile', withCredentials: true).then(
+        (_) { fail('Request should not have succeeded.'); },
+        onError: expectAsync1((e) {
+          var xhr = e.error.target;
+          expect(xhr.readyState, equals(HttpRequest.DONE));
+          validate404(xhr);
+        }));
+    });
+
+    test('XHR.request withCredentials file', () {
+      HttpRequest.request(url, withCredentials: true).then(expectAsync1((xhr) {
+        expect(xhr.readyState, equals(HttpRequest.DONE));
+        validate200Response(xhr);
+      }));
+    });
+
+    test('XHR.getString file', () {
+      HttpRequest.getString(url).then(expectAsync1((str) {}));
+    });
+
+    test('XHR.getString No file', () {
+      HttpRequest.getString('NonExistingFile').then(
+        (_) { fail('Succeeded for non-existing file.'); },
+        onError: expectAsync1((e) {
+          validate404(e.error.target);
+        }));
+    });
+
+    test('XHR.request responseType', () {
+      if (ArrayBuffer.supported) {
+        HttpRequest.request(url, responseType: 'ArrayBuffer').then(
+          expectAsync1((xhr) {
+            validate200Response(xhr);
+            var arrayBuffer = xhr.response;
+            expect(arrayBuffer, new isInstanceOf<ArrayBuffer>());
+            expect(arrayBuffer, isNotNull);
+          }));
+      }
     });
 
     test('HttpRequestProgressEvent', () {
