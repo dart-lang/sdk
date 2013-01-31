@@ -19,12 +19,5 @@ class HTTPRequestDataReader implements LocaleDataReader {
   String url;
   HTTPRequestDataReader(this.url);
 
-  Future read(String locale) {
-    var completer = new Completer();
-    var source = '$url$locale.json';
-    var request = new HttpRequest.get(
-        source,
-        (req) => completer.complete(req.responseText));
-    return completer.future;
- }
+  Future read(String locale) => HttpRequest.getString('$url$locale.json');
 }

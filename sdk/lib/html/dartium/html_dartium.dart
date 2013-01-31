@@ -13577,25 +13577,35 @@ class HtmlOptionsCollection extends HtmlCollection {
  */
 @DomName('XMLHttpRequest')
 class HttpRequest extends EventTarget {
-  /**
-   * Creates a URL get request for the specified `url`.
-   *
-   * After completing the request, the object will call the user-provided
-   * [onComplete] callback.
-   */
-  factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onComplete, false);
 
-  // 80 char issue for comments in lists: dartbug.com/7588.
   /**
-   * Creates a URL GET request for the specified `url` with
-   * credentials such a cookie (already) set in the header or
-   * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
+   * Creates a URL get request for the specified [url].
    *
-   * After completing the request, the object will call the user-provided
-   * [onComplete] callback.
+   * The server response must be a `text/` mime type for this request to
+   * succeed.
    *
-   * A few other details to keep in mind when using credentials:
+   * This is similar to [request] but specialized for HTTP GET requests which
+   * return text content.
+   *
+   * See also:
+   *
+   * * [request]
+   */
+  static Future<String> getString(String url,
+      {bool withCredentials, void onProgress(ProgressEvent e)}) {
+    return request(url, withCredentials: withCredentials,
+        onProgress: onProgress).then((xhr) => xhr.responseText);
+  }
+
+  /**
+   * Creates a URL request for the specified [url].
+   *
+   * By default this will do an HTTP GET request, this can be overridden with
+   * [method].
+   *
+   * The Future is completed when the response is available.
+   *
+   * Details to keep in mind when using credentials:
    *
    * * Using credentials is only useful for cross-origin requests.
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
@@ -13604,9 +13614,50 @@ class HttpRequest extends EventTarget {
    *
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
-  factory HttpRequest.getWithCredentials(String url,
-      onComplete(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onComplete, true);
+  static Future<HttpRequest> request(String url,
+      {String method, bool withCredentials, String responseType, sendData,
+      void onProgress(ProgressEvent e)}) {
+    var completer = new Completer<String>();
+
+    var xhr = new HttpRequest();
+    if (method == null) {
+      method = 'GET';
+    }
+    xhr.open(method, url, true);
+
+    if (withCredentials != null) {
+      xhr.withCredentials = withCredentials;
+    }
+
+    if (responseType != null) {
+      xhr.responseType = responseType;
+    }
+
+    if (onProgress != null) {
+      xhr.onProgress.listen(onProgress);
+    }
+
+    xhr.onLoad.listen((e) {
+      if (xhr.status >= 200 && xhr.status < 300 ||
+          xhr.status == 304 ) {
+        completer.complete(xhr);
+      } else {
+        completer.completeError(e);
+      }
+    });
+
+    xhr.onError.listen((e) {
+      completer.completeError(e);
+    });
+
+    if (sendData != null) {
+      xhr.send(sendData);
+    } else {
+      xhr.send();
+    }
+
+    return completer.future;
+  }
 
   HttpRequest.internal() : super.internal();
 
