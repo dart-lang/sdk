@@ -61,7 +61,7 @@ class _SvgSvgElementFactoryProvider {
 
 @DocsEditable
 @DomName('SVGAElement')
-class AElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGAElement" {
+class AElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "*SVGAElement" {
 
   @DocsEditable
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
@@ -113,18 +113,6 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
   @DomName('SVGAElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGAElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -569,7 +557,7 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 
 @DocsEditable
 @DomName('SVGCircleElement')
-class CircleElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGCircleElement" {
+class CircleElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGCircleElement" {
 
   @DocsEditable
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
@@ -630,18 +618,6 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGCircleElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGTests
 
   @DomName('SVGCircleElement.requiredExtensions')
@@ -673,7 +649,7 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
 
 @DocsEditable
 @DomName('SVGClipPathElement')
-class ClipPathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGClipPathElement" {
+class ClipPathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGClipPathElement" {
 
   @DocsEditable
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
@@ -725,18 +701,6 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
   @DomName('SVGClipPathElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGClipPathElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -907,7 +871,7 @@ class CursorElement extends SvgElement implements UriReference, Tests, ExternalR
 
 @DocsEditable
 @DomName('SVGDefsElement')
-class DefsElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGDefsElement" {
+class DefsElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGDefsElement" {
 
   @DocsEditable
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
@@ -956,18 +920,6 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGDefsElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGTests
 
   @DomName('SVGDefsElement.requiredExtensions')
@@ -999,7 +951,7 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 @DocsEditable
 @DomName('SVGDescElement')
-class DescElement extends SvgElement implements Stylable, LangSpace native "*SVGDescElement" {
+class DescElement extends StyledElement implements LangSpace native "*SVGDescElement" {
 
   @DocsEditable
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
@@ -1013,18 +965,6 @@ class DescElement extends SvgElement implements Stylable, LangSpace native "*SVG
   @DomName('SVGDescElement.xmlspace')
   @DocsEditable
   String xmlspace;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGDescElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1545,7 +1485,7 @@ abstract class ElementTimeControl {
 
 @DocsEditable
 @DomName('SVGEllipseElement')
-class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGEllipseElement" {
+class EllipseElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGEllipseElement" {
 
   @DocsEditable
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
@@ -1610,18 +1550,6 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGEllipseElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGTests
 
   @DomName('SVGEllipseElement.requiredExtensions')
@@ -1663,7 +1591,7 @@ abstract class ExternalResourcesRequired {
 
 @DocsEditable
 @DomName('SVGFEBlendElement')
-class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEBlendElement" {
+class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEBlendElement" {
 
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
@@ -1710,18 +1638,6 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
   @DomName('SVGFEBlendElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEBlendElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1730,7 +1646,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 @DocsEditable
 @DomName('SVGFEColorMatrixElement')
-class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEColorMatrixElement" {
+class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEColorMatrixElement" {
 
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
@@ -1775,18 +1691,6 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
   @DomName('SVGFEColorMatrixElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEColorMatrixElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1795,7 +1699,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
 @DocsEditable
 @DomName('SVGFEComponentTransferElement')
-class FEComponentTransferElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEComponentTransferElement" {
+class FEComponentTransferElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEComponentTransferElement" {
 
   @DomName('SVGFEComponentTransferElement.in1')
   @DocsEditable
@@ -1822,18 +1726,6 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
   @DomName('SVGFEComponentTransferElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEComponentTransferElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1842,7 +1734,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 
 @DocsEditable
 @DomName('SVGFECompositeElement')
-class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFECompositeElement" {
+class FECompositeElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFECompositeElement" {
 
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
@@ -1907,18 +1799,6 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
   @DomName('SVGFECompositeElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFECompositeElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1927,7 +1807,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
 @DocsEditable
 @DomName('SVGFEConvolveMatrixElement')
-class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEConvolveMatrixElement" {
+class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEConvolveMatrixElement" {
 
   static const int SVG_EDGEMODE_DUPLICATE = 1;
 
@@ -2006,18 +1886,6 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
   @DomName('SVGFEConvolveMatrixElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEConvolveMatrixElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2026,7 +1894,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
 @DocsEditable
 @DomName('SVGFEDiffuseLightingElement')
-class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEDiffuseLightingElement" {
+class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDiffuseLightingElement" {
 
   @DomName('SVGFEDiffuseLightingElement.diffuseConstant')
   @DocsEditable
@@ -2069,18 +1937,6 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
   @DomName('SVGFEDiffuseLightingElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEDiffuseLightingElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2089,7 +1945,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 
 @DocsEditable
 @DomName('SVGFEDisplacementMapElement')
-class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEDisplacementMapElement" {
+class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDisplacementMapElement" {
 
   static const int SVG_CHANNEL_A = 4;
 
@@ -2142,18 +1998,6 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
   @DomName('SVGFEDisplacementMapElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEDisplacementMapElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2179,7 +2023,7 @@ class FEDistantLightElement extends SvgElement native "*SVGFEDistantLightElement
 
 @DocsEditable
 @DomName('SVGFEDropShadowElement')
-class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
+class FEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
 
   @DomName('SVGFEDropShadowElement.dx')
   @DocsEditable
@@ -2226,18 +2070,6 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
   @DomName('SVGFEDropShadowElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEDropShadowElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2246,7 +2078,7 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
 
 @DocsEditable
 @DomName('SVGFEFloodElement')
-class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEFloodElement" {
+class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEFloodElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -2269,18 +2101,6 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
   @DomName('SVGFEFloodElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEFloodElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2325,7 +2145,7 @@ class FEFuncRElement extends ComponentTransferFunctionElement native "*SVGFEFunc
 
 @DocsEditable
 @DomName('SVGFEGaussianBlurElement')
-class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEGaussianBlurElement" {
+class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEGaussianBlurElement" {
 
   @DomName('SVGFEGaussianBlurElement.in1')
   @DocsEditable
@@ -2364,18 +2184,6 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
   @DomName('SVGFEGaussianBlurElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEGaussianBlurElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2384,7 +2192,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 
 @DocsEditable
 @DomName('SVGFEImageElement')
-class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace native "*SVGFEImageElement" {
+class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace native "*SVGFEImageElement" {
 
   @DomName('SVGFEImageElement.preserveAspectRatio')
   @DocsEditable
@@ -2428,18 +2236,6 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
   @DocsEditable
   String xmlspace;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEImageElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGURIReference
 
   @DomName('SVGFEImageElement.href')
@@ -2453,7 +2249,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 @DocsEditable
 @DomName('SVGFEMergeElement')
-class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEMergeElement" {
+class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEMergeElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -2476,18 +2272,6 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
   @DomName('SVGFEMergeElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEMergeElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2509,7 +2293,7 @@ class FEMergeNodeElement extends SvgElement native "*SVGFEMergeNodeElement" {
 
 @DocsEditable
 @DomName('SVGFEMorphologyElement')
-class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEMorphologyElement" {
+class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEMorphologyElement" {
 
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
@@ -2558,18 +2342,6 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
   @DomName('SVGFEMorphologyElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEMorphologyElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2578,7 +2350,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
 @DocsEditable
 @DomName('SVGFEOffsetElement')
-class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFEOffsetElement" {
+class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEOffsetElement" {
 
   @DomName('SVGFEOffsetElement.dx')
   @DocsEditable
@@ -2613,18 +2385,6 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
   @DomName('SVGFEOffsetElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFEOffsetElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2654,7 +2414,7 @@ class FEPointLightElement extends SvgElement native "*SVGFEPointLightElement" {
 
 @DocsEditable
 @DomName('SVGFESpecularLightingElement')
-class FESpecularLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFESpecularLightingElement" {
+class FESpecularLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFESpecularLightingElement" {
 
   @DomName('SVGFESpecularLightingElement.in1')
   @DocsEditable
@@ -2693,18 +2453,6 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
   @DomName('SVGFESpecularLightingElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFESpecularLightingElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2754,7 +2502,7 @@ class FESpotLightElement extends SvgElement native "*SVGFESpotLightElement" {
 
 @DocsEditable
 @DomName('SVGFETileElement')
-class FETileElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFETileElement" {
+class FETileElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFETileElement" {
 
   @DomName('SVGFETileElement.in1')
   @DocsEditable
@@ -2781,18 +2529,6 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
   @DomName('SVGFETileElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFETileElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2801,7 +2537,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 
 @DocsEditable
 @DomName('SVGFETurbulenceElement')
-class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardAttributes native "*SVGFETurbulenceElement" {
+class FETurbulenceElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFETurbulenceElement" {
 
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
@@ -2860,18 +2596,6 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
   @DomName('SVGFETurbulenceElement.y')
   @DocsEditable
   final AnimatedLength y;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFETurbulenceElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2880,7 +2604,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
 @DocsEditable
 @DomName('SVGFilterElement')
-class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable, LangSpace native "*SVGFilterElement" {
+class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired, LangSpace native "*SVGFilterElement" {
 
   @DocsEditable
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
@@ -2937,18 +2661,6 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
   @DocsEditable
   String xmlspace;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGFilterElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGURIReference
 
   @DomName('SVGFilterElement.href')
@@ -2961,7 +2673,7 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
 
 
 @DomName('SVGFilterPrimitiveStandardAttributes')
-abstract class FilterPrimitiveStandardAttributes implements Stylable {
+abstract class FilterPrimitiveStandardAttributes {
 
   AnimatedLength height;
 
@@ -2972,14 +2684,6 @@ abstract class FilterPrimitiveStandardAttributes implements Stylable {
   AnimatedLength x;
 
   AnimatedLength y;
-
-  // From SVGStylable
-
-  AnimatedString $dom_svgClassName;
-
-  CssStyleDeclaration style;
-
-  CssValue getPresentationAttribute(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3072,7 +2776,7 @@ class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 
 @DocsEditable
 @DomName('SVGForeignObjectElement')
-class ForeignObjectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGForeignObjectElement" {
+class ForeignObjectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGForeignObjectElement" {
 
   @DocsEditable
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
@@ -3137,18 +2841,6 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGForeignObjectElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGTests
 
   @DomName('SVGForeignObjectElement.requiredExtensions')
@@ -3180,7 +2872,7 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
 
 @DocsEditable
 @DomName('SVGGElement')
-class GElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGGElement" {
+class GElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGGElement" {
 
   @DocsEditable
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
@@ -3229,18 +2921,6 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGGElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGTests
 
   @DomName('SVGGElement.requiredExtensions')
@@ -3284,7 +2964,7 @@ class GlyphElement extends SvgElement native "*SVGGlyphElement" {
 
 @DocsEditable
 @DomName('SVGGlyphRefElement')
-class GlyphRefElement extends SvgElement implements UriReference, Stylable native "*SVGGlyphRefElement" {
+class GlyphRefElement extends StyledElement implements UriReference native "*SVGGlyphRefElement" {
 
   @DomName('SVGGlyphRefElement.dx')
   @DocsEditable
@@ -3310,18 +2990,6 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable nativ
   @DocsEditable
   num y;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGGlyphRefElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGURIReference
 
   @DomName('SVGGlyphRefElement.href')
@@ -3335,7 +3003,7 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable nativ
 
 @DocsEditable
 @DomName('SVGGradientElement')
-class GradientElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable native "*SVGGradientElement" {
+class GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired native "*SVGGradientElement" {
 
   static const int SVG_SPREADMETHOD_PAD = 1;
 
@@ -3363,18 +3031,6 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
   @DocsEditable
   final AnimatedBoolean externalResourcesRequired;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGGradientElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGURIReference
 
   @DomName('SVGGradientElement.href')
@@ -3400,7 +3056,7 @@ class HKernElement extends SvgElement native "*SVGHKernElement" {
 
 @DocsEditable
 @DomName('SVGImageElement')
-class ImageElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGImageElement" {
+class ImageElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "*SVGImageElement" {
 
   @DocsEditable
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
@@ -3468,18 +3124,6 @@ class ImageElement extends SvgElement implements Transformable, Tests, UriRefere
   @DomName('SVGImageElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGImageElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -3806,7 +3450,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 
 @DocsEditable
 @DomName('SVGLineElement')
-class LineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGLineElement" {
+class LineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGLineElement" {
 
   @DocsEditable
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
@@ -3870,18 +3514,6 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
   @DomName('SVGLineElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGLineElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -3986,7 +3618,7 @@ class MPathElement extends SvgElement implements UriReference, ExternalResources
 
 @DocsEditable
 @DomName('SVGMarkerElement')
-class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGMarkerElement" {
+class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace native "*SVGMarkerElement" {
 
   @DocsEditable
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
@@ -4064,18 +3696,6 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
   @DomName('SVGMarkerElement.xmlspace')
   @DocsEditable
   String xmlspace;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGMarkerElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4084,7 +3704,7 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 
 @DocsEditable
 @DomName('SVGMaskElement')
-class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGMaskElement" {
+class MaskElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace native "*SVGMaskElement" {
 
   @DocsEditable
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
@@ -4128,18 +3748,6 @@ class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourc
   @DomName('SVGMaskElement.xmlspace')
   @DocsEditable
   String xmlspace;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGMaskElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -4252,7 +3860,7 @@ class MetadataElement extends SvgElement native "*SVGMetadataElement" {
 
 @DocsEditable
 @DomName('SVGMissingGlyphElement')
-class MissingGlyphElement extends SvgElement native "*SVGMissingGlyphElement" {
+class MissingGlyphElement extends StyledElement native "*SVGMissingGlyphElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4540,7 +4148,7 @@ class Paint extends Color native "*SVGPaint" {
 
 @DocsEditable
 @DomName('SVGPathElement')
-class PathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPathElement" {
+class PathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGPathElement" {
 
   @DocsEditable
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
@@ -4715,18 +4323,6 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
   @DomName('SVGPathElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGPathElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -5440,7 +5036,7 @@ class PathSegMovetoRel extends PathSeg native "*SVGPathSegMovetoRel" {
 
 @DocsEditable
 @DomName('SVGPatternElement')
-class PatternElement extends SvgElement implements FitToViewBox, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPatternElement" {
+class PatternElement extends StyledElement implements FitToViewBox, UriReference, Tests, ExternalResourcesRequired, LangSpace native "*SVGPatternElement" {
 
   @DocsEditable
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
@@ -5498,18 +5094,6 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
   @DomName('SVGPatternElement.xmlspace')
   @DocsEditable
   String xmlspace;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGPatternElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -5604,7 +5188,7 @@ class PointList native "*SVGPointList" {
 
 @DocsEditable
 @DomName('SVGPolygonElement')
-class PolygonElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolygonElement" {
+class PolygonElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGPolygonElement" {
 
   @DocsEditable
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
@@ -5661,18 +5245,6 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGPolygonElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGTests
 
   @DomName('SVGPolygonElement.requiredExtensions')
@@ -5704,7 +5276,7 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
 
 @DocsEditable
 @DomName('SVGPolylineElement')
-class PolylineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGPolylineElement" {
+class PolylineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGPolylineElement" {
 
   @DocsEditable
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
@@ -5760,18 +5332,6 @@ class PolylineElement extends SvgElement implements Transformable, Tests, Stylab
   @DomName('SVGPolylineElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGPolylineElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -5910,7 +5470,7 @@ class Rect native "*SVGRect" {
 
 @DocsEditable
 @DomName('SVGRectElement')
-class RectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGRectElement" {
+class RectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGRectElement" {
 
   @DocsEditable
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
@@ -5982,18 +5542,6 @@ class RectElement extends SvgElement implements Transformable, Tests, Stylable, 
   @DomName('SVGRectElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGRectElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -6087,7 +5635,7 @@ class SetElement extends AnimationElement native "*SVGSetElement" {
 
 @DocsEditable
 @DomName('SVGStopElement')
-class StopElement extends SvgElement implements Stylable native "*SVGStopElement" {
+class StopElement extends StyledElement native "*SVGStopElement" {
 
   @DocsEditable
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
@@ -6095,18 +5643,6 @@ class StopElement extends SvgElement implements Stylable native "*SVGStopElement
   @DomName('SVGStopElement.offset')
   @DocsEditable
   final AnimatedNumber offset;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGStopElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6334,20 +5870,6 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DomName('SVGStylable')
-abstract class Stylable {
-
-  AnimatedString $dom_svgClassName;
-
-  CssStyleDeclaration style;
-
-  CssValue getPresentationAttribute(String name);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 @DocsEditable
 @DomName('SVGStyleElement')
 class StyleElement extends SvgElement implements LangSpace native "*SVGStyleElement" {
@@ -6383,6 +5905,25 @@ class StyleElement extends SvgElement implements LangSpace native "*SVGStyleElem
   @DomName('SVGStyleElement.xmlspace')
   @DocsEditable
   String xmlspace;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGStyledElement')
+class StyledElement extends SvgElement native "*SVGStyledElement" {
+
+  // Shadowing definition.
+  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
+
+  // Use implementation from Element.
+  // final CssStyleDeclaration style;
+
+  @DomName('SVGStyledElement.getPresentationAttribute')
+  @DocsEditable
+  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6574,7 +6115,7 @@ class SvgException native "*SVGException" {
 
 
 @DomName('SVGSVGElement')
-class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable, Locatable, ExternalResourcesRequired, ZoomAndPan, LangSpace native "*SVGSVGElement" {
+class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable, Tests, ExternalResourcesRequired, ZoomAndPan, LangSpace native "*SVGSVGElement" {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
 
@@ -6796,18 +6337,6 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGSVGElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGTests
 
   @DomName('SVGSVGElement.requiredExtensions')
@@ -6826,6 +6355,12 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   @DocsEditable
   bool hasExtension(String extension) native;
 
+  // From SVGTransformable
+
+  @DomName('SVGSVGElement.transform')
+  @DocsEditable
+  final AnimatedTransformList transform;
+
   // From SVGZoomAndPan
 
   @DomName('SVGSVGElement.zoomAndPan')
@@ -6840,7 +6375,7 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 
 @DocsEditable
 @DomName('SVGSwitchElement')
-class SwitchElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGSwitchElement" {
+class SwitchElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGSwitchElement" {
 
   @DocsEditable
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
@@ -6889,18 +6424,6 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
 
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGSwitchElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
-
   // From SVGTests
 
   @DomName('SVGSwitchElement.requiredExtensions')
@@ -6932,7 +6455,7 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
 
 @DocsEditable
 @DomName('SVGSymbolElement')
-class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace native "*SVGSymbolElement" {
+class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace native "*SVGSymbolElement" {
 
   @DocsEditable
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
@@ -6962,18 +6485,6 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
   @DomName('SVGSymbolElement.xmlspace')
   @DocsEditable
   String xmlspace;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGSymbolElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7028,7 +6539,7 @@ abstract class Tests {
 
 @DocsEditable
 @DomName('SVGTextContentElement')
-class TextContentElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace native "*SVGTextContentElement" {
+class TextContentElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace native "*SVGTextContentElement" {
 
   static const int LENGTHADJUST_SPACING = 1;
 
@@ -7095,18 +6606,6 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
   @DomName('SVGTextContentElement.xmlspace')
   @DocsEditable
   String xmlspace;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGTextContentElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 
@@ -7247,7 +6746,7 @@ class TextPositioningElement extends TextContentElement native "*SVGTextPosition
 
 @DocsEditable
 @DomName('SVGTitleElement')
-class TitleElement extends SvgElement implements Stylable, LangSpace native "*SVGTitleElement" {
+class TitleElement extends StyledElement implements LangSpace native "*SVGTitleElement" {
 
   @DocsEditable
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
@@ -7261,18 +6760,6 @@ class TitleElement extends SvgElement implements Stylable, LangSpace native "*SV
   @DomName('SVGTitleElement.xmlspace')
   @DocsEditable
   String xmlspace;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGTitleElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7619,7 +7106,7 @@ abstract class UriReference {
 
 @DocsEditable
 @DomName('SVGUseElement')
-class UseElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace native "*SVGUseElement" {
+class UseElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "*SVGUseElement" {
 
   @DocsEditable
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
@@ -7691,18 +7178,6 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
   @DomName('SVGUseElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native;
-
-  // From SVGStylable
-
-  // Shadowing definition.
-  AnimatedString get $dom_svgClassName => JS("AnimatedString", "#.className", this);
-
-  // Use implementation from Element.
-  // final CssStyleDeclaration style;
-
-  @DomName('SVGUseElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native;
 
   // From SVGTests
 

@@ -161,23 +161,10 @@ class Cursor native "*IDBCursor" {
   @DocsEditable
   void advance(int count) native;
 
-  void continueFunction([/*IDBKey*/ key]) {
-    if (?key) {
-      var key_1 = _convertDartToNative_IDBKey(key);
-      _continueFunction_1(key_1);
-      return;
-    }
-    _continueFunction_2();
-    return;
-  }
   @JSName('continue')
   @DomName('IDBCursor.continue')
   @DocsEditable
-  void _continueFunction_1(key) native;
-  @JSName('continue')
-  @DomName('IDBCursor.continue')
-  @DocsEditable
-  void _continueFunction_2() native;
+  void continueFunction([Object key]) native;
 
   @DomName('IDBCursor.delete')
   @DocsEditable
@@ -357,15 +344,9 @@ class IdbFactory native "*IDBFactory" {
   }
 
 
-  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) {
-    var first_1 = _convertDartToNative_IDBKey(first);
-    var second_2 = _convertDartToNative_IDBKey(second);
-    return _cmp_1(first_1, second_2);
-  }
-  @JSName('cmp')
   @DomName('IDBFactory.cmp')
   @DocsEditable
-  int _cmp_1(first, second) native;
+  int cmp(Object first, Object second) native;
 
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable
@@ -412,204 +393,38 @@ class Index native "*IDBIndex" {
   @DocsEditable
   final bool unique;
 
-  Request count([key_OR_range]) {
-    if (!?key_OR_range) {
-      return _count_1();
-    }
-    if ((key_OR_range is KeyRange || key_OR_range == null)) {
-      return _count_2(key_OR_range);
-    }
-    if (?key_OR_range) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _count_3(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('count')
   @DomName('IDBIndex.count')
   @DocsEditable
-  Request _count_1() native;
-  @JSName('count')
-  @DomName('IDBIndex.count')
-  @DocsEditable
-  Request _count_2(KeyRange range) native;
-  @JSName('count')
-  @DomName('IDBIndex.count')
-  @DocsEditable
-  Request _count_3(key) native;
+  Request count([key_OR_range]) native;
 
-  Request get(key) {
-    if ((key is KeyRange || key == null)) {
-      return _get_1(key);
-    }
-    if (?key) {
-      var key_1 = _convertDartToNative_IDBKey(key);
-      return _get_2(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('get')
   @DomName('IDBIndex.get')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request _get_1(KeyRange key) native;
-  @JSName('get')
-  @DomName('IDBIndex.get')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @annotation_Creates_SerializedScriptValue
-  Request _get_2(key) native;
+  Request get(key) native;
 
-  Request getKey(key) {
-    if ((key is KeyRange || key == null)) {
-      return _getKey_1(key);
-    }
-    if (?key) {
-      var key_1 = _convertDartToNative_IDBKey(key);
-      return _getKey_2(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('getKey')
   @DomName('IDBIndex.getKey')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
   @Creates('ObjectStore')
-  Request _getKey_1(KeyRange key) native;
-  @JSName('getKey')
-  @DomName('IDBIndex.getKey')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @annotation_Creates_SerializedScriptValue
-  @Creates('ObjectStore')
-  Request _getKey_2(key) native;
+  Request getKey(key) native;
 
-  Request openCursor([key_OR_range, String direction]) {
-    if (!?key_OR_range && !?direction) {
-      return _openCursor_1();
-    }
-    if ((key_OR_range is KeyRange || key_OR_range == null) && !?direction) {
-      return _openCursor_2(key_OR_range);
-    }
-    if ((key_OR_range is KeyRange || key_OR_range == null)) {
-      return _openCursor_3(key_OR_range, direction);
-    }
-    if (?key_OR_range && !?direction) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_4(key_1);
-    }
-    if (?key_OR_range) {
-      var key_2 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_5(key_2, direction);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('openCursor')
   @DomName('IDBIndex.openCursor')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor_1() native;
-  @JSName('openCursor')
-  @DomName('IDBIndex.openCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openCursor_2(KeyRange range) native;
-  @JSName('openCursor')
-  @DomName('IDBIndex.openCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openCursor_3(KeyRange range, direction) native;
-  @JSName('openCursor')
-  @DomName('IDBIndex.openCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openCursor_4(key) native;
-  @JSName('openCursor')
-  @DomName('IDBIndex.openCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openCursor_5(key, direction) native;
+  Request openCursor([key_OR_range, String direction]) native;
 
-  Request openKeyCursor([key_OR_range, String direction]) {
-    if (!?key_OR_range && !?direction) {
-      return _openKeyCursor_1();
-    }
-    if ((key_OR_range is KeyRange || key_OR_range == null) && !?direction) {
-      return _openKeyCursor_2(key_OR_range);
-    }
-    if ((key_OR_range is KeyRange || key_OR_range == null)) {
-      return _openKeyCursor_3(key_OR_range, direction);
-    }
-    if (?key_OR_range && !?direction) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openKeyCursor_4(key_1);
-    }
-    if (?key_OR_range) {
-      var key_2 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openKeyCursor_5(key_2, direction);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('openKeyCursor')
   @DomName('IDBIndex.openKeyCursor')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openKeyCursor_1() native;
-  @JSName('openKeyCursor')
-  @DomName('IDBIndex.openKeyCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openKeyCursor_2(KeyRange range) native;
-  @JSName('openKeyCursor')
-  @DomName('IDBIndex.openKeyCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openKeyCursor_3(KeyRange range, direction) native;
-  @JSName('openKeyCursor')
-  @DomName('IDBIndex.openKeyCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openKeyCursor_4(key) native;
-  @JSName('openKeyCursor')
-  @DomName('IDBIndex.openKeyCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openKeyCursor_5(key, direction) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('IDBKey')
-class Key native "*IDBKey" {
+  Request openKeyCursor([key_OR_range, String direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -637,96 +452,41 @@ class KeyRange native "*IDBKeyRange" {
           lower, upper, lowerOpen, upperOpen);
 
 
-  dynamic get lower => _convertNativeToDart_IDBKey(this._lower);
-  @JSName('lower')
   @DomName('IDBKeyRange.lower')
   @DocsEditable
-  final dynamic _lower;
+  final Object lower;
 
   @DomName('IDBKeyRange.lowerOpen')
   @DocsEditable
   final bool lowerOpen;
 
-  dynamic get upper => _convertNativeToDart_IDBKey(this._upper);
-  @JSName('upper')
   @DomName('IDBKeyRange.upper')
   @DocsEditable
-  final dynamic _upper;
+  final Object upper;
 
   @DomName('IDBKeyRange.upperOpen')
   @DocsEditable
   final bool upperOpen;
 
-  static KeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
-    if (?upperOpen) {
-      var lower_1 = _convertDartToNative_IDBKey(lower);
-      var upper_2 = _convertDartToNative_IDBKey(upper);
-      return _bound__1(lower_1, upper_2, lowerOpen, upperOpen);
-    }
-    if (?lowerOpen) {
-      var lower_3 = _convertDartToNative_IDBKey(lower);
-      var upper_4 = _convertDartToNative_IDBKey(upper);
-      return _bound__2(lower_3, upper_4, lowerOpen);
-    }
-    var lower_5 = _convertDartToNative_IDBKey(lower);
-    var upper_6 = _convertDartToNative_IDBKey(upper);
-    return _bound__3(lower_5, upper_6);
-  }
   @JSName('bound')
   @DomName('IDBKeyRange.bound')
   @DocsEditable
-  static KeyRange _bound__1(lower, upper, lowerOpen, upperOpen) native;
-  @JSName('bound')
-  @DomName('IDBKeyRange.bound')
-  @DocsEditable
-  static KeyRange _bound__2(lower, upper, lowerOpen) native;
-  @JSName('bound')
-  @DomName('IDBKeyRange.bound')
-  @DocsEditable
-  static KeyRange _bound__3(lower, upper) native;
+  static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) native;
 
-  static KeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
-    if (?open) {
-      var bound_1 = _convertDartToNative_IDBKey(bound);
-      return _lowerBound__1(bound_1, open);
-    }
-    var bound_2 = _convertDartToNative_IDBKey(bound);
-    return _lowerBound__2(bound_2);
-  }
   @JSName('lowerBound')
   @DomName('IDBKeyRange.lowerBound')
   @DocsEditable
-  static KeyRange _lowerBound__1(bound, open) native;
-  @JSName('lowerBound')
-  @DomName('IDBKeyRange.lowerBound')
-  @DocsEditable
-  static KeyRange _lowerBound__2(bound) native;
+  static KeyRange lowerBound_(Object bound, [bool open]) native;
 
-  static KeyRange only_(/*IDBKey*/ value) {
-    var value_1 = _convertDartToNative_IDBKey(value);
-    return _only__1(value_1);
-  }
   @JSName('only')
   @DomName('IDBKeyRange.only')
   @DocsEditable
-  static KeyRange _only__1(value) native;
+  static KeyRange only_(Object value) native;
 
-  static KeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
-    if (?open) {
-      var bound_1 = _convertDartToNative_IDBKey(bound);
-      return _upperBound__1(bound_1, open);
-    }
-    var bound_2 = _convertDartToNative_IDBKey(bound);
-    return _upperBound__2(bound_2);
-  }
   @JSName('upperBound')
   @DomName('IDBKeyRange.upperBound')
   @DocsEditable
-  static KeyRange _upperBound__1(bound, open) native;
-  @JSName('upperBound')
-  @DomName('IDBKeyRange.upperBound')
-  @DocsEditable
-  static KeyRange _upperBound__2(bound) native;
+  static KeyRange upperBound_(Object bound, [bool open]) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -760,10 +520,10 @@ class ObjectStore native "*IDBObjectStore" {
   @DocsEditable
   final Transaction transaction;
 
-  Request add(/*any*/ value, [/*IDBKey*/ key]) {
+  Request add(/*any*/ value, [/*any*/ key]) {
     if (?key) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
-      var key_2 = _convertDartToNative_IDBKey(key);
+      var key_2 = convertDartToNative_SerializedScriptValue(key);
       return _add_1(value_1, key_2);
     }
     var value_3 = convertDartToNative_SerializedScriptValue(value);
@@ -788,31 +548,9 @@ class ObjectStore native "*IDBObjectStore" {
   @DocsEditable
   Request clear() native;
 
-  Request count([key_OR_range]) {
-    if (!?key_OR_range) {
-      return _count_1();
-    }
-    if ((key_OR_range is KeyRange || key_OR_range == null)) {
-      return _count_2(key_OR_range);
-    }
-    if (?key_OR_range) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _count_3(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('count')
   @DomName('IDBObjectStore.count')
   @DocsEditable
-  Request _count_1() native;
-  @JSName('count')
-  @DomName('IDBObjectStore.count')
-  @DocsEditable
-  Request _count_2(KeyRange range) native;
-  @JSName('count')
-  @DomName('IDBObjectStore.count')
-  @DocsEditable
-  Request _count_3(key) native;
+  Request count([key_OR_range]) native;
 
   Index createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is List<String> || keyPath == null) && !?options) {
@@ -848,118 +586,37 @@ class ObjectStore native "*IDBObjectStore" {
   @DocsEditable
   Index _createIndex_4(name, String keyPath, options) native;
 
-  Request delete(key_OR_keyRange) {
-    if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
-      return _delete_1(key_OR_keyRange);
-    }
-    if (?key_OR_keyRange) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_keyRange);
-      return _delete_2(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('delete')
   @DomName('IDBObjectStore.delete')
   @DocsEditable
-  Request _delete_1(KeyRange keyRange) native;
-  @JSName('delete')
-  @DomName('IDBObjectStore.delete')
-  @DocsEditable
-  Request _delete_2(key) native;
+  Request delete(key_OR_keyRange) native;
 
   @DomName('IDBObjectStore.deleteIndex')
   @DocsEditable
   void deleteIndex(String name) native;
 
-  Request getObject(key) {
-    if ((key is KeyRange || key == null)) {
-      return _getObject_1(key);
-    }
-    if (?key) {
-      var key_1 = _convertDartToNative_IDBKey(key);
-      return _getObject_2(key_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
   @JSName('get')
   @DomName('IDBObjectStore.get')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @annotation_Creates_SerializedScriptValue
-  Request _getObject_1(KeyRange key) native;
-  @JSName('get')
-  @DomName('IDBObjectStore.get')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @annotation_Creates_SerializedScriptValue
-  Request _getObject_2(key) native;
+  Request getObject(key) native;
 
   @DomName('IDBObjectStore.index')
   @DocsEditable
   Index index(String name) native;
 
-  Request openCursor([key_OR_range, String direction]) {
-    if (!?key_OR_range && !?direction) {
-      return _openCursor_1();
-    }
-    if ((key_OR_range is KeyRange || key_OR_range == null) && !?direction) {
-      return _openCursor_2(key_OR_range);
-    }
-    if ((key_OR_range is KeyRange || key_OR_range == null)) {
-      return _openCursor_3(key_OR_range, direction);
-    }
-    if (?key_OR_range && !?direction) {
-      var key_1 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_4(key_1);
-    }
-    if (?key_OR_range) {
-      var key_2 = _convertDartToNative_IDBKey(key_OR_range);
-      return _openCursor_5(key_2, direction);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('openCursor')
   @DomName('IDBObjectStore.openCursor')
   @DocsEditable
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor_1() native;
-  @JSName('openCursor')
-  @DomName('IDBObjectStore.openCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openCursor_2(KeyRange range) native;
-  @JSName('openCursor')
-  @DomName('IDBObjectStore.openCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openCursor_3(KeyRange range, direction) native;
-  @JSName('openCursor')
-  @DomName('IDBObjectStore.openCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openCursor_4(key) native;
-  @JSName('openCursor')
-  @DomName('IDBObjectStore.openCursor')
-  @DocsEditable
-  @Returns('Request')
-  @Creates('Request')
-  @Creates('Cursor')
-  Request _openCursor_5(key, direction) native;
+  Request openCursor([key_OR_range, String direction]) native;
 
-  Request put(/*any*/ value, [/*IDBKey*/ key]) {
+  Request put(/*any*/ value, [/*any*/ key]) {
     if (?key) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
-      var key_2 = _convertDartToNative_IDBKey(key);
+      var key_2 = convertDartToNative_SerializedScriptValue(key);
       return _put_1(value_1, key_2);
     }
     var value_3 = convertDartToNative_SerializedScriptValue(value);

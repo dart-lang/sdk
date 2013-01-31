@@ -65,7 +65,7 @@ class Cursor extends NativeFieldWrapperClass1 {
   @DocsEditable
   void advance(int count) native "IDBCursor_advance_Callback";
 
-  void continueFunction([/*IDBKey*/ key]) {
+  void continueFunction([Object key]) {
     if (?key) {
       _continue_1(key);
       return;
@@ -254,7 +254,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
 
   @DomName('IDBFactory.cmp')
   @DocsEditable
-  int cmp(/*IDBKey*/ first, /*IDBKey*/ second) native "IDBFactory_cmp_Callback";
+  int cmp(Object first, Object second) native "IDBFactory_cmp_Callback";
 
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable
@@ -456,19 +456,6 @@ class Index extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('IDBKey')
-class Key extends NativeFieldWrapperClass1 {
-  Key.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 @DomName('IDBKeyRange')
 class KeyRange extends NativeFieldWrapperClass1 {
@@ -494,7 +481,7 @@ class KeyRange extends NativeFieldWrapperClass1 {
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable
-  dynamic get lower native "IDBKeyRange_lower_Getter";
+  Object get lower native "IDBKeyRange_lower_Getter";
 
   @DomName('IDBKeyRange.lowerOpen')
   @DocsEditable
@@ -502,13 +489,13 @@ class KeyRange extends NativeFieldWrapperClass1 {
 
   @DomName('IDBKeyRange.upper')
   @DocsEditable
-  dynamic get upper native "IDBKeyRange_upper_Getter";
+  Object get upper native "IDBKeyRange_upper_Getter";
 
   @DomName('IDBKeyRange.upperOpen')
   @DocsEditable
   bool get upperOpen native "IDBKeyRange_upperOpen_Getter";
 
-  static KeyRange bound_(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]) {
+  static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) {
     if (?upperOpen) {
       return _bound_1(lower, upper, lowerOpen, upperOpen);
     }
@@ -530,7 +517,7 @@ class KeyRange extends NativeFieldWrapperClass1 {
   @DocsEditable
   static KeyRange _bound_3(lower, upper) native "IDBKeyRange__bound_3_Callback";
 
-  static KeyRange lowerBound_(/*IDBKey*/ bound, [bool open]) {
+  static KeyRange lowerBound_(Object bound, [bool open]) {
     if (?open) {
       return _lowerBound_1(bound, open);
     }
@@ -547,9 +534,9 @@ class KeyRange extends NativeFieldWrapperClass1 {
 
   @DomName('IDBKeyRange.only_')
   @DocsEditable
-  static KeyRange only_(/*IDBKey*/ value) native "IDBKeyRange_only__Callback";
+  static KeyRange only_(Object value) native "IDBKeyRange_only__Callback";
 
-  static KeyRange upperBound_(/*IDBKey*/ bound, [bool open]) {
+  static KeyRange upperBound_(Object bound, [bool open]) {
     if (?open) {
       return _upperBound_1(bound, open);
     }
@@ -597,7 +584,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   Transaction get transaction native "IDBObjectStore_transaction_Getter";
 
-  Request add(Object value, [/*IDBKey*/ key]) {
+  Request add(Object value, [Object key]) {
     if (?key) {
       return _add_1(value, key);
     }
@@ -742,7 +729,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   Request _openCursor_5(key_OR_range, direction) native "IDBObjectStore__openCursor_5_Callback";
 
-  Request put(Object value, [/*IDBKey*/ key]) {
+  Request put(Object value, [Object key]) {
     if (?key) {
       return _put_1(value, key);
     }

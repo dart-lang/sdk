@@ -61,7 +61,7 @@ class _SvgSvgElementFactoryProvider {
 
 @DocsEditable
 @DomName('SVGAElement')
-class AElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
+class AElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
   AElement.internal() : super.internal();
 
   @DocsEditable
@@ -114,18 +114,6 @@ class AElement extends SvgElement implements Transformable, Tests, UriReference,
   @DomName('SVGAElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGAElement_getTransformToElement_Callback";
-
-  @DomName('SVGAElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGAElement_className_Getter";
-
-  @DomName('SVGAElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGAElement_style_Getter";
-
-  @DomName('SVGAElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGAElement_getPresentationAttribute_Callback";
 
   @DomName('SVGAElement.requiredExtensions')
   @DocsEditable
@@ -683,7 +671,7 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 
 @DocsEditable
 @DomName('SVGCircleElement')
-class CircleElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class CircleElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   CircleElement.internal() : super.internal();
 
   @DocsEditable
@@ -745,18 +733,6 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGCircleElement_getTransformToElement_Callback";
 
-  @DomName('SVGCircleElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGCircleElement_className_Getter";
-
-  @DomName('SVGCircleElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGCircleElement_style_Getter";
-
-  @DomName('SVGCircleElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGCircleElement_getPresentationAttribute_Callback";
-
   @DomName('SVGCircleElement.requiredExtensions')
   @DocsEditable
   StringList get requiredExtensions native "SVGCircleElement_requiredExtensions_Getter";
@@ -787,7 +763,7 @@ class CircleElement extends SvgElement implements Transformable, Tests, Stylable
 
 @DocsEditable
 @DomName('SVGClipPathElement')
-class ClipPathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class ClipPathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   ClipPathElement.internal() : super.internal();
 
   @DocsEditable
@@ -840,18 +816,6 @@ class ClipPathElement extends SvgElement implements Transformable, Tests, Stylab
   @DomName('SVGClipPathElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGClipPathElement_getTransformToElement_Callback";
-
-  @DomName('SVGClipPathElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGClipPathElement_className_Getter";
-
-  @DomName('SVGClipPathElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGClipPathElement_style_Getter";
-
-  @DomName('SVGClipPathElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGClipPathElement_getPresentationAttribute_Callback";
 
   @DomName('SVGClipPathElement.requiredExtensions')
   @DocsEditable
@@ -1025,7 +989,7 @@ class CursorElement extends SvgElement implements UriReference, Tests, ExternalR
 
 @DocsEditable
 @DomName('SVGDefsElement')
-class DefsElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class DefsElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   DefsElement.internal() : super.internal();
 
   @DocsEditable
@@ -1075,18 +1039,6 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGDefsElement_getTransformToElement_Callback";
 
-  @DomName('SVGDefsElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGDefsElement_className_Getter";
-
-  @DomName('SVGDefsElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGDefsElement_style_Getter";
-
-  @DomName('SVGDefsElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGDefsElement_getPresentationAttribute_Callback";
-
   @DomName('SVGDefsElement.requiredExtensions')
   @DocsEditable
   StringList get requiredExtensions native "SVGDefsElement_requiredExtensions_Getter";
@@ -1117,7 +1069,7 @@ class DefsElement extends SvgElement implements Transformable, Tests, Stylable, 
 
 @DocsEditable
 @DomName('SVGDescElement')
-class DescElement extends SvgElement implements Stylable, LangSpace {
+class DescElement extends StyledElement implements LangSpace {
   DescElement.internal() : super.internal();
 
   @DocsEditable
@@ -1138,18 +1090,6 @@ class DescElement extends SvgElement implements Stylable, LangSpace {
   @DomName('SVGDescElement.xmlspace')
   @DocsEditable
   void set xmlspace(String value) native "SVGDescElement_xmlspace_Setter";
-
-  @DomName('SVGDescElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGDescElement_className_Getter";
-
-  @DomName('SVGDescElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGDescElement_style_Getter";
-
-  @DomName('SVGDescElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGDescElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1688,7 +1628,7 @@ class ElementTimeControl extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGEllipseElement')
-class EllipseElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class EllipseElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   EllipseElement.internal() : super.internal();
 
   @DocsEditable
@@ -1754,18 +1694,6 @@ class EllipseElement extends SvgElement implements Transformable, Tests, Stylabl
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGEllipseElement_getTransformToElement_Callback";
 
-  @DomName('SVGEllipseElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGEllipseElement_className_Getter";
-
-  @DomName('SVGEllipseElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGEllipseElement_style_Getter";
-
-  @DomName('SVGEllipseElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGEllipseElement_getPresentationAttribute_Callback";
-
   @DomName('SVGEllipseElement.requiredExtensions')
   @DocsEditable
   StringList get requiredExtensions native "SVGEllipseElement_requiredExtensions_Getter";
@@ -1813,7 +1741,7 @@ class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGFEBlendElement')
-class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEBlendElement.internal() : super.internal();
 
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
@@ -1860,18 +1788,6 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
   @DocsEditable
   AnimatedLength get y native "SVGFEBlendElement_y_Getter";
 
-  @DomName('SVGFEBlendElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEBlendElement_className_Getter";
-
-  @DomName('SVGFEBlendElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEBlendElement_style_Getter";
-
-  @DomName('SVGFEBlendElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEBlendElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1882,7 +1798,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 @DocsEditable
 @DomName('SVGFEColorMatrixElement')
-class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEColorMatrixElement.internal() : super.internal();
 
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
@@ -1927,18 +1843,6 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
   @DocsEditable
   AnimatedLength get y native "SVGFEColorMatrixElement_y_Getter";
 
-  @DomName('SVGFEColorMatrixElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEColorMatrixElement_className_Getter";
-
-  @DomName('SVGFEColorMatrixElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEColorMatrixElement_style_Getter";
-
-  @DomName('SVGFEColorMatrixElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEColorMatrixElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1949,7 +1853,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
 @DocsEditable
 @DomName('SVGFEComponentTransferElement')
-class FEComponentTransferElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEComponentTransferElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEComponentTransferElement.internal() : super.internal();
 
   @DomName('SVGFEComponentTransferElement.in1')
@@ -1976,18 +1880,6 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
   @DocsEditable
   AnimatedLength get y native "SVGFEComponentTransferElement_y_Getter";
 
-  @DomName('SVGFEComponentTransferElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEComponentTransferElement_className_Getter";
-
-  @DomName('SVGFEComponentTransferElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEComponentTransferElement_style_Getter";
-
-  @DomName('SVGFEComponentTransferElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEComponentTransferElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1998,7 +1890,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 
 @DocsEditable
 @DomName('SVGFECompositeElement')
-class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FECompositeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FECompositeElement.internal() : super.internal();
 
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
@@ -2063,18 +1955,6 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
   @DocsEditable
   AnimatedLength get y native "SVGFECompositeElement_y_Getter";
 
-  @DomName('SVGFECompositeElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFECompositeElement_className_Getter";
-
-  @DomName('SVGFECompositeElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFECompositeElement_style_Getter";
-
-  @DomName('SVGFECompositeElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFECompositeElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2085,7 +1965,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
 @DocsEditable
 @DomName('SVGFEConvolveMatrixElement')
-class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEConvolveMatrixElement.internal() : super.internal();
 
   static const int SVG_EDGEMODE_DUPLICATE = 1;
@@ -2164,18 +2044,6 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
   @DocsEditable
   AnimatedLength get y native "SVGFEConvolveMatrixElement_y_Getter";
 
-  @DomName('SVGFEConvolveMatrixElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEConvolveMatrixElement_className_Getter";
-
-  @DomName('SVGFEConvolveMatrixElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEConvolveMatrixElement_style_Getter";
-
-  @DomName('SVGFEConvolveMatrixElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEConvolveMatrixElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2186,7 +2054,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
 @DocsEditable
 @DomName('SVGFEDiffuseLightingElement')
-class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEDiffuseLightingElement.internal() : super.internal();
 
   @DomName('SVGFEDiffuseLightingElement.diffuseConstant')
@@ -2229,18 +2097,6 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
   @DocsEditable
   AnimatedLength get y native "SVGFEDiffuseLightingElement_y_Getter";
 
-  @DomName('SVGFEDiffuseLightingElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEDiffuseLightingElement_className_Getter";
-
-  @DomName('SVGFEDiffuseLightingElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEDiffuseLightingElement_style_Getter";
-
-  @DomName('SVGFEDiffuseLightingElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEDiffuseLightingElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2251,7 +2107,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 
 @DocsEditable
 @DomName('SVGFEDisplacementMapElement')
-class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEDisplacementMapElement.internal() : super.internal();
 
   static const int SVG_CHANNEL_A = 4;
@@ -2304,18 +2160,6 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
   @DocsEditable
   AnimatedLength get y native "SVGFEDisplacementMapElement_y_Getter";
 
-  @DomName('SVGFEDisplacementMapElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEDisplacementMapElement_className_Getter";
-
-  @DomName('SVGFEDisplacementMapElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEDisplacementMapElement_style_Getter";
-
-  @DomName('SVGFEDisplacementMapElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEDisplacementMapElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2347,7 +2191,7 @@ class FEDistantLightElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFEDropShadowElement')
-class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEDropShadowElement.internal() : super.internal();
 
   @DomName('SVGFEDropShadowElement.dx')
@@ -2394,18 +2238,6 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
   @DocsEditable
   AnimatedLength get y native "SVGFEDropShadowElement_y_Getter";
 
-  @DomName('SVGFEDropShadowElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEDropShadowElement_className_Getter";
-
-  @DomName('SVGFEDropShadowElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEDropShadowElement_style_Getter";
-
-  @DomName('SVGFEDropShadowElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEDropShadowElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2416,7 +2248,7 @@ class FEDropShadowElement extends SvgElement implements FilterPrimitiveStandardA
 
 @DocsEditable
 @DomName('SVGFEFloodElement')
-class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEFloodElement.internal() : super.internal();
 
   @DomName('SVGFEFloodElement.height')
@@ -2438,18 +2270,6 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
   @DomName('SVGFEFloodElement.y')
   @DocsEditable
   AnimatedLength get y native "SVGFEFloodElement_y_Getter";
-
-  @DomName('SVGFEFloodElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEFloodElement_className_Getter";
-
-  @DomName('SVGFEFloodElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEFloodElement_style_Getter";
-
-  @DomName('SVGFEFloodElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEFloodElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2513,7 +2333,7 @@ class FEFuncRElement extends ComponentTransferFunctionElement {
 
 @DocsEditable
 @DomName('SVGFEGaussianBlurElement')
-class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEGaussianBlurElement.internal() : super.internal();
 
   @DomName('SVGFEGaussianBlurElement.in1')
@@ -2552,18 +2372,6 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
   @DocsEditable
   AnimatedLength get y native "SVGFEGaussianBlurElement_y_Getter";
 
-  @DomName('SVGFEGaussianBlurElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEGaussianBlurElement_className_Getter";
-
-  @DomName('SVGFEGaussianBlurElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEGaussianBlurElement_style_Getter";
-
-  @DomName('SVGFEGaussianBlurElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEGaussianBlurElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2574,7 +2382,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 
 @DocsEditable
 @DomName('SVGFEImageElement')
-class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace {
+class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace {
   FEImageElement.internal() : super.internal();
 
   @DomName('SVGFEImageElement.preserveAspectRatio')
@@ -2621,18 +2429,6 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
   @DocsEditable
   void set xmlspace(String value) native "SVGFEImageElement_xmlspace_Setter";
 
-  @DomName('SVGFEImageElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEImageElement_className_Getter";
-
-  @DomName('SVGFEImageElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEImageElement_style_Getter";
-
-  @DomName('SVGFEImageElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEImageElement_getPresentationAttribute_Callback";
-
   @DomName('SVGFEImageElement.href')
   @DocsEditable
   AnimatedString get href native "SVGFEImageElement_href_Getter";
@@ -2647,7 +2443,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 @DocsEditable
 @DomName('SVGFEMergeElement')
-class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEMergeElement.internal() : super.internal();
 
   @DomName('SVGFEMergeElement.height')
@@ -2669,18 +2465,6 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
   @DomName('SVGFEMergeElement.y')
   @DocsEditable
   AnimatedLength get y native "SVGFEMergeElement_y_Getter";
-
-  @DomName('SVGFEMergeElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEMergeElement_className_Getter";
-
-  @DomName('SVGFEMergeElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEMergeElement_style_Getter";
-
-  @DomName('SVGFEMergeElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEMergeElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2709,7 +2493,7 @@ class FEMergeNodeElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFEMorphologyElement')
-class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEMorphologyElement.internal() : super.internal();
 
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
@@ -2758,18 +2542,6 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
   @DocsEditable
   AnimatedLength get y native "SVGFEMorphologyElement_y_Getter";
 
-  @DomName('SVGFEMorphologyElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEMorphologyElement_className_Getter";
-
-  @DomName('SVGFEMorphologyElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEMorphologyElement_style_Getter";
-
-  @DomName('SVGFEMorphologyElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEMorphologyElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2780,7 +2552,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
 @DocsEditable
 @DomName('SVGFEOffsetElement')
-class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEOffsetElement.internal() : super.internal();
 
   @DomName('SVGFEOffsetElement.dx')
@@ -2814,18 +2586,6 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
   @DomName('SVGFEOffsetElement.y')
   @DocsEditable
   AnimatedLength get y native "SVGFEOffsetElement_y_Getter";
-
-  @DomName('SVGFEOffsetElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFEOffsetElement_className_Getter";
-
-  @DomName('SVGFEOffsetElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFEOffsetElement_style_Getter";
-
-  @DomName('SVGFEOffsetElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFEOffsetElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2862,7 +2622,7 @@ class FEPointLightElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFESpecularLightingElement')
-class FESpecularLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FESpecularLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FESpecularLightingElement.internal() : super.internal();
 
   @DomName('SVGFESpecularLightingElement.in1')
@@ -2900,18 +2660,6 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
   @DomName('SVGFESpecularLightingElement.y')
   @DocsEditable
   AnimatedLength get y native "SVGFESpecularLightingElement_y_Getter";
-
-  @DomName('SVGFESpecularLightingElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFESpecularLightingElement_className_Getter";
-
-  @DomName('SVGFESpecularLightingElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFESpecularLightingElement_style_Getter";
-
-  @DomName('SVGFESpecularLightingElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFESpecularLightingElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2968,7 +2716,7 @@ class FESpotLightElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFETileElement')
-class FETileElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FETileElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FETileElement.internal() : super.internal();
 
   @DomName('SVGFETileElement.in1')
@@ -2995,18 +2743,6 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
   @DocsEditable
   AnimatedLength get y native "SVGFETileElement_y_Getter";
 
-  @DomName('SVGFETileElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFETileElement_className_Getter";
-
-  @DomName('SVGFETileElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFETileElement_style_Getter";
-
-  @DomName('SVGFETileElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFETileElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3017,7 +2753,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 
 @DocsEditable
 @DomName('SVGFETurbulenceElement')
-class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FETurbulenceElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FETurbulenceElement.internal() : super.internal();
 
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
@@ -3076,18 +2812,6 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
   @DocsEditable
   AnimatedLength get y native "SVGFETurbulenceElement_y_Getter";
 
-  @DomName('SVGFETurbulenceElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFETurbulenceElement_className_Getter";
-
-  @DomName('SVGFETurbulenceElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFETurbulenceElement_style_Getter";
-
-  @DomName('SVGFETurbulenceElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFETurbulenceElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3098,7 +2822,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
 @DocsEditable
 @DomName('SVGFilterElement')
-class FilterElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable, LangSpace {
+class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired, LangSpace {
   FilterElement.internal() : super.internal();
 
   @DocsEditable
@@ -3160,18 +2884,6 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
   @DocsEditable
   void set xmlspace(String value) native "SVGFilterElement_xmlspace_Setter";
 
-  @DomName('SVGFilterElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFilterElement_className_Getter";
-
-  @DomName('SVGFilterElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFilterElement_style_Getter";
-
-  @DomName('SVGFilterElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFilterElement_getPresentationAttribute_Callback";
-
   @DomName('SVGFilterElement.href')
   @DocsEditable
   AnimatedString get href native "SVGFilterElement_href_Getter";
@@ -3186,7 +2898,7 @@ class FilterElement extends SvgElement implements UriReference, ExternalResource
 
 @DocsEditable
 @DomName('SVGFilterPrimitiveStandardAttributes')
-class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 implements Stylable {
+class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 {
   FilterPrimitiveStandardAttributes.internal();
 
   @DomName('SVGFilterPrimitiveStandardAttributes.height')
@@ -3208,18 +2920,6 @@ class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 impleme
   @DomName('SVGFilterPrimitiveStandardAttributes.y')
   @DocsEditable
   AnimatedLength get y native "SVGFilterPrimitiveStandardAttributes_y_Getter";
-
-  @DomName('SVGFilterPrimitiveStandardAttributes.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGFilterPrimitiveStandardAttributes_className_Getter";
-
-  @DomName('SVGFilterPrimitiveStandardAttributes.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGFilterPrimitiveStandardAttributes_style_Getter";
-
-  @DomName('SVGFilterPrimitiveStandardAttributes.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGFilterPrimitiveStandardAttributes_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3348,7 +3048,7 @@ class FontFaceUriElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGForeignObjectElement')
-class ForeignObjectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class ForeignObjectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   ForeignObjectElement.internal() : super.internal();
 
   @DocsEditable
@@ -3414,18 +3114,6 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGForeignObjectElement_getTransformToElement_Callback";
 
-  @DomName('SVGForeignObjectElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGForeignObjectElement_className_Getter";
-
-  @DomName('SVGForeignObjectElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGForeignObjectElement_style_Getter";
-
-  @DomName('SVGForeignObjectElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGForeignObjectElement_getPresentationAttribute_Callback";
-
   @DomName('SVGForeignObjectElement.requiredExtensions')
   @DocsEditable
   StringList get requiredExtensions native "SVGForeignObjectElement_requiredExtensions_Getter";
@@ -3456,7 +3144,7 @@ class ForeignObjectElement extends SvgElement implements Transformable, Tests, S
 
 @DocsEditable
 @DomName('SVGGElement')
-class GElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class GElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   GElement.internal() : super.internal();
 
   @DocsEditable
@@ -3506,18 +3194,6 @@ class GElement extends SvgElement implements Transformable, Tests, Stylable, Ext
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGGElement_getTransformToElement_Callback";
 
-  @DomName('SVGGElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGGElement_className_Getter";
-
-  @DomName('SVGGElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGGElement_style_Getter";
-
-  @DomName('SVGGElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGGElement_getPresentationAttribute_Callback";
-
   @DomName('SVGGElement.requiredExtensions')
   @DocsEditable
   StringList get requiredExtensions native "SVGGElement_requiredExtensions_Getter";
@@ -3564,7 +3240,7 @@ class GlyphElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGGlyphRefElement')
-class GlyphRefElement extends SvgElement implements UriReference, Stylable {
+class GlyphRefElement extends StyledElement implements UriReference {
   GlyphRefElement.internal() : super.internal();
 
   @DomName('SVGGlyphRefElement.dx')
@@ -3615,18 +3291,6 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable {
   @DocsEditable
   void set y(num value) native "SVGGlyphRefElement_y_Setter";
 
-  @DomName('SVGGlyphRefElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGGlyphRefElement_className_Getter";
-
-  @DomName('SVGGlyphRefElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGGlyphRefElement_style_Getter";
-
-  @DomName('SVGGlyphRefElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGGlyphRefElement_getPresentationAttribute_Callback";
-
   @DomName('SVGGlyphRefElement.href')
   @DocsEditable
   AnimatedString get href native "SVGGlyphRefElement_href_Getter";
@@ -3641,7 +3305,7 @@ class GlyphRefElement extends SvgElement implements UriReference, Stylable {
 
 @DocsEditable
 @DomName('SVGGradientElement')
-class GradientElement extends SvgElement implements UriReference, ExternalResourcesRequired, Stylable {
+class GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
   GradientElement.internal() : super.internal();
 
   static const int SVG_SPREADMETHOD_PAD = 1;
@@ -3667,18 +3331,6 @@ class GradientElement extends SvgElement implements UriReference, ExternalResour
   @DomName('SVGGradientElement.externalResourcesRequired')
   @DocsEditable
   AnimatedBoolean get externalResourcesRequired native "SVGGradientElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGGradientElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGGradientElement_className_Getter";
-
-  @DomName('SVGGradientElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGGradientElement_style_Getter";
-
-  @DomName('SVGGradientElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGGradientElement_getPresentationAttribute_Callback";
 
   @DomName('SVGGradientElement.href')
   @DocsEditable
@@ -3710,7 +3362,7 @@ class HKernElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGImageElement')
-class ImageElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
+class ImageElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
   ImageElement.internal() : super.internal();
 
   @DocsEditable
@@ -3779,18 +3431,6 @@ class ImageElement extends SvgElement implements Transformable, Tests, UriRefere
   @DomName('SVGImageElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGImageElement_getTransformToElement_Callback";
-
-  @DomName('SVGImageElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGImageElement_className_Getter";
-
-  @DomName('SVGImageElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGImageElement_style_Getter";
-
-  @DomName('SVGImageElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGImageElement_getPresentationAttribute_Callback";
 
   @DomName('SVGImageElement.requiredExtensions')
   @DocsEditable
@@ -4151,7 +3791,7 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
 @DocsEditable
 @DomName('SVGLineElement')
-class LineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class LineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   LineElement.internal() : super.internal();
 
   @DocsEditable
@@ -4216,18 +3856,6 @@ class LineElement extends SvgElement implements Transformable, Tests, Stylable, 
   @DomName('SVGLineElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGLineElement_getTransformToElement_Callback";
-
-  @DomName('SVGLineElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGLineElement_className_Getter";
-
-  @DomName('SVGLineElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGLineElement_style_Getter";
-
-  @DomName('SVGLineElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGLineElement_getPresentationAttribute_Callback";
 
   @DomName('SVGLineElement.requiredExtensions')
   @DocsEditable
@@ -4352,7 +3980,7 @@ class MPathElement extends SvgElement implements UriReference, ExternalResources
 
 @DocsEditable
 @DomName('SVGMarkerElement')
-class MarkerElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace {
+class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
   MarkerElement.internal() : super.internal();
 
   @DocsEditable
@@ -4434,18 +4062,6 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
   @DocsEditable
   void set xmlspace(String value) native "SVGMarkerElement_xmlspace_Setter";
 
-  @DomName('SVGMarkerElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGMarkerElement_className_Getter";
-
-  @DomName('SVGMarkerElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGMarkerElement_style_Getter";
-
-  @DomName('SVGMarkerElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGMarkerElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4456,7 +4072,7 @@ class MarkerElement extends SvgElement implements FitToViewBox, ExternalResource
 
 @DocsEditable
 @DomName('SVGMaskElement')
-class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class MaskElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace {
   MaskElement.internal() : super.internal();
 
   @DocsEditable
@@ -4505,18 +4121,6 @@ class MaskElement extends SvgElement implements Tests, Stylable, ExternalResourc
   @DomName('SVGMaskElement.xmlspace')
   @DocsEditable
   void set xmlspace(String value) native "SVGMaskElement_xmlspace_Setter";
-
-  @DomName('SVGMaskElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGMaskElement_className_Getter";
-
-  @DomName('SVGMaskElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGMaskElement_style_Getter";
-
-  @DomName('SVGMaskElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGMaskElement_getPresentationAttribute_Callback";
 
   @DomName('SVGMaskElement.requiredExtensions')
   @DocsEditable
@@ -4662,7 +4266,7 @@ class MetadataElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGMissingGlyphElement')
-class MissingGlyphElement extends SvgElement {
+class MissingGlyphElement extends StyledElement {
   MissingGlyphElement.internal() : super.internal();
 
 }
@@ -4970,7 +4574,7 @@ class Paint extends Color {
 
 @DocsEditable
 @DomName('SVGPathElement')
-class PathElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class PathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   PathElement.internal() : super.internal();
 
   @DocsEditable
@@ -5127,18 +4731,6 @@ class PathElement extends SvgElement implements Transformable, Tests, Stylable, 
   @DomName('SVGPathElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGPathElement_getTransformToElement_Callback";
-
-  @DomName('SVGPathElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGPathElement_className_Getter";
-
-  @DomName('SVGPathElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGPathElement_style_Getter";
-
-  @DomName('SVGPathElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGPathElement_getPresentationAttribute_Callback";
 
   @DomName('SVGPathElement.requiredExtensions')
   @DocsEditable
@@ -6167,7 +5759,7 @@ class PathSegMovetoRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPatternElement')
-class PatternElement extends SvgElement implements FitToViewBox, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
+class PatternElement extends StyledElement implements FitToViewBox, UriReference, Tests, ExternalResourcesRequired, LangSpace {
   PatternElement.internal() : super.internal();
 
   @DocsEditable
@@ -6228,18 +5820,6 @@ class PatternElement extends SvgElement implements FitToViewBox, Tests, UriRefer
   @DomName('SVGPatternElement.xmlspace')
   @DocsEditable
   void set xmlspace(String value) native "SVGPatternElement_xmlspace_Setter";
-
-  @DomName('SVGPatternElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGPatternElement_className_Getter";
-
-  @DomName('SVGPatternElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGPatternElement_style_Getter";
-
-  @DomName('SVGPatternElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGPatternElement_getPresentationAttribute_Callback";
 
   @DomName('SVGPatternElement.requiredExtensions')
   @DocsEditable
@@ -6349,7 +5929,7 @@ class PointList extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGPolygonElement')
-class PolygonElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class PolygonElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   PolygonElement.internal() : super.internal();
 
   @DocsEditable
@@ -6407,18 +5987,6 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGPolygonElement_getTransformToElement_Callback";
 
-  @DomName('SVGPolygonElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGPolygonElement_className_Getter";
-
-  @DomName('SVGPolygonElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGPolygonElement_style_Getter";
-
-  @DomName('SVGPolygonElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGPolygonElement_getPresentationAttribute_Callback";
-
   @DomName('SVGPolygonElement.requiredExtensions')
   @DocsEditable
   StringList get requiredExtensions native "SVGPolygonElement_requiredExtensions_Getter";
@@ -6449,7 +6017,7 @@ class PolygonElement extends SvgElement implements Transformable, Tests, Stylabl
 
 @DocsEditable
 @DomName('SVGPolylineElement')
-class PolylineElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class PolylineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   PolylineElement.internal() : super.internal();
 
   @DocsEditable
@@ -6506,18 +6074,6 @@ class PolylineElement extends SvgElement implements Transformable, Tests, Stylab
   @DomName('SVGPolylineElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGPolylineElement_getTransformToElement_Callback";
-
-  @DomName('SVGPolylineElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGPolylineElement_className_Getter";
-
-  @DomName('SVGPolylineElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGPolylineElement_style_Getter";
-
-  @DomName('SVGPolylineElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGPolylineElement_getPresentationAttribute_Callback";
 
   @DomName('SVGPolylineElement.requiredExtensions')
   @DocsEditable
@@ -6691,7 +6247,7 @@ class Rect extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGRectElement')
-class RectElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class RectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   RectElement.internal() : super.internal();
 
   @DocsEditable
@@ -6764,18 +6320,6 @@ class RectElement extends SvgElement implements Transformable, Tests, Stylable, 
   @DomName('SVGRectElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGRectElement_getTransformToElement_Callback";
-
-  @DomName('SVGRectElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGRectElement_className_Getter";
-
-  @DomName('SVGRectElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGRectElement_style_Getter";
-
-  @DomName('SVGRectElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGRectElement_getPresentationAttribute_Callback";
 
   @DomName('SVGRectElement.requiredExtensions')
   @DocsEditable
@@ -6880,7 +6424,7 @@ class SetElement extends AnimationElement {
 
 @DocsEditable
 @DomName('SVGStopElement')
-class StopElement extends SvgElement implements Stylable {
+class StopElement extends StyledElement {
   StopElement.internal() : super.internal();
 
   @DocsEditable
@@ -6889,18 +6433,6 @@ class StopElement extends SvgElement implements Stylable {
   @DomName('SVGStopElement.offset')
   @DocsEditable
   AnimatedNumber get offset native "SVGStopElement_offset_Getter";
-
-  @DomName('SVGStopElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGStopElement_className_Getter";
-
-  @DomName('SVGStopElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGStopElement_style_Getter";
-
-  @DomName('SVGStopElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGStopElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7136,31 +6668,6 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
 
 @DocsEditable
-@DomName('SVGStylable')
-class Stylable extends NativeFieldWrapperClass1 {
-  Stylable.internal();
-
-  @DomName('SVGStylable.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGStylable_className_Getter";
-
-  @DomName('SVGStylable.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGStylable_style_Getter";
-
-  @DomName('SVGStylable.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGStylable_getPresentationAttribute_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('SVGStyleElement')
 class StyleElement extends SvgElement implements LangSpace {
   StyleElement.internal() : super.internal();
@@ -7215,6 +6722,31 @@ class StyleElement extends SvgElement implements LangSpace {
   @DomName('SVGStyleElement.xmlspace')
   @DocsEditable
   void set xmlspace(String value) native "SVGStyleElement_xmlspace_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGStyledElement')
+class StyledElement extends SvgElement {
+  StyledElement.internal() : super.internal();
+
+  @DomName('SVGStyledElement.className')
+  @DocsEditable
+  AnimatedString get $dom_svgClassName native "SVGStyledElement_className_Getter";
+
+  @DomName('SVGStyledElement.style')
+  @DocsEditable
+  CssStyleDeclaration get style native "SVGStyledElement_style_Getter";
+
+  @DomName('SVGStyledElement.getPresentationAttribute')
+  @DocsEditable
+  CssValue getPresentationAttribute(String name) native "SVGStyledElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7419,7 +6951,7 @@ class SvgException extends NativeFieldWrapperClass1 {
 
 
 @DomName('SVGSVGElement')
-class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable, Locatable, ExternalResourcesRequired, ZoomAndPan, LangSpace {
+class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable, Tests, ExternalResourcesRequired, ZoomAndPan, LangSpace {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
   SvgSvgElement.internal() : super.internal();
@@ -7640,18 +7172,6 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGSVGElement_getTransformToElement_Callback";
 
-  @DomName('SVGSVGElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGSVGElement_className_Getter";
-
-  @DomName('SVGSVGElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGSVGElement_style_Getter";
-
-  @DomName('SVGSVGElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGSVGElement_getPresentationAttribute_Callback";
-
   @DomName('SVGSVGElement.requiredExtensions')
   @DocsEditable
   StringList get requiredExtensions native "SVGSVGElement_requiredExtensions_Getter";
@@ -7667,6 +7187,10 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
   @DomName('SVGSVGElement.hasExtension')
   @DocsEditable
   bool hasExtension(String extension) native "SVGSVGElement_hasExtension_Callback";
+
+  @DomName('SVGSVGElement.transform')
+  @DocsEditable
+  AnimatedTransformList get transform native "SVGSVGElement_transform_Getter";
 
   @DomName('SVGSVGElement.zoomAndPan')
   @DocsEditable
@@ -7686,7 +7210,7 @@ class SvgSvgElement extends SvgElement implements FitToViewBox, Tests, Stylable,
 
 @DocsEditable
 @DomName('SVGSwitchElement')
-class SwitchElement extends SvgElement implements Transformable, Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class SwitchElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   SwitchElement.internal() : super.internal();
 
   @DocsEditable
@@ -7736,18 +7260,6 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGSwitchElement_getTransformToElement_Callback";
 
-  @DomName('SVGSwitchElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGSwitchElement_className_Getter";
-
-  @DomName('SVGSwitchElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGSwitchElement_style_Getter";
-
-  @DomName('SVGSwitchElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGSwitchElement_getPresentationAttribute_Callback";
-
   @DomName('SVGSwitchElement.requiredExtensions')
   @DocsEditable
   StringList get requiredExtensions native "SVGSwitchElement_requiredExtensions_Getter";
@@ -7778,7 +7290,7 @@ class SwitchElement extends SvgElement implements Transformable, Tests, Stylable
 
 @DocsEditable
 @DomName('SVGSymbolElement')
-class SymbolElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, Stylable, LangSpace {
+class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
   SymbolElement.internal() : super.internal();
 
   @DocsEditable
@@ -7811,18 +7323,6 @@ class SymbolElement extends SvgElement implements FitToViewBox, ExternalResource
   @DomName('SVGSymbolElement.xmlspace')
   @DocsEditable
   void set xmlspace(String value) native "SVGSymbolElement_xmlspace_Setter";
-
-  @DomName('SVGSymbolElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGSymbolElement_className_Getter";
-
-  @DomName('SVGSymbolElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGSymbolElement_style_Getter";
-
-  @DomName('SVGSymbolElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGSymbolElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7899,7 +7399,7 @@ class Tests extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGTextContentElement')
-class TextContentElement extends SvgElement implements Tests, Stylable, ExternalResourcesRequired, LangSpace {
+class TextContentElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace {
   TextContentElement.internal() : super.internal();
 
   static const int LENGTHADJUST_SPACING = 1;
@@ -7971,18 +7471,6 @@ class TextContentElement extends SvgElement implements Tests, Stylable, External
   @DomName('SVGTextContentElement.xmlspace')
   @DocsEditable
   void set xmlspace(String value) native "SVGTextContentElement_xmlspace_Setter";
-
-  @DomName('SVGTextContentElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGTextContentElement_className_Getter";
-
-  @DomName('SVGTextContentElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGTextContentElement_style_Getter";
-
-  @DomName('SVGTextContentElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGTextContentElement_getPresentationAttribute_Callback";
 
   @DomName('SVGTextContentElement.requiredExtensions')
   @DocsEditable
@@ -8128,7 +7616,7 @@ class TextPositioningElement extends TextContentElement {
 
 @DocsEditable
 @DomName('SVGTitleElement')
-class TitleElement extends SvgElement implements Stylable, LangSpace {
+class TitleElement extends StyledElement implements LangSpace {
   TitleElement.internal() : super.internal();
 
   @DocsEditable
@@ -8149,18 +7637,6 @@ class TitleElement extends SvgElement implements Stylable, LangSpace {
   @DomName('SVGTitleElement.xmlspace')
   @DocsEditable
   void set xmlspace(String value) native "SVGTitleElement_xmlspace_Setter";
-
-  @DomName('SVGTitleElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGTitleElement_className_Getter";
-
-  @DomName('SVGTitleElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGTitleElement_style_Getter";
-
-  @DomName('SVGTitleElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGTitleElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8545,7 +8021,7 @@ class UriReference extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGUseElement')
-class UseElement extends SvgElement implements Transformable, Tests, UriReference, Stylable, ExternalResourcesRequired, LangSpace {
+class UseElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
   UseElement.internal() : super.internal();
 
   @DocsEditable
@@ -8618,18 +8094,6 @@ class UseElement extends SvgElement implements Transformable, Tests, UriReferenc
   @DomName('SVGUseElement.getTransformToElement')
   @DocsEditable
   Matrix getTransformToElement(SvgElement element) native "SVGUseElement_getTransformToElement_Callback";
-
-  @DomName('SVGUseElement.className')
-  @DocsEditable
-  AnimatedString get $dom_svgClassName native "SVGUseElement_className_Getter";
-
-  @DomName('SVGUseElement.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "SVGUseElement_style_Getter";
-
-  @DomName('SVGUseElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGUseElement_getPresentationAttribute_Callback";
 
   @DomName('SVGUseElement.requiredExtensions')
   @DocsEditable

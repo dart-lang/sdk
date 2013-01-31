@@ -1315,7 +1315,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
   @DomName('CanvasRenderingContext2D.clip')
   @DocsEditable
-  void clip() native;
+  void clip([String winding]) native;
 
   @DomName('CanvasRenderingContext2D.closePath')
   @DocsEditable
@@ -1360,7 +1360,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
   @DomName('CanvasRenderingContext2D.fill')
   @DocsEditable
-  void fill() native;
+  void fill([String winding]) native;
 
   @DomName('CanvasRenderingContext2D.fillRect')
   @DocsEditable
@@ -1385,7 +1385,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
   @DomName('CanvasRenderingContext2D.isPointInPath')
   @DocsEditable
-  bool isPointInPath(num x, num y) native;
+  bool isPointInPath(num x, num y, [String winding]) native;
 
   @DomName('CanvasRenderingContext2D.lineTo')
   @DocsEditable
@@ -1906,6 +1906,29 @@ class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
 
 
 @DocsEditable
+@DomName('CSSHostRule')
+class CssHostRule extends CssRule native "*CSSHostRule" {
+
+  @DomName('CSSHostRule.cssRules')
+  @DocsEditable
+  @Returns('_CssRuleList')
+  @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
+
+  @DomName('CSSHostRule.deleteRule')
+  @DocsEditable
+  void deleteRule(int index) native;
+
+  @DomName('CSSHostRule.insertRule')
+  @DocsEditable
+  int insertRule(String rule, int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('CSSImportRule')
 class CssImportRule extends CssRule native "*CSSImportRule" {
 
@@ -2278,6 +2301,8 @@ class CssRule native "*CSSRule" {
   static const int CHARSET_RULE = 2;
 
   static const int FONT_FACE_RULE = 5;
+
+  static const int HOST_RULE = 1001;
 
   static const int IMPORT_RULE = 3;
 
@@ -15954,12 +15979,6 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
 
-  static const int ENDED = 2;
-
-  static const int LIVE = 0;
-
-  static const int MUTED = 1;
-
   @DomName('MediaStreamTrack.enabled')
   @DocsEditable
   bool enabled;
@@ -15978,7 +15997,7 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   @DomName('MediaStreamTrack.readyState')
   @DocsEditable
-  final int readyState;
+  final String readyState;
 
   @JSName('addEventListener')
   @DomName('MediaStreamTrack.addEventListener')
@@ -19120,10 +19139,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   static const EventStreamProvider<Event> negotiationNeededEvent = const EventStreamProvider<Event>('negotiationneeded');
 
-  @DomName('RTCPeerConnection.open')
-  @DocsEditable
-  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
-
   @DomName('RTCPeerConnection.removestream')
   @DocsEditable
   static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
@@ -19148,13 +19163,13 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   RtcPeerConnectionEvents get on =>
     new RtcPeerConnectionEvents(this);
 
+  @DomName('RTCPeerConnection.iceConnectionState')
+  @DocsEditable
+  final String iceConnectionState;
+
   @DomName('RTCPeerConnection.iceGatheringState')
   @DocsEditable
   final String iceGatheringState;
-
-  @DomName('RTCPeerConnection.iceState')
-  @DocsEditable
-  final String iceState;
 
   @DomName('RTCPeerConnection.localDescription')
   @DocsEditable
@@ -19179,6 +19194,10 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @Returns('_MediaStreamList')
   @Creates('_MediaStreamList')
   final List<MediaStream> remoteStreams;
+
+  @DomName('RTCPeerConnection.signalingState')
+  @DocsEditable
+  final String signalingState;
 
   @JSName('addEventListener')
   @DomName('RTCPeerConnection.addEventListener')
@@ -19336,10 +19355,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   Stream<Event> get onNegotiationNeeded => negotiationNeededEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.open')
-  @DocsEditable
-  Stream<Event> get onOpen => openEvent.forTarget(this);
-
   @DomName('RTCPeerConnection.removestream')
   @DocsEditable
   Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
@@ -19366,9 +19381,6 @@ class RtcPeerConnectionEvents extends Events {
 
   @DocsEditable
   EventListenerList get negotiationNeeded => this['negotiationneeded'];
-
-  @DocsEditable
-  EventListenerList get open => this['open'];
 
   @DocsEditable
   EventListenerList get removeStream => this['removestream'];
