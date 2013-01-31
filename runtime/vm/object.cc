@@ -1291,6 +1291,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
                             Heap::Space space) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->no_callback_scope_depth() == 0);
   Heap* heap = isolate->heap();
 
   uword address = heap->Allocate(size, space);

@@ -526,7 +526,8 @@ class ApiLocalScope {
 class ApiState {
  public:
   ApiState() : top_scope_(NULL), delayed_weak_reference_sets_(NULL),
-               null_(NULL), true_(NULL), false_(NULL) { }
+               null_(NULL), true_(NULL), false_(NULL),
+               callback_error_(NULL) {}
   ~ApiState() {
     while (top_scope_ != NULL) {
       ApiLocalScope* scope = top_scope_;
@@ -677,6 +678,19 @@ class ApiState {
     return false_;
   }
 
+  void SetupCallbackError() {
+    ASSERT(callback_error_ == NULL);
+    callback_error_ = persistent_handles().AllocateHandle();
+    callback_error_->set_raw(
+        String::New("Internal Dart data pointers have been acquired, "
+                    "please release them using Dart_ByteArrayReleaseData."));
+  }
+
+  PersistentHandle* CallbackError() const {
+    ASSERT(callback_error_ != NULL);
+    return callback_error_;
+  }
+
   void DelayWeakReferenceSet(WeakReferenceSet* reference_set) {
     WeakReferenceSet::Push(reference_set, &delayed_weak_reference_sets_);
   }
@@ -692,6 +706,7 @@ class ApiState {
   PersistentHandle* null_;
   PersistentHandle* true_;
   PersistentHandle* false_;
+  PersistentHandle* callback_error_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiState);
 };

@@ -46,6 +46,7 @@ RawObject* DartEntry::InvokeDynamic(const Function& function,
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
+  ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
   return entrypoint(code.EntryPoint(),
                     arguments_descriptor,
                     arguments,
@@ -82,6 +83,7 @@ RawObject* DartEntry::InvokeStatic(const Function& function,
   ASSERT(context.isolate() == Isolate::Current());
   const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
+  ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
   return entrypoint(code.EntryPoint(),
                     arguments_descriptor,
                     arguments,
@@ -127,6 +129,7 @@ RawObject* DartEntry::InvokeClosure(const Instance& instance,
       ASSERT(context.isolate() == Isolate::Current());
       const Code& code = Code::Handle(function.CurrentCode());
       ASSERT(!code.IsNull());
+      ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
       return entrypoint(code.EntryPoint(),
                         arguments_descriptor,
                         arguments,

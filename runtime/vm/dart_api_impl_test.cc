@@ -204,7 +204,7 @@ TEST_CASE(IdentityEquals) {
   // Non-instance objects.
   {
     Isolate* isolate = Isolate::Current();
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     Dart_Handle class1 = Api::NewHandle(isolate, Object::null_class());
     Dart_Handle class2 = Api::NewHandle(isolate, Object::class_class());
 
@@ -830,12 +830,8 @@ TEST_CASE(ByteArrayAccess) {
 
   result = Dart_ListSetAt(byte_array1, -1, Dart_NewInteger(1));
   EXPECT(Dart_IsError(result));
-  result = Dart_ByteArraySetUint8At(byte_array1, -1, 1);
-  EXPECT(Dart_IsError(result));
 
   result = Dart_ListSetAt(byte_array1, 10, Dart_NewInteger(1));
-  EXPECT(Dart_IsError(result));
-  result = Dart_ByteArraySetUint8At(byte_array1, 10, 1);
   EXPECT(Dart_IsError(result));
 
   // Set through the List API.
@@ -849,27 +845,6 @@ TEST_CASE(ByteArrayAccess) {
     int64_t int64_t_value = -1;
     EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
     EXPECT_EQ(i + 1, int64_t_value);
-    // Get through the ByteArray API.
-    uint8_t uint8_t_value = 0xFF;
-    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
-    EXPECT_EQ(i + 1, uint8_t_value);
-  }
-
-  // Set through the ByteArray API.
-  for (intptr_t i = 0; i < 10; ++i) {
-    EXPECT_VALID(Dart_ByteArraySetUint8At(byte_array1, i, i + 2));
-  }
-  for (intptr_t i = 0; i < 10; ++i) {
-    // Get through the List API.
-    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
-    EXPECT_VALID(integer_obj);
-    int64_t int64_t_value = -1;
-    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
-    EXPECT_EQ(i + 2, int64_t_value);
-    // Get through the ByteArray API.
-    uint8_t uint8_t_value = 0xFF;
-    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
-    EXPECT_EQ(i + 2, uint8_t_value);
   }
 
   Dart_Handle byte_array2 = Dart_NewByteArray(10);
@@ -879,6 +854,8 @@ TEST_CASE(ByteArrayAccess) {
 
   // Set through the List API.
   for (intptr_t i = 0; i < 10; ++i) {
+    result = Dart_ListSetAt(byte_array1, i, Dart_NewInteger(i + 2));
+    EXPECT_VALID(result);
     result = Dart_ListSetAt(byte_array2, i, Dart_NewInteger(i + 2));
     EXPECT_VALID(result);
   }
@@ -889,57 +866,9 @@ TEST_CASE(ByteArrayAccess) {
     is_equal = false;
     Dart_ObjectEquals(e1, e2, &is_equal);
     EXPECT(is_equal);
-    // Get through the ByteArray API.
-    uint8_t v1 = 0xFF;
-    uint8_t v2 = 0XFF;
-    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &v1));
-    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array2, i, &v2));
-    EXPECT_NE(v1, 0xFF);
-    EXPECT_NE(v2, 0xFF);
-    EXPECT_EQ(v1, v2);
-  }
-
-  byte_array2 = Dart_NewByteArray(10);
-  is_equal = false;
-  Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
-  EXPECT(!is_equal);
-
-  // Set through the ByteArray API.
-  for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ByteArraySetUint8At(byte_array2, i, i + 2);
-    EXPECT_VALID(result);
-  }
-  for (intptr_t i = 0; i < 10; ++i) {
-    // Get through the List API.
-    Dart_Handle e1 = Dart_ListGetAt(byte_array1, i);
-    Dart_Handle e2 = Dart_ListGetAt(byte_array2, i);
-    is_equal = false;
-    Dart_ObjectEquals(e1, e2, &is_equal);
-    EXPECT(is_equal);
-    // Get through the ByteArray API.
-    uint8_t v1 = 0xFF;
-    uint8_t v2 = 0XFF;
-    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &v1));
-    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array2, i, &v2));
-    EXPECT_NE(v1, 0xFF);
-    EXPECT_NE(v2, 0xFF);
-    EXPECT_EQ(v1, v2);
   }
 
   uint8_t data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-  result = Dart_ListSetAsBytes(byte_array1, 0, data, 10);
-  EXPECT_VALID(result);
-  for (intptr_t i = 0; i < 10; ++i) {
-    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
-    EXPECT_VALID(integer_obj);
-    int64_t int64_t_value = -1;
-    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
-    EXPECT_EQ(i, int64_t_value);
-    uint8_t uint8_t_value = 0xFF;
-    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
-    EXPECT_EQ(i, uint8_t_value);
-  }
-
   for (intptr_t i = 0; i < 10; ++i) {
     EXPECT_VALID(Dart_ListSetAt(byte_array1, i, Dart_NewInteger(10 - i)));
   }
@@ -950,160 +879,40 @@ TEST_CASE(ByteArrayAccess) {
     int64_t int64_t_value = -1;
     EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
     EXPECT_EQ(10 - i, int64_t_value);
-    uint8_t uint8_t_value = 0xFF;
-    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
-    EXPECT_EQ(10 - i, uint8_t_value);
-  }
-
-  for (intptr_t i = 0; i < 10; ++i) {
-    EXPECT_VALID(Dart_ByteArraySetUint8At(byte_array1, i, 10 + i));
-  }
-  Dart_ListGetAsBytes(byte_array1, 0, data, 10);
-  for (intptr_t i = 0; i < 10; ++i) {
-    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
-    EXPECT_VALID(integer_obj);
-    int64_t int64_t_value = -1;
-    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
-    EXPECT_EQ(10 + i, int64_t_value);
-    uint8_t uint8_t_value = 0xFF;
-    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
-    EXPECT_EQ(10 + i, uint8_t_value);
   }
 }
 
 
-TEST_CASE(ByteArrayAlignedMultiByteAccess) {
-  intptr_t length = 16;
-  Dart_Handle byte_array = Dart_NewByteArray(length);
-  intptr_t api_length = 0;
-  EXPECT_VALID(Dart_ListLength(byte_array, &api_length));
-  EXPECT_EQ(length, api_length);
+TEST_CASE(ScalarListDirectAccess) {
+  Dart_Handle str = Dart_NewStringFromCString("junk");
+  Dart_Handle byte_array = Dart_NewByteArray(10);
+  EXPECT_VALID(byte_array);
+  Dart_Handle result;
+  result = Dart_ScalarListAcquireData(byte_array, NULL, NULL, NULL);
+  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'type'"
+                       " to be non-null.");
+  Dart_Scalar_Type type;
+  result = Dart_ScalarListAcquireData(byte_array, &type, NULL, NULL);
+  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'data'"
+                       " to be non-null.");
+  void* data;
+  result = Dart_ScalarListAcquireData(byte_array, &type, &data, NULL);
+  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'len'"
+                       " to be non-null.");
+  intptr_t len;
+  result = Dart_ScalarListAcquireData(Dart_Null(), &type, &data, &len);
+  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'array'"
+                       " to be non-null.");
+  result = Dart_ScalarListAcquireData(str, &type, &data, &len);
+  EXPECT_ERROR(result, "Dart_ScalarListAcquireData expects argument 'array'"
+                       " to be of type 'scalar list'.");
 
-  // 4-byte aligned sets.
-
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 0, FLT_MIN));
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 4, FLT_MAX));
-
-  float float_value = 0.0f;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 0, &float_value));
-  EXPECT_EQ(FLT_MIN, float_value);
-
-  float_value = 0.0f;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 4, &float_value));
-  EXPECT_EQ(FLT_MAX, float_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 0, 0.0f));
-  float_value = FLT_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 0, &float_value));
-  EXPECT_EQ(0.0f, float_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 4, 1.0f));
-  float_value = FLT_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 4, &float_value));
-  EXPECT_EQ(1.0f, float_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 0, -1.0f));
-  float_value = FLT_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 0, &float_value));
-  EXPECT_EQ(-1.0f, float_value);
-
-  // 8-byte aligned sets.
-
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 0, DBL_MIN));
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 8, DBL_MAX));
-
-  double double_value = 0.0;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 0, &double_value));
-  EXPECT_EQ(DBL_MIN, double_value);
-
-  double_value = 0.0;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 8, &double_value));
-  EXPECT_EQ(DBL_MAX, double_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 0, 0.0));
-  double_value = DBL_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 0, &double_value));
-  EXPECT_EQ(0.0, double_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 8, 1.0));
-  double_value = DBL_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 8, &double_value));
-  EXPECT_EQ(1.0, double_value);
-}
-
-
-TEST_CASE(ByteArrayMisalignedMultiByteAccess) {
-  intptr_t length = 17;
-  Dart_Handle byte_array = Dart_NewByteArray(length);
-  intptr_t api_length = 0;
-  EXPECT_VALID(Dart_ListLength(byte_array, &api_length));
-  EXPECT_EQ(length, api_length);
-
-  // 4-byte misaligned sets.
-
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 1, FLT_MIN));
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 5, FLT_MAX));
-
-  float float_value = 0.0f;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 1, &float_value));
-  EXPECT_EQ(FLT_MIN, float_value);
-
-  float_value = 0.0f;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 5, &float_value));
-  EXPECT_EQ(FLT_MAX, float_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 1, 0.0f));
-  float_value = FLT_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 1, &float_value));
-  EXPECT_EQ(0.0f, float_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 5, -0.0f));
-  float_value = FLT_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 5, &float_value));
-  EXPECT_EQ(-0.0f, float_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 5, 1.0f));
-  float_value = FLT_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 5, &float_value));
-  EXPECT_EQ(1.0f, float_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 1, -1.0f));
-  float_value = FLT_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 1, &float_value));
-  EXPECT_EQ(-1.0f, float_value);
-
-  // 8-byte misaligned sets.
-
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 1, DBL_MIN));
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 9, DBL_MAX));
-
-  double double_value = 0.0;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 1, &double_value));
-  EXPECT_EQ(DBL_MIN, double_value);
-
-  double_value = 0.0;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 9, &double_value));
-  EXPECT_EQ(DBL_MAX, double_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 1, 0.0));
-  double_value = DBL_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 1, &double_value));
-  EXPECT_EQ(0.0, double_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 9, -0.0));
-  double_value = DBL_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 9, &double_value));
-  EXPECT_EQ(-0.0, double_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 9, 1.0));
-  double_value = DBL_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 9, &double_value));
-  EXPECT_EQ(1.0, double_value);
-
-  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 1, -1.0));
-  double_value = DBL_MAX;
-  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 1, &double_value));
-  EXPECT_EQ(-1.0, double_value);
+  result = Dart_ScalarListReleaseData(Dart_Null());
+  EXPECT_ERROR(result, "Dart_ScalarListReleaseData expects argument 'array'"
+                       " to be non-null.");
+  result = Dart_ScalarListReleaseData(str);
+  EXPECT_ERROR(result, "Dart_ScalarListReleaseData expects argument 'array'"
+                       " to be of type 'scalar list'.");
 }
 
 
@@ -1262,7 +1071,7 @@ UNIT_TEST_CASE(EnterExitScope) {
   Dart_EnterScope();
   {
     EXPECT(state->top_scope() != NULL);
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     const String& str1 = String::Handle(String::New("Test String"));
     Dart_Handle ref = Api::NewHandle(isolate, str1.raw());
     String& str2 = String::Handle();
@@ -1287,7 +1096,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   Dart_Handle handles[2000];
   Dart_EnterScope();
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     Dart_Handle ref1 = Api::NewHandle(isolate, String::New(kTestString1));
     for (int i = 0; i < 1000; i++) {
       handles[i] = Dart_NewPersistentHandle(ref1);
@@ -1312,7 +1121,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   Dart_ExitScope();
   {
     StackZone zone(isolate);
-    DARTSCOPE_NOCHECKS(isolate);
+    HANDLESCOPE(isolate);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= Api::UnwrapHandle(handles[i]);
@@ -2263,7 +2072,7 @@ UNIT_TEST_CASE(LocalHandles) {
   Dart_Handle handles[300];
   {
     StackZone zone(isolate);
-    DARTSCOPE_NOCHECKS(isolate);
+    HANDLESCOPE(isolate);
     Smi& val = Smi::Handle();
 
     // Start a new scope and allocate some local handles.
@@ -2923,7 +2732,7 @@ TEST_CASE(InjectNativeFields1) {
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
-  DARTSCOPE_NOCHECKS(Isolate::Current());
+  DARTSCOPE(Isolate::Current());
   Instance& obj = Instance::Handle();
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
@@ -2992,7 +2801,7 @@ TEST_CASE(InjectNativeFields3) {
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
-  DARTSCOPE_NOCHECKS(Isolate::Current());
+  DARTSCOPE(Isolate::Current());
   Instance& obj = Instance::Handle();
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
@@ -3247,7 +3056,7 @@ TEST_CASE(NegativeNativeFieldAccess) {
       "  return () {};\n"
       "}\n";
   Dart_Handle result;
-  DARTSCOPE_NOCHECKS(Isolate::Current());
+  DARTSCOPE(Isolate::Current());
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -3323,7 +3132,7 @@ TEST_CASE(NegativeNativeFieldInIsolateMessage) {
       "  });\n"
       "}\n";
 
-  DARTSCOPE_NOCHECKS(Isolate::Current());
+  DARTSCOPE(Isolate::Current());
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -3906,7 +3715,7 @@ TEST_CASE(ClosureFunction) {
   Dart_Handle result;
   Dart_Handle owner;
   Dart_Handle defining_function;
-  DARTSCOPE_NOCHECKS(Isolate::Current());
+  DARTSCOPE(Isolate::Current());
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -4074,7 +3883,7 @@ TEST_CASE(InvokeClosure) {
       "  return InvokeClosure.method2(10);\n"
       "}\n";
   Dart_Handle result;
-  DARTSCOPE_NOCHECKS(Isolate::Current());
+  DARTSCOPE(Isolate::Current());
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -6937,7 +6746,7 @@ TEST_CASE(CollectOneNewSpacePeer) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     Dart_Handle str = NewString("a string");
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
@@ -7010,7 +6819,7 @@ TEST_CASE(CollectTwoNewSpacePeers) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     Dart_Handle s1 = NewString("s1");
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));
@@ -7094,7 +6903,7 @@ TEST_CASE(OnePromotedPeer) {
   isolate->heap()->CollectGarbage(Heap::kNew);
   isolate->heap()->CollectGarbage(Heap::kNew);
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     String& handle = String::Handle();
     handle ^= Api::UnwrapHandle(str);
     EXPECT(handle.IsOld());
@@ -7147,7 +6956,7 @@ TEST_CASE(CollectOneOldSpacePeer) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     Dart_Handle str = Api::NewHandle(isolate, String::New("str", Heap::kOld));
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
@@ -7223,7 +7032,7 @@ TEST_CASE(CollectTwoOldSpacePeers) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     Dart_Handle s1 = Api::NewHandle(isolate, String::New("s1", Heap::kOld));
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));
