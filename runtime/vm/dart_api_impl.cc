@@ -2227,18 +2227,20 @@ DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
-                                                  intptr_t length,
-                                                  void* peer,
-                                                  Dart_PeerFinalizer callback) {
+DART_EXPORT Dart_Handle Dart_NewExternalByteArray(
+    uint8_t* data,
+    intptr_t length,
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (data == NULL && length != 0) {
     RETURN_NULL_ERROR(data);
   }
   CHECK_LENGTH(length, ExternalUint8Array::kMaxElements);
-  return Api::NewHandle(
-      isolate, ExternalUint8Array::New(data, length, peer, callback));
+  const ExternalUint8Array& obj = ExternalUint8Array::Handle(
+      ExternalUint8Array::New(data, length));
+  return reinterpret_cast<Dart_Handle>(obj.AddFinalizer(peer, callback));
 }
 
 
@@ -2246,15 +2248,16 @@ DART_EXPORT Dart_Handle Dart_NewExternalClampedByteArray(
     uint8_t* data,
     intptr_t length,
     void* peer,
-    Dart_PeerFinalizer callback) {
+    Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (data == NULL && length != 0) {
     RETURN_NULL_ERROR(data);
   }
   CHECK_LENGTH(length, ExternalUint8ClampedArray::kMaxElements);
-  return Api::NewHandle(
-      isolate, ExternalUint8ClampedArray::New(data, length, peer, callback));
+  const ExternalUint8ClampedArray& obj = ExternalUint8ClampedArray::Handle(
+      ExternalUint8ClampedArray::New(data, length));
+  return reinterpret_cast<Dart_Handle>(obj.AddFinalizer(peer, callback));
 }
 
 

@@ -669,7 +669,7 @@ TEST_CASE(SerializeByteArray) {
     ctype data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };                         \
     intptr_t length = ARRAY_SIZE(data);                                       \
     External##darttype& array = External##darttype::Handle(                   \
-        External##darttype::New(data, length, NULL, NULL));                   \
+        External##darttype::New(data, length));                               \
     uint8_t* buffer;                                                          \
     MessageWriter writer(&buffer, &zone_allocator);                           \
     writer.WriteMessage(array);                                               \

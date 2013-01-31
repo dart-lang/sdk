@@ -958,7 +958,7 @@ typedef struct _Dart_CObject {
       int length;
       uint8_t* data;
       void* peer;
-      Dart_PeerFinalizer callback;
+      Dart_WeakPersistentHandleFinalizer callback;
     } as_external_byte_array;
   } value;
 } Dart_CObject;
@@ -1664,12 +1664,15 @@ DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length);
  * \param peer An external pointer to associate with this byte array.
  *
  * \return The ByteArray object if no error occurs. Otherwise returns
- *   an error handle.
+ *   an error handle. The ByteArray object is returned in a
+ *   WeakPersistentHandle which needs to be deleted in the specified callback
+ *   using Dart_DeletePersistentHandle.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
-                                                  intptr_t length,
-                                                  void* peer,
-                                                  Dart_PeerFinalizer callback);
+DART_EXPORT Dart_Handle Dart_NewExternalByteArray(
+    uint8_t* data,
+    intptr_t length,
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback);
 
 /**
  * Returns a clamped ByteArray which references an external array of
@@ -1683,13 +1686,15 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
  * \param peer An external pointer to associate with this byte array.
  *
  * \return The clamped ByteArray object if no error occurs. Otherwise returns
- *   an error handle.
+ *   an error handle. The clamped ByteArray object is returned in a
+ *   WeakPersistentHandle which needs to be deleted in the specified callback
+ *   using Dart_DeletePersistentHandle.
  */
 DART_EXPORT Dart_Handle Dart_NewExternalClampedByteArray(
     uint8_t* data,
     intptr_t length,
     void* peer,
-    Dart_PeerFinalizer callback);
+    Dart_WeakPersistentHandleFinalizer callback);
 
 /**
  * Retrieves the data pointer associated with an external ByteArray.

@@ -1217,8 +1217,8 @@ TEST_CASE(ExternalUint8ClampedArrayAccess) {
 }
 
 
-
-static void ExternalByteArrayCallbackFinalizer(void* peer) {
+static void ExternalByteArrayCallbackFinalizer(Dart_Handle handle, void* peer) {
+  Dart_DeletePersistentHandle(handle);
   *static_cast<int*>(peer) = 42;
 }
 

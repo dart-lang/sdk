@@ -978,8 +978,7 @@ bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
   // EBX: index as Smi.
   // EAX: array.
   __ SmiUntag(EBX);
-  __ movl(EAX, FieldAddress(EAX, ExternalUint8Array::external_data_offset()));
-  __ movl(EAX, Address(EAX, ExternalByteArrayData<uint8_t>::data_offset()));
+  __ movl(EAX, FieldAddress(EAX, ExternalUint8Array::data_offset()));
   __ movzxb(EAX, Address(EAX, EBX, TIMES_1, 0));
   __ SmiTag(EAX);
   __ ret();

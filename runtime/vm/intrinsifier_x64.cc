@@ -961,8 +961,7 @@ bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
   // R12: index as Smi.
   // RAX: array.
   __ SmiUntag(R12);
-  __ movq(RAX, FieldAddress(RAX, ExternalUint8Array::external_data_offset()));
-  __ movq(RAX, Address(RAX, ExternalByteArrayData<uint8_t>::data_offset()));
+  __ movq(RAX, FieldAddress(RAX, ExternalUint8Array::data_offset()));
   __ movzxb(RAX, Address(RAX, R12, TIMES_1, 0));
   __ SmiTag(RAX);
   __ ret();

@@ -4,6 +4,8 @@
 
 #include "vm/bootstrap_natives.h"
 
+#include "include/dart_api.h"
+
 #include "vm/bigint_operations.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
@@ -292,6 +294,12 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
 }
 
 
+static void PeerFinalizer(Dart_Handle handle, void* peer) {
+  Dart_DeletePersistentHandle(handle);
+  OS::AlignedFree(peer);
+}
+
+
 // Int8Array
 
 DEFINE_NATIVE_ENTRY(Int8Array_new, 1) {
@@ -303,16 +311,15 @@ DEFINE_NATIVE_ENTRY(Int8Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Int8List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int8Array::kMaxElements);
-  int8_t* bytes = OS::AllocateAlignedArray<int8_t>(
-      len,
-      ExternalByteArrayData<int8_t>::kAlignment);
-  return ExternalInt8Array::New(bytes,
-                                len,
-                                bytes,
-                                OS::AlignedFree);
+  int8_t* bytes = OS::AllocateAlignedArray<int8_t>(len, kAlignment);
+  const ExternalInt8Array& obj =
+      ExternalInt8Array::Handle(ExternalInt8Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -337,16 +344,15 @@ DEFINE_NATIVE_ENTRY(Uint8Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint8List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8Array::kMaxElements);
-  uint8_t* bytes = OS::AllocateAlignedArray<uint8_t>(
-      len,
-      ExternalByteArrayData<uint8_t>::kAlignment);
-  return ExternalUint8Array::New(bytes,
-                                 len,
-                                 bytes,
-                                 OS::AlignedFree);
+  uint8_t* bytes = OS::AllocateAlignedArray<uint8_t>(len, kAlignment);
+  const ExternalUint8Array& obj =
+      ExternalUint8Array::Handle(ExternalUint8Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -371,16 +377,15 @@ DEFINE_NATIVE_ENTRY(Uint8ClampedArray_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint8ClampedList_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint8ClampedArray::kMaxElements);
-  uint8_t* bytes = OS::AllocateAlignedArray<uint8_t>(
-      len,
-      ExternalByteArrayData<uint8_t>::kAlignment);
-  return ExternalUint8ClampedArray::New(bytes,
-                                        len,
-                                        bytes,
-                                        OS::AlignedFree);
+  uint8_t* bytes = OS::AllocateAlignedArray<uint8_t>(len, kAlignment);
+  const ExternalUint8ClampedArray& obj = ExternalUint8ClampedArray::Handle(
+      ExternalUint8ClampedArray::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -405,16 +410,15 @@ DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Int16List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int16Array::kMaxElements);
-  int16_t* bytes = OS::AllocateAlignedArray<int16_t>(
-      len,
-      ExternalByteArrayData<int16_t>::kAlignment);
-  return ExternalInt16Array::New(bytes,
-                                 len,
-                                 bytes,
-                                 OS::AlignedFree);
+  int16_t* bytes = OS::AllocateAlignedArray<int16_t>(len, kAlignment);
+  const ExternalInt16Array& obj =
+      ExternalInt16Array::Handle(ExternalInt16Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -439,16 +443,15 @@ DEFINE_NATIVE_ENTRY(Uint16Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint16List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint16Array::kMaxElements);
-  uint16_t* bytes = OS::AllocateAlignedArray<uint16_t>(
-      len,
-      ExternalByteArrayData<uint16_t>::kAlignment);
-  return ExternalUint16Array::New(bytes,
-                                  len,
-                                  bytes,
-                                  OS::AlignedFree);
+  uint16_t* bytes = OS::AllocateAlignedArray<uint16_t>(len, kAlignment);
+  const ExternalUint16Array& obj =
+      ExternalUint16Array::Handle(ExternalUint16Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -473,16 +476,15 @@ DEFINE_NATIVE_ENTRY(Int32Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Int32List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int32Array::kMaxElements);
-  int32_t* bytes = OS::AllocateAlignedArray<int32_t>(
-      len,
-      ExternalByteArrayData<int32_t>::kAlignment);
-  return ExternalInt32Array::New(bytes,
-                                 len,
-                                 bytes,
-                                 OS::AlignedFree);
+  int32_t* bytes = OS::AllocateAlignedArray<int32_t>(len, kAlignment);
+  const ExternalInt32Array& obj =
+      ExternalInt32Array::Handle(ExternalInt32Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -507,16 +509,15 @@ DEFINE_NATIVE_ENTRY(Uint32Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint32List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint32Array::kMaxElements);
-  uint32_t* bytes = OS::AllocateAlignedArray<uint32_t>(
-      len,
-      ExternalByteArrayData<uint32_t>::kAlignment);
-  return ExternalUint32Array::New(bytes,
-                                  len,
-                                  bytes,
-                                  OS::AlignedFree);
+  uint32_t* bytes = OS::AllocateAlignedArray<uint32_t>(len, kAlignment);
+  const ExternalUint32Array& obj =
+      ExternalUint32Array::Handle(ExternalUint32Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -541,16 +542,15 @@ DEFINE_NATIVE_ENTRY(Int64Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Int64List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Int64Array::kMaxElements);
-  int64_t* bytes = OS::AllocateAlignedArray<int64_t>(
-      len,
-      ExternalByteArrayData<int64_t>::kAlignment);
-  return ExternalInt64Array::New(bytes,
-                                 len,
-                                 bytes,
-                                 OS::AlignedFree);
+  int64_t* bytes = OS::AllocateAlignedArray<int64_t>(len, kAlignment);
+  const ExternalInt64Array& obj =
+      ExternalInt64Array::Handle(ExternalInt64Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -575,16 +575,15 @@ DEFINE_NATIVE_ENTRY(Uint64Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Uint64List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Uint64Array::kMaxElements);
-  uint64_t* bytes = OS::AllocateAlignedArray<uint64_t>(
-      len,
-      ExternalByteArrayData<uint64_t>::kAlignment);
-  return ExternalUint64Array::New(bytes,
-                                  len,
-                                  bytes,
-                                  OS::AlignedFree);
+  uint64_t* bytes = OS::AllocateAlignedArray<uint64_t>(len, kAlignment);
+  const ExternalUint64Array& obj =
+      ExternalUint64Array::Handle(ExternalUint64Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -609,16 +608,15 @@ DEFINE_NATIVE_ENTRY(Float32Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Float32List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float32Array::kMaxElements);
-  float* bytes = OS::AllocateAlignedArray<float>(
-      len,
-      ExternalByteArrayData<float>::kAlignment);
-  return ExternalFloat32Array::New(bytes,
-                                   len,
-                                   bytes,
-                                   OS::AlignedFree);
+  float* bytes = OS::AllocateAlignedArray<float>(len, kAlignment);
+  const ExternalFloat32Array& obj =
+      ExternalFloat32Array::Handle(ExternalFloat32Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 
@@ -643,16 +641,15 @@ DEFINE_NATIVE_ENTRY(Float64Array_new, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Float64List_newTransferable, 1) {
+  const int kAlignment = 16;
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(0));
   intptr_t len = length.Value();
   LengthCheck(len, Float64Array::kMaxElements);
-  double* bytes = OS::AllocateAlignedArray<double>(
-      len,
-      ExternalByteArrayData<double>::kAlignment);
-  return ExternalFloat64Array::New(bytes,
-                                   len,
-                                   bytes,
-                                   OS::AlignedFree);
+  double* bytes = OS::AllocateAlignedArray<double>(len, kAlignment);
+  const ExternalFloat64Array& obj =
+      ExternalFloat64Array::Handle(ExternalFloat64Array::New(bytes, len));
+  obj.AddFinalizer(bytes, PeerFinalizer);
+  return obj.raw();
 }
 
 

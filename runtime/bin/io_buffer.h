@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef IO_BUFFER_H_
-#define IO_BUFFER_H_
+#ifndef BIN_IO_BUFFER_H_
+#define BIN_IO_BUFFER_H_
 
 #include "platform/globals.h"
 
@@ -24,9 +24,17 @@ class IOBuffer {
     delete[] reinterpret_cast<uint8_t*>(buffer);
   }
 
+  // Function for finalizing external byte arrays used as IO buffers.
+  static void Finalizer(Dart_Handle handle, void* buffer) {
+    Free(buffer);
+    if (handle != NULL) {
+      Dart_DeletePersistentHandle(handle);
+    }
+  }
+
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(IOBuffer);
 };
 
-#endif  // IO_BUFFER_H_
+#endif  // BIN_IO_BUFFER_H_

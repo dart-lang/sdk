@@ -1403,53 +1403,23 @@ class RawFloat64Array : public RawByteArray {
 };
 
 
-template<typename T>
-class ExternalByteArrayData {
- public:
-  static const int kAlignment = 16;
-
-  ExternalByteArrayData(T* data,
-                        void* peer,
-                        Dart_PeerFinalizer callback) :
-      data_(data), peer_(peer), callback_(callback) {
-  }
-  ~ExternalByteArrayData() {
-    if (callback_ != NULL) (*callback_)(peer_);
-  }
-
-  T* data() {
-    return data_;
-  }
-  void* peer() {
-    return peer_;
-  }
-
-  static intptr_t data_offset() {
-    return OFFSET_OF(ExternalByteArrayData<T>, data_);
-  }
-
- private:
-  T* data_;
-  void* peer_;
-  Dart_PeerFinalizer callback_;
-};
-
-
 class RawExternalInt8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt8Array);
 
-  ExternalByteArrayData<int8_t>* external_data_;
+  int8_t* data_;
+  void* peer_;
 };
 
 
 class RawExternalUint8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint8Array);
 
- protected:
-  ExternalByteArrayData<uint8_t>* external_data_;
+  uint8_t* data_;
+  void* peer_;
 
   friend class TokenStream;
   friend class RawTokenStream;
+  friend class RawExternalUint8ClampedArray;
 };
 
 
@@ -1461,56 +1431,64 @@ class RawExternalUint8ClampedArray : public RawExternalUint8Array {
 class RawExternalInt16Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt16Array);
 
-  ExternalByteArrayData<int16_t>* external_data_;
+  int16_t* data_;
+  void* peer_;
 };
 
 
 class RawExternalUint16Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint16Array);
 
-  ExternalByteArrayData<uint16_t>* external_data_;
+  uint16_t* data_;
+  void* peer_;
 };
 
 
 class RawExternalInt32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt32Array);
 
-  ExternalByteArrayData<int32_t>* external_data_;
+  int32_t* data_;
+  void* peer_;
 };
 
 
 class RawExternalUint32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint32Array);
 
-  ExternalByteArrayData<uint32_t>* external_data_;
+  uint32_t* data_;
+  void* peer_;
 };
 
 
 class RawExternalInt64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt64Array);
 
-  ExternalByteArrayData<int64_t>* external_data_;
+  int64_t* data_;
+  void* peer_;
 };
 
 
 class RawExternalUint64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array);
 
-  ExternalByteArrayData<uint64_t>* external_data_;
+  uint64_t* data_;
+  void* peer_;
 };
 
 
 class RawExternalFloat32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32Array);
 
-  ExternalByteArrayData<float>* external_data_;
+  float* data_;
+  void* peer_;
 };
 
 
 class RawExternalFloat64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat64Array);
 
-  ExternalByteArrayData<double>* external_data_;
+  double* data_;
+  void* peer_;
 };
 
 

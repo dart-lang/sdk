@@ -870,7 +870,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       int length = object->value.as_external_byte_array.length;
       uint8_t* data = object->value.as_external_byte_array.data;
       void* peer = object->value.as_external_byte_array.peer;
-      Dart_PeerFinalizer callback =
+      Dart_WeakPersistentHandleFinalizer callback =
           object->value.as_external_byte_array.callback;
       WriteSmi(length);
       WriteIntptrValue(reinterpret_cast<intptr_t>(data));

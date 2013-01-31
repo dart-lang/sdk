@@ -1188,9 +1188,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(index.reg());
     }
     __ movl(result,
-            FieldAddress(array, ExternalUint8Array::external_data_offset()));
-    __ movl(result,
-            Address(result, ExternalByteArrayData<uint8_t>::data_offset()));
+            FieldAddress(array, ExternalUint8Array::data_offset()));
     __ movzxb(result, element_address);
     __ SmiTag(result);
     if (index.IsRegister()) {
