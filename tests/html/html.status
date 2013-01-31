@@ -87,7 +87,6 @@ speechrecognition_test/supported: Fail
 storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
-svg_3_test: Fail
 touchevent_test/supported: Fail
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
