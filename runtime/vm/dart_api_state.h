@@ -569,7 +569,9 @@ class ApiState {
   }
 
   void UnwindScopes(uword sp) {
-    while (top_scope_ != NULL && top_scope_->stack_marker() < sp) {
+    while (top_scope_ != NULL &&
+           top_scope_->stack_marker() != 0 &&
+           top_scope_->stack_marker() <= sp) {
       ApiLocalScope* scope = top_scope_;
       top_scope_ = top_scope_->previous();
       delete scope;

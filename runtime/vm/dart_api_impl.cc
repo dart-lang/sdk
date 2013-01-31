@@ -1138,7 +1138,7 @@ DART_EXPORT void Dart_EnterScope() {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ApiLocalScope* new_scope = new ApiLocalScope(state->top_scope(),
-                                               reinterpret_cast<uword>(&state));
+                                               isolate->top_exit_frame_info());
   ASSERT(new_scope != NULL);
   state->set_top_scope(new_scope);  // New scope is now the top scope.
 }
