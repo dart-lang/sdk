@@ -63,7 +63,7 @@ void main() {
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path(arg.substring('--out='.length));
         } else if (arg.startsWith('--pkg=')) {
-          pkgPath = arg.substring('--pkg='.length);
+          pkgPath = new Path(arg.substring('--pkg='.length));
         } else {
           print('Unknown option: $arg');
           return;

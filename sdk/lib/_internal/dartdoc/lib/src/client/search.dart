@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of client;
+library search;
+
+import 'dart:html';
+import 'dropdown.dart';
+import '../dartdoc/nav.dart';
 
 /**
  * [SearchText] represent the search field text. The text is viewed in three

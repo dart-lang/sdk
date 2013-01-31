@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of client;
+library client_shared;
+
+import 'dart:html';
+import 'dropdown.dart';
+import '../../classify.dart';
+import '../dartdoc/nav.dart';
+
 
 // Code shared between the different client-side libraries.
 
@@ -49,7 +55,7 @@ enableCodeBlocks() {
         } else {
           // Syntax highlight.
           if (!pre.classes.contains('formatted')) {
-            pre.innerHTML = classifySource(pre.text);
+            pre.innerHtml = classifySource(pre.text);
             pre.classes.add('formatted');
           };
           pre.classes.add('expanded');
@@ -70,10 +76,10 @@ void enableShowHideInherited() {
     String display = showInherited.dataAttributes['show-inherited'];
     if (display == 'block') {
       display = 'none';
-      showInherited.innerHTML = 'Show inherited';
+      showInherited.innerHtml = 'Show inherited';
     } else {
       display = 'block';
-      showInherited.innerHTML = 'Hide inherited';
+      showInherited.innerHtml = 'Hide inherited';
     }
     showInherited.dataAttributes['show-inherited'] = display;
     for (var elem in document.queryAll('.inherited')) {

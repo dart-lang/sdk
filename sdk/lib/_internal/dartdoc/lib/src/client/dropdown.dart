@@ -2,7 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of client;
+library dropdown;
+
+import 'dart:html';
+import 'search.dart';
+import 'client-shared.dart';
+import '../dartdoc/nav.dart';
 
 List libraryList;
 InputElement searchInput;
@@ -59,7 +64,7 @@ updateDropDown(Event event) {
 
   if (results.isEmpty) {
     var row = table.insertRow(0);
-    row.innerHTML = "<tr><td>No matches found for '$text'.</td></tr>";
+    row.innerHtml = "<tr><td>No matches found for '$text'.</td></tr>";
   } else {
     results.sort(resultComparator);
 
@@ -72,11 +77,11 @@ updateDropDown(Event event) {
     }
     if (results.length >= 10) {
       var row = table.insertRow(table.rows.length);
-      row.innerHTML = '<tr><td>+ ${results.length-10} more.</td></tr>';
+      row.innerHtml = '<tr><td>+ ${results.length-10} more.</td></tr>';
       results = results.getRange(0, 10);
     }
   }
-  dropdown.elements = elements;
+  dropdown.children = elements;
   updateResults(text, results);
   showDropDown();
 }
