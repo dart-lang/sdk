@@ -59,6 +59,7 @@ void main() {
     print("ERR: ${result.stderr}\n\n");
     print("OUT: ${result.stdout}\n\n");
     Expect.equals(255, result.exitCode);
-    Expect.isTrue(result.stderr.contains("Unhandled exception:\nball\n"));
+    Expect.isTrue(result.stderr.contains("Unhandled exception:"));
+    Expect.isTrue(result.stderr.contains("ball"));
   }).whenComplete(() => tempDirectory.deleteSync(recursive: true));
 }
