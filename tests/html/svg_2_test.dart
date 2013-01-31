@@ -53,7 +53,6 @@ main() {
       expect(r, isSvgTests);
       expect(r, isSvgLangSpace);
       expect(r, isSvgExternalResourcesRequired);
-      expect(r, isSvgStylable);
       expect(r, isSvgTransformable);
       expect(r, isSvgLocatable);
 

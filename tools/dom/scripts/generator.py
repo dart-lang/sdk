@@ -31,7 +31,6 @@ _pure_interfaces = set([
     'SVGFitToViewBox',
     'SVGLangSpace',
     'SVGLocatable',
-    'SVGStylable',
     'SVGTests',
     'SVGTransformable',
     'SVGURIReference',

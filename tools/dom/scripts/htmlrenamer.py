@@ -175,7 +175,6 @@ _renamed_html_members = monitored.Dict('htmlrenamer._renamed_html_members', {
     'Node.previousSibling': 'previousNode',
     'Node.textContent': 'text',
     'SVGElement.className': '$dom_svgClassName',
-    'SVGStylable.className': '$dom_svgClassName',
     'WorkerContext.webkitRequestFileSystem': 'requestFileSystem',
     'WorkerContext.webkitRequestFileSystemSync': 'requestFileSystemSync',
     'WorkerContext.webkitResolveLocalFileSystemSyncURL':

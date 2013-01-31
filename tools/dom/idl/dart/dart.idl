@@ -234,7 +234,7 @@ interface DataView {
 // TODO(vsm): Define new names for these (see b/4436830).
 [Supplemental]
 interface IDBCursor {
-  [DartName=continueFunction] void continue([Optional] in IDBKey key);
+  [DartName=continueFunction] void continue([Optional] in any key);
 };
 [Supplemental]
 interface IDBDatabase {
@@ -249,20 +249,20 @@ interface IDBDatabase {
 };
 [Supplemental]
 interface IDBIndex {
-  [DartName=getObject] IDBRequest get(in IDBKey key);
+  [DartName=getObject] IDBRequest get(in any key);
 };
 [Supplemental]
 interface IDBObjectStore {
-  [DartName=getObject] IDBRequest get(in IDBKey key);
+  [DartName=getObject] IDBRequest get(in any key);
   [DartName=getObject] IDBRequest get(in IDBKeyRange key);
 };
 
 [Supplemental]
 interface IDBKeyRange {
-  [DartName=only_] static IDBKeyRange only(in IDBKey value) raises (IDBDatabaseException);
-  [DartName=lowerBound_] static IDBKeyRange lowerBound(in IDBKey bound, [Optional] in boolean open) raises (IDBDatabaseException);
-  [DartName=upperBound_] static IDBKeyRange upperBound(in IDBKey bound, [Optional] in boolean open) raises (IDBDatabaseException);
-  [DartName=bound_] static IDBKeyRange bound(in IDBKey lower, in IDBKey upper, [Optional] in boolean lowerOpen, [Optional] in boolean upperOpen) raises (IDBDatabaseException);
+  [DartName=only_] static IDBKeyRange only(in any value) raises (IDBDatabaseException);
+  [DartName=lowerBound_] static IDBKeyRange lowerBound(in any bound, [Optional] in boolean open) raises (IDBDatabaseException);
+  [DartName=upperBound_] static IDBKeyRange upperBound(in any bound, [Optional] in boolean open) raises (IDBDatabaseException);
+  [DartName=bound_] static IDBKeyRange bound(in any lower, in any upper, [Optional] in boolean lowerOpen, [Optional] in boolean upperOpen) raises (IDBDatabaseException);
 };
 
 interface EntrySync {
