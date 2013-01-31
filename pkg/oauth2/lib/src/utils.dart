@@ -39,7 +39,7 @@ String mapToQuery(Map<String, String> map) {
     value = (value == null || value.isEmpty) ? null : encodeUriComponent(value);
     pairs.add([key, value]);
   });
-  return Strings.join(pairs.mappedBy((pair) {
+  return Strings.join(pairs.map((pair) {
     if (pair[1] == null) return pair[0];
     return "${pair[0]}=${pair[1]}";
   }), "&");

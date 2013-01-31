@@ -80,10 +80,10 @@ $lazyInitializerLogic
         new js.VariableDeclaration(mangledName),
         new js.Fun(
             fieldNames
-                .mappedBy((fieldName) => new js.Parameter(fieldName))
+                .map((fieldName) => new js.Parameter(fieldName))
                 .toList(),
             new js.Block(
-                fieldNames.mappedBy((fieldName) =>
+                fieldNames.map((fieldName) =>
                     new js.ExpressionStatement(
                         new js.Assignment(
                             new js.This().dot(fieldName),

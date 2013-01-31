@@ -1214,7 +1214,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (handler == null) return;
 
     // Map the instructions to strings.
-    Iterable<Copy> copies = handler.copies.mappedBy((Copy copy) {
+    Iterable<Copy> copies = handler.copies.map((Copy copy) {
       return new Copy(variableNames.getName(copy.source),
                       variableNames.getName(copy.destination));
     });

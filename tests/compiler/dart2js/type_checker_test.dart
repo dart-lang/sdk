@@ -438,7 +438,7 @@ testFunctionSubtypingNamed() {
     Link<SourceString> createNames(Map<String,DartType> nm) {
       List<String> nmSorted = new List<String>.from(nm.keys)..sort();
       List<SourceString> nmSourceStrings =
-          nmSorted.mappedBy((string) => new SourceString(string));
+          nmSorted.map((string) => new SourceString(string));
       return new Link<SourceString>.fromList(nmSourceStrings);
     }
 

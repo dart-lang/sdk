@@ -33,7 +33,7 @@ main() {
   new IterableTest<String>(["one", "two", "three", "four"]).run();
   new IterableTest<int>(new Iterable<int>.generate(1000, (i) => i)).run();
   new IterableTest<String>(new Iterable<int>.generate(1000, (i) => i)
-                                            .mappedBy((i) => "$i")).run();
+                                            .map((i) => "$i")).run();
 
   Iterable<int> iter = new Iterable.generate(25, (i) => i * 2);
 
@@ -47,10 +47,10 @@ main() {
 
   test("iterable-mapped-toList", () {
     new Stream.fromIterable(iter)
-      .mappedBy((i) => i * 3)
+      .map((i) => i * 3)
       .toList()
       .then(expectAsync1((actual) {
-         List expected = iter.mappedBy((i) => i * 3).toList();
+         List expected = iter.map((i) => i * 3).toList();
          Expect.listEquals(expected, actual);
       }));
   });

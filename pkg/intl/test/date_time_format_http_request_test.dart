@@ -30,7 +30,7 @@ main() {
 void runEverything(_) {
   // Initialize all locales and wait for them to finish before running tests.
   var futures = DateFormat.allLocalesWithSymbols()
-      .mappedBy((locale) => initializeDateFormatting(locale, url))
+      .map((locale) => initializeDateFormatting(locale, url))
       .toList();
   Future.wait(futures).then(expectAsync1((_) {
       runDateTests(smallSetOfLocales());

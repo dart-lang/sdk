@@ -7157,7 +7157,11 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomMimeType element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(DomMimeType element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(DomMimeType element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<DomMimeType> where(bool f(DomMimeType element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -7171,13 +7175,13 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
   bool get isEmpty => this.length == 0;
 
-  List<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -7406,7 +7410,11 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomPlugin element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(DomPlugin element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(DomPlugin element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<DomPlugin> where(bool f(DomPlugin element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -7420,13 +7428,13 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   bool get isEmpty => this.length == 0;
 
-  List<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -7762,7 +7770,11 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(String element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(String element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(String element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -7776,13 +7788,13 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 
   bool get isEmpty => this.length == 0;
 
-  List<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<String> takeWhile(bool test(String value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<String> skipWhile(bool test(String value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -8017,7 +8029,11 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  List mappedBy(f(Element element)) {
+  Iterable map(f(Element element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
+  List mappedBy(f(ELement element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
 
@@ -8029,7 +8045,7 @@ class _ChildrenElementList implements List {
     return _element.$dom_firstElementChild == null;
   }
 
-  List<Element> take(int n) {
+  Iterable<Element> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -8037,7 +8053,7 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Element> skip(int n) {
+  Iterable<Element> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -8230,7 +8246,11 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  List mappedBy(f(Element element)) {
+  Iterable map(f(Element element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
+  List mappedBy(f(ELement element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
 
@@ -8259,7 +8279,7 @@ class _FrozenElementList implements List {
   List<Element> toList() => new List<Element>.from(this);
   Set<Element> toSet() => new Set<Element>.from(this);
 
-  List<Element> take(int n) {
+  Iterable<Element> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -8267,7 +8287,7 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Element> skip(int n) {
+  Iterable<Element> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -10688,7 +10708,11 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(File element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(File element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(File element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<File> where(bool f(File element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -10702,13 +10726,13 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
   bool get isEmpty => this.length == 0;
 
-  List<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<File> takeWhile(bool test(File value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<File> skipWhile(bool test(File value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -11291,7 +11315,11 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(num element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(num element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -11305,13 +11333,13 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -11497,7 +11525,11 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(num element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(num element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -11511,13 +11543,13 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -11998,7 +12030,11 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -12012,13 +12048,13 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -12201,7 +12237,11 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -12215,13 +12255,13 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -13999,7 +14039,11 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -14013,13 +14057,13 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -14205,7 +14249,11 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -14219,13 +14267,13 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -14411,7 +14459,11 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -14425,13 +14477,13 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -16679,7 +16731,11 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -16693,13 +16749,13 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -17145,6 +17201,10 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
+  Iterable map(f(Node element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
   List mappedBy(f(Node element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -17164,7 +17224,7 @@ class _ChildNodeListLazy implements List {
 
   // From List<Node>:
 
-  List<Node> take(int n) {
+  Iterable<Node> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -17172,7 +17232,7 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) {
+  Iterable<Node> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -17533,7 +17593,11 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -17547,13 +17611,13 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -19903,7 +19967,11 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SourceBuffer element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(SourceBuffer element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(SourceBuffer element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<SourceBuffer> where(bool f(SourceBuffer element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -19917,13 +19985,13 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
   bool get isEmpty => this.length == 0;
 
-  List<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SourceBuffer> takeWhile(bool test(SourceBuffer value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SourceBuffer> skipWhile(bool test(SourceBuffer value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -20175,7 +20243,11 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechGrammar element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(SpeechGrammar element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(SpeechGrammar element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -20189,13 +20261,13 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechGrammar> takeWhile(bool test(SpeechGrammar value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechGrammar> skipWhile(bool test(SpeechGrammar value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -20785,7 +20857,11 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Map element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Map element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Map element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<Map> where(bool f(Map element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -20799,13 +20875,13 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   bool get isEmpty => this.length == 0;
 
-  List<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Map> takeWhile(bool test(Map value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Map> skipWhile(bool test(Map value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -21863,7 +21939,11 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrackCue element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(TextTrackCue element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(TextTrackCue element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<TextTrackCue> where(bool f(TextTrackCue element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -21877,13 +21957,13 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrackCue> takeWhile(bool test(TextTrackCue value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrackCue> skipWhile(bool test(TextTrackCue value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -22070,7 +22150,11 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrack element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(TextTrack element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(TextTrack element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<TextTrack> where(bool f(TextTrack element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -22084,13 +22168,13 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrack> takeWhile(bool test(TextTrack value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrack> skipWhile(bool test(TextTrack value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -22463,7 +22547,11 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Touch element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Touch element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Touch element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<Touch> where(bool f(Touch element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -22477,13 +22565,13 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   bool get isEmpty => this.length == 0;
 
-  List<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Touch> takeWhile(bool test(Touch value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Touch> skipWhile(bool test(Touch value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -22892,7 +22980,11 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -22906,13 +22998,13 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -23098,7 +23190,11 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -23112,13 +23208,13 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -23304,7 +23400,11 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -23318,13 +23418,13 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -23507,7 +23607,11 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -23521,13 +23625,13 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -27368,7 +27472,11 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(ClientRect element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(ClientRect element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(ClientRect element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<ClientRect> where(bool f(ClientRect element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -27382,13 +27490,13 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
 
   bool get isEmpty => this.length == 0;
 
-  List<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -27561,7 +27669,11 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssRule element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(CssRule element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(CssRule element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<CssRule> where(bool f(CssRule element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -27575,13 +27687,13 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   bool get isEmpty => this.length == 0;
 
-  List<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssRule> takeWhile(bool test(CssRule value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssRule> skipWhile(bool test(CssRule value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -27754,7 +27866,11 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssValue element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(CssValue element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(CssValue element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<CssValue> where(bool f(CssValue element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -27768,13 +27884,13 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
   bool get isEmpty => this.length == 0;
 
-  List<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssValue> takeWhile(bool test(CssValue value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssValue> skipWhile(bool test(CssValue value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -27956,7 +28072,11 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Entry element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Entry element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Entry element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<Entry> where(bool f(Entry element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -27970,13 +28090,13 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   bool get isEmpty => this.length == 0;
 
-  List<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Entry> takeWhile(bool test(Entry value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Entry> skipWhile(bool test(Entry value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -28149,7 +28269,11 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(EntrySync element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(EntrySync element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(EntrySync element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<EntrySync> where(bool f(EntrySync element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -28163,13 +28287,13 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
   bool get isEmpty => this.length == 0;
 
-  List<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -28421,7 +28545,11 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Gamepad element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Gamepad element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Gamepad element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<Gamepad> where(bool f(Gamepad element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -28435,13 +28563,13 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   bool get isEmpty => this.length == 0;
 
-  List<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Gamepad> takeWhile(bool test(Gamepad value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Gamepad> skipWhile(bool test(Gamepad value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -28623,7 +28751,11 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(MediaStream element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(MediaStream element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(MediaStream element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<MediaStream> where(bool f(MediaStream element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -28637,13 +28769,13 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
 
   bool get isEmpty => this.length == 0;
 
-  List<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -28816,7 +28948,11 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechInputResult element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(SpeechInputResult element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(SpeechInputResult element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -28830,13 +28966,13 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechInputResult> takeWhile(bool test(SpeechInputResult value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechInputResult> skipWhile(bool test(SpeechInputResult value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -29009,7 +29145,11 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechRecognitionResult element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(SpeechRecognitionResult element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(SpeechRecognitionResult element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -29023,13 +29163,13 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechRecognitionResult> takeWhile(bool test(SpeechRecognitionResult value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechRecognitionResult> skipWhile(bool test(SpeechRecognitionResult value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -29202,7 +29342,11 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(StyleSheet element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(StyleSheet element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(StyleSheet element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<StyleSheet> where(bool f(StyleSheet element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -29216,13 +29360,13 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   bool get isEmpty => this.length == 0;
 
-  List<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<StyleSheet> takeWhile(bool test(StyleSheet value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<StyleSheet> skipWhile(bool test(StyleSheet value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -29749,6 +29893,8 @@ abstract class CssClassSet implements Set<String> {
 
   String join([String separator]) => readClasses().join(separator);
 
+  Iterable map(f(String element)) => readClasses().map(f);
+
   Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
@@ -29846,7 +29992,7 @@ abstract class CssClassSet implements Set<String> {
    * Helper method used to modify the set of css classes on this element.
    *
    *   f - callback with:
-   *      s - a Set of all the css class name currently on this element.
+   *   s - a Set of all the css class name currently on this element.
    *
    *   After f returns, the modified set is written to the
    *       className property of this element.

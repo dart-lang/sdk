@@ -479,7 +479,7 @@ class _LazyMap implements Map {
 
   // These operations will work, but may be expensive, and are probably
   // best avoided.
-  get _inflated => keysAndValues(_raw).mappedBy(_reader.inflateReference);
+  get _inflated => keysAndValues(_raw).map(_reader.inflateReference);
   bool containsValue(x) => _inflated.containsValue(x);
   Iterable get values => _inflated.values;
   void forEach(f) => _inflated.forEach(f);
@@ -518,7 +518,7 @@ class _LazyList extends Iterable implements List {
   // These operations, and other inherited methods that iterate over the whole
   // list will work, but may be expensive, and are probably
   // best avoided.
-  List get _inflated => _raw.mappedBy(_reader.inflateReference);
+  List get _inflated => _raw.map(_reader.inflateReference);
   Iterator get iterator => _inflated.iterator;
   indexOf(x, [pos = 0]) => _inflated.toList().indexOf(x);
   lastIndexOf(x, [pos]) => _inflated.toList().lastIndexOf(x);

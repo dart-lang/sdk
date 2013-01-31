@@ -29,7 +29,11 @@ $endif
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f($E element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f($E element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f($E element)) =>
+      IterableMixinWorkaround.mappedBy(this, f);
 
   Iterable<$E> where(bool f($E element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -43,13 +47,13 @@ $endif
 
   bool get isEmpty => this.length == 0;
 
-  List<$E> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<$E> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<$E> takeWhile(bool test($E value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<$E> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<$E> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<$E> skipWhile(bool test($E value)) {
     return IterableMixinWorkaround.skipWhile(this, test);

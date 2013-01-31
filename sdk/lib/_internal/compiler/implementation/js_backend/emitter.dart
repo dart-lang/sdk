@@ -1835,7 +1835,7 @@ $lazyInitializerLogic
       }
 
       List<js.Expression> argNames =
-          selector.getOrderedNamedArguments().mappedBy((SourceString name) =>
+          selector.getOrderedNamedArguments().map((SourceString name) =>
               js.string(name.slowToString())).toList();
 
       String internalName = namer.invocationMirrorInternalName(selector);
@@ -1856,7 +1856,7 @@ $lazyInitializerLogic
                           js.string(internalName),
                           new js.LiteralNumber('$type'),
                           new js.ArrayInitializer.from(
-                              parameters.mappedBy((param) => js.use(param.name))
+                              parameters.map((param) => js.use(param.name))
                                         .toList()),
                           new js.ArrayInitializer.from(argNames)])]);
       js.Expression function =

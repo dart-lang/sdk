@@ -190,36 +190,4 @@ abstract class List<E> implements Collection<E> {
    * [start] is greater than the length of the list.
    */
   void insertRange(int start, int length, [E fill]);
-
-  /**
-   * Returns a lazy unmodifiable [List] where each element [:e:] of [:this:] is
-   * replaced by the result of [:f(e):].
-   *
-   * This method returns a view of the mapped elements. As long as the
-   * returned [List] is not indexed or iterated over, the supplied function [f]
-   * will not be invoked. The transformed elements will not be cached. Accessing
-   * elements multiple times will invoke the supplied function [f] multiple
-   * times.
-   */
-  List mappedBy(f(E element));
-
-  /**
-   * Returns an unmodifiable [List] that hides the first [n] elements.
-   *
-   * The returned list is a view backed by [:this:].
-   *
-   * While [:this:] has fewer than [n] elements, then the resulting [List]
-   * will be empty.
-   */
-  List<E> skip(int n);
-
-  /**
-   * Returns an unmodifiable [List] with at most [n] elements.
-   *
-   * The returned list is a view backed by this.
-   *
-   * The returned [List] may contain fewer than [n] elements, while [:this:]
-   * contains fewer than [n] elements.
-   */
-  List<E> take(int n);
 }

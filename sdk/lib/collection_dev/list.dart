@@ -93,6 +93,10 @@ abstract class ListBase<E> extends Collection<E> implements List<E> {
     return result;
   }
 
+  Iterable map(f(E element)) {
+    return new MappedIterable(this, f);
+  }
+
   List mappedBy(f(E element)) {
     return new MappedList(this, f);
   }

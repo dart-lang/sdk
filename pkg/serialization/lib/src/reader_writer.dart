@@ -197,7 +197,7 @@ class Writer implements ReaderOrWriter {
    * Return a list of [Reference] objects pointing to our roots. This will be
    * stored in the output under "roots" in the default format.
    */
-  _rootReferences() => trace.roots.mappedBy(_referenceFor).toList();
+  _rootReferences() => trace.roots.map(_referenceFor).toList();
 
   /**
    * Given an object, return a reference for it if one exists. If there's
@@ -331,7 +331,7 @@ class Reader implements ReaderOrWriter {
   // When we set the data, initialize the object storage to a matching size.
   void set data(List<List> newData) {
     _data = newData;
-    objects = _data.mappedBy((x) => new List(x.length)).toList();
+    objects = _data.map((x) => new List(x.length)).toList();
   }
 
   /**

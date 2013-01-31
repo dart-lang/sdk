@@ -84,6 +84,10 @@ class JSArray<E> implements List<E> {
     return IterableMixinWorkaround.forEach(this, f);
   }
 
+  Iterable map(f(E element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
   List mappedBy(f(E element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -97,7 +101,7 @@ class JSArray<E> implements List<E> {
     return JS('String', "#.join(#)", list, separator);
   }
 
-  List<E> take(int n) {
+  Iterable<E> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -105,7 +109,7 @@ class JSArray<E> implements List<E> {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<E> skip(int n) {
+  Iterable<E> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
