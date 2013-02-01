@@ -16,4 +16,21 @@ oauth2_test: Pass, Fail, Timeout # Issue 7905, 7920
 
 [ $system == windows ]
 io_test: Fail, Pass, Timeout # Issue 7505
-*/hosted/*: Fail # Issue 8264
+
+# Issue 8264
+install/hosted/install_test: Fail
+install/hosted/do_not_update_on_removed_constraints_test: Fail
+install/hosted/stay_locked_test: Fail
+install/hosted/stay_locked_if_new_is_satisfied_test: Fail
+install/hosted/remove_removed_dependency_test: Fail
+install/hosted/install_transitive_test: Fail
+install/hosted/unlock_if_new_is_unsatisfied_test: Fail
+install/hosted/stay_locked_if_compatible_test: Fail
+install/hosted/resolve_constraints_test: Fail
+install/hosted/remove_removed_transitive_dependency_test: Fail
+install/hosted/unlock_if_incompatible_test: Fail
+update/hosted/unlock_if_necessary_test: Fail
+update/hosted/remove_removed_dependency_test: Fail
+update/hosted/unlock_dependers_test: Fail
+update/hosted/update_removed_constraints_test: Fail
+update/hosted/remove_removed_transitive_dependency_test: Fail
