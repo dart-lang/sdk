@@ -58,14 +58,13 @@ namespace dart {
   V(_Double, get:isNaN, Double_getIsNaN, 54462366)                             \
   V(_Double, get:isNegative, Double_getIsNegative, 54462366)                   \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 815838159)                \
-  V(_Double, _Double.fromInteger, Double_fromInteger, 842078193)               \
+  V(_Double, .fromInteger, Double_fromInteger, 842078193)                      \
   V(_Double, toInt, Double_toInt, 362666636)                                   \
-  V(_ObjectArray, _ObjectArray., ObjectArray_Allocate, 577949617)              \
+  V(_ObjectArray, ., ObjectArray_Allocate, 577949617)                          \
   V(_ObjectArray, get:length, Array_getLength, 405297088)                      \
   V(_ObjectArray, [], Array_getIndexed, 71937385)                              \
   V(_ObjectArray, []=, Array_setIndexed, 255863719)                            \
-  V(_GrowableObjectArray, _GrowableObjectArray.withData,                       \
-    GArray_Allocate, 989879928)                                                \
+  V(_GrowableObjectArray, .withData, GArray_Allocate, 989879928)               \
   V(_GrowableObjectArray, get:length, GrowableArray_getLength, 725548050)      \
   V(_GrowableObjectArray, get:_capacity, GrowableArray_getCapacity, 725548050) \
   V(_GrowableObjectArray, [], GrowableArray_getIndexed, 581838973)             \

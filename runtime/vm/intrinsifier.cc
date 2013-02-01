@@ -64,6 +64,19 @@ static bool TestFunction(const Library& lib,
                          const char* function_name,
                          const char* test_class_name,
                          const char* test_function_name) {
+  // If test_function_name starts with a '.' we use that to indicate
+  // that it is a named constructor in the class. Therefore, if
+  // the class matches and the rest of the method name starting with
+  // the dot matches, we have found a match.
+  // We do not store the entire factory constructor name with the class
+  // (e.g: _GrowableObjectArray.withData) because the actual function name
+  //  that we see here includes the private key.
+  if (test_function_name[0] == '.') {
+    function_name = strstr(function_name, ".");
+    if (function_name == NULL) {
+      return false;
+    }
+  }
   return CompareNames(lib, test_class_name, function_class_name) &&
          CompareNames(lib, test_function_name, function_name);
 }
@@ -92,7 +105,11 @@ void Intrinsifier::InitializeState() {
     str = String::New(#class_name);                                            \
     cls = lib.LookupClassAllowPrivate(str);                                    \
     ASSERT(!cls.IsNull());                                                     \
-    str = String::New(#function_name);                                         \
+    if (#function_name[0] == '.') {                                            \
+      str = String::New(#class_name#function_name);                            \
+    } else {                                                                   \
+      str = String::New(#function_name);                                       \
+    }                                                                          \
     func = cls.LookupFunctionAllowPrivate(str);                                \
   }                                                                            \
   ASSERT(!func.IsNull());                                                      \
