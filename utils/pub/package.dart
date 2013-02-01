@@ -58,7 +58,7 @@ class Package {
 
   /// The ids of the packages that this package depends on. This is what is
   /// specified in the pubspec when this package depends on another.
-  Collection<PackageRef> get dependencies => pubspec.dependencies;
+  List<PackageRef> get dependencies => pubspec.dependencies;
 
   /// Returns the path to the README file at the root of the entrypoint, or null
   /// if no README file is found. If multiple READMEs are found, this uses the
@@ -123,6 +123,10 @@ class PackageId implements Comparable {
   bool get isRoot => source == null;
 
   int get hashCode => name.hashCode ^ source.hashCode ^ version.hashCode;
+
+  /// Gets the directory where this package is or would be found in the
+  /// [SystemCache].
+  Future<String> get systemCacheDirectory => source.systemCacheDirectory(this);
 
   bool operator ==(other) {
     if (other is! PackageId) return false;

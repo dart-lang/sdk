@@ -13,6 +13,7 @@ import 'io.dart';
 import 'io.dart' as io show createTempDir;
 import 'log.dart' as log;
 import 'package.dart';
+import 'pubspec.dart';
 import 'sdk_source.dart';
 import 'source.dart';
 import 'source_registry.dart';
@@ -57,6 +58,26 @@ class SystemCache {
   void register(Source source) {
     source.bind(this);
     sources.register(source);
+  }
+
+  /// Gets the package identified by [id]. If the package is already cached,
+  /// reads it from the cache. Otherwise, requests it from the source.
+  Future<Package> describe(PackageId id) {
+    Future<Package> getUncached() {
+      // Not cached, so get it from the source.
+      return id.describe().then((pubspec) => new Package.inMemory(pubspec));
+    }
+
+    // Try to get it from the system cache first.
+    if (id.source.shouldCache) {
+      return id.systemCacheDirectory.then((packageDir) {
+        if (!dirExistsSync(packageDir)) return getUncached();
+        return Package.load(id.name, packageDir, sources);
+      });
+    }
+
+    // Not cached, so get it from the source.
+    return getUncached();
   }
 
   /// Ensures that the package identified by [id] is installed to the cache,

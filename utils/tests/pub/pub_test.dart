@@ -55,10 +55,6 @@ main() {
   });
 
   integration('running pub with just --version displays version', () {
-    dir(sdkPath, [
-      file('version', '0.1.2.3'),
-    ]).scheduleCreate();
-
     schedulePub(args: ['--version'], output: VERSION_STRING);
   });
 
@@ -125,10 +121,6 @@ main() {
 
   group('version', () {
     integration('displays the current version', () {
-      dir(sdkPath, [
-        file('version', '0.1.2.3'),
-      ]).scheduleCreate();
-
       schedulePub(args: ['version'], output: VERSION_STRING);
     });
 

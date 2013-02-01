@@ -242,9 +242,19 @@ Descriptor appPubspec(List dependencies) {
 }
 
 /// Describes a file named `pubspec.yaml` for a library package with the given
-/// [name], [version], and [dependencies].
-Descriptor libPubspec(String name, String version, [List dependencies]) =>
-  pubspec(package(name, version, dependencies));
+/// [name], [version], and [deps]. If "sdk" is given, then it adds an SDK
+/// constraint on that version.
+Descriptor libPubspec(String name, String version, {List deps, String sdk}) {
+  var map = package(name, version, deps);
+
+  if (sdk != null) {
+    map["environment"] = {
+      "sdk": sdk
+    };
+  }
+
+  return pubspec(map);
+}
 
 /// Describes a directory named `lib` containing a single dart file named
 /// `<name>.dart` that contains a line of Dart code.
@@ -466,6 +476,11 @@ final _TIMEOUT = 30000;
 /// operations which will be run asynchronously.
 void integration(String description, void body()) {
   test(description, () {
+    // Ensure the SDK version is always available.
+    dir(sdkPath, [
+      file('version', '0.1.2.3')
+    ]).scheduleCreate();
+
     // Schedule the test.
     body();
 

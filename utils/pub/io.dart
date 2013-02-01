@@ -74,6 +74,7 @@ Future<bool> fileExists(file) {
       (exists) => "File $path ${exists ? 'exists' : 'does not exist'}.");
 }
 
+// TODO(rnystrom): Get rid of this and only use sync.
 /// Reads the contents of the text file [file], which can either be a [String]
 /// or a [File].
 Future<String> readTextFile(file) {
@@ -88,6 +89,23 @@ Future<String> readTextFile(file) {
           return "Read ${contents.length} characters from $path.";
         }
       });
+}
+
+/// Reads the contents of the text file [file], which can either be a [String]
+/// or a [File].
+String readTextFileSync(file) {
+  var path = _getPath(file);
+  log.io("Reading text file $path.");
+  var contents = new File(path).readAsStringSync(Encoding.UTF_8);
+
+  // Sanity check: don't spew a huge file.
+  if (contents.length < 1024 * 1024) {
+    log.fine("Read $path. Contents:\n$contents");
+  } else {
+    log.fine("Read ${contents.length} characters from $path.");
+  }
+
+  return contents;
 }
 
 /// Reads the contents of the binary file [file], which can either be a [String]
@@ -289,6 +307,7 @@ Future<List<String>> listDir(dir,
   return doList(_getDirectory(dir), new Set<String>());
 }
 
+// TODO(rnystrom): Migrate everything over to the sync one and get rid of this.
 /// Asynchronously determines if [dir], which can be a [String] directory path
 /// or a [Directory], exists on the file system. Returns a [Future] that
 /// completes with the result.
@@ -299,6 +318,11 @@ Future<bool> dirExists(dir) {
       (exists) => "Directory ${dir.path} "
                   "${exists ? 'exists' : 'does not exist'}.");
 }
+
+/// Determines if [dir], which can be a [String] directory path or a
+/// [Directory], exists on the file system. Returns a [Future] that completes
+/// with the result.
+bool dirExistsSync(dir) => _getDirectory(dir).existsSync();
 
 /// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
 /// new empty directory will be created. Returns a [Future] that completes when

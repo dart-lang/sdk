@@ -60,6 +60,8 @@ class GitSource extends Source {
     });
   }
 
+  Future<String> systemCacheDirectory(PackageId id) => _revisionCachePath(id);
+
   /// Ensures [description] is a Git URL.
   void validateDescription(description, {bool fromLockFile: false}) {
     // A single string is assumed to be a Git URL.

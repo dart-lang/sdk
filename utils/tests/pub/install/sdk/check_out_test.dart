@@ -11,7 +11,6 @@ import '../../test_pub.dart';
 main() {
   integration('checks out a package from the SDK', () {
     dir(sdkPath, [
-      file('version', '0.1.2.3'),
       dir('pkg', [
         dir('foo', [
           libDir('foo', 'foo 0.1.2+3'),

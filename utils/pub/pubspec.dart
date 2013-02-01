@@ -4,12 +4,13 @@
 
 library pubspec;
 
+import '../../pkg/yaml/lib/yaml.dart';
+
 import 'package.dart';
 import 'source.dart';
 import 'source_registry.dart';
 import 'utils.dart';
 import 'version.dart';
-import '../../pkg/yaml/lib/yaml.dart';
 
 /// The parsed and validated contents of a pubspec file.
 class Pubspec {
@@ -44,6 +45,7 @@ class Pubspec {
   bool get isEmpty =>
     name == null && version == Version.none && dependencies.isEmpty;
 
+  // TODO(rnystrom): Make this a static method to match corelib.
   /// Parses the pubspec whose text is [contents]. If the pubspec doesn't define
   /// version for itself, it defaults to [Version.none].
   factory Pubspec.parse(String contents, SourceRegistry sources) {

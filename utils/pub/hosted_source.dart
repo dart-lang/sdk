@@ -93,13 +93,15 @@ class HostedSource extends Source {
   /// for each separate repository URL that's used on the system. Each of these
   /// subdirectories then contains a subdirectory for each package installed
   /// from that site.
-  String systemCacheDirectory(PackageId id) {
+  Future<String> systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
     var url = parsed.last.replaceAll(new RegExp(r"^https?://"), "");
     var urlDir = replace(url, new RegExp(r'[<>:"\\/|?*%]'), (match) {
       return '%${match[0].charCodeAt(0)}';
     });
-    return join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}");
+
+    return new Future.immediate(
+        join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}"));
   }
 
   String packageName(description) => _parseDescription(description).first;

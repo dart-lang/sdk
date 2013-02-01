@@ -9,6 +9,7 @@ import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
+import 'sdk.dart' as sdk;
 import 'system_cache.dart';
 import 'utils.dart';
 import 'version.dart';
@@ -137,6 +138,63 @@ class Entrypoint {
     }).then(_saveLockFile)
       .then(_installSelfReference)
       .then(_linkSecondaryPackageDirs);
+  }
+
+  /// Traverses the root's package dependency graph and loads each of the
+  /// reached packages. This should only be called after the lockfile has been
+  /// successfully generated.
+  Future<List<Package>> walkDependencies() {
+    return loadLockFile().then((lockFile) {
+      var group = new FutureGroup<Package>();
+      var visited = new Set<String>();
+
+      // Include the root package in the results.
+      group.add(new Future.immediate(root));
+
+      visitPackage(Package package) {
+        for (var ref in package.dependencies) {
+          if (visited.contains(ref.name)) continue;
+
+          // Look up the concrete version.
+          var id = lockFile.packages[ref.name];
+
+          visited.add(ref.name);
+          var future = cache.describe(id);
+          group.add(future.then(visitPackage));
+        }
+
+        return package;
+      }
+
+      visitPackage(root);
+      return group.future;
+    });
+  }
+
+  /// Validates that the current Dart SDK version matches the SDK constraints
+  /// of every package in the dependency graph. If a package's constraint does
+  /// not match, prints an error.
+  Future validateSdkConstraints() {
+    return walkDependencies().then((packages) {
+      var errors = [];
+
+      for (var package in packages) {
+        var sdkConstraint = package.pubspec.environment.sdkVersion;
+        if (!sdkConstraint.allows(sdk.version)) {
+          errors.add("- '${package.name}' requires ${sdkConstraint}");
+        }
+      }
+
+      if (errors.length > 0) {
+        log.error("Some packages are not compatible with your SDK version "
+                "${sdk.version}:\n"
+            "${errors.join('\n')}\n\n"
+            "You may be able to resolve this by upgrading to the latest Dart "
+                "SDK\n"
+            "or adding a version constraint to use an older version of a "
+                "package.");
+      }
+    });
   }
 
   /// Loads the list of concrete package versions from the `pubspec.lock`, if it

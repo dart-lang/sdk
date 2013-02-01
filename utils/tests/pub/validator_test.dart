@@ -127,7 +127,7 @@ main() {
 
     integration('has an unconstrained dependency on "unittest"', () {
       dir(appPath, [
-        libPubspec("test_pkg", "1.0.0", [
+        libPubspec("test_pkg", "1.0.0", deps: [
           {'hosted': 'unittest'}
         ])
       ]).scheduleCreate();
@@ -342,7 +342,7 @@ main() {
           }));
 
           dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", [
+            libPubspec("test_pkg", "1.0.0", deps: [
               {'git': 'git://github.com/dart-lang/foo'}
             ])
           ]).scheduleCreate();
@@ -366,7 +366,7 @@ main() {
           }));
 
           dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", [
+            libPubspec("test_pkg", "1.0.0", deps: [
               {'git': 'git://github.com/dart-lang/foo'}
             ])
           ]).scheduleCreate();
@@ -390,7 +390,7 @@ main() {
           }));
 
           dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", [
+            libPubspec("test_pkg", "1.0.0", deps: [
               {'git': 'git://github.com/dart-lang/foo'}
             ])
           ]).scheduleCreate();
@@ -411,7 +411,7 @@ main() {
           }));
 
           dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", [
+            libPubspec("test_pkg", "1.0.0", deps: [
               {
                 'git': {'url': 'git://github.com/dart-lang/foo'},
                 'version': '>=1.0.0 <2.0.0'
@@ -434,7 +434,7 @@ main() {
           }));
 
           dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", [
+            libPubspec("test_pkg", "1.0.0", deps: [
               {
                 'git': {'url': 'git://github.com/dart-lang/foo'},
                 'version': '0.2.3'
@@ -452,7 +452,7 @@ main() {
       group('and it should not suggest a version', () {
         integration("if there's no lockfile", () {
           dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", [
+            libPubspec("test_pkg", "1.0.0", deps: [
               {'hosted': 'foo'}
             ])
           ]).scheduleCreate();
@@ -464,7 +464,7 @@ main() {
         integration("if the lockfile doesn't have an entry for the "
             "dependency", () {
           dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", [
+            libPubspec("test_pkg", "1.0.0", deps: [
               {'hosted': 'foo'}
             ]),
             file("pubspec.lock", json.stringify({
@@ -490,7 +490,7 @@ main() {
         integration('and it should suggest a constraint based on the locked '
             'version', () {
           dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", [
+            libPubspec("test_pkg", "1.0.0", deps: [
               {'hosted': 'foo'}
             ]),
             file("pubspec.lock", json.stringify({
@@ -515,7 +515,7 @@ main() {
         integration('and it should suggest a concrete constraint if the locked '
             'version is pre-1.0.0', () {
           dir(appPath, [
-            libPubspec("test_pkg", "1.0.0", [
+            libPubspec("test_pkg", "1.0.0", deps: [
               {'hosted': 'foo'}
             ]),
             file("pubspec.lock", json.stringify({
@@ -541,7 +541,7 @@ main() {
 
     integration('has a hosted dependency on itself', () {
       dir(appPath, [
-        libPubspec("test_pkg", "1.0.0", [
+        libPubspec("test_pkg", "1.0.0", deps: [
           {'hosted': {'name': 'test_pkg', 'version': '>=1.0.0'}}
         ])
       ]).scheduleCreate();
