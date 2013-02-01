@@ -6574,7 +6574,7 @@ class Document extends Node  native "*Document"
   Touch _$dom_createTouch_1(Window window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
 
   @JSName('createTouchList')
-  /// Use the [TouchList] constructor isntead.
+  /// Use the [TouchList] constructor instead.
   @DomName('Document.createTouchList')
   @DocsEditable
   TouchList $dom_createTouchList() native;
@@ -12823,7 +12823,8 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    *
    * is the (more verbose) equivalent of
    *
-   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));
+   *     var request = new HttpRequest.get('http://dartlang.org',
+   *         (event) => print('Request complete'));
    */
   @DomName('XMLHttpRequest.XMLHttpRequest')
   @DocsEditable
@@ -12848,6 +12849,38 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
   static const int UNSENT = 0;
 
+  /**
+   * Indicator of the current state of the request:
+   *
+   * <table>
+   *   <tr>
+   *     <td>Value</td>
+   *     <td>State</td>
+   *     <td>Meaning</td>
+   *   </tr>
+   *   <tr>
+   *     <td>0</td>
+   *     <td>unsent</td>
+   *     <td><code>open()</code> has not yet been called</td>
+   *   </tr>
+   *   <tr>
+   *     <td>1</td>
+   *     <td>opened</td>
+   *     <td><code>send()</code> has not yet been called</td>
+   *   </tr>
+   *   <tr>
+   *     <td>2</td>
+   *     <td>headers received</td>
+   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>
+   *   </tr>
+   *   <tr>
+   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>
+   *   </tr>
+   *   <tr>
+   *     <td>4</td> <td>done</td> <td>request is complete</td>
+   *   </tr>
+   * </table>
+   */
   @DomName('XMLHttpRequest.readyState')
   @DocsEditable
   final int readyState;
@@ -12886,6 +12919,13 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   String responseType;
 
   @JSName('responseXML')
+  /**
+   * The request response, or null on failure.
+   *
+   * The response is processed as
+   * `text/xml` stream, unless responseType = 'document' and the request is
+   * synchronous.
+   */
   @DomName('XMLHttpRequest.responseXML')
   @DocsEditable
   final Document responseXml;

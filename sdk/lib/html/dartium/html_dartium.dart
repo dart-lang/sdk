@@ -7347,7 +7347,7 @@ class Document extends Node
   @DocsEditable
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
-  /// Use the [TouchList] constructor isntead.
+  /// Use the [TouchList] constructor instead.
   @DomName('Document.createTouchList')
   @DocsEditable
   TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
@@ -13774,7 +13774,8 @@ class HttpRequest extends EventTarget {
    *
    * is the (more verbose) equivalent of
    *
-   *     var request = new HttpRequest.get('http://dartlang.org', (event) => print('Request complete'));
+   *     var request = new HttpRequest.get('http://dartlang.org',
+   *         (event) => print('Request complete'));
    */
   @DomName('XMLHttpRequest.XMLHttpRequest')
   @DocsEditable
@@ -13801,6 +13802,38 @@ class HttpRequest extends EventTarget {
 
   static const int UNSENT = 0;
 
+  /**
+   * Indicator of the current state of the request:
+   *
+   * <table>
+   *   <tr>
+   *     <td>Value</td>
+   *     <td>State</td>
+   *     <td>Meaning</td>
+   *   </tr>
+   *   <tr>
+   *     <td>0</td>
+   *     <td>unsent</td>
+   *     <td><code>open()</code> has not yet been called</td>
+   *   </tr>
+   *   <tr>
+   *     <td>1</td>
+   *     <td>opened</td>
+   *     <td><code>send()</code> has not yet been called</td>
+   *   </tr>
+   *   <tr>
+   *     <td>2</td>
+   *     <td>headers received</td>
+   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>
+   *   </tr>
+   *   <tr>
+   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>
+   *   </tr>
+   *   <tr>
+   *     <td>4</td> <td>done</td> <td>request is complete</td>
+   *   </tr>
+   * </table>
+   */
   @DomName('XMLHttpRequest.readyState')
   @DocsEditable
   int get readyState native "XMLHttpRequest_readyState_Getter";
@@ -13851,6 +13884,13 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   void set responseType(String value) native "XMLHttpRequest_responseType_Setter";
 
+  /**
+   * The request response, or null on failure.
+   *
+   * The response is processed as
+   * `text/xml` stream, unless responseType = 'document' and the request is
+   * synchronous.
+   */
   @DomName('XMLHttpRequest.responseXML')
   @DocsEditable
   Document get responseXml native "XMLHttpRequest_responseXML_Getter";
