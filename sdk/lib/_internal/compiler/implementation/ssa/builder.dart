@@ -1176,9 +1176,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       ClosureClassMap oldClosureData = localsHandler.closureData;
       Node node = constructor.parseNode(compiler);
-      localsHandler.closureData =
+      ClosureClassMap newClosureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
               constructor, node, elements);
+      // The [:this:] element now refers to the one in the new closure
+      // data, that is the [:this:] of the super constructor. We
+      // update the element to refer to the current [:this:].
+      localsHandler.updateLocal(newClosureData.thisElement,
+                                localsHandler.readThis());
+      localsHandler.closureData = newClosureData;
 
       params.orderedForEachParameter((Element parameterElement) {
         if (elements.isParameterChecked(parameterElement)) {
