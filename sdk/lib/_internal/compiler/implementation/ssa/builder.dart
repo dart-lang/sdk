@@ -826,10 +826,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // block is closed.
   HBasicBlock lastOpenedBlock;
 
-  List<Element> sourceElementStack;
+  final List<Element> sourceElementStack;
 
-  LibraryElement get currentLibrary => work.element.getLibrary();
-  Element get currentElement => work.element;
+  Element get currentElement => sourceElementStack.last.declaration;
   Compiler get compiler => builder.compiler;
   CodeEmitterTask get emitter => builder.emitter;
 
@@ -987,7 +986,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   InliningState enterInlinedMethod(PartialFunctionElement function,
                                    Selector selector,
-                                   Link<Node> arguments) {
+                                   Link<Node> arguments,
+                                   Node currentNode) {
     assert(invariant(function, function.isImplementation));
 
     // Once we start to compile the arguments we must be sure that we don't
@@ -999,11 +999,36 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                   compiledArguments);
     assert(succeeded);
 
+    FunctionSignature signature = function.computeSignature(compiler);
+    int index = 0;
+    signature.orderedForEachParameter((Element parameter) {
+      HInstruction argument = compiledArguments[index++];
+      localsHandler.updateLocal(parameter, argument);
+      potentiallyCheckType(argument, parameter.computeType(compiler));
+    });
+
+    if (function.isConstructor()) {
+      ClassElement enclosing = function.getEnclosingClass();
+      if (compiler.world.needsRti(enclosing)) {
+        assert(currentNode is NewExpression);
+        DartType type = elements.getType(currentNode);
+        Link<DartType> typeVariable = enclosing.typeVariables;
+        type.typeArguments.forEach((DartType argument) {
+          HInstruction instruction =
+              analyzeTypeArgument(argument, currentNode);
+          localsHandler.updateLocal(typeVariable.head.element, instruction);
+          typeVariable = typeVariable.tail;
+        });
+        while (!typeVariable.isEmpty) {
+          localsHandler.updateLocal(typeVariable.head.element,
+                                    graph.addConstantNull(constantSystem));
+          typeVariable = typeVariable.tail;
+        }
+      }
+    }
     InliningState state =
         new InliningState(function, returnElement, returnType, elements, stack);
-    inliningStack.add(state);
-    sourceElementStack.add(function);
-    stack = <HInstruction>[];
+
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
     returnElement = new ElementX(const SourceString("result"),
                                  ElementKind.VARIABLE,
@@ -1012,22 +1037,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                               graph.addConstantNull(constantSystem));
     elements = compiler.enqueuer.resolution.getCachedElements(function);
     assert(elements != null);
-    FunctionSignature signature = function.computeSignature(compiler);
     returnType = signature.returnType;
-    int index = 0;
-    signature.orderedForEachParameter((Element parameter) {
-      HInstruction argument = compiledArguments[index++];
-      localsHandler.updateLocal(parameter, argument);
-      potentiallyCheckType(argument, parameter.computeType(compiler));
-    });
+    stack = <HInstruction>[];
+    inliningStack.add(state);
     return state;
   }
 
   void leaveInlinedMethod(InliningState state) {
     InliningState poppedState = inliningStack.removeLast();
     assert(state == poppedState);
-    FunctionElement poppedElement = sourceElementStack.removeLast();
-    assert(poppedElement == poppedState.function);
     elements = state.oldElements;
     stack.add(localsHandler.readLocal(returnElement));
     returnElement = state.oldReturnElement;
@@ -1038,11 +1056,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   /**
-   * Documentation wanted -- johnniwinther
+   * Try to inline [element] within the currect context of the
+   * builder. The insertion point is the state of the builder.
    */
   bool tryInlineMethod(Element element,
                        Selector selector,
-                       Link<Node> arguments) {
+                       Link<Node> arguments,
+                       Node currentNode) {
     if (compiler.disableInlining) return false;
     // Ensure that [element] is an implementation element.
     element = element.implementation;
@@ -1052,11 +1072,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // containing nodes.
     // [PartialFunctionElement]s are [FunctionElement]s that have [Node]s.
     if (element is !PartialFunctionElement) return false;
+    // TODO(ngeoffray): try to inline generative constructors. They
+    // don't have any body, which make it more difficult.
+    if (element.isGenerativeConstructor()) return false;
     if (inliningStack.length > MAX_INLINING_DEPTH) return false;
     // Don't inline recursive calls. We use the same elements for the inlined
     // functions and would thus clobber our local variables.
     // Use [:element.declaration:] since [work.element] is always a declaration.
-    if (work.element == element.declaration) return false;
+    if (currentElement == element.declaration) return false;
     for (int i = 0; i < inliningStack.length; i++) {
       if (inliningStack[i].function == element) return false;
     }
@@ -1075,8 +1098,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return false;
     }
 
-    InliningState state = enterInlinedMethod(function, selector, arguments);
-    functionExpression.body.accept(this);
+    InliningState state = enterInlinedMethod(
+        function, selector, arguments, currentNode);
+    inlinedFrom(element, () {
+      functionExpression.body.accept(this);
+    });
     leaveInlinedMethod(state);
     return true;
   }
@@ -2354,7 +2380,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         if (element.isGetter()) {
           Selector selector = elements.getSelector(send);
-          if (tryInlineMethod(element, selector, const Link<Node>())) {
+          if (tryInlineMethod(element, selector, const Link<Node>(), send)) {
             return;
           }
         }
@@ -2758,7 +2784,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element element = elements[node];
     bool isClosureCall = false;
     if (element != null && compiler.world.hasNoOverridingMember(element)) {
-      if (tryInlineMethod(element, selector, node.arguments)) {
+      if (tryInlineMethod(element, selector, node.arguments, node)) {
         if (element.isGetter()) {
           // If the element is a getter, we are doing a closure call
           // on what this getter returns.
@@ -3017,7 +3043,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Selector selector = elements.getSelector(node);
     SourceString name = selector.name;
 
-    ClassElement cls = work.element.getEnclosingClass();
+    ClassElement cls = currentElement.getEnclosingClass();
     Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
     if (element.enclosingElement.declaration != compiler.objectClass) {
       // Register the call as dynamic if [:noSuchMethod:] on the super class
@@ -3073,7 +3099,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitSend(Send node) {
     Element element = elements[node];
-    if (element != null && identical(element, work.element)) {
+    if (element != null && identical(element, currentElement)) {
       graph.isRecursiveMethod = true;
     }
     super.visitSend(node);
@@ -3134,7 +3160,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
      * Helper to create an instruction that gets the value of a type variable.
      */
     void addTypeVariableReference(TypeVariableType type) {
-      Element member = work.element;
+      Element member = currentElement;
       if (member.enclosingElement.isClosure()) {
         ClosureClassElement closureClass = member.enclosingElement;
         member = closureClass.methodElement;
@@ -3257,11 +3283,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       generateAbstractClassInstantiationError(node, cls.name.slowToString());
       return;
     }
-    if (compiler.world.needsRti(constructor.enclosingElement)) {
-      if (!type.isRaw) {
-        type.typeArguments.forEach((DartType argument) {
-          inputs.add(analyzeTypeArgument(argument, node));
-        });
+    if (compiler.world.needsRti(cls)) {
+      Link<DartType> typeVariable = cls.typeVariables;
+      type.typeArguments.forEach((DartType argument) {
+        inputs.add(analyzeTypeArgument(argument, node));
+        typeVariable = typeVariable.tail;
+      });
+      // Also add null to non-provided type variables to call the
+      // constructor with the right number of arguments.
+      while (!typeVariable.isEmpty) {
+        inputs.add(graph.addConstantNull(constantSystem));
+        typeVariable = typeVariable.tail;
       }
     }
 
@@ -3301,7 +3333,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool isIdenticalFunction = element == compiler.identicalFunction;
 
       if (!isIdenticalFunction
-          && tryInlineMethod(element, selector, node.arguments)) {
+          && tryInlineMethod(element, selector, node.arguments, node)) {
         return;
       }
 
@@ -3328,7 +3360,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // useful.
       HType returnType =
           builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
-              work.element, element);
+              currentElement, element);
       if (returnType != null) instruction.guaranteedType = returnType;
       pushWithPosition(instruction, node);
     } else {
@@ -3496,7 +3528,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         // TODO(karlklose): move this type registration to the codegen.
         compiler.codegenWorld.instantiatedTypes.add(type);
-        visitNewSend(node.send, type);
+        Send send = node.send;
+        Element constructor = elements[send];
+        Selector selector = elements.getSelector(send);
+        if (!tryInlineMethod(constructor, selector, send.arguments, node)) {
+          visitNewSend(send, type);
+        }
       }
     }
   }
@@ -3858,7 +3895,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     void buildInitializer() {
       SourceString iteratorName = const SourceString("iterator");
       Selector selector =
-          new Selector.getter(iteratorName, work.element.getLibrary());
+          new Selector.getter(iteratorName, currentElement.getLibrary());
       Set<ClassElement> interceptedClasses = getInterceptedClassesOn(selector);
       visit(node.expression);
       HInstruction receiver = pop();
@@ -3879,14 +3916,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HInstruction buildCondition() {
       SourceString name = const SourceString('moveNext');
-      Selector selector = new Selector.call(name, work.element.getLibrary(), 0);
+      Selector selector = new Selector.call(
+          name, currentElement.getLibrary(), 0);
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
       push(new HInvokeDynamicMethod(selector, <HInstruction>[iterator]));
       return popBoolified();
     }
     void buildBody() {
       SourceString name = const SourceString('current');
-      Selector call = new Selector.getter(name, work.element.getLibrary());
+      Selector call = new Selector.getter(name, currentElement.getLibrary());
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(call);
       push(new HInvokeDynamicGetter(call, null, iterator, hasGetter));
 
@@ -4390,8 +4428,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       open(startCatchBlock);
       // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
       // Note that the name of this element is irrelevant.
-      Element element = new ElementX(
-          const SourceString('exception'), ElementKind.PARAMETER, work.element);
+      Element element = new ElementX(const SourceString('exception'),
+                                     ElementKind.PARAMETER,
+                                     currentElement);
       exception = new HLocalValue(element);
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
@@ -4688,7 +4727,9 @@ class InlineWeeder extends Visitor {
   }
 
   void visitReturn(Node node) {
-    if (seenReturn || identical(node.getBeginToken().stringValue, 'native')) {
+    if (seenReturn
+        || identical(node.getBeginToken().stringValue, 'native')
+        || node.isRedirectingFactoryBody) {
       tooDifficult = true;
       return;
     }
