@@ -14,13 +14,8 @@ import 'dart:_js_helper' show checkNull,
                               stringJoinUnchecked,
                               JsStringBuffer;
 
-// Patch for 'print' function.
 patch void print(var object) {
-  if (object is String) {
-    Primitives.printString(object);
-  } else {
-    Primitives.printString(object.toString());
-  }
+  Primitives.printString(object.toString());
 }
 
 // Patch for Object implementation.
