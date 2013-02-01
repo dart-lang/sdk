@@ -21775,7 +21775,7 @@ class TableElement extends Element native "*HTMLTableElement" {
       return this._createTBody();
     }
     var tbody = new Element.tag('tbody');
-    this.elements.add(tbody);
+    this.children.add(tbody);
     return tbody;
   }
 
