@@ -85,16 +85,50 @@ part of dart.async;
 // TODO(floitsch): document chaining.
 abstract class Future<T> {
   /**
+   * Creates a future containing the result of calling [function].
+   *
+   * The result of computing [:function():] is either a returned value or
+   * a throw.
+   *
+   * If a value is returned, it becomes the result of the created future.
+   *
+   * If calling [function] throws, the created [Future] will be completed
+   * with an async error containing the thrown value and a captured
+   * stacktrace.
+   *
+   * However, if the result of calling [function] is already an asynchronous
+   * result, we treat it specially.
+   *
+   * If the returned value is itself a [Future], completion of
+   * the created future will wait until the returned future completes,
+   * and will then complete with the same result.
+   *
+   * If a thrown value is an [AsyncError], it is used directly as the result
+   * of the created future.
+   */
+  factory Future.of(function()) {
+    try {
+      var result = function();
+      return new _FutureImpl<T>().._setOrChainValue(result);
+    } catch (error, stackTrace) {
+      return new _FutureImpl<T>.immediateError(error, stackTrace);
+    }
+  }
+
+  /**
    * A future whose value is available in the next event-loop iteration.
    *
-   * See [Completer]s, for futures with values that are computed asynchronously.
+   * If [value] is not a [Future], using this constructor is equivalent
+   * to [:new Future.of(() => value):].
+   *
+   * See [Completer] to create a Future and complete it later.
    */
   factory Future.immediate(T value) => new _FutureImpl<T>.immediate(value);
 
   /**
    * A future that completes with an error in the next event-loop iteration.
    *
-   * See [Completer]s, for futures with values that are computed asynchronously.
+   * See [Completer] to create a Future and complete it later.
    */
   factory Future.immediateError(var error, [Object stackTrace]) {
     return new _FutureImpl<T>.immediateError(error, stackTrace);
@@ -113,7 +147,8 @@ abstract class Future<T> {
    * See [Completer]s, for futures with values that are computed asynchronously.
    */
   factory Future.delayed(int milliseconds, T value()) {
-    _ThenFuture<dynamic, T> future = new _ThenFuture<dynamic, T>((_) => value());
+    _ThenFuture<dynamic, T> future =
+        new _ThenFuture<dynamic, T>((_) => value());
     new Timer(milliseconds, (_) => future._sendValue(null));
     return future;
   }

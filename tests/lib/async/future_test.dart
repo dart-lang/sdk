@@ -16,6 +16,31 @@ testImmediate() {
   });
 }
 
+testOf() {
+  compare(func) {
+    // Compare the results of the following two futures.
+    Future f1 = new Future.of(func);
+    Future f2 = new Future.immediate(null).then((_) => func());
+    f2.catchError((_){});  // I'll get the error later.
+    f1.then((v1) { f2.then((v2) { Expect.equals(v1, v2); }); },
+            onError: (e1) {
+              f2.then((_) { Expect.fail("Expected error"); },
+                      onError: (e2) {
+                         Expect.equals(e1.error, e2.error);
+                      });
+            });
+  }
+  Future val = new Future.immediate(42);
+  Future err1 = new Future.immediateError("Error")..catchError((_){});
+  Future err2 = new Future.immediateError(new AsyncError("AsyncError"))..catchError((_){});
+  compare(() => 42);
+  compare(() => val);
+  compare(() { throw "Flif"; });
+  compare(() { throw new AsyncError("AsyncFlif"); });
+  compare(() => err1);
+  compare(() => err2);
+}
+
 testNeverComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
@@ -559,6 +584,7 @@ testChainedFutureError() {
 
 main() {
   testImmediate();
+  testOf();
   testNeverComplete();
 
   testComplete();
@@ -598,4 +624,5 @@ main() {
   testChainedFutureValueDelay();
   testChainedFutureError();
 }
+
 

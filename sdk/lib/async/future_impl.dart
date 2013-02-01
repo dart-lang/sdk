@@ -304,31 +304,8 @@ class _FutureImpl<T> implements Future<T> {
     }
   }
 
-  _FutureListener _asListener() => new _FutureListener.wrap(this);
-}
-
-/**
- * Transforming future base class.
- *
- * A transforming future is itself a future and a future listener.
- * Subclasses override [_sendValue]/[_sendError] to intercept
- * the results of a previous future.
- */
-abstract class _TransformFuture<S, T> extends _FutureImpl<T>
-                                      implements _FutureListener<S> {
-  // _FutureListener implementation.
-  _FutureListener _nextListener;
-
-  void _sendValue(S value);
-
-  void _sendError(AsyncError error);
-
-  void _subscribeTo(_FutureImpl future) {
-    future._addListener(this);
-  }
-
   /**
-   * Helper function to hand the result of transforming an incoming event.
+   * Helper function to handle the result of transforming an incoming event.
    *
    * If the result is itself a [Future], this future is linked to that
    * future's output. If not, this future is completed with the result.
@@ -350,6 +327,29 @@ abstract class _TransformFuture<S, T> extends _FutureImpl<T>
       // Result must be of type T.
       _setValue(result);
     }
+  }
+
+  _FutureListener _asListener() => new _FutureListener.wrap(this);
+}
+
+/**
+ * Transforming future base class.
+ *
+ * A transforming future is itself a future and a future listener.
+ * Subclasses override [_sendValue]/[_sendError] to intercept
+ * the results of a previous future.
+ */
+abstract class _TransformFuture<S, T> extends _FutureImpl<T>
+                                      implements _FutureListener<S> {
+  // _FutureListener implementation.
+  _FutureListener _nextListener;
+
+  void _sendValue(S value);
+
+  void _sendError(AsyncError error);
+
+  void _subscribeTo(_FutureImpl future) {
+    future._addListener(this);
   }
 }
 
