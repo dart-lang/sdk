@@ -970,6 +970,49 @@ bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::ExternalUint8ClampedArray_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // R12: index as Smi.
+  // RAX: array.
+  __ SmiUntag(R12);
+  __ movq(RAX, FieldAddress(RAX, ExternalUint8ClampedArray::data_offset()));
+  __ movzxb(RAX, Address(RAX, R12, TIMES_1, 0));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::ExternalUint8ClampedArray_setIndexed(Assembler* assembler) {
+  Label fall_through, store_value, load_0xff;
+  TestByteArraySetIndex(assembler, &fall_through);
+  // R12: index as Smi.
+  // RAX: array.
+  __ SmiUntag(R12);
+  __ movq(RDI, Address(RSP, + 1 * kWordSize));  // Value.
+  __ testq(RDI, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+
+  __ SmiUntag(RDI);
+  __ cmpq(RDI, Immediate(0xFF));
+  __ j(BELOW_EQUAL, &store_value, Assembler::kNearJump);
+  __ j(GREATER, &load_0xff,  Assembler::kNearJump);
+  __ xorq(RDI, RDI);  // Zero.
+  __ jmp(&store_value, Assembler::kNearJump);
+  __ Bind(&load_0xff);
+  __ movq(RDI, Immediate(0xFF));
+
+  __ Bind(&store_value);
+  __ movq(RAX, FieldAddress(RAX, ExternalUint8ClampedArray::data_offset()));
+  __ movb(Address(RAX, R12, TIMES_1, 0), RDI);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in RAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {

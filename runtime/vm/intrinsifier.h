@@ -112,6 +112,10 @@ namespace dart {
   V(_Float64Array, []=, Float64Array_setIndexed, 1948811847)                   \
   V(_Float64Array, _new, Float64Array_new, 147668392)                          \
   V(_ExternalUint8Array, [], ExternalUint8Array_getIndexed, 753790851)         \
+  V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArray_getIndexed,      \
+      823759763)                                                               \
+  V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArray_setIndexed,     \
+      654373808)                                                               \
 
 // TODO(srdjan): Implement _FixedSizeArrayIterator, get:current and
 //   _FixedSizeArrayIterator, moveNext.
