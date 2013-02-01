@@ -235,7 +235,11 @@ class DartiumBackend(HtmlDartGenerator):
 
   def GetSupportCheck(self):
     # Assume that everything is supported on Dartium.
-    return 'true'
+    value = js_support_checks.get(self._interface.doc_js_name)
+    if type(value) == tuple:
+      return (value[0], 'true')
+    else:
+      return 'true'
 
   def FinishInterface(self):
     self._GenerateCPPHeader()

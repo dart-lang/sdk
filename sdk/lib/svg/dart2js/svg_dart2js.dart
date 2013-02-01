@@ -151,17 +151,18 @@ class AElement extends StyledElement implements UriReference, Tests, Transformab
 
 
 @DocsEditable
-@DomName('SVGAltGlyphDefElement')
-class AltGlyphDefElement extends SvgElement native "*SVGAltGlyphDefElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('SVGAltGlyphElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class AltGlyphElement extends TextPositioningElement implements UriReference native "*SVGAltGlyphElement" {
+
+  @DomName('SVGAltGlyphElement.SVGAltGlyphElement')
+  @DocsEditable
+  factory AltGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("altGlyph");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('altGlyph') && (new SvgElement.tag('altGlyph') is AltGlyphElement);
 
   @DomName('SVGAltGlyphElement.format')
   @DocsEditable
@@ -176,15 +177,6 @@ class AltGlyphElement extends TextPositioningElement implements UriReference nat
   @DomName('SVGAltGlyphElement.href')
   @DocsEditable
   final AnimatedString href;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGAltGlyphItemElement')
-class AltGlyphItemElement extends SvgElement native "*SVGAltGlyphItemElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -235,25 +227,18 @@ class Angle native "*SVGAngle" {
 
 
 @DocsEditable
-@DomName('SVGAnimateColorElement')
-class AnimateColorElement extends AnimationElement native "*SVGAnimateColorElement" {
-
-  @DomName('SVGAnimateColorElement.SVGAnimateColorElement')
-  @DocsEditable
-  factory AnimateColorElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateColor");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('SVGAnimateElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 
   @DomName('SVGAnimateElement.SVGAnimateElement')
   @DocsEditable
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('animate') && (new SvgElement.tag('animate') is AnimateElement);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -262,11 +247,17 @@ class AnimateElement extends AnimationElement native "*SVGAnimateElement" {
 
 @DocsEditable
 @DomName('SVGAnimateMotionElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionElement" {
 
   @DomName('SVGAnimateMotionElement.SVGAnimateMotionElement')
   @DocsEditable
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('animateMotion') && (new SvgElement.tag('animateMotion') is AnimateMotionElement);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -275,11 +266,17 @@ class AnimateMotionElement extends AnimationElement native "*SVGAnimateMotionEle
 
 @DocsEditable
 @DomName('SVGAnimateTransformElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class AnimateTransformElement extends AnimationElement native "*SVGAnimateTransformElement" {
 
   @DomName('SVGAnimateTransformElement.SVGAnimateTransformElement')
   @DocsEditable
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('animateTransform') && (new SvgElement.tag('animateTransform') is AnimateTransformElement);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -772,106 +769,6 @@ class Color extends CssValue native "*SVGColor" {
   @DomName('SVGColor.setRGBColorICCColor')
   @DocsEditable
   void setRgbColorIccColor(String rgbColor, String iccColor) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGComponentTransferFunctionElement')
-class ComponentTransferFunctionElement extends SvgElement native "*SVGComponentTransferFunctionElement" {
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
-
-  @DomName('SVGComponentTransferFunctionElement.amplitude')
-  @DocsEditable
-  final AnimatedNumber amplitude;
-
-  @DomName('SVGComponentTransferFunctionElement.exponent')
-  @DocsEditable
-  final AnimatedNumber exponent;
-
-  @DomName('SVGComponentTransferFunctionElement.intercept')
-  @DocsEditable
-  final AnimatedNumber intercept;
-
-  @DomName('SVGComponentTransferFunctionElement.offset')
-  @DocsEditable
-  final AnimatedNumber offset;
-
-  @DomName('SVGComponentTransferFunctionElement.slope')
-  @DocsEditable
-  final AnimatedNumber slope;
-
-  @DomName('SVGComponentTransferFunctionElement.tableValues')
-  @DocsEditable
-  final AnimatedNumberList tableValues;
-
-  @DomName('SVGComponentTransferFunctionElement.type')
-  @DocsEditable
-  final AnimatedEnumeration type;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGCursorElement')
-class CursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "*SVGCursorElement" {
-
-  @DomName('SVGCursorElement.SVGCursorElement')
-  @DocsEditable
-  factory CursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
-
-  @DomName('SVGCursorElement.x')
-  @DocsEditable
-  final AnimatedLength x;
-
-  @DomName('SVGCursorElement.y')
-  @DocsEditable
-  final AnimatedLength y;
-
-  // From SVGExternalResourcesRequired
-
-  @DomName('SVGCursorElement.externalResourcesRequired')
-  @DocsEditable
-  final AnimatedBoolean externalResourcesRequired;
-
-  // From SVGTests
-
-  @DomName('SVGCursorElement.requiredExtensions')
-  @DocsEditable
-  final StringList requiredExtensions;
-
-  @DomName('SVGCursorElement.requiredFeatures')
-  @DocsEditable
-  final StringList requiredFeatures;
-
-  @DomName('SVGCursorElement.systemLanguage')
-  @DocsEditable
-  final StringList systemLanguage;
-
-  @DomName('SVGCursorElement.hasExtension')
-  @DocsEditable
-  bool hasExtension(String extension) native;
-
-  // From SVGURIReference
-
-  @DomName('SVGCursorElement.href')
-  @DocsEditable
-  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1594,6 +1491,9 @@ class EllipseElement extends StyledElement implements Transformable, Tests, Exte
 @DomName('SVGExternalResourcesRequired')
 abstract class ExternalResourcesRequired {
 
+  /// Checks if this type is supported on the current platform.
+  static bool supported(SvgElement element) => JS('bool', '#.externalResourcesRequired !== undefined && #.externalResourcesRequired.animVal !== undefined', element, element);
+
   AnimatedBoolean externalResourcesRequired;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1603,7 +1503,18 @@ abstract class ExternalResourcesRequired {
 
 @DocsEditable
 @DomName('SVGFEBlendElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEBlendElement" {
+
+  @DomName('SVGFEBlendElement.SVGFEBlendElement')
+  @DocsEditable
+  factory FEBlendElement() => _SvgElementFactoryProvider.createSvgElement_tag("feBlend");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feBlend') && (new SvgElement.tag('feBlend') is FEBlendElement);
 
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
@@ -1658,7 +1569,18 @@ class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAtt
 
 @DocsEditable
 @DomName('SVGFEColorMatrixElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEColorMatrixElement" {
+
+  @DomName('SVGFEColorMatrixElement.SVGFEColorMatrixElement')
+  @DocsEditable
+  factory FEColorMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feColorMatrix') && (new SvgElement.tag('feColorMatrix') is FEColorMatrixElement);
 
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
@@ -1711,7 +1633,18 @@ class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStand
 
 @DocsEditable
 @DomName('SVGFEComponentTransferElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEComponentTransferElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEComponentTransferElement" {
+
+  @DomName('SVGFEComponentTransferElement.SVGFEComponentTransferElement')
+  @DocsEditable
+  factory FEComponentTransferElement() => _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feComponentTransfer') && (new SvgElement.tag('feComponentTransfer') is FEComponentTransferElement);
 
   @DomName('SVGFEComponentTransferElement.in1')
   @DocsEditable
@@ -1819,7 +1752,18 @@ class FECompositeElement extends StyledElement implements FilterPrimitiveStandar
 
 @DocsEditable
 @DomName('SVGFEConvolveMatrixElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEConvolveMatrixElement" {
+
+  @DomName('SVGFEConvolveMatrixElement.SVGFEConvolveMatrixElement')
+  @DocsEditable
+  factory FEConvolveMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feConvolveMatrix') && (new SvgElement.tag('feConvolveMatrix') is FEConvolveMatrixElement);
 
   static const int SVG_EDGEMODE_DUPLICATE = 1;
 
@@ -1906,7 +1850,18 @@ class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveSt
 
 @DocsEditable
 @DomName('SVGFEDiffuseLightingElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDiffuseLightingElement" {
+
+  @DomName('SVGFEDiffuseLightingElement.SVGFEDiffuseLightingElement')
+  @DocsEditable
+  factory FEDiffuseLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feDiffuseLighting') && (new SvgElement.tag('feDiffuseLighting') is FEDiffuseLightingElement);
 
   @DomName('SVGFEDiffuseLightingElement.diffuseConstant')
   @DocsEditable
@@ -1957,7 +1912,18 @@ class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveS
 
 @DocsEditable
 @DomName('SVGFEDisplacementMapElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDisplacementMapElement" {
+
+  @DomName('SVGFEDisplacementMapElement.SVGFEDisplacementMapElement')
+  @DocsEditable
+  factory FEDisplacementMapElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feDisplacementMap') && (new SvgElement.tag('feDisplacementMap') is FEDisplacementMapElement);
 
   static const int SVG_CHANNEL_A = 4;
 
@@ -2018,7 +1984,18 @@ class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveS
 
 @DocsEditable
 @DomName('SVGFEDistantLightElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEDistantLightElement extends SvgElement native "*SVGFEDistantLightElement" {
+
+  @DomName('SVGFEDistantLightElement.SVGFEDistantLightElement')
+  @DocsEditable
+  factory FEDistantLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feDistantLight') && (new SvgElement.tag('feDistantLight') is FEDistantLightElement);
 
   @DomName('SVGFEDistantLightElement.azimuth')
   @DocsEditable
@@ -2034,63 +2011,19 @@ class FEDistantLightElement extends SvgElement native "*SVGFEDistantLightElement
 
 
 @DocsEditable
-@DomName('SVGFEDropShadowElement')
-class FEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
-
-  @DomName('SVGFEDropShadowElement.dx')
-  @DocsEditable
-  final AnimatedNumber dx;
-
-  @DomName('SVGFEDropShadowElement.dy')
-  @DocsEditable
-  final AnimatedNumber dy;
-
-  @DomName('SVGFEDropShadowElement.in1')
-  @DocsEditable
-  final AnimatedString in1;
-
-  @DomName('SVGFEDropShadowElement.stdDeviationX')
-  @DocsEditable
-  final AnimatedNumber stdDeviationX;
-
-  @DomName('SVGFEDropShadowElement.stdDeviationY')
-  @DocsEditable
-  final AnimatedNumber stdDeviationY;
-
-  @DomName('SVGFEDropShadowElement.setStdDeviation')
-  @DocsEditable
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  @DomName('SVGFEDropShadowElement.height')
-  @DocsEditable
-  final AnimatedLength height;
-
-  @DomName('SVGFEDropShadowElement.result')
-  @DocsEditable
-  final AnimatedString result;
-
-  @DomName('SVGFEDropShadowElement.width')
-  @DocsEditable
-  final AnimatedLength width;
-
-  @DomName('SVGFEDropShadowElement.x')
-  @DocsEditable
-  final AnimatedLength x;
-
-  @DomName('SVGFEDropShadowElement.y')
-  @DocsEditable
-  final AnimatedLength y;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('SVGFEFloodElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEFloodElement" {
+
+  @DomName('SVGFEFloodElement.SVGFEFloodElement')
+  @DocsEditable
+  factory FEFloodElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFlood");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feFlood') && (new SvgElement.tag('feFlood') is FEFloodElement);
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -2121,7 +2054,18 @@ class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAtt
 
 @DocsEditable
 @DomName('SVGFEFuncAElement')
-class FEFuncAElement extends ComponentTransferFunctionElement native "*SVGFEFuncAElement" {
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
+class FEFuncAElement extends _SVGComponentTransferFunctionElement native "*SVGFEFuncAElement" {
+
+  @DomName('SVGFEFuncAElement.SVGFEFuncAElement')
+  @DocsEditable
+  factory FEFuncAElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncA");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feFuncA') && (new SvgElement.tag('feFuncA') is FEFuncAElement);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2130,7 +2074,18 @@ class FEFuncAElement extends ComponentTransferFunctionElement native "*SVGFEFunc
 
 @DocsEditable
 @DomName('SVGFEFuncBElement')
-class FEFuncBElement extends ComponentTransferFunctionElement native "*SVGFEFuncBElement" {
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
+class FEFuncBElement extends _SVGComponentTransferFunctionElement native "*SVGFEFuncBElement" {
+
+  @DomName('SVGFEFuncBElement.SVGFEFuncBElement')
+  @DocsEditable
+  factory FEFuncBElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncB");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feFuncB') && (new SvgElement.tag('feFuncB') is FEFuncBElement);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2139,7 +2094,18 @@ class FEFuncBElement extends ComponentTransferFunctionElement native "*SVGFEFunc
 
 @DocsEditable
 @DomName('SVGFEFuncGElement')
-class FEFuncGElement extends ComponentTransferFunctionElement native "*SVGFEFuncGElement" {
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
+class FEFuncGElement extends _SVGComponentTransferFunctionElement native "*SVGFEFuncGElement" {
+
+  @DomName('SVGFEFuncGElement.SVGFEFuncGElement')
+  @DocsEditable
+  factory FEFuncGElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncG");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feFuncG') && (new SvgElement.tag('feFuncG') is FEFuncGElement);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2148,7 +2114,18 @@ class FEFuncGElement extends ComponentTransferFunctionElement native "*SVGFEFunc
 
 @DocsEditable
 @DomName('SVGFEFuncRElement')
-class FEFuncRElement extends ComponentTransferFunctionElement native "*SVGFEFuncRElement" {
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
+class FEFuncRElement extends _SVGComponentTransferFunctionElement native "*SVGFEFuncRElement" {
+
+  @DomName('SVGFEFuncRElement.SVGFEFuncRElement')
+  @DocsEditable
+  factory FEFuncRElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncR");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feFuncR') && (new SvgElement.tag('feFuncR') is FEFuncRElement);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2157,7 +2134,18 @@ class FEFuncRElement extends ComponentTransferFunctionElement native "*SVGFEFunc
 
 @DocsEditable
 @DomName('SVGFEGaussianBlurElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEGaussianBlurElement" {
+
+  @DomName('SVGFEGaussianBlurElement.SVGFEGaussianBlurElement')
+  @DocsEditable
+  factory FEGaussianBlurElement() => _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feGaussianBlur') && (new SvgElement.tag('feGaussianBlur') is FEGaussianBlurElement);
 
   @DomName('SVGFEGaussianBlurElement.in1')
   @DocsEditable
@@ -2204,7 +2192,18 @@ class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStan
 
 @DocsEditable
 @DomName('SVGFEImageElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace native "*SVGFEImageElement" {
+
+  @DomName('SVGFEImageElement.SVGFEImageElement')
+  @DocsEditable
+  factory FEImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("feImage");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feImage') && (new SvgElement.tag('feImage') is FEImageElement);
 
   @DomName('SVGFEImageElement.preserveAspectRatio')
   @DocsEditable
@@ -2261,7 +2260,18 @@ class FEImageElement extends StyledElement implements FilterPrimitiveStandardAtt
 
 @DocsEditable
 @DomName('SVGFEMergeElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEMergeElement" {
+
+  @DomName('SVGFEMergeElement.SVGFEMergeElement')
+  @DocsEditable
+  factory FEMergeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMerge");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feMerge') && (new SvgElement.tag('feMerge') is FEMergeElement);
 
   // From SVGFilterPrimitiveStandardAttributes
 
@@ -2292,7 +2302,18 @@ class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAtt
 
 @DocsEditable
 @DomName('SVGFEMergeNodeElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEMergeNodeElement extends SvgElement native "*SVGFEMergeNodeElement" {
+
+  @DomName('SVGFEMergeNodeElement.SVGFEMergeNodeElement')
+  @DocsEditable
+  factory FEMergeNodeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feMergeNode') && (new SvgElement.tag('feMergeNode') is FEMergeNodeElement);
 
   @DomName('SVGFEMergeNodeElement.in1')
   @DocsEditable
@@ -2362,7 +2383,18 @@ class FEMorphologyElement extends StyledElement implements FilterPrimitiveStanda
 
 @DocsEditable
 @DomName('SVGFEOffsetElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEOffsetElement" {
+
+  @DomName('SVGFEOffsetElement.SVGFEOffsetElement')
+  @DocsEditable
+  factory FEOffsetElement() => _SvgElementFactoryProvider.createSvgElement_tag("feOffset");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feOffset') && (new SvgElement.tag('feOffset') is FEOffsetElement);
 
   @DomName('SVGFEOffsetElement.dx')
   @DocsEditable
@@ -2405,7 +2437,18 @@ class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAt
 
 @DocsEditable
 @DomName('SVGFEPointLightElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FEPointLightElement extends SvgElement native "*SVGFEPointLightElement" {
+
+  @DomName('SVGFEPointLightElement.SVGFEPointLightElement')
+  @DocsEditable
+  factory FEPointLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("fePointLight");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('fePointLight') && (new SvgElement.tag('fePointLight') is FEPointLightElement);
 
   @DomName('SVGFEPointLightElement.x')
   @DocsEditable
@@ -2426,7 +2469,18 @@ class FEPointLightElement extends SvgElement native "*SVGFEPointLightElement" {
 
 @DocsEditable
 @DomName('SVGFESpecularLightingElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FESpecularLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFESpecularLightingElement" {
+
+  @DomName('SVGFESpecularLightingElement.SVGFESpecularLightingElement')
+  @DocsEditable
+  factory FESpecularLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feSpecularLighting') && (new SvgElement.tag('feSpecularLighting') is FESpecularLightingElement);
 
   @DomName('SVGFESpecularLightingElement.in1')
   @DocsEditable
@@ -2473,7 +2527,18 @@ class FESpecularLightingElement extends StyledElement implements FilterPrimitive
 
 @DocsEditable
 @DomName('SVGFESpotLightElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FESpotLightElement extends SvgElement native "*SVGFESpotLightElement" {
+
+  @DomName('SVGFESpotLightElement.SVGFESpotLightElement')
+  @DocsEditable
+  factory FESpotLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feSpotLight') && (new SvgElement.tag('feSpotLight') is FESpotLightElement);
 
   @DomName('SVGFESpotLightElement.limitingConeAngle')
   @DocsEditable
@@ -2514,7 +2579,18 @@ class FESpotLightElement extends SvgElement native "*SVGFESpotLightElement" {
 
 @DocsEditable
 @DomName('SVGFETileElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FETileElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFETileElement" {
+
+  @DomName('SVGFETileElement.SVGFETileElement')
+  @DocsEditable
+  factory FETileElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTile");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feTile') && (new SvgElement.tag('feTile') is FETileElement);
 
   @DomName('SVGFETileElement.in1')
   @DocsEditable
@@ -2549,7 +2625,18 @@ class FETileElement extends StyledElement implements FilterPrimitiveStandardAttr
 
 @DocsEditable
 @DomName('SVGFETurbulenceElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FETurbulenceElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFETurbulenceElement" {
+
+  @DomName('SVGFETurbulenceElement.SVGFETurbulenceElement')
+  @DocsEditable
+  factory FETurbulenceElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('feTurbulence') && (new SvgElement.tag('feTurbulence') is FETurbulenceElement);
 
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
@@ -2616,11 +2703,18 @@ class FETurbulenceElement extends StyledElement implements FilterPrimitiveStanda
 
 @DocsEditable
 @DomName('SVGFilterElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired, LangSpace native "*SVGFilterElement" {
 
   @DomName('SVGFilterElement.SVGFilterElement')
   @DocsEditable
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('filter') && (new SvgElement.tag('filter') is FilterElement);
 
   @DomName('SVGFilterElement.filterResX')
   @DocsEditable
@@ -2716,90 +2810,18 @@ abstract class FitToViewBox {
 
 
 @DocsEditable
-@DomName('SVGFontElement')
-class FontElement extends SvgElement native "*SVGFontElement" {
-
-  @DomName('SVGFontElement.SVGFontElement')
-  @DocsEditable
-  factory FontElement() => _SvgElementFactoryProvider.createSvgElement_tag("font");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGFontFaceElement')
-class FontFaceElement extends SvgElement native "*SVGFontFaceElement" {
-
-  @DomName('SVGFontFaceElement.SVGFontFaceElement')
-  @DocsEditable
-  factory FontFaceElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGFontFaceFormatElement')
-class FontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement" {
-
-  @DomName('SVGFontFaceFormatElement.SVGFontFaceFormatElement')
-  @DocsEditable
-  factory FontFaceFormatElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-format");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGFontFaceNameElement')
-class FontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
-
-  @DomName('SVGFontFaceNameElement.SVGFontFaceNameElement')
-  @DocsEditable
-  factory FontFaceNameElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-name");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGFontFaceSrcElement')
-class FontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
-
-  @DomName('SVGFontFaceSrcElement.SVGFontFaceSrcElement')
-  @DocsEditable
-  factory FontFaceSrcElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-src");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGFontFaceUriElement')
-class FontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
-
-  @DomName('SVGFontFaceUriElement.SVGFontFaceUriElement')
-  @DocsEditable
-  factory FontFaceUriElement() => _SvgElementFactoryProvider.createSvgElement_tag("font-face-uri");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('SVGForeignObjectElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class ForeignObjectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace native "*SVGForeignObjectElement" {
 
   @DomName('SVGForeignObjectElement.SVGForeignObjectElement')
   @DocsEditable
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('foreignObject') && (new SvgElement.tag('foreignObject') is ForeignObjectElement);
 
   @DomName('SVGForeignObjectElement.height')
   @DocsEditable
@@ -2972,112 +2994,6 @@ class GElement extends StyledElement implements Transformable, Tests, ExternalRe
 
 
 @DocsEditable
-@DomName('SVGGlyphElement')
-class GlyphElement extends SvgElement native "*SVGGlyphElement" {
-
-  @DomName('SVGGlyphElement.SVGGlyphElement')
-  @DocsEditable
-  factory GlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGGlyphRefElement')
-class GlyphRefElement extends StyledElement implements UriReference native "*SVGGlyphRefElement" {
-
-  @DomName('SVGGlyphRefElement.dx')
-  @DocsEditable
-  num dx;
-
-  @DomName('SVGGlyphRefElement.dy')
-  @DocsEditable
-  num dy;
-
-  @DomName('SVGGlyphRefElement.format')
-  @DocsEditable
-  String format;
-
-  @DomName('SVGGlyphRefElement.glyphRef')
-  @DocsEditable
-  String glyphRef;
-
-  @DomName('SVGGlyphRefElement.x')
-  @DocsEditable
-  num x;
-
-  @DomName('SVGGlyphRefElement.y')
-  @DocsEditable
-  num y;
-
-  // From SVGURIReference
-
-  @DomName('SVGGlyphRefElement.href')
-  @DocsEditable
-  final AnimatedString href;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGGradientElement')
-class GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired native "*SVGGradientElement" {
-
-  static const int SVG_SPREADMETHOD_PAD = 1;
-
-  static const int SVG_SPREADMETHOD_REFLECT = 2;
-
-  static const int SVG_SPREADMETHOD_REPEAT = 3;
-
-  static const int SVG_SPREADMETHOD_UNKNOWN = 0;
-
-  @DomName('SVGGradientElement.gradientTransform')
-  @DocsEditable
-  final AnimatedTransformList gradientTransform;
-
-  @DomName('SVGGradientElement.gradientUnits')
-  @DocsEditable
-  final AnimatedEnumeration gradientUnits;
-
-  @DomName('SVGGradientElement.spreadMethod')
-  @DocsEditable
-  final AnimatedEnumeration spreadMethod;
-
-  // From SVGExternalResourcesRequired
-
-  @DomName('SVGGradientElement.externalResourcesRequired')
-  @DocsEditable
-  final AnimatedBoolean externalResourcesRequired;
-
-  // From SVGURIReference
-
-  @DomName('SVGGradientElement.href')
-  @DocsEditable
-  final AnimatedString href;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGHKernElement')
-class HKernElement extends SvgElement native "*SVGHKernElement" {
-
-  @DomName('SVGHKernElement.SVGHKernElement')
-  @DocsEditable
-  factory HKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('SVGImageElement')
 class ImageElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace native "*SVGImageElement" {
 
@@ -3186,6 +3102,9 @@ class ImageElement extends StyledElement implements UriReference, Tests, Transfo
 
 @DomName('SVGLangSpace')
 abstract class LangSpace {
+
+  /// Checks if this type is supported on the current platform.
+  static bool supported(SvgElement element) => JS('bool', '#.xmlspace !== undefined && #.xmllang !== undefined', element, element);
 
   String xmllang;
 
@@ -3571,7 +3490,7 @@ class LineElement extends StyledElement implements Transformable, Tests, Externa
 
 @DocsEditable
 @DomName('SVGLinearGradientElement')
-class LinearGradientElement extends GradientElement native "*SVGLinearGradientElement" {
+class LinearGradientElement extends _SVGGradientElement native "*SVGLinearGradientElement" {
 
   @DomName('SVGLinearGradientElement.SVGLinearGradientElement')
   @DocsEditable
@@ -3612,31 +3531,6 @@ abstract class Locatable {
   Matrix getScreenCTM();
 
   Matrix getTransformToElement(SvgElement element);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGMPathElement')
-class MPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGMPathElement" {
-
-  @DomName('SVGMPathElement.SVGMPathElement')
-  @DocsEditable
-  factory MPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
-
-  // From SVGExternalResourcesRequired
-
-  @DomName('SVGMPathElement.externalResourcesRequired')
-  @DocsEditable
-  final AnimatedBoolean externalResourcesRequired;
-
-  // From SVGURIReference
-
-  @DomName('SVGMPathElement.href')
-  @DocsEditable
-  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3881,15 +3775,6 @@ class Matrix native "*SVGMatrix" {
 @DocsEditable
 @DomName('SVGMetadataElement')
 class MetadataElement extends SvgElement native "*SVGMetadataElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGMissingGlyphElement')
-class MissingGlyphElement extends StyledElement native "*SVGMissingGlyphElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5442,7 +5327,7 @@ class PreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
 @DocsEditable
 @DomName('SVGRadialGradientElement')
-class RadialGradientElement extends GradientElement native "*SVGRadialGradientElement" {
+class RadialGradientElement extends _SVGGradientElement native "*SVGRadialGradientElement" {
 
   @DomName('SVGRadialGradientElement.SVGRadialGradientElement')
   @DocsEditable
@@ -5659,11 +5544,17 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 
 @DocsEditable
 @DomName('SVGSetElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class SetElement extends AnimationElement native "*SVGSetElement" {
 
   @DomName('SVGSetElement.SVGSetElement')
   @DocsEditable
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('set') && (new SvgElement.tag('set') is SetElement);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6095,6 +5986,15 @@ class SvgElement extends Element native "*SVGElement" {
     throw new UnsupportedError("Cannot invoke click SVG.");
   }
 
+  /**
+   * Checks to see if the SVG element type is supported by the current platform.
+   *
+   * The tag should be a valid SVG element tag name.
+   */
+  static bool isTagSupported(String tag) {
+    var e = new SvgElement.tag(tag);
+    return e is SvgElement && !(e is UnknownElement);
+  }
 
   // Shadowing definition.
   String get id => JS("String", "#.id", this);
@@ -6526,25 +6426,6 @@ class SymbolElement extends StyledElement implements FitToViewBox, ExternalResou
   @DomName('SVGSymbolElement.xmlspace')
   @DocsEditable
   String xmlspace;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGTRefElement')
-class TRefElement extends TextPositioningElement implements UriReference native "*SVGTRefElement" {
-
-  @DomName('SVGTRefElement.SVGTRefElement')
-  @DocsEditable
-  factory TRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
-
-  // From SVGURIReference
-
-  @DomName('SVGTRefElement.href')
-  @DocsEditable
-  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7261,19 +7142,6 @@ class UseElement extends StyledElement implements UriReference, Tests, Transform
 
 
 @DocsEditable
-@DomName('SVGVKernElement')
-class VKernElement extends SvgElement native "*SVGVKernElement" {
-
-  @DomName('SVGVKernElement.SVGVKernElement')
-  @DocsEditable
-  factory VKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('SVGViewElement')
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan native "*SVGViewElement" {
 
@@ -7593,4 +7461,415 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
   @DomName('SVGElementInstanceList.item')
   @DocsEditable
   ElementInstance item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGAltGlyphDefElement')
+class _SVGAltGlyphDefElement extends SvgElement native "*SVGAltGlyphDefElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGAltGlyphItemElement')
+class _SVGAltGlyphItemElement extends SvgElement native "*SVGAltGlyphItemElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGAnimateColorElement')
+class _SVGAnimateColorElement extends AnimationElement native "*SVGAnimateColorElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGComponentTransferFunctionElement')
+class _SVGComponentTransferFunctionElement extends SvgElement native "*SVGComponentTransferFunctionElement" {
+
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
+
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
+
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
+
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
+
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
+
+  static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
+
+  @DomName('SVGComponentTransferFunctionElement.amplitude')
+  @DocsEditable
+  final AnimatedNumber amplitude;
+
+  @DomName('SVGComponentTransferFunctionElement.exponent')
+  @DocsEditable
+  final AnimatedNumber exponent;
+
+  @DomName('SVGComponentTransferFunctionElement.intercept')
+  @DocsEditable
+  final AnimatedNumber intercept;
+
+  @DomName('SVGComponentTransferFunctionElement.offset')
+  @DocsEditable
+  final AnimatedNumber offset;
+
+  @DomName('SVGComponentTransferFunctionElement.slope')
+  @DocsEditable
+  final AnimatedNumber slope;
+
+  @DomName('SVGComponentTransferFunctionElement.tableValues')
+  @DocsEditable
+  final AnimatedNumberList tableValues;
+
+  @DomName('SVGComponentTransferFunctionElement.type')
+  @DocsEditable
+  final AnimatedEnumeration type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGCursorElement')
+class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "*SVGCursorElement" {
+
+  @DomName('SVGCursorElement.SVGCursorElement')
+  @DocsEditable
+  factory _SVGCursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => SvgElement.isTagSupported('cursor') && (new SvgElement.tag('cursor') is _SVGCursorElement);
+
+  @DomName('SVGCursorElement.x')
+  @DocsEditable
+  final AnimatedLength x;
+
+  @DomName('SVGCursorElement.y')
+  @DocsEditable
+  final AnimatedLength y;
+
+  // From SVGExternalResourcesRequired
+
+  @DomName('SVGCursorElement.externalResourcesRequired')
+  @DocsEditable
+  final AnimatedBoolean externalResourcesRequired;
+
+  // From SVGTests
+
+  @DomName('SVGCursorElement.requiredExtensions')
+  @DocsEditable
+  final StringList requiredExtensions;
+
+  @DomName('SVGCursorElement.requiredFeatures')
+  @DocsEditable
+  final StringList requiredFeatures;
+
+  @DomName('SVGCursorElement.systemLanguage')
+  @DocsEditable
+  final StringList systemLanguage;
+
+  @DomName('SVGCursorElement.hasExtension')
+  @DocsEditable
+  bool hasExtension(String extension) native;
+
+  // From SVGURIReference
+
+  @DomName('SVGCursorElement.href')
+  @DocsEditable
+  final AnimatedString href;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGFEDropShadowElement')
+class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
+
+  @DomName('SVGFEDropShadowElement.dx')
+  @DocsEditable
+  final AnimatedNumber dx;
+
+  @DomName('SVGFEDropShadowElement.dy')
+  @DocsEditable
+  final AnimatedNumber dy;
+
+  @DomName('SVGFEDropShadowElement.in1')
+  @DocsEditable
+  final AnimatedString in1;
+
+  @DomName('SVGFEDropShadowElement.stdDeviationX')
+  @DocsEditable
+  final AnimatedNumber stdDeviationX;
+
+  @DomName('SVGFEDropShadowElement.stdDeviationY')
+  @DocsEditable
+  final AnimatedNumber stdDeviationY;
+
+  @DomName('SVGFEDropShadowElement.setStdDeviation')
+  @DocsEditable
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  @DomName('SVGFEDropShadowElement.height')
+  @DocsEditable
+  final AnimatedLength height;
+
+  @DomName('SVGFEDropShadowElement.result')
+  @DocsEditable
+  final AnimatedString result;
+
+  @DomName('SVGFEDropShadowElement.width')
+  @DocsEditable
+  final AnimatedLength width;
+
+  @DomName('SVGFEDropShadowElement.x')
+  @DocsEditable
+  final AnimatedLength x;
+
+  @DomName('SVGFEDropShadowElement.y')
+  @DocsEditable
+  final AnimatedLength y;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGFontElement')
+class _SVGFontElement extends SvgElement native "*SVGFontElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGFontFaceElement')
+class _SVGFontFaceElement extends SvgElement native "*SVGFontFaceElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGFontFaceFormatElement')
+class _SVGFontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGFontFaceNameElement')
+class _SVGFontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGFontFaceSrcElement')
+class _SVGFontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGFontFaceUriElement')
+class _SVGFontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGGlyphElement')
+class _SVGGlyphElement extends SvgElement native "*SVGGlyphElement" {
+
+  @DomName('SVGGlyphElement.SVGGlyphElement')
+  @DocsEditable
+  factory _SVGGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGGlyphRefElement')
+class _SVGGlyphRefElement extends StyledElement implements UriReference native "*SVGGlyphRefElement" {
+
+  @DomName('SVGGlyphRefElement.dx')
+  @DocsEditable
+  num dx;
+
+  @DomName('SVGGlyphRefElement.dy')
+  @DocsEditable
+  num dy;
+
+  @DomName('SVGGlyphRefElement.format')
+  @DocsEditable
+  String format;
+
+  @DomName('SVGGlyphRefElement.glyphRef')
+  @DocsEditable
+  String glyphRef;
+
+  @DomName('SVGGlyphRefElement.x')
+  @DocsEditable
+  num x;
+
+  @DomName('SVGGlyphRefElement.y')
+  @DocsEditable
+  num y;
+
+  // From SVGURIReference
+
+  @DomName('SVGGlyphRefElement.href')
+  @DocsEditable
+  final AnimatedString href;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGGradientElement')
+class _SVGGradientElement extends StyledElement implements UriReference, ExternalResourcesRequired native "*SVGGradientElement" {
+
+  static const int SVG_SPREADMETHOD_PAD = 1;
+
+  static const int SVG_SPREADMETHOD_REFLECT = 2;
+
+  static const int SVG_SPREADMETHOD_REPEAT = 3;
+
+  static const int SVG_SPREADMETHOD_UNKNOWN = 0;
+
+  @DomName('SVGGradientElement.gradientTransform')
+  @DocsEditable
+  final AnimatedTransformList gradientTransform;
+
+  @DomName('SVGGradientElement.gradientUnits')
+  @DocsEditable
+  final AnimatedEnumeration gradientUnits;
+
+  @DomName('SVGGradientElement.spreadMethod')
+  @DocsEditable
+  final AnimatedEnumeration spreadMethod;
+
+  // From SVGExternalResourcesRequired
+
+  @DomName('SVGGradientElement.externalResourcesRequired')
+  @DocsEditable
+  final AnimatedBoolean externalResourcesRequired;
+
+  // From SVGURIReference
+
+  @DomName('SVGGradientElement.href')
+  @DocsEditable
+  final AnimatedString href;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGHKernElement')
+class _SVGHKernElement extends SvgElement native "*SVGHKernElement" {
+
+  @DomName('SVGHKernElement.SVGHKernElement')
+  @DocsEditable
+  factory _SVGHKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGMPathElement')
+class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGMPathElement" {
+
+  @DomName('SVGMPathElement.SVGMPathElement')
+  @DocsEditable
+  factory _SVGMPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
+
+  // From SVGExternalResourcesRequired
+
+  @DomName('SVGMPathElement.externalResourcesRequired')
+  @DocsEditable
+  final AnimatedBoolean externalResourcesRequired;
+
+  // From SVGURIReference
+
+  @DomName('SVGMPathElement.href')
+  @DocsEditable
+  final AnimatedString href;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGMissingGlyphElement')
+class _SVGMissingGlyphElement extends StyledElement native "*SVGMissingGlyphElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGTRefElement')
+class _SVGTRefElement extends TextPositioningElement implements UriReference native "*SVGTRefElement" {
+
+  @DomName('SVGTRefElement.SVGTRefElement')
+  @DocsEditable
+  factory _SVGTRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
+
+  // From SVGURIReference
+
+  @DomName('SVGTRefElement.href')
+  @DocsEditable
+  final AnimatedString href;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SVGVKernElement')
+class _SVGVKernElement extends SvgElement native "*SVGVKernElement" {
+
+  @DomName('SVGVKernElement.SVGVKernElement')
+  @DocsEditable
+  factory _SVGVKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 }

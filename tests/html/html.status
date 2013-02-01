@@ -86,8 +86,12 @@ serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 storage_test: Fail, Pass
-svgelement_test/additionalConstructors: Fail
-svgelement2_test: Fail
+svgelement_test/supported_altGlyph: Fail
+svgelement_test/supported_animate: Fail
+svgelement_test/supported_animateTransform: Fail
+svgelement_test/supported_animateMotion: Fail
+svgelement_test/supported_foreignObject: Fail
+svgelement_test/supported_set: Fail
 touchevent_test/supported: Fail
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
@@ -156,9 +160,36 @@ postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
-svg_3_test: Fail
-svgelement_test/additionalConstructors: Fail
-svgelement2_test: Fail
+svg_test/supported_externalResourcesRequired: Fail
+svgelement_test/supported_altGlyph: Fail
+svgelement_test/supported_animate: Fail
+svgelement_test/supported_animateTransform: Fail
+svgelement_test/supported_animateMotion: Fail
+svgelement_test/supported_feBlend: Fail
+svgelement_test/supported_feColorMatrix: Fail
+svgelement_test/supported_feComponentTransfer: Fail
+svgelement_test/supported_feConvolveMatrix: Fail
+svgelement_test/supported_feDiffuseLighting: Fail
+svgelement_test/supported_feDisplacementMap: Fail
+svgelement_test/supported_feDistantLight: Fail
+svgelement_test/supported_feFlood: Fail
+svgelement_test/supported_feFuncA: Fail
+svgelement_test/supported_feFuncB: Fail
+svgelement_test/supported_feFuncG: Fail
+svgelement_test/supported_feFuncR: Fail
+svgelement_test/supported_feGaussianBlur: Fail
+svgelement_test/supported_feImage: Fail
+svgelement_test/supported_feMerge: Fail
+svgelement_test/supported_feMergeNode: Fail
+svgelement_test/supported_feOffset: Fail
+svgelement_test/supported_fePointLight: Fail
+svgelement_test/supported_feSpecularLighting: Fail
+svgelement_test/supported_feSpotLight: Fail
+svgelement_test/supported_feTile: Fail
+svgelement_test/supported_feTurbulence: Fail
+svgelement_test/supported_filter: Fail
+svgelement_test/supported_foreignObject: Fail
+svgelement_test/supported_set: Fail
 touchevent_test/supported: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 websocket_test/supported: Fail
@@ -227,9 +258,8 @@ notifications_test/supported: Fail
 performance_api_test/supported: Fail
 serialized_script_value_test: Fail
 speechrecognition_test/supported: Fail
-svg_3_test: Fail
-svgelement_test/additionalConstructors: Fail
-svgelement2_test: Fail
+svg_test/supported_externalResourcesRequired: Fail
+svg_test/supported_langSpace: Fail
 typed_arrays_arraybuffer_test: Fail
 url_test: Fail
 fileapi_test: Skip # Timeout.
@@ -268,10 +298,8 @@ media_stream_test/supported_MediaStreamTrackEvent: Fail
 notifications_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
-# Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
-svg_3_test: Fail
-svgelement_test/additionalConstructors: Fail
-svgelement2_test: Fail
+svg_test/supported_externalResourcesRequired: Fail
+svg_test/supported_langSpace: Fail
 touchevent_test/supported: Fail
 transferables_test: Fail   # Issue 3392.
 webgl_1_test: Pass, Fail   # Issue 8219
@@ -301,4 +329,3 @@ isolates_test: Skip   # Timeout because leg does not support web workers.
 
 [ $compiler == dart2js && $runtime == ff ]
 inner_frame_test: Skip # Timeout
-svg_3_test: Skip # Timeout

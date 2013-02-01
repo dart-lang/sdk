@@ -654,12 +654,6 @@ dart2js_annotations = {
     ],
 }
 
-# Placeholder to add experimental flag, implementation for this is
-# pending in a separate CL.
-dart_annotations = {
-  'Element.webkitMatchesSelector': ['@Experimental'],
-}
-
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX, '15')",
@@ -687,6 +681,12 @@ _webkit_experimental_annotations = [
 
 _history_annotations = _all_but_ie9_annotations
 
+_no_ie_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+  "@SupportedBrowser(SupportedBrowser.SAFARI)",
+]
+
 _performance_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -697,6 +697,8 @@ _speech_recognition_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
   "@Experimental",
 ]
+
+_svg_annotations = _all_but_ie9_annotations;
 
 _web_sql_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
@@ -734,6 +736,9 @@ dart_annotations = {
   'DOMWindow.webkitNotifications': _webkit_experimental_annotations,
   'DOMWindow.webkitRequestFileSystem': _file_system_annotations,
   'DOMWindow.webkitResolveLocalFileSystemURL': _file_system_annotations,
+  # Placeholder to add experimental flag, implementation for this is
+  # pending in a separate CL.
+  'Element.webkitMatchesSelector': ['@Experimental()'],
   'Element.webkitCreateShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental",
@@ -759,21 +764,9 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
   'HTMLKeygenElement': _webkit_experimental_annotations,
-  'HTMLMeterElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
-  'HTMLObjectElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
-  'HTMLOutputElement': [
-    "@SupportedBrowser(SupportedBrowser.CHROME)",
-    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-    "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  ],
+  'HTMLMeterElement': _no_ie_annotations,
+  'HTMLObjectElement': _no_ie_annotations,
+  'HTMLOutputElement': _no_ie_annotations,
   'HTMLProgressElement': _all_but_ie9_annotations,
   'HTMLShadowElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
@@ -804,6 +797,36 @@ dart_annotations = {
   'SpeechRecognitionError': _speech_recognition_annotations,
   'SpeechRecognitionEvent': _speech_recognition_annotations,
   'SpeechRecognitionResult': _speech_recognition_annotations,
+  'SVGAltGlyphElement': _no_ie_annotations,
+  'SVGAnimateElement': _no_ie_annotations,
+  'SVGAnimateMotionElement': _no_ie_annotations,
+  'SVGAnimateTransformElement': _no_ie_annotations,
+  'SVGFEBlendElement': _svg_annotations,
+  'SVGFEColorMatrixElement': _svg_annotations,
+  'SVGFEComponentTransferElement': _svg_annotations,
+  'SVGFEConvolveMatrixElement': _svg_annotations,
+  'SVGFEDiffuseLightingElement': _svg_annotations,
+  'SVGFEDisplacementMapElement': _svg_annotations,
+  'SVGFEDistantLightElement': _svg_annotations,
+  'SVGFEFloodElement': _svg_annotations,
+  'SVGFEFuncAElement': _svg_annotations,
+  'SVGFEFuncBElement': _svg_annotations,
+  'SVGFEFuncGElement': _svg_annotations,
+  'SVGFEFuncRElement': _svg_annotations,
+  'SVGFEGaussianBlurElement': _svg_annotations,
+  'SVGFEImageElement': _svg_annotations,
+  'SVGFEMergeElement': _svg_annotations,
+  'SVGFEMergeNodeElement': _svg_annotations,
+  'SVGFEMorphology': _svg_annotations,
+  'SVGFEOffsetElement': _svg_annotations,
+  'SVGFEPointLightElement': _svg_annotations,
+  'SVGFESpecularLightingElement': _svg_annotations,
+  'SVGFESpotLightElement': _svg_annotations,
+  'SVGFETileElement': _svg_annotations,
+  'SVGFETurbulenceElement': _svg_annotations,
+  'SVGFilterElement': _svg_annotations,
+  'SVGForeignObjectElement': _no_ie_annotations,
+  'SVGSetElement': _no_ie_annotations,
   'SQLTransaction': _web_sql_annotations,
   'SQLTransactionSync': _web_sql_annotations,
   'WebGLRenderingContext': _webgl_annotations,

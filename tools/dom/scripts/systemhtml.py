@@ -69,40 +69,6 @@ _js_custom_members = set([
     'WorkerContext.indexedDB',
     ])
 
-js_support_checks = {
-  'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
-  'Database': "JS('bool', '!!(window.openDatabase)')",
-  'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
-  'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
-  'HashChangeEvent': "Event._isTypeSupported('HashChangeEvent')",
-  'HTMLContentElement': "Element.isTagSupported('content')",
-  'HTMLDataListElement': "Element.isTagSupported('datalist')",
-  'HTMLDetailsElement': "Element.isTagSupported('details')",
-  'HTMLEmbedElement': "Element.isTagSupported('embed')",
-  # IE creates keygen as Block elements
-  'HTMLKeygenElement': "Element.isTagSupported('keygen') "
-      "&& (new Element.tag('keygen') is KeygenElement)",
-  'HTMLMeterElement': "Element.isTagSupported('meter')",
-  'HTMLObjectElement': "Element.isTagSupported('object')",
-  'HTMLOutputElement': "Element.isTagSupported('output')",
-  'HTMLProgressElement': "Element.isTagSupported('progress')",
-  'HTMLShadowElement': "Element.isTagSupported('shadow')",
-  'HTMLTrackElement': "Element.isTagSupported('track')",
-  'MediaStreamEvent': "Event._isTypeSupported('MediaStreamEvent')",
-  'MediaStreamTrackEvent': "Event._isTypeSupported('MediaStreamTrackEvent')",
-  'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
-  'Performance': "JS('bool', '!!(window.performance)')",
-  'SpeechRecognition': "JS('bool', '!!(window.SpeechRecognition || "
-      "window.webkitSpeechRecognition)')",
-  'XMLHttpRequestProgressEvent':
-      "Event._isTypeSupported('XMLHttpRequestProgressEvent')",
-  'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
-  'WebKitCSSMatrix': "JS('bool', '!!(window.WebKitCSSMatrix)')",
-  'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
-  'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
-  'XSLTProcessor': "JS('bool', '!!(window.XSLTProcessor)')",
-}
-
 # Classes that offer only static methods, and therefore we should suppress
 # constructor creation.
 _static_classes = set(['Url'])
@@ -140,122 +106,139 @@ class ElementConstructorInfo(object):
     return info
 
 _html_element_constructors = {
-  'AnchorElement' :
+  'HTMLAnchorElement' :
     ElementConstructorInfo(tag='a', opt_params=[('DOMString', 'href')]),
-  'AreaElement': 'area',
-  'ButtonElement': 'button',
-  'BRElement': 'br',
-  'BaseElement': 'base',
-  'BodyElement': 'body',
-  'ButtonElement': 'button',
-  'CanvasElement':
+  'HTMLAreaElement': 'area',
+  'HTMLButtonElement': 'button',
+  'HTMLBRElement': 'br',
+  'HTMLBaseElement': 'base',
+  'HTMLBodyElement': 'body',
+  'HTMLButtonElement': 'button',
+  'HTMLCanvasElement':
     ElementConstructorInfo(tag='canvas',
                            opt_params=[('int', 'width'), ('int', 'height')]),
-  'ContentElement': 'content',
-  'DataListElement': 'datalist',
-  'DListElement': 'dl',
-  'DetailsElement': 'details',
-  'DivElement': 'div',
-  'EmbedElement': 'embed',
-  'FieldSetElement': 'fieldset',
-  'FormElement': 'form',
-  'HRElement': 'hr',
-  'HeadElement': 'head',
-  'HeadingElement': [ElementConstructorInfo('h1'),
+  'HTMLContentElement': 'content',
+  'HTMLDataListElement': 'datalist',
+  'HTMLDListElement': 'dl',
+  'HTMLDetailsElement': 'details',
+  'HTMLDivElement': 'div',
+  'HTMLEmbedElement': 'embed',
+  'HTMLFieldSetElement': 'fieldset',
+  'HTMLFormElement': 'form',
+  'HTMLHRElement': 'hr',
+  'HTMLHeadElement': 'head',
+  'HTMLHeadingElement': [ElementConstructorInfo('h1'),
                      ElementConstructorInfo('h2'),
                      ElementConstructorInfo('h3'),
                      ElementConstructorInfo('h4'),
                      ElementConstructorInfo('h5'),
                      ElementConstructorInfo('h6')],
-  'HtmlElement': 'html',
-  'IFrameElement': 'iframe',
-  'ImageElement':
+  'HTMLHtmlElement': 'html',
+  'HTMLIFrameElement': 'iframe',
+  'HTMLImageElement':
     ElementConstructorInfo(tag='img',
                            opt_params=[('DOMString', 'src'),
                                        ('int', 'width'), ('int', 'height')]),
-  'KeygenElement': 'keygen',
-  'LIElement': 'li',
-  'LabelElement': 'label',
-  'LegendElement': 'legend',
-  'LinkElement': 'link',
-  'MapElement': 'map',
-  'MenuElement': 'menu',
-  'MeterElement': 'meter',
-  'OListElement': 'ol',
-  'ObjectElement': 'object',
-  'OptGroupElement': 'optgroup',
-  'OutputElement': 'output',
-  'ParagraphElement': 'p',
-  'ParamElement': 'param',
-  'PreElement': 'pre',
-  'ProgressElement': 'progress',
-  'ScriptElement': 'script',
-  'SelectElement': 'select',
-  'SourceElement': 'source',
-  'SpanElement': 'span',
-  'StyleElement': 'style',
-  'TableCaptionElement': 'caption',
-  'TableCellElement': 'td',
-  'TableColElement': 'col',
-  'TableElement': 'table',
-  'TableRowElement': 'tr',
-  #'TableSectionElement'  <thead> <tbody> <tfoot>
-  'TextAreaElement': 'textarea',
-  'TitleElement': 'title',
-  'TrackElement': 'track',
-  'UListElement': 'ul',
-  'VideoElement': 'video'
+  'HTMLKeygenElement': 'keygen',
+  'HTMLLIElement': 'li',
+  'HTMLLabelElement': 'label',
+  'HTMLLegendElement': 'legend',
+  'HTMLLinkElement': 'link',
+  'HTMLMapElement': 'map',
+  'HTMLMenuElement': 'menu',
+  'HTMLMeterElement': 'meter',
+  'HTMLOListElement': 'ol',
+  'HTMLObjectElement': 'object',
+  'HTMLOptGroupElement': 'optgroup',
+  'HTMLOutputElement': 'output',
+  'HTMLParagraphElement': 'p',
+  'HTMLParamElement': 'param',
+  'HTMLPreElement': 'pre',
+  'HTMLProgressElement': 'progress',
+  'HTMLScriptElement': 'script',
+  'HTMLSelectElement': 'select',
+  'HTMLSourceElement': 'source',
+  'HTMLSpanElement': 'span',
+  'HTMLStyleElement': 'style',
+  'HTMLTableCaptionElement': 'caption',
+  'HTMLTableCellElement': 'td',
+  'HTMLTableColElement': 'col',
+  'HTMLTableElement': 'table',
+  'HTMLTableRowElement': 'tr',
+  #'HTMLTableSectionElement'  <thead> <tbody> <tfoot>
+  'HTMLTextAreaElement': 'textarea',
+  'HTMLTitleElement': 'title',
+  'HTMLTrackElement': 'track',
+  'HTMLUListElement': 'ul',
+  'HTMLVideoElement': 'video'
 }
 
 _svg_element_constructors = {
-  'AElement': 'a',
-  'AnimateColorElement': 'animateColor',
-  'AnimateElement': 'animate',
-  'AnimateMotionElement': 'animateMotion',
-  'AnimateTransformElement': 'animateTransform',
-  'AnimationElement': 'animation',
-  'CircleElement': 'circle',
-  'ClipPathElement': 'clipPath',
-  'CursorElement': 'cursor',
-  'DefsElement': 'defs',
-  'DescElement': 'desc',
-  'EllipseElement': 'ellipse',
-  'FilterElement': 'filter',
-  'FontElement': 'font',
-  'FontFaceElement': 'font-face',
-  'FontFaceFormatElement': 'font-face-format',
-  'FontFaceNameElement': 'font-face-name',
-  'FontFaceSrcElement': 'font-face-src',
-  'FontFaceUriElement': 'font-face-uri',
-  'ForeignObjectElement': 'foreignObject',
-  'GlyphElement': 'glyph',
-  'GElement': 'g',
-  'HKernElement': 'hkern',
-  'ImageElement': 'image',
-  'LinearGradientElement': 'linearGradient',
-  'LineElement': 'line',
-  'MarkerElement': 'marker',
-  'MaskElement': 'mask',
-  'MPathElement': 'mpath',
-  'PathElement': 'path',
-  'PatternElement': 'pattern',
-  'PolygonElement': 'polygon',
-  'PolylineElement': 'polyline',
-  'RadialGradientElement': 'radialGradient',
-  'RectElement': 'rect',
-  'ScriptElement': 'script',
-  'SetElement': 'set',
-  'StopElement': 'stop',
-  'StyleElement': 'style',
-  'SwitchElement': 'switch',
-  'SymbolElement': 'symbol',
-  'TextElement': 'text',
-  'TitleElement': 'title',
-  'TRefElement': 'tref',
-  'TSpanElement': 'tspan',
-  'UseElement': 'use',
-  'ViewElement': 'view',
-  'VKernElement': 'vkern',
+  'SVGAElement': 'a',
+  'SVGAltGlyphElement': 'altGlyph',
+  'SVGAnimateElement': 'animate',
+  'SVGAnimateMotionElement': 'animateMotion',
+  'SVGAnimateTransformElement': 'animateTransform',
+  'SVGAnimationElement': 'animation',
+  'SVGCircleElement': 'circle',
+  'SVGClipPathElement': 'clipPath',
+  'SVGCursorElement': 'cursor',
+  'SVGDefsElement': 'defs',
+  'SVGDescElement': 'desc',
+  'SVGEllipseElement': 'ellipse',
+  'SVGFEBlendElement': 'feBlend',
+  'SVGFEColorMatrixElement': 'feColorMatrix',
+  'SVGFEComponentTransferElement': 'feComponentTransfer',
+  'SVGFEConvolveMatrixElement': 'feConvolveMatrix',
+  'SVGFEDiffuseLightingElement': 'feDiffuseLighting',
+  'SVGFEDisplacementMapElement': 'feDisplacementMap',
+  'SVGFEDistantLightElement': 'feDistantLight',
+  'SVGFEFloodElement': 'feFlood',
+  'SVGFEFuncAElement': 'feFuncA',
+  'SVGFEFuncBElement': 'feFuncB',
+  'SVGFEFuncGElement': 'feFuncG',
+  'SVGFEFuncRElement': 'feFuncR',
+  'SVGFEGaussianBlurElement': 'feGaussianBlur',
+  'SVGFEImageElement': 'feImage',
+  'SVGFEMergeElement': 'feMerge',
+  'SVGFEMergeNodeElement': 'feMergeNode',
+  'SVGFEMorphology': 'feMorphology',
+  'SVGFEOffsetElement': 'feOffset',
+  'SVGFEPointLightElement': 'fePointLight',
+  'SVGFESpecularLightingElement': 'feSpecularLighting',
+  'SVGFESpotLightElement': 'feSpotLight',
+  'SVGFETileElement': 'feTile',
+  'SVGFETurbulenceElement': 'feTurbulence',
+  'SVGFilterElement': 'filter',
+  'SVGForeignObjectElement': 'foreignObject',
+  'SVGGlyphElement': 'glyph',
+  'SVGGElement': 'g',
+  'SVGHKernElement': 'hkern',
+  'SVGImageElement': 'image',
+  'SVGLinearGradientElement': 'linearGradient',
+  'SVGLineElement': 'line',
+  'SVGMarkerElement': 'marker',
+  'SVGMaskElement': 'mask',
+  'SVGMPathElement': 'mpath',
+  'SVGPathElement': 'path',
+  'SVGPatternElement': 'pattern',
+  'SVGPolygonElement': 'polygon',
+  'SVGPolylineElement': 'polyline',
+  'SVGRadialGradientElement': 'radialGradient',
+  'SVGRectElement': 'rect',
+  'SVGScriptElement': 'script',
+  'SVGSetElement': 'set',
+  'SVGStopElement': 'stop',
+  'SVGStyleElement': 'style',
+  'SVGSwitchElement': 'switch',
+  'SVGSymbolElement': 'symbol',
+  'SVGTextElement': 'text',
+  'SVGTitleElement': 'title',
+  'SVGTRefElement': 'tref',
+  'SVGTSpanElement': 'tspan',
+  'SVGUseElement': 'use',
+  'SVGViewElement': 'view',
+  'SVGVKernElement': 'vkern',
 }
 
 _element_constructors = {
@@ -299,6 +282,94 @@ def ElementConstructorInfos(typename, element_constructors,
     infos = [infos]
   return infos
 
+# ------------------------------------------------------------------------------
+def SvgSupportStr(tagName):
+  return 'Svg%s' % ElemSupportStr(tagName)
+
+def ElemSupportStr(tagName):
+  return "Element.isTagSupported('%s')" % tagName
+
+_js_support_checks_basic_element_with_constructors = [
+  'HTMLContentElement',
+  'HTMLDataListElement',
+  'HTMLDetailsElement',
+  'HTMLEmbedElement',
+  'HTMLMeterElement',
+  'HTMLObjectElement',
+  'HTMLOutputElement',
+  'HTMLProgressElement',
+  'HTMLTrackElement',
+]
+
+_js_support_checks_additional_element = [
+  # IE creates keygen as Block elements
+  'HTMLKeygenElement',
+  'SVGAltGlyphElement',
+  'SVGAnimateElement',
+  'SVGAnimateMotionElement',
+  'SVGAnimateTransformElement',
+  'SVGCursorElement',
+  'SVGFEBlendElement',
+  'SVGFEColorMatrixElement',
+  'SVGFEComponentTransferElement',
+  'SVGFEConvolveMatrixElement',
+  'SVGFEDiffuseLightingElement',
+  'SVGFEDisplacementMapElement',
+  'SVGFEDistantLightElement',
+  'SVGFEFloodElement',
+  'SVGFEFuncAElement',
+  'SVGFEFuncBElement',
+  'SVGFEFuncGElement',
+  'SVGFEFuncRElement',
+  'SVGFEGaussianBlurElement',
+  'SVGFEImageElement',
+  'SVGFEMergeElement',
+  'SVGFEMergeNodeElement',
+  'SVGFEMorphology',
+  'SVGFEOffsetElement',
+  'SVGFEPointLightElement',
+  'SVGFESpecularLightingElement',
+  'SVGFESpotLightElement',
+  'SVGFETileElement',
+  'SVGFETurbulenceElement',
+  'SVGFilterElement',
+  'SVGForeignObjectElement',
+  'SVGSetElement',
+]
+
+js_support_checks = dict({
+    'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
+    'Database': "JS('bool', '!!(window.openDatabase)')",
+    'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
+    'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
+    'HashChangeEvent': "Event._isTypeSupported('HashChangeEvent')",
+    'HTMLShadowElement': ElemSupportStr('shadow'),
+    'MediaStreamEvent': "Event._isTypeSupported('MediaStreamEvent')",
+    'MediaStreamTrackEvent': "Event._isTypeSupported('MediaStreamTrackEvent')",
+    'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
+    'Performance': "JS('bool', '!!(window.performance)')",
+    'SpeechRecognition': "JS('bool', '!!(window.SpeechRecognition || "
+        "window.webkitSpeechRecognition)')",
+    'SVGExternalResourcesRequired': ('supported(SvgElement element)',
+        "JS('bool', '#.externalResourcesRequired !== undefined && "
+        "#.externalResourcesRequired.animVal !== undefined', "
+        "element, element)"),
+    'SVGLangSpace': ('supported(SvgElement element)',
+        "JS('bool', '#.xmlspace !== undefined && #.xmllang !== undefined', "
+        "element, element)"),
+    'XMLHttpRequestProgressEvent':
+        "Event._isTypeSupported('XMLHttpRequestProgressEvent')",
+    'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
+    'WebKitCSSMatrix': "JS('bool', '!!(window.WebKitCSSMatrix)')",
+    'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
+    'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
+    'XSLTProcessor': "JS('bool', '!!(window.XSLTProcessor)')",
+  }.items() +
+  dict((key,
+        SvgSupportStr(_svg_element_constructors[key]) if key.startswith('SVG')
+            else ElemSupportStr(_html_element_constructors[key])) for key in
+    _js_support_checks_basic_element_with_constructors +
+    _js_support_checks_additional_element).items())
 # ------------------------------------------------------------------------------
 
 class HtmlDartInterfaceGenerator(object):
@@ -359,7 +430,7 @@ class HtmlDartInterfaceGenerator(object):
       factory_provider = interface_name
 
     # HTML Elements and SVG Elements have convenience constructors.
-    infos = ElementConstructorInfos(interface_name,
+    infos = ElementConstructorInfos(self._interface.id,
         _element_constructors[self._library_name], factory_provider_name=
         _factory_ctr_strings[self._library_name]['provider_name'])
 
@@ -521,6 +592,19 @@ class Dart2JSBackend(HtmlDartGenerator):
     return self._interface.doc_js_name in js_support_checks
 
   def GetSupportCheck(self):
+    """Return a tuple of the support check function signature and the support
+    test itself. If no parameters are supplied, we assume the default."""
+    if self._interface.doc_js_name in _js_support_checks_additional_element:
+      if self._interface.doc_js_name in _svg_element_constructors:
+        lib_prefix = 'Svg'
+        constructors = _svg_element_constructors
+      else:
+        lib_prefix = ''
+        constructors = _html_element_constructors
+      return (js_support_checks.get(self._interface.doc_js_name) +
+          " && (new %sElement.tag('%s') is %s)" % (lib_prefix,
+        constructors[self._interface.doc_js_name],
+        self._renamer.RenameInterface(self._interface)))
     return js_support_checks.get(self._interface.doc_js_name)
 
   def GenerateCustomFactory(self, constructor_info):

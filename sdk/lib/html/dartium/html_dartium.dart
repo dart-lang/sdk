@@ -10086,6 +10086,7 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.webkitMatchesSelector')
   @DocsEditable
+  @Experimental()
   bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
 
   @DomName('Element.webkitRequestFullScreen')
@@ -30240,32 +30241,6 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
-@DomName('HTMLAppletElement')
-class _AppletElement extends _Element_Merged {
-  _AppletElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('HTMLBaseFontElement')
-class _BaseFontElement extends _Element_Merged {
-  _BaseFontElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('ClientRectList')
 class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRect> {
   _ClientRectList.internal();
@@ -30869,19 +30844,6 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
 
 @DocsEditable
-@DomName('HTMLDirectoryElement')
-class _DirectoryElement extends _Element_Merged {
-  _DirectoryElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('HTMLElement')
 class _Element_Merged extends Element {
   _Element_Merged.internal() : super.internal();
@@ -31421,97 +31383,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
 
 @DocsEditable
-@DomName('HTMLFontElement')
-class _FontElement extends _Element_Merged {
-  _FontElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('HTMLFrameElement')
-class _FrameElement extends _Element_Merged {
-  _FrameElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('HTMLFrameSetElement')
-class _FrameSetElement extends _Element_Merged {
-  _FrameSetElement.internal() : super.internal();
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  _FrameSetElementEvents get on =>
-    new _FrameSetElementEvents(this);
-
-}
-
-@DocsEditable
-@deprecated
-class _FrameSetElementEvents extends ElementEvents {
-  @DocsEditable
-  _FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  @DocsEditable
-  EventListenerList get blur => this['blur'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get focus => this['focus'];
-
-  @DocsEditable
-  EventListenerList get hashChange => this['hashchange'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get offline => this['offline'];
-
-  @DocsEditable
-  EventListenerList get online => this['online'];
-
-  @DocsEditable
-  EventListenerList get popState => this['popstate'];
-
-  @DocsEditable
-  EventListenerList get resize => this['resize'];
-
-  @DocsEditable
-  EventListenerList get storage => this['storage'];
-
-  @DocsEditable
-  EventListenerList get unload => this['unload'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('GamepadList')
 class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   _GamepadList.internal();
@@ -31713,9 +31584,139 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
 
 @DocsEditable
+@DomName('HTMLAppletElement')
+class _HTMLAppletElement extends _Element_Merged {
+  _HTMLAppletElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLBaseFontElement')
+class _HTMLBaseFontElement extends _Element_Merged {
+  _HTMLBaseFontElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLDirectoryElement')
+class _HTMLDirectoryElement extends _Element_Merged {
+  _HTMLDirectoryElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLFontElement')
+class _HTMLFontElement extends _Element_Merged {
+  _HTMLFontElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLFrameElement')
+class _HTMLFrameElement extends _Element_Merged {
+  _HTMLFrameElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLFrameSetElement')
+class _HTMLFrameSetElement extends _Element_Merged {
+  _HTMLFrameSetElement.internal() : super.internal();
+
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
+  _HTMLFrameSetElementEvents get on =>
+    new _HTMLFrameSetElementEvents(this);
+
+}
+
+@DocsEditable
+@deprecated
+class _HTMLFrameSetElementEvents extends ElementEvents {
+  @DocsEditable
+  _HTMLFrameSetElementEvents(EventTarget _ptr) : super(_ptr);
+
+  @DocsEditable
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  @DocsEditable
+  EventListenerList get blur => this['blur'];
+
+  @DocsEditable
+  EventListenerList get error => this['error'];
+
+  @DocsEditable
+  EventListenerList get focus => this['focus'];
+
+  @DocsEditable
+  EventListenerList get hashChange => this['hashchange'];
+
+  @DocsEditable
+  EventListenerList get load => this['load'];
+
+  @DocsEditable
+  EventListenerList get message => this['message'];
+
+  @DocsEditable
+  EventListenerList get offline => this['offline'];
+
+  @DocsEditable
+  EventListenerList get online => this['online'];
+
+  @DocsEditable
+  EventListenerList get popState => this['popstate'];
+
+  @DocsEditable
+  EventListenerList get resize => this['resize'];
+
+  @DocsEditable
+  EventListenerList get storage => this['storage'];
+
+  @DocsEditable
+  EventListenerList get unload => this['unload'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('HTMLMarqueeElement')
-class _MarqueeElement extends _Element_Merged {
-  _MarqueeElement.internal() : super.internal();
+class _HTMLMarqueeElement extends _Element_Merged {
+  _HTMLMarqueeElement.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
