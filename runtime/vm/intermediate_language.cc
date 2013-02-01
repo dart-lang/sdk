@@ -1664,6 +1664,64 @@ Definition* Definition::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
+bool LoadFieldInstr::IsImmutableLengthLoad() const {
+  switch (recognized_kind()) {
+    case MethodRecognizer::kObjectArrayLength:
+    case MethodRecognizer::kImmutableArrayLength:
+    case MethodRecognizer::kByteArrayBaseLength:
+    case MethodRecognizer::kStringBaseLength:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
+MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
+    intptr_t cid) {
+  switch (cid) {
+    case kArrayCid:
+      return MethodRecognizer::kObjectArrayLength;
+    case kImmutableArrayCid:
+      return MethodRecognizer::kImmutableArrayLength;
+    case kGrowableObjectArrayCid:
+      return MethodRecognizer::kGrowableArrayLength;
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+    case kInt64ArrayCid:
+    case kUint64ArrayCid:
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid:
+      return MethodRecognizer::kByteArrayBaseLength;
+    default:
+      UNREACHABLE();
+      return MethodRecognizer::kUnknown;
+  }
+}
+
+
+Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  if (!IsImmutableLengthLoad()) return this;
+
+  // For fixed length arrays if the array is the result of a known constructor
+  // call we can replace the length load with the length argument passed to
+  // the constructor.
+  StaticCallInstr* call = value()->definition()->AsStaticCall();
+  if (call != NULL &&
+      call->is_known_constructor() &&
+      call->ResultCid() == kArrayCid) {
+    return call->ArgumentAt(1)->value()->definition();
+  }
+  return this;
+}
+
+
 Definition* AssertBooleanInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   const intptr_t value_cid = value()->ResultCid();
   return (value_cid == kBoolCid) ? value()->definition() : this;
@@ -2511,9 +2569,7 @@ static bool SymbolicAdd(const RangeBoundary& a,
 
 static bool IsArrayLength(Definition* defn) {
   LoadFieldInstr* load = defn->AsLoadField();
-  return (load != NULL) &&
-      ((load->recognized_kind() == MethodRecognizer::kObjectArrayLength) ||
-       (load->recognized_kind() == MethodRecognizer::kImmutableArrayLength));
+  return (load != NULL) && load->IsImmutableLengthLoad();
 }
 
 

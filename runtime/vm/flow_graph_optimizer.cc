@@ -551,9 +551,19 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
     }
   }
   if (!skip_check) {
-    // Insert array bounds check.
+    // Insert array length load and bounds check.
+    const bool is_immutable = (class_id != kGrowableObjectArrayCid);
+    LoadFieldInstr* length = new LoadFieldInstr(
+        (*array)->Copy(),
+        CheckArrayBoundInstr::LengthOffsetFor(class_id),
+        Type::ZoneHandle(Type::SmiType()),
+        is_immutable);
+    length->set_result_cid(kSmiCid);
+    length->set_recognized_kind(
+        LoadFieldInstr::RecognizedKindFromArrayCid(class_id));
+    InsertBefore(call, length, NULL, Definition::kValue);
     InsertBefore(call,
-                 new CheckArrayBoundInstr((*array)->Copy(),
+                 new CheckArrayBoundInstr(new Value(length),
                                           (*index)->Copy(),
                                           class_id,
                                           call),
@@ -1299,8 +1309,17 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
   }
   if (!skip_check) {
     // Insert bounds check.
+    const bool is_immutable = true;
+    LoadFieldInstr* length = new LoadFieldInstr(
+        str->Copy(),
+        CheckArrayBoundInstr::LengthOffsetFor(cid),
+        Type::ZoneHandle(Type::SmiType()),
+        is_immutable);
+    length->set_result_cid(kSmiCid);
+    length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
+    InsertBefore(call, length, NULL, Definition::kValue);
     InsertBefore(call,
-                 new CheckArrayBoundInstr(str->Copy(),
+                 new CheckArrayBoundInstr(new Value(length),
                                           index->Copy(),
                                           cid,
                                           call),
@@ -2045,7 +2064,6 @@ class RangeAnalysis : public ValueObject {
   void ConstrainValueAfterBranch(Definition* defn, Value* use);
   void ConstrainValueAfterCheckArrayBound(Definition* defn,
                                           CheckArrayBoundInstr* check);
-  Definition* LoadArrayLength(CheckArrayBoundInstr* check);
 
   // Replace uses of the definition def that are dominated by instruction dom
   // with uses of other definition.
@@ -2104,53 +2122,6 @@ class RangeAnalysis : public ValueObject {
   // Worklist for induction variables analysis.
   GrowableArray<Definition*> worklist_;
   BitVector* marked_defns_;
-
-  class ArrayLengthData : public ValueObject {
-   public:
-    ArrayLengthData(Definition* array, Definition* array_length)
-        : array_(array), array_length_(array_length) { }
-
-    ArrayLengthData(const ArrayLengthData& other)
-        : ValueObject(),
-          array_(other.array_),
-          array_length_(other.array_length_) { }
-
-    ArrayLengthData& operator=(const ArrayLengthData& other) {
-      array_ = other.array_;
-      array_length_ = other.array_length_;
-      return *this;
-    }
-
-    Definition* array() const { return array_; }
-    Definition* array_length() const { return array_length_; }
-
-    typedef Definition* Value;
-    typedef Definition* Key;
-    typedef class ArrayLengthData Pair;
-
-    // KeyValueTrait members.
-    static Key KeyOf(const ArrayLengthData& data) {
-      return data.array();
-    }
-
-    static Value ValueOf(const ArrayLengthData& data) {
-      return data.array_length();
-    }
-
-    static inline intptr_t Hashcode(Key key) {
-      return reinterpret_cast<intptr_t>(key);
-    }
-
-    static inline bool IsKeyEqual(const ArrayLengthData& kv, Key key) {
-      return kv.array() == key;
-    }
-
-   private:
-    Definition* array_;
-    Definition* array_length_;
-  };
-
-  DirectChainedHashMap<ArrayLengthData> array_lengths_;
 
   DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
 };
@@ -2385,47 +2356,13 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
 }
 
 
-Definition* RangeAnalysis::LoadArrayLength(CheckArrayBoundInstr* check) {
-  Definition* array = check->array()->definition();
-
-  Definition* length = array_lengths_.Lookup(array);
-  if (length != NULL) return length;
-
-  StaticCallInstr* allocation = array->AsStaticCall();
-  if ((allocation != NULL) &&
-      allocation->is_known_constructor() &&
-      (allocation->ResultCid() == kArrayCid)) {
-    // For fixed length arrays check if array is the result of a constructor
-    // call. In this case we can use the length passed to the constructor
-    // instead of loading it from array itself.
-    length = allocation->ArgumentAt(1)->value()->definition();
-  } else {
-    // Load length from the array. Do not insert instruction into the graph.
-    // It will only be used in range boundaries.
-    LoadFieldInstr* length_load = new LoadFieldInstr(
-        check->array()->Copy(),
-        CheckArrayBoundInstr::LengthOffsetFor(check->array_type()),
-        Type::ZoneHandle(Type::SmiType()),
-        true);  // Immutable.
-    length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
-    length_load->set_result_cid(kSmiCid);
-    length_load->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
-    length = length_load;
-  }
-
-  ASSERT(length != NULL);
-  array_lengths_.Insert(ArrayLengthData(array, length));
-  return length;
-}
-
-
 void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
     Definition* defn, CheckArrayBoundInstr* check) {
   if (!CheckArrayBoundInstr::IsFixedLengthArrayType(check->array_type())) {
     return;
   }
 
-  Definition* length = LoadArrayLength(check);
+  Definition* length = check->length()->definition();
 
   Range* constraint_range = new Range(
       RangeBoundary::FromConstant(0),
@@ -2622,7 +2559,7 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
                current->IsCheckArrayBound()) {
       CheckArrayBoundInstr* check = current->AsCheckArrayBound();
       RangeBoundary array_length =
-          RangeBoundary::FromDefinition(LoadArrayLength(check));
+          RangeBoundary::FromDefinition(check->length()->definition());
       if (check->IsRedundant(array_length)) it.RemoveCurrentFromGraph();
     }
   }
@@ -4212,9 +4149,25 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
         instr->value()->definition()->AsCreateArray()->ArgumentCount();
     const Object& result = Smi::ZoneHandle(Smi::New(length));
     SetValue(instr, result);
-  } else {
-    SetValue(instr, non_constant_);
+    return;
   }
+
+  if (instr->IsImmutableLengthLoad()) {
+    ConstantInstr* constant = instr->value()->definition()->AsConstant();
+    if (constant != NULL) {
+      if (constant->value().IsString()) {
+        SetValue(instr, Smi::ZoneHandle(
+            Smi::New(String::Cast(constant->value()).Length())));
+        return;
+      }
+      if (constant->value().IsArray()) {
+        SetValue(instr, Smi::ZoneHandle(
+            Smi::New(Array::Cast(constant->value()).Length())));
+        return;
+      }
+    }
+  }
+  SetValue(instr, non_constant_);
 }
 
 

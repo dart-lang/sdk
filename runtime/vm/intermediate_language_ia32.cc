@@ -2712,7 +2712,7 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RegisterOrSmiConstant(array()));
+  locs->set_in(0, Location::RegisterOrSmiConstant(length()));
   locs->set_in(1, Location::RegisterOrSmiConstant(index()));
   return locs;
 }
@@ -2728,29 +2728,24 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  intptr_t length_offset = LengthOffsetFor(array_type());
   if (locs()->in(1).IsConstant()) {
-    Register receiver = locs()->in(0).reg();
+    Register length = locs()->in(0).reg();
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
     const int32_t imm =
         reinterpret_cast<int32_t>(constant.raw());
-    __ cmpl(FieldAddress(receiver, length_offset), Immediate(imm));
+    __ cmpl(length, Immediate(imm));
     __ j(BELOW_EQUAL, deopt);
   } else if (locs()->in(0).IsConstant()) {
-    ASSERT(locs()->in(0).constant().IsArray() ||
-           locs()->in(0).constant().IsString());
-    intptr_t length = locs()->in(0).constant().IsArray()
-        ? Array::Cast(locs()->in(0).constant()).Length()
-        : String::Cast(locs()->in(0).constant()).Length();
+    ASSERT(locs()->in(0).constant().IsSmi());
+    const Smi& smi_const = Smi::Cast(locs()->in(0).constant());
     Register index = locs()->in(1).reg();
-    __ cmpl(index,
-        Immediate(reinterpret_cast<int32_t>(Smi::New(length))));
+    __ cmpl(index, Immediate(reinterpret_cast<int32_t>(smi_const.raw())));
     __ j(ABOVE_EQUAL, deopt);
   } else {
-    Register receiver = locs()->in(0).reg();
+    Register length = locs()->in(0).reg();
     Register index = locs()->in(1).reg();
-    __ cmpl(index, FieldAddress(receiver, length_offset));
+    __ cmpl(index, length);
     __ j(ABOVE_EQUAL, deopt);
   }
 }

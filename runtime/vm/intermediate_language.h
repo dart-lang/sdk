@@ -3108,6 +3108,12 @@ class LoadFieldInstr : public TemplateDefinition<1> {
     return recognized_kind_;
   }
 
+  bool IsImmutableLengthLoad() const;
+
+  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  static MethodRecognizer::Kind RecognizedKindFromArrayCid(intptr_t cid);
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
@@ -4208,14 +4214,14 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 
 class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
-  CheckArrayBoundInstr(Value* array,
+  CheckArrayBoundInstr(Value* length,
                        Value* index,
                        intptr_t array_type,
                        InstanceCallInstr* instance_call)
       : array_type_(array_type) {
-    ASSERT(array != NULL);
+    ASSERT(length != NULL);
     ASSERT(index != NULL);
-    inputs_[0] = array;
+    inputs_[0] = length;
     inputs_[1] = index;
     deopt_id_ = instance_call->deopt_id();
   }
@@ -4233,7 +4239,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   virtual bool AffectedBySideEffect() const { return false; }
 
-  Value* array() const { return inputs_[0]; }
+  Value* length() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
 
   intptr_t array_type() const { return array_type_; }
