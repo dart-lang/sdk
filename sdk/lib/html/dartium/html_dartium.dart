@@ -13684,7 +13684,7 @@ class HttpRequest extends EventTarget {
   static Future<HttpRequest> request(String url,
       {String method, bool withCredentials, String responseType, sendData,
       void onProgress(ProgressEvent e)}) {
-    var completer = new Completer<String>();
+    var completer = new Completer<HttpRequest>();
 
     var xhr = new HttpRequest();
     if (method == null) {
