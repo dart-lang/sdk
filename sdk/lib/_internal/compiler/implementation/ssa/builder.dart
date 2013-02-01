@@ -1380,7 +1380,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       List bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
       FunctionSignature functionSignature = body.computeSignature(compiler);
-      int arity = functionSignature.parameterCount;
       functionSignature.orderedForEachParameter((parameter) {
         if (!localsHandler.isBoxed(parameter)) {
           // The parameter will be a field in the box passed as the
@@ -1420,7 +1419,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // these selectors. Maybe the resolver can do more of the work
       // for us here?
       LibraryElement library = body.getLibrary();
-      Selector selector = new Selector.call(name, library, arity);
+      Selector selector = new Selector.call(
+          name, library, bodyCallInputs.length - 1);
       HInvokeDynamic invoke =
           new HInvokeDynamicMethod(selector, bodyCallInputs);
       invoke.element = body;
