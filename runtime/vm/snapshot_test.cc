@@ -929,17 +929,15 @@ UNIT_TEST_CASE(FullSnapshot) {
   {
     TestIsolateScope __test_isolate__;
 
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HandleScope scope(isolate);
-
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(Api::CheckIsolateState(isolate));
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %"Pd64"us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
+    Isolate* isolate = Isolate::Current();
+    StackZone zone(isolate);
+    HandleScope scope(isolate);
     FullSnapshotWriter writer(&buffer, &malloc_allocator);
     writer.WriteFullSnapshot();
   }
@@ -989,7 +987,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(Api::CheckIsolateState(isolate));
+    ClassFinalizer::FinalizePendingClasses();
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %"Pd64"us\n", timer1.TotalElapsedTime());
 
@@ -1106,7 +1104,6 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     EXPECT_VALID(Dart_LibraryImportLibrary(TestCase::lib(),
                                            import_lib,
                                            Dart_Null()));
-    EXPECT_VALID(Api::CheckIsolateState(Isolate::Current()));
 
     // Get list of library URLs loaded and save the count.
     Dart_Handle libs = Dart_GetLibraryURLs();
