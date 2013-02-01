@@ -1038,7 +1038,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   /**
-   * Documentation wanted -- johnniwinther
+   * Try to inline [element] within the currect context of the
+   * builder. The insertion point is the state of the builder.
    */
   bool tryInlineMethod(Element element,
                        Selector selector,
@@ -1052,6 +1053,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // containing nodes.
     // [PartialFunctionElement]s are [FunctionElement]s that have [Node]s.
     if (element is !PartialFunctionElement) return false;
+    // TODO(ngeoffray): try to inline generative constructors. They
+    // don't have any body, which makes it more difficult.
+    if (element.isGenerativeConstructor()) return false;
     if (inliningStack.length > MAX_INLINING_DEPTH) return false;
     // Don't inline recursive calls. We use the same elements for the inlined
     // functions and would thus clobber our local variables.
@@ -3236,6 +3240,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     FunctionElement functionElement = constructor;
     constructor = functionElement.redirectionTarget;
+    if (tryInlineMethod(constructor, selector, node.arguments)) {
+      return;
+    }
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     HInstruction target = new HStatic(constructor.declaration);
