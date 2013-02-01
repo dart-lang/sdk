@@ -7719,15 +7719,6 @@ class DocumentFragment extends Node {
   factory DocumentFragment.svg(String svgContent) =>
       _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
 
-  @deprecated
-  List<Element> get elements => this.children;
-
-  // TODO: The type of value should be Collection<Element>. See http://b/5392897
-  @deprecated
-  void set elements(value) {
-    this.children = value;
-  }
-
   List<Element> _children;
 
   List<Element> get children {
@@ -9426,27 +9417,6 @@ abstract class Element extends Node implements ElementTraversal {
       attributes[key] = value[key];
     }
   }
-
-  /**
-   * Deprecated, use innerHtml instead.
-   */
-  @deprecated
-  String get innerHTML => this.innerHtml;
-  @deprecated
-  void set innerHTML(String value) {
-    this.innerHtml = value;
-  }
-
-  @deprecated
-  void set elements(Collection<Element> value) {
-    this.children = value;
-  }
-
-  /**
-   * Deprecated, use [children] instead.
-   */
-  @deprecated
-  List<Element> get elements => this.children;
 
   /**
    * List of the direct children of this element.

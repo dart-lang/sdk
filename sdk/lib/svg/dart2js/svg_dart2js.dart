@@ -5920,16 +5920,6 @@ class SvgElement extends Element native "*SVGElement" {
     return _cssClassSet;
   }
 
-  @deprecated
-  List<Element> get elements => new FilteredElementList(this);
-
-  @deprecated
-  void set elements(Collection<Element> value) {
-    final elements = this.elements;
-    elements.clear();
-    elements.addAll(value);
-  }
-
   List<Element> get children => new FilteredElementList(this);
 
   void set children(List<Element> value) {

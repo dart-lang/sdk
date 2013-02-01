@@ -575,27 +575,6 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   /**
-   * Deprecated, use innerHtml instead.
-   */
-  @deprecated
-  String get innerHTML => this.innerHtml;
-  @deprecated
-  void set innerHTML(String value) {
-    this.innerHtml = value;
-  }
-
-  @deprecated
-  void set elements(Collection<Element> value) {
-    this.children = value;
-  }
-
-  /**
-   * Deprecated, use [children] instead.
-   */
-  @deprecated
-  List<Element> get elements => this.children;
-
-  /**
    * List of the direct children of this element.
    *
    * This collection can be used to add and remove elements from the document.
