@@ -1180,7 +1180,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       if (signature_class.IsNull()) {
         signature_class = Class::NewSignatureClass(signature,
                                                    signature_function,
-                                                   script_);
+                                                   script_,
+                                                   parameter.name_pos);
         // Record the function signature class in the current library.
         library_.AddClass(signature_class);
       } else {
@@ -2157,7 +2158,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     const Function& super_ctor = super_call->function();
     // Patch the initializer call so it only executes the super initializer.
     initializer_args->SetNodeAt(1,
-                        new LiteralNode(TokenPos(),
+        new LiteralNode(TokenPos(),
                         Smi::ZoneHandle(Smi::New(Function::kCtorPhaseInit))));
 
     ArgumentListNode* super_call_args = new ArgumentListNode(TokenPos());
@@ -3126,6 +3127,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     OS::Print("TopLevel parsing class '%s'\n", class_name.ToCString());
   }
   Class& cls = Class::Handle();
+  TypeArguments& orig_type_parameters = TypeArguments::Handle();
   Object& obj = Object::Handle(library_.LookupLocalObject(class_name));
   if (obj.IsNull()) {
     if (is_patch) {
@@ -3141,6 +3143,9 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     }
     cls ^= obj.raw();
     if (is_patch) {
+      // Preserve and reuse the original type parameters and bounds since the
+      // ones defined in the patch class will not be finalized.
+      orig_type_parameters = cls.type_parameters();
       String& patch = String::Handle(
           String::Concat(Symbols::PatchSpace(), class_name));
       patch = Symbols::New(patch);
@@ -3161,6 +3166,41 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   ASSERT(cls.functions() == Object::empty_array().raw());
   set_current_class(cls);
   ParseTypeParameters(cls);
+  if (is_patch) {
+    // Check that the new type parameters are identical to the original ones.
+    const TypeArguments& new_type_parameters =
+        TypeArguments::Handle(cls.type_parameters());
+    const int new_type_params_count =
+        new_type_parameters.IsNull() ? 0 : new_type_parameters.Length();
+    const int orig_type_params_count =
+        orig_type_parameters.IsNull() ? 0 : orig_type_parameters.Length();
+    if (new_type_params_count != orig_type_params_count) {
+      ErrorMsg(classname_pos,
+               "class '%s' must be patched with identical type parameters",
+               class_name.ToCString());
+    }
+    TypeParameter& new_type_param = TypeParameter::Handle();
+    TypeParameter& orig_type_param = TypeParameter::Handle();
+    String& new_name = String::Handle();
+    String& orig_name = String::Handle();
+    for (int i = 0; i < new_type_params_count; i++) {
+      new_type_param ^= new_type_parameters.TypeAt(i);
+      orig_type_param ^= orig_type_parameters.TypeAt(i);
+      new_name = new_type_param.name();
+      orig_name = orig_type_param.name();
+      if (!new_name.Equals(orig_name)) {
+        ErrorMsg(new_type_param.token_pos(),
+                 "type parameter '%s' of patch class '%s' does not match "
+                 "original type parameter '%s'",
+                 new_name.ToCString(),
+                 class_name.ToCString(),
+                 orig_name.ToCString());
+      }
+      // We do not check that the bounds are repeated. We use the original ones.
+      // TODO(regis): Should we check?
+    }
+    cls.set_type_parameters(orig_type_parameters);
+  }
   Type& super_type = Type::Handle();
   if (CurrentToken() == Token::kEXTENDS) {
     ConsumeToken();
@@ -3218,8 +3258,10 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   if (!is_patch) {
     pending_classes.Add(cls, Heap::kOld);
   } else {
-    // Lookup the patched class and apply the changes.
-    obj = library_.LookupLocalObject(class_name);
+    // Apply the changes to the patched class looked up above.
+    ASSERT(obj.raw() == library_.LookupLocalObject(class_name));
+    // The patched class must not be finalized yet.
+    ASSERT(!Class::Cast(obj).is_finalized());
     const char* err_msg = Class::Cast(obj).ApplyPatch(cls);
     if (err_msg != NULL) {
       ErrorMsg(classname_pos, "applying patch failed with '%s'", err_msg);
@@ -3330,15 +3372,6 @@ void Parser::ParseFunctionTypeAlias(
   TRACE_PARSER("ParseFunctionTypeAlias");
   ExpectToken(Token::kTYPEDEF);
 
-  // Allocate an abstract class to hold the type parameters and their bounds.
-  // Make it the owner of the function type descriptor.
-  const Class& alias_owner = Class::Handle(
-      Class::New(Symbols::AliasOwner(), Script::Handle(), TokenPos()));
-
-  alias_owner.set_is_abstract();
-  alias_owner.set_library(library_);
-  set_current_class(alias_owner);
-
   // Parse the result type of the function type.
   AbstractType& result_type = Type::Handle(Type::DynamicType());
   if (CurrentToken() == Token::kVOID) {
@@ -3354,12 +3387,31 @@ void Parser::ParseFunctionTypeAlias(
   const String* alias_name =
       ExpectUserDefinedTypeIdentifier("function alias name expected");
 
+  // Lookup alias name and report an error if it is already defined in
+  // the library scope.
+  const Object& obj = Object::Handle(library_.LookupLocalObject(*alias_name));
+  if (!obj.IsNull()) {
+    ErrorMsg(alias_name_pos,
+             "'%s' is already defined", alias_name->ToCString());
+  }
+
+  // Create the function type alias signature class. It will be linked to its
+  // signature function after it has been parsed. The type parameters, in order
+  // to be properly finalized, need to be associated to this signature class as
+  // they are parsed.
+  const Class& function_type_alias = Class::Handle(
+      Class::NewSignatureClass(*alias_name,
+                               Function::Handle(),
+                               script_,
+                               alias_name_pos));
+  library_.AddClass(function_type_alias);
+  set_current_class(function_type_alias);
   // Parse the type parameters of the function type.
-  ParseTypeParameters(alias_owner);
+  ParseTypeParameters(function_type_alias);
   // At this point, the type parameters have been parsed, so we can resolve the
   // result type.
   if (!result_type.IsNull()) {
-    ResolveTypeFromClass(alias_owner,
+    ResolveTypeFromClass(function_type_alias,
                          ClassFinalizer::kTryResolve,
                          &result_type);
   }
@@ -3377,6 +3429,7 @@ void Parser::ParseFunctionTypeAlias(
 
   const bool no_explicit_default_values = false;
   ParseFormalParameterList(no_explicit_default_values, &func_params);
+  ExpectSemicolon();
   // The field 'is_static' has no meaning for signature functions.
   Function& signature_function = Function::Handle(
       Function::New(*alias_name,
@@ -3385,10 +3438,14 @@ void Parser::ParseFunctionTypeAlias(
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
-                    alias_owner,
+                    function_type_alias,
                     alias_name_pos));
   signature_function.set_result_type(result_type);
   AddFormalParamsToFunction(&func_params, signature_function);
+
+  // Patch the signature function in the signature class.
+  function_type_alias.PatchSignatureFunction(signature_function);
+
   const String& signature = String::Handle(signature_function.Signature());
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing function type alias '%s'\n",
@@ -3402,35 +3459,21 @@ void Parser::ParseFunctionTypeAlias(
   if (signature_class.IsNull()) {
     signature_class = Class::NewSignatureClass(signature,
                                                signature_function,
-                                               script_);
+                                               script_,
+                                               alias_name_pos);
     // Record the function signature class in the current library.
     library_.AddClass(signature_class);
   } else {
     // Forget the just created signature function and use the existing one.
     signature_function = signature_class.signature_function();
+    function_type_alias.PatchSignatureFunction(signature_function);
   }
   ASSERT(signature_function.signature_class() == signature_class.raw());
 
-  // Lookup alias name and report an error if it is already defined in
-  // the library scope.
-  const Object& obj = Object::Handle(library_.LookupLocalObject(*alias_name));
-  if (!obj.IsNull()) {
-    ErrorMsg(alias_name_pos,
-             "'%s' is already defined", alias_name->ToCString());
-  }
-
-  // Create the function type alias, but share the signature function of the
-  // canonical signature class.
-  Class& function_type_alias = Class::Handle(
-      Class::NewSignatureClass(*alias_name,
-                               signature_function,
-                               script_));
-  // This alias should not be marked as finalized yet, since it needs to be
+  // The alias should not be marked as finalized yet, since it needs to be
   // checked in the class finalizer for illegal self references.
   ASSERT(!function_type_alias.IsCanonicalSignatureClass());
   ASSERT(!function_type_alias.is_finalized());
-  library_.AddClass(function_type_alias);
-  ExpectSemicolon();
   pending_classes.Add(function_type_alias, Heap::kOld);
 }
 
@@ -4368,6 +4411,7 @@ void Parser::ParseTopLevel() {
       ParseClassDefinition(pending_classes);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
+      set_current_class(toplevel_class);
       ParseFunctionTypeAlias(pending_classes);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
@@ -4859,7 +4903,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     ASSERT(is_new_closure);
     signature_class = Class::NewSignatureClass(signature,
                                                function,
-                                               script_);
+                                               script_,
+                                               function.token_pos());
     // Record the function signature class in the current library.
     library_.AddClass(signature_class);
   } else if (is_new_closure) {
@@ -7820,7 +7865,7 @@ const Type* Parser::ReceiverType(intptr_t type_pos) const {
     type_arguments = current_class().type_parameters();
   }
   Type& type = Type::ZoneHandle(
-       Type::New(current_class(), type_arguments, type_pos));
+      Type::New(current_class(), type_arguments, type_pos));
   if (!is_top_level_) {
     type ^= ClassFinalizer::FinalizeType(
         current_class(), type, ClassFinalizer::kCanonicalizeWellFormed);

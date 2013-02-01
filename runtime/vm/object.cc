@@ -1443,7 +1443,9 @@ RawType* Class::SignatureType() const {
   ASSERT(!signature_types.IsNull());
   if (signature_types.Length() > 0) {
     // At most one signature type per signature class.
-    ASSERT(signature_types.Length() == 1);
+    ASSERT((signature_types.Length() == 1) ||
+           ((signature_types.Length() == 2) &&
+            (signature_types.At(1) == Type::null())));
     Type& signature_type = Type::Handle();
     signature_type ^= signature_types.At(0);
     ASSERT(!signature_type.IsNull());
@@ -1915,7 +1917,29 @@ RawClass* Class::New(const String& name,
 
 RawClass* Class::NewSignatureClass(const String& name,
                                    const Function& signature_function,
-                                   const Script& script) {
+                                   const Script& script,
+                                   intptr_t token_pos) {
+  const Class& result = Class::Handle(New<Instance>(name, script, token_pos));
+  const Type& super_type = Type::Handle(Type::ObjectType());
+  ASSERT(!super_type.IsNull());
+  // Instances of a signature class can only be closures.
+  result.set_instance_size(Closure::InstanceSize());
+  result.set_next_field_offset(Closure::InstanceSize());
+  result.set_super_type(super_type);
+  result.set_type_arguments_field_offset(Closure::type_arguments_offset());
+  // Implements interface "Function".
+  const Type& function_type = Type::Handle(Type::Function());
+  const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
+  interfaces.SetAt(0, function_type);
+  result.set_interfaces(interfaces);
+  if (!signature_function.IsNull()) {
+    result.PatchSignatureFunction(signature_function);
+  }
+  return result.raw();
+}
+
+
+void Class::PatchSignatureFunction(const Function& signature_function) const {
   ASSERT(!signature_function.IsNull());
   const Class& owner_class = Class::Handle(signature_function.Owner());
   ASSERT(!owner_class.IsNull());
@@ -1923,51 +1947,25 @@ RawClass* Class::NewSignatureClass(const String& name,
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.
   // It is not type parameterized if its signature function is static.
+  // In case of a function type alias, the function owner is the alias class
+  // instead of the enclosing class.
   if (!signature_function.is_static() &&
       (owner_class.NumTypeParameters() > 0) &&
       !signature_function.HasInstantiatedSignature()) {
     type_parameters = owner_class.type_parameters();
   }
-  const intptr_t token_pos = signature_function.token_pos();
-  Class& result = Class::Handle(New<Instance>(name, script, token_pos));
-  const Type& super_type = Type::Handle(Type::ObjectType());
-  ASSERT(!super_type.IsNull());
-  result.set_instance_size(Closure::InstanceSize());
-  result.set_next_field_offset(Closure::InstanceSize());
-  result.set_super_type(super_type);
-  result.set_signature_function(signature_function);
-  result.set_type_parameters(type_parameters);
-  result.SetFields(Object::empty_array());
-  result.SetFunctions(Object::empty_array());
-  result.set_type_arguments_field_offset(
-      Closure::type_arguments_offset());
-  // Implements interface "Function".
-  const Type& function_type = Type::Handle(Type::Function());
-  const Array& interfaces = Array::Handle(Array::New(1, Heap::kOld));
-  interfaces.SetAt(0, function_type);
-  result.set_interfaces(interfaces);
-  // Unless the signature function already has a signature class, create a
-  // canonical signature class by having the signature function point back to
-  // the signature class.
-  if (signature_function.signature_class() == Object::null()) {
-    signature_function.set_signature_class(result);
-    result.set_is_finalized();
-  } else {
-    // This new signature class is an alias.
-    ASSERT(!result.IsCanonicalSignatureClass());
-    // Do not yet mark it as finalized, so that the class finalizer can check it
-    // for illegal self references.
-    result.set_is_prefinalized();
+  set_signature_function(signature_function);
+  set_type_parameters(type_parameters);
+  if (owner_class.raw() == raw()) {
+    // This signature class is an alias, which cannot be the canonical
+    // signature class for this signature function.
+    ASSERT(!IsCanonicalSignatureClass());
+  } else if (signature_function.signature_class() == Object::null()) {
+    // Make this signature class the canonical signature class.
+    signature_function.set_signature_class(*this);
+    ASSERT(IsCanonicalSignatureClass());
   }
-  // Instances of a signature class can only be closures.
-  ASSERT(result.instance_size() == Closure::InstanceSize());
-  // Cache the signature type as the first canonicalized type in result.
-  const Type& signature_type = Type::Handle(result.SignatureType());
-  ASSERT(!signature_type.IsFinalized());
-  const Array& new_canonical_types = Array::Handle(Array::New(1, Heap::kOld));
-  new_canonical_types.SetAt(0, signature_type);
-  result.set_canonical_types(new_canonical_types);
-  return result.raw();
+  set_is_prefinalized();
 }
 
 
@@ -4213,7 +4211,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
     const Script& script = Script::Handle(this->script());
     signature_class = Class::NewSignatureClass(signature,
                                                closure_function,
-                                               script);
+                                               script,
+                                               closure_function.token_pos());
     library.AddClass(signature_class);
   } else {
     closure_function.set_signature_class(signature_class);
@@ -4238,8 +4237,9 @@ RawString* Function::BuildSignature(
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   String& name = String::Handle();
   if (!instantiate && !is_static() && (name_visibility == kInternalName)) {
-    // Prefix the signature with its class and type parameters, if any (e.g.
-    // "Map<K, V>(K) => bool").
+    // Prefix the signature with its signature class and type parameters, if any
+    // (e.g. "Map<K, V>(K) => bool"). In case of a function type alias, the
+    // signature class name is the alias name.
     // The signature of static functions cannot be type parameterized.
     const Class& function_class = Class::Handle(Owner());
     ASSERT(!function_class.IsNull());

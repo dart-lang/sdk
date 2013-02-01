@@ -596,7 +596,7 @@ class Class : public Object {
 
   // Return the signature type of this signature class.
   // For example, if this class represents a signature of the form
-  // '<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
+  // 'F<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
   // type with this class as the type class and type parameters 'T' and 'R'
   // as its type argument vector.
   RawType* SignatureType() const;
@@ -833,9 +833,14 @@ class Class : public Object {
   // The class may be type parameterized unless the signature_function is in a
   // static scope. In that case, the type parameters are copied from the owner
   // class of signature_function.
+  // A null signature function may be passed in and patched later. See below.
   static RawClass* NewSignatureClass(const String& name,
                                      const Function& signature_function,
-                                     const Script& script);
+                                     const Script& script,
+                                     intptr_t token_pos);
+
+  // Patch the signature function of a signature class allocated without it.
+  void PatchSignatureFunction(const Function& signature_function) const;
 
   // Return a class object corresponding to the specified kind. If
   // a canonicalized version of it exists then that object is returned

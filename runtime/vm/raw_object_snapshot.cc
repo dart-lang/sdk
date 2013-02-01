@@ -116,50 +116,16 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
                                               intptr_t object_id,
                                               intptr_t tags,
                                               Snapshot::Kind kind) {
-  ASSERT(reader != NULL);
-
-  // Allocate parameterized type object.
-  UnresolvedClass& unresolved_class = UnresolvedClass::ZoneHandle(
-      reader->isolate(), NEW_OBJECT(UnresolvedClass));
-  reader->AddBackRef(object_id, &unresolved_class, kIsDeserialized);
-
-  // Set the object tags.
-  unresolved_class.set_tags(tags);
-
-  // Set all non object fields.
-  unresolved_class.set_token_pos(reader->ReadIntptrValue());
-
-  // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (unresolved_class.raw()->to() -
-                       unresolved_class.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    unresolved_class.StorePointer((unresolved_class.raw()->from() + i),
-                                  reader->ReadObjectRef());
-  }
-  return unresolved_class.raw();
+  UNREACHABLE();  // Only finalized types are written to a snapshot.
+  return NULL;
 }
 
 
 void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
                                  Snapshot::Kind kind) {
-  ASSERT(writer != NULL);
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kUnresolvedClassCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
-
-  // Write out all the non object pointer fields.
-  writer->WriteIntptrValue(ptr()->token_pos_);
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to());
+  UNREACHABLE();  // Only finalized types are written to a snapshot.
+  // Specify --error_on_malformed_type flag for details.
 }
 
 
@@ -219,6 +185,11 @@ void RawType::WriteTo(SnapshotWriter* writer,
                       Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
+  // Check that the type is finalized.
+  // Specify --error_on_malformed_type flag for details in case of error.
+  ASSERT((ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
+         (ptr()->type_state_ == RawType::kFinalizedUninstantiated));
+
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
 
@@ -244,7 +215,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
 
   // Allocate type parameter object.
   TypeParameter& type_parameter = TypeParameter::ZoneHandle(
-          reader->isolate(), NEW_OBJECT(TypeParameter));
+      reader->isolate(), NEW_OBJECT(TypeParameter));
   reader->AddBackRef(object_id, &type_parameter, kIsDeserialized);
 
   // Set the object tags.
@@ -273,6 +244,10 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
   ASSERT(writer != NULL);
+
+  // Check that the type parameter is finalized.
+  // Specify --error_on_malformed_type flag for details in case of error.
+  ASSERT(ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated);
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
