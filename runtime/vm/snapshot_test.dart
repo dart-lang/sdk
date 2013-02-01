@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate';
-import 'dart:async';
 
 class Fields {
   Fields(int i, int j) : fld1 = i, fld2 = j, fld5 = true {}

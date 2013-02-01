@@ -98,8 +98,7 @@ static void CollectFinalizedSuperClasses(
     ASSERT(!cls.is_finalized());
     super_type ^= cls.super_type();
     if (!super_type.IsNull()) {
-      if (!super_type.IsMalformed() &&
-          super_type.HasResolvedTypeClass() &&
+      if (super_type.HasResolvedTypeClass() &&
           Class::Handle(super_type.type_class()).is_finalized()) {
         AddSuperType(super_type, finalized_super_classes);
       }
@@ -477,7 +476,7 @@ void ClassFinalizer::ResolveType(const Class& cls,
     // Replace unresolved class with resolved type class.
     const Type& parameterized_type = Type::Cast(type);
     if (!type_class.IsNull()) {
-      parameterized_type.set_type_class(type_class);
+      parameterized_type.set_type_class(Object::Handle(type_class.raw()));
     } else {
       // The type class could not be resolved. The type is malformed.
       FinalizeMalformedType(Error::Handle(),  // No previous error.
@@ -736,14 +735,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         ASSERT(type_arg.IsFinalized());  // Index of type parameter is adjusted.
         full_arguments.SetTypeAt(offset + i, type_arg);
       }
-      // If the type class is a signature class, the full argument vector
-      // must include the argument vector of the super type.
-      // If the signature class is a function type alias, it is also the owner
-      // of its signature function and no super type is involved.
-      // If the signature class is canonical (not an alias), the owner of its
-      // signature function may either be an alias or the enclosing class of a
-      // local function, in which case the super type of the enclosing class is
-      // also considered when filling up the argument vector.
       if (type_class.IsSignatureClass()) {
         const Function& signature_fun =
             Function::Handle(type_class.signature_function());
@@ -811,9 +802,24 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // We do this after marking this type as finalized in order to allow a
   // function type to refer to itself via its parameter types and result type.
   if (type_class.IsSignatureClass()) {
-    // The class may be created while parsing a function body, after all
-    // pending classes have already been finalized.
-    FinalizeClass(type_class);
+    // Signature classes are finalized upon creation, except function type
+    // aliases.
+    if (type_class.IsCanonicalSignatureClass()) {
+      ASSERT(type_class.is_finalized());
+      // Resolve and finalize the result and parameter types of the signature
+      // function of this signature class.
+      ASSERT(type_class.SignatureType() == type.raw());
+      ResolveAndFinalizeSignature(
+          type_class, Function::Handle(type_class.signature_function()));
+    } else {
+      // This type is a function type alias. Its class may need to be finalized
+      // and checked for illegal self reference.
+      FinalizeClass(type_class);
+      // Finalizing the signature function here (as in the canonical case above)
+      // would not mark the canonical signature type as finalized.
+      const Type& signature_type = Type::Handle(type_class.SignatureType());
+      FinalizeType(cls, signature_type, finalization);
+    }
   }
 
   if (finalization >= kCanonicalize) {
@@ -1009,7 +1015,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   super_class = cls.SuperClass();
   while (!super_class.IsNull()) {
     interfaces.Add(super_class);
-    CollectInterfaces(super_class, interfaces);
     super_class = super_class.SuperClass();
   }
   // Resolve function signatures and check for conflicts in super classes and
@@ -1125,7 +1130,10 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     super_type ^= FinalizeType(cls, super_type, kCanonicalizeWellFormed);
     cls.set_super_type(super_type);
   }
+  // Signature classes are finalized upon creation, except function type
+  // aliases.
   if (cls.IsSignatureClass()) {
+    ASSERT(!cls.IsCanonicalSignatureClass());
     // Check for illegal self references.
     GrowableArray<intptr_t> visited_aliases;
     if (!IsAliasCycleFree(cls, &visited_aliases)) {
@@ -1139,15 +1147,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     // Signature classes extend Object. No need to add this class to the direct
     // subclasses of Object.
     ASSERT(super_type.IsNull() || super_type.IsObjectType());
-
-    // Resolve and finalize the result and parameter types of the signature
-    // function of this signature class.
-    const Function& sig_function = Function::Handle(cls.signature_function());
-    ResolveAndFinalizeSignature(cls, sig_function);
-
-    // Resolve and finalize the signature type of this signature class.
-    const Type& sig_type = Type::Handle(cls.SignatureType());
-    FinalizeType(cls, sig_type, kCanonicalizeWellFormed);
     return;
   }
   // Finalize interface types (but not necessarily interface classes).
@@ -1202,6 +1201,7 @@ bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
 bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
                                       GrowableArray<intptr_t>* visited) {
   ASSERT(cls.IsSignatureClass());
+  ASSERT(!cls.IsCanonicalSignatureClass());
   ASSERT(!cls.is_finalized());
   ASSERT(visited != NULL);
   const intptr_t cls_index = cls.id();
@@ -1222,8 +1222,10 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
     const Class& type_class = Class::Handle(type.type_class());
     if (!type_class.is_finalized() &&
         type_class.IsSignatureClass() &&
-        !IsAliasCycleFree(type_class, visited)) {
-      return false;
+        !type_class.IsCanonicalSignatureClass()) {
+      if (!IsAliasCycleFree(type_class, visited)) {
+        return false;
+      }
     }
   }
   // Check classes of formal parameter types.
@@ -1235,8 +1237,10 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
       const Class& type_class = Class::Handle(type.type_class());
       if (!type_class.is_finalized() &&
           type_class.IsSignatureClass() &&
-          !IsAliasCycleFree(type_class, visited)) {
-        return false;
+          !type_class.IsCanonicalSignatureClass()) {
+        if (!IsAliasCycleFree(type_class, visited)) {
+          return false;
+        }
       }
     }
   }
@@ -1507,16 +1511,12 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
     // In production mode, mark the type as malformed only if its type class is
     // not resolved.
     type.set_malformed_error(error);
-    if (!type.HasResolvedTypeClass()) {
-      // We do not want an unresolved class to end up in a snapshot.
-      type.set_type_class(Object::Handle(Object::null_class()));
-    }
   } else {
      // In production mode, do not mark the type with a resolved type class as
      // malformed, but make it raw.
+    ASSERT(type.HasResolvedTypeClass());
     type.set_arguments(AbstractTypeArguments::Handle());
   }
-  ASSERT(type.HasResolvedTypeClass());
   if (!type.IsFinalized()) {
     type.set_is_finalized_instantiated();
     // Do not canonicalize malformed types, since they may not be resolved.

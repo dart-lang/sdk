@@ -38,7 +38,7 @@ class _GrowableObjectArray<T> implements List<T> {
     IterableMixinWorkaround.retainAll(this, elements);
   }
 
-  void removeMatching(bool test(T element)) {
+  void removeMatching(bool test(E element)) {
     IterableMixinWorkaround.removeMatchingList(this, test);
   }
 

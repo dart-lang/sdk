@@ -7,7 +7,6 @@
 #include "platform/assert.h"
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
-#include "vm/class_finalizer.h"
 #include "vm/exceptions.h"
 #include "vm/heap.h"
 #include "vm/longjump.h"
@@ -948,7 +947,6 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
-  ASSERT(ClassFinalizer::AllClassesFinalized());
 
   // Setup for long jump in case there is an exception while writing
   // the snapshot.

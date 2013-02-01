@@ -25,9 +25,6 @@ cc/Sleep: Pass, Fail  # Flaky on buildbot. Issue 5133.
 [ $system == windows ]
 cc/Dart2JSCompileAll: Skip
 cc/ExternalizeConstantStrings: Skip
-cc/FullSnapshot: Skip # Temporarily disabled, broken by r17962.
-cc/FullSnapshot1: Skip # Temporarily disabled, broken by r17962.
-cc/ScriptSnapshot: Skip # Temporarily disabled, broken by r17962.
 
 [ $runtime == drt ]
 dart/isolate_mirror_local_test: Skip
