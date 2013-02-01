@@ -265,9 +265,9 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
   }
   intptr_t line = line_number.AsInt64Value();
 
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (Dart_IsError(state)) {
+    return state;
   }
 
   Dart_Handle result = Api::True(isolate);
@@ -328,9 +328,9 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
   CHECK_NOT_NULL(breakpoint);
 
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (Dart_IsError(state)) {
+    return state;
   }
 
   // Resolve the breakpoint target function.
@@ -371,9 +371,9 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
   UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
 
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (Dart_IsError(state)) {
+    return state;
   }
 
   // Resolve the breakpoint target function.
