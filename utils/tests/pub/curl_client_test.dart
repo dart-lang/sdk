@@ -87,7 +87,7 @@ void startServer() {
   });
 
   _server.defaultRequestHandler = (request, response) {
-    consumeInputStream(request.inputStream).then((requestBodyBytes) {
+    wrapInputStream(request.inputStream).toBytes().then((requestBodyBytes) {
       response.statusCode = 200;
       response.headers.contentType = new ContentType("application", "json");
 

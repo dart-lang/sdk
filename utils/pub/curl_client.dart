@@ -41,9 +41,10 @@ class CurlClient extends http.BaseClient {
       var process;
       return startProcess(executable, arguments).then((process_) {
         process = process_;
-        return requestStream.pipe(wrapOutputStream(process.stdin));
-      }).then((_) {
-        return _waitForHeaders(process, expectBody: request.method != "HEAD");
+        return Future.wait([
+          store(requestStream, process.stdin),
+          _waitForHeaders(process, expectBody: request.method != "HEAD")
+        ]);
       }).then((_) => new File(headerFile).readAsLines())
         .then((lines) => _buildResponse(request, process, lines));
     });
@@ -111,44 +112,33 @@ class CurlClient extends http.BaseClient {
   /// in stdout. However, that seems to be too early to successfully read the
   /// file (at least on Mac). Instead, this just waits until the entire process
   /// has completed.
-  Future _waitForHeaders(Process process, {bool expectBody}) {
-    var completer = new Completer();
-    process.onExit = (exitCode) {
+  Future _waitForHeaders(PubProcess process, {bool expectBody}) {
+    var future = process.exitCode.then((exitCode) {
       log.io("Curl process exited with code $exitCode.");
+      if (exitCode == 0) return;
 
-      if (exitCode == 0) {
-        completer.complete(null);
-        return;
-      }
-
-      chainToCompleter(consumeInputStream(process.stderr).then((stderrBytes) {
-        var message = new String.fromCharCodes(stderrBytes);
+      process.stderr.bytesToString().then((message) {
         log.fine('Got error reading headers from curl: $message');
         if (exitCode == 47) {
           throw new RedirectLimitExceededException([]);
         } else {
           throw new HttpException(message);
         }
-      }), completer);
-    };
+      });
+    });
+
+    if (expectBody) return future;
 
     // If there's not going to be a response body (e.g. for HEAD requests), curl
     // prints the headers to stdout instead of the body. We want to wait until
     // all the headers are received to read them from the header file.
-    if (!expectBody) {
-      return Future.wait([
-        consumeInputStream(process.stdout),
-        completer.future
-      ]);
-    }
-
-    return completer.future;
+    return Future.wait([process.stdout.toBytes(), future]);
   }
 
   /// Returns a [http.StreamedResponse] from the response data printed by the
   /// `curl` [process]. [lines] are the headers that `curl` wrote to a file.
   http.StreamedResponse _buildResponse(
-      http.BaseRequest request, Process process, List<String> lines) {
+      http.BaseRequest request, PubProcess process, List<String> lines) {
     // When curl follows redirects, it prints the redirect headers as well as
     // the headers of the final request. Each block is separated by a blank
     // line. We just care about the last block. There is one trailing empty
@@ -167,18 +157,13 @@ class CurlClient extends http.BaseClient {
       var split = split1(line, ":");
       headers[split[0].toLowerCase()] = split[1].trim();
     }
-    var responseStream = process.stdout;
-    if (responseStream.closed) {
-      responseStream = new ListInputStream();
-      responseStream.markEndOfStream();
-    }
     var contentLength = -1;
     if (headers.containsKey('content-length')) {
       contentLength = int.parse(headers['content-length']);
     }
 
     return new http.StreamedResponse(
-        wrapInputStream(responseStream), status, contentLength,
+        process.stdout, status, contentLength,
         request: request,
         headers: headers,
         isRedirect: isRedirect,

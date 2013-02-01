@@ -91,7 +91,7 @@ class LishCommand extends PubCommand {
       files = f;
       log.fine('Archiving and publishing ${entrypoint.root}.');
       return createTarGz(files, baseDir: entrypoint.root.dir);
-    }).then(consumeInputStream);
+    }).then((stream) => stream.toBytes());
 
     // Show the package contents so the user can verify they look OK.
     var package = entrypoint.root;

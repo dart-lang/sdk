@@ -77,7 +77,7 @@ class HostedSource extends Source {
           .then((response) => response.stream),
       systemCache.createTempDir()
     ]).then((args) {
-      var stream = streamToInputStream(args[0]);
+      var stream = args[0];
       tempDir = args[1];
       return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
           'fetching URL "$fullUrl"');
