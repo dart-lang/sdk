@@ -16107,10 +16107,21 @@ class MediaStream extends EventTarget native "*MediaStream" {
 
   @DomName('MediaStream.MediaStream')
   @DocsEditable
-  factory MediaStream() {
-    return MediaStream._create_1();
+  factory MediaStream([stream_OR_tracks]) {
+    if (!?stream_OR_tracks) {
+      return MediaStream._create_1();
+    }
+    if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
+      return MediaStream._create_2(stream_OR_tracks);
+    }
+    if ((stream_OR_tracks is List<MediaStreamTrack> || stream_OR_tracks == null)) {
+      return MediaStream._create_3(stream_OR_tracks);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   static MediaStream _create_1() => JS('MediaStream', 'new MediaStream()');
+  static MediaStream _create_2(stream_OR_tracks) => JS('MediaStream', 'new MediaStream(#)', stream_OR_tracks);
+  static MediaStream _create_3(stream_OR_tracks) => JS('MediaStream', 'new MediaStream(#)', stream_OR_tracks);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')

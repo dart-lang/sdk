@@ -965,7 +965,7 @@ class IDLTypeInfo(object):
     return 'Dart%s' % self.idl_type()
 
   def vector_to_dart_template_parameter(self):
-    return self.bindings_class()
+    return self.native_type()
 
   def to_native_info(self, idl_node, interface_name):
     cls = self.bindings_class()
@@ -1124,12 +1124,16 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
   def to_native_info(self, idl_node, interface_name):
     item_native_type = self._item_info.vector_to_dart_template_parameter()
-    return '%s', 'Vector<%s>' % item_native_type, 'DartUtilities', 'toNativeVector<%s>' % item_native_type
+    if isinstance(self._item_info, PrimitiveIDLTypeInfo):
+      return '%s', 'Vector<%s>' % item_native_type, 'DartUtilities', 'toNativeVector<%s>' % item_native_type
+    return '%s', 'Vector< RefPtr<%s> >' % item_native_type, 'DartUtilities', 'toNativeVector< RefPtr<%s> >' % item_native_type
 
   def pass_native_by_ref(self): return True
 
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
-    return 'DartDOMWrapper::vectorToDart<%s>(%s)' % (self._item_info.vector_to_dart_template_parameter(), value)
+    if isinstance(self._item_info, PrimitiveIDLTypeInfo):
+      return 'DartDOMWrapper::vectorToDart(%s)' % value
+    return 'DartDOMWrapper::vectorToDart<%s>(%s)' % (self._item_info.bindings_class(), value)
 
   def conversion_includes(self):
     return self._item_info.conversion_includes()

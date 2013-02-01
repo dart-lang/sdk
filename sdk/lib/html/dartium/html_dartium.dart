@@ -17708,12 +17708,27 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.MediaStream')
   @DocsEditable
-  factory MediaStream() {
-    return MediaStream._create_1();
+  factory MediaStream([stream_OR_tracks]) {
+    if (!?stream_OR_tracks) {
+      return MediaStream._create_1();
+    }
+    if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
+      return MediaStream._create_2(stream_OR_tracks);
+    }
+    if ((stream_OR_tracks is List<MediaStreamTrack> || stream_OR_tracks == null)) {
+      return MediaStream._create_3(stream_OR_tracks);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   @DocsEditable
   static MediaStream _create_1() native "MediaStream__create_1constructorCallback";
+
+  @DocsEditable
+  static MediaStream _create_2(stream_OR_tracks) native "MediaStream__create_2constructorCallback";
+
+  @DocsEditable
+  static MediaStream _create_3(stream_OR_tracks) native "MediaStream__create_3constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')

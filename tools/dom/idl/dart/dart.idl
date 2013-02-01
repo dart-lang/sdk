@@ -26,10 +26,6 @@ interface ElementTraversal {
 };
 Element implements ElementTraversal;
 
-// TODO(antonm): fix it
-[Supplemental, Constructor]
-interface MediaStream {};
-
 [Callback]
 interface TimeoutHandler {
   void handleEvent();
