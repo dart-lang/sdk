@@ -11,7 +11,6 @@ import 'dart:json' as json;
 
 // TODO(nweiz): Make this import better.
 import '../../pkg/http/lib/http.dart' as http;
-import 'curl_client.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'utils.dart';
@@ -57,12 +56,16 @@ class PubHttpClient extends http.BaseClient {
       });
     }).catchError((asyncError) {
       if (asyncError.error is SocketIOException &&
-          asyncError.error.osError != null &&
-          (asyncError.error.osError.errorCode == 8 ||
-           asyncError.error.osError.errorCode == -2 ||
-           asyncError.error.osError.errorCode == -5 ||
-           asyncError.error.osError.errorCode == 11004)) {
-        throw 'Could not resolve URL "${request.url.origin}".';
+          asyncError.error.osError != null) {
+        if (asyncError.error.osError.errorCode == 8 ||
+            asyncError.error.osError.errorCode == -2 ||
+            asyncError.error.osError.errorCode == -5 ||
+            asyncError.error.osError.errorCode == 11004) {
+          throw 'Could not resolve URL "${request.url.origin}".';
+        } else if (asyncError.error.osError.errorCode == -12276) {
+          throw 'Unable to validate SSL certificate for '
+              '"${request.url.origin}".';
+        }
       }
       throw asyncError;
     }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
@@ -71,8 +74,6 @@ class PubHttpClient extends http.BaseClient {
 
 /// The HTTP client to use for all HTTP requests.
 final httpClient = new PubHttpClient();
-
-final curlClient = new PubHttpClient(new CurlClient());
 
 /// Handles a successful JSON-formatted response from pub.dartlang.org.
 ///

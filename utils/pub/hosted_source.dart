@@ -28,7 +28,7 @@ class HostedSource extends Source {
   final shouldCache = true;
 
   /// The URL of the default package repository.
-  static final defaultUrl = "http://pub.dartlang.org";
+  static final defaultUrl = "https://pub.dartlang.org";
 
   /// Downloads a list of all versions of a package that are available from the
   /// site.

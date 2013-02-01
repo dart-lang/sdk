@@ -97,7 +97,7 @@ Future<Client> _getClient(SystemCache cache) {
   return _loadCredentials(cache).then((credentials) {
     if (credentials == null) return _authorize();
     return new Client(_identifier, _secret, credentials,
-        httpClient: curlClient);
+        httpClient: httpClient);
   }).then((client) {
     return _saveCredentials(cache, client.credentials).then((_) => client);
   });
@@ -168,7 +168,7 @@ Future<Client> _authorize() {
       _secret,
       _authorizationEndpoint,
       tokenEndpoint,
-      httpClient: curlClient);
+      httpClient: httpClient);
 
   // Spin up a one-shot HTTP server to receive the authorization code from the
   // Google OAuth2 server via redirect. This server will close itself as soon as
