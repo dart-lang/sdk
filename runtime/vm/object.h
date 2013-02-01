@@ -1426,16 +1426,10 @@ class Function : public Object {
   }
   void set_is_visible(bool value) const;
 
-  enum IntrinsicKind {
-    kUnknownIntrinsic = 0,  // Initial value.
-    kIsIntrinsic,
-    kIsNotIntrinsic,
-  };
-
-  IntrinsicKind intrinsic_kind() const {
-    return IntrinsicKindBits::decode(raw_ptr()->kind_tag_);
+  bool is_intrinsic() const {
+    return IntrinsicBit::decode(raw_ptr()->kind_tag_);
   }
-  void set_intrinsic_kind(IntrinsicKind value) const;
+  void set_is_intrinsic(bool value) const;
 
   bool HasOptimizedCode() const;
 
@@ -1582,9 +1576,8 @@ class Function : public Object {
     kAbstractBit = 6,
     kExternalBit = 7,
     kVisibleBit = 8,
-    kIntrinsicTagBit = 9,
-    kIntrinsicTagSize = 2,
-    kKindTagBit = 11,
+    kIntrinsicBit = 9,
+    kKindTagBit = 10,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -1596,9 +1589,7 @@ class Function : public Object {
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
   class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
-  class IntrinsicKindBits :
-    public BitField<Function::IntrinsicKind,
-                    kIntrinsicTagBit, kIntrinsicTagSize> {};  // NOLINT
+  class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
 

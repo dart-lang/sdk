@@ -25,6 +25,7 @@
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
+#include "vm/intrinsifier.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
@@ -1090,6 +1091,10 @@ RawError* Object::Init(Isolate* isolate) {
 
   ClassFinalizer::VerifyBootstrapClasses();
   MarkInvisibleFunctions();
+
+  // Set up the intrinsic state of all functions (core, math and scalar list).
+  Intrinsifier::InitializeState();
+
   return Error::null();
 }
 
@@ -3596,8 +3601,8 @@ void Function::set_kind(RawFunction::Kind value) const {
 }
 
 
-void Function::set_intrinsic_kind(IntrinsicKind value) const {
-  set_kind_tag(IntrinsicKindBits::update(value, raw_ptr()->kind_tag_));
+void Function::set_is_intrinsic(bool value) const {
+  set_kind_tag(IntrinsicBit::update(value, raw_ptr()->kind_tag_));
 }
 
 
@@ -4106,7 +4111,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_abstract(is_abstract);
   result.set_is_external(is_external);
   result.set_is_visible(true);  // Will be computed later.
-  result.set_intrinsic_kind(kUnknownIntrinsic);
+  result.set_is_intrinsic(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);

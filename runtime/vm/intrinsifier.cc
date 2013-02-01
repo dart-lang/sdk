@@ -6,13 +6,16 @@
 #include "vm/intrinsifier.h"
 #include "vm/flags.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
 DEFINE_FLAG(bool, intrinsify, true, "Instrinsify when possible");
 
 
-static bool CompareNames(const char* test_name, const char* name) {
+static bool CompareNames(const Library& lib,
+                         const char* test_name,
+                         const char* name) {
   static const char* kPrivateGetterPrefix = "get:_";
   static const char* kPrivateSetterPrefix = "set:_";
 
@@ -40,20 +43,11 @@ static bool CompareNames(const char* test_name, const char* name) {
     return (strcmp(test_name, name) == 0);
   }
 
-  // Check if the private class is member of core or scalarlist and matches
+  // Check if the private class is member of the library and matches
   // the test_class_name.
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Library& scalarlist_lib =
-      Library::Handle(Library::ScalarlistLibrary());
-  String& test_str = String::Handle(String::New(test_name));
-  String& test_str_with_key = String::Handle();
-  test_str_with_key =
-      String::Concat(test_str, String::Handle(core_lib.private_key()));
-  if (strcmp(test_str_with_key.ToCString(), name) == 0) {
-    return true;
-  }
-  test_str_with_key =
-      String::Concat(test_str, String::Handle(scalarlist_lib.private_key()));
+  const String& test_str = String::Handle(String::New(test_name));
+  const String& test_str_with_key = String::Handle(
+      String::Concat(test_str, String::Handle(lib.private_key())));
   if (strcmp(test_str_with_key.ToCString(), name) == 0) {
     return true;
   }
@@ -64,23 +58,14 @@ static bool CompareNames(const char* test_name, const char* name) {
 
 // Returns true if the function matches function_name and class_name, with
 // special recognition of corelib private classes.
-static bool TestFunction(const Function& function,
+static bool TestFunction(const Library& lib,
+                         const Function& function,
                          const char* function_class_name,
                          const char* function_name,
                          const char* test_class_name,
                          const char* test_function_name) {
-  // If test_function_name starts with a '.' we use that to indicate
-  // that it is a named constructor in the class. Therefore, if
-  // the class matches and the rest of the method name starting with
-  // the dot matches, we have found a match.
-  if (test_function_name[0] == '.') {
-    function_name = strstr(function_name, ".");
-    if (function_name == NULL) {
-      return false;
-    }
-  }
-  return CompareNames(test_class_name, function_class_name) &&
-         CompareNames(test_function_name, function_name);
+  return CompareNames(lib, test_class_name, function_class_name) &&
+         CompareNames(lib, test_function_name, function_name);
 }
 
 
@@ -89,50 +74,72 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
   if (function.IsClosureFunction()) return false;
   // Can occur because of compile-all flag.
   if (function.is_external()) return false;
-  // Intrinsic kind is set lazily below.
-  if (function.intrinsic_kind() == Function::kIsIntrinsic) return true;
-  if (function.intrinsic_kind() == Function::kIsNotIntrinsic) return false;
-  // Closure functions may have different arguments.
-  const char* function_name = String::Handle(function.name()).ToCString();
-  const Class& function_class = Class::Handle(function.Owner());
-  // Only core, math and scalarlist library methods can be intrinsified.
-  if ((function_class.library() != Library::CoreLibrary()) &&
-      (function_class.library() != Library::MathLibrary()) &&
-      (function_class.library() != Library::ScalarlistLibrary())) {
-    return false;
-  }
-  const char* class_name = String::Handle(function_class.Name()).ToCString();
-#define FIND_INTRINSICS(test_class_name, test_function_name, destination, fp)  \
-  if (TestFunction(function,                                                   \
-                   class_name, function_name,                                  \
-                   #test_class_name, #test_function_name)) {                   \
-    function.set_intrinsic_kind(Function::kIsIntrinsic);                       \
-    return true;                                                               \
-  }                                                                            \
+  return function.is_intrinsic();
+}
 
-INTRINSIC_LIST(FIND_INTRINSICS);
-#undef FIND_INTRINSICS
-  function.set_intrinsic_kind(Function::kIsNotIntrinsic);
-  return false;
+
+void Intrinsifier::InitializeState() {
+  Library& lib = Library::Handle();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+  String& str = String::Handle();
+
+#define SETUP_FUNCTION(class_name, function_name, destination, fp)             \
+  if (strcmp(#class_name, "::") == 0) {                                        \
+    str = String::New(#function_name);                                         \
+    func = lib.LookupFunctionAllowPrivate(str);                                \
+  } else {                                                                     \
+    str = String::New(#class_name);                                            \
+    cls = lib.LookupClassAllowPrivate(str);                                    \
+    ASSERT(!cls.IsNull());                                                     \
+    str = String::New(#function_name);                                         \
+    func = cls.LookupFunctionAllowPrivate(str);                                \
+  }                                                                            \
+  ASSERT(!func.IsNull());                                                      \
+  func.set_is_intrinsic(true);                                                 \
+
+  // Set up all core lib functions that can be intrisified.
+  lib = Library::CoreLibrary();
+  CORE_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
+
+  // Set up all math lib functions that can be intrisified.
+  lib = Library::MathLibrary();
+  MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
+
+  // Set up all scalar list lib functions that can be intrisified.
+  lib = Library::ScalarlistLibrary();
+  SCALARLIST_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
+
+#undef SETUP_FUNCTION
 }
 
 
 bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
   if (!CanIntrinsify(function)) return false;
+
   const char* function_name = String::Handle(function.name()).ToCString();
   const Class& function_class = Class::Handle(function.Owner());
   const char* class_name = String::Handle(function_class.Name()).ToCString();
+  const Library& lib = Library::Handle(function_class.library());
+
 #define FIND_INTRINSICS(test_class_name, test_function_name, destination, fp)  \
-  if (TestFunction(function,                                                   \
+  if (TestFunction(lib, function,                                              \
                    class_name, function_name,                                  \
                    #test_class_name, #test_function_name)) {                   \
     ASSERT(function.CheckSourceFingerprint(fp));                               \
     return destination(assembler);                                             \
   }                                                                            \
 
-INTRINSIC_LIST(FIND_INTRINSICS);
-#undef FIND_INTRINSICS
+  if (lib.raw() == Library::CoreLibrary()) {
+    CORE_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
+  } else if (lib.raw() == Library::ScalarlistLibrary()) {
+    SCALARLIST_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
+  } else if (lib.raw() == Library::MathLibrary()) {
+    MATH_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
+  }
   return false;
+
+#undef FIND_INTRINSICS
 }
 
 }  // namespace dart
