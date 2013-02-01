@@ -27,6 +27,7 @@ main() {
       defaultsTo: 'ia32');
   parser.addFlag('help', abbr: 'h', negatable: false,
       help: 'Print this usage information.');
+  parser.addOption('package-root', help: 'The package root to use.');
   var args = parser.parse(new Options().arguments);
   if (args['help']) {
     print(parser.getUsage());
@@ -39,10 +40,7 @@ main() {
         .join(new Path('../../test.dart'))
         .canonicalize()
         .toNativePath();
-    TestingServerRunner.setPackageRootDir({'mode': args['mode'],
-        'arch': args['arch'], 'system': Platform.operatingSystem,
-        'build_directory': ''});
-
+    TestingServerRunner._packageRootDir = new Path(args['package-root']);
     TestingServerRunner.startHttpServer('127.0.0.1',
         port: int.parse(args['port']));
     print('Server listening on port '
@@ -125,7 +123,6 @@ class TestingServerRunner {
           }
         }
       });
-
     };
 
     // Echos back the contents of the request as the response data.

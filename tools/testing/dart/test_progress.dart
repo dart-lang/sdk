@@ -208,7 +208,8 @@ class ProgressIndicator {
           'http_server.dart -m ${test.configuration["mode"]} '
           '-a ${test.configuration["arch"]} '
           '-p ${http_server.TestingServerRunner.serverList[0].port} '
-          '-c ${http_server.TestingServerRunner.serverList[1].port}');
+          '-c ${http_server.TestingServerRunner.serverList[1].port} '
+          '--package-root=${http_server.TestingServerRunner.packageRootDir}');
     }
     for (Command c in test.commands) {
       output.add('');
