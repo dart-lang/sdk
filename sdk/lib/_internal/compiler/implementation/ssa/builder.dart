@@ -1011,7 +1011,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ClassElement enclosing = function.getEnclosingClass();
       if (compiler.world.needsRti(enclosing)) {
         assert(currentNode is NewExpression);
-        DartType type = elements.getType(currentNode);
+        InterfaceType type = elements.getType(currentNode);
         Link<DartType> typeVariable = enclosing.typeVariables;
         type.typeArguments.forEach((DartType argument) {
           HInstruction instruction =
@@ -4726,7 +4726,7 @@ class InlineWeeder extends Visitor {
     if (seenReturn) tooDifficult = true;
   }
 
-  void visitReturn(Node node) {
+  void visitReturn(Return node) {
     if (seenReturn
         || identical(node.getBeginToken().stringValue, 'native')
         || node.isRedirectingFactoryBody) {
