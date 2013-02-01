@@ -87,20 +87,21 @@ class LishCommand extends PubCommand {
 
   Future onRun() {
     var files;
-    return _filesToPublish.then((f) {
+    var packageBytesFuture = _filesToPublish.then((f) {
       files = f;
       log.fine('Archiving and publishing ${entrypoint.root}.');
       return createTarGz(files, baseDir: entrypoint.root.dir);
-    }).then(consumeInputStream).then((packageBytes) {
-      // Show the package contents so the user can verify they look OK.
-      var package = entrypoint.root;
-      log.message(
-          'Publishing "${package.name}" ${package.version}:\n'
-          '${generateTree(files)}');
+    }).then(consumeInputStream);
+
+    // Show the package contents so the user can verify they look OK.
+    var package = entrypoint.root;
+    log.message(
+        'Publishing "${package.name}" ${package.version}:\n'
+        '${generateTree(files)}');
 
       // Validate the package.
-      return _validate().then((_) => _publish(packageBytes));
-    });
+    return _validate(packageBytesFuture.then((bytes) => bytes.length))
+        .then((_) => packageBytesFuture).then(_publish);
   }
 
   /// The basenames of files that are automatically excluded from archives.
@@ -159,8 +160,8 @@ class LishCommand extends PubCommand {
   }
 
   /// Validates the package. Throws an exception if it's invalid.
-  Future _validate() {
-    return Validator.runAll(entrypoint).then((pair) {
+  Future _validate(Future<int> packageSize) {
+    return Validator.runAll(entrypoint, packageSize).then((pair) {
       var errors = pair.first;
       var warnings = pair.last;
 

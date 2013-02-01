@@ -7,6 +7,7 @@ library validator_test;
 import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
+import 'dart:math' as math;
 
 import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
@@ -22,6 +23,7 @@ import '../../pub/validator/lib.dart';
 import '../../pub/validator/license.dart';
 import '../../pub/validator/name.dart';
 import '../../pub/validator/pubspec_field.dart';
+import '../../pub/validator/size.dart';
 import '../../pub/validator/utf8_readme.dart';
 
 void expectNoValidationError(ValidatorCreator fn) {
@@ -53,6 +55,11 @@ Validator name(Entrypoint entrypoint) => new NameValidator(entrypoint);
 
 Validator pubspecField(Entrypoint entrypoint) =>
   new PubspecFieldValidator(entrypoint);
+
+Function size(int size) {
+  return (entrypoint) =>
+      new SizeValidator(entrypoint, new Future.immediate(size));
+}
 
 Validator utf8Readme(Entrypoint entrypoint) =>
   new Utf8ReadmeValidator(entrypoint);
@@ -132,6 +139,11 @@ main() {
         dir("foo", [dir("tools")])
       ]).scheduleCreate();
       expectNoValidationError(directory);
+    });
+
+    integration('is <= 10 MB', () {
+      expectNoValidationError(size(100));
+      expectNoValidationError(size(10 * math.pow(2, 20)));
     });
 
     integration('has most but not all files from compiling dartdoc', () {
@@ -547,6 +559,10 @@ main() {
           expectValidationWarning(directory);
         });
       }
+    });
+
+    integration('is more than 10 MB', () {
+      expectValidationError(size(10 * math.pow(2, 20) + 1));
     });
 
     test('contains compiled dartdoc', () {
