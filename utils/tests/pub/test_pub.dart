@@ -1234,7 +1234,7 @@ class ScheduledProcess {
   Future<PubProcess> _processFuture;
 
   /// The process that's scheduled to run. It may be null.
-  Process _process;
+  PubProcess _process;
 
   /// The exit code of the scheduled program. It may be null.
   int _exitCode;

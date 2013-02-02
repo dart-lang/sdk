@@ -178,9 +178,9 @@ Future streamFirst(Stream stream) {
 /// Returns a wrapped version of [stream] along with a [StreamSubscription] that
 /// can be used to control the wrapped stream.
 Pair<Stream, StreamSubscription> streamWithSubscription(Stream stream) {
-  var controller = stream.isSingleSubscription ?
-      new StreamController() :
-      new StreamController.multiSubscription();
+  var controller = stream.isBroadcast ?
+      new StreamController.broadcast() :
+      new StreamController();
   var subscription = stream.listen(controller.add,
       onError: controller.signalError,
       onDone: controller.close);
