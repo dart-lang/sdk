@@ -79,29 +79,6 @@ const char* CanonicalFunction(const char* func) {
   } while (0)
 
 
-// Return error if isolate is in an inconsistent state.
-// Return NULL when no error condition exists.
-//
-// TODO(turnidge): Make this function return an error handle directly
-// rather than returning an error string.  The current behavior can
-// cause compilation errors to appear to be api errors.
-const char* CheckIsolateState(Isolate* isolate) {
-  if (ClassFinalizer::FinalizePendingClasses() &&
-      isolate->object_store()->PreallocateObjects()) {
-    // Success.
-    return NULL;
-  }
-  // Make a copy of the error message as the original message string
-  // may get deallocated when we return back from the Dart API call.
-  const Error& err = Error::Handle(isolate->object_store()->sticky_error());
-  const char* errmsg = err.ToErrorCString();
-  intptr_t errlen = strlen(errmsg) + 1;
-  char* msg = Api::TopScope(isolate)->zone()->Alloc<char>(errlen);
-  OS::SNPrint(msg, errlen, "%s", errmsg);
-  return msg;
-}
-
-
 void SetupErrorResult(Isolate* isolate, Dart_Handle* handle) {
   *handle = Api::NewHandle(
       isolate, Isolate::Current()->object_store()->sticky_error());
@@ -173,6 +150,17 @@ FinalizablePersistentHandle* Api::UnwrapAsPrologueWeakPersistentHandle(
     Dart_Handle object) {
   ASSERT(state.IsValidPrologueWeakPersistentHandle(object));
   return reinterpret_cast<FinalizablePersistentHandle*>(object);
+}
+
+
+Dart_Handle Api::CheckIsolateState(Isolate* isolate) {
+  if (ClassFinalizer::FinalizePendingClasses() &&
+      isolate->object_store()->PreallocateObjects()) {
+    return Api::Success(isolate);
+  }
+  const Object& obj = Object::Handle(isolate->object_store()->sticky_error());
+  ASSERT(obj.IsError());
+  return Api::NewHandle(isolate, obj.raw());
 }
 
 
@@ -905,9 +893,9 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   if (size == NULL) {
     RETURN_NULL_ERROR(size);
   }
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
   }
   // Since this is only a snapshot the root library should not be set.
   isolate->object_store()->set_root_library(Library::Handle(isolate));
@@ -929,9 +917,9 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
   if (size == NULL) {
     RETURN_NULL_ERROR(size);
   }
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
   }
   Library& library =
       Library::Handle(isolate, isolate->object_store()->root_library());
@@ -1255,9 +1243,9 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
         CURRENT_FUNC);
   }
   // Finalize all classes.
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
   }
   if (obj.IsInstance()) {
     CHECK_CALLBACK_STATE(isolate);
@@ -2530,9 +2518,9 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
   }
 
   // Finalize all classes.
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
   }
 
   const Array& interface_types = Array::Handle(isolate, cls.interfaces());
@@ -3296,9 +3284,9 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   } else {
     RETURN_TYPE_ERROR(isolate, constructor_name, String);
   }
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
   }
 
   // Resolve the constructor.
@@ -3426,9 +3414,9 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
   } else if (obj.IsClass()) {
     // Finalize all classes.
-    const char* msg = CheckIsolateState(isolate);
-    if (msg != NULL) {
-      return Api::NewError("%s", msg);
+    Dart_Handle state = Api::CheckIsolateState(isolate);
+    if (::Dart_IsError(state)) {
+      return state;
     }
 
     const Class& cls = Class::Cast(obj);
@@ -3463,9 +3451,9 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
     // Finalize all classes if needed.
     if (finalize_classes) {
-      const char* msg = CheckIsolateState(isolate);
-      if (msg != NULL) {
-        return Api::NewError("%s", msg);
+      Dart_Handle state = Api::CheckIsolateState(isolate);
+      if (::Dart_IsError(state)) {
+        return state;
       }
     }
 
@@ -3555,9 +3543,9 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
 
   } else if (obj.IsClass()) {
     // Finalize all classes.
-    const char* msg = CheckIsolateState(isolate);
-    if (msg != NULL) {
-      return Api::NewError("%s", msg);
+    Dart_Handle state = Api::CheckIsolateState(isolate);
+    if (::Dart_IsError(state)) {
+      return state;
     }
     // To access a static field we may need to use the Field or the
     // getter Function.
@@ -4140,10 +4128,9 @@ static void CompileAll(Isolate* isolate, Dart_Handle* result) {
 DART_EXPORT Dart_Handle Dart_CompileAll() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Dart_Handle result;
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError("%s", msg);
+  Dart_Handle result = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(result)) {
+    return result;
   }
   CHECK_CALLBACK_STATE(isolate);
   CompileAll(isolate, &result);
@@ -4293,9 +4280,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   // If this is the dart:builtin library, register it with the VM.
   if (url_str.Equals("dart:builtin")) {
     isolate->object_store()->set_builtin_library(library);
-    const char* msg = CheckIsolateState(isolate);
-    if (msg != NULL) {
-      return Api::NewError("%s", msg);
+    Dart_Handle state = Api::CheckIsolateState(isolate);
+    if (::Dart_IsError(state)) {
+      return state;
     }
   }
   return result;
