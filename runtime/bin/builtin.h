@@ -51,7 +51,6 @@ class Builtin {
   static const char io_source_[];
   static const char io_patch_[];
   static const char json_source_[];
-  static const char json_patch_[];
   static const char uri_source_[];
   static const char utf_source_[];
   static const char web_source_[];
