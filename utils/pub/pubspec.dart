@@ -5,7 +5,9 @@
 library pubspec;
 
 import '../../pkg/yaml/lib/yaml.dart';
+import '../../pkg/path/lib/path.dart' as path;
 
+import 'io.dart';
 import 'package.dart';
 import 'source.dart';
 import 'source_registry.dart';
@@ -29,6 +31,28 @@ class Pubspec {
   /// All pubspec fields. This includes the fields from which other properties
   /// are derived.
   final Map<String, Object> fields;
+
+  /// Loads the pubspec for a package [name] located in [packageDir].
+  factory Pubspec.load(String name, String packageDir, SourceRegistry sources) {
+    var pubspecPath = path.join(packageDir, 'pubspec.yaml');
+    if (!fileExists(pubspecPath)) throw new PubspecNotFoundException(name);
+
+    try {
+      var pubspec = new Pubspec.parse(readTextFile(pubspecPath), sources);
+
+      if (pubspec.name == null) {
+        throw new PubspecHasNoNameException(name);
+      }
+
+      if (name != null && pubspec.name != name) {
+        throw new PubspecNameMismatchException(name, pubspec.name);
+      }
+
+      return pubspec;
+    } on FormatException catch (ex) {
+      throw 'Could not parse $pubspecPath:\n${ex.message}';
+    }
+  }
 
   Pubspec(this.name, this.version, this.dependencies, this.environment,
       [Map<String, Object> fields])

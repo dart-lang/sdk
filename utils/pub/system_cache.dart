@@ -62,22 +62,17 @@ class SystemCache {
 
   /// Gets the package identified by [id]. If the package is already cached,
   /// reads it from the cache. Otherwise, requests it from the source.
-  Future<Package> describe(PackageId id) {
-    Future<Package> getUncached() {
-      // Not cached, so get it from the source.
-      return id.describe().then((pubspec) => new Package.inMemory(pubspec));
-    }
-
+  Future<Pubspec> describe(PackageId id) {
     // Try to get it from the system cache first.
     if (id.source.shouldCache) {
       return id.systemCacheDirectory.then((packageDir) {
-        if (!dirExists(packageDir)) return getUncached();
-        return new Package(id.name, packageDir, sources);
+        if (!dirExists(packageDir)) return id.describe();
+        return new Pubspec.load(id.name, packageDir, sources);
       });
     }
 
     // Not cached, so get it from the source.
-    return getUncached();
+    return id.describe();
   }
 
   /// Ensures that the package identified by [id] is installed to the cache,

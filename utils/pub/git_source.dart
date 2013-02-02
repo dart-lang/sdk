@@ -44,8 +44,7 @@ class GitSource extends Source {
 
       ensureDir(join(systemCacheRoot, 'cache'));
       return _ensureRepoCache(id);
-    }).then((_) => _revisionCachePath(id))
-      .then((path) {
+    }).then((_) => systemCacheDirectory(id)).then((path) {
       revisionCachePath = path;
       if (entryExists(revisionCachePath)) return;
       return _clone(_repoCachePath(id), revisionCachePath, mirror: false);
@@ -54,12 +53,17 @@ class GitSource extends Source {
       if (ref == 'HEAD') return;
       return _checkOut(revisionCachePath, ref);
     }).then((_) {
-      return new Package(id.name, revisionCachePath, systemCache.sources);
+      return new Package.load(id.name, revisionCachePath, systemCache.sources);
     });
   }
 
-  Future<String> systemCacheDirectory(PackageId id) => _revisionCachePath(id);
-
+  /// Returns the path to the revision-specific cache of [id].
+  Future<String> systemCacheDirectory(PackageId id) {
+    return _revisionAt(id).then((rev) {
+      var revisionCacheName = '${id.name}-$rev';
+      return join(systemCacheRoot, revisionCacheName);
+    });
+  }
   /// Ensures [description] is a Git URL.
   void validateDescription(description, {bool fromLockFile: false}) {
     // A single string is assumed to be a Git URL.
@@ -115,14 +119,6 @@ class GitSource extends Source {
   Future<String> _revisionAt(PackageId id) {
     return git.run(["rev-parse", _getEffectiveRef(id)],
         workingDir: _repoCachePath(id)).then((result) => result[0]);
-  }
-
-  /// Returns the path to the revision-specific cache of [id].
-  Future<String> _revisionCachePath(PackageId id) {
-    return _revisionAt(id).then((rev) {
-      var revisionCacheName = '${id.name}-$rev';
-      return join(systemCacheRoot, revisionCacheName);
-    });
   }
 
   /// Clones the repo at the URI [from] to the path [to] on the local

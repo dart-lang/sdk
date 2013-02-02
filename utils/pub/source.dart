@@ -113,7 +113,7 @@ abstract class Source {
       return install(id, path);
     }).then((found) {
       if (!found) throw 'Package $id not found.';
-      return new Package(id.name, path, systemCache.sources);
+      return new Package.load(id.name, path, systemCache.sources);
     });
   }
 

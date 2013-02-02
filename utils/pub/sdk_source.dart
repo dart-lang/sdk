@@ -24,10 +24,10 @@ class SdkSource extends Source {
     return defer(() {
       var packageDir = _getPackagePath(id);
       // TODO(rnystrom): What if packageDir is null?
-      var package = new Package(id.name, packageDir, systemCache.sources);
+      var pubspec = new Pubspec.load(id.name, packageDir, systemCache.sources);
       // Ignore the pubspec's version, and use the SDK's.
-      return new Pubspec(id.name, sdk.version, package.pubspec.dependencies,
-          package.pubspec.environment);
+      return new Pubspec(id.name, sdk.version, pubspec.dependencies,
+          pubspec.environment);
     });
   }
 

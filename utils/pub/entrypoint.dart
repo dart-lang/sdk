@@ -9,6 +9,7 @@ import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
+import 'pubspec.dart';
 import 'sdk.dart' as sdk;
 import 'system_cache.dart';
 import 'utils.dart';
@@ -44,7 +45,7 @@ class Entrypoint {
 
   /// Loads the entrypoint from a package at [rootDir].
   Entrypoint(String rootDir, SystemCache cache)
-      : root = new Package(null, rootDir, cache.sources),
+      : root = new Package.load(null, rootDir, cache.sources),
         cache = cache;
 
   // TODO(rnystrom): Make this path configurable.
@@ -139,17 +140,17 @@ class Entrypoint {
   /// Traverses the root's package dependency graph and loads each of the
   /// reached packages. This should only be called after the lockfile has been
   /// successfully generated.
-  Future<List<Package>> walkDependencies() {
+  Future<List<Pubspec>> walkDependencies() {
     return defer(() {
       var lockFile = loadLockFile();
-      var group = new FutureGroup<Package>();
+      var group = new FutureGroup<Pubspec>();
       var visited = new Set<String>();
 
       // Include the root package in the results.
-      group.add(new Future.immediate(root));
+      group.add(new Future.immediate(root.pubspec));
 
-      visitPackage(Package package) {
-        for (var ref in package.dependencies) {
+      visitPackage(Pubspec pubspec) {
+        for (var ref in pubspec.dependencies) {
           if (visited.contains(ref.name)) continue;
 
           // Look up the concrete version.
@@ -160,10 +161,10 @@ class Entrypoint {
           group.add(future.then(visitPackage));
         }
 
-        return package;
+        return pubspec;
       }
 
-      visitPackage(root);
+      visitPackage(root.pubspec);
       return group.future;
     });
   }
@@ -172,13 +173,13 @@ class Entrypoint {
   /// of every package in the dependency graph. If a package's constraint does
   /// not match, prints an error.
   Future validateSdkConstraints() {
-    return walkDependencies().then((packages) {
+    return walkDependencies().then((pubspecs) {
       var errors = [];
 
-      for (var package in packages) {
-        var sdkConstraint = package.pubspec.environment.sdkVersion;
+      for (var pubspec in pubspecs) {
+        var sdkConstraint = pubspec.environment.sdkVersion;
         if (!sdkConstraint.allows(sdk.version)) {
-          errors.add("- '${package.name}' requires ${sdkConstraint}");
+          errors.add("- '${pubspec.name}' requires ${sdkConstraint}");
         }
       }
 
