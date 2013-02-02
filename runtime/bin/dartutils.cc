@@ -664,10 +664,9 @@ Dart_CObject* CObject::NewUint8Array(int length) {
 }
 
 
-Dart_CObject* CObject::NewExternalUint8Array(int64_t length,
-                                             uint8_t* data,
-                                             void* peer,
-                                             Dart_PeerFinalizer callback) {
+Dart_CObject* CObject::NewExternalUint8Array(
+    int64_t length, uint8_t* data, void* peer,
+    Dart_WeakPersistentHandleFinalizer callback) {
   Dart_CObject* cobject = New(Dart_CObject::kExternalUint8Array);
   cobject->value.as_external_byte_array.length = length;
   cobject->value.as_external_byte_array.data = data;
@@ -679,14 +678,14 @@ Dart_CObject* CObject::NewExternalUint8Array(int64_t length,
 
 Dart_CObject* CObject::NewIOBuffer(int64_t length) {
   uint8_t* data = IOBuffer::Allocate(length);
-  return NewExternalUint8Array(length, data, data, IOBuffer::Free);
+  return NewExternalUint8Array(length, data, data, IOBuffer::Finalizer);
 }
 
 
 void CObject::FreeIOBufferData(Dart_CObject* cobject) {
   ASSERT(cobject->type == Dart_CObject::kExternalUint8Array);
   cobject->value.as_external_byte_array.callback(
-      cobject->value.as_external_byte_array.peer);
+      NULL, cobject->value.as_external_byte_array.peer);
   cobject->value.as_external_byte_array.data = NULL;
 }
 

@@ -19,15 +19,16 @@ main() {
   var callback;
 
   test('js-to-dart-post-message', () {
-    var onSuccess = expectAsync1((e) {
-      window.on.message.remove(callback);
-    });
-    callback = (e) {
-      if (e.data == 'hello') {
-        onSuccess(e);
-      }
-    };
-    window.on.message.add(callback);
+    var subscription = null;
+    var complete = false;
+    subscription = window.onMessage.listen(expectAsyncUntil1(
+        (e) {
+          if (e.data == 'hello') {
+            subscription.cancel();
+            complete = true;
+          }
+        },
+        () => complete));
     injectSource("window.postMessage('hello', '*');");
   });
 }

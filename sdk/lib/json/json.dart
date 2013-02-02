@@ -507,7 +507,7 @@ class JsonParser {
         case BACKSLASH:
         case QUOTE:
           break;
-        case CHAR_u: {
+        case CHAR_u:
           int hexStart = position - 1;
           int value = 0;
           for (int i = 0; i < 4; i++) {
@@ -530,7 +530,6 @@ class JsonParser {
           }
           char = value;
           break;
-        }
         default:
           if (char < SPACE) fail(position, "Control character in string");
           fail(position, "Unrecognized string escape");

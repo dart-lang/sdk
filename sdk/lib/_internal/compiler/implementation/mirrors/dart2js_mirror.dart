@@ -16,6 +16,7 @@ import '../apiimpl.dart' as api;
 import '../scanner/scannerlib.dart' hide SourceString;
 import '../ssa/ssa.dart';
 import '../dart2jslib.dart';
+import '../dart_types.dart';
 import '../filenames.dart';
 import '../source_file.dart';
 import '../tree/tree.dart';
@@ -248,7 +249,7 @@ class LibraryCompiler extends api.Compiler {
                   diagnostics.DiagnosticHandler handler,
                   Uri libraryRoot, Uri packageRoot,
                   List<String> options)
-      : super(provider, handler, libraryRoot, packageRoot, options) {
+      : super(provider, null, handler, libraryRoot, packageRoot, options) {
     checker = new LibraryTypeCheckerTask(this);
     resolver = new LibraryResolverTask(this);
   }
@@ -389,7 +390,7 @@ class Dart2JsCompilation implements Compilation {
     } else {
       packageUri = libraryUri;
     }
-    _compiler = new api.Compiler(provider, handler,
+    _compiler = new api.Compiler(provider, null, handler,
         libraryUri, packageUri, opts);
     var scriptUri = cwd.resolve(script.toString());
     // TODO(johnniwinther): Detect file not found

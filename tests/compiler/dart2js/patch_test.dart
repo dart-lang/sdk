@@ -40,46 +40,46 @@ void expectHasNoBody(compiler, Element element) {
 Element ensure(compiler,
                String name,
                Element lookup(name),
-               {bool isPatched: false,
-                bool isPatch: false,
-                bool isMethod: true,
-                bool isGetter: false,
-                bool isFound: true}) {
+               {bool expectIsPatched: false,
+                bool expectIsPatch: false,
+                bool checkHasBody: false,
+                bool expectIsGetter: false,
+                bool expectIsFound: true}) {
   var element = lookup(buildSourceString(name));
-  if (!isFound) {
+  if (!expectIsFound) {
     Expect.isNull(element);
     return element;
   }
   Expect.isNotNull(element);
-  if (isGetter) {
+  if (expectIsGetter) {
     Expect.isTrue(element is AbstractFieldElement);
     Expect.isNotNull(element.getter);
     element = element.getter;
   }
-  Expect.equals(isPatched, element.isPatched);
-  if (isPatched) {
+  Expect.equals(expectIsPatched, element.isPatched);
+  if (expectIsPatched) {
     Expect.isNull(element.origin);
     Expect.isNotNull(element.patch);
 
     Expect.equals(element, element.declaration);
     Expect.equals(element.patch, element.implementation);
 
-    if (isMethod) {
+    if (checkHasBody) {
       expectHasNoBody(compiler, element);
       expectHasBody(compiler, element.patch);
     }
   } else {
     Expect.isTrue(element.isImplementation);
   }
-  Expect.equals(isPatch, element.isPatch);
-  if (isPatch) {
+  Expect.equals(expectIsPatch, element.isPatch);
+  if (expectIsPatch) {
     Expect.isNotNull(element.origin);
     Expect.isNull(element.patch);
 
     Expect.equals(element.origin, element.declaration);
     Expect.equals(element, element.implementation);
 
-    if (isMethod) {
+    if (checkHasBody) {
       expectHasBody(compiler, element);
       expectHasNoBody(compiler, element.origin);
     }
@@ -93,7 +93,7 @@ Element ensure(compiler,
     Expect.equals(element, element.declaration);
     Expect.equals(element, element.implementation);
 
-    if (isMethod) {
+    if (checkHasBody) {
       expectHasBody(compiler, element);
     }
   }
@@ -105,8 +105,10 @@ testPatchFunction() {
   var compiler = applyPatch(
       "external test();",
       "patch test() { return 'string'; } ");
-  ensure(compiler, "test", compiler.coreLibrary.find, isPatched: true);
-  ensure(compiler, "test", compiler.coreLibrary.patch.find, isPatch: true);
+  ensure(compiler, "test", compiler.coreLibrary.find,
+         expectIsPatched: true, checkHasBody: true);
+  ensure(compiler, "test", compiler.coreLibrary.patch.find,
+         expectIsPatch: true, checkHasBody: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -127,15 +129,15 @@ testPatchMember() {
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         isMethod: false, isPatched: true);
+                         expectIsPatched: true);
   container.parseNode(compiler);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
-         isMethod: false, isPatch: true);
+         expectIsPatch: true);
 
   ensure(compiler, "toString", container.lookupLocalMember,
-         isPatched: true);
+         expectIsPatched: true, checkHasBody: true);
   ensure(compiler, "toString", container.patch.lookupLocalMember,
-         isPatch: true);
+         expectIsPatch: true, checkHasBody: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -156,18 +158,20 @@ testPatchGetter() {
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         isPatched: true, isMethod: false);
+                         expectIsPatched: true);
   container.parseNode(compiler);
   ensure(compiler,
          "field",
          container.lookupLocalMember,
-         isGetter: true,
-         isPatched: true);
+         expectIsGetter: true,
+         expectIsPatched: true,
+         checkHasBody: true);
   ensure(compiler,
          "field",
          container.patch.lookupLocalMember,
-         isGetter: true,
-         isPatch: true);
+         expectIsGetter: true,
+         expectIsPatch: true,
+         checkHasBody: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -187,13 +191,15 @@ testRegularMember() {
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         isMethod: false, isPatched: true);
+                         expectIsPatched: true);
   container.parseNode(compiler);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
-         isMethod: false, isPatch: true);
+         expectIsPatch: true);
 
-  ensure(compiler, "regular", container.lookupLocalMember);
-  ensure(compiler, "regular", container.patch.lookupLocalMember);
+  ensure(compiler, "regular", container.lookupLocalMember,
+         checkHasBody: true);
+  ensure(compiler, "regular", container.patch.lookupLocalMember,
+         checkHasBody: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -213,13 +219,15 @@ testGhostMember() {
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         isMethod: false, isPatched: true);
+                         expectIsPatched: true);
   container.parseNode(compiler);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
-         isMethod: false, isPatch: true);
+         expectIsPatch: true);
 
-  ensure(compiler, "ghost", container.lookupLocalMember, isFound: false);
-  ensure(compiler, "ghost", container.patch.lookupLocalMember);
+  ensure(compiler, "ghost", container.lookupLocalMember,
+         expectIsFound: false);
+  ensure(compiler, "ghost", container.patch.lookupLocalMember,
+         checkHasBody: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -234,10 +242,11 @@ testInjectFunction() {
   ensure(compiler,
          "_function",
          compiler.coreLibrary.find,
-         isFound: false);
+         expectIsFound: false);
   ensure(compiler,
          "_function",
-         compiler.coreLibrary.patch.find);
+         compiler.coreLibrary.patch.find,
+         checkHasBody: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -272,13 +281,13 @@ testPatchSignatureCheck() {
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
-                         isMethod: false, isPatched: true);
+                         expectIsPatched: true);
   container.ensureResolved(compiler);
   container.parseNode(compiler);
 
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method1", container.lookupLocalMember,
-          isPatched: true));
+          expectIsPatched: true, checkHasBody: true));
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
   Expect.isFalse(compiler.errors.isEmpty);
@@ -288,7 +297,7 @@ testPatchSignatureCheck() {
   compiler.errors.clear();
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method2", container.lookupLocalMember,
-          isPatched: true));
+          expectIsPatched: true, checkHasBody: true));
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
   Expect.isFalse(compiler.errors.isEmpty);
@@ -298,7 +307,7 @@ testPatchSignatureCheck() {
   compiler.errors.clear();
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method3", container.lookupLocalMember,
-          isPatched: true));
+          expectIsPatched: true, checkHasBody: true));
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
   Expect.isFalse(compiler.errors.isEmpty);
@@ -308,7 +317,7 @@ testPatchSignatureCheck() {
   compiler.errors.clear();
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method4", container.lookupLocalMember,
-          isPatched: true));
+          expectIsPatched: true, checkHasBody: true));
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
   Expect.isFalse(compiler.errors.isEmpty);
@@ -318,7 +327,7 @@ testPatchSignatureCheck() {
   compiler.errors.clear();
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method5", container.lookupLocalMember,
-          isPatched: true));
+          expectIsPatched: true, checkHasBody: true));
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
   Expect.isFalse(compiler.errors.isEmpty);
@@ -328,7 +337,7 @@ testPatchSignatureCheck() {
   compiler.errors.clear();
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method6", container.lookupLocalMember,
-          isPatched: true));
+          expectIsPatched: true, checkHasBody: true));
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
   Expect.isFalse(compiler.errors.isEmpty);
@@ -338,7 +347,7 @@ testPatchSignatureCheck() {
   compiler.errors.clear();
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method7", container.lookupLocalMember,
-          isPatched: true));
+          expectIsPatched: true, checkHasBody: true));
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
   Expect.isFalse(compiler.errors.isEmpty);
@@ -348,11 +357,63 @@ testPatchSignatureCheck() {
   compiler.errors.clear();
   compiler.resolver.resolveMethodElement(
       ensure(compiler, "method8", container.lookupLocalMember,
-          isPatched: true));
+          expectIsPatched: true, checkHasBody: true));
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
   Expect.isFalse(compiler.errors.isEmpty);
   print('method8:${compiler.errors}');
+}
+
+testExternalWithoutImplementationTopLevel() {
+  var compiler = applyPatch(
+      """
+      external void foo();
+      """,
+      """
+      // patch void foo() {}
+      """);
+  var function = ensure(compiler, "foo", compiler.coreLibrary.find);
+  compiler.resolver.resolve(function);
+  Expect.isTrue(compiler.warnings.isEmpty,
+                "Unexpected warnings: ${compiler.warnings}");
+  print('testExternalWithoutImplementationTopLevel:${compiler.errors}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind ==
+          MessageKind.EXTERNAL_WITHOUT_IMPLEMENTATION);
+  Expect.equals('External method without an implementation.',
+                compiler.errors[0].message.toString());
+}
+
+testExternalWithoutImplementationMember() {
+  var compiler = applyPatch(
+      """
+      class Class {
+        external void foo();
+      }
+      """,
+      """
+      patch class Class {
+        // patch void foo() {}
+      }
+      """);
+  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
+                         expectIsPatched: true);
+  container.parseNode(compiler);
+
+  compiler.warnings.clear();
+  compiler.errors.clear();
+  compiler.resolver.resolveMethodElement(
+      ensure(compiler, "foo", container.lookupLocalMember));
+  Expect.isTrue(compiler.warnings.isEmpty,
+                "Unexpected warnings: ${compiler.warnings}");
+  print('testExternalWithoutImplementationMember:${compiler.errors}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind ==
+          MessageKind.EXTERNAL_WITHOUT_IMPLEMENTATION);
+  Expect.equals('External method without an implementation.',
+                compiler.errors[0].message.toString());
 }
 
 main() {
@@ -363,4 +424,7 @@ main() {
   testGhostMember();
   testInjectFunction();
   testPatchSignatureCheck();
+
+  testExternalWithoutImplementationTopLevel();
+  testExternalWithoutImplementationMember();
 }

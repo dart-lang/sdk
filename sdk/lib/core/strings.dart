@@ -7,11 +7,15 @@ part of dart.core;
 abstract class Strings {
   /**
    * Joins all the given strings to create a new string.
+   *
+   * *Deprecated* Use `strings.join(separator)` instead.
    */
   external static String join(Iterable<String> strings, String separator);
 
   /**
    * Concatenates all the given strings to create a new string.
+   *
+   * *Deprecated* Use `strings.join()` instead.
    */
   external static String concatAll(Iterable<String> strings);
 }

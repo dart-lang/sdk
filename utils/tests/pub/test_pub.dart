@@ -14,11 +14,13 @@ import 'dart:io';
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:uri';
+import 'dart:utf';
 
+import '../../../pkg/http/lib/testing.dart';
 import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
 import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
-import '../../../pkg/http/lib/testing.dart';
+import '../../../pkg/yaml/lib/yaml.dart';
 import '../../lib/file_system.dart' as fs;
 import '../../pub/entrypoint.dart';
 // TODO(rnystrom): Using "gitlib" as the prefix here is ugly, but "git" collides
@@ -33,7 +35,6 @@ import '../../pub/sdk_source.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
 import '../../pub/validator.dart';
-import '../../pub/yaml/yaml.dart';
 import 'command_line_config.dart';
 
 /// This should be called at the top of a test file to set up an appropriate
@@ -48,6 +49,10 @@ initConfig() {
 /// Creates a new [FileDescriptor] with [name] and [contents].
 FileDescriptor file(Pattern name, String contents) =>
     new FileDescriptor(name, contents);
+
+/// Creates a new [FileDescriptor] with [name] and [contents].
+FileDescriptor binaryFile(Pattern name, List<int> contents) =>
+    new FileDescriptor.bytes(name, contents);
 
 /// Creates a new [DirectoryDescriptor] with [name] and [contents].
 DirectoryDescriptor dir(Pattern name, [List<Descriptor> contents]) =>
@@ -190,7 +195,7 @@ void servePackages(List<Map> pubspecs) {
           file('$name.json',
               json.stringify({'versions': versions})),
           dir(name, [
-            dir('versions', flatten(versions.mappedBy((version) {
+            dir('versions', flatten(versions.map((version) {
               return [
                 file('$version.yaml', _servedPackages[name][version]),
                 tar('$version.tar.gz', [
@@ -462,42 +467,42 @@ final _TIMEOUT = 30000;
 /// operations which will be run asynchronously.
 void integration(String description, void body()) {
   test(description, () {
+    // Schedule the test.
     body();
-    _run();
-  });
-}
 
-/// Runs all the scheduled events for a test case. This should only be called
-/// once per test case.
-void _run() {
-  var createdSandboxDir;
-  var asyncDone = expectAsync0(() {});
-
-  Future cleanup() {
-    return _runScheduled(createdSandboxDir, _scheduledCleanup).then((_) {
-      _scheduled = null;
-      _scheduledCleanup = null;
-      _scheduledOnException = null;
-      if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
-    });
-  }
-
-  timeout(_setUpSandbox().then((sandboxDir) {
-    createdSandboxDir = sandboxDir;
-    return _runScheduled(sandboxDir, _scheduled);
-  }).catchError((e) {
-    // If an error occurs during testing, delete the sandbox, throw the error so
-    // that the test framework sees it, then finally call asyncDone so that the
-    // test framework knows we're done doing asynchronous stuff.
-    return _runScheduled(createdSandboxDir, _scheduledOnException)
-        .then((_) => registerException(e.error, e.stackTrace)).catchError((e) {
-      print("Exception while cleaning up: ${e.error}");
-      print(e.stackTrace);
+    // Run all of the scheduled tasks. If an error occurs, it will propagate
+    // through the futures back up to here where we can hand it off to unittest.
+    var asyncDone = expectAsync0(() {});
+    var createdSandboxDir;
+    _setUpSandbox().then((sandboxDir) {
+      createdSandboxDir = sandboxDir;
+      return timeout(_runScheduled(sandboxDir, _scheduled),
+          _TIMEOUT, 'waiting for a test to complete');
+    }).catchError((e) {
+      return _runScheduled(createdSandboxDir, _scheduledOnException).then((_) {
+        // Rethrow the original error so it keeps propagating.
+        throw e;
+      });
+    }).whenComplete(() {
+      // Clean up after ourselves. Do this first before reporting back to
+      // unittest because it will advance to the next test immediately.
+      return _runScheduled(createdSandboxDir, _scheduledCleanup).then((_) {
+        _scheduled = null;
+        _scheduledCleanup = null;
+        _scheduledOnException = null;
+        if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
+      });
+    }).then((_) {
+      // If we got here, the test completed successfully so tell unittest so.
+      asyncDone();
+    }).catchError((e) {
+      // If we got here, an error occurred. We will register it with unittest
+      // directly so that the error message isn't wrapped in any matcher stuff.
+      // We do this call last because it will cause unittest to *synchronously*
+      // advance to the next test and run it.
       registerException(e.error, e.stackTrace);
     });
-  }), _TIMEOUT, 'waiting for a test to complete')
-      .then((_) => cleanup())
-      .then((_) => asyncDone());
+  });
 }
 
 /// Get the path to the root "util/test/pub" directory containing the pub
@@ -514,8 +519,7 @@ String get testDirectory {
 void schedulePub({List args, Pattern output, Pattern error,
     Future<Uri> tokenEndpoint, int exitCode: 0}) {
   _schedule((sandboxDir) {
-    return _doPub(runProcess, sandboxDir, args, tokenEndpoint)
-        .then((result) {
+    return _doPub(runProcess, sandboxDir, args, tokenEndpoint).then((result) {
       var failures = [];
 
       _validateOutput(failures, 'stdout', output, result.stdout);
@@ -530,7 +534,7 @@ void schedulePub({List args, Pattern output, Pattern error,
         if (error == null) {
           // If we aren't validating the error, still show it on failure.
           failures.add('Pub stderr:');
-          failures.addAll(result.stderr.mappedBy((line) => '| $line'));
+          failures.addAll(result.stderr.map((line) => '| $line'));
         }
 
         throw new ExpectException(Strings.join(failures, '\n'));
@@ -702,7 +706,7 @@ void _validateOutputRegex(List<String> failures, String pipe,
     failures.add('Expected $pipe to match "${expected.pattern}" but got none.');
   } else {
     failures.add('Expected $pipe to match "${expected.pattern}" but got:');
-    failures.addAll(actual.mappedBy((line) => '| $line'));
+    failures.addAll(actual.map((line) => '| $line'));
   }
 }
 
@@ -747,7 +751,7 @@ void _validateOutputString(List<String> failures, String pipe,
   // If any lines mismatched, show the expected and actual.
   if (failed) {
     failures.add('Expected $pipe:');
-    failures.addAll(expected.mappedBy((line) => '| $line'));
+    failures.addAll(expected.map((line) => '| $line'));
     failures.add('Got:');
     failures.addAll(results);
   }
@@ -808,7 +812,9 @@ abstract class Descriptor {
     if (name is String) {
       var path = join(dir, name);
       return exists(path).then((exists) {
-        if (!exists) Expect.fail('File $name in $dir not found.');
+        if (!exists) {
+          throw new ExpectException('File $name in $dir not found.');
+        }
         return validate(path);
       });
     }
@@ -824,7 +830,7 @@ abstract class Descriptor {
     return listDir(dir).then((files) {
       var matches = files.where((file) => endsWithPattern(file, name)).toList();
       if (matches.isEmpty) {
-        Expect.fail('No files in $dir match pattern $name.');
+        throw new ExpectException('No files in $dir match pattern $name.');
       }
       if (matches.length == 1) return validate(matches[0]);
 
@@ -865,16 +871,20 @@ abstract class Descriptor {
 /// tree before running a test, and for validating that the file system matches
 /// some expectations after running it.
 class FileDescriptor extends Descriptor {
-  /// The text contents of the file.
-  final String contents;
+  /// The contents of the file, in bytes.
+  final List<int> contents;
 
-  FileDescriptor(Pattern name, this.contents) : super(name);
+  String get textContents => new String.fromCharCodes(contents);
+
+  FileDescriptor.bytes(Pattern name, this.contents) : super(name);
+
+  FileDescriptor(Pattern name, String contents) :
+      this.bytes(name, encodeUtf8(contents));
 
   /// Creates the file within [dir]. Returns a [Future] that is completed after
   /// the creation is done.
-  Future<File> create(dir) {
-    return writeTextFile(join(dir, _stringName), contents);
-  }
+  Future<File> create(dir) => new Future.immediate(null).then((_) =>
+      writeBinaryFile(join(dir, _stringName), contents));
 
   /// Deletes the file within [dir]. Returns a [Future] that is completed after
   /// the deletion is done.
@@ -886,10 +896,11 @@ class FileDescriptor extends Descriptor {
   Future validate(String path) {
     return _validateOneMatch(path, (file) {
       return readTextFile(file).then((text) {
-        if (text == contents) return null;
+        if (text == textContents) return null;
 
-        Expect.fail('File $file should contain:\n\n$contents\n\n'
-                    'but contained:\n\n$text');
+        throw new ExpectException(
+            'File $file should contain:\n\n$textContents\n\n'
+            'but contained:\n\n$text');
       });
     });
   }
@@ -902,7 +913,7 @@ class FileDescriptor extends Descriptor {
     }
 
     var stream = new ListInputStream();
-    stream.write(contents.charCodes);
+    stream.write(contents);
     stream.markEndOfStream();
     return stream;
   }
@@ -928,7 +939,7 @@ class DirectoryDescriptor extends Descriptor {
 
       // Recursively create all of its children.
       final childFutures =
-          contents.mappedBy((child) => child.create(dir)).toList();
+          contents.map((child) => child.create(dir)).toList();
       // Only complete once all of the children have been created too.
       return Future.wait(childFutures).then((_) => dir);
     });
@@ -948,7 +959,7 @@ class DirectoryDescriptor extends Descriptor {
     return _validateOneMatch(path, (dir) {
       // Validate each of the items in this directory.
       final entryFutures =
-          contents.mappedBy((entry) => entry.validate(dir)).toList();
+          contents.map((entry) => entry.validate(dir)).toList();
 
       // If they are all valid, the directory is valid.
       return Future.wait(entryFutures).then((entries) => null);
@@ -1080,7 +1091,7 @@ class TarFileDescriptor extends Descriptor {
     var tempDir;
     return createTempDir().then((_tempDir) {
       tempDir = _tempDir;
-      return Future.wait(contents.mappedBy((child) => child.create(tempDir)));
+      return Future.wait(contents.map((child) => child.create(tempDir)));
     }).then((createdContents) {
       return consumeInputStream(createTarGz(createdContents, baseDir: tempDir));
     }).then((bytes) {
@@ -1133,7 +1144,9 @@ class NothingDescriptor extends Descriptor {
 
   Future validate(String dir) {
     return exists(join(dir, name)).then((exists) {
-      if (exists) Expect.fail('File $name in $dir should not exist.');
+      if (exists) {
+        throw new ExpectException('File $name in $dir should not exist.');
+      }
     });
   }
 
@@ -1489,7 +1502,7 @@ Future _awaitObject(object) {
   // Unroll nested futures.
   if (object is Future) return object.then(_awaitObject);
   if (object is Collection) {
-    return Future.wait(object.mappedBy(_awaitObject).toList());
+    return Future.wait(object.map(_awaitObject).toList());
   }
   if (object is! Map) return new Future.immediate(object);
 

@@ -30,6 +30,7 @@ class Assembler;
 class Closure;
 class Code;
 class DeoptInstr;
+class FinalizablePersistentHandle;
 class LocalScope;
 class Symbols;
 
@@ -1076,7 +1077,7 @@ class TypeArguments : public AbstractTypeArguments {
   RawAbstractType** TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(TypeArguments, AbstractTypeArguments);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, AbstractTypeArguments);
   friend class Class;
 };
 
@@ -1131,7 +1132,8 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
       const AbstractTypeArguments& value) const;
   static RawInstantiatedTypeArguments* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(InstantiatedTypeArguments, AbstractTypeArguments);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(InstantiatedTypeArguments,
+                                   AbstractTypeArguments);
   friend class Class;
 };
 
@@ -1894,7 +1896,7 @@ class TokenStream : public Object {
   void SetPrivateKey(const String& value) const;
 
   static RawTokenStream* New();
-  static void DataFinalizer(void *peer);
+  static void DataFinalizer(Dart_Handle handle, void *peer);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
   friend class Class;
@@ -3558,7 +3560,7 @@ class Type : public AbstractType {
 
   static RawType* New(Heap::Space space = Heap::kOld);
 
-  HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
   friend class Class;
 };
 
@@ -3618,7 +3620,7 @@ class TypeParameter : public AbstractType {
   void set_type_state(int8_t state) const;
   static RawTypeParameter* New();
 
-  HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
   friend class Class;
 };
 
@@ -4749,6 +4751,11 @@ class ByteArray : public Instance {
 
   virtual intptr_t ByteLength() const;
 
+  virtual void* GetPeer() const { return NULL; }
+
+  FinalizablePersistentHandle* AddFinalizer(
+      void* peer, Dart_WeakPersistentHandleFinalizer callback) const;
+
   static void Copy(void* dst,
                    const ByteArray& src,
                    intptr_t src_offset,
@@ -4767,6 +4774,7 @@ class ByteArray : public Instance {
 
  protected:
   virtual uint8_t* ByteAddr(intptr_t byte_offset) const;
+  virtual void SetPeer(void* peer) const { }
 
   template<typename HandleT, typename RawT>
   static RawT* NewImpl(intptr_t class_id,
@@ -4783,8 +4791,6 @@ class ByteArray : public Instance {
   static RawT* NewExternalImpl(intptr_t class_id,
                                ElementT* data,
                                intptr_t len,
-                               void* peer,
-                               Dart_PeerFinalizer callback,
                                Heap::Space space);
 
   template<typename HandleT, typename RawT, typename ElementT>
@@ -5384,20 +5390,20 @@ class ExternalInt8Array : public ByteArray {
 
   int8_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, int8_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  int8_t* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 1;
@@ -5410,22 +5416,27 @@ class ExternalInt8Array : public ByteArray {
     return RoundedAllocationSize(sizeof(RawExternalInt8Array));
   }
 
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawExternalInt8Array, data_);
+  }
+
   static RawExternalInt8Array* New(int8_t* data,
                                    intptr_t len,
-                                   void* peer,
-                                   Dart_PeerFinalizer callback,
                                    Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<int8_t>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(int8_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalInt8Array, ByteArray);
@@ -5442,20 +5453,20 @@ class ExternalUint8Array : public ByteArray {
 
   uint8_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, uint8_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  uint8_t* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 1;
@@ -5468,26 +5479,28 @@ class ExternalUint8Array : public ByteArray {
     return RoundedAllocationSize(sizeof(RawExternalUint8Array));
   }
 
-  static intptr_t external_data_offset() {
-    return OFFSET_OF(RawExternalUint8Array, external_data_);
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawExternalUint8Array, data_);
   }
 
   static RawExternalUint8Array* New(uint8_t* data,
                                     intptr_t len,
-                                    void* peer,
-                                    Dart_PeerFinalizer callback,
                                     Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+        reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<uint8_t>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(uint8_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalUint8Array, ByteArray);
@@ -5501,8 +5514,6 @@ class ExternalUint8ClampedArray : public ExternalUint8Array {
  public:
   static RawExternalUint8ClampedArray* New(uint8_t* data,
                                            intptr_t len,
-                                           void* peer,
-                                           Dart_PeerFinalizer callback,
                                            Heap::Space space = Heap::kNew);
 
  private:
@@ -5520,20 +5531,20 @@ class ExternalInt16Array : public ByteArray {
 
   int16_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, int16_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  int16_t* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 2;
@@ -5548,20 +5559,21 @@ class ExternalInt16Array : public ByteArray {
 
   static RawExternalInt16Array* New(int16_t* data,
                                     intptr_t len,
-                                    void* peer,
-                                    Dart_PeerFinalizer callback,
                                     Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<int16_t>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(int16_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalInt16Array, ByteArray);
@@ -5578,20 +5590,20 @@ class ExternalUint16Array : public ByteArray {
 
   int16_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, int16_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  uint16_t* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 2;
@@ -5606,20 +5618,21 @@ class ExternalUint16Array : public ByteArray {
 
   static RawExternalUint16Array* New(uint16_t* data,
                                      intptr_t len,
-                                     void* peer,
-                                     Dart_PeerFinalizer callback,
                                      Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<uint16_t>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(uint16_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalUint16Array, ByteArray);
@@ -5636,20 +5649,20 @@ class ExternalInt32Array : public ByteArray {
 
   int32_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, int32_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  int32_t* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 4;
@@ -5664,20 +5677,21 @@ class ExternalInt32Array : public ByteArray {
 
   static RawExternalInt32Array* New(int32_t* data,
                                     intptr_t len,
-                                    void* peer,
-                                    Dart_PeerFinalizer callback,
                                     Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<int32_t>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(int32_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalInt32Array, ByteArray);
@@ -5694,20 +5708,20 @@ class ExternalUint32Array : public ByteArray {
 
   int32_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, int32_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  uint32_t* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 4;
@@ -5722,20 +5736,21 @@ class ExternalUint32Array : public ByteArray {
 
   static RawExternalUint32Array* New(uint32_t* data,
                                      intptr_t len,
-                                     void* peer,
-                                     Dart_PeerFinalizer callback,
                                      Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<uint32_t>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(uint32_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalUint32Array, ByteArray);
@@ -5752,20 +5767,20 @@ class ExternalInt64Array : public ByteArray {
 
   int64_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, int64_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  int64_t* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 8;
@@ -5780,20 +5795,21 @@ class ExternalInt64Array : public ByteArray {
 
   static RawExternalInt64Array* New(int64_t* data,
                                     intptr_t len,
-                                    void* peer,
-                                    Dart_PeerFinalizer callback,
                                     Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<int64_t>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(int64_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalInt64Array, ByteArray);
@@ -5810,20 +5826,20 @@ class ExternalUint64Array : public ByteArray {
 
   int64_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, int64_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  uint64_t* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 8;
@@ -5838,20 +5854,21 @@ class ExternalUint64Array : public ByteArray {
 
   static RawExternalUint64Array* New(uint64_t* data,
                                      intptr_t len,
-                                     void* peer,
-                                     Dart_PeerFinalizer callback,
                                      Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<uint64_t>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(uint64_t* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array, ByteArray);
@@ -5868,20 +5885,20 @@ class ExternalFloat32Array : public ByteArray {
 
   float At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, float value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  float* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 4;
@@ -5896,20 +5913,21 @@ class ExternalFloat32Array : public ByteArray {
 
   static RawExternalFloat32Array* New(float* data,
                                       intptr_t len,
-                                      void* peer,
-                                      Dart_PeerFinalizer callback,
                                       Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<float>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(float* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32Array, ByteArray);
@@ -5926,20 +5944,20 @@ class ExternalFloat64Array : public ByteArray {
 
   double At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->external_data_->data()[index];
+    return raw_ptr()->data_[index];
   }
 
   void SetAt(intptr_t index, double value) const {
     ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->external_data_->data()[index] = value;
+    raw_ptr()->data_[index] = value;
   }
 
-  void* GetData() const {
-    return raw_ptr()->external_data_->data();
+  double* GetData() const {
+    return raw_ptr()->data_;
   }
 
   void* GetPeer() const {
-    return raw_ptr()->external_data_->peer();
+    return raw_ptr()->peer_;
   }
 
   static const intptr_t kBytesPerElement = 8;
@@ -5954,20 +5972,21 @@ class ExternalFloat64Array : public ByteArray {
 
   static RawExternalFloat64Array* New(double* data,
                                       intptr_t len,
-                                      void* peer,
-                                      Dart_PeerFinalizer callback,
                                       Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data =
-        reinterpret_cast<uint8_t*>(raw_ptr()->external_data_->data());
+    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
     return data + byte_offset;
   }
 
-  void SetExternalData(ExternalByteArrayData<double>* data) {
-    raw_ptr()->external_data_ = data;
+  void SetData(double* data) const {
+    raw_ptr()->data_ = data;
+  }
+
+  void SetPeer(void* peer) const {
+    raw_ptr()->peer_ = peer;
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat64Array, ByteArray);

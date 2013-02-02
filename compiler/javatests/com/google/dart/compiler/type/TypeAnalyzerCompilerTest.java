@@ -5956,7 +5956,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertErrors(result.getErrors(), errEx(TypeErrorCode.NOT_A_MEMBER_OF_INFERRED, 16, 11, 7));
+    // don't report error, because there IS member, we just don't know which one
+    assertErrors(result.getErrors());
   }
   
   /**
@@ -6478,6 +6479,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         result.getErrors(),
         errEx(TypeErrorCode.NOT_A_MEMBER_OF, 13, 5, 2));
+  }
+
+  public void test_mixin_disallowMixinApplication_asMixin() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef M = Object with M;",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_MIXIN_CLASS_WITH_MIXINS, 2, 25, 1));
   }
   
 }

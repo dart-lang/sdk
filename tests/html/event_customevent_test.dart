@@ -26,9 +26,19 @@ eventTest(String name, Event eventFn(), void validate(Event),
 main() {
   useHtmlConfiguration();
 
-  eventTest('CustomEvent.initCustomEvent', () {
-    return new CustomEvent('foo', canBubble: false, cancelable: false,
+  test('custom events', () {
+    var provider = new EventStreamProvider<CustomEvent>('foo');
+    var el = new DivElement();
+
+    var fired = false;
+    provider.forTarget(el).listen((ev) {
+      fired = true;
+      expect(ev.detail, 'detail');
+    });
+
+    var ev = new CustomEvent('foo', canBubble: false, cancelable: false,
         detail: 'detail');
-  },
-  (ev) { expect(ev.detail, equals('detail')); });
+    el.dispatchEvent(ev);
+    expect(fired, isTrue);
+  });
 }

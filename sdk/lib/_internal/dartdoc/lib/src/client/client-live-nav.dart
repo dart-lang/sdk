@@ -11,13 +11,10 @@ import '../../../../compiler/implementation/source_file.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../classify.dart';
 import '../../markdown.dart' as md;
-part '../dartdoc/nav.dart';
-
-// TODO(rnystrom): Use "package:" URL (#4968).
-part 'dropdown.dart';
-part 'search.dart';
-part '../dartdoc/nav.dart';
-part 'client-shared.dart';
+import '../dartdoc/nav.dart';
+import 'dropdown.dart';
+import 'search.dart';
+import 'client-shared.dart';
 
 main() {
   setup();

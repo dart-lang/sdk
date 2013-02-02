@@ -5,8 +5,8 @@
 library dartdoc_search_test;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-part '../lib/src/dartdoc/nav.dart';
-part '../lib/src/client/search.dart';
+import '../lib/src/dartdoc/nav.dart';
+import '../lib/src/client/search.dart';
 
 const String URL = 'dummy-url';
 

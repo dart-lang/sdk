@@ -80,6 +80,20 @@ class BaseIsolate {
 #endif
   }
 
+  int32_t no_callback_scope_depth() const {
+    return no_callback_scope_depth_;
+  }
+
+  void IncrementNoCallbackScopeDepth() {
+    ASSERT(no_callback_scope_depth_ < INT_MAX);
+    no_callback_scope_depth_ += 1;
+  }
+
+  void DecrementNoCallbackScopeDepth() {
+    ASSERT(no_callback_scope_depth_ > 0);
+    no_callback_scope_depth_ -= 1;
+  }
+
 #if defined(DEBUG)
   static void AssertCurrent(BaseIsolate* isolate);
 #endif
@@ -87,14 +101,13 @@ class BaseIsolate {
  protected:
   BaseIsolate()
       : top_resource_(NULL),
-#if defined(DEBUG)
         current_zone_(NULL),
+#if defined(DEBUG)
         top_handle_scope_(NULL),
         no_handle_scope_depth_(0),
-        no_gc_scope_depth_(0)
-#else
-        current_zone_(NULL)
+        no_gc_scope_depth_(0),
 #endif
+        no_callback_scope_depth_(0)
   {}
 
   ~BaseIsolate() {
@@ -108,6 +121,7 @@ class BaseIsolate {
   int32_t no_handle_scope_depth_;
   int32_t no_gc_scope_depth_;
 #endif
+  int32_t no_callback_scope_depth_;
 
   DISALLOW_COPY_AND_ASSIGN(BaseIsolate);
 };

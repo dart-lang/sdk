@@ -29,27 +29,29 @@ main() {
     Event event = new Event('test');
 
     invocationCounter = 0;
-    element.on['test'].dispatch(event);
+    element.dispatchEvent(event);
     expect(invocationCounter, isZero);
 
-    element.on['test'].add(handler, false);
+    var provider = new EventStreamProvider<CustomEvent>('test');
+
+    var sub = provider.forTarget(element).listen(handler);
     invocationCounter = 0;
-    element.on['test'].dispatch(event);
+    element.dispatchEvent(event);
     expect(invocationCounter, 1);
 
-    element.on['test'].remove(handler, false);
+    sub.cancel();
     invocationCounter = 0;
-    element.on['test'].dispatch(event);
+    element.dispatchEvent(event);
     expect(invocationCounter, isZero);
 
-    element.on['test'].add(handler, false);
+    provider.forTarget(element).listen(handler);
     invocationCounter = 0;
-    element.on['test'].dispatch(event);
+    element.dispatchEvent(event);
     expect(invocationCounter, 1);
 
-    element.on['test'].add(handler, false);
+    provider.forTarget(element).listen(handler);
     invocationCounter = 0;
-    element.on['test'].dispatch(event);
+    element.dispatchEvent(event);
     expect(invocationCounter, 1);
   });
   test('InitMouseEvent', () {

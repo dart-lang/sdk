@@ -7,6 +7,7 @@ library validator_test;
 import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
+import 'dart:math' as math;
 
 import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
@@ -15,12 +16,15 @@ import '../../../pkg/http/lib/testing.dart';
 import '../../pub/entrypoint.dart';
 import '../../pub/io.dart';
 import '../../pub/validator.dart';
+import '../../pub/validator/compiled_dartdoc.dart';
 import '../../pub/validator/dependency.dart';
 import '../../pub/validator/directory.dart';
 import '../../pub/validator/lib.dart';
 import '../../pub/validator/license.dart';
 import '../../pub/validator/name.dart';
 import '../../pub/validator/pubspec_field.dart';
+import '../../pub/validator/size.dart';
+import '../../pub/validator/utf8_readme.dart';
 
 void expectNoValidationError(ValidatorCreator fn) {
   expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isEmpty));
@@ -33,6 +37,9 @@ void expectValidationError(ValidatorCreator fn) {
 void expectValidationWarning(ValidatorCreator fn) {
   expectLater(schedulePackageValidation(fn), pairOf(isEmpty, isNot(isEmpty)));
 }
+
+Validator compiledDartdoc(Entrypoint entrypoint) =>
+  new CompiledDartdocValidator(entrypoint);
 
 Validator dependency(Entrypoint entrypoint) =>
   new DependencyValidator(entrypoint);
@@ -48,6 +55,14 @@ Validator name(Entrypoint entrypoint) => new NameValidator(entrypoint);
 
 Validator pubspecField(Entrypoint entrypoint) =>
   new PubspecFieldValidator(entrypoint);
+
+Function size(int size) {
+  return (entrypoint) =>
+      new SizeValidator(entrypoint, new Future.immediate(size));
+}
+
+Validator utf8Readme(Entrypoint entrypoint) =>
+  new Utf8ReadmeValidator(entrypoint);
 
 void scheduleNormalPackage() => normalPackage.scheduleCreate();
 
@@ -124,6 +139,31 @@ main() {
         dir("foo", [dir("tools")])
       ]).scheduleCreate();
       expectNoValidationError(directory);
+    });
+
+    integration('is <= 10 MB', () {
+      expectNoValidationError(size(100));
+      expectNoValidationError(size(10 * math.pow(2, 20)));
+    });
+
+    integration('has most but not all files from compiling dartdoc', () {
+      dir(appPath, [
+        dir("doc-out", [
+          file("nav.json", ""),
+          file("index.html", ""),
+          file("styles.css", ""),
+          file("dart-logo-small.png", "")
+        ])
+      ]).scheduleCreate();
+      expectNoValidationError(compiledDartdoc);
+    });
+
+    integration('has a non-primary readme with invalid utf-8', () {
+      dir(appPath, [
+        file("README", "Valid utf-8"),
+        binaryFile("README.invalid", [192])
+      ]).scheduleCreate();
+      expectNoValidationError(utf8Readme);
     });
   });
 
@@ -519,6 +559,31 @@ main() {
           expectValidationWarning(directory);
         });
       }
+    });
+
+    integration('is more than 10 MB', () {
+      expectValidationError(size(10 * math.pow(2, 20) + 1));
+    });
+
+    test('contains compiled dartdoc', () {
+      dir(appPath, [
+        dir('doc-out', [
+          file('nav.json', ''),
+          file('index.html', ''),
+          file('styles.css', ''),
+          file('dart-logo-small.png', ''),
+          file('client-live-nav.js', '')
+        ])
+      ]).scheduleCreate();
+
+      expectValidationWarning(compiledDartdoc);
+    });
+
+    test('has a README with invalid utf-8', () {
+      dir(appPath, [
+        binaryFile("README", [192])
+      ]).scheduleCreate();
+      expectValidationWarning(utf8Readme);
     });
   });
 }

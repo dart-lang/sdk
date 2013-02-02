@@ -195,7 +195,7 @@ class IterableUtf32Decoder extends Iterable<int> {
 /**
  * Abstrace parent class converts encoded bytes to codepoints.
  */
-class Utf32BytesDecoder implements _ListRangeIterator {
+abstract class Utf32BytesDecoder implements _ListRangeIterator {
   final _ListRangeIterator utf32EncodedBytesIterator;
   final int replacementCodepoint;
   int _current = null;

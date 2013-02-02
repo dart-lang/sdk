@@ -115,7 +115,6 @@ bad_constructor_test/05: Fail # http://dartbug.com/5519
 bad_constructor_test/06: Fail # http://dartbug.com/5519
 call_nonexistent_constructor_test: Fail
 constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
-external_test/10: Fail # http://dartbug.com/5519
 getter_no_setter2_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
 illegal_invocation_test/03: Fail # http://dartbug.com/5519
@@ -350,6 +349,7 @@ double_to_string_as_precision3_test: Fail
 expect_test: Fail
 factory3_test: Fail
 stack_overflow_test: Fail
+stack_overflow_stacktrace_test: Fail
 type_checks_in_factory_method_test: Fail
 
 
@@ -374,6 +374,7 @@ execute_finally3_test: Fail
 method_invocation_test: Fail
 null_pointer_exception_test: Fail
 stack_overflow_test: Fail
+stack_overflow_stacktrace_test: Fail
 string_interpolate_npe_test: Fail
 closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip

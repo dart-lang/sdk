@@ -46,7 +46,6 @@ _js_custom_members = set([
     'Element.remove',
     'ElementEvents.mouseWheel',
     'DOMException.name',
-    'HTMLCanvasElement.getContext',
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
     'KeyboardEvent.initKeyboardEvent',
@@ -72,6 +71,7 @@ _js_custom_members = set([
 
 js_support_checks = {
   'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
+  'Database': "JS('bool', '!!(window.openDatabase)')",
   'DOMApplicationCache': "JS('bool', '!!(window.applicationCache)')",
   'DOMFileSystem': "JS('bool', '!!(window.webkitRequestFileSystem)')",
   'HashChangeEvent': "Event._isTypeSupported('HashChangeEvent')",
@@ -96,7 +96,11 @@ js_support_checks = {
       "window.webkitSpeechRecognition)')",
   'XMLHttpRequestProgressEvent':
       "Event._isTypeSupported('XMLHttpRequestProgressEvent')",
+  'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
+  'WebKitCSSMatrix': "JS('bool', '!!(window.WebKitCSSMatrix)')",
+  'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
   'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
+  'XSLTProcessor': "JS('bool', '!!(window.XSLTProcessor)')",
 }
 
 # Classes that offer only static methods, and therefore we should suppress
@@ -331,6 +335,7 @@ class HtmlDartInterfaceGenerator(object):
 
     typedef_name = self._renamer.RenameInterface(self._interface)
     code.Emit('typedef void $NAME($PARAMS);\n',
+              LIBRARYNAME='dart.dom.%s' % self._library_name,
               NAME=typedef_name,
               PARAMS=info.ParametersDeclaration(self._DartType))
     self._backend.GenerateCallback(info)
@@ -402,12 +407,12 @@ class HtmlDartInterfaceGenerator(object):
       implements_str = ' implements ' + ', '.join(set(implements))
 
     annotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._interface.doc_js_name,
-                              library_name=self._library_name), '')
+        GetAnnotationsAndComments(self._library_name,
+                                  self._interface.doc_js_name), '')
 
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
-        LIBRARYNAME=self._library_name,
+        LIBRARYNAME='dart.dom.%s' % self._library_name,
         ANNOTATIONS=annotations,
         CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',
@@ -518,56 +523,33 @@ class Dart2JSBackend(HtmlDartGenerator):
   def GetSupportCheck(self):
     return js_support_checks.get(self._interface.doc_js_name)
 
-  def EmitStaticFactory(self, constructor_info):
-    WITH_CUSTOM_STATIC_FACTORY = [
+  def GenerateCustomFactory(self, constructor_info):
+    # Custom factory will be taken from the template.
+    return self._interface.doc_js_name in [
         'AudioContext',
         'Blob',
         'MutationObserver',
         'SpeechRecognition',
     ]
 
-    if self._interface.doc_js_name in WITH_CUSTOM_STATIC_FACTORY:
-      return
+  def IsConstructorArgumentOptional(self, argument):
+    return 'Optional' in argument.ext_attrs
 
-    has_optional = any(param_info.is_optional
-        for param_info in constructor_info.param_infos)
-
-    def FormatJS(index):
-      arguments = constructor_info.ParametersAsArgumentList(index)
-      if arguments:
-        arguments = ', ' + arguments
-      return "JS('%s', 'new %s(%s)'%s)" % (
-          self._interface_type_info.interface_name(),
-          constructor_info.name or self._interface.doc_js_name,
-          ','.join(['#'] * index),
-          arguments)
-
-    if not has_optional:
-      self._members_emitter.Emit(
-          "  static $INTERFACE_NAME _create($PARAMETERS_DECLARATION) => $JS;\n",
-          INTERFACE_NAME=self._interface_type_info.interface_name(),
-          PARAMETERS_DECLARATION=constructor_info.ParametersDeclaration(
-              self._DartType),
-          JS=FormatJS(len(constructor_info.param_infos)))
-    else:
-      dispatcher_emitter = self._members_emitter.Emit(
-          "  static $INTERFACE_NAME _create($PARAMETERS_DECLARATION) {\n"
-          "$!DISPATCHER"
-          "    return $JS;\n"
-          "  }\n",
-          INTERFACE_NAME=self._interface_type_info.interface_name(),
-          PARAMETERS_DECLARATION=constructor_info.ParametersDeclaration(
-              self._DartType),
-          JS=FormatJS(len(constructor_info.param_infos)))
-
-      for index, param_info in enumerate(constructor_info.param_infos):
-        if param_info.is_optional:
-          dispatcher_emitter.Emit(
-            "    if (!?$OPT_PARAM_NAME) {\n"
-            "      return $JS;\n"
-            "    }\n",
-            OPT_PARAM_NAME=constructor_info.param_infos[index].name,
-            JS=FormatJS(index))
+  def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
+    index = len(arguments)
+    arguments = constructor_info.ParametersAsArgumentList(index)
+    if arguments:
+      arguments = ', ' + arguments
+    self._members_emitter.Emit(
+        "  static $INTERFACE_NAME $NAME($PARAMETERS) => "
+          "JS('$INTERFACE_NAME', 'new $CTOR_NAME($PLACEHOLDERS)'$ARGUMENTS);\n",
+        INTERFACE_NAME=self._interface_type_info.interface_name(),
+        NAME=name,
+        # TODO(antonm): add types to parameters.
+        PARAMETERS=constructor_info.ParametersAsArgumentList(index),
+        CTOR_NAME=constructor_info.name or self._interface.doc_js_name,
+        PLACEHOLDERS=','.join(['#'] * index),
+        ARGUMENTS=arguments)
 
   def SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
@@ -916,8 +898,9 @@ class Dart2JSBackend(HtmlDartGenerator):
     return ''
 
   def _Annotations(self, idl_type, idl_member_name, indent='  '):
-    anns = FindDart2JSAnnotationsAndComments(idl_type, self._interface.id,
-        idl_member_name, self._library_name)
+    anns = FindDart2JSAnnotationsAndComments(idl_type, self._library_name,
+                                             self._interface.id,
+                                             idl_member_name)
 
     if not AnyConversionAnnotations(idl_type, self._interface.id,
                                   idl_member_name):

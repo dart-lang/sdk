@@ -7,6 +7,7 @@ library native;
 import 'dart:collection' show Queue;
 import 'dart:uri';
 import 'dart2jslib.dart' hide SourceString;
+import 'dart_types.dart';
 import 'elements/elements.dart';
 import 'js_backend/js_backend.dart';
 import 'resolution/resolution.dart' show ResolverVisitor;

@@ -8,7 +8,7 @@ part of dart.math;
  * A random number generator. The default implementation supplies a stream of
  * pseudo-random bits which is not suitable for cryptographic purposes.
  */
-class Random {
+abstract class Random {
   /**
    * Creates a random-number generator. The optional parameter [seed] is used
    * to initialize the internal state of the generator. The implementation of

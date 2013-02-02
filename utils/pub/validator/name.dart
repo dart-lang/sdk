@@ -52,7 +52,7 @@ class NameValidator extends Validator {
       return listDir(libDir, recursive: true);
     }).then((files) {
       return files
-          .mappedBy((file) => relativeTo(file, dirname(libDir)))
+          .map((file) => relativeTo(file, dirname(libDir)))
           .where((file) => !splitPath(file).contains("src") &&
                            path.extension(file) == '.dart')
           .toList();

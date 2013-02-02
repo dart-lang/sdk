@@ -133,7 +133,8 @@ const int kNumberOfFpuRegisters = kNumberOfDRegisters;
 
 // Register aliases.
 const Register TMP = kNoRegister;  // No scratch register used by assembler.
-const Register CTX = R9;           // Caches current context in generated code.
+const Register CTX = R9;  // Caches current context in generated code.
+const Register CP = R10;  // Caches constant pool base in generated code.
 const Register SPREG = SP;
 const Register FPREG = FP;
 
@@ -141,6 +142,17 @@ const Register FPREG = FP;
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.
 const Register kExceptionObjectReg = R0;  // Unimplemented.
+
+
+// List of registers used in load/store multiple.
+typedef uint16_t RegList;
+const RegList kAllCoreRegistersList = 0xFFFF;
+
+
+// C++ ABI call registers
+const int kAbiRegisterCount = 4;
+const Register kAbiRegisters[kAbiRegisterCount] = { R0, R1, R2, R3 };
+const RegList kAbiRegisterList = (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
 
 
 // Values for the condition field as defined in section A3.2.

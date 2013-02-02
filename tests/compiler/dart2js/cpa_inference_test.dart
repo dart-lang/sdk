@@ -1023,6 +1023,17 @@ testDynamicIsAbsorbing() {
   result.checkNodeHasUnknownType('x');
 }
 
+testIsCheck() {
+  final String source = r"""
+    main () {
+      var x = (1 is String);
+      x;
+    }
+    """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.bool]);
+}
+
 void main() {
   testDynamicBackDoor();
   testLiterals();
@@ -1063,4 +1074,5 @@ void main() {
   testLists();
   testListWithCapacity();
   testEmptyList();
+  testIsCheck();
 }

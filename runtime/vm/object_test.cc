@@ -1905,19 +1905,19 @@ TEST_CASE(ExternalByteArray) {
   const ExternalInt8Array& int8_array =
       ExternalInt8Array::Handle(
           ExternalInt8Array::New(reinterpret_cast<int8_t*>(data),
-                                 data_length, NULL, NULL));
+                                 data_length));
   EXPECT(!int8_array.IsNull());
   EXPECT_EQ(data_length, int8_array.Length());
 
   const ExternalUint8Array& uint8_array =
       ExternalUint8Array::Handle(
-          ExternalUint8Array::New(data, data_length, NULL, NULL));
+          ExternalUint8Array::New(data, data_length));
   EXPECT(!uint8_array.IsNull());
   EXPECT_EQ(data_length, uint8_array.Length());
 
   const ExternalUint8ClampedArray& uint8_clamped_array =
       ExternalUint8ClampedArray::Handle(
-          ExternalUint8ClampedArray::New(data, data_length, NULL, NULL));
+          ExternalUint8ClampedArray::New(data, data_length));
   EXPECT(!uint8_clamped_array.IsNull());
   EXPECT_EQ(data_length, uint8_clamped_array.Length());
 
@@ -2090,7 +2090,7 @@ TEST_CASE(Uint8ByteArrayCopyExternal) {
 
   const ExternalUint8Array& external =
       ExternalUint8Array::Handle(
-          ExternalUint8Array::New(data, ARRAY_SIZE(data), NULL, NULL));
+          ExternalUint8Array::New(data, ARRAY_SIZE(data)));
   EXPECT(!external.IsNull());
   EXPECT_EQ(4, external.Length());
   EXPECT_EQ(0, external.At(0));
@@ -2150,7 +2150,7 @@ TEST_CASE(ClampedUint8ByteArrayCopyExternal) {
 
   const ExternalUint8ClampedArray& external =
       ExternalUint8ClampedArray::Handle(
-          ExternalUint8ClampedArray::New(data, ARRAY_SIZE(data), NULL, NULL));
+          ExternalUint8ClampedArray::New(data, ARRAY_SIZE(data)));
   EXPECT(!external.IsNull());
   EXPECT_EQ(4, external.Length());
   EXPECT_EQ(0, external.At(0));
@@ -2217,7 +2217,7 @@ TEST_CASE(Uint8ByteArrayCopyInternalExternal) {
 
   const ExternalUint8Array& external =
       ExternalUint8Array::Handle(
-          ExternalUint8Array::New(data, ARRAY_SIZE(data), NULL, NULL));
+          ExternalUint8Array::New(data, ARRAY_SIZE(data)));
   EXPECT(!external.IsNull());
   EXPECT_EQ(4, external.Length());
   EXPECT_EQ(4, external.At(0));
@@ -2298,7 +2298,7 @@ TEST_CASE(ClampedUint8ByteArrayCopyInternalExternal) {
 
   const ExternalUint8ClampedArray& external =
       ExternalUint8ClampedArray::Handle(
-          ExternalUint8ClampedArray::New(data, ARRAY_SIZE(data), NULL, NULL));
+          ExternalUint8ClampedArray::New(data, ARRAY_SIZE(data)));
   EXPECT(!external.IsNull());
   EXPECT_EQ(4, external.Length());
   EXPECT_EQ(4, external.At(0));

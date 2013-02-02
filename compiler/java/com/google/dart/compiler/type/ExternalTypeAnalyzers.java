@@ -154,7 +154,7 @@ public class ExternalTypeAnalyzers {
       // OK, we know more specific return type
       Type tagType = tagTypeElement.getType();
       if (tagType != null) {
-        return tagType;
+        return Types.makeInferred(tagType, TypeQuality.INFERRED_EXACT);
       }
     }
     // no guess

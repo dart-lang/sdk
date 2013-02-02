@@ -34,6 +34,10 @@ dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/isolate_unhandled*: Skip
 
+[ $compiler == dart2js ]
+# The source positions do not match with dart2js.
+dart/optimized_stacktrace_test: Fail
+
 [ $compiler == dart2js && $minified ]
 # Methods in stack traces are renamed.
 dart/inline_stack_frame_test: Fail # Issue 7953.

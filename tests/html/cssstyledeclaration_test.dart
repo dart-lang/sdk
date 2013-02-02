@@ -72,13 +72,10 @@ main() {
     element.style.transform = 'translateX(10px)';
     document.body.children.add(element);
 
-    element.getComputedStyle('').then(expectAsync1(
-      (CssStyleDeclaration style) {
-        // Some browsers will normalize this, so it'll be a matrix rather than
-        // the original string. Just check that it's something other than null.
-        expect(style.transform.length, greaterThan(3));
-      }
-    ));
+    var style = element.getComputedStyle();
+    // Some browsers will normalize this, so it'll be a matrix rather than
+    // the original string. Just check that it's something other than null.
+    expect(style.transform.length, greaterThan(3));
   });
 
   // IE9 requires an extra poke for some properties to get applied.
@@ -89,11 +86,8 @@ main() {
     // Need to wait one tick after the element has been added to the page.
     window.setTimeout(expectAsync0(() {
       element.style.textDecoration = 'underline';
-      element.getComputedStyle('').then(expectAsync1(
-        (CssStyleDeclaration style) {
-          expect(style.textDecoration, equals('underline'));
-        }
-      ));
+      var style = element.getComputedStyle();
+      expect(style.textDecoration, equals('underline'));
     }), 10);
   });
 }

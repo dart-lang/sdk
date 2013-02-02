@@ -84,7 +84,20 @@ class CodeEmitterTask extends CompilerTask {
    * interceptor instance, and the actual receiver of the method.
    */
   final Map<int, String> interceptorClosureCache;
+
+  /**
+   * Raw ClassElement symbols occuring in is-checks and type assertions.  If the
+   * program contains parameterized checks `x is Set<int>` and
+   * `x is Set<String>` then the ClassElement `Set` will occur once in
+   * [checkedClasses].
+   */
   Set<ClassElement> checkedClasses;
+
+  /**
+   * Raw Typedef symbols occuring in is-checks and type assertions.  If the
+   * program contains `x is F<int>` and `x is F<bool>` then the TypedefElement
+   * `F` will occur once in [checkedTypedefs].
+   */
   Set<TypedefElement> checkedTypedefs;
 
   final bool generateSourceMap;
@@ -880,10 +893,15 @@ $lazyInitializerLogic
 
     void visitField(ClassElement enclosingClass, Element member) {
       assert(invariant(classElement, member.isDeclaration));
-
       LibraryElement library = member.getLibrary();
       SourceString name = member.name;
       bool isPrivate = name.isPrivate();
+
+      // Keep track of whether or not we're dealing with a field mixin
+      // into a native class.
+      bool isMixinNativeField =
+          classElement.isNative() && enclosingClass.isMixinApplication;
+
       // See if we can dynamically create getters and setters.
       // We can only generate getters and setters for [classElement] since
       // the fields of super classes could be overwritten with getters or
@@ -893,7 +911,7 @@ $lazyInitializerLogic
       // We need to name shadowed fields differently, so they don't clash with
       // the non-shadowed field.
       bool isShadowed = false;
-      if (identical(enclosingClass, classElement)) {
+      if (isMixinNativeField || identical(enclosingClass, classElement)) {
         needsGetter = instanceFieldNeedsGetter(member);
         needsSetter = instanceFieldNeedsSetter(member);
       } else {
@@ -908,7 +926,7 @@ $lazyInitializerLogic
             : namer.getName(member);
         String fieldName = member.hasFixedBackendName()
             ? member.fixedBackendName()
-            : accessorName;
+            : (isMixinNativeField ? member.name.slowToString() : accessorName);
         bool needsCheckedSetter = false;
         if (needsSetter && compiler.enableTypeAssertions
             && canGenerateCheckedSetter(member)) {
@@ -1147,12 +1165,26 @@ $lazyInitializerLogic
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
 
+  int _selectorRank(Selector selector) {
+    int arity = selector.argumentCount * 3;
+    if (selector.isGetter()) return arity + 2;
+    if (selector.isSetter()) return arity + 1;
+    return arity;
+  }
+
+  int _compareSelectorNames(Selector selector1, Selector selector2) {
+    String name1 = selector1.name.toString();
+    String name2 = selector2.name.toString();
+    if (name1 != name2) return Comparable.compare(name1, name2);
+    return _selectorRank(selector1) - _selectorRank(selector2);
+  }
+
   void emitInterceptorMethods(ClassBuilder builder) {
     JavaScriptBackend backend = compiler.backend;
     // Emit forwarders for the ObjectInterceptor class. We need to
     // emit all possible sends on intercepted methods.
-    for (Selector selector in backend.usedInterceptors) {
-
+    for (Selector selector in
+         backend.usedInterceptors.toList()..sort(_compareSelectorNames)) {
       List<js.Parameter> parameters = <js.Parameter>[];
       List<js.Expression> arguments = <js.Expression>[];
       parameters.add(new js.Parameter('receiver'));
@@ -1181,11 +1213,13 @@ $lazyInitializerLogic
   }
 
   Iterable<Element> getTypedefChecksOn(DartType type) {
-    return checkedTypedefs.where((TypedefElement typedef) {
+    bool isSubtype(TypedefElement typedef) {
       FunctionType typedefType =
           typedef.computeType(compiler).unalias(compiler);
       return compiler.types.isSubtype(type, typedefType);
-    });
+    }
+    return checkedTypedefs.where(isSubtype).toList()
+        ..sort(Elements.compareByPosition);
   }
 
   /**
@@ -1815,7 +1849,7 @@ $lazyInitializerLogic
       }
 
       List<js.Expression> argNames =
-          selector.getOrderedNamedArguments().mappedBy((SourceString name) =>
+          selector.getOrderedNamedArguments().map((SourceString name) =>
               js.string(name.slowToString())).toList();
 
       String internalName = namer.invocationMirrorInternalName(selector);
@@ -1836,7 +1870,7 @@ $lazyInitializerLogic
                           js.string(internalName),
                           new js.LiteralNumber('$type'),
                           new js.ArrayInitializer.from(
-                              parameters.mappedBy((param) => js.use(param.name))
+                              parameters.map((param) => js.use(param.name))
                                         .toList()),
                           new js.ArrayInitializer.from(argNames)])]);
       js.Expression function =
@@ -2142,10 +2176,11 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     // If no class needs to be intercepted, just return.
     if (backend.objectInterceptorClass == null) return;
     String objectName = namer.isolateAccess(backend.objectInterceptorClass);
-    backend.specializedGetInterceptors.forEach(
-        (String key, Collection<ClassElement> classes) {
-          emitGetInterceptorMethod(buffer, objectName, key, classes);
-        });
+    var specializedGetInterceptors = backend.specializedGetInterceptors;
+    for (String name in specializedGetInterceptors.keys.toList()..sort()) {
+      Collection<ClassElement> classes = specializedGetInterceptors[name];
+      emitGetInterceptorMethod(buffer, objectName, name, classes);
+    }
   }
 
   void computeNeededClasses() {
@@ -2163,9 +2198,27 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
     }
   }
 
+  int _compareSelectors(Selector selector1, Selector selector2) {
+    int comparison = _compareSelectorNames(selector1, selector2);
+    if (comparison != 0) return comparison;
+
+    JavaScriptBackend backend = compiler.backend;
+    Set<ClassElement> classes1 = backend.getInterceptedClassesOn(selector1);
+    Set<ClassElement> classes2 = backend.getInterceptedClassesOn(selector2);
+    if (classes1.length != classes2.length) {
+      return classes1.length - classes2.length;
+    }
+    String getInterceptor1 =
+        namer.getInterceptorName(backend.getInterceptorMethod, classes1);
+    String getInterceptor2 =
+        namer.getInterceptorName(backend.getInterceptorMethod, classes2);
+    return Comparable.compare(getInterceptor1, getInterceptor2);
+  }
+
   void emitOneShotInterceptors(CodeBuffer buffer) {
     JavaScriptBackend backend = compiler.backend;
-    for (Selector selector in backend.oneShotInterceptors) {
+    for (Selector selector in
+         backend.oneShotInterceptors.toList()..sort(_compareSelectors)) {
       Set<ClassElement> classes = backend.getInterceptedClassesOn(selector);
       String oneShotInterceptorName = namer.oneShotInterceptorName(selector);
       String getInterceptorName =
@@ -2265,11 +2318,9 @@ if (typeof document !== 'undefined' && document.readyState !== 'complete') {
       if (generateSourceMap) {
         SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
         String sourceMap = buildSourceMap(mainBuffer, compiledFile);
-        // TODO(podivilov): We should find a better way to return source maps to
-        // compiler. Using diagnostic handler for that purpose is a temporary
-        // hack.
-        compiler.reportDiagnostic(
-            null, sourceMap, new api.Diagnostic(-1, 'source map'));
+        compiler.outputProvider('', 'js.map')
+            ..add(sourceMap)
+            ..close();
       }
     });
     return compiler.assembledCode;

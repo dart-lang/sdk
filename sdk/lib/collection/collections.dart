@@ -313,12 +313,18 @@ class IterableMixinWorkaround {
     return new WhereIterable(iterable, f);
   }
 
+  static Iterable map(Iterable iterable, f(var element)) {
+    return new MappedIterable(iterable, f);
+  }
+
   static List mappedByList(List list, f(var element)) {
+    // This is currently a List as well as an Iterable.
     return new MappedList(list, f);
   }
 
-  static List takeList(List list, int n) {
+  static Iterable takeList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
+    // This is currently a List as well as an Iterable.
     return new ListView(list, 0, n);
   }
 
@@ -327,8 +333,9 @@ class IterableMixinWorkaround {
     return new TakeWhileIterable(iterable, test);
   }
 
-  static List skipList(List list, int n) {
+  static Iterable skipList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
+    // This is currently a List as well as an Iterable.
     return new ListView(list, n, null);
   }
 
@@ -337,9 +344,13 @@ class IterableMixinWorkaround {
     return new SkipWhileIterable(iterable, test);
   }
 
+  static List reversedList(List l) {
+    return new ReversedListView(l, 0, null);
+  }
+
   static void sortList(List l, int compare(a, b)) {
     if (compare == null) compare = Comparable.compare;
-    _Sort.sort(l, compare);
+    Sort.sort(l, compare);
   }
 }
 
@@ -439,7 +450,7 @@ class Collections {
       => IterableMixinWorkaround.mappedByList(list, f);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
-  static List takeList(List list, int n)
+  static Iterable takeList(List list, int n)
       => IterableMixinWorkaround.takeList(list, n);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
@@ -447,110 +458,13 @@ class Collections {
       => IterableMixinWorkaround.takeWhile(iterable, test);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
-  static List skipList(List list, int n)
+  static Iterable skipList(List list, int n)
       => IterableMixinWorkaround.skipList(list, n);
 
   /** Deprecated. Use the same method in [IterableMixinWorkaround] instead.*/
   static Iterable skipWhile(Iterable iterable, bool test(var value))
       => IterableMixinWorkaround.skipWhile(iterable, test);
 
-  // TODO(jjb): visiting list should be an identityHashSet when it exists
-
-  /**
-   * Returns a string representing the specified collection. If the
-   * collection is a [List], the returned string looks like this:
-   * [:'[element0, element1, ... elementN]':]. The value returned by its
-   * [toString] method is used to represent each element. If the specified
-   * collection is not a list, the returned string looks like this:
-   * [:{element0, element1, ... elementN}:]. In other words, the strings
-   * returned for lists are surrounded by square brackets, while the strings
-   * returned for other collections are surrounded by curly braces.
-   *
-   * If the specified collection contains a reference to itself, either
-   * directly or indirectly through other collections or maps, the contained
-   * reference is rendered as [:'[...]':] if it is a list, or [:'{...}':] if
-   * it is not. This prevents the infinite regress that would otherwise occur.
-   * So, for example, calling this method on a list whose sole element is a
-   * reference to itself would return [:'[[...]]':].
-   *
-   * A typical implementation of a collection's [toString] method will
-   * simply return the results of this method applied to the collection.
-   */
-  static String collectionToString(Collection c) {
-    var result = new StringBuffer();
-    _emitCollection(c, result, new List());
-    return result.toString();
-  }
-
-  /**
-   * Appends a string representing the specified collection to the specified
-   * string buffer. The string is formatted as per [collectionToString].
-   * The [:visiting:] list contains references to all of the enclosing
-   * collections and maps (which are currently in the process of being
-   * emitted into [:result:]). The [:visiting:] parameter allows this method to
-   * generate a [:'[...]':] or [:'{...}':] where required. In other words,
-   * it allows this method and [_emitMap] to identify recursive collections
-   * and maps.
-   */
-  static void _emitCollection(Collection c,
-                              StringBuffer result,
-                              List visiting) {
-    visiting.add(c);
-    bool isList = c is List;
-    result.add(isList ? '[' : '{');
-
-    bool first = true;
-    for (var e in c) {
-      if (!first) {
-        result.add(', ');
-      }
-      first = false;
-      _emitObject(e, result, visiting);
-    }
-
-    result.add(isList ? ']' : '}');
-    visiting.removeLast();
-  }
-
-  /**
-   * Appends a string representing the specified object to the specified
-   * string buffer. If the object is a [Collection] or [Map], it is formatted
-   * as per [collectionToString] or [mapToString]; otherwise, it is formatted
-   * by invoking its own [toString] method.
-   *
-   * The [:visiting:] list contains references to all of the enclosing
-   * collections and maps (which are currently in the process of being
-   * emitted into [:result:]). The [:visiting:] parameter allows this method
-   * to generate a [:'[...]':] or [:'{...}':] where required. In other words,
-   * it allows this method and [_emitCollection] to identify recursive maps
-   * and collections.
-   */
-  static void _emitObject(Object o, StringBuffer result, List visiting) {
-    if (o is Collection) {
-      if (_containsRef(visiting, o)) {
-        result.add(o is List ? '[...]' : '{...}');
-      } else {
-        _emitCollection(o, result, visiting);
-      }
-    } else if (o is Map) {
-      if (_containsRef(visiting, o)) {
-        result.add('{...}');
-      } else {
-        Maps._emitMap(o, result, visiting);
-      }
-    } else { // o is neither a collection nor a map
-      result.add(o);
-    }
-  }
-
-  /**
-   * Returns true if the specified collection contains the specified object
-   * reference.
-   */
-  static _containsRef(Collection c, Object ref) {
-    for (var e in c) {
-      if (identical(e, ref)) return true;
-    }
-    return false;
-  }
+  static String collectionToString(Collection c)
+      => ToString.collectionToString(c);
 }

@@ -203,6 +203,8 @@ abstract class Compiler implements DiagnosticListener {
    */
   final bool preserveComments;
 
+  final api.CompilerOutputProvider outputProvider;
+
   bool disableInlining = false;
 
   List<Uri> librariesToAnalyzeWhenRun;
@@ -331,9 +333,13 @@ abstract class Compiler implements DiagnosticListener {
             this.rejectDeprecatedFeatures: false,
             this.checkDeprecationInSdk: false,
             this.preserveComments: false,
+            outputProvider,
             List<String> strips: const []})
       : libraries = new Map<String, LibraryElement>(),
-        progress = new Stopwatch() {
+        progress = new Stopwatch(),
+        this.outputProvider =
+            (outputProvider == null) ? NullSink.outputProvider : outputProvider
+  {
     progress.start();
     world = new World(this);
 
@@ -409,7 +415,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void pleaseReportCrash() {
-    print(MessageKind.PLEASE_REPORT_THE_CRASH.message([BUILD_ID]));
+    print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': BUILD_ID}));
   }
 
   void cancel(String reason, {Node node, Token token,
@@ -433,6 +439,9 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   SourceSpan spanFromSpannable(Spannable node, [Uri uri]) {
+    if (node == CURRENT_ELEMENT_SPANNABLE) {
+      node = currentElement;
+    }
     if (node is Node) {
       return spanFromNode(node, uri);
     } else if (node is Token) {
@@ -839,10 +848,19 @@ abstract class Compiler implements DiagnosticListener {
     reportDiagnostic(span, 'Warning: $message', api.Diagnostic.WARNING);
   }
 
+  // TODO(ahe): Remove this method.
   reportError(Node node, var message) {
     SourceSpan span = spanFromNode(node);
     reportDiagnostic(span, 'Error: $message', api.Diagnostic.ERROR);
     throw new CompilerCancelledException(message.toString());
+  }
+
+  // TODO(ahe): Rename to reportError when that method has been removed.
+  void reportErrorCode(Spannable node, MessageKind errorCode,
+                       [Map arguments = const {}]) {
+    reportMessage(spanFromSpannable(node),
+                  errorCode.error(arguments),
+                  api.Diagnostic.ERROR);
   }
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind) {
@@ -862,8 +880,9 @@ abstract class Compiler implements DiagnosticListener {
     var kind = rejectDeprecatedFeatures
         ? api.Diagnostic.ERROR : api.Diagnostic.WARNING;
     var message = rejectDeprecatedFeatures
-        ? MessageKind.DEPRECATED_FEATURE_ERROR.error([feature])
-        : MessageKind.DEPRECATED_FEATURE_WARNING.error([feature]);
+        ? MessageKind.DEPRECATED_FEATURE_ERROR.error({'featureName': feature})
+        : MessageKind.DEPRECATED_FEATURE_WARNING.error(
+            {'featureName': feature});
     reportMessage(spanFromSpannable(span), message, kind);
     return true;
   }
@@ -1086,4 +1105,22 @@ bool invariant(Spannable spannable, var condition, {String message: null}) {
     throw new SpannableAssertionFailure(spannable, message);
   }
   return true;
+}
+
+/// A sink that drains into /dev/null.
+class NullSink extends Sink<String> {
+  final String name;
+
+  NullSink(this.name);
+
+  add(String value) {}
+
+  void close() {}
+
+  toString() => name;
+
+  /// Convenience method for getting an [api.CompilerOutputProvider].
+  static NullSink outputProvider(String name, String extension) {
+    return new NullSink('$name.$extension');
+  }
 }

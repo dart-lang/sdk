@@ -5,7 +5,6 @@
 window_open_test: Skip # http://dartbug.com/5151
 
 event_test: Skip  # Issue 1996
-webgl_1_test: Skip  # Issue 1495
 
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
@@ -21,12 +20,15 @@ input_element_test/supported_month: Fail
 input_element_test/supported_week: Fail
 speechrecognition_test/supported: Pass, Fail       # Chrome stable does not support it.
 shadow_dom_test/supported: Fail
-css_test: Pass, Fail # Issue 7978
 speechrecognition_test/types: Pass, Fail
+touchevent_test/supported: Fail
 
-[ $runtime == chrome || $runtime == drt]
-audiobuffersourcenode_test: Pass, Fail, Timeout # AudiobufferSourceNode is flaky on Chrome and Dartium - filed issue 8021 for the timeout.
-audiocontext_test: Pass, Timeout  # Issue 8021.
+[$runtime == drt || $runtime == dartium || $runtime == chrome]
+webgl_1_test: Pass, Fail # Issue 8219
+
+[ $runtime == drt || $runtime == chrome]
+audiobuffersourcenode_test: Pass, Fail, Timeout, Crash # AudiobufferSourceNode is flaky on Chrome and Dartium - filed issue 8021 for the timeout.
+audiocontext_test: Pass, Timeout, Crash  # Issue 8021.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
@@ -48,8 +50,10 @@ audiobuffersourcenode_test: Pass, Fail
 # TODO(efortuna, blois): Triage.
 audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
-css_test: Fail
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
 document_test/supports_cssCanvasContext: Fail
+dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
@@ -74,6 +78,7 @@ media_stream_test/supported_media: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 messageevent_test: Fail
+microtask_test: Fail, Pass # Appears to be flaky
 mutationobserver_test/supported: Fail
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 notifications_test/supported: Fail
@@ -83,16 +88,19 @@ speechrecognition_test/supported: Fail
 storage_test: Fail, Pass
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
-svg_3_test: Fail
-websql_test: Fail
+touchevent_test/supported: Fail
+webgl_1_test/supported: Fail
+websql_test/supported: Fail
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
 xhr_cross_origin_test: Fail # TODO(efortuna): Issue 7875.
 xhr_test/supported_HttpRequestProgressEvent: Fail
-xsltprocessor_test: Fail
+xsltprocessor_test/supported: Fail
+history_test/history: Pass, Fail # issue 8183
 
 [ $runtime == ie9 ]
 document_test/supports_cssCanvasContext: Fail
+dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
@@ -109,7 +117,8 @@ form_element_test: Fail # Issue 4793.
 inner_frame_test: Skip # Issue 5727 (timeout)
 typed_arrays_1_test/supported: Fail
 localstorage_test: Fail
-websql_test: Fail # IE does not support web SQL
+webgl_1_test/supported: Fail
+websql_test/supported: Fail
 #
 # Investigate and triage the following into bug reports.
 #
@@ -117,7 +126,8 @@ audiobuffersourcenode_test: Fail
 audiocontext_test: Fail
 blob_constructor_test: Fail
 cache_test/supported: Fail
-css_test: Fail
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
 dom_constructors_test: Fail
 element_test/matches: Fail # IE9 does not support matches
 fileapi_test/supported: Fail
@@ -149,25 +159,19 @@ speechrecognition_test/supported: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
+touchevent_test/supported: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 websocket_test/supported: Fail
 window_open_test: Skip      # BUG(4016)
-xsltprocessor_test: Skip    # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
 xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_cross_origin_test: Fail # Issue 6016.
+xsltprocessor_test/supported: Fail
 
 [ $runtime == safari ]
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
-element_types_test/supported_details: Fail
-element_types_test/supported_embed: Fail
-element_types_test/supported_keygen: Fail
-element_types_test/supported_meter: Fail
-element_types_test/supported_object: Fail
-element_types_test/supported_output: Fail
-element_types_test/supported_progress: Fail
 element_types_test/supported_shadow: Fail
 element_types_test/supported_track: Pass, Fail
 fileapi_test/supported: Fail
@@ -175,12 +179,8 @@ indexeddb_1_test/supported: Fail
 input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_datetime: Fail
-input_element_test/supported_email: Fail
 input_element_test/supported_month: Fail, Crash
-input_element_test/supported_number: Fail
-input_element_test/supported_range: Fail, Crash    # TODO(efortuna): Please triage this failure.
 input_element_test/supported_time: Fail, Crash
-input_element_test/supported_url: Fail
 input_element_test/supported_week: Fail, Crash
 media_stream_test/supported_media: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
@@ -189,25 +189,13 @@ notifications_test/supported: Fail # Issue: 7414
 performance_api_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
+touchevent_test/supported: Fail
+webgl_1_test: Pass, Fail # Issue 8219
 
 audiocontext_test: Crash, Fail # Issue: 7414
 datalistelement_test: Fail # Issue: 7414
 element_test/elements: Crash, Fail # Issue: 7414
-element_types_test/constructors: Fail
-fileapi_test/getDirectory: Fail # Issue: 7414
-fileapi_test/getFile: Pass, Fail # Issue: 7414
-fileapi_test/unsupported_throws: Fail # Issue: 7414
-input_element_test/constructors: Fail # Issue: 7414
-input_element_test/supported_tel: Pass, Fail # Issue: 7414
-media_stream_test/constructors: Pass, Fail # Issue: 7414
-node_test: Skip # Issue 6457
-notifications_test/unsupported_throws: Fail # Issue: 7414
-notifications_test/webkitNotifications: Fail # Issue: 7414
-performance_api_test/performance: Fail # Issue: 7414
-shadow_dom_test/ShadowDOM_tests: Fail # Issue: 7414
 wheelevent_test: Fail # Issue: 7414
-speechrecognition_test/types: Pass, Fail
-
 
 [ $runtime == opera ]
 document_test/supports_cssCanvasContext: Fail
@@ -222,7 +210,8 @@ audiocontext_test: Fail
 blob_constructor_test: Fail
 canvas_using_html_test: Fail
 canvas_test: Fail
-css_test: Fail
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
 cssstyledeclaration_test: Fail
 element_add_test: Fail
 element_constructor_1_test: Fail
@@ -248,12 +237,13 @@ inner_frame_test: Skip # Timeout.
 js_interop_3_test: Skip # Timeout.
 js_interop_4_test: Skip # Timeout.
 isolates_test: Skip # Timeout.
-websql_test: Skip # Timeout.
+websql_test/supported: Fail
 
 [ $runtime == ff ]
 audiobuffersourcenode_test: Fail # FF only has Audio element.
 audiocontext_test: Fail      # FF only has Audio element
-css_test: Fail               # No analog to WebKitCssMatrix
+css_test/supported_CssMatrix: Fail
+css_test/supported_DomPoint: Fail
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
@@ -282,9 +272,12 @@ speechrecognition_test/supported: Fail
 svg_3_test: Fail
 svgelement_test/additionalConstructors: Fail
 svgelement2_test: Fail
+touchevent_test/supported: Fail
 transferables_test: Fail   # Issue 3392.
-websql_test: Fail # FF does not support web SQL
+webgl_1_test: Pass, Fail   # Issue 8219
+websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
+dromaeo_smoke_test: Pass, Fail # Issue: 8257
 
 [ $runtime == ie9 && ($system == linux || $system == macos) ]
 *: Skip

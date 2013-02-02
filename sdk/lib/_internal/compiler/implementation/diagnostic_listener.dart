@@ -16,9 +16,12 @@ abstract class DiagnosticListener {
                      {Node node, Token token, HInstruction instruction,
                       Element element});
 
-  SourceSpan spanFromSpannable(Node node, [Uri uri]);
+  SourceSpan spanFromSpannable(Spannable node, [Uri uri]);
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind);
+
+  // TODO(ahe): Rename to reportError when that method has been removed.
+  void reportErrorCode(Spannable node, MessageKind errorCode, [Map arguments]);
 
   /// Returns true if a diagnostic was emitted.
   bool onDeprecatedFeature(Spannable span, String feature);

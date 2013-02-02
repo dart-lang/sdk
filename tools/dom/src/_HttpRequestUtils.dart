@@ -15,7 +15,7 @@ class _HttpRequestUtils {
 
     request.withCredentials = withCredentials;
 
-    request.on.readyStateChange.add((e) {
+    request.onReadyStateChange.listen((e) {
       if (request.readyState == HttpRequest.DONE) {
         onComplete(request);
       }

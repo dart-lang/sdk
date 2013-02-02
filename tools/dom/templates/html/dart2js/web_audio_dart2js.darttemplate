@@ -1,11 +1,10 @@
 // DO NOT EDIT
 // Auto-generated dart:audio library.
 
-library web_audio;
+library dart.dom.web_audio;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_foreign_helper' show JS;

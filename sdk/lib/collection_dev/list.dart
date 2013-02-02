@@ -93,6 +93,10 @@ abstract class ListBase<E> extends Collection<E> implements List<E> {
     return result;
   }
 
+  Iterable map(f(E element)) {
+    return new MappedIterable(this, f);
+  }
+
   List mappedBy(f(E element)) {
     return new MappedList(this, f);
   }
@@ -105,7 +109,11 @@ abstract class ListBase<E> extends Collection<E> implements List<E> {
     return new ListView(this, n, null);
   }
 
-  String toString() => Collections.collectionToString(this);
+  String toString() => ToString.collectionToString(this);
+
+  List<E> get reversed {
+    return new ReversedListView(this, 0, null);
+  }
 }
 
 /**
@@ -114,10 +122,8 @@ abstract class ListBase<E> extends Collection<E> implements List<E> {
 abstract class FixedLengthListBase<E> extends ListBase<E> {
   void operator[]=(int index, E value);
 
-  List<E> get reversed => new ReversedListView<E>(this, 0, null);
-
   void sort([Comparator<E> compare]) {
-    coreSort(this, compare);
+    Sort.sort(this, compare);
   }
 
   void setRange(int start, int length, List<E> from, [int startFrom]) {
@@ -531,7 +537,7 @@ class ReverseListIterator<E> implements Iterator<E> {
 
   bool moveNext() {
     if (_list.length != _originalLength) {
-      throw new ConcurrentModificationError(list);
+      throw new ConcurrentModificationError(_list);
     }
     if (_index <= _start) return false;
     _index -= 1;

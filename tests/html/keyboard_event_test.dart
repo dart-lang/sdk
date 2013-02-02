@@ -26,7 +26,7 @@ main() {
     var controller = new KeyboardEventController.keydown(document.body);
     var func = keydownHandlerTest;
     controller.add(func);
-    document.body.on.keyDown.add((e) => print('regular listener'), false);
+    document.body.onKeyDown.listen((e) => print('regular listener'));
   });
 }
 

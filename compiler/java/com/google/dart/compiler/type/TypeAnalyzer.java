@@ -656,16 +656,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
         member = itype.lookupMember("setter " + methodName);
       }
       // is "receiver" is inferred, attempt to find member in one of the subtypes
+      boolean hasMemberInSubClasses = false;
       if (member == null) {
         if (TypeQuality.of(receiver) == TypeQuality.INFERRED && receiver instanceof InterfaceType) {
-          member = ((InterfaceType) receiver).lookupSubTypeMember(methodName);
+          List<Member> subMembers = ((InterfaceType) receiver).lookupSubTypeMembers(methodName);
+          hasMemberInSubClasses = !subMembers.isEmpty();
+          if (subMembers.size() == 1) {
+            member = subMembers.get(0);
+          }
         }
       }
       // report problem
       if (member == null && problemTarget != null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(itype)) {
-          if (typeChecksForInferredTypes && !isTooGenericInferredType(receiver)
-              || !TypeQuality.isInferred(receiver)) {
+          if (typeChecksForInferredTypes && !hasMemberInSubClasses
+              && !isTooGenericInferredType(receiver) || !TypeQuality.isInferred(receiver)) {
             ErrorCode code = TypeQuality.isInferred(receiver)
                 ? TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED_INFERRED
                 : TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED;
@@ -2396,16 +2401,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
       // is "receiver" is inferred, attempt to find member in one of the subtypes
+      boolean hasMemberInSubClasses = false;
       if (member == null) {
         if (TypeQuality.of(receiver) == TypeQuality.INFERRED && receiver instanceof InterfaceType) {
-          member = ((InterfaceType) receiver).lookupSubTypeMember(name);
+          List<Member> subMembers = ((InterfaceType) receiver).lookupSubTypeMembers(name);
+          hasMemberInSubClasses = !subMembers.isEmpty();
+          if (subMembers.size() == 1) {
+            member = subMembers.get(0);
+          }
         }
       }
       // report "not a member"
       if (member == null) {
         if (reportNoMemberWhenHasInterceptor || !Elements.handlesNoSuchMethod(cls)) {
-          if (typeChecksForInferredTypes && !isTooGenericInferredType(receiver)
-              || !TypeQuality.isInferred(receiver)) {
+          if (typeChecksForInferredTypes && !hasMemberInSubClasses
+              && !isTooGenericInferredType(receiver) || !TypeQuality.isInferred(receiver)) {
             TypeErrorCode errorCode = TypeQuality.isInferred(receiver)
                 ? TypeErrorCode.NOT_A_MEMBER_OF_INFERRED : TypeErrorCode.NOT_A_MEMBER_OF;
             typeError(node.getName(), errorCode, name, cls);
@@ -2448,7 +2458,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
           {
             getterMember = cls.lookupMember(name);
             if (getterMember == null && TypeQuality.of(cls) == TypeQuality.INFERRED) {
-              getterMember = cls.lookupSubTypeMember(name);
+              List<Member> members = cls.lookupSubTypeMembers(name);
+              if (members.size() == 1) {
+                getterMember = members.get(0);
+              }
             }
           }
           {

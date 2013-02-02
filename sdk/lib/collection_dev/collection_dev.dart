@@ -6,3 +6,5 @@ library dart.collection.dev;
 
 part 'iterable.dart';
 part 'list.dart';
+part 'sort.dart';
+part 'to_string.dart';

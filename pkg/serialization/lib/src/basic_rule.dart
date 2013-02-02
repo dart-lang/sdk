@@ -137,9 +137,25 @@ class BasicRule extends SerializationRule {
    createStateHolder() =>
      useMaps ? new _MapWrapper(fields.contents) : new List(fields.length);
 
-  /** Wrap the state if it's passed in as a map. */
-  makeIndexableByNumber(state) =>
-      (state is Map) ? new _MapWrapper.fromMap(state, fields.contents) : state;
+  /**
+   * Wrap the state if it's passed in as a map, and if the keys are references,
+   * resolve them to the strings we expect. We leave the previous keys in there
+   * as well, as they shouldn't be harmful, and it costs more to remove them.
+   */
+   makeIndexableByNumber(state) {
+     if (!(state is Map)) return state;
+     // TODO(alanknight): This is quite inefficient, and we do it twice per
+     // instance. If the keys are references, we need to turn them into strings
+     // before we can look at indexing them by field position. It's also eager,
+     // but we know our keys are always primitives, so we don't have to worry
+     // about their instances not having been created yet.
+     var newState = new Map();
+     for (var each in state.keys) {
+       var newKey = (each is Reference) ? each.inflated() : each;
+       newState[newKey] = state[each];
+     }
+     return new _MapWrapper.fromMap(newState, fields.contents);
+   }
 
   /**
    * Extract the state from [object] using an instanceMirror and the field
@@ -152,10 +168,25 @@ class BasicRule extends SerializationRule {
     keysAndValues(fields).forEach(
         (index, field) {
           var value = _value(mirror, field);
+          callback(field.name);
           callback(checkForEssentialLists(index, value));
           result[index] = value;
         });
     return _unwrap(result);
+  }
+
+  flatten(state, Writer writer) {
+    if (state is List) {
+      keysAndValues(state).forEach((index, value) {
+        state[index] = writer._referenceFor(value);
+      });
+    } else {
+      var newState = new Map();
+      keysAndValues(state).forEach((key, value) {
+        newState[writer._referenceFor(key)] = writer._referenceFor(value);
+      });
+      return newState;
+    }
   }
 
   /**
@@ -219,8 +250,12 @@ class BasicRule extends SerializationRule {
     fields.figureOutFields();
   }
 
+  bool get hasVariableLengthEntries => false;
+
+  int get dataLength => fields.length;
+
   /**
-   * Extract the value of the field [fieldName] from the object reflected
+   * Extract the value of [field] from the object reflected
    * by [mirror].
    */
   // TODO(alanknight): The framework should be resilient if there are fields
@@ -498,13 +533,13 @@ class _FieldList extends Iterable {
 
   List get constructorFields => _constructorFields;
   List constructorFieldNames() =>
-      constructorFields.mappedBy((x) => x.name).toList();
+      constructorFields.map((x) => x.name).toList();
   List constructorFieldIndices() =>
-      constructorFields.mappedBy((x) => x.index).toList();
+      constructorFields.map((x) => x.index).toList();
   List regularFields() => contents.where((x) => !x.usedInConstructor).toList();
-  List regularFieldNames() => regularFields().mappedBy((x) => x.name).toList();
+  List regularFieldNames() => regularFields().map((x) => x.name).toList();
   List regularFieldIndices() =>
-      regularFields().mappedBy((x) => x.index).toList();
+      regularFields().map((x) => x.index).toList();
 
   /**
    * If we weren't given any non-constructor fields to use, figure out what
@@ -514,7 +549,7 @@ class _FieldList extends Iterable {
    */
   void figureOutFields() {
     Iterable names(Iterable<DeclarationMirror> mirrors) =>
-        mirrors.mappedBy((each) => each.simpleName);
+        mirrors.map((each) => each.simpleName).toList();
 
     if (!_shouldFigureOutFields || !regularFields().isEmpty) return;
     var fields = publicFields(mirror);
@@ -528,6 +563,8 @@ class _FieldList extends Iterable {
     addAllNotExplicitlyExcluded(names(gettersWithSetters));
     addAllNotExplicitlyExcluded(names(gettersThatMatchConstructor));
   }
+
+  toString() => "FieldList($contents)";
 }
 
 /**
@@ -569,10 +606,9 @@ class Constructor {
    */
   constructFrom(state, Reader r) {
     // TODO(alanknight): Handle named parameters
-    Collection inflated = fieldNumbers.mappedBy(
-        (x) => (x is int) ? reflect(r.inflateReference(state[x])) : reflect(x))
-            .toList();
-    var result = type.newInstance(name, inflated);
+    Iterable inflated = fieldNumbers.map(
+        (x) => (x is int) ? reflect(r.inflateReference(state[x])) : reflect(x));
+    var result = type.newInstance(name, inflated.toList());
     return deprecatedFutureValue(result);
   }
 }
@@ -582,12 +618,13 @@ class Constructor {
  * from the index into a field name and then looks it up in the map.
  */
 class _MapWrapper {
-  Map<String, dynamic> _map = new Map<String, dynamic>();
+  final _map;
   List fieldList;
-  _MapWrapper(this.fieldList);
+  _MapWrapper(this.fieldList) : _map = new Map();
   _MapWrapper.fromMap(this._map, this.fieldList);
 
   operator [](key) => _map[fieldList[key].name];
+
   operator []=(key, value) { _map[fieldList[key].name] = value; }
   get length => _map.length;
 

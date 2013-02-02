@@ -180,7 +180,7 @@ LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail # TODO(ahe): Ple
 
 
 [ $compiler == dart2js && $runtime == jsshell ]
-LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096 
+LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
 Language/05_Variables/05_Variables_A13_t02: Fail # TODO(ngeoaffray): Please triage these failure.
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # TODO(ngeoaffray): Please triage these failure.
@@ -229,7 +229,6 @@ Language/13_Libraries_and_Scripts/1_Imports_A03_t06: Fail # TODO(ahe): Please tr
 Language/13_Libraries_and_Scripts/1_Imports_A03_t26: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t46: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A03_t66: Fail # TODO(ahe): Please triage this failure.
-Language/14_Types/4_Interface_Types_A08_t03: Fail # TODO(ahe): Please triage this failure.
 Language/14_Types/8_Parameterized_Types_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -784,10 +783,8 @@ Language/14_Types/5_Function_Types_A01_t08: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A01_t09: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A01_t11: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A02_t05: Fail # dartbug.com/7342
-Language/14_Types/5_Function_Types_A02_t07: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A02_t09: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A02_t10: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A03_t06: Fail # dartbug.com/7342
-Language/14_Types/5_Function_Types_A03_t08: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A03_t10: Fail # dartbug.com/7342
 Language/14_Types/5_Function_Types_A03_t11: Fail # dartbug.com/7342

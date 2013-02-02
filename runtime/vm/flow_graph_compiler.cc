@@ -152,7 +152,8 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       may_reoptimize_(false),
       double_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->double_class())),
-      parallel_move_resolver_(this) {
+      parallel_move_resolver_(this),
+      pending_deoptimization_env_(NULL) {
   ASSERT(assembler != NULL);
 }
 
@@ -224,8 +225,10 @@ void FlowGraphCompiler::VisitBlocks() {
       } else {
         ASSERT(instr->locs() != NULL);
         EmitInstructionPrologue(instr);
+        ASSERT(pending_deoptimization_env_ == NULL);
         pending_deoptimization_env_ = instr->env();
         instr->EmitNativeCode(this);
+        pending_deoptimization_env_ = NULL;
         EmitInstructionEpilogue(instr);
       }
     }
@@ -535,7 +538,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
       return;
     }
     // Emit IC call that will count and thus may need reoptimization at
-    // return instruction.
+    // function entry.
     ASSERT(!is_optimizing() || may_reoptimize());
     switch (ic_data.num_args_tested()) {
       case 1:

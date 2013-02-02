@@ -53,20 +53,23 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
 
   bool get isBroadcast => _source.isBroadcast;
 
-  bool asBroadcastStream() => _source.asBroadcastStream;
-
-  StreamSubscription listen(void onData(T value),
-                            { void onError(AsyncError error),
-                              void onDone(),
-                              bool unsubscribeOnError }) {
+  StreamSubscription<T> listen(void onData(T value),
+                              { void onError(AsyncError error),
+                                void onDone(),
+                                bool unsubscribeOnError }) {
     if (onData == null) onData = _nullDataHandler;
     if (onError == null) onError = _nullErrorHandler;
     if (onDone == null) onDone = _nullDoneHandler;
     unsubscribeOnError = identical(true, unsubscribeOnError);
-    StreamSubscription subscription =
-        new _ForwardingStreamSubscription<S, T>(
-            this, onData, onError, onDone, unsubscribeOnError);
-    return subscription;
+    return _createSubscription(onData, onError, onDone, unsubscribeOnError);
+  }
+
+  StreamSubscription<T> _createSubscription(void onData(T value),
+                                            void onError(AsyncError error),
+                                            void onDone(),
+                                            bool unsubscribeOnError) {
+    return new _ForwardingStreamSubscription<S, T>(
+        this, onData, onError, onDone, unsubscribeOnError);
   }
 
   // Override the following methods in subclasses to change the behavior.
@@ -86,33 +89,26 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
 }
 
 /**
- * Abstract superclass for subscriptions that forward to other subscriptions.
+ * Common behavior of [StreamSubscription] classes.
+ *
+ * Stores and allows updating of the event handlers of a [StreamSubscription].
  */
-class _ForwardingStreamSubscription<S, T>
-    implements StreamSubscription<T>, _StreamOutputSink<T> {
-  final _ForwardingStream<S, T> _stream;
+abstract class _BaseStreamSubscription<T> implements StreamSubscription<T> {
   // TODO(ahe): Restore type when feature is implemented in dart2js
   // checked mode. http://dartbug.com/7733
   var /* _DataHandler<T> */ _onData;
   _ErrorHandler _onError;
   _DoneHandler _onDone;
 
-  StreamSubscription<S> _subscription;
-
-  _ForwardingStreamSubscription(this._stream,
-                                this._onData,
-                                this._onError,
-                                this._onDone,
-                                bool unsubscribeOnError) {
-    _subscription =
-        _stream._source.listen(_handleData,
-                               onError: _handleError,
-                               onDone: _handleDone,
-                               unsubscribeOnError: unsubscribeOnError);
+  _BaseStreamSubscription(this._onData,
+                          this._onError,
+                          this._onDone) {
+    if (_onData == null) _onData = _nullDataHandler;
+    if (_onError == null) _onError = _nullErrorHandler;
+    if (_onDone == null) _onDone = _nullDoneHandler;
   }
 
   // StreamSubscription interface.
-
   void onData(void handleData(T event)) {
     if (handleData == null) handleData = _nullDataHandler;
     _onData = handleData;
@@ -127,6 +123,39 @@ class _ForwardingStreamSubscription<S, T>
     if (handleDone == null) handleDone = _nullDoneHandler;
     _onDone = handleDone;
   }
+
+  void pause([Future resumeSignal]);
+
+  void resume();
+
+  void cancel();
+}
+
+
+/**
+ * Abstract superclass for subscriptions that forward to other subscriptions.
+ */
+class _ForwardingStreamSubscription<S, T>
+    extends _BaseStreamSubscription<T> implements _StreamOutputSink<T> {
+  final _ForwardingStream<S, T> _stream;
+  final bool _unsubscribeOnError;
+
+  StreamSubscription<S> _subscription;
+
+  _ForwardingStreamSubscription(this._stream,
+                                void onData(T data),
+                                void onError(AsyncError error),
+                                void onDone(),
+                                this._unsubscribeOnError)
+      : super(onData, onError, onDone) {
+    // Don't unsubscribe on incoming error, only if we send an error forwards.
+    _subscription =
+        _stream._source.listen(_handleData,
+                               onError: _handleError,
+                               onDone: _handleDone);
+  }
+
+  // StreamSubscription interface.
 
   void pause([Future resumeSignal]) {
     if (_subscription == null) {
@@ -158,6 +187,10 @@ class _ForwardingStreamSubscription<S, T>
 
   void _sendError(AsyncError error) {
     _onError(error);
+    if (_unsubscribeOnError) {
+      _subscription.cancel();
+      _subscription = null;
+    }
   }
 
   void _sendDone() {
@@ -171,7 +204,9 @@ class _ForwardingStreamSubscription<S, T>
 
   // Methods used as listener on source subscription.
 
-  void _handleData(S data) {
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode. http://dartbug.com/7733
+  void _handleData(/*S*/ data) {
     _stream._handleData(data, this);
   }
 
@@ -190,10 +225,10 @@ class _ForwardingStreamSubscription<S, T>
 
 typedef bool _Predicate<T>(T value);
 
-class WhereStream<T> extends _ForwardingStream<T, T> {
+class _WhereStream<T> extends _ForwardingStream<T, T> {
   final _Predicate<T> _test;
 
-  WhereStream(Stream<T> source, bool test(T value))
+  _WhereStream(Stream<T> source, bool test(T value))
       : _test = test, super(source);
 
   void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
@@ -216,10 +251,10 @@ typedef T _Transformation<S, T>(S value);
 /**
  * A stream pipe that converts data events before passing them on.
  */
-class MapStream<S, T> extends _ForwardingStream<S, T> {
+class _MapStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation _transform;
 
-  MapStream(Stream<S> source, T transform(S event))
+  _MapStream(Stream<S> source, T transform(S event))
       : this._transform = transform, super(source);
 
   void _handleData(S inputEvent, _StreamOutputSink<T> sink) {
@@ -237,10 +272,10 @@ class MapStream<S, T> extends _ForwardingStream<S, T> {
 /**
  * A stream pipe that converts data events before passing them on.
  */
-class ExpandStream<S, T> extends _ForwardingStream<S, T> {
+class _ExpandStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation<S, Iterable<T>> _expand;
 
-  ExpandStream(Stream<S> source, Iterable<T> expand(S event))
+  _ExpandStream(Stream<S> source, Iterable<T> expand(S event))
       : this._expand = expand, super(source);
 
   void _handleData(S inputEvent, _StreamOutputSink<T> sink) {
@@ -264,11 +299,11 @@ typedef bool _ErrorTest(error);
  * A stream pipe that converts or disposes error events
  * before passing them on.
  */
-class HandleErrorStream<T> extends _ForwardingStream<T, T> {
+class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
   final _ErrorTransformation _transform;
   final _ErrorTest _test;
 
-  HandleErrorStream(Stream<T> source,
+  _HandleErrorStream(Stream<T> source,
                     void transform(AsyncError event),
                     bool test(error))
       : this._transform = transform, this._test = test, super(source);
@@ -297,10 +332,10 @@ class HandleErrorStream<T> extends _ForwardingStream<T, T> {
 }
 
 
-class TakeStream<T> extends _ForwardingStream<T, T> {
+class _TakeStream<T> extends _ForwardingStream<T, T> {
   int _remaining;
 
-  TakeStream(Stream<T> source, int count)
+  _TakeStream(Stream<T> source, int count)
       : this._remaining = count, super(source) {
     // This test is done early to avoid handling an async error
     // in the _handleData method.
@@ -321,10 +356,10 @@ class TakeStream<T> extends _ForwardingStream<T, T> {
 }
 
 
-class TakeWhileStream<T> extends _ForwardingStream<T, T> {
+class _TakeWhileStream<T> extends _ForwardingStream<T, T> {
   final _Predicate<T> _test;
 
-  TakeWhileStream(Stream<T> source, bool test(T value))
+  _TakeWhileStream(Stream<T> source, bool test(T value))
       : this._test = test, super(source);
 
   void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
@@ -345,10 +380,10 @@ class TakeWhileStream<T> extends _ForwardingStream<T, T> {
   }
 }
 
-class SkipStream<T> extends _ForwardingStream<T, T> {
+class _SkipStream<T> extends _ForwardingStream<T, T> {
   int _remaining;
 
-  SkipStream(Stream<T> source, int count)
+  _SkipStream(Stream<T> source, int count)
       : this._remaining = count, super(source) {
     // This test is done early to avoid handling an async error
     // in the _handleData method.
@@ -364,11 +399,11 @@ class SkipStream<T> extends _ForwardingStream<T, T> {
   }
 }
 
-class SkipWhileStream<T> extends _ForwardingStream<T, T> {
+class _SkipWhileStream<T> extends _ForwardingStream<T, T> {
   final _Predicate<T> _test;
   bool _hasFailed = false;
 
-  SkipWhileStream(Stream<T> source, bool test(T value))
+  _SkipWhileStream(Stream<T> source, bool test(T value))
       : this._test = test, super(source);
 
   void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
@@ -393,13 +428,13 @@ class SkipWhileStream<T> extends _ForwardingStream<T, T> {
 
 typedef bool _Equality<T>(T a, T b);
 
-class DistinctStream<T> extends _ForwardingStream<T, T> {
+class _DistinctStream<T> extends _ForwardingStream<T, T> {
   static var _SENTINEL = new Object();
 
   _Equality<T> _equals;
   var _previous = _SENTINEL;
 
-  DistinctStream(Stream<T> source, bool equals(T a, T b))
+  _DistinctStream(Stream<T> source, bool equals(T a, T b))
       : _equals = equals, super(source);
 
   void _handleData(T inputEvent, _StreamOutputSink<T> sink) {
@@ -426,78 +461,27 @@ class DistinctStream<T> extends _ForwardingStream<T, T> {
   }
 }
 
+// Stream transformations and event transformations.
 
 typedef void _TransformDataHandler<S, T>(S data, StreamSink<T> sink);
 typedef void _TransformErrorHandler<T>(AsyncError data, StreamSink<T> sink);
 typedef void _TransformDoneHandler<T>(StreamSink<T> sink);
 
-/**
- * A stream transformer that intercepts all events and can generate any event as
- * output.
- *
- * Each incoming event on the source stream is passed to the corresponding
- * provided event handler, along with a [StreamSink] linked to the output
- * Stream.
- * The handler can then decide exactly which events to send to the output.
- */
-class _StreamTransformerImpl<S, T> implements StreamTransformer<S, T> {
-  final _TransformDataHandler<S, T> _onData;
-  final _TransformErrorHandler<T> _onError;
-  final _TransformDoneHandler<T> _onDone;
-  StreamSink<T> _sink;
-
-  _StreamTransformerImpl(void onData(S data, StreamSink<T> sink),
-                         void onError(AsyncError data, StreamSink<T> sink),
-                         void onDone(StreamSink<T> sink))
-      : this._onData = (onData == null ? _defaultHandleData : onData),
-        this._onError = (onError == null ? _defaultHandleError : onError),
-        this._onDone = (onDone == null ? _defaultHandleDone : onDone);
-
-  Stream<T> bind(Stream<S> source) {
-    Stream<T> stream = new _SingleStreamImpl<T>();
-    // Cache a Sink object to avoid creating a new one for each event.
-    _sink = new _StreamImplSink(stream);
-    source.listen(_handleData, onError: _handleError, onDone: _handleDone);
-    return stream;
-  }
-
-  void _handleData(S data) {
-    try {
-      _onData(data, _sink);
-    } catch (e, s) {
-      _stream._signalError(_asyncError(e, s));
-    }
-  }
-
-  void _handleError(AsyncError error) {
-    try {
-      _onError(error, _sink);
-    } catch (e, s) {
-      _stream._signalError(_asyncError(e, s, error));
-    }
-  }
-
-  void _handleDone() {
-    try {
-      _onDone(_sink);
-    } catch (e, s) {
-      _stream._signalError(_asyncError(e, s));
-    }
-  }
-
-  /** Default data handler forwards all data. */
-  static void _defaultHandleData(var data, StreamSink sink) {
-    sink.add(data);
-  }
-  /** Default error handler forwards all errors. */
-  static void _defaultHandleError(AsyncError error, StreamSink sink) {
-    sink.signalError(error);
-  }
-  /** Default done handler forwards done. */
-  static void _defaultHandleDone(StreamSink sink) {
-    sink.close();
-  }
+/** Default data handler forwards all data. */
+void _defaultHandleData(var data, StreamSink sink) {
+  sink.add(data);
 }
+
+/** Default error handler forwards all errors. */
+void _defaultHandleError(AsyncError error, StreamSink sink) {
+  sink.signalError(error);
+}
+
+/** Default done handler forwards done. */
+void _defaultHandleDone(StreamSink sink) {
+  sink.close();
+}
+
 
 /** Creates a [StreamSink] from a [_StreamImpl]'s input methods. */
 class _StreamImplSink<T> implements StreamSink<T> {
@@ -508,4 +492,43 @@ class _StreamImplSink<T> implements StreamSink<T> {
   void close() { _target._close(); }
 }
 
+/**
+ * A [StreamTransformer] that modifies stream events.
+ *
+ * This class is used by [StreamTransformer]'s factory constructor.
+ * It is actually an [StreamEventTransformer] where the functions used to
+ * modify the events are passed as constructor arguments.
+ *
+ * If an argument is omitted, it acts as the default method from
+ * [StreamEventTransformer].
+ */
+class _StreamTransformerImpl<S, T> extends StreamEventTransformer<S, T> {
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode. http://dartbug.com/7733
+  final Function /*_TransformDataHandler<S, T>*/ _handleData;
+  final _TransformErrorHandler<T> _handleError;
+  final _TransformDoneHandler<T> _handleDone;
+
+  _StreamTransformerImpl(void handleData(S data, StreamSink<T> sink),
+                         void handleError(AsyncError data, StreamSink<T> sink),
+                         void handleDone(StreamSink<T> sink))
+      : this._handleData  = (handleData == null  ? _defaultHandleData
+                                                 : handleData),
+        this._handleError = (handleError == null ? _defaultHandleError
+                                                 : handleError),
+        this._handleDone  = (handleDone == null  ? _defaultHandleDone
+                                                 : handleDone);
+
+  void handleData(S data, StreamSink<T> sink) {
+    _handleData(data, sink);
+  }
+
+  void handleError(AsyncError error, StreamSink<T> sink) {
+    _handleError(error, sink);
+  }
+
+  void handleDone(StreamSink<T> sink) {
+    _handleDone(sink);
+  }
+}
 

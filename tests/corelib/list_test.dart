@@ -21,7 +21,7 @@ class ListTest {
 
   static void testClosures(List list) {
     testMap(val) {return val * 2 + 10; }
-    List mapped = list.mappedBy(testMap).toList();
+    List mapped = list.map(testMap).toList();
     Expect.equals(mapped.length, list.length);
     for (var i = 0; i < list.length; i++) {
       Expect.equals(mapped[i], list[i]*2 + 10);

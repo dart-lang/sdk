@@ -12,7 +12,6 @@
     'maps.dart',
     'queue.dart',
     'set.dart',
-    'sort.dart',
     'splay_tree.dart',
   ],
 }

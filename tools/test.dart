@@ -126,7 +126,14 @@ main() {
   }
 
   var testSuites = new List<TestSuite>();
+  var maxBrowserProcesses = maxProcesses;
   for (var conf in configurations) {
+    // There should not be more than one InternetExplorerDriver instance
+    // running at a time. For details, see
+    // http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
+    if (conf['runtime'].startsWith('ie')) {
+      maxBrowserProcesses = 1;
+    }
     TestingServerRunner.setPackageRootDir(conf);
     for (String key in selectors.keys) {
       if (key == 'co19') {
@@ -158,6 +165,7 @@ main() {
 
   // Start process queue.
   new ProcessQueue(maxProcesses,
+                   maxBrowserProcesses,
                    progressIndicator,
                    startTime,
                    printTiming,

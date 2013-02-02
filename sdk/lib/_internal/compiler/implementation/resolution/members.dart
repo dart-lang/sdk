@@ -154,8 +154,10 @@ class ResolverTask extends CompilerTask {
           patchParameter.parseNode(compiler).toString();
       if (originParameterText != patchParameterText) {
         error(originParameter.parseNode(compiler),
-            MessageKind.PATCH_PARAMETER_MISMATCH,
-            [origin.name, originParameterText, patchParameterText]);
+              MessageKind.PATCH_PARAMETER_MISMATCH,
+              {'methodName': origin.name,
+               'originParameter': originParameterText,
+               'patchParameter': patchParameterText});
       }
 
       originParameters = originParameters.tail;
@@ -183,8 +185,10 @@ class ResolverTask extends CompilerTask {
       compiler.withCurrentElement(patch, () {
         Node errorNode =
             patchTree.returnType != null ? patchTree.returnType : patchTree;
-        error(errorNode, MessageKind.PATCH_RETURN_TYPE_MISMATCH, [origin.name,
-              originSignature.returnType, patchSignature.returnType]);
+        error(errorNode, MessageKind.PATCH_RETURN_TYPE_MISMATCH,
+              {'methodName': origin.name,
+               'originReturnType': originSignature.returnType,
+               'patchReturnType': patchSignature.returnType});
       });
     }
     if (originSignature.requiredParameterCount !=
@@ -192,8 +196,9 @@ class ResolverTask extends CompilerTask {
       compiler.withCurrentElement(patch, () {
         error(patchTree,
               MessageKind.PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH,
-              [origin.name, originSignature.requiredParameterCount,
-               patchSignature.requiredParameterCount]);
+              {'methodName': origin.name,
+               'originParameterCount': originSignature.requiredParameterCount,
+               'patchParameterCount': patchSignature.requiredParameterCount});
       });
     } else {
       checkMatchingPatchParameters(origin,
@@ -206,8 +211,8 @@ class ResolverTask extends CompilerTask {
           patchSignature.optionalParametersAreNamed) {
         compiler.withCurrentElement(patch, () {
           error(patchTree,
-              MessageKind.PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH,
-              [origin.name]);
+                MessageKind.PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH,
+                {'methodName': origin.name});
         });
       }
     }
@@ -216,8 +221,9 @@ class ResolverTask extends CompilerTask {
       compiler.withCurrentElement(patch, () {
         error(patchTree,
               MessageKind.PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH,
-              [origin.name, originSignature.optionalParameterCount,
-               patchSignature.optionalParameterCount]);
+              {'methodName': origin.name,
+               'originParameterCount': originSignature.optionalParameterCount,
+               'patchParameterCount': patchSignature.optionalParameterCount});
       });
     } else {
       checkMatchingPatchParameters(origin,
@@ -243,6 +249,10 @@ class ResolverTask extends CompilerTask {
       }
       return compiler.withCurrentElement(element, () {
         FunctionExpression tree = element.parseNode(compiler);
+        if (tree.modifiers.isExternal()) {
+          error(tree, MessageKind.EXTERNAL_WITHOUT_IMPLEMENTATION);
+          return;
+        }
         if (isConstructor) {
           if (tree.returnType != null) {
             error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
@@ -307,7 +317,8 @@ class ResolverTask extends CompilerTask {
     if (!intrface.isInterface()) return;
     DartType defaultType = intrface.defaultClass;
     if (defaultType == null) {
-      error(node, MessageKind.NO_DEFAULT_CLASS, [intrface.name]);
+      error(node, MessageKind.NO_DEFAULT_CLASS,
+            {'interfaceName': intrface.name});
     }
     ClassElement defaultClass = defaultType.element;
     defaultClass.ensureResolved(compiler);
@@ -315,7 +326,7 @@ class ResolverTask extends CompilerTask {
     assert(defaultClass.supertypeLoadState == STATE_DONE);
     if (defaultClass.isInterface()) {
       error(node, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
-            [defaultClass.name]);
+            {'interfaceName': defaultClass.name});
     }
     // We have now established the following:
     // [intrface] is an interface, let's say "MyInterface".
@@ -356,7 +367,7 @@ class ResolverTask extends CompilerTask {
       // the error message below.
       error(node,
             MessageKind.CANNOT_FIND_CONSTRUCTOR2,
-            [selector.name, defaultClass.name]);
+            {'constructorName': selector.name, 'className': defaultClass.name});
     }
   }
 
@@ -410,10 +421,8 @@ class ResolverTask extends CompilerTask {
     compiler.withCurrentElement(cls, () => measure(() {
       if (cls.supertypeLoadState == STATE_DONE) return;
       if (cls.supertypeLoadState == STATE_STARTED) {
-        compiler.reportMessage(
-          compiler.spanFromSpannable(from),
-          MessageKind.CYCLIC_CLASS_HIERARCHY.error([cls.name]),
-          Diagnostic.ERROR);
+        compiler.reportErrorCode(from, MessageKind.CYCLIC_CLASS_HIERARCHY,
+                                 {'className': cls.name});
         cls.supertypeLoadState = STATE_DONE;
         cls.allSupertypes = const Link<DartType>().prepend(
             compiler.objectClass.computeType(compiler));
@@ -522,11 +531,10 @@ class ResolverTask extends CompilerTask {
     int illegalFlags = modifiers.flags & ~Modifiers.FLAG_ABSTRACT;
     if (illegalFlags != 0) {
       Modifiers illegalModifiers = new Modifiers.withFlags(null, illegalFlags);
-      CompilationError error =
-          MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS.error(
-              [illegalModifiers]);
-      compiler.reportMessage(compiler.spanFromSpannable(modifiers),
-                             error, Diagnostic.ERROR);
+      compiler.reportErrorCode(
+          modifiers,
+          MessageKind.ILLEGAL_MIXIN_APPLICATION_MODIFIERS,
+          {'modifiers': illegalModifiers});
     }
 
     // In case of cyclic mixin applications, the mixin chain will have
@@ -537,18 +545,14 @@ class ResolverTask extends CompilerTask {
 
     // Check that the mixed in class has Object as its superclass.
     if (!mixin.superclass.isObject(compiler)) {
-      CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPERCLASS.error();
-      compiler.reportMessage(compiler.spanFromElement(mixin),
-                             error, Diagnostic.ERROR);
+      compiler.reportErrorCode(mixin, MessageKind.ILLEGAL_MIXIN_SUPERCLASS);
     }
 
     // Check that the mixed in class doesn't have any constructors and
     // make sure we aren't mixing in methods that use 'super'.
     mixin.forEachLocalMember((Element member) {
       if (member.isGenerativeConstructor() && !member.isSynthesized) {
-        CompilationError error = MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR.error();
-        compiler.reportMessage(compiler.spanFromElement(member),
-                               error, Diagnostic.ERROR);
+        compiler.reportErrorCode(member, MessageKind.ILLEGAL_MIXIN_CONSTRUCTOR);
       } else {
         // Get the resolution tree and check that the resolved member
         // doesn't use 'super'. This is the part of the 'super' mixin
@@ -568,10 +572,9 @@ class ResolverTask extends CompilerTask {
     if (resolutionTree == null) return;
     Set<Node> superUses = resolutionTree.superUses;
     if (superUses.isEmpty) return;
-    CompilationError error = MessageKind.ILLEGAL_MIXIN_WITH_SUPER.error(
-        [mixin.name]);
-    compiler.reportMessage(compiler.spanFromElement(mixinApplication),
-                           error, Diagnostic.ERROR);
+    compiler.reportErrorCode(mixinApplication,
+                             MessageKind.ILLEGAL_MIXIN_WITH_SUPER,
+                             {'className': mixin.name});
     // Show the user the problematic uses of 'super' in the mixin.
     for (Node use in superUses) {
       CompilationError error = MessageKind.ILLEGAL_MIXIN_SUPER_USE.error();
@@ -592,10 +595,8 @@ class ResolverTask extends CompilerTask {
 
         // Check modifiers.
         if (member.isFunction() && member.modifiers.isFinal()) {
-          compiler.reportMessage(
-              compiler.spanFromElement(member),
-              MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER.error(),
-              Diagnostic.ERROR);
+          compiler.reportErrorCode(
+              member, MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER);
         }
         if (member.isConstructor()) {
           final mismatchedFlagsBits =
@@ -604,11 +605,10 @@ class ResolverTask extends CompilerTask {
           if (mismatchedFlagsBits != 0) {
             final mismatchedFlags =
                 new Modifiers.withFlags(null, mismatchedFlagsBits);
-            compiler.reportMessage(
-                compiler.spanFromElement(member),
-                MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS.error(
-                    [mismatchedFlags]),
-                Diagnostic.ERROR);
+            compiler.reportErrorCode(
+                member,
+                MessageKind.ILLEGAL_CONSTRUCTOR_MODIFIERS,
+                {'modifiers': mismatchedFlags});
           }
           checkConstructorNameHack(holder, member);
         }
@@ -641,8 +641,8 @@ class ResolverTask extends CompilerTask {
       if (compiler.onDeprecatedFeature(member, 'conflicting constructor')) {
         compiler.reportMessage(
             compiler.spanFromElement(otherMember),
-            MessageKind.GENERIC.error(['This member conflicts with a'
-                                       ' constructor.']),
+            MessageKind.GENERIC.error({'text': 'This member conflicts with a'
+                                               ' constructor.'}),
             Diagnostic.INFO);
       }
     }
@@ -673,14 +673,14 @@ class ResolverTask extends CompilerTask {
     if (!identical(getterFlags, setterFlags)) {
       final mismatchedFlags =
         new Modifiers.withFlags(null, getterFlags ^ setterFlags);
-      compiler.reportMessage(
-          compiler.spanFromElement(field.getter),
-          MessageKind.GETTER_MISMATCH.error([mismatchedFlags]),
-          Diagnostic.ERROR);
-      compiler.reportMessage(
-          compiler.spanFromElement(field.setter),
-          MessageKind.SETTER_MISMATCH.error([mismatchedFlags]),
-          Diagnostic.ERROR);
+      compiler.reportErrorCode(
+          field.getter,
+          MessageKind.GETTER_MISMATCH,
+          {'modifiers': mismatchedFlags});
+      compiler.reportErrorCode(
+          field.setter,
+          MessageKind.SETTER_MISMATCH,
+          {'modifiers': mismatchedFlags});
     }
   }
 
@@ -729,24 +729,22 @@ class ResolverTask extends CompilerTask {
           errorNode = node.parameters.nodes.skip(requiredParameterCount).head;
         }
       }
-      compiler.reportMessage(
-          compiler.spanFromSpannable(errorNode),
-          messageKind.error([function.name]),
-          Diagnostic.ERROR);
+      compiler.reportErrorCode(
+          errorNode, messageKind, {'operatorName': function.name});
     }
     if (signature.optionalParameterCount != 0) {
       Node errorNode =
           node.parameters.nodes.skip(signature.requiredParameterCount).head;
       if (signature.optionalParametersAreNamed) {
-        compiler.reportMessage(
-            compiler.spanFromSpannable(errorNode),
-            MessageKind.OPERATOR_NAMED_PARAMETERS.error([function.name]),
-            Diagnostic.ERROR);
+        compiler.reportErrorCode(
+            errorNode,
+            MessageKind.OPERATOR_NAMED_PARAMETERS,
+            {'operatorName': function.name});
       } else {
-        compiler.reportMessage(
-            compiler.spanFromSpannable(errorNode),
-            MessageKind.OPERATOR_OPTIONAL_PARAMETERS.error([function.name]),
-            Diagnostic.ERROR);
+        compiler.reportErrorCode(
+            errorNode,
+            MessageKind.OPERATOR_OPTIONAL_PARAMETERS,
+            {'operatorName': function.name});
       }
     }
   }
@@ -755,11 +753,11 @@ class ResolverTask extends CompilerTask {
                          MessageKind errorMessage,
                          Element contextElement,
                          MessageKind contextMessage) {
-    compiler.reportMessage(
-        compiler.spanFromElement(errorneousElement),
-        errorMessage.error([contextElement.name,
-                            contextElement.getEnclosingClass().name]),
-        Diagnostic.ERROR);
+    compiler.reportErrorCode(
+        errorneousElement,
+        errorMessage,
+        {'memberName': contextElement.name,
+         'className': contextElement.getEnclosingClass().name});
     compiler.reportMessage(
         compiler.spanFromElement(contextElement),
         contextMessage.error(),
@@ -840,16 +838,35 @@ class ResolverTask extends CompilerTask {
 
   FunctionType computeFunctionType(Element element,
                                    FunctionSignature signature) {
-    LinkBuilder<DartType> parameterTypes = new LinkBuilder<DartType>();
-    for (Link<Element> link = signature.requiredParameters;
-         !link.isEmpty;
-         link = link.tail) {
-       parameterTypes.addLast(link.head.computeType(compiler));
-       // TODO(karlklose): optional parameters.
+    var parameterTypes = new LinkBuilder<DartType>();
+    for (Element parameter in signature.requiredParameters) {
+       parameterTypes.addLast(parameter.computeType(compiler));
     }
-    return new FunctionType(signature.returnType,
-                            parameterTypes.toLink(),
-                            element);
+    var optionalParameterTypes = const Link<DartType>();
+    var namedParameters = const Link<SourceString>();
+    var namedParameterTypes = const Link<DartType>();
+    if (signature.optionalParametersAreNamed) {
+      var namedParametersBuilder = new LinkBuilder<SourceString>();
+      var namedParameterTypesBuilder = new LinkBuilder<DartType>();
+      for (Element parameter in signature.orderedOptionalParameters) {
+        namedParametersBuilder.addLast(parameter.name);
+        namedParameterTypesBuilder.addLast(parameter.computeType(compiler));
+      }
+      namedParameters = namedParametersBuilder.toLink();
+      namedParameterTypes = namedParameterTypesBuilder.toLink();
+    } else {
+      var optionalParameterTypesBuilder = new LinkBuilder<DartType>();
+      for (Element parameter in signature.optionalParameters) {
+        optionalParameterTypesBuilder.addLast(parameter.computeType(compiler));
+      }
+      optionalParameterTypes = optionalParameterTypesBuilder.toLink();
+    }
+    return new FunctionType(element,
+        signature.returnType,
+        parameterTypes.toLink(),
+        optionalParameterTypes,
+        namedParameters,
+        namedParameterTypes);
   }
 
   void resolveMetadataAnnotation(PartialMetadataAnnotation annotation) {
@@ -868,7 +885,7 @@ class ResolverTask extends CompilerTask {
     }));
   }
 
-  error(Node node, MessageKind kind, [arguments = const []]) {
+  error(Node node, MessageKind kind, [arguments = const {}]) {
     ResolutionError message = new ResolutionError(kind, arguments);
     compiler.reportError(node, message);
   }
@@ -883,11 +900,11 @@ class InitializerResolver {
   InitializerResolver(this.visitor)
     : initialized = new Map<SourceString, Node>(), hasSuper = false;
 
-  error(Node node, MessageKind kind, [arguments = const []]) {
+  error(Node node, MessageKind kind, [arguments = const {}]) {
     visitor.error(node, kind, arguments);
   }
 
-  warning(Node node, MessageKind kind, [arguments = const []]) {
+  warning(Node node, MessageKind kind, [arguments = const {}]) {
     visitor.warning(node, kind, arguments);
   }
 
@@ -900,8 +917,9 @@ class InitializerResolver {
 
   void checkForDuplicateInitializers(SourceString name, Node init) {
     if (initialized.containsKey(name)) {
-      error(init, MessageKind.DUPLICATE_INITIALIZER, [name]);
-      warning(initialized[name], MessageKind.ALREADY_INITIALIZED, [name]);
+      error(init, MessageKind.DUPLICATE_INITIALIZER, {'fieldName': name});
+      warning(initialized[name], MessageKind.ALREADY_INITIALIZED,
+              {'fieldName': name});
     }
     initialized[name] = init;
   }
@@ -915,11 +933,11 @@ class InitializerResolver {
     if (isFieldInitializer(init)) {
       target = constructor.getEnclosingClass().lookupLocalMember(name);
       if (target == null) {
-        error(selector, MessageKind.CANNOT_RESOLVE, [name]);
+        error(selector, MessageKind.CANNOT_RESOLVE, {'name': name});
       } else if (target.kind != ElementKind.FIELD) {
-        error(selector, MessageKind.NOT_A_FIELD, [name]);
+        error(selector, MessageKind.NOT_A_FIELD, {'fieldName': name});
       } else if (!target.isInstanceMember()) {
-        error(selector, MessageKind.INIT_STATIC_FIELD, [name]);
+        error(selector, MessageKind.INIT_STATIC_FIELD, {'fieldName': name});
       }
     } else {
       error(init, MessageKind.INVALID_RECEIVER_IN_INITIALIZER);
@@ -1032,7 +1050,7 @@ class InitializerResolver {
       MessageKind kind = isImplicitSuperCall
           ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
           : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
-      error(diagnosticNode, kind, [fullConstructorName]);
+      error(diagnosticNode, kind, {'constructorName': fullConstructorName});
     } else {
       if (!call.applies(lookedupConstructor, visitor.compiler)) {
         MessageKind kind = isImplicitSuperCall
@@ -1131,12 +1149,12 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   /** Convenience method for visiting nodes that may be null. */
   R visit(Node node) => (node == null) ? null : node.accept(this);
 
-  void error(Node node, MessageKind kind, [arguments = const []]) {
+  void error(Node node, MessageKind kind, [Map arguments = const {}]) {
     ResolutionError message  = new ResolutionError(kind, arguments);
     compiler.reportError(node, message);
   }
 
-  void warning(Node node, MessageKind kind, [arguments = const []]) {
+  void warning(Node node, MessageKind kind, [Map arguments = const {}]) {
     ResolutionWarning message  = new ResolutionWarning(kind, arguments);
     compiler.reportWarning(node, message);
   }
@@ -1296,7 +1314,7 @@ class TypeResolver {
       TypeAnnotation node,
       Scope scope,
       Element enclosingElement,
-      {onFailure(Node node, MessageKind kind, [List arguments]),
+      {onFailure(Node node, MessageKind kind, [Map arguments]),
        whenResolved(Node node, DartType type)}) {
     if (onFailure == null) {
       onFailure = (n, k, [arguments]) {};
@@ -1329,7 +1347,7 @@ class TypeResolver {
     DartType type;
 
     DartType reportFailureAndCreateType(MessageKind messageKind,
-                                        List messageArguments) {
+                                        Map messageArguments) {
       onFailure(node, messageKind, messageArguments);
       var erroneousElement = new ErroneousElementX(
           messageKind, messageArguments, typeName.source, enclosingElement);
@@ -1348,7 +1366,7 @@ class TypeResolver {
       if (hashTypeArgumentMismatch) {
         type = new MalformedType(
             new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
-                [node], typeName.source, enclosingElement),
+                {'type': node}, typeName.source, enclosingElement),
                 type, arguments.toLink());
       }
       return type;
@@ -1356,14 +1374,14 @@ class TypeResolver {
 
     if (element == null) {
       type = reportFailureAndCreateType(
-          MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
+          MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': node.typeName});
     } else if (element.isAmbiguous()) {
       AmbiguousElement ambiguous = element;
       type = reportFailureAndCreateType(
           ambiguous.messageKind, ambiguous.messageArguments);
     } else if (!element.impliesType()) {
       type = reportFailureAndCreateType(
-          MessageKind.NOT_A_TYPE, [node.typeName]);
+          MessageKind.NOT_A_TYPE, {'node': node.typeName});
     } else {
       if (identical(element, compiler.types.voidType.element) ||
           identical(element, compiler.types.dynamicType.element)) {
@@ -1379,7 +1397,7 @@ class TypeResolver {
         if (hashTypeArgumentMismatch) {
           type = new MalformedType(
               new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
-                  [node], typeName.source, enclosingElement),
+                  {'type': node}, typeName.source, enclosingElement),
               new InterfaceType(cls.declaration, arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
@@ -1399,7 +1417,7 @@ class TypeResolver {
         if (hashTypeArgumentMismatch) {
           type = new MalformedType(
               new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
-                  [node], typeName.source, enclosingElement),
+                  {'type': node}, typeName.source, enclosingElement),
               new TypedefType(typdef, arguments.toLink()));
         } else {
           if (arguments.isEmpty) {
@@ -1412,11 +1430,12 @@ class TypeResolver {
         if (enclosingElement.isInStaticMember()) {
           compiler.reportWarning(node,
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER.message(
-                  [node]));
+                  {'typeVariableName': node}));
           type = new MalformedType(
               new ErroneousElementX(
                   MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-                  [node], typeName.source, enclosingElement),
+                  {'typeVariableName': node},
+                  typeName.source, enclosingElement),
                   element.computeType(compiler));
         } else {
           type = element.computeType(compiler);
@@ -1516,20 +1535,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element result = scope.lookup(name);
     if (!Elements.isUnresolved(result)) {
       if (!inInstanceContext && result.isInstanceMember()) {
-        compiler.reportMessage(compiler.spanFromSpannable(node),
-            MessageKind.NO_INSTANCE_AVAILABLE.error([name]),
-            Diagnostic.ERROR);
+        compiler.reportErrorCode(
+            node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': name});
         return new ErroneousElementX(MessageKind.NO_INSTANCE_AVAILABLE,
-                                    [name],
-                                    name, enclosingElement);
+                                     {'name': name},
+                                     name, enclosingElement);
       } else if (result.isAmbiguous()) {
         AmbiguousElement ambiguous = result;
-        compiler.reportMessage(compiler.spanFromSpannable(node),
-            ambiguous.messageKind.error(ambiguous.messageArguments),
-            Diagnostic.ERROR);
+        compiler.reportErrorCode(
+            node, ambiguous.messageKind, ambiguous.messageArguments);
         return new ErroneousElementX(ambiguous.messageKind,
-                                    ambiguous.messageArguments,
-                                    name, enclosingElement);
+                                     ambiguous.messageArguments,
+                                     name, enclosingElement);
       }
     }
     return result;
@@ -1570,7 +1587,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   ErroneousElement warnAndCreateErroneousElement(Node node,
                                                  SourceString name,
                                                  MessageKind kind,
-                                                 List<Node> arguments) {
+                                                 [Map arguments = const {}]) {
     ResolutionWarning warning = new ResolutionWarning(kind, arguments);
     compiler.reportWarning(node, warning);
     return new ErroneousElementX(kind, arguments, name, enclosingElement);
@@ -1579,7 +1596,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   Element visitIdentifier(Identifier node) {
     if (node.isThis()) {
       if (!inInstanceContext) {
-        error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
+        error(node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': node});
       }
       return null;
     } else if (node.isSuper()) {
@@ -1594,14 +1611,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         if (!inInstanceContext) {
           element = warnAndCreateErroneousElement(node, node.source,
                                                   MessageKind.CANNOT_RESOLVE,
-                                                  [node]);
+                                                  {'name': node});
         }
       } else if (element.isErroneous()) {
         // Use the erroneous element.
       } else {
         if ((element.kind.category & allowedCategory) == 0) {
           // TODO(ahe): Improve error message. Need UX input.
-          error(node, MessageKind.GENERIC, ["is not an expression $element"]);
+          error(node, MessageKind.GENERIC,
+                {'text': "is not an expression $element"});
         }
       }
       if (!Elements.isUnresolved(element)
@@ -1631,7 +1649,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (doAddToScope) {
       Element existing = scope.add(element);
       if (existing != element) {
-        error(node, MessageKind.DUPLICATE_DEFINITION, [node]);
+        error(node, MessageKind.DUPLICATE_DEFINITION, {'name': node});
       }
     }
     return element;
@@ -1829,11 +1847,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         if (selector.argumentCount != 1) {
           error(node.selector,
                 MessageKind.WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
-                [selector.argumentCount]);
+                {'argumentCount': selector.argumentCount});
         } else if (selector.namedArgumentCount != 0) {
           error(node.selector,
                 MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
-                [selector.namedArgumentCount]);
+                {'argumentCount': selector.namedArgumentCount});
         }
         return compiler.assertMethod;
       }
@@ -1849,23 +1867,25 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element target;
     SourceString name = node.selector.asIdentifier().source;
     if (identical(name.stringValue, 'this')) {
-      error(node.selector, MessageKind.GENERIC, ["expected an identifier"]);
+      error(node.selector, MessageKind.GENERIC,
+            {'text': "expected an identifier"});
     } else if (node.isSuperCall) {
       if (node.isOperator) {
         if (isUserDefinableOperator(name.stringValue)) {
           name = selector.name;
         } else {
-          error(node.selector, MessageKind.ILLEGAL_SUPER_SEND, [name]);
+          error(node.selector, MessageKind.ILLEGAL_SUPER_SEND, {'name': name});
         }
       }
       if (!inInstanceContext) {
-        error(node.receiver, MessageKind.NO_INSTANCE_AVAILABLE, [name]);
+        error(node.receiver, MessageKind.NO_INSTANCE_AVAILABLE, {'name': name});
         return null;
       }
       if (currentClass.supertype == null) {
         // This is just to guard against internal errors, so no need
         // for a real error message.
-        error(node.receiver, MessageKind.GENERIC, ["Object has no superclass"]);
+        error(node.receiver, MessageKind.GENERIC,
+              {'text': "Object has no superclass"});
       }
       // TODO(johnniwinther): Ensure correct behavior if currentClass is a
       // patch.
@@ -1897,9 +1917,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         // setters.
         return warnAndCreateErroneousElement(node, name,
                                              MessageKind.METHOD_NOT_FOUND,
-                                             [receiverClass.name, name]);
+                                             {'className': receiverClass.name,
+                                              'methodName': name});
       } else if (target.isInstanceMember()) {
-        error(node, MessageKind.MEMBER_NOT_STATIC, [receiverClass.name, name]);
+        error(node, MessageKind.MEMBER_NOT_STATIC,
+              {'className': receiverClass.name,
+               'memberName': name});
       }
     } else if (identical(resolvedReceiver.kind, ElementKind.PREFIX)) {
       PrefixElement prefix = resolvedReceiver;
@@ -1907,7 +1930,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (Elements.isUnresolved(target)) {
         return warnAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_LIBRARY_MEMBER,
-            [prefix.name, name]);
+            {'libraryName': prefix.name, 'memberName': name});
       } else if (target.kind == ElementKind.CLASS) {
         ClassElement classElement = target;
         classElement.ensureResolved(compiler);
@@ -1999,7 +2022,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         SourceString source = namedArgument.name.source;
         if (seenNamedArguments.contains(source)) {
           error(argument, MessageKind.DUPLICATE_DEFINITION,
-                [source.slowToString()]);
+                {'name': source});
         }
         seenNamedArguments.add(source);
       } else if (!seenNamedArguments.isEmpty) {
@@ -2017,8 +2040,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (target == null && !inInstanceContext) {
         target =
             warnAndCreateErroneousElement(node.selector, field.name,
-                                          MessageKind.CANNOT_RESOLVE_GETTER,
-                                          [node.selector]);
+                                          MessageKind.CANNOT_RESOLVE_GETTER);
       }
     }
 
@@ -2091,7 +2113,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // TODO(karlklose): we can be more precise about the reason of the
     // mismatch.
     warning(node.argumentsNode, MessageKind.INVALID_ARGUMENTS,
-            [target.name]);
+            {'methodName': target.name});
   }
 
   /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
@@ -2118,14 +2140,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (setter == null && !inInstanceContext) {
         setter =
             warnAndCreateErroneousElement(node.selector, field.name,
-                                          MessageKind.CANNOT_RESOLVE_SETTER,
-                                          [node.selector]);
+                                          MessageKind.CANNOT_RESOLVE_SETTER);
       }
       if (isComplex && getter == null && !inInstanceContext) {
         getter =
             warnAndCreateErroneousElement(node.selector, field.name,
-                                          MessageKind.CANNOT_RESOLVE_GETTER,
-                                          [node.selector]);
+                                          MessageKind.CANNOT_RESOLVE_GETTER);
       }
     }
 
@@ -2238,14 +2258,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   void handleRedirectingFactoryBody(Return node) {
     if (!enclosingElement.isFactoryConstructor()) {
-      compiler.reportMessage(
-          compiler.spanFromSpannable(node),
-          MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY.error([]),
-          Diagnostic.ERROR);
-      compiler.reportMessage(
-          compiler.spanFromSpannable(enclosingElement),
-          MessageKind.MISSING_FACTORY_KEYWORD.error([]),
-          Diagnostic.INFO);
+      compiler.reportErrorCode(
+          node, MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY);
+      compiler.reportErrorCode(
+          enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
     Element redirectionTarget = resolveRedirectingFactory(node);
     var type = mapping.getType(node.expression);
@@ -2420,11 +2436,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (arguments != null) {
       Link<Node> nodes = arguments.nodes;
       if (nodes.isEmpty) {
-        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT, []);
+        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
       } else {
         resolveTypeRequired(nodes.head);
         for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
-          error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT, []);
+          error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
           resolveTypeRequired(nodes.head);
         }
       }
@@ -2459,12 +2475,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       String labelName = node.target.source.slowToString();
       LabelElement label = statementScope.lookupLabel(labelName);
       if (label == null) {
-        error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
+        error(node.target, MessageKind.UNBOUND_LABEL, {'labelName': labelName});
         return;
       }
       target = label.target;
       if (!target.statement.isValidBreakTarget()) {
-        error(node.target, MessageKind.INVALID_BREAK, [labelName]);
+        error(node.target, MessageKind.INVALID_BREAK);
         return;
       }
       label.setBreakTarget();
@@ -2492,12 +2508,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       String labelName = node.target.source.slowToString();
       LabelElement label = statementScope.lookupLabel(labelName);
       if (label == null) {
-        error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
+        error(node.target, MessageKind.UNBOUND_LABEL, {'labelName': labelName});
         return;
       }
       target = label.target;
       if (!target.statement.isValidContinueTarget()) {
-        error(node.target, MessageKind.INVALID_CONTINUE, [labelName]);
+        error(node.target, MessageKind.INVALID_CONTINUE);
       }
       // TODO(lrn): Handle continues to switch cases.
       if (target.statement is SwitchCase) {
@@ -2540,7 +2556,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     {
       // The variable declaration is either not an identifier, not a
       // declaration, or it's declaring more than one variable.
-      error(node.declaredIdentifier, MessageKind.INVALID_FOR_IN, []);
+      error(node.declaredIdentifier, MessageKind.INVALID_FOR_IN);
     }
   }
 
@@ -2565,7 +2581,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (element.isTarget) {
         mapping[element.label] = element;
       } else {
-        warning(element.label, MessageKind.UNUSED_LABEL, [labelName]);
+        warning(element.label, MessageKind.UNUSED_LABEL,
+                {'labelName': labelName});
       }
     });
     if (!targetElement.isTarget && identical(mapping[body], targetElement)) {
@@ -2603,15 +2620,17 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         LabelElement existingElement = continueLabels[labelName];
         if (existingElement != null) {
           // It's an error if the same label occurs twice in the same switch.
-          warning(label, MessageKind.DUPLICATE_LABEL, [labelName]);
-          error(existingElement.label, MessageKind.EXISTING_LABEL, [labelName]);
+          warning(label, MessageKind.DUPLICATE_LABEL, {'labelName': labelName});
+          error(existingElement.label, MessageKind.EXISTING_LABEL,
+                {'labelName': labelName});
         } else {
           // It's only a warning if it shadows another label.
           existingElement = statementScope.lookupLabel(labelName);
           if (existingElement != null) {
-            warning(label, MessageKind.DUPLICATE_LABEL, [labelName]);
+            warning(label, MessageKind.DUPLICATE_LABEL,
+                    {'labelName': labelName});
             warning(existingElement.label,
-                    MessageKind.EXISTING_LABEL, [labelName]);
+                    MessageKind.EXISTING_LABEL, {'labelName': labelName});
           }
         }
 
@@ -2750,7 +2769,8 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       SourceString typeName = typeVariable.name;
       TypeVariable typeNode = nodeLink.head;
       if (nameSet.contains(typeName)) {
-        error(typeNode, MessageKind.DUPLICATE_TYPE_VARIABLE_NAME, [typeName]);
+        error(typeNode, MessageKind.DUPLICATE_TYPE_VARIABLE_NAME,
+              {'typeVariableName': typeName});
       }
       nameSet.add(typeName);
 
@@ -2762,7 +2782,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
           // TODO(johnniwinther): Check for more general cycles, like
           // [: <A extends B, B extends C, C extends B> :].
           warning(node, MessageKind.CYCLIC_TYPE_VARIABLE,
-                  [variableElement.name]);
+                  {'typeVariableName': variableElement.name});
         } else if (boundType != null) {
           variableElement.bound = boundType;
         } else {
@@ -2942,10 +2962,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     while (current != null && current.isMixinApplication) {
       MixinApplicationElement currentMixinApplication = current;
       if (currentMixinApplication == mixinApplication) {
-        CompilationError error = MessageKind.ILLEGAL_MIXIN_CYCLE.error(
-            [current.name, previous.name]);
-        compiler.reportMessage(compiler.spanFromElement(mixinApplication),
-                               error, Diagnostic.ERROR);
+        compiler.reportErrorCode(
+            mixinApplication, MessageKind.ILLEGAL_MIXIN_CYCLE,
+            {'mixinName1': current.name, 'mixinName2': previous.name});
         // We have found a cycle in the mixin chain. Return null as
         // the mixin for this application to avoid getting into
         // infinite recursion when traversing members.
@@ -2967,10 +2986,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   DartType visitIdentifier(Identifier node) {
     Element element = scope.lookup(node.source);
     if (element == null) {
-      error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
+      error(node, MessageKind.CANNOT_RESOLVE_TYPE,  {'typeName': node});
       return null;
     } else if (!element.impliesType() && !element.isTypeVariable()) {
-      error(node, MessageKind.NOT_A_TYPE, [node]);
+      error(node, MessageKind.NOT_A_TYPE, {'node': node});
       return null;
     } else {
       if (element.isTypeVariable()) {
@@ -2990,19 +3009,20 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   DartType visitSend(Send node) {
     Identifier prefix = node.receiver.asIdentifier();
     if (prefix == null) {
-      error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
+      error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
       return null;
     }
     Element element = scope.lookup(prefix.source);
     if (element == null || !identical(element.kind, ElementKind.PREFIX)) {
-      error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
+      error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
       return null;
     }
     PrefixElement prefixElement = element;
     Identifier selector = node.selector.asIdentifier();
     var e = prefixElement.lookupLocalMember(selector.source);
     if (e == null || !e.impliesType()) {
-      error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE, [node.selector]);
+      error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE,
+            {'typeName': node.selector});
       return null;
     }
     return e.computeType(compiler);
@@ -3017,10 +3037,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         return null;
       } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
         // TODO(johnniwinther): Handle dynamic.
-        error(superclass.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
+        error(superclass.typeName, MessageKind.CLASS_NAME_EXPECTED);
         return null;
       } else if (isBlackListed(supertype)) {
-        error(superclass, MessageKind.CANNOT_EXTEND, [supertype]);
+        error(superclass, MessageKind.CANNOT_EXTEND, {'type': supertype});
         return null;
       }
     }
@@ -3039,27 +3059,28 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         } else if (!identical(interfaceType.kind, TypeKind.INTERFACE)) {
           // TODO(johnniwinther): Handle dynamic.
           TypeAnnotation typeAnnotation = link.head;
-          error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED, []);
+          error(typeAnnotation.typeName, MessageKind.CLASS_NAME_EXPECTED);
         } else {
           if (interfaceType == element.supertype) {
-            compiler.reportMessage(
-                compiler.spanFromSpannable(superclass),
-                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
-                Diagnostic.ERROR);
-            compiler.reportMessage(
-                compiler.spanFromSpannable(link.head),
-                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS.error([interfaceType]),
-                Diagnostic.ERROR);
+            compiler.reportErrorCode(
+                superclass,
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS,
+                {'type': interfaceType});
+            compiler.reportErrorCode(
+                link.head,
+                MessageKind.DUPLICATE_EXTENDS_IMPLEMENTS,
+                {'type': interfaceType});
           }
           if (result.contains(interfaceType)) {
-            compiler.reportMessage(
-                compiler.spanFromSpannable(link.head),
-                MessageKind.DUPLICATE_IMPLEMENTS.error([interfaceType]),
-                Diagnostic.ERROR);
+            compiler.reportErrorCode(
+                link.head,
+                MessageKind.DUPLICATE_IMPLEMENTS,
+                {'type': interfaceType});
           }
           result = result.prepend(interfaceType);
           if (isBlackListed(interfaceType)) {
-            error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
+            error(link.head, MessageKind.CANNOT_IMPLEMENT,
+                  {'type': interfaceType});
           }
         }
       }
@@ -3167,17 +3188,14 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   void visitIdentifier(Identifier node) {
     Element element = context.lookup(node.source);
     if (element == null) {
-      error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
+      error(node, MessageKind.CANNOT_RESOLVE_TYPE, {'typeName': node});
     } else if (!element.impliesType()) {
-      error(node, MessageKind.NOT_A_TYPE, [node]);
+      error(node, MessageKind.NOT_A_TYPE, {'node': node});
     } else {
       if (element.isClass()) {
         loadSupertype(element, node);
       } else {
-        compiler.reportMessage(
-          compiler.spanFromSpannable(node),
-          MessageKind.CLASS_NAME_EXPECTED.error([]),
-          Diagnostic.ERROR);
+        compiler.reportErrorCode(node, MessageKind.CLASS_NAME_EXPECTED);
       }
     }
   }
@@ -3185,19 +3203,20 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   void visitSend(Send node) {
     Identifier prefix = node.receiver.asIdentifier();
     if (prefix == null) {
-      error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
+      error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
       return;
     }
     Element element = context.lookup(prefix.source);
     if (element == null || !identical(element.kind, ElementKind.PREFIX)) {
-      error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
+      error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
       return;
     }
     PrefixElement prefixElement = element;
     Identifier selector = node.selector.asIdentifier();
     var e = prefixElement.lookupLocalMember(selector.source);
     if (e == null || !e.impliesType()) {
-      error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE, [node.selector]);
+      error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE,
+            {'typeName': node.selector});
       return;
     }
     loadSupertype(e, node);
@@ -3321,16 +3340,18 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     FieldParameterElement element;
     if (node.receiver.asIdentifier() == null ||
         !node.receiver.asIdentifier().isThis()) {
-      error(node, MessageKind.INVALID_PARAMETER, []);
-    } else if (!identical(enclosingElement.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
-      error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
+      error(node, MessageKind.INVALID_PARAMETER);
+    } else if (!identical(enclosingElement.kind,
+                          ElementKind.GENERATIVE_CONSTRUCTOR)) {
+      error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED);
     } else {
       SourceString name = getParameterName(node);
       Element fieldElement = currentClass.lookupLocalMember(name);
-      if (fieldElement == null || !identical(fieldElement.kind, ElementKind.FIELD)) {
-        error(node, MessageKind.NOT_A_FIELD, [name]);
+      if (fieldElement == null ||
+          !identical(fieldElement.kind, ElementKind.FIELD)) {
+        error(node, MessageKind.NOT_A_FIELD, {'fieldName': name});
       } else if (!fieldElement.isInstanceMember()) {
-        error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
+        error(node, MessageKind.NOT_INSTANCE_FIELD, {'fieldName': name});
       }
       Element variables = new VariableListElementX.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
@@ -3390,9 +3411,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     int requiredParameterCount = 0;
     if (formalParameters == null) {
       if (!element.isGetter()) {
-        compiler.reportMessage(compiler.spanFromElement(element),
-                               MessageKind.MISSING_FORMALS.error([]),
-                               Diagnostic.ERROR);
+        compiler.reportErrorCode(element, MessageKind.MISSING_FORMALS);
       }
     } else {
       if (element.isGetter()) {
@@ -3402,9 +3421,8 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
           if (compiler.rejectDeprecatedFeatures &&
               // TODO(ahe): Remove isPlatformLibrary check.
               !element.getLibrary().isPlatformLibrary) {
-            compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
-                                   MessageKind.EXTRA_FORMALS.error([]),
-                                   Diagnostic.ERROR);
+            compiler.reportErrorCode(formalParameters,
+                                     MessageKind.EXTRA_FORMALS);
           } else {
             compiler.onDeprecatedFeature(formalParameters, 'getter parameters');
           }
@@ -3420,16 +3438,13 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                visitor.optionalParameterCount != 0)) {
       // If there are no formal parameters, we already reported an error above.
       if (formalParameters != null) {
-        compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
-                               MessageKind.ILLEGAL_SETTER_FORMALS.error([]),
-                               Diagnostic.ERROR);
+        compiler.reportErrorCode(formalParameters,
+                                 MessageKind.ILLEGAL_SETTER_FORMALS);
       }
     }
     if (element.isGetter() && (requiredParameterCount != 0
                                || visitor.optionalParameterCount != 0)) {
-      compiler.reportMessage(compiler.spanFromSpannable(formalParameters),
-                             MessageKind.EXTRA_FORMALS.error([]),
-                             Diagnostic.ERROR);
+      compiler.reportErrorCode(formalParameters, MessageKind.EXTRA_FORMALS);
     }
     return new FunctionSignatureX(parameters,
                                   visitor.optionalParameters,
@@ -3466,7 +3481,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
   failOrReturnErroneousElement(Element enclosing, Node diagnosticNode,
                                SourceString targetName, MessageKind kind,
-                               List arguments) {
+                               Map arguments) {
     if (inConstContext) {
       error(diagnosticNode, kind, arguments);
     } else {
@@ -3502,7 +3517,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
           diagnosticNode,
           new SourceString(fullConstructorName),
           MessageKind.CANNOT_FIND_CONSTRUCTOR,
-          [fullConstructorName]);
+          {'constructorName': fullConstructorName});
     } else if (inConstContext && !result.modifiers.isConst()) {
       error(diagnosticNode, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }
@@ -3530,7 +3545,8 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         // TODO(ahe): Remove this check and error message when we
         // don't have interfaces anymore.
         error(diagnosticNode,
-              MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
+              MessageKind.CANNOT_INSTANTIATE_INTERFACE,
+              {'interfaceName': cls.name});
       }
       // The unnamed constructor may not exist, so [e] may become unresolved.
       e = lookupConstructor(cls, diagnosticNode, const SourceString(''));
@@ -3562,8 +3578,9 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
       if (cls.isInterface() && (cls.defaultClass == null)) {
-        error(node.receiver, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
-              [cls.name]);
+        error(node.receiver,
+              MessageKind.CANNOT_INSTANTIATE_INTERFACE,
+              {'interfaceName': cls.name});
       }
       return lookupConstructor(cls, name, name.source);
     } else if (identical(e.kind, ElementKind.PREFIX)) {
@@ -3573,9 +3590,9 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         return failOrReturnErroneousElement(resolver.enclosingElement, name,
                                             name.source,
                                             MessageKind.CANNOT_RESOLVE,
-                                            [name]);
+                                            {'name': name});
       } else if (!identical(e.kind, ElementKind.CLASS)) {
-        error(node, MessageKind.NOT_A_TYPE, [name]);
+        error(node, MessageKind.NOT_A_TYPE, {'node': name});
       }
     } else {
       internalError(node.receiver, 'unexpected element $e');
@@ -3589,16 +3606,19 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     if (e == null) {
       return failOrReturnErroneousElement(resolver.enclosingElement, node, name,
-                                          MessageKind.CANNOT_RESOLVE, [name]);
+                                          MessageKind.CANNOT_RESOLVE,
+                                          {'name': name});
     } else if (e.isErroneous()) {
       return e;
     } else if (identical(e.kind, ElementKind.TYPEDEF)) {
-      error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [name]);
+      error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF,
+            {'typedefName': name});
     } else if (identical(e.kind, ElementKind.TYPE_VARIABLE)) {
-      error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE, [name]);
+      error(node, MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE,
+            {'typeVariableName': name});
     } else if (!identical(e.kind, ElementKind.CLASS)
         && !identical(e.kind, ElementKind.PREFIX)) {
-      error(node, MessageKind.NOT_A_TYPE, [name]);
+      error(node, MessageKind.NOT_A_TYPE, {'node': name});
     }
     return e;
   }

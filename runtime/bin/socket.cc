@@ -186,6 +186,7 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
+    buffer = static_cast<void*>((static_cast<uint8_t*>(buffer) + offset));
     bytes_written = Socket::Write(socket, buffer, length);
     if (bytes_written > 0) total_bytes_written = bytes_written;
   } else {

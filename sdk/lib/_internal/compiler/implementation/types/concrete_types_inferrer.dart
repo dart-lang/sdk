@@ -970,7 +970,11 @@ class ConcreteTypesInferrer {
                                          compiler.listClass.getLibrary()));
   }
 
-  void analyzeMain(Element element) {
+  /**
+   * Performs concrete type inference of the code reachable from [element].
+   * Returns [:true:] if and only if analysis succeeded.
+   */
+  bool analyzeMain(Element element) {
     initialize();
     cache[element] = new Map<ConcreteTypesEnvironment, ConcreteType>();
     populateCacheWithBuiltinRules();
@@ -985,10 +989,12 @@ class ConcreteTypesInferrer {
         template[item.environment] = concreteType;
         invalidateCallers(item.method);
       }
+      return true;
     } on CancelTypeInferenceException catch(e) {
       if (LOG_FAILURES) {
-        compiler.log("'${e.node.toDebugString()}': ${e.reason}");
+        compiler.log(e.reason);
       }
+      return false;
     }
   }
 
@@ -1498,6 +1504,11 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitOperatorSend(Send node) {
+    SourceString name =
+        canonicalizeMethodName(node.selector.asIdentifier().source);
+    if (name == const SourceString('is')) {
+      return inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
+    }
     return visitDynamicSend(node);
   }
 

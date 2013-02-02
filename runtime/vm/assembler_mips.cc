@@ -10,8 +10,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
-DEFINE_FLAG(bool, code_comments, false,
-            "Include comments into code and disassembly");
 
 }  // namespace dart
 

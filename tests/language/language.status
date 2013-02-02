@@ -109,9 +109,13 @@ class_literal_test/none : Fail # Issue 7630.
 list_literal1_negative_test: Fail
 map_literal1_negative_test: Fail
 
+
+# test issue 8129
+redirecting_factory_infinite_steps_test/01: Fail
+
+
 library_juxtaposition_test: Fail # Issue 6881
 new_expression_type_args_test/0*: Fail # Wrongly reports compile-time error.
-redirecting_factory_infinite_steps_test/01: Fail # http://dartbug.com/6560
 implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
 const_locals_test: Fail
@@ -292,8 +296,10 @@ prefix2_negative_test: Fail
 # test issue 7523 (const declared without type, so not-a-function warning should not be reported)
 call_through_getter_test: Fail
 
-mixin_illegal_cycles_test/01: Fail # issue 8027
-mixin_illegal_cycles_test/02: Fail # issue 8027
+
+# test issue 8127 (using mixin application as mixin)
+mixin_mixin_test: Fail
+
 
 #
 # Add new dartc annotations above in alphabetical order

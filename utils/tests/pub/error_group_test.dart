@@ -451,16 +451,3 @@ main() {
     });
   });
 }
-
-// TODO(nweiz): remove this once it's built in to unittest (issue 7922).
-/// A matcher for StateErrors.
-const isStateError = const _StateError();
-
-/// A matcher for functions that throw StateError.
-const Matcher throwsStateError =
-    const Throws(isStateError);
-
-class _StateError extends TypeMatcher {
-  const _StateError() : super("StateError");
-  bool matches(item, MatchState matchState) => item is StateError;
-}

@@ -7,15 +7,9 @@ library client;
 
 import 'dart:html';
 import 'dart:json';
-import '../../../../compiler/implementation/source_file.dart';
-// TODO(rnystrom): Use "package:" URL (#4968).
-import '../../classify.dart';
-import '../dartdoc/nav.dart';
+import 'dropdown.dart';
+import 'client-shared.dart';
 
-// TODO(rnystrom): Use "package:" URL (#4968).
-part 'dropdown.dart';
-part 'search.dart';
-part 'client-shared.dart';
 part '../../../tmp/nav.dart';
 
 main() {

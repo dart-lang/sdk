@@ -40,7 +40,7 @@ class RegExpAllMatchesTest {
 
   static testMap() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    var mapped = matches.mappedBy((Match m) => "${m.group(0)}bar");
+    var mapped = matches.map((Match m) => "${m.group(0)}bar");
     Expect.equals(4, mapped.length);
     var strbuf = new StringBuffer();
     for (String s in mapped) {

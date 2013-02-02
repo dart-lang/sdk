@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html;
+part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
@@ -91,7 +91,7 @@ $if DART2JS
   @JSName('observe')
   void _call(target, options) native;
 
-  static MutationObserver _create(MutationCallback callback) {
+  factory MutationObserver(MutationCallback callback) {
     // Dummy statement to mark types as instantiated.
     JS('MutationObserver|MutationRecord', '0');
 

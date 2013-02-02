@@ -1,8 +1,7 @@
-library html;
+library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:collection-dev';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -127,6 +126,7 @@ class AbstractWorkerEvents extends Events {
 class AnchorElement extends _Element_Merged {
   AnchorElement.internal() : super.internal();
 
+  @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable
   factory AnchorElement({String href}) {
     var e = document.$dom_createElement("a");
@@ -458,6 +458,7 @@ class ApplicationCacheEvents extends Events {
 class AreaElement extends _Element_Merged {
   AreaElement.internal() : super.internal();
 
+  @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable
   factory AreaElement() => document.$dom_createElement("area");
 
@@ -553,10 +554,10 @@ class AreaElement extends _Element_Merged {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ArrayBuffer extends NativeFieldWrapperClass1 {
   ArrayBuffer.internal();
+  factory ArrayBuffer(int length) => _create(length);
 
   @DocsEditable
-  factory ArrayBuffer(int length) => ArrayBuffer._create(length);
-  static ArrayBuffer _create(int length) native "ArrayBuffer_constructor_Callback";
+  static ArrayBuffer _create(length) native "ArrayBuffer_constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -635,14 +636,14 @@ class Attr extends Node {
 class AudioElement extends MediaElement {
   AudioElement.internal() : super.internal();
 
+  @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable
   factory AudioElement([String src]) {
-    if (!?src) {
-      return AudioElement._create();
-    }
-    return AudioElement._create(src);
+    return AudioElement._create_1(src);
   }
-  static AudioElement _create([String src]) native "HTMLAudioElement_constructor_Callback";
+
+  @DocsEditable
+  static AudioElement _create_1(src) native "HTMLAudioElement__create_1constructorCallback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -657,6 +658,7 @@ class AudioElement extends MediaElement {
 class BRElement extends _Element_Merged {
   BRElement.internal() : super.internal();
 
+  @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable
   factory BRElement() => document.$dom_createElement("br");
 
@@ -690,6 +692,7 @@ class BarInfo extends NativeFieldWrapperClass1 {
 class BaseElement extends _Element_Merged {
   BaseElement.internal() : super.internal();
 
+  @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable
   factory BaseElement() => document.$dom_createElement("base");
 
@@ -833,18 +836,10 @@ class BeforeLoadEvent extends Event {
 @DomName('Blob')
 class Blob extends NativeFieldWrapperClass1 {
   Blob.internal();
+  factory Blob(List blobParts, [String type, String endings]) => _create(blobParts, type, endings);
 
   @DocsEditable
-  factory Blob(List blobParts, [String type, String endings]) {
-    if (!?type) {
-      return Blob._create(blobParts);
-    }
-    if (!?endings) {
-      return Blob._create(blobParts, type);
-    }
-    return Blob._create(blobParts, type, endings);
-  }
-  static Blob _create(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
+  static Blob _create(blobParts, type, endings) native "Blob_constructorCallback";
 
   @DomName('Blob.size')
   @DocsEditable
@@ -949,6 +944,7 @@ class BodyElement extends _Element_Merged {
   @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
+  @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable
   factory BodyElement() => document.$dom_createElement("body");
 
@@ -1069,6 +1065,7 @@ class BodyElementEvents extends ElementEvents {
 class ButtonElement extends _Element_Merged {
   ButtonElement.internal() : super.internal();
 
+  @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable
   factory ButtonElement() => document.$dom_createElement("button");
 
@@ -1203,6 +1200,7 @@ class CDataSection extends Text {
 class CanvasElement extends _Element_Merged {
   CanvasElement.internal() : super.internal();
 
+  @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable
   factory CanvasElement({int width, int height}) {
     var e = document.$dom_createElement("canvas");
@@ -1211,32 +1209,96 @@ class CanvasElement extends _Element_Merged {
     return e;
   }
 
+  /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
   @DocsEditable
   int get height native "HTMLCanvasElement_height_Getter";
 
+  /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
   @DocsEditable
   void set height(int value) native "HTMLCanvasElement_height_Setter";
 
+  /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
   @DocsEditable
   int get width native "HTMLCanvasElement_width_Getter";
 
+  /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
   @DocsEditable
   void set width(int value) native "HTMLCanvasElement_width_Setter";
 
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable
-  Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
+  CanvasRenderingContext getContext(String contextId, [Map attrs]) native "HTMLCanvasElement_getContext_Callback";
 
+  /**
+   * Returns a data URI containing a representation of the image in the
+   * format specified by type (defaults to 'image/png').
+   *
+   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
+   *
+   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]
+   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default
+   * value is used. Note: the default value varies by browser.
+   *
+   * If the height or width of this canvas element is 0, then 'data:' is returned,
+   * representing no data.
+   *
+   * If the type requested is not 'image/png', and the returned value is
+   * 'data:image/png', then the requested type is not supported.
+   *
+   * Example usage:
+   *
+   *     CanvasElement canvas = new CanvasElement();
+   *     var ctx = canvas.context2d
+   *     ..fillStyle = "rgb(200,0,0)"
+   *     ..fillRect(10, 10, 55, 50);
+   *     var dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+   *     // The Data Uri would look similar to
+   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
+   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
+   *     //Create a new image element from the data URI.
+   *     var img = new ImageElement();
+   *     img.src = dataUrl;
+   *     document.body.children.add(img);
+   *
+   * See also:
+   *
+   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
+   *
+   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
+   *
+   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
+   */
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable
   String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
-
   CanvasRenderingContext2D get context2d => getContext('2d');
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @Experimental
+  WebGLRenderingContext getContext3d({alpha: true, depth: true, stencil: false,
+    antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false}) {
+
+    var options = {
+      'alpha': alpha,
+      'depth': depth,
+      'stencil': stencil,
+      'antialias': antialias,
+      'premultipliedAlpha': premultipliedAlpha,
+      'preserveDrawingBuffer': preserveDrawingBuffer,
+    };
+    var context = getContext('webgl', options);
+    if (context == null) {
+      context = getContext('experimental-webgl', options);
+    }
+    return context;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1246,10 +1308,48 @@ class CanvasElement extends _Element_Merged {
 
 
 @DocsEditable
+/**
+ * An opaque canvas object representing a gradient.
+ *
+ * Created by calling [createLinearGradient] or [createRadialGradient] on a
+ * [CanvasRenderingContext2D] object.
+ *
+ * Example usage:
+ *
+ *     var canvas = new CanvasElement(width: 600, height: 600);
+ *     var ctx = canvas.context2d;
+ *     ctx.clearRect(0, 0, 600, 600);
+ *     ctx.save();
+ *     // Create radial gradient.
+ *     CanvasGradient gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);
+ *     gradient.addColorStop(0, '#000');
+ *     gradient.addColorStop(1, 'rgb(255, 255, 255)');
+ *     // Assign gradients to fill.
+ *     ctx.fillStyle = gradient;
+ *     // Draw a rectangle with a gradient fill.
+ *     ctx.fillRect(0, 0, 600, 600);
+ *     ctx.save();
+ *     document.body.children.add(canvas);
+ *
+ * See also:
+ *
+ * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
+ * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
+ * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
+ */
 @DomName('CanvasGradient')
 class CanvasGradient extends NativeFieldWrapperClass1 {
   CanvasGradient.internal();
 
+  /**
+   * Adds a color stop to this gradient at the offset.
+   *
+   * The [offset] can range between 0.0 and 1.0.
+   *
+   * See also:
+   *
+   * * [Multiple Color Stops](https://developer.mozilla.org/en-US/docs/CSS/linear-gradient#Gradient_with_multiple_color_stops) from MDN.
+   */
   @DomName('CanvasGradient.addColorStop')
   @DocsEditable
   void addColorStop(num offset, String color) native "CanvasGradient_addColorStop_Callback";
@@ -1263,6 +1363,33 @@ class CanvasGradient extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+/**
+ * An opaque object representing a pattern of image, canvas, or video.
+ *
+ * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.
+ *
+ * Example usage:
+ *
+ *     var canvas = new CanvasElement(width: 600, height: 600);
+ *     var ctx = canvas.context2d;
+ *     var img = new ImageElement();
+ *     // Image src needs to be loaded before pattern is applied.
+ *     img.onLoad.listen((event) {
+ *       // When the image is loaded, create a pattern
+ *       // from the ImageElement.
+ *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');
+ *       ctx.rect(0, 0, canvas.width, canvas.height);
+ *       ctx.fillStyle = pattern;
+ *       ctx.fill();
+ *     });
+ *     img.src = "images/foo.jpg";
+ *     document.body.children.add(canvas);
+ *
+ * See also:
+ * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
+ * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
+ * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
+ */
 @DomName('CanvasPattern')
 class CanvasPattern extends NativeFieldWrapperClass1 {
   CanvasPattern.internal();
@@ -1276,10 +1403,17 @@ class CanvasPattern extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+/**
+ * A rendering context for a canvas element.
+ *
+ * This context is extended by [CanvasRenderingContext2D] and
+ * [WebGLRenderingContext].
+ */
 @DomName('CanvasRenderingContext')
 class CanvasRenderingContext extends NativeFieldWrapperClass1 {
   CanvasRenderingContext.internal();
 
+  /// Reference to the canvas element to which this context belongs.
   @DomName('CanvasRenderingContext.canvas')
   @DocsEditable
   CanvasElement get canvas native "CanvasRenderingContext_canvas_Getter";
@@ -1470,9 +1604,22 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable
   void clearRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_clearRect_Callback";
 
-  @DomName('CanvasRenderingContext2D.clip')
+  void clip([String winding]) {
+    if (?winding) {
+      _clip_1(winding);
+      return;
+    }
+    _clip_2();
+    return;
+  }
+
+  @DomName('CanvasRenderingContext2D._clip_1')
   @DocsEditable
-  void clip() native "CanvasRenderingContext2D_clip_Callback";
+  void _clip_1(winding) native "CanvasRenderingContext2D__clip_1_Callback";
+
+  @DomName('CanvasRenderingContext2D._clip_2')
+  @DocsEditable
+  void _clip_2() native "CanvasRenderingContext2D__clip_2_Callback";
 
   @DomName('CanvasRenderingContext2D.closePath')
   @DocsEditable
@@ -1598,9 +1745,22 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_9_Callback";
 
-  @DomName('CanvasRenderingContext2D.fill')
+  void fill([String winding]) {
+    if (?winding) {
+      _fill_1(winding);
+      return;
+    }
+    _fill_2();
+    return;
+  }
+
+  @DomName('CanvasRenderingContext2D._fill_1')
   @DocsEditable
-  void fill() native "CanvasRenderingContext2D_fill_Callback";
+  void _fill_1(winding) native "CanvasRenderingContext2D__fill_1_Callback";
+
+  @DomName('CanvasRenderingContext2D._fill_2')
+  @DocsEditable
+  void _fill_2() native "CanvasRenderingContext2D__fill_2_Callback";
 
   @DomName('CanvasRenderingContext2D.fillRect')
   @DocsEditable
@@ -1631,9 +1791,20 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable
   List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
 
-  @DomName('CanvasRenderingContext2D.isPointInPath')
+  bool isPointInPath(num x, num y, [String winding]) {
+    if (?winding) {
+      return _isPointInPath_1(x, y, winding);
+    }
+    return _isPointInPath_2(x, y);
+  }
+
+  @DomName('CanvasRenderingContext2D._isPointInPath_1')
   @DocsEditable
-  bool isPointInPath(num x, num y) native "CanvasRenderingContext2D_isPointInPath_Callback";
+  bool _isPointInPath_1(x, y, winding) native "CanvasRenderingContext2D__isPointInPath_1_Callback";
+
+  @DomName('CanvasRenderingContext2D._isPointInPath_2')
+  @DocsEditable
+  bool _isPointInPath_2(x, y) native "CanvasRenderingContext2D__isPointInPath_2_Callback";
 
   @DomName('CanvasRenderingContext2D.lineTo')
   @DocsEditable
@@ -1900,63 +2071,6 @@ class ClientRect extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
-@DomName('Clipboard')
-class Clipboard extends NativeFieldWrapperClass1 {
-  Clipboard.internal();
-
-  @DomName('Clipboard.dropEffect')
-  @DocsEditable
-  String get dropEffect native "Clipboard_dropEffect_Getter";
-
-  @DomName('Clipboard.dropEffect')
-  @DocsEditable
-  void set dropEffect(String value) native "Clipboard_dropEffect_Setter";
-
-  @DomName('Clipboard.effectAllowed')
-  @DocsEditable
-  String get effectAllowed native "Clipboard_effectAllowed_Getter";
-
-  @DomName('Clipboard.effectAllowed')
-  @DocsEditable
-  void set effectAllowed(String value) native "Clipboard_effectAllowed_Setter";
-
-  @DomName('Clipboard.files')
-  @DocsEditable
-  List<File> get files native "Clipboard_files_Getter";
-
-  @DomName('Clipboard.items')
-  @DocsEditable
-  DataTransferItemList get items native "Clipboard_items_Getter";
-
-  @DomName('Clipboard.types')
-  @DocsEditable
-  List get types native "Clipboard_types_Getter";
-
-  @DomName('Clipboard.clearData')
-  @DocsEditable
-  void clearData([String type]) native "Clipboard_clearData_Callback";
-
-  @DomName('Clipboard.getData')
-  @DocsEditable
-  String getData(String type) native "Clipboard_getData_Callback";
-
-  @DomName('Clipboard.setData')
-  @DocsEditable
-  bool setData(String type, String data) native "Clipboard_setData_Callback";
-
-  @DomName('Clipboard.setDragImage')
-  @DocsEditable
-  void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('CloseEvent')
 class CloseEvent extends Event {
   CloseEvent.internal() : super.internal();
@@ -2132,6 +2246,7 @@ class Console extends NativeFieldWrapperClass1 {
 class ContentElement extends _Element_Merged {
   ContentElement.internal() : super.internal();
 
+  @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable
   factory ContentElement() => document.$dom_createElement("content");
 
@@ -2288,6 +2403,31 @@ class CssFontFaceRule extends CssRule {
 
 
 @DocsEditable
+@DomName('CSSHostRule')
+class CssHostRule extends CssRule {
+  CssHostRule.internal() : super.internal();
+
+  @DomName('CSSHostRule.cssRules')
+  @DocsEditable
+  List<CssRule> get cssRules native "CSSHostRule_cssRules_Getter";
+
+  @DomName('CSSHostRule.deleteRule')
+  @DocsEditable
+  void deleteRule(int index) native "CSSHostRule_deleteRule_Callback";
+
+  @DomName('CSSHostRule.insertRule')
+  @DocsEditable
+  int insertRule(String rule, int index) native "CSSHostRule_insertRule_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('CSSImportRule')
 class CssImportRule extends CssRule {
   CssImportRule.internal() : super.internal();
@@ -2376,17 +2516,23 @@ class CssKeyframesRule extends CssRule {
 
 @DocsEditable
 @DomName('WebKitCSSMatrix')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class CssMatrix extends NativeFieldWrapperClass1 {
   CssMatrix.internal();
 
+  @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable
   factory CssMatrix([String cssValue]) {
-    if (!?cssValue) {
-      return CssMatrix._create();
-    }
-    return CssMatrix._create(cssValue);
+    return CssMatrix._create_1(cssValue);
   }
-  static CssMatrix _create([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
+
+  @DocsEditable
+  static CssMatrix _create_1(cssValue) native "WebKitCSSMatrix__create_1constructorCallback";
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('WebKitCSSMatrix.a')
   @DocsEditable
@@ -2777,6 +2923,8 @@ class CssRule extends NativeFieldWrapperClass1 {
   static const int CHARSET_RULE = 2;
 
   static const int FONT_FACE_RULE = 5;
+
+  static const int HOST_RULE = 1001;
 
   static const int IMPORT_RULE = 3;
 
@@ -6271,6 +6419,7 @@ class CustomEvent extends Event {
 class DListElement extends _Element_Merged {
   DListElement.internal() : super.internal();
 
+  @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable
   factory DListElement() => document.$dom_createElement("dl");
 
@@ -6291,6 +6440,7 @@ class DListElement extends _Element_Merged {
 class DataListElement extends _Element_Merged {
   DataListElement.internal() : super.internal();
 
+  @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable
   factory DataListElement() => document.$dom_createElement("datalist");
 
@@ -6300,6 +6450,63 @@ class DataListElement extends _Element_Merged {
   @DomName('HTMLDataListElement.options')
   @DocsEditable
   HtmlCollection get options native "HTMLDataListElement_options_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Clipboard')
+class DataTransfer extends NativeFieldWrapperClass1 {
+  DataTransfer.internal();
+
+  @DomName('Clipboard.dropEffect')
+  @DocsEditable
+  String get dropEffect native "Clipboard_dropEffect_Getter";
+
+  @DomName('Clipboard.dropEffect')
+  @DocsEditable
+  void set dropEffect(String value) native "Clipboard_dropEffect_Setter";
+
+  @DomName('Clipboard.effectAllowed')
+  @DocsEditable
+  String get effectAllowed native "Clipboard_effectAllowed_Getter";
+
+  @DomName('Clipboard.effectAllowed')
+  @DocsEditable
+  void set effectAllowed(String value) native "Clipboard_effectAllowed_Setter";
+
+  @DomName('Clipboard.files')
+  @DocsEditable
+  List<File> get files native "Clipboard_files_Getter";
+
+  @DomName('Clipboard.items')
+  @DocsEditable
+  DataTransferItemList get items native "Clipboard_items_Getter";
+
+  @DomName('Clipboard.types')
+  @DocsEditable
+  List get types native "Clipboard_types_Getter";
+
+  @DomName('Clipboard.clearData')
+  @DocsEditable
+  void clearData([String type]) native "Clipboard_clearData_Callback";
+
+  @DomName('Clipboard.getData')
+  @DocsEditable
+  String getData(String type) native "Clipboard_getData_Callback";
+
+  @DomName('Clipboard.setData')
+  @DocsEditable
+  bool setData(String type, String data) native "Clipboard_setData_Callback";
+
+  @DomName('Clipboard.setDragImage')
+  @DocsEditable
+  void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6391,18 +6598,10 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 @DomName('DataView')
 class DataView extends ArrayBufferView {
   DataView.internal() : super.internal();
+  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) => _create(buffer, byteOffset, byteLength);
 
   @DocsEditable
-  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) {
-    if (!?byteOffset) {
-      return DataView._create(buffer);
-    }
-    if (!?byteLength) {
-      return DataView._create(buffer, byteOffset);
-    }
-    return DataView._create(buffer, byteOffset, byteLength);
-  }
-  static DataView _create(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
+  static DataView _create(buffer, byteOffset, byteLength) native "DataView_constructorCallback";
 
   num getFloat32(int byteOffset, {bool littleEndian}) {
     if (?littleEndian) {
@@ -6622,8 +6821,14 @@ class DataView extends ArrayBufferView {
 
 @DocsEditable
 @DomName('Database')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class Database extends NativeFieldWrapperClass1 {
   Database.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('Database.version')
   @DocsEditable
@@ -6659,6 +6864,9 @@ typedef void DatabaseCallback(database);
 
 @DocsEditable
 @DomName('DatabaseSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class DatabaseSync extends NativeFieldWrapperClass1 {
   DatabaseSync.internal();
 
@@ -6739,6 +6947,7 @@ class DedicatedWorkerContextEvents extends WorkerContextEvents {
 class DetailsElement extends _Element_Merged {
   DetailsElement.internal() : super.internal();
 
+  @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable
   factory DetailsElement() => document.$dom_createElement("details");
 
@@ -6911,10 +7120,32 @@ class DirectoryReaderSync extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+/**
+ * Represents an HTML <div> element.
+ *
+ * The [DivElement] is a generic container for content and does not have any
+ * special significance. It is functionally similar to [SpanElement].
+ *
+ * The [DivElement] is a block-level element, as opposed to [SpanElement],
+ * which is an inline-level element.
+ *
+ * Example usage:
+ *
+ *     DivElement div = new DivElement();
+ *     div.text = 'Here's my new DivElem
+ *     document.body.elements.add(elem);
+ *
+ * See also:
+ *
+ * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
+ * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
+ * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
+ */
 @DomName('HTMLDivElement')
 class DivElement extends _Element_Merged {
   DivElement.internal() : super.internal();
 
+  @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable
   factory DivElement() => document.$dom_createElement("div");
 
@@ -6961,10 +7192,12 @@ class Document extends Node
   DocumentEvents get on =>
     new DocumentEvents(this);
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable
   Element get $dom_body native "Document_body_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.body')
   @DocsEditable
   void set $dom_body(Element value) native "Document_body_Setter";
@@ -6997,6 +7230,7 @@ class Document extends Node
   @DocsEditable
   String get domain native "Document_domain_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.head')
   @DocsEditable
   HeadElement get $dom_head native "Document_head_Getter";
@@ -7005,6 +7239,7 @@ class Document extends Node
   @DocsEditable
   DomImplementation get implementation native "Document_implementation_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.lastModified')
   @DocsEditable
   String get $dom_lastModified native "Document_lastModified_Getter";
@@ -7017,6 +7252,7 @@ class Document extends Node
   @DocsEditable
   String get readyState native "Document_readyState_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.referrer')
   @DocsEditable
   String get $dom_referrer native "Document_referrer_Getter";
@@ -7029,34 +7265,42 @@ class Document extends Node
   @DocsEditable
   void set $dom_selectedStylesheetSet(String value) native "Document_selectedStylesheetSet_Setter";
 
+  /// Moved to [HtmlDocument]
   @DomName('Document.styleSheets')
   @DocsEditable
   List<StyleSheet> get $dom_styleSheets native "Document_styleSheets_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable
   String get $dom_title native "Document_title_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.title')
   @DocsEditable
   void set $dom_title(String value) native "Document_title_Setter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable
   Element get $dom_webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable
   bool get $dom_webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
   @DocsEditable
   bool get $dom_webkitHidden native "Document_webkitHidden_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
   @DocsEditable
   bool get $dom_webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable
   Element get $dom_webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
@@ -7065,6 +7309,7 @@ class Document extends Node
   @DocsEditable
   String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
+  /// Use the [Range] constructor instead.
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable
   Range $dom_caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
@@ -7077,6 +7322,7 @@ class Document extends Node
   @DocsEditable
   DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
 
+  /// Deprecated: use new Element.tag(tagName) instead.
   @DomName('Document.createElement')
   @DocsEditable
   Element $dom_createElement(String tagName) native "Document_createElement_Callback";
@@ -7101,6 +7347,7 @@ class Document extends Node
   @DocsEditable
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
+  /// Use the [TouchList] constructor instead.
   @DomName('Document.createTouchList')
   @DocsEditable
   TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
@@ -7113,10 +7360,12 @@ class Document extends Node
   @DocsEditable
   bool execCommand(String command, bool userInterface, String value) native "Document_execCommand_Callback";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.getCSSCanvasContext')
   @DocsEditable
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
+  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.getElementById')
   @DocsEditable
   Element $dom_getElementById(String elementId) native "Document_getElementById_Callback";
@@ -7153,22 +7402,27 @@ class Document extends Node
   @DocsEditable
   String queryCommandValue(String command) native "Document_queryCommandValue_Callback";
 
+  /// Deprecated: renamed to the shorter name [query].
   @DomName('Document.querySelector')
   @DocsEditable
   Element $dom_querySelector(String selectors) native "Document_querySelector_Callback";
 
+  /// Deprecated: use query("#$elementId") instead.
   @DomName('Document.querySelectorAll')
   @DocsEditable
   List<Node> $dom_querySelectorAll(String selectors) native "Document_querySelectorAll_Callback";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
   @DocsEditable
   void $dom_webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable
   void $dom_webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
+  /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable
   void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
@@ -7725,7 +7979,11 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomMimeType element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(DomMimeType element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(DomMimeType element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<DomMimeType> where(bool f(DomMimeType element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -7739,13 +7997,13 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
   bool get isEmpty => this.length == 0;
 
-  List<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -7790,8 +8048,9 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<DomMimeType> get reversed =>
-      new ReversedListView<DomMimeType>(this, 0, null);
+  List<DomMimeType> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(DomMimeType a, DomMimeType b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -7893,9 +8152,14 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 class DomParser extends NativeFieldWrapperClass1 {
   DomParser.internal();
 
+  @DomName('DOMParser.DOMParser')
   @DocsEditable
-  factory DomParser() => DomParser._create();
-  static DomParser _create() native "DOMParser_constructor_Callback";
+  factory DomParser() {
+    return DomParser._create_1();
+  }
+
+  @DocsEditable
+  static DomParser _create_1() native "DOMParser__create_1constructorCallback";
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable
@@ -7983,7 +8247,11 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(DomPlugin element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(DomPlugin element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(DomPlugin element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<DomPlugin> where(bool f(DomPlugin element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -7997,13 +8265,13 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   bool get isEmpty => this.length == 0;
 
-  List<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -8048,8 +8316,9 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<DomPlugin> get reversed =>
-      new ReversedListView<DomPlugin>(this, 0, null);
+  List<DomPlugin> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(DomPlugin a, DomPlugin b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -8141,6 +8410,45 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   @DomName('DOMPluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitPoint')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class DomPoint extends NativeFieldWrapperClass1 {
+  DomPoint.internal();
+  factory DomPoint(num x, num y) => _create(x, y);
+
+  @DocsEditable
+  static DomPoint _create(x, y) native "WebKitPoint_constructorCallback";
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
+  @DomName('WebKitPoint.x')
+  @DocsEditable
+  num get x native "WebKitPoint_x_Getter";
+
+  @DomName('WebKitPoint.x')
+  @DocsEditable
+  void set x(num value) native "WebKitPoint_x_Setter";
+
+  @DomName('WebKitPoint.y')
+  @DocsEditable
+  num get y native "WebKitPoint_y_Getter";
+
+  @DomName('WebKitPoint.y')
+  @DocsEditable
+  void set y(num value) native "WebKitPoint_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8325,7 +8633,11 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(String element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(String element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(String element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -8339,13 +8651,13 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   bool get isEmpty => this.length == 0;
 
-  List<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<String> takeWhile(bool test(String value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<String> skipWhile(bool test(String value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -8390,8 +8702,9 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<String> get reversed =>
-      new ReversedListView<String>(this, 0, null);
+  List<String> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(String a, String b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -8600,6 +8913,10 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
+  Iterable map(f(Element element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
   List mappedBy(f(Element element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -8612,7 +8929,7 @@ class _ChildrenElementList implements List {
     return _element.$dom_firstElementChild == null;
   }
 
-  List<Element> take(int n) {
+  Iterable<Element> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -8620,7 +8937,7 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Element> skip(int n) {
+  Iterable<Element> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -8676,8 +8993,9 @@ class _ChildrenElementList implements List {
     }
   }
 
-  List<Element> get reversed =>
-      new ReversedListView<Element>(this, 0, null);
+  List<Element> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
@@ -8695,7 +9013,7 @@ class _ChildrenElementList implements List {
   void remove(Object object) {
     if (object is Element) {
       Element element = object;
-      if (identical(element.parentNode, this)) {
+      if (identical(element.parentNode, _element)) {
         _element.$dom_removeChild(element);
       }
     }
@@ -8812,6 +9130,10 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
+  Iterable map(f(Element element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
   List mappedBy(f(Element element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -8841,7 +9163,7 @@ class _FrozenElementList implements List {
   List<Element> toList() => new List<Element>.from(this);
   Set<Element> toSet() => new Set<Element>.from(this);
 
-  List<Element> take(int n) {
+  Iterable<Element> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -8849,7 +9171,7 @@ class _FrozenElementList implements List {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Element> skip(int n) {
+  Iterable<Element> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -8901,8 +9223,9 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  List<Element> get reversed =>
-      new ReversedListView<Element>(this, 0, null);
+  List<Element> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
@@ -9247,27 +9570,20 @@ abstract class Element extends Node implements ElementTraversal {
    * [style] property, which contains only the values specified directly on this
    * element.
    *
+   * PseudoElement can be values such as `::after`, `::before`, `::marker`,
+   * `::line-marker`.
+   *
    * See also:
    *
    * * [CSS Inheritance and Cascade](http://docs.webplatform.org/wiki/tutorials/inheritance_and_cascade)
-   */
-  Future<CssStyleDeclaration> get computedStyle {
-     // TODO(jacobr): last param should be null, see b/5045788
-     return getComputedStyle('');
-  }
-
-  /**
-   * Returns the computed styles for pseudo-elements such as `::after`,
-   * `::before`, `::marker`, `::line-marker`.
-   *
-   * See also:
-   *
    * * [Pseudo-elements](http://docs.webplatform.org/wiki/css/selectors/pseudo-elements)
    */
-  Future<CssStyleDeclaration> getComputedStyle(String pseudoElement) {
-    return _createMeasurementFuture(
-        () => window.$dom_getComputedStyle(this, pseudoElement),
-        new Completer<CssStyleDeclaration>());
+  CssStyleDeclaration getComputedStyle([String pseudoElement]) {
+    if (pseudoElement == null) {
+      pseudoElement = '';
+    }
+    // TODO(jacobr): last param should be null, see b/5045788
+    return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
   /**
@@ -10307,6 +10623,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 class EmbedElement extends _Element_Merged {
   EmbedElement.internal() : super.internal();
 
+  @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable
   factory EmbedElement() => document.$dom_createElement("embed");
 
@@ -10659,7 +10976,7 @@ class Event extends NativeFieldWrapperClass1 {
 
   @DomName('Event.clipboardData')
   @DocsEditable
-  Clipboard get clipboardData native "Event_clipboardData_Getter";
+  DataTransfer get clipboardData native "Event_clipboardData_Getter";
 
   @DomName('Event.currentTarget')
   @DocsEditable
@@ -10779,14 +11096,14 @@ class EventSource extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
+  @DomName('EventSource.EventSource')
   @DocsEditable
   factory EventSource(String url, [Map eventSourceInit]) {
-    if (!?eventSourceInit) {
-      return EventSource._create(url);
-    }
-    return EventSource._create(url, eventSourceInit);
+    return EventSource._create_1(url, eventSourceInit);
   }
-  static EventSource _create(String url, [Map eventSourceInit]) native "EventSource_constructor_Callback";
+
+  @DocsEditable
+  static EventSource _create_1(url, eventSourceInit) native "EventSource__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -10980,6 +11297,7 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 class FieldSetElement extends _Element_Merged {
   FieldSetElement.internal() : super.internal();
 
+  @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable
   factory FieldSetElement() => document.$dom_createElement("fieldset");
 
@@ -11245,7 +11563,11 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(File element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(File element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(File element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<File> where(bool f(File element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -11259,13 +11581,13 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
 
   bool get isEmpty => this.length == 0;
 
-  List<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<File> takeWhile(bool test(File value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<File> skipWhile(bool test(File value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -11310,8 +11632,9 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<File> get reversed =>
-      new ReversedListView<File>(this, 0, null);
+  List<File> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(File a, File b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -11433,9 +11756,14 @@ class FileReader extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
+  @DomName('FileReader.FileReader')
   @DocsEditable
-  factory FileReader() => FileReader._create();
-  static FileReader _create() native "FileReader_constructor_Callback";
+  factory FileReader() {
+    return FileReader._create_1();
+  }
+
+  @DocsEditable
+  static FileReader _create_1() native "FileReader__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -11568,9 +11896,14 @@ class FileReaderEvents extends Events {
 class FileReaderSync extends NativeFieldWrapperClass1 {
   FileReaderSync.internal();
 
+  @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable
-  factory FileReaderSync() => FileReaderSync._create();
-  static FileReaderSync _create() native "FileReaderSync_constructor_Callback";
+  factory FileReaderSync() {
+    return FileReaderSync._create_1();
+  }
+
+  @DocsEditable
+  static FileReaderSync _create_1() native "FileReaderSync__create_1constructorCallback";
 
   @DomName('FileReaderSync.readAsArrayBuffer')
   @DocsEditable
@@ -11848,12 +12181,18 @@ class FileWriterSync extends NativeFieldWrapperClass1 {
 class Float32Array extends ArrayBufferView implements List<num> {
   Float32Array.internal() : super.internal();
 
+  @DomName('Float32Array.Float32Array')
+  @DocsEditable
   factory Float32Array(int length) =>
     _TypedArrayFactoryProvider.createFloat32Array(length);
 
+  @DomName('Float32Array.fromList')
+  @DocsEditable
   factory Float32Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat32Array_fromList(list);
 
+  @DomName('Float32Array.fromBuffer')
+  @DocsEditable
   factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
 
@@ -11893,7 +12232,11 @@ class Float32Array extends ArrayBufferView implements List<num> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(num element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(num element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -11907,13 +12250,13 @@ class Float32Array extends ArrayBufferView implements List<num> {
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -11958,8 +12301,9 @@ class Float32Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<num> get reversed =>
-      new ReversedListView<num>(this, 0, null);
+  List<num> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -12072,12 +12416,18 @@ class Float32Array extends ArrayBufferView implements List<num> {
 class Float64Array extends ArrayBufferView implements List<num> {
   Float64Array.internal() : super.internal();
 
+  @DomName('Float64Array.Float64Array')
+  @DocsEditable
   factory Float64Array(int length) =>
     _TypedArrayFactoryProvider.createFloat64Array(length);
 
+  @DomName('Float64Array.fromList')
+  @DocsEditable
   factory Float64Array.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat64Array_fromList(list);
 
+  @DomName('Float64Array.fromBuffer')
+  @DocsEditable
   factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
 
@@ -12117,7 +12467,11 @@ class Float64Array extends ArrayBufferView implements List<num> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(num element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(num element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(num element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -12131,13 +12485,13 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   bool get isEmpty => this.length == 0;
 
-  List<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<num> skipWhile(bool test(num value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -12182,8 +12536,9 @@ class Float64Array extends ArrayBufferView implements List<num> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<num> get reversed =>
-      new ReversedListView<num>(this, 0, null);
+  List<num> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(num a, num b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -12295,15 +12650,10 @@ class Float64Array extends ArrayBufferView implements List<num> {
 @DomName('FormData')
 class FormData extends NativeFieldWrapperClass1 {
   FormData.internal();
+  factory FormData([FormElement form]) => _create(form);
 
   @DocsEditable
-  factory FormData([FormElement form]) {
-    if (!?form) {
-      return FormData._create();
-    }
-    return FormData._create(form);
-  }
-  static FormData _create([FormElement form]) native "DOMFormData_constructor_Callback";
+  static FormData _create(form) native "DOMFormData_constructorCallback";
 
   @DomName('DOMFormData.append')
   @DocsEditable
@@ -12322,6 +12672,7 @@ class FormData extends NativeFieldWrapperClass1 {
 class FormElement extends _Element_Merged {
   FormElement.internal() : super.internal();
 
+  @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable
   factory FormElement() => document.$dom_createElement("form");
 
@@ -12505,6 +12856,7 @@ class Geoposition extends NativeFieldWrapperClass1 {
 class HRElement extends _Element_Merged {
   HRElement.internal() : super.internal();
 
+  @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable
   factory HRElement() => document.$dom_createElement("hr");
 
@@ -12558,6 +12910,7 @@ class HashChangeEvent extends Event {
 class HeadElement extends _Element_Merged {
   HeadElement.internal() : super.internal();
 
+  @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable
   factory HeadElement() => document.$dom_createElement("head");
 
@@ -12574,21 +12927,27 @@ class HeadElement extends _Element_Merged {
 class HeadingElement extends _Element_Merged {
   HeadingElement.internal() : super.internal();
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h1() => document.$dom_createElement("h1");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h2() => document.$dom_createElement("h2");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h3() => document.$dom_createElement("h3");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h4() => document.$dom_createElement("h4");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h5() => document.$dom_createElement("h5");
 
+  @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
   factory HeadingElement.h6() => document.$dom_createElement("h6");
 
@@ -12693,7 +13052,11 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -12707,13 +13070,13 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -12758,8 +13121,9 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed =>
-      new ReversedListView<Node>(this, 0, null);
+  List<Node> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -12897,7 +13261,11 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -12911,13 +13279,13 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -12962,8 +13330,9 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed =>
-      new ReversedListView<Node>(this, 0, null);
+  List<Node> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -13200,6 +13569,7 @@ class HtmlDocument extends Document {
 class HtmlElement extends _Element_Merged {
   HtmlElement.internal() : super.internal();
 
+  @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable
   factory HtmlElement() => document.$dom_createElement("html");
 
@@ -13270,25 +13640,39 @@ class HtmlOptionsCollection extends HtmlCollection {
  */
 @DomName('XMLHttpRequest')
 class HttpRequest extends EventTarget {
-  /**
-   * Creates a URL get request for the specified `url`.
-   *
-   * After completing the request, the object will call the user-provided
-   * [onComplete] callback.
-   */
-  factory HttpRequest.get(String url, onComplete(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onComplete, false);
 
-  // 80 char issue for comments in lists: dartbug.com/7588.
   /**
-   * Creates a URL GET request for the specified `url` with
-   * credentials such a cookie (already) set in the header or
-   * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2).
+   * Creates a URL get request for the specified [url].
    *
-   * After completing the request, the object will call the user-provided
-   * [onComplete] callback.
+   * The server response must be a `text/` mime type for this request to
+   * succeed.
    *
-   * A few other details to keep in mind when using credentials:
+   * This is similar to [request] but specialized for HTTP GET requests which
+   * return text content.
+   *
+   * See also:
+   *
+   * * [request]
+   */
+  static Future<String> getString(String url,
+      {bool withCredentials, void onProgress(ProgressEvent e)}) {
+    return request(url, withCredentials: withCredentials,
+        onProgress: onProgress).then((xhr) => xhr.responseText);
+  }
+
+  /**
+   * Creates a URL request for the specified [url].
+   *
+   * By default this will do an HTTP GET request, this can be overridden with
+   * [method].
+   *
+   * The Future is completed when the response is available.
+   *
+   * The [withCredentials] parameter specified that credentials such as a cookie
+   * (already) set in the header or
+   * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2)
+   * should be specified for the request. Details to keep in mind when using
+   * credentials:
    *
    * * Using credentials is only useful for cross-origin requests.
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
@@ -13297,12 +13681,60 @@ class HttpRequest extends EventTarget {
    *
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
-  factory HttpRequest.getWithCredentials(String url,
-      onComplete(HttpRequest request)) =>
-      _HttpRequestUtils.get(url, onComplete, true);
+  static Future<HttpRequest> request(String url,
+      {String method, bool withCredentials, String responseType, sendData,
+      void onProgress(ProgressEvent e)}) {
+    var completer = new Completer<HttpRequest>();
+
+    var xhr = new HttpRequest();
+    if (method == null) {
+      method = 'GET';
+    }
+    xhr.open(method, url, true);
+
+    if (withCredentials != null) {
+      xhr.withCredentials = withCredentials;
+    }
+
+    if (responseType != null) {
+      xhr.responseType = responseType;
+    }
+
+    if (onProgress != null) {
+      xhr.onProgress.listen(onProgress);
+    }
+
+    xhr.onLoad.listen((e) {
+      if (xhr.status >= 200 && xhr.status < 300 ||
+          xhr.status == 304 ) {
+        completer.complete(xhr);
+      } else {
+        completer.completeError(e);
+      }
+    });
+
+    xhr.onError.listen((e) {
+      completer.completeError(e);
+    });
+
+    if (sendData != null) {
+      xhr.send(sendData);
+    } else {
+      xhr.send();
+    }
+
+    return completer.future;
+  }
 
   HttpRequest.internal() : super.internal();
 
+  /**
+   * Stop the current request.
+   *
+   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
+   * `LOADING`. If this method is not in the process of being sent, the method
+   * has no effect.
+   */
   @DomName('XMLHttpRequest.abort')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
@@ -13331,9 +13763,28 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
+  /**
+   * General constructor for any type of request (GET, POST, etc).
+   *
+   * This call is used in conjunction with [open]:
+   *
+   *     var request = new HttpRequest();
+   *     request.open('GET', 'http://dartlang.org')
+   *     request.on.load.add((event) => print('Request complete'));
+   *
+   * is the (more verbose) equivalent of
+   *
+   *     var request = new HttpRequest.get('http://dartlang.org',
+   *         (event) => print('Request complete'));
+   */
+  @DomName('XMLHttpRequest.XMLHttpRequest')
   @DocsEditable
-  factory HttpRequest() => HttpRequest._create();
-  static HttpRequest _create() native "XMLHttpRequest_constructor_Callback";
+  factory HttpRequest() {
+    return HttpRequest._create_1();
+  }
+
+  @DocsEditable
+  static HttpRequest _create_1() native "XMLHttpRequest__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -13351,50 +13802,150 @@ class HttpRequest extends EventTarget {
 
   static const int UNSENT = 0;
 
+  /**
+   * Indicator of the current state of the request:
+   *
+   * <table>
+   *   <tr>
+   *     <td>Value</td>
+   *     <td>State</td>
+   *     <td>Meaning</td>
+   *   </tr>
+   *   <tr>
+   *     <td>0</td>
+   *     <td>unsent</td>
+   *     <td><code>open()</code> has not yet been called</td>
+   *   </tr>
+   *   <tr>
+   *     <td>1</td>
+   *     <td>opened</td>
+   *     <td><code>send()</code> has not yet been called</td>
+   *   </tr>
+   *   <tr>
+   *     <td>2</td>
+   *     <td>headers received</td>
+   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>
+   *   </tr>
+   *   <tr>
+   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>
+   *   </tr>
+   *   <tr>
+   *     <td>4</td> <td>done</td> <td>request is complete</td>
+   *   </tr>
+   * </table>
+   */
   @DomName('XMLHttpRequest.readyState')
   @DocsEditable
   int get readyState native "XMLHttpRequest_readyState_Getter";
 
+  /**
+   * The data received as a reponse from the request.
+   *
+   * The data could be in the
+   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a
+   * [String]). `null` indicates request failure.
+   */
   @DomName('XMLHttpRequest.response')
   @DocsEditable
   Object get response native "XMLHttpRequest_response_Getter";
 
+  /**
+   * The response in string form or `null on failure.
+   */
   @DomName('XMLHttpRequest.responseText')
   @DocsEditable
   String get responseText native "XMLHttpRequest_responseText_Getter";
 
+  /**
+   * [String] telling the server the desired response format.
+   *
+   * Default is `String`.
+   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
+   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
+   * `responseType` is set while performing a synchronous request.
+   *
+   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable
   String get responseType native "XMLHttpRequest_responseType_Getter";
 
+  /**
+   * [String] telling the server the desired response format.
+   *
+   * Default is `String`.
+   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
+   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
+   * `responseType` is set while performing a synchronous request.
+   *
+   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable
   void set responseType(String value) native "XMLHttpRequest_responseType_Setter";
 
+  /**
+   * The request response, or null on failure.
+   *
+   * The response is processed as
+   * `text/xml` stream, unless responseType = 'document' and the request is
+   * synchronous.
+   */
   @DomName('XMLHttpRequest.responseXML')
   @DocsEditable
   Document get responseXml native "XMLHttpRequest_responseXML_Getter";
 
+  /**
+   * The http result code from the request (200, 404, etc).
+   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   */
   @DomName('XMLHttpRequest.status')
   @DocsEditable
   int get status native "XMLHttpRequest_status_Getter";
 
+  /**
+   * The request response string (such as \"200 OK\").
+   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   */
   @DomName('XMLHttpRequest.statusText')
   @DocsEditable
   String get statusText native "XMLHttpRequest_statusText_Getter";
 
+  /**
+   * [EventTarget] that can hold listeners to track the progress of the request.
+   * The events fired will be members of [HttpRequestUploadEvents].
+   */
   @DomName('XMLHttpRequest.upload')
   @DocsEditable
   HttpRequestUpload get upload native "XMLHttpRequest_upload_Getter";
 
+  /**
+   * True if cross-site requests should use credentials such as cookies
+   * or authorization headers; false otherwise.
+   *
+   * This value is ignored for same-site requests.
+   */
   @DomName('XMLHttpRequest.withCredentials')
   @DocsEditable
   bool get withCredentials native "XMLHttpRequest_withCredentials_Getter";
 
+  /**
+   * True if cross-site requests should use credentials such as cookies
+   * or authorization headers; false otherwise.
+   *
+   * This value is ignored for same-site requests.
+   */
   @DomName('XMLHttpRequest.withCredentials')
   @DocsEditable
   void set withCredentials(bool value) native "XMLHttpRequest_withCredentials_Setter";
 
+  /**
+   * Stop the current request.
+   *
+   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
+   * `LOADING`. If this method is not in the process of being sent, the method
+   * has no effect.
+   */
   @DomName('XMLHttpRequest.abort')
   @DocsEditable
   void abort() native "XMLHttpRequest_abort_Callback";
@@ -13407,18 +13958,51 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   bool dispatchEvent(Event evt) native "XMLHttpRequest_dispatchEvent_Callback";
 
+  /**
+   * Retrieve all the response headers from a request.
+   *
+   * `null` if no headers have been received. For multipart requests,
+   * `getAllResponseHeaders` will return the response headers for the current
+   * part of the request.
+   *
+   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * for a list of common response headers.
+   */
   @DomName('XMLHttpRequest.getAllResponseHeaders')
   @DocsEditable
   String getAllResponseHeaders() native "XMLHttpRequest_getAllResponseHeaders_Callback";
 
+  /**
+   * Return the response header named `header`, or `null` if not found.
+   *
+   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * for a list of common response headers.
+   */
   @DomName('XMLHttpRequest.getResponseHeader')
   @DocsEditable
   String getResponseHeader(String header) native "XMLHttpRequest_getResponseHeader_Callback";
 
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   *
+   * By default the request is done asyncronously, with no user or password
+   * authentication information. If `async` is false, the request will be send
+   * synchronously.
+   *
+   * Calling `open` again on a currently active request is equivalent to
+   * calling `abort`.
+   */
   @DomName('XMLHttpRequest.open')
   @DocsEditable
   void open(String method, String url, [bool async, String user, String password]) native "XMLHttpRequest_open_Callback";
 
+  /**
+   * Specify a particular MIME type (such as `text/xml`) desired for the
+   * response.
+   *
+   * This value must be set before the request has been sent. See also the list
+   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
+   */
   @DomName('XMLHttpRequest.overrideMimeType')
   @DocsEditable
   void overrideMimeType(String override) native "XMLHttpRequest_overrideMimeType_Callback";
@@ -13427,6 +14011,13 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_removeEventListener_Callback";
 
+  /**
+   * Send the request with any given `data`.
+   *
+   * See also:
+   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
+   * from MDN.
+   */
   @DomName('XMLHttpRequest.send')
   @DocsEditable
   void send([data]) native "XMLHttpRequest_send_Callback";
@@ -13435,6 +14026,13 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
+  /**
+   * Stop the current request.
+   *
+   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
+   * `LOADING`. If this method is not in the process of being sent, the method
+   * has no effect.
+   */
   @DomName('XMLHttpRequest.abort')
   @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -13668,6 +14266,7 @@ class HttpRequestUploadEvents extends Events {
 class IFrameElement extends _Element_Merged {
   IFrameElement.internal() : super.internal();
 
+  @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable
   factory IFrameElement() => document.$dom_createElement("iframe");
 
@@ -13767,6 +14366,7 @@ class ImageData extends NativeFieldWrapperClass1 {
 class ImageElement extends _Element_Merged {
   ImageElement.internal() : super.internal();
 
+  @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable
   factory ImageElement({String src, int width, int height}) {
     var e = document.$dom_createElement("img");
@@ -14965,12 +15565,18 @@ class InputElementEvents extends ElementEvents {
 class Int16Array extends ArrayBufferView implements List<int> {
   Int16Array.internal() : super.internal();
 
+  @DomName('Int16Array.Int16Array')
+  @DocsEditable
   factory Int16Array(int length) =>
     _TypedArrayFactoryProvider.createInt16Array(length);
 
+  @DomName('Int16Array.fromList')
+  @DocsEditable
   factory Int16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt16Array_fromList(list);
 
+  @DomName('Int16Array.fromBuffer')
+  @DocsEditable
   factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
 
@@ -15010,7 +15616,11 @@ class Int16Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -15024,13 +15634,13 @@ class Int16Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -15075,8 +15685,9 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed =>
-      new ReversedListView<int>(this, 0, null);
+  List<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -15189,12 +15800,18 @@ class Int16Array extends ArrayBufferView implements List<int> {
 class Int32Array extends ArrayBufferView implements List<int> {
   Int32Array.internal() : super.internal();
 
+  @DomName('Int32Array.Int32Array')
+  @DocsEditable
   factory Int32Array(int length) =>
     _TypedArrayFactoryProvider.createInt32Array(length);
 
+  @DomName('Int32Array.fromList')
+  @DocsEditable
   factory Int32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt32Array_fromList(list);
 
+  @DomName('Int32Array.fromBuffer')
+  @DocsEditable
   factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
 
@@ -15234,7 +15851,11 @@ class Int32Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -15248,13 +15869,13 @@ class Int32Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -15299,8 +15920,9 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed =>
-      new ReversedListView<int>(this, 0, null);
+  List<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -15413,12 +16035,18 @@ class Int32Array extends ArrayBufferView implements List<int> {
 class Int8Array extends ArrayBufferView implements List<int> {
   Int8Array.internal() : super.internal();
 
+  @DomName('Int8Array.Int8Array')
+  @DocsEditable
   factory Int8Array(int length) =>
     _TypedArrayFactoryProvider.createInt8Array(length);
 
+  @DomName('Int8Array.fromList')
+  @DocsEditable
   factory Int8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt8Array_fromList(list);
 
+  @DomName('Int8Array.fromBuffer')
+  @DocsEditable
   factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
 
@@ -15458,7 +16086,11 @@ class Int8Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -15472,13 +16104,13 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -15523,8 +16155,9 @@ class Int8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed =>
-      new ReversedListView<int>(this, 0, null);
+  List<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -15769,6 +16402,7 @@ class KeyboardEvent extends UIEvent {
 class KeygenElement extends _Element_Merged {
   KeygenElement.internal() : super.internal();
 
+  @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable
   factory KeygenElement() => document.$dom_createElement("keygen");
 
@@ -15860,6 +16494,7 @@ class KeygenElement extends _Element_Merged {
 class LIElement extends _Element_Merged {
   LIElement.internal() : super.internal();
 
+  @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable
   factory LIElement() => document.$dom_createElement("li");
 
@@ -15892,6 +16527,7 @@ class LIElement extends _Element_Merged {
 class LabelElement extends _Element_Merged {
   LabelElement.internal() : super.internal();
 
+  @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable
   factory LabelElement() => document.$dom_createElement("label");
 
@@ -15924,6 +16560,7 @@ class LabelElement extends _Element_Merged {
 class LegendElement extends _Element_Merged {
   LegendElement.internal() : super.internal();
 
+  @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable
   factory LegendElement() => document.$dom_createElement("legend");
 
@@ -15944,6 +16581,7 @@ class LegendElement extends _Element_Merged {
 class LinkElement extends _Element_Merged {
   LinkElement.internal() : super.internal();
 
+  @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable
   factory LinkElement() => document.$dom_createElement("link");
 
@@ -16138,6 +16776,7 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 class MapElement extends _Element_Merged {
   MapElement.internal() : super.internal();
 
+  @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable
   factory MapElement() => document.$dom_createElement("map");
 
@@ -16166,9 +16805,14 @@ class MapElement extends _Element_Merged {
 class MediaController extends EventTarget {
   MediaController.internal() : super.internal();
 
+  @DomName('MediaController.MediaController')
   @DocsEditable
-  factory MediaController() => MediaController._create();
-  static MediaController _create() native "MediaController_constructor_Callback";
+  factory MediaController() {
+    return MediaController._create_1();
+  }
+
+  @DocsEditable
+  static MediaController _create_1() native "MediaController__create_1constructorCallback";
 
   @DomName('MediaController.buffered')
   @DocsEditable
@@ -17034,9 +17678,14 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 class MediaSource extends EventTarget {
   MediaSource.internal() : super.internal();
 
+  @DomName('MediaSource.MediaSource')
   @DocsEditable
-  factory MediaSource() => MediaSource._create();
-  static MediaSource _create() native "MediaSource_constructor_Callback";
+  factory MediaSource() {
+    return MediaSource._create_1();
+  }
+
+  @DocsEditable
+  static MediaSource _create_1() native "MediaSource__create_1constructorCallback";
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable
@@ -17097,9 +17746,29 @@ class MediaStream extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
+  @DomName('MediaStream.MediaStream')
   @DocsEditable
-  factory MediaStream() => MediaStream._create();
-  static MediaStream _create() native "MediaStream_constructor_Callback";
+  factory MediaStream([stream_OR_tracks]) {
+    if (!?stream_OR_tracks) {
+      return MediaStream._create_1();
+    }
+    if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
+      return MediaStream._create_2(stream_OR_tracks);
+    }
+    if ((stream_OR_tracks is List<MediaStreamTrack> || stream_OR_tracks == null)) {
+      return MediaStream._create_3(stream_OR_tracks);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DocsEditable
+  static MediaStream _create_1() native "MediaStream__create_1constructorCallback";
+
+  @DocsEditable
+  static MediaStream _create_2(stream_OR_tracks) native "MediaStream__create_2constructorCallback";
+
+  @DocsEditable
+  static MediaStream _create_3(stream_OR_tracks) native "MediaStream__create_3constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -17231,12 +17900,6 @@ class MediaStreamTrack extends EventTarget {
   MediaStreamTrackEvents get on =>
     new MediaStreamTrackEvents(this);
 
-  static const int ENDED = 2;
-
-  static const int LIVE = 0;
-
-  static const int MUTED = 1;
-
   @DomName('MediaStreamTrack.enabled')
   @DocsEditable
   bool get enabled native "MediaStreamTrack_enabled_Getter";
@@ -17259,7 +17922,7 @@ class MediaStreamTrack extends EventTarget {
 
   @DomName('MediaStreamTrack.readyState')
   @DocsEditable
-  int get readyState native "MediaStreamTrack_readyState_Getter";
+  String get readyState native "MediaStreamTrack_readyState_Getter";
 
   @DomName('MediaStreamTrack.addEventListener')
   @DocsEditable
@@ -17359,6 +18022,7 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
 class MenuElement extends _Element_Merged {
   MenuElement.internal() : super.internal();
 
+  @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable
   factory MenuElement() => document.$dom_createElement("menu");
 
@@ -17375,9 +18039,14 @@ class MenuElement extends _Element_Merged {
 class MessageChannel extends NativeFieldWrapperClass1 {
   MessageChannel.internal();
 
+  @DomName('MessageChannel.MessageChannel')
   @DocsEditable
-  factory MessageChannel() => MessageChannel._create();
-  static MessageChannel _create() native "MessageChannel_constructor_Callback";
+  factory MessageChannel() {
+    return MessageChannel._create_1();
+  }
+
+  @DocsEditable
+  static MessageChannel _create_1() native "MessageChannel__create_1constructorCallback";
 
   @DomName('MessageChannel.port1')
   @DocsEditable
@@ -17578,6 +18247,7 @@ typedef void MetadataCallback(Metadata metadata);
 class MeterElement extends _Element_Merged {
   MeterElement.internal() : super.internal();
 
+  @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable
   factory MeterElement() => document.$dom_createElement("meter");
 
@@ -17714,7 +18384,7 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.dataTransfer')
   @DocsEditable
-  Clipboard get dataTransfer native "MouseEvent_dataTransfer_Getter";
+  DataTransfer get dataTransfer native "MouseEvent_dataTransfer_Getter";
 
   @DomName('MouseEvent.fromElement')
   @DocsEditable
@@ -17845,10 +18515,10 @@ class MutationEvent extends Event {
 @Experimental
 class MutationObserver extends NativeFieldWrapperClass1 {
   MutationObserver.internal();
+  factory MutationObserver(MutationCallback callback) => _create(callback);
 
   @DocsEditable
-  factory MutationObserver(MutationCallback callback) => MutationObserver._create(callback);
-  static MutationObserver _create(MutationCallback callback) native "MutationObserver_constructor_Callback";
+  static MutationObserver _create(callback) native "MutationObserver_constructorCallback";
 
   @DomName('MutationObserver.disconnect')
   @DocsEditable
@@ -18025,7 +18695,11 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -18039,13 +18713,13 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -18090,8 +18764,9 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed =>
-      new ReversedListView<Node>(this, 0, null);
+  List<Node> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -18487,6 +19162,10 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
+  Iterable map(f(Node element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
   List mappedBy(f(Node element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -18506,7 +19185,7 @@ class _ChildNodeListLazy implements List {
 
   // From List<Node>:
 
-  List<Node> take(int n) {
+  Iterable<Node> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -18514,7 +19193,7 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) {
+  Iterable<Node> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -18538,8 +19217,9 @@ class _ChildNodeListLazy implements List {
     return this[index];
   }
 
-  List<Node> get reversed =>
-      new ReversedListView<Node>(this, 0, null);
+  List<Node> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
@@ -18871,7 +19551,11 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Node element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -18885,13 +19569,13 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   bool get isEmpty => this.length == 0;
 
-  List<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Node> takeWhile(bool test(Node value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Node> skipWhile(bool test(Node value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -18936,8 +19620,9 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Node> get reversed =>
-      new ReversedListView<Node>(this, 0, null);
+  List<Node> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -19076,14 +19761,14 @@ class Notification extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
+  @DomName('Notification.Notification')
   @DocsEditable
   factory Notification(String title, [Map options]) {
-    if (!?options) {
-      return Notification._create(title);
-    }
-    return Notification._create(title, options);
+    return Notification._create_1(title, options);
   }
-  static Notification _create(String title, [Map options]) native "Notification_constructor_Callback";
+
+  @DocsEditable
+  static Notification _create_1(title, options) native "Notification__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -19245,6 +19930,7 @@ typedef void NotificationPermissionCallback(String permission);
 class OListElement extends _Element_Merged {
   OListElement.internal() : super.internal();
 
+  @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable
   factory OListElement() => document.$dom_createElement("ol");
 
@@ -19288,6 +19974,7 @@ class OListElement extends _Element_Merged {
 class ObjectElement extends _Element_Merged {
   ObjectElement.internal() : super.internal();
 
+  @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable
   factory ObjectElement() => document.$dom_createElement("object");
 
@@ -19459,6 +20146,7 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 class OptGroupElement extends _Element_Merged {
   OptGroupElement.internal() : super.internal();
 
+  @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable
   factory OptGroupElement() => document.$dom_createElement("optgroup");
 
@@ -19491,23 +20179,14 @@ class OptGroupElement extends _Element_Merged {
 class OptionElement extends _Element_Merged {
   OptionElement.internal() : super.internal();
 
+  @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
-    if (!?data) {
-      return OptionElement._create();
-    }
-    if (!?value) {
-      return OptionElement._create(data);
-    }
-    if (!?defaultSelected) {
-      return OptionElement._create(data, value);
-    }
-    if (!?selected) {
-      return OptionElement._create(data, value, defaultSelected);
-    }
-    return OptionElement._create(data, value, defaultSelected, selected);
+    return OptionElement._create_1(data, value, defaultSelected, selected);
   }
-  static OptionElement _create([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
+
+  @DocsEditable
+  static OptionElement _create_1(data, value, defaultSelected, selected) native "HTMLOptionElement__create_1constructorCallback";
 
   @DomName('HTMLOptionElement.defaultSelected')
   @DocsEditable
@@ -19573,6 +20252,7 @@ class OptionElement extends _Element_Merged {
 class OutputElement extends _Element_Merged {
   OutputElement.internal() : super.internal();
 
+  @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable
   factory OutputElement() => document.$dom_createElement("output");
 
@@ -19733,6 +20413,7 @@ class PageTransitionEvent extends Event {
 class ParagraphElement extends _Element_Merged {
   ParagraphElement.internal() : super.internal();
 
+  @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable
   factory ParagraphElement() => document.$dom_createElement("p");
 
@@ -19749,6 +20430,7 @@ class ParagraphElement extends _Element_Merged {
 class ParamElement extends _Element_Merged {
   ParamElement.internal() : super.internal();
 
+  @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable
   factory ParamElement() => document.$dom_createElement("param");
 
@@ -19938,39 +20620,6 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
-@DomName('WebKitPoint')
-class Point extends NativeFieldWrapperClass1 {
-  Point.internal();
-
-  @DocsEditable
-  factory Point(num x, num y) => Point._create(x, y);
-  static Point _create(num x, num y) native "WebKitPoint_constructor_Callback";
-
-  @DomName('WebKitPoint.x')
-  @DocsEditable
-  num get x native "WebKitPoint_x_Getter";
-
-  @DomName('WebKitPoint.x')
-  @DocsEditable
-  void set x(num value) native "WebKitPoint_x_Setter";
-
-  @DomName('WebKitPoint.y')
-  @DocsEditable
-  num get y native "WebKitPoint_y_Getter";
-
-  @DomName('WebKitPoint.y')
-  @DocsEditable
-  void set y(num value) native "WebKitPoint_y_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('PopStateEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -20039,6 +20688,7 @@ typedef void PositionErrorCallback(PositionError error);
 class PreElement extends _Element_Merged {
   PreElement.internal() : super.internal();
 
+  @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable
   factory PreElement() => document.$dom_createElement("pre");
 
@@ -20096,6 +20746,7 @@ class ProcessingInstruction extends Node {
 class ProgressElement extends _Element_Merged {
   ProgressElement.internal() : super.internal();
 
+  @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable
   factory ProgressElement() => document.$dom_createElement("progress");
 
@@ -20642,9 +21293,14 @@ class RtcDataChannelEvent extends Event {
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
   RtcIceCandidate.internal();
 
+  @DomName('RTCIceCandidate.RTCIceCandidate')
   @DocsEditable
-  factory RtcIceCandidate(Map dictionary) => RtcIceCandidate._create(dictionary);
-  static RtcIceCandidate _create(Map dictionary) native "RTCIceCandidate_constructor_Callback";
+  factory RtcIceCandidate(Map dictionary) {
+    return RtcIceCandidate._create_1(dictionary);
+  }
+
+  @DocsEditable
+  static RtcIceCandidate _create_1(dictionary) native "RTCIceCandidate__create_1constructorCallback";
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable
@@ -20708,10 +21364,6 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> negotiationNeededEvent = const EventStreamProvider<Event>('negotiationneeded');
 
-  @DomName('RTCPeerConnection.open')
-  @DocsEditable
-  static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
-
   @DomName('RTCPeerConnection.removestream')
   @DocsEditable
   static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
@@ -20720,14 +21372,14 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
+  @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    if (!?mediaConstraints) {
-      return RtcPeerConnection._create(rtcIceServers);
-    }
-    return RtcPeerConnection._create(rtcIceServers, mediaConstraints);
+    return RtcPeerConnection._create_1(rtcIceServers, mediaConstraints);
   }
-  static RtcPeerConnection _create(Map rtcIceServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
+
+  @DocsEditable
+  static RtcPeerConnection _create_1(rtcIceServers, mediaConstraints) native "RTCPeerConnection__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -20735,13 +21387,13 @@ class RtcPeerConnection extends EventTarget {
   RtcPeerConnectionEvents get on =>
     new RtcPeerConnectionEvents(this);
 
+  @DomName('RTCPeerConnection.iceConnectionState')
+  @DocsEditable
+  String get iceConnectionState native "RTCPeerConnection_iceConnectionState_Getter";
+
   @DomName('RTCPeerConnection.iceGatheringState')
   @DocsEditable
   String get iceGatheringState native "RTCPeerConnection_iceGatheringState_Getter";
-
-  @DomName('RTCPeerConnection.iceState')
-  @DocsEditable
-  String get iceState native "RTCPeerConnection_iceState_Getter";
 
   @DomName('RTCPeerConnection.localDescription')
   @DocsEditable
@@ -20762,6 +21414,10 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.remoteStreams')
   @DocsEditable
   List<MediaStream> get remoteStreams native "RTCPeerConnection_remoteStreams_Getter";
+
+  @DomName('RTCPeerConnection.signalingState')
+  @DocsEditable
+  String get signalingState native "RTCPeerConnection_signalingState_Getter";
 
   @DomName('RTCPeerConnection.addEventListener')
   @DocsEditable
@@ -20839,10 +21495,6 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   Stream<Event> get onNegotiationNeeded => negotiationNeededEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.open')
-  @DocsEditable
-  Stream<Event> get onOpen => openEvent.forTarget(this);
-
   @DomName('RTCPeerConnection.removestream')
   @DocsEditable
   Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
@@ -20872,9 +21524,6 @@ class RtcPeerConnectionEvents extends Events {
   EventListenerList get negotiationNeeded => this['negotiationneeded'];
 
   @DocsEditable
-  EventListenerList get open => this['open'];
-
-  @DocsEditable
   EventListenerList get removeStream => this['removestream'];
 
   @DocsEditable
@@ -20892,9 +21541,14 @@ class RtcPeerConnectionEvents extends Events {
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
   RtcSessionDescription.internal();
 
+  @DomName('RTCSessionDescription.RTCSessionDescription')
   @DocsEditable
-  factory RtcSessionDescription(Map dictionary) => RtcSessionDescription._create(dictionary);
-  static RtcSessionDescription _create(Map dictionary) native "RTCSessionDescription_constructor_Callback";
+  factory RtcSessionDescription(Map dictionary) {
+    return RtcSessionDescription._create_1(dictionary);
+  }
+
+  @DocsEditable
+  static RtcSessionDescription _create_1(dictionary) native "RTCSessionDescription__create_1constructorCallback";
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable
@@ -21073,6 +21727,7 @@ class Screen extends NativeFieldWrapperClass1 {
 class ScriptElement extends _Element_Merged {
   ScriptElement.internal() : super.internal();
 
+  @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable
   factory ScriptElement() => document.$dom_createElement("script");
 
@@ -21228,6 +21883,7 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 class SelectElement extends _Element_Merged {
   SelectElement.internal() : super.internal();
 
+  @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable
   factory SelectElement() => document.$dom_createElement("select");
 
@@ -21472,14 +22128,14 @@ class ShadowRoot extends DocumentFragment {
 class SharedWorker extends AbstractWorker {
   SharedWorker.internal() : super.internal();
 
+  @DomName('SharedWorker.SharedWorker')
   @DocsEditable
   factory SharedWorker(String scriptURL, [String name]) {
-    if (!?name) {
-      return SharedWorker._create(scriptURL);
-    }
-    return SharedWorker._create(scriptURL, name);
+    return SharedWorker._create_1(scriptURL, name);
   }
-  static SharedWorker _create(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
+
+  @DocsEditable
+  static SharedWorker _create_1(scriptURL, name) native "SharedWorker__create_1constructorCallback";
 
   @DomName('SharedWorker.port')
   @DocsEditable
@@ -21604,7 +22260,11 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SourceBuffer element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(SourceBuffer element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(SourceBuffer element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<SourceBuffer> where(bool f(SourceBuffer element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -21618,13 +22278,13 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 
   bool get isEmpty => this.length == 0;
 
-  List<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SourceBuffer> takeWhile(bool test(SourceBuffer value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SourceBuffer> skipWhile(bool test(SourceBuffer value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -21669,8 +22329,9 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SourceBuffer> get reversed =>
-      new ReversedListView<SourceBuffer>(this, 0, null);
+  List<SourceBuffer> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(SourceBuffer a, SourceBuffer b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -21780,6 +22441,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
 class SourceElement extends _Element_Merged {
   SourceElement.internal() : super.internal();
 
+  @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable
   factory SourceElement() => document.$dom_createElement("source");
 
@@ -21820,6 +22482,7 @@ class SourceElement extends _Element_Merged {
 class SpanElement extends _Element_Merged {
   SpanElement.internal() : super.internal();
 
+  @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable
   factory SpanElement() => document.$dom_createElement("span");
 
@@ -21836,9 +22499,14 @@ class SpanElement extends _Element_Merged {
 class SpeechGrammar extends NativeFieldWrapperClass1 {
   SpeechGrammar.internal();
 
+  @DomName('SpeechGrammar.SpeechGrammar')
   @DocsEditable
-  factory SpeechGrammar() => SpeechGrammar._create();
-  static SpeechGrammar _create() native "SpeechGrammar_constructor_Callback";
+  factory SpeechGrammar() {
+    return SpeechGrammar._create_1();
+  }
+
+  @DocsEditable
+  static SpeechGrammar _create_1() native "SpeechGrammar__create_1constructorCallback";
 
   @DomName('SpeechGrammar.src')
   @DocsEditable
@@ -21869,9 +22537,14 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
   SpeechGrammarList.internal();
 
+  @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable
-  factory SpeechGrammarList() => SpeechGrammarList._create();
-  static SpeechGrammarList _create() native "SpeechGrammarList_constructor_Callback";
+  factory SpeechGrammarList() {
+    return SpeechGrammarList._create_1();
+  }
+
+  @DocsEditable
+  static SpeechGrammarList _create_1() native "SpeechGrammarList__create_1constructorCallback";
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable
@@ -21905,7 +22578,11 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechGrammar element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(SpeechGrammar element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(SpeechGrammar element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -21919,13 +22596,13 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechGrammar> takeWhile(bool test(SpeechGrammar value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechGrammar> skipWhile(bool test(SpeechGrammar value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -21970,8 +22647,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SpeechGrammar> get reversed =>
-      new ReversedListView<SpeechGrammar>(this, 0, null);
+  List<SpeechGrammar> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(SpeechGrammar a, SpeechGrammar b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -22187,9 +22865,14 @@ class SpeechRecognition extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
+  @DomName('SpeechRecognition.SpeechRecognition')
   @DocsEditable
-  factory SpeechRecognition() => SpeechRecognition._create();
-  static SpeechRecognition _create() native "SpeechRecognition_constructor_Callback";
+  factory SpeechRecognition() {
+    return SpeechRecognition._create_1();
+  }
+
+  @DocsEditable
+  static SpeechRecognition _create_1() native "SpeechRecognition__create_1constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -22596,7 +23279,11 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Map element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Map element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Map element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Map> where(bool f(Map element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -22610,13 +23297,13 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   bool get isEmpty => this.length == 0;
 
-  List<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Map> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Map> takeWhile(bool test(Map value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Map> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Map> skipWhile(bool test(Map value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -22661,8 +23348,9 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Map> get reversed =>
-      new ReversedListView<Map>(this, 0, null);
+  List<Map> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Map a, Map b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -22757,6 +23445,9 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
 @DocsEditable
 @DomName('SQLTransaction')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class SqlTransaction extends NativeFieldWrapperClass1 {
   SqlTransaction.internal();
 
@@ -22774,6 +23465,9 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SQLTransactionSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class SqlTransactionSync extends NativeFieldWrapperClass1 {
   SqlTransactionSync.internal();
 
@@ -22978,6 +23672,7 @@ typedef void StringCallback(String data);
 class StyleElement extends _Element_Merged {
   StyleElement.internal() : super.internal();
 
+  @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable
   factory StyleElement() => document.$dom_createElement("style");
 
@@ -23096,6 +23791,7 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 class TableCaptionElement extends _Element_Merged {
   TableCaptionElement.internal() : super.internal();
 
+  @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable
   factory TableCaptionElement() => document.$dom_createElement("caption");
 
@@ -23112,6 +23808,7 @@ class TableCaptionElement extends _Element_Merged {
 class TableCellElement extends _Element_Merged {
   TableCellElement.internal() : super.internal();
 
+  @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable
   factory TableCellElement() => document.$dom_createElement("td");
 
@@ -23156,6 +23853,7 @@ class TableCellElement extends _Element_Merged {
 class TableColElement extends _Element_Merged {
   TableColElement.internal() : super.internal();
 
+  @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable
   factory TableColElement() => document.$dom_createElement("col");
 
@@ -23180,6 +23878,7 @@ class TableColElement extends _Element_Merged {
 class TableElement extends _Element_Merged {
   TableElement.internal() : super.internal();
 
+  @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable
   factory TableElement() => document.$dom_createElement("table");
 
@@ -23272,6 +23971,7 @@ class TableElement extends _Element_Merged {
 class TableRowElement extends _Element_Merged {
   TableRowElement.internal() : super.internal();
 
+  @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable
   factory TableRowElement() => document.$dom_createElement("tr");
 
@@ -23358,6 +24058,7 @@ class Text extends CharacterData {
 class TextAreaElement extends _Element_Merged {
   TextAreaElement.internal() : super.internal();
 
+  @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable
   factory TextAreaElement() => document.$dom_createElement("textarea");
 
@@ -23718,9 +24419,14 @@ class TextTrackCue extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
+  @DomName('TextTrackCue.TextTrackCue')
   @DocsEditable
-  factory TextTrackCue(num startTime, num endTime, String text) => TextTrackCue._create(startTime, endTime, text);
-  static TextTrackCue _create(num startTime, num endTime, String text) native "TextTrackCue_constructor_Callback";
+  factory TextTrackCue(num startTime, num endTime, String text) {
+    return TextTrackCue._create_1(startTime, endTime, text);
+  }
+
+  @DocsEditable
+  static TextTrackCue _create_1(startTime, endTime, text) native "TextTrackCue__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -23902,7 +24608,11 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrackCue element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(TextTrackCue element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(TextTrackCue element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<TextTrackCue> where(bool f(TextTrackCue element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -23916,13 +24626,13 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrackCue> takeWhile(bool test(TextTrackCue value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrackCue> skipWhile(bool test(TextTrackCue value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -23967,8 +24677,9 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<TextTrackCue> get reversed =>
-      new ReversedListView<TextTrackCue>(this, 0, null);
+  List<TextTrackCue> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(TextTrackCue a, TextTrackCue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -24112,7 +24823,11 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(TextTrack element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(TextTrack element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(TextTrack element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<TextTrack> where(bool f(TextTrack element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -24126,13 +24841,13 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   bool get isEmpty => this.length == 0;
 
-  List<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<TextTrack> takeWhile(bool test(TextTrack value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<TextTrack> skipWhile(bool test(TextTrack value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -24177,8 +24892,9 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<TextTrack> get reversed =>
-      new ReversedListView<TextTrack>(this, 0, null);
+  List<TextTrack> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(TextTrack a, TextTrack b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -24335,6 +25051,7 @@ typedef void TimeoutHandler();
 class TitleElement extends _Element_Merged {
   TitleElement.internal() : super.internal();
 
+  @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable
   factory TitleElement() => document.$dom_createElement("title");
 
@@ -24456,6 +25173,19 @@ class TouchEvent extends UIEvent {
   @DocsEditable
   void $dom_initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "TouchEvent_initTouchEvent_Callback";
 
+
+  /**
+   * Checks if touch events supported on the current platform.
+   *
+   * Note that touch events are only supported if the user is using a touch
+   * device.
+   */
+  static bool get supported {
+    // Bug #8186 add equivalent 'ontouchstart' check for Dartium.
+    // Basically, this is a fairly common check and it'd be great if it did not
+    // throw exceptions.
+    return Event._isTypeSupported('TouchEvent');
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24501,7 +25231,11 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Touch element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Touch element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Touch element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Touch> where(bool f(Touch element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -24515,13 +25249,13 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   bool get isEmpty => this.length == 0;
 
-  List<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Touch> takeWhile(bool test(Touch value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Touch> skipWhile(bool test(Touch value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -24566,8 +25300,9 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Touch> get reversed =>
-      new ReversedListView<Touch>(this, 0, null);
+  List<Touch> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Touch a, Touch b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -24668,6 +25403,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 class TrackElement extends _Element_Merged {
   TrackElement.internal() : super.internal();
 
+  @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable
   factory TrackElement() => document.$dom_createElement("track");
 
@@ -24914,6 +25650,7 @@ class UIEvent extends Event {
 class UListElement extends _Element_Merged {
   UListElement.internal() : super.internal();
 
+  @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable
   factory UListElement() => document.$dom_createElement("ul");
 
@@ -24930,12 +25667,18 @@ class UListElement extends _Element_Merged {
 class Uint16Array extends ArrayBufferView implements List<int> {
   Uint16Array.internal() : super.internal();
 
+  @DomName('Uint16Array.Uint16Array')
+  @DocsEditable
   factory Uint16Array(int length) =>
     _TypedArrayFactoryProvider.createUint16Array(length);
 
+  @DomName('Uint16Array.fromList')
+  @DocsEditable
   factory Uint16Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint16Array_fromList(list);
 
+  @DomName('Uint16Array.fromBuffer')
+  @DocsEditable
   factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
 
@@ -24975,7 +25718,11 @@ class Uint16Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -24989,13 +25736,13 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -25040,8 +25787,9 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed =>
-      new ReversedListView<int>(this, 0, null);
+  List<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -25154,12 +25902,18 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 class Uint32Array extends ArrayBufferView implements List<int> {
   Uint32Array.internal() : super.internal();
 
+  @DomName('Uint32Array.Uint32Array')
+  @DocsEditable
   factory Uint32Array(int length) =>
     _TypedArrayFactoryProvider.createUint32Array(length);
 
+  @DomName('Uint32Array.fromList')
+  @DocsEditable
   factory Uint32Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint32Array_fromList(list);
 
+  @DomName('Uint32Array.fromBuffer')
+  @DocsEditable
   factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
 
@@ -25199,7 +25953,11 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -25213,13 +25971,13 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -25264,8 +26022,9 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed =>
-      new ReversedListView<int>(this, 0, null);
+  List<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -25378,12 +26137,18 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 class Uint8Array extends ArrayBufferView implements List<int> {
   Uint8Array.internal() : super.internal();
 
+  @DomName('Uint8Array.Uint8Array')
+  @DocsEditable
   factory Uint8Array(int length) =>
     _TypedArrayFactoryProvider.createUint8Array(length);
 
+  @DomName('Uint8Array.fromList')
+  @DocsEditable
   factory Uint8Array.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8Array_fromList(list);
 
+  @DomName('Uint8Array.fromBuffer')
+  @DocsEditable
   factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
 
@@ -25423,7 +26188,11 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -25437,13 +26206,13 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -25488,8 +26257,9 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed =>
-      new ReversedListView<int>(this, 0, null);
+  List<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -25602,12 +26372,18 @@ class Uint8Array extends ArrayBufferView implements List<int> {
 class Uint8ClampedArray extends Uint8Array implements List<int> {
   Uint8ClampedArray.internal() : super.internal();
 
+  @DomName('Uint8ClampedArray.Uint8ClampedArray')
+  @DocsEditable
   factory Uint8ClampedArray(int length) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray(length);
 
+  @DomName('Uint8ClampedArray.fromList')
+  @DocsEditable
   factory Uint8ClampedArray.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromList(list);
 
+  @DomName('Uint8ClampedArray.fromBuffer')
+  @DocsEditable
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
     _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
 
@@ -25645,7 +26421,11 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(int element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(int element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -25659,13 +26439,13 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   bool get isEmpty => this.length == 0;
 
-  List<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<int> skipWhile(bool test(int value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -25710,8 +26490,9 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<int> get reversed =>
-      new ReversedListView<int>(this, 0, null);
+  List<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(int a, int b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -25932,6 +26713,7 @@ class ValidityState extends NativeFieldWrapperClass1 {
 class VideoElement extends MediaElement {
   VideoElement.internal() : super.internal();
 
+  @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable
   factory VideoElement() => document.$dom_createElement("video");
 
@@ -26263,8 +27045,14 @@ class WebGLRenderbuffer extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLRenderingContext')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@Experimental
 class WebGLRenderingContext extends CanvasRenderingContext {
   WebGLRenderingContext.internal() : super.internal();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
 
@@ -27745,9 +28533,29 @@ class WebSocket extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
+  @DomName('WebSocket.WebSocket')
   @DocsEditable
-  factory WebSocket(String url) => WebSocket._create(url);
-  static WebSocket _create(String url) native "WebSocket_constructor_Callback";
+  factory WebSocket(String url, [protocol_OR_protocols]) {
+    if ((url is String || url == null) && !?protocol_OR_protocols) {
+      return WebSocket._create_1(url);
+    }
+    if ((url is String || url == null) && (protocol_OR_protocols is List<String> || protocol_OR_protocols == null)) {
+      return WebSocket._create_2(url, protocol_OR_protocols);
+    }
+    if ((url is String || url == null) && (protocol_OR_protocols is String || protocol_OR_protocols == null)) {
+      return WebSocket._create_3(url, protocol_OR_protocols);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DocsEditable
+  static WebSocket _create_1(url) native "WebSocket__create_1constructorCallback";
+
+  @DocsEditable
+  static WebSocket _create_2(url, protocol_OR_protocols) native "WebSocket__create_2constructorCallback";
+
+  @DocsEditable
+  static WebSocket _create_3(url, protocol_OR_protocols) native "WebSocket__create_3constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -27946,12 +28754,13 @@ class WheelEvent extends MouseEvent {
 class Window extends EventTarget implements WindowBase {
 
   /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
+   * Executes a [callback] after the immediate execution stack has completed.
+   *
+   * This will cause the callback to be executed after all processing has
+   * completed for the current event, but before any subsequent events.
    */
-  void requestLayoutFrame(TimeoutHandler callback) {
-    _addMeasurementFrameCallback(callback);
+  void setImmediate(TimeoutHandler callback) {
+    _addMicrotaskCallback(callback);
   }
 
   /**
@@ -27971,6 +28780,14 @@ class Window extends EventTarget implements WindowBase {
   registerPort(String name, var port) {
     var serialized = _serialize(port);
     document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
+  }
+
+  /// Checks if _setImmediate is supported.
+  static bool get _supportsSetImmediate => false;
+
+  /// Dartium stub for IE's setImmediate.
+  void _setImmediate(void callback()) {
+    throw new UnsupportedError('setImmediate is not supported');
   }
 
   Window.internal() : super.internal();
@@ -28349,6 +29166,9 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.openDatabase')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
 
   @DomName('DOMWindow.postMessage')
@@ -28413,11 +29233,11 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
   @DocsEditable
-  Point webkitConvertPointFromNodeToPage(Node node, Point p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
+  DomPoint convertPointFromNodeToPage(Node node, DomPoint p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
   @DomName('DOMWindow.webkitConvertPointFromPageToNode')
   @DocsEditable
-  Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
+  DomPoint convertPointFromPageToNode(Node node, DomPoint p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
   @DomName('DOMWindow.webkitRequestAnimationFrame')
   @DocsEditable
@@ -28897,9 +29717,14 @@ class Worker extends AbstractWorker {
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
+  @DomName('Worker.Worker')
   @DocsEditable
-  factory Worker(String scriptUrl) => Worker._create(scriptUrl);
-  static Worker _create(String scriptUrl) native "Worker_constructor_Callback";
+  factory Worker(String scriptUrl) {
+    return Worker._create_1(scriptUrl);
+  }
+
+  @DocsEditable
+  static Worker _create_1(scriptUrl) native "Worker__create_1constructorCallback";
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -29006,10 +29831,16 @@ class WorkerContext extends EventTarget {
 
   @DomName('WorkerContext.openDatabase')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabase_Callback";
 
   @DomName('WorkerContext.openDatabaseSync')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabaseSync_Callback";
 
   @DomName('WorkerContext.removeEventListener')
@@ -29157,9 +29988,14 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
 class XPathEvaluator extends NativeFieldWrapperClass1 {
   XPathEvaluator.internal();
 
+  @DomName('XPathEvaluator.XPathEvaluator')
   @DocsEditable
-  factory XPathEvaluator() => XPathEvaluator._create();
-  static XPathEvaluator _create() native "XPathEvaluator_constructor_Callback";
+  factory XPathEvaluator() {
+    return XPathEvaluator._create_1();
+  }
+
+  @DocsEditable
+  static XPathEvaluator _create_1() native "XPathEvaluator__create_1constructorCallback";
 
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable
@@ -29322,9 +30158,14 @@ class XPathResult extends NativeFieldWrapperClass1 {
 class XmlSerializer extends NativeFieldWrapperClass1 {
   XmlSerializer.internal();
 
+  @DomName('XMLSerializer.XMLSerializer')
   @DocsEditable
-  factory XmlSerializer() => XmlSerializer._create();
-  static XmlSerializer _create() native "XMLSerializer_constructor_Callback";
+  factory XmlSerializer() {
+    return XmlSerializer._create_1();
+  }
+
+  @DocsEditable
+  static XmlSerializer _create_1() native "XMLSerializer__create_1constructorCallback";
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable
@@ -29340,12 +30181,23 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('XSLTProcessor')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class XsltProcessor extends NativeFieldWrapperClass1 {
   XsltProcessor.internal();
 
+  @DomName('XSLTProcessor.XSLTProcessor')
   @DocsEditable
-  factory XsltProcessor() => XsltProcessor._create();
-  static XsltProcessor _create() native "XSLTProcessor_constructor_Callback";
+  factory XsltProcessor() {
+    return XsltProcessor._create_1();
+  }
+
+  @DocsEditable
+  static XsltProcessor _create_1() native "XSLTProcessor__create_1constructorCallback";
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('XSLTProcessor.clearParameters')
   @DocsEditable
@@ -29450,7 +30302,11 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(ClientRect element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(ClientRect element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(ClientRect element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<ClientRect> where(bool f(ClientRect element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -29464,13 +30320,13 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
 
   bool get isEmpty => this.length == 0;
 
-  List<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<ClientRect> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<ClientRect> takeWhile(bool test(ClientRect value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<ClientRect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<ClientRect> skipWhile(bool test(ClientRect value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -29515,8 +30371,9 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<ClientRect> get reversed =>
-      new ReversedListView<ClientRect>(this, 0, null);
+  List<ClientRect> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(ClientRect a, ClientRect b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -29646,7 +30503,11 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssRule element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(CssRule element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(CssRule element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<CssRule> where(bool f(CssRule element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -29660,13 +30521,13 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
   bool get isEmpty => this.length == 0;
 
-  List<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssRule> takeWhile(bool test(CssRule value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssRule> skipWhile(bool test(CssRule value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -29711,8 +30572,9 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<CssRule> get reversed =>
-      new ReversedListView<CssRule>(this, 0, null);
+  List<CssRule> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(CssRule a, CssRule b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -29842,7 +30704,11 @@ class _CssValueList extends CssValue implements List<CssValue> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(CssValue element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(CssValue element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(CssValue element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<CssValue> where(bool f(CssValue element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -29856,13 +30722,13 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   bool get isEmpty => this.length == 0;
 
-  List<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<CssValue> takeWhile(bool test(CssValue value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<CssValue> skipWhile(bool test(CssValue value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -29907,8 +30773,9 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<CssValue> get reversed =>
-      new ReversedListView<CssValue>(this, 0, null);
+  List<CssValue> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(CssValue a, CssValue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -30188,7 +31055,11 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Entry element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Entry element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Entry element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Entry> where(bool f(Entry element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30202,13 +31073,13 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
   bool get isEmpty => this.length == 0;
 
-  List<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Entry> takeWhile(bool test(Entry value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Entry> skipWhile(bool test(Entry value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -30253,8 +31124,9 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Entry> get reversed =>
-      new ReversedListView<Entry>(this, 0, null);
+  List<Entry> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Entry a, Entry b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -30384,7 +31256,11 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(EntrySync element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(EntrySync element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(EntrySync element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<EntrySync> where(bool f(EntrySync element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30398,13 +31274,13 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
 
   bool get isEmpty => this.length == 0;
 
-  List<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -30449,8 +31325,9 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<EntrySync> get reversed =>
-      new ReversedListView<EntrySync>(this, 0, null);
+  List<EntrySync> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(EntrySync a, EntrySync b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -30671,7 +31548,11 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(Gamepad element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(Gamepad element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(Gamepad element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<Gamepad> where(bool f(Gamepad element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30685,13 +31566,13 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   bool get isEmpty => this.length == 0;
 
-  List<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<Gamepad> takeWhile(bool test(Gamepad value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<Gamepad> skipWhile(bool test(Gamepad value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -30736,8 +31617,9 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<Gamepad> get reversed =>
-      new ReversedListView<Gamepad>(this, 0, null);
+  List<Gamepad> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(Gamepad a, Gamepad b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -30880,7 +31762,11 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(MediaStream element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(MediaStream element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(MediaStream element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<MediaStream> where(bool f(MediaStream element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -30894,13 +31780,13 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
 
   bool get isEmpty => this.length == 0;
 
-  List<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<MediaStream> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<MediaStream> takeWhile(bool test(MediaStream value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<MediaStream> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<MediaStream> skipWhile(bool test(MediaStream value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -30945,8 +31831,9 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<MediaStream> get reversed =>
-      new ReversedListView<MediaStream>(this, 0, null);
+  List<MediaStream> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(MediaStream a, MediaStream b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -31076,7 +31963,11 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechInputResult element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(SpeechInputResult element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(SpeechInputResult element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -31090,13 +31981,13 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechInputResult> takeWhile(bool test(SpeechInputResult value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechInputResult> skipWhile(bool test(SpeechInputResult value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -31141,8 +32032,9 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SpeechInputResult> get reversed =>
-      new ReversedListView<SpeechInputResult>(this, 0, null);
+  List<SpeechInputResult> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(SpeechInputResult a, SpeechInputResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -31272,7 +32164,11 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(SpeechRecognitionResult element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(SpeechRecognitionResult element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(SpeechRecognitionResult element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -31286,13 +32182,13 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 
   bool get isEmpty => this.length == 0;
 
-  List<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<SpeechRecognitionResult> takeWhile(bool test(SpeechRecognitionResult value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<SpeechRecognitionResult> skipWhile(bool test(SpeechRecognitionResult value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -31337,8 +32233,9 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<SpeechRecognitionResult> get reversed =>
-      new ReversedListView<SpeechRecognitionResult>(this, 0, null);
+  List<SpeechRecognitionResult> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -31468,7 +32365,11 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  List mappedBy(f(StyleSheet element)) => IterableMixinWorkaround.mappedByList(this, f);
+  Iterable map(f(StyleSheet element)) =>
+      IterableMixinWorkaround.map(this, f);
+
+  List mappedBy(f(StyleSheet element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
 
   Iterable<StyleSheet> where(bool f(StyleSheet element)) =>
       IterableMixinWorkaround.where(this, f);
@@ -31482,13 +32383,13 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   bool get isEmpty => this.length == 0;
 
-  List<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<StyleSheet> takeWhile(bool test(StyleSheet value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
   Iterable<StyleSheet> skipWhile(bool test(StyleSheet value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
@@ -31533,8 +32434,9 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  List<StyleSheet> get reversed =>
-      new ReversedListView<StyleSheet>(this, 0, null);
+  List<StyleSheet> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
 
   void sort([int compare(StyleSheet a, StyleSheet b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
@@ -32015,6 +32917,8 @@ abstract class CssClassSet implements Set<String> {
 
   String join([String separator]) => readClasses().join(separator);
 
+  Iterable map(f(String element)) => readClasses().map(f);
+
   Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
@@ -32112,7 +33016,7 @@ abstract class CssClassSet implements Set<String> {
    * Helper method used to modify the set of css classes on this element.
    *
    *   f - callback with:
-   *      s - a Set of all the css class name currently on this element.
+   *   s - a Set of all the css class name currently on this element.
    *
    *   After f returns, the modified set is written to the
    *       className property of this element.
@@ -32159,7 +33063,7 @@ class _EventStream<T extends Event> extends Stream<T> {
   _EventStream(this._target, this._eventType, this._useCapture);
 
   // DOM events are inherently multi-subscribers.
-  Stream<T> asMultiSubscriberStream() => this;
+  Stream<T> asBroadcastStream() => this;
 
   StreamSubscription<T> listen(void onData(T event),
       { void onError(AsyncError error),
@@ -32332,9 +33236,8 @@ class KeyboardEventController {
   // The distance to shift from upper case alphabet Roman letters to lower case.
   final int _ROMAN_ALPHABET_OFFSET = "a".charCodes[0] - "A".charCodes[0];
 
-  // Instance members referring to the internal event handlers because closures
-  // are not hashable.
-  var _keyUp, _keyDown, _keyPress;
+  StreamSubscription _keyUpSubscription, _keyDownSubscription,
+      _keyPressSubscription;
 
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
@@ -32390,9 +33293,6 @@ class KeyboardEventController {
     _callbacks = [];
     _type = type;
     _target = target;
-    _keyDown = processKeyDown;
-    _keyUp = processKeyUp;
-    _keyPress = processKeyPress;
   }
 
   /**
@@ -32401,9 +33301,14 @@ class KeyboardEventController {
    */
   void _initializeAllEventListeners() {
     _keyDownList = [];
-    _target.on.keyDown.add(_keyDown, true);
-    _target.on.keyPress.add(_keyPress, true);
-    _target.on.keyUp.add(_keyUp, true);
+    if (_keyDownSubscription == null) {
+      _keyDownSubscription = Element.keyDownEvent.forTarget(
+          _target, useCapture: true).listen(processKeyDown);
+      _keyPressSubscription = Element.keyPressEvent.forTarget(
+          _target, useCapture: true).listen(processKeyUp);
+      _keyUpSubscription = Element.keyUpEvent.forTarget(
+          _target, useCapture: true).listen(processKeyPress);
+    }
   }
 
   /** Add a callback that wishes to be notified when a KeyEvent occurs. */
@@ -32437,9 +33342,12 @@ class KeyboardEventController {
     }
     if (_callbacks.length == 0) {
       // If we have no listeners, don't bother keeping track of keypresses.
-      _target.on.keyDown.remove(_keyDown);
-      _target.on.keyPress.remove(_keyPress);
-      _target.on.keyUp.remove(_keyUp);
+      _keyDownSubscription.cancel();
+      _keyDownSubscription = null;
+      _keyPressSubscription.cancel();
+      _keyPressSubscription = null;
+      _keyUpSubscription.cancel();
+      _keyUpSubscription = null;
     }
   }
 
@@ -33536,7 +34444,7 @@ class _HttpRequestUtils {
 
     request.withCredentials = withCredentials;
 
-    request.on.readyStateChange.add((e) {
+    request.onReadyStateChange.listen((e) {
       if (request.readyState == HttpRequest.DONE) {
         onComplete(request);
       }
@@ -33659,7 +34567,7 @@ class KeyEvent implements KeyboardEvent {
     _parent.cancelBubble = cancel;
   }
   /** Accessor to the clipboardData available for this event. */
-  Clipboard get clipboardData => _parent.clipboardData;
+  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   /** Accessor to the target this event is listening to for changes. */
@@ -34060,46 +34968,38 @@ String _getPortSyncEventData(CustomEvent event) => event.detail;
 // BSD-style license that can be found in the LICENSE file.
 
 
-typedef Object ComputeValue();
-
-class _MeasurementRequest<T> {
-  final ComputeValue computeValue;
-  final Completer<T> completer;
-  Object value;
-  bool exception = false;
-  _MeasurementRequest(this.computeValue, this.completer);
-}
-
-typedef void _MeasurementCallback();
+typedef void _MicrotaskCallback();
 
 /**
  * This class attempts to invoke a callback as soon as the current event stack
  * unwinds, but before the browser repaints.
  */
-abstract class _MeasurementScheduler {
-  bool _nextMeasurementFrameScheduled = false;
-  _MeasurementCallback _callback;
+abstract class _MicrotaskScheduler {
+  bool _nextMicrotaskFrameScheduled = false;
+  _MicrotaskCallback _callback;
 
-  _MeasurementScheduler(this._callback);
+  _MicrotaskScheduler(this._callback);
 
   /**
-   * Creates the best possible measurement scheduler for the current platform.
+   * Creates the best possible microtask scheduler for the current platform.
    */
-  factory _MeasurementScheduler.best(_MeasurementCallback callback) {
-    if (MutationObserver.supported) {
+  factory _MicrotaskScheduler.best(_MicrotaskCallback callback) {
+    if (Window._supportsSetImmediate) {
+      return new _SetImmediateScheduler(callback);
+    } else if (MutationObserver.supported) {
       return new _MutationObserverScheduler(callback);
     }
     return new _PostMessageScheduler(callback);
   }
 
   /**
-   * Schedules a measurement callback if one has not been scheduled already.
+   * Schedules a microtask callback if one has not been scheduled already.
    */
   void maybeSchedule() {
-    if (this._nextMeasurementFrameScheduled) {
+    if (this._nextMicrotaskFrameScheduled) {
       return;
     }
-    this._nextMeasurementFrameScheduled = true;
+    this._nextMicrotaskFrameScheduled = true;
     this._schedule();
   }
 
@@ -34109,14 +35009,14 @@ abstract class _MeasurementScheduler {
   void _schedule();
 
   /**
-   * Handles the measurement callback and forwards it if necessary.
+   * Handles the microtask callback and forwards it if necessary.
    */
   void _onCallback() {
     // Ignore spurious messages.
-    if (!_nextMeasurementFrameScheduled) {
+    if (!_nextMicrotaskFrameScheduled) {
       return;
     }
-    _nextMeasurementFrameScheduled = false;
+    _nextMicrotaskFrameScheduled = false;
     this._callback();
   }
 }
@@ -34124,22 +35024,22 @@ abstract class _MeasurementScheduler {
 /**
  * Scheduler which uses window.postMessage to schedule events.
  */
-class _PostMessageScheduler extends _MeasurementScheduler {
-  const _MEASUREMENT_MESSAGE = "DART-MEASURE";
+class _PostMessageScheduler extends _MicrotaskScheduler {
+  const _MICROTASK_MESSAGE = "DART-MICROTASK";
 
-  _PostMessageScheduler(_MeasurementCallback callback): super(callback) {
+  _PostMessageScheduler(_MicrotaskCallback callback): super(callback) {
       // Messages from other windows do not cause a security risk as
       // all we care about is that _handleMessage is called
       // after the current event loop is unwound and calling the function is
       // a noop when zero requests are pending.
-      window.on.message.add(this._handleMessage);
+      window.onMessage.listen(this._handleMessage);
   }
 
   void _schedule() {
-    window.postMessage(_MEASUREMENT_MESSAGE, "*");
+    window.postMessage(_MICROTASK_MESSAGE, "*");
   }
 
-  _handleMessage(e) {
+  void _handleMessage(e) {
     this._onCallback();
   }
 }
@@ -34147,11 +35047,11 @@ class _PostMessageScheduler extends _MeasurementScheduler {
 /**
  * Scheduler which uses a MutationObserver to schedule events.
  */
-class _MutationObserverScheduler extends _MeasurementScheduler {
+class _MutationObserverScheduler extends _MicrotaskScheduler {
   MutationObserver _observer;
   Element _dummy;
 
-  _MutationObserverScheduler(_MeasurementCallback callback): super(callback) {
+  _MutationObserverScheduler(_MicrotaskCallback callback): super(callback) {
     // Mutation events get fired as soon as the current event stack is unwound
     // so we just make a dummy event and listen for that.
     _observer = new MutationObserver(this._handleMutation);
@@ -34169,89 +35069,53 @@ class _MutationObserverScheduler extends _MeasurementScheduler {
   }
 }
 
+/**
+ * Scheduler which uses window.setImmediate to schedule events.
+ */
+class _SetImmediateScheduler extends _MicrotaskScheduler {
+  _SetImmediateScheduler(_MicrotaskCallback callback): super(callback);
 
-List<_MeasurementRequest> _pendingRequests;
-List<TimeoutHandler> _pendingMeasurementFrameCallbacks;
-_MeasurementScheduler _measurementScheduler = null;
-
-void _maybeScheduleMeasurementFrame() {
-  if (_measurementScheduler == null) {
-    _measurementScheduler =
-      new _MeasurementScheduler.best(_completeMeasurementFutures);
+  void _schedule() {
+    window._setImmediate(_handleImmediate);
   }
-  _measurementScheduler.maybeSchedule();
+
+  void _handleImmediate() {
+    this._onCallback();
+  }
+}
+
+List<TimeoutHandler> _pendingMicrotasks;
+_MicrotaskScheduler _microtaskScheduler = null;
+
+void _maybeScheduleMicrotaskFrame() {
+  if (_microtaskScheduler == null) {
+    _microtaskScheduler =
+      new _MicrotaskScheduler.best(_completeMicrotasks);
+  }
+  _microtaskScheduler.maybeSchedule();
 }
 
 /**
- * Registers a [callback] which is called after the next batch of measurements
- * completes. Even if no measurements completed, the callback is triggered
- * when they would have completed to avoid confusing bugs if it happened that
- * no measurements were actually requested.
+ * Registers a [callback] which is called after the current execution stack
+ * unwinds.
  */
-void _addMeasurementFrameCallback(TimeoutHandler callback) {
-  if (_pendingMeasurementFrameCallbacks == null) {
-    _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
-    _maybeScheduleMeasurementFrame();
+void _addMicrotaskCallback(TimeoutHandler callback) {
+  if (_pendingMicrotasks == null) {
+    _pendingMicrotasks = <TimeoutHandler>[];
+    _maybeScheduleMicrotaskFrame();
   }
-  _pendingMeasurementFrameCallbacks.add(callback);
+  _pendingMicrotasks.add(callback);
 }
 
-/**
- * Returns a [Future] whose value will be the result of evaluating
- * [computeValue] during the next safe measurement interval.
- * The next safe measurement interval is after the current event loop has
- * unwound but before the browser has rendered the page.
- * It is important that the [computeValue] function only queries the html
- * layout and html in any way.
- */
-Future _createMeasurementFuture(ComputeValue computeValue,
-                                Completer completer) {
-  if (_pendingRequests == null) {
-    _pendingRequests = <_MeasurementRequest>[];
-    _maybeScheduleMeasurementFrame();
-  }
-  _pendingRequests.add(new _MeasurementRequest(computeValue, completer));
-  return completer.future;
-}
 
 /**
- * Complete all pending measurement futures evaluating them in a single batch
- * so that the the browser is guaranteed to avoid multiple layouts.
+ * Complete all pending microtasks.
  */
-void _completeMeasurementFutures() {
-  // We must compute all new values before fulfilling the futures as
-  // the onComplete callbacks for the futures could modify the DOM making
-  // subsequent measurement calculations expensive to compute.
-  if (_pendingRequests != null) {
-    for (_MeasurementRequest request in _pendingRequests) {
-      try {
-        request.value = request.computeValue();
-      } catch (e) {
-        request.value = e;
-        request.exception = true;
-      }
-    }
-  }
-
-  final completedRequests = _pendingRequests;
-  final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
-  _pendingRequests = null;
-  _pendingMeasurementFrameCallbacks = null;
-  if (completedRequests != null) {
-    for (_MeasurementRequest request in completedRequests) {
-      if (request.exception) {
-        request.completer.completeError(request.value);
-      } else {
-        request.completer.complete(request.value);
-      }
-    }
-  }
-
-  if (readyMeasurementFrameCallbacks != null) {
-    for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
-      // TODO(jacobr): wrap each call to a handler in a try-catch block.
-      handler();
-    }
+void _completeMicrotasks() {
+  var callbacks = _pendingMicrotasks;
+  _pendingMicrotasks = null;
+  for (var callback in callbacks) {
+    callback();
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34433,26 +35297,6 @@ abstract class _Deserializer {
   }
 }
 
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-// TODO(rnystrom): add a way to supress public classes from DartDoc output.
-// TODO(jacobr): we can remove this class now that we are using the $dom_
-// convention for deprecated methods rather than truly private methods.
-/**
- * This class is intended for testing purposes only.
- */
-class Testing {
-  static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target.$dom_addEventListener(type, listener, useCapture);
-  }
-  static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target.$dom_removeEventListener(type, listener, useCapture);
-  }
-
-}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

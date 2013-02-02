@@ -669,7 +669,7 @@ TEST_CASE(SerializeByteArray) {
     ctype data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };                         \
     intptr_t length = ARRAY_SIZE(data);                                       \
     External##darttype& array = External##darttype::Handle(                   \
-        External##darttype::New(data, length, NULL, NULL));                   \
+        External##darttype::New(data, length));                               \
     uint8_t* buffer;                                                          \
     MessageWriter writer(&buffer, &zone_allocator);                           \
     writer.WriteMessage(array);                                               \
@@ -1384,7 +1384,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
   EXPECT(Dart_IsString(crappy_string_result));
 
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
 
     {
       StackZone zone(Isolate::Current());
@@ -1475,7 +1475,7 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     {
       // Generate a list of nulls from Dart code.
       ApiNativeScope scope;
@@ -1593,7 +1593,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
     {
       // Generate a list of nulls from Dart code.
       ApiNativeScope scope;
@@ -1816,7 +1816,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
 
     {
       // Generate a list of strings from Dart code.
@@ -1991,7 +1991,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE_NOCHECKS(isolate);
+    DARTSCOPE(isolate);
 
     {
       // Generate a list of strings from Dart code.

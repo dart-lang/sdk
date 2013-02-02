@@ -81,20 +81,6 @@ main() {
   }
 
   /**
-   * Verifies that [e] supports the operations on the svg.Stylable interface.
-   */
-  checkSvgStylable(e) {
-    var className = e.$dom_svgClassName;
-    expect(className, isSvgAnimatedString);
-
-    var s = e.style;
-    expect(s, isCssStyleDeclaration);
-
-    var attributeA = e.getPresentationAttribute('A');
-    expect(attributeA, anyOf(isNull, isCssValue));
-  }
-
-  /**
    * Verifies that [e] supports the operations on the svg.Locatable interface.
    */
   checkSvgLocatable(e) {
@@ -137,7 +123,6 @@ main() {
   testRect('rect_SvgLangSpace', checkSvgLangSpace);
   testRect('rect_SvgExternalResourcesRequired',
            checkSvgExternalResourcesRequired);
-  testRect('rect_SvgStylable', checkSvgStylable);
   testRect('rect_SvgLocatable', checkSvgLocatable);
   testRect('rect_SvgTransformable', checkSvgTransformable);
 

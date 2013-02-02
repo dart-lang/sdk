@@ -31,7 +31,6 @@ _pure_interfaces = set([
     'SVGFitToViewBox',
     'SVGLangSpace',
     'SVGLocatable',
-    'SVGStylable',
     'SVGTests',
     'SVGTransformable',
     'SVGURIReference',
@@ -222,19 +221,14 @@ def AnalyzeConstructor(interface):
   """
   if 'Constructor' in interface.ext_attrs:
     name = None
-    func_value = interface.ext_attrs.get('Constructor')
-    if not func_value:
-      args = []
-      idl_args = []
+    overloads = interface.ext_attrs['Constructor']
+    idl_args = [[] if f is None else f.arguments for f in overloads]
   elif 'NamedConstructor' in interface.ext_attrs:
     func_value = interface.ext_attrs.get('NamedConstructor')
+    idl_args = [func_value.arguments]
     name = func_value.id
   else:
     return None
-
-  if func_value:
-    idl_args = func_value.arguments
-    args =_BuildArguments([idl_args], interface, True)
 
   info = OperationInfo()
   info.overloads = None
@@ -244,7 +238,7 @@ def AnalyzeConstructor(interface):
   info.constructor_name = None
   info.js_name = name
   info.type_name = interface.id
-  info.param_infos = args
+  info.param_infos = _BuildArguments(idl_args, interface, constructor=True)
   info.requires_named_arguments = False
   info.pure_dart_constructor = False
   return info
@@ -704,6 +698,18 @@ _speech_recognition_annotations = [
   "@Experimental",
 ]
 
+_web_sql_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  "@Experimental",
+]
+
+_webgl_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+  "@Experimental",
+]
+
 # Annotations to be placed on generated members.
 # The table is indexed as:
 #   INTERFACE:     annotations to be added to the interface declaration
@@ -711,6 +717,8 @@ _speech_recognition_annotations = [
 dart_annotations = {
   'ArrayBuffer': _all_but_ie9_annotations,
   'ArrayBufferView': _all_but_ie9_annotations,
+  'Database': _web_sql_annotations,
+  'DatabaseSync': _web_sql_annotations,
   'DOMApplicationCache': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -718,7 +726,10 @@ dart_annotations = {
     "@SupportedBrowser(SupportedBrowser.OPERA)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
+  'DOMWindow.convertPointFromNodeToPage': _webkit_experimental_annotations,
+  'DOMWindow.convertPointFromPageToNode': _webkit_experimental_annotations,
   'DOMWindow.indexedDB': _indexed_db_annotations,
+  'DOMWindow.openDatabase': _web_sql_annotations,
   'DOMWindow.performance': _performance_annotations,
   'DOMWindow.webkitNotifications': _webkit_experimental_annotations,
   'DOMWindow.webkitRequestFileSystem': _file_system_annotations,
@@ -793,38 +804,54 @@ dart_annotations = {
   'SpeechRecognitionError': _speech_recognition_annotations,
   'SpeechRecognitionEvent': _speech_recognition_annotations,
   'SpeechRecognitionResult': _speech_recognition_annotations,
+  'SQLTransaction': _web_sql_annotations,
+  'SQLTransactionSync': _web_sql_annotations,
+  'WebGLRenderingContext': _webgl_annotations,
+  'WebKitCSSMatrix': _webkit_experimental_annotations,
+  'WebKitPoint': _webkit_experimental_annotations,
   'WebSocket': _all_but_ie9_annotations,
   'WorkerContext.indexedDB': _indexed_db_annotations,
+  'WorkerContext.openDatabase': _web_sql_annotations,
+  'WorkerContext.openDatabaseSync': _web_sql_annotations,
   'WorkerContext.webkitRequestFileSystem': _file_system_annotations,
   'WorkerContext.webkitRequestFileSystemSync': _file_system_annotations,
   'WorkerContext.webkitResolveLocalFileSystemSyncURL': _file_system_annotations,
   'WorkerContext.webkitResolveLocalFileSystemURL': _file_system_annotations,
   'XMLHttpRequestProgressEvent': _webkit_experimental_annotations,
+  'XSLTProcessor': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
 }
 
-def GetComments(interface_name, member_name=None, library_name=None):
+def GetComments(library_name, interface_name, member_name=None):
   """ Finds all comments for the interface or member and returns a list. """
 
   # Add documentation from JSON.
   comments = []
-
+  library_name = 'dart.dom.%s' % library_name
   if library_name in _dom_json and interface_name in _dom_json[library_name]:
-    if member_name and (member_name in
-                        _dom_json[library_name][interface_name]['members']):
+    if (member_name and 'members' in _dom_json[library_name][interface_name] and
+        (member_name in _dom_json[library_name][interface_name]['members'])):
       comments = _dom_json[library_name][interface_name]['members'][member_name]
-    elif 'comment' in _dom_json[library_name][interface_name]:
+    elif (not member_name and 'comment' in
+          _dom_json[library_name][interface_name]):
       comments = _dom_json[library_name][interface_name]['comment']
+
+  if (len(comments)):
+    comments = ['\n'.join(comments)]
 
   return comments
 
-def GetAnnotationsAndComments(interface_name, member_name=None,
-                              library_name=None):
-  annotations = GetComments(interface_name, member_name, library_name)
-  annotations.extend(FindCommonAnnotations(interface_name, member_name,
-                                           library_name))
+def GetAnnotationsAndComments(library_name, interface_name, member_name=None):
+  annotations = GetComments(library_name, interface_name, member_name)
+  annotations = annotations + (FindCommonAnnotations(library_name, interface_name,
+                                                     member_name))
+
   return annotations
 
-def FindCommonAnnotations(interface_name, member_name=None, library_name=None):
+def FindCommonAnnotations(library_name, interface_name, member_name=None):
   """ Finds annotations common between dart2js and dartium.
   """
   if member_name:
@@ -844,13 +871,12 @@ def FindCommonAnnotations(interface_name, member_name=None, library_name=None):
 
   return annotations
 
-def FindDart2JSAnnotationsAndComments(idl_type, interface_name, member_name,
-                           library_name=None):
+def FindDart2JSAnnotationsAndComments(idl_type, library_name, interface_name,
+                                      member_name,):
   """ Finds all annotations for Dart2JS members- including annotations for
   both dart2js and dartium.
   """
-  annotations = GetAnnotationsAndComments(interface_name, member_name,
-                                          library_name)
+  annotations = GetAnnotationsAndComments(library_name, interface_name, member_name)
 
   ann2 = _FindDart2JSSpecificAnnotations(idl_type, interface_name, member_name)
   if ann2:
@@ -869,6 +895,7 @@ def AnyConversionAnnotations(idl_type, interface_name, member_name):
 
 def FormatAnnotationsAndComments(annotations, indentation):
   if annotations:
+
     newline = '\n%s' % indentation
     result = newline.join(annotations) + newline
     return result
@@ -938,7 +965,7 @@ class IDLTypeInfo(object):
     return 'Dart%s' % self.idl_type()
 
   def vector_to_dart_template_parameter(self):
-    return self.bindings_class()
+    return self.native_type()
 
   def to_native_info(self, idl_node, interface_name):
     cls = self.bindings_class()
@@ -1097,12 +1124,16 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
   def to_native_info(self, idl_node, interface_name):
     item_native_type = self._item_info.vector_to_dart_template_parameter()
-    return '%s', 'Vector<%s>' % item_native_type, 'DartUtilities', 'toNativeVector<%s>' % item_native_type
+    if isinstance(self._item_info, PrimitiveIDLTypeInfo):
+      return '%s', 'Vector<%s>' % item_native_type, 'DartUtilities', 'toNativeVector<%s>' % item_native_type
+    return '%s', 'Vector< RefPtr<%s> >' % item_native_type, 'DartUtilities', 'toNativeVector< RefPtr<%s> >' % item_native_type
 
   def pass_native_by_ref(self): return True
 
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
-    return 'DartDOMWrapper::vectorToDart<%s>(%s)' % (self._item_info.vector_to_dart_template_parameter(), value)
+    if isinstance(self._item_info, PrimitiveIDLTypeInfo):
+      return 'DartDOMWrapper::vectorToDart(%s)' % value
+    return 'DartDOMWrapper::vectorToDart<%s>(%s)' % (self._item_info.bindings_class(), value)
 
   def conversion_includes(self):
     return self._item_info.conversion_includes()

@@ -23,6 +23,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     hide TreeElementMapping;
 
+import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
+
 class WarningMessage {
   Node node;
   Message message;

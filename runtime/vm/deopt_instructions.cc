@@ -210,12 +210,8 @@ class DeoptRetAfterAddressInstr : public DeoptInstr {
     *to_addr = continue_at_pc;
   }
 
-  static void GetEncodedValues(intptr_t from_index,
-                               intptr_t* object_table_index,
-                               intptr_t* deopt_id) {
-    *object_table_index = ObjectTableIndex::decode(from_index);
-    *deopt_id = DeoptId::decode(from_index);
-  }
+  intptr_t object_table_index() const { return object_table_index_; }
+  intptr_t deopt_id() const { return deopt_id_; }
 
  private:
   static const intptr_t kFieldWidth = kBitsPerWord / 2;
@@ -548,7 +544,7 @@ class DeoptSuffixInstr : public DeoptInstr {
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
-    // The deoptimization info is uncompresses by translating away suffixes
+    // The deoptimization info is uncompressed by translating away suffixes
     // before executing the instructions.
     UNREACHABLE();
   }
@@ -575,19 +571,17 @@ intptr_t DeoptInstr::DecodeSuffix(intptr_t from_index, intptr_t* info_number) {
 }
 
 
-uword DeoptInstr::GetRetAfterAddress(intptr_t from_index,
+uword DeoptInstr::GetRetAfterAddress(DeoptInstr* instr,
                                      const Array& object_table,
                                      Function* func) {
+  ASSERT(instr->kind() == kRetAfterAddress);
+  DeoptRetAfterAddressInstr* ret_after_instr =
+      static_cast<DeoptRetAfterAddressInstr*>(instr);
   ASSERT(!object_table.IsNull());
   ASSERT(func != NULL);
-  intptr_t object_table_index;
-  intptr_t deopt_id;
-  DeoptRetAfterAddressInstr::GetEncodedValues(from_index,
-                                              &object_table_index,
-                                              &deopt_id);
-  *func ^= object_table.At(object_table_index);
+  *func ^= object_table.At(ret_after_instr->object_table_index());
   const Code& code = Code::Handle(func->unoptimized_code());
-  return code.GetDeoptAfterPcAtDeoptId(deopt_id);
+  return code.GetDeoptAfterPcAtDeoptId(ret_after_instr->deopt_id());
 }
 
 

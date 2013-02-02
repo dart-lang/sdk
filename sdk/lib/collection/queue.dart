@@ -160,7 +160,7 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
  * WARNING: This class is temporary located in dart:core. It'll be removed
  * at some point in the near future.
  */
-class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
+class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
   _DoubleLinkedQueueEntrySentinel<E> _sentinel;
 
   DoubleLinkedQueue() {

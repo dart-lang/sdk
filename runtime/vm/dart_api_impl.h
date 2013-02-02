@@ -52,11 +52,6 @@ const char* CanonicalFunction(const char* func);
     }                                                                          \
   } while (0)
 
-#define DARTSCOPE_NOCHECKS(isolate)                                            \
-  Isolate* __temp_isolate__ = (isolate);                                       \
-  ASSERT(__temp_isolate__ != NULL);                                            \
-  HANDLESCOPE(__temp_isolate__);
-
 #define DARTSCOPE(isolate)                                                     \
   Isolate* __temp_isolate__ = (isolate);                                       \
   CHECK_ISOLATE_SCOPE(__temp_isolate__);                                       \
@@ -108,6 +103,16 @@ class Api : AllStatic {
 
   // Gets the handle used to designate successful return.
   static Dart_Handle Success(Isolate* isolate);
+
+  // Sets up the callback error object after initializing an Isolate. This
+  // object is pre-created because we will not be able to allocate this
+  // object when the error actually occurs. When the error occurs there will
+  // be outstanding acquires to internal data pointers making it unsafe to
+  // allocate objects on the dart heap.
+  static void SetupCallbackError(Isolate* isolate);
+
+  // Gets the handle which holds the pre-created callback error object.
+  static Dart_Handle CallbackError(Isolate* isolate);
 
   // Returns true if the handle holds a Smi.
   static bool IsSmi(Dart_Handle handle) {
@@ -174,6 +179,19 @@ class IsolateSaver {
 
   DISALLOW_COPY_AND_ASSIGN(IsolateSaver);
 };
+
+// Start a scope in which no Dart API call backs are allowed.
+#define START_NO_CALLBACK_SCOPE(isolate)                                       \
+  isolate->IncrementNoCallbackScopeDepth()
+
+// End a no Dart API call backs Scope.
+#define END_NO_CALLBACK_SCOPE(isolate)                                         \
+  isolate->DecrementNoCallbackScopeDepth()
+
+#define CHECK_CALLBACK_STATE(isolate)                                          \
+  if (isolate->no_callback_scope_depth() != 0) {                               \
+    return reinterpret_cast<Dart_Handle>(Api::CallbackError(isolate));         \
+  }                                                                            \
 
 }  // namespace dart.
 

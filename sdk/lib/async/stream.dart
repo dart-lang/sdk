@@ -40,12 +40,11 @@ part of dart.async;
  * A broadcast stream allows any number of listeners, and it fires
  * its events when they are ready, whether there are listeners or not.
  *
- * Braodcast streams are used for independent events/observers.
+ * Broadcast streams are used for independent events/observers.
  *
- * The default implementation of [isBroadcast] and
- * [asBroadcastStream] are assuming this is a single-subscription stream
- * and a broadcast stream inheriting from [Stream] must override these
- * to return [:true:] and [:this:] respectively.
+ * The default implementation of [isBroadcast] returns false.
+ * A broadcast stream inheriting from [Stream] must override [isBroadcast]
+ * to return [:true:].
  */
 abstract class Stream<T> {
   Stream();
@@ -93,34 +92,8 @@ abstract class Stream<T> {
    * If this stream is already a broadcast stream, it is returned unmodified.
    */
   Stream<T> asBroadcastStream() {
+    if (isBroadcast) return this;
     return new _SingleStreamMultiplexer<T>(this);
-  }
-
-  /**
-   * Stream that outputs events from the [sources] in cyclic order.
-   *
-   * The merged streams are paused and resumed in order to ensure the proper
-   * order of output events.
-   */
-  factory Stream.cyclic(Iterable<Stream> sources) {
-    return new CyclicScheduleStream<T>(sources);
-  }
-
- /**
-   * Create a stream that forwards data from the highest priority active source.
-   *
-   * Sources are provided in order of increasing priority, and only data from
-   * the highest priority source stream that has provided data are output
-   * on the created stream.
-   *
-   * Errors from the most recent active stream, and any higher priority stream,
-   * are forwarded to the created stream.
-   *
-   * If a higher priority source stream completes without providing data,
-   * it will have no effect on lower priority streams.
-   */
-  factory Stream.superceding(Iterable<Stream<T>> sources) {
-    return new SupercedeStream<T>(sources);
   }
 
   /**
@@ -149,16 +122,23 @@ abstract class Stream<T> {
    * but it only sends the data events that satisfy the [test].
    */
   Stream<T> where(bool test(T event)) {
-    return new WhereStream<T>(this, test);
+    return new _WhereStream<T>(this, test);
   }
 
   /**
    * Create a new stream that converts each element of this stream
    * to a new value using the [convert] function.
    */
-  Stream mappedBy(convert(T event)) {
-    return new MapStream<T, dynamic>(this, convert);
+  Stream map(convert(T event)) {
+    return new _MapStream<T, dynamic>(this, convert);
   }
+
+  /**
+   * Deprecated alias for [map].
+   *
+   * @deprecated
+   */
+  Stream mappedBy(f(T element)) => map(f);
 
   /**
    * Create a wrapper Stream that intercepts some errors from this stream.
@@ -172,10 +152,13 @@ abstract class Stream<T> {
    * If the error is intercepted, the [handle] function can decide what to do
    * with it. It can throw if it wants to raise a new (or the same) error,
    * or simply return to make the stream forget the error.
+   *
+   * If you need to transform an error into a data event, use the more generic
+   * [Stream.transformEvent] to handle the event by writing a data event to
+   * the output sink
    */
-   // TODO(lrn): Say what to do if you want to convert the error to a value.
   Stream<T> handleError(void handle(AsyncError error), { bool test(error) }) {
-    return new HandleErrorStream<T>(this, handle, test);
+    return new _HandleErrorStream<T>(this, handle, test);
   }
 
   /**
@@ -187,13 +170,13 @@ abstract class Stream<T> {
    * in order.
    */
   Stream expand(Iterable convert(T value)) {
-    return new ExpandStream<T, dynamic>(this, convert);
+    return new _ExpandStream<T, dynamic>(this, convert);
   }
 
   /**
    * Bind this stream as the input of the provided [StreamConsumer].
    */
-  Future pipe(StreamConsumer<dynamic, T> streamConsumer) {
+  Future pipe(StreamConsumer<T, dynamic> streamConsumer) {
     return streamConsumer.consume(this);
   }
 
@@ -206,14 +189,15 @@ abstract class Stream<T> {
     return streamTransformer.bind(this);
   }
 
-
   /** Reduces a sequence of values by repeatedly applying [combine]. */
   Future reduce(var initialValue, combine(var previous, T element)) {
     _FutureImpl result = new _FutureImpl();
     var value = initialValue;
     StreamSubscription subscription;
     subscription = this.listen(
-      (T element) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ element) {
         _runUserCode(
           () => combine(value, element),
           (result) { value = result; },
@@ -257,13 +241,15 @@ abstract class Stream<T> {
     _FutureImpl<bool> future = new _FutureImpl<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
-        (T element) {
+        // TODO(ahe): Restore type when feature is implemented in dart2js
+        // checked mode. http://dartbug.com/7733
+        (/*T*/ element) {
           _runUserCode(
-            () => match(element),
+            () => (element == match),
             (bool isMatch) {
               if (isMatch) {
                 subscription.cancel();
-                future._setValue(element);
+                future._setValue(true);
               }
             },
             _cancelAndError(subscription, future)
@@ -287,7 +273,9 @@ abstract class Stream<T> {
     _FutureImpl<bool> future = new _FutureImpl<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
-        (T element) {
+        // TODO(ahe): Restore type when feature is implemented in dart2js
+        // checked mode. http://dartbug.com/7733
+        (/*T*/ element) {
           _runUserCode(
             () => test(element),
             (bool isMatch) {
@@ -317,7 +305,9 @@ abstract class Stream<T> {
     _FutureImpl<bool> future = new _FutureImpl<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
-        (T element) {
+        // TODO(ahe): Restore type when feature is implemented in dart2js
+        // checked mode. http://dartbug.com/7733
+        (/*T*/ element) {
           _runUserCode(
             () => test(element),
             (bool isMatch) {
@@ -363,12 +353,17 @@ abstract class Stream<T> {
    * If [compare] is omitted, it defaults to [Comparable.compare].
    */
   Future<T> min([int compare(T a, T b)]) {
-    if (compare == null) compare = Comparable.compare;
+    if (compare == null) {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     T min = null;
     subscription = this.listen(
-      (T value) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ value) {
         min = value;
         subscription.onData((T value) {
           _runUserCode(
@@ -402,12 +397,17 @@ abstract class Stream<T> {
    * If [compare] is omitted, it defaults to [Comparable.compare].
    */
   Future<T> max([int compare(T a, T b)]) {
-    if (compare == null) compare = Comparable.compare;
+    if (compare == null)  {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     T max = null;
     subscription = this.listen(
-      (T value) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ value) {
         max = value;
         subscription.onData((T value) {
           _runUserCode(
@@ -452,7 +452,9 @@ abstract class Stream<T> {
     List<T> result = <T>[];
     _FutureImpl<List<T>> future = new _FutureImpl<List<T>>();
     this.listen(
-      (T data) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ data) {
         result.add(data);
       },
       onError: future._setError,
@@ -468,7 +470,9 @@ abstract class Stream<T> {
     Set<T> result = new Set<T>();
     _FutureImpl<Set<T>> future = new _FutureImpl<Set<T>>();
     this.listen(
-      (T data) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ data) {
         result.add(data);
       },
       onError: future._setError,
@@ -489,7 +493,7 @@ abstract class Stream<T> {
    * so will the returned stream.
    */
   Stream<T> take(int count) {
-    return new TakeStream(this, count);
+    return new _TakeStream(this, count);
   }
 
   /**
@@ -501,14 +505,14 @@ abstract class Stream<T> {
    * a value that [test] doesn't accept.
    */
   Stream<T> takeWhile(bool test(T value)) {
-    return new TakeWhileStream(this, test);
+    return new _TakeWhileStream(this, test);
   }
 
   /**
    * Skips the first [count] data events from this stream.
    */
   Stream<T> skip(int count) {
-    return new SkipStream(this, count);
+    return new _SkipStream(this, count);
   }
 
   /**
@@ -520,7 +524,7 @@ abstract class Stream<T> {
    * event data, the returned stream will have the same events as this stream.
    */
   Stream<T> skipWhile(bool test(T value)) {
-    return new SkipWhileStream(this, test);
+    return new _SkipWhileStream(this, test);
   }
 
   /**
@@ -533,7 +537,7 @@ abstract class Stream<T> {
    * omitted, the '==' operator on the last provided data element is used.
    */
   Stream<T> distinct([bool equals(T previous, T next)]) {
-    return new DistinctStream(this, equals);
+    return new _DistinctStream(this, equals);
   }
 
   /**
@@ -546,7 +550,9 @@ abstract class Stream<T> {
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
-      (T value) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ value) {
         future._setValue(value);
         subscription.cancel();
         return;
@@ -570,7 +576,9 @@ abstract class Stream<T> {
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
-      (T value) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ value) {
         foundResult = true;
         result = value;
       },
@@ -597,7 +605,9 @@ abstract class Stream<T> {
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
-      (T value) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ value) {
         if (foundResult) {
           // This is the second element we get.
           Error error = new StateError("More than one element");
@@ -638,7 +648,9 @@ abstract class Stream<T> {
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
-      (T value) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ value) {
         _runUserCode(
           () => test(value),
           (bool isMatch) {
@@ -676,7 +688,9 @@ abstract class Stream<T> {
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
-      (T value) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ value) {
         _runUserCode(
           () => true == test(value),
           (bool isMatch) {
@@ -717,7 +731,9 @@ abstract class Stream<T> {
     bool foundResult = false;
     StreamSubscription subscription;
     subscription = this.listen(
-      (T value) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ value) {
         _runUserCode(
           () => true == test(value),
           (bool isMatch) {
@@ -761,7 +777,9 @@ abstract class Stream<T> {
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
-      (T value) {
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/*T*/ value) {
         if (index == 0) {
           future._setValue(value);
           subscription.cancel();
@@ -880,6 +898,7 @@ abstract class StreamConsumer<S, T> {
   Future<T> consume(Stream<S> stream);
 }
 
+
 /**
  * The target of a [Stream.transform] call.
  *
@@ -890,17 +909,212 @@ abstract class StreamTransformer<S, T> {
   /**
    * Create a [StreamTransformer] that delegates events to the given functions.
    *
-   * If a parameter is omitted, a default handler is used that forwards the
-   * event directly to the sink.
+   * This is actually a [StreamEventTransformer] where the event handling is
+   * performed by the function arguments.
+   * If an argument is omitted, it acts as the corresponding default method from
+   * [StreamEventTransformer].
    *
-   * Pauses on the returned stream are forwarded to the input stream as well.
+   * Example use:
+   *
+   *     stringStream.transform(new StreamTransformer<String, String>(
+   *         handleData: (Strung value, StreamSink<String> sink) {
+   *           sink.add(value);
+   *           sink.add(value);  // Duplicate the incoming events.
+   *         }));
+   *
    */
-  factory StreamTransformer.from({
-      void onData(S data, StreamSink<T> sink),
-      void onError(AsyncError error, StreamSink<T> sink),
-      void onDone(StreamSink<T> sink)}) {
-    return new _StreamTransformerImpl<S, T>(onData, onError, onDone);
+  factory StreamTransformer({
+      void handleData(S data, StreamSink<T> sink),
+      void handleError(AsyncError error, StreamSink<T> sink),
+      void handleDone(StreamSink<T> sink)}) {
+    return new _StreamTransformerImpl<S, T>(handleData,
+                                            handleError,
+                                            handleDone);
   }
 
   Stream<T> bind(Stream<S> stream);
+}
+
+
+/**
+ * Base class for transformers that modifies stream events.
+ *
+ * A [StreamEventTransformer] transforms incoming Stream
+ * events of one kind into outgoing events of (possibly) another kind.
+ *
+ * Subscribing on the stream returned by [bind] is the same as subscribing on
+ * the source stream, except that events are passed through the [transformer]
+ * before being emitted. The transformer may generate any number and
+ * types of events for each incoming event. Pauses on the returned
+ * subscription are forwarded to this stream.
+ *
+ * An example that duplicates all data events:
+ *
+ *     class DoubleTransformer<T> extends StreamEventTransformerBase<T, T> {
+ *       void handleData(T data, StreamSink<T> sink) {
+ *         sink.add(value);
+ *         sink.add(value);
+ *       }
+ *     }
+ *     someTypeStream.transform(new DoubleTransformer<Type>());
+ *
+ * The default implementations of the "handle" methods forward
+ * the events unmodified. If using the default [handleData] the generic type [T]
+ * needs to be assignable to [S].
+ */
+abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
+  const StreamEventTransformer();
+
+  Stream<T> bind(Stream<S> source) {
+    return new EventTransformStream<S, T>(source, this);
+  }
+
+  /**
+   * Act on incoming data event.
+   *
+   * The method may generate any number of events on the sink, but should
+   * not throw.
+   */
+  void handleData(S event, StreamSink<T> sink) {
+    var data = event;
+    sink.add(data);
+  }
+
+  /**
+   * Act on incoming error event.
+   *
+   * The method may generate any number of events on the sink, but should
+   * not throw.
+   */
+  void handleError(AsyncError error, StreamSink<T> sink) {
+    sink.signalError(error);
+  }
+
+  /**
+   * Act on incoming done event.
+   *
+   * The method may generate any number of events on the sink, but should
+   * not throw.
+   */
+  void handleDone(StreamSink<T> sink){
+    sink.close();
+  }
+}
+
+
+/**
+ * Stream that transforms another stream by intercepting and replacing events.
+ *
+ * This [Stream] is a transformation of a source stream. Listening on this
+ * stream is the same as listening on the source stream, except that events
+ * are intercepted and modified by a [StreamEventTransformer] before becoming
+ * events on this stream.
+ */
+class EventTransformStream<S, T> extends Stream<T> {
+  final Stream<S> _source;
+  final StreamEventTransformer _transformer;
+  EventTransformStream(Stream<S> source,
+                       StreamEventTransformer<S, T> transformer)
+      : _source = source, _transformer = transformer;
+
+  StreamSubscription<T> listen(void onData(T data),
+                               { void onError(AsyncError error),
+                                 void onDone(),
+                                 bool unsubscribeOnError }) {
+    return new _EventTransformStreamSubscription(_source, _transformer,
+                                                 onData, onError, onDone,
+                                                 unsubscribeOnError);
+  }
+}
+
+class _EventTransformStreamSubscription<S, T>
+    extends _BaseStreamSubscription<T>
+    implements _StreamOutputSink<T> {
+  /** The transformer used to transform events. */
+  final StreamEventTransformer<S, T> _transformer;
+  /** Whether to unsubscribe when emitting an error. */
+  final bool _unsubscribeOnError;
+  /** Source of incoming events. */
+  StreamSubscription<S> _subscription;
+  /** Cached StreamSink wrapper for this class. */
+  StreamSink<T> _sink;
+
+  _EventTransformStreamSubscription(Stream<S> source,
+                                    this._transformer,
+                                    void onData(T data),
+                                    void onError(AsyncError error),
+                                    void onDone(),
+                                    this._unsubscribeOnError)
+      : super(onData, onError, onDone) {
+    _sink = new _StreamOutputSinkWrapper<T>(this);
+    _subscription = source.listen(_handleData,
+                                  onError: _handleError,
+                                  onDone: _handleDone);
+  }
+
+  void pause([Future pauseSignal]) {
+    if (_subscription != null) _subscription.pause(pauseSignal);
+  }
+
+  void resume() {
+    if (_subscription != null) _subscription.resume();
+  }
+
+  void cancel() {
+    if (_subscription != null) {
+      _subscription.cancel();
+      _subscription = null;
+    }
+  }
+
+  void _handleData(S data) {
+    try {
+      _transformer.handleData(data, _sink);
+    } catch (e, s) {
+      _sendError(_asyncError(e, s));
+    }
+  }
+
+  void _handleError(AsyncError error) {
+    try {
+      _transformer.handleError(error, _sink);
+    } catch (e, s) {
+      _sendError(_asyncError(e, s, error));
+    }
+  }
+
+  void _handleDone() {
+    try {
+      _transformer.handleDone(_sink);
+    } catch (e, s) {
+      _sendError(_asyncError(e, s));
+    }
+  }
+
+  // StreamOutputSink interface.
+  void _sendData(T data) {
+    _onData(data);
+  }
+
+  void _sendError(AsyncError error) {
+    _onError(error);
+    if (_unsubscribeOnError) {
+      cancel();
+    }
+  }
+
+  void _sendDone() {
+    // It's ok to cancel even if we have been unsubscribed already.
+    cancel();
+    _onDone();
+  }
+}
+
+class _StreamOutputSinkWrapper<T> implements StreamSink<T> {
+  _StreamOutputSink _sink;
+  _StreamOutputSinkWrapper(this._sink);
+
+  void add(T data) => _sink._sendData(data);
+  void signalError(AsyncError error) => _sink._sendError(error);
+  void close() => _sink._sendDone();
 }

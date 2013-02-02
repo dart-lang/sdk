@@ -1,1 +1,414 @@
-{}
+{
+  "dart.dom.html": {
+    "CanvasGradient": {
+      "comment": [
+        "/**",
+        " * An opaque canvas object representing a gradient.",
+        " *",
+        " * Created by calling [createLinearGradient] or [createRadialGradient] on a",
+        " * [CanvasRenderingContext2D] object.",
+        " *",
+        " * Example usage:",
+        " *",
+        " *     var canvas = new CanvasElement(width: 600, height: 600);",
+        " *     var ctx = canvas.context2d;",
+        " *     ctx.clearRect(0, 0, 600, 600);",
+        " *     ctx.save();",
+        " *     // Create radial gradient.",
+        " *     CanvasGradient gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 600);",
+        " *     gradient.addColorStop(0, '#000');",
+        " *     gradient.addColorStop(1, 'rgb(255, 255, 255)');",
+        " *     // Assign gradients to fill.",
+        " *     ctx.fillStyle = gradient;",
+        " *     // Draw a rectangle with a gradient fill.",
+        " *     ctx.fillRect(0, 0, 600, 600);",
+        " *     ctx.save();",
+        " *     document.body.children.add(canvas);",
+        " *",
+        " * See also:",
+        " *",
+        " * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.",
+        " * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.",
+        " * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.",
+        " */"
+      ],
+      "members": {
+        "addColorStop": [
+          "/**",
+          "   * Adds a color stop to this gradient at the offset.",
+          "   *",
+          "   * The [offset] can range between 0.0 and 1.0.",
+          "   *",
+          "   * See also:",
+          "   *",
+          "   * * [Multiple Color Stops](https://developer.mozilla.org/en-US/docs/CSS/linear-gradient#Gradient_with_multiple_color_stops) from MDN.",
+          "   */"
+        ]
+      }
+    },
+    "CanvasPattern": {
+      "comment": [
+        "/**",
+        " * An opaque object representing a pattern of image, canvas, or video.",
+        " *",
+        " * Created by calling [createPattern] on a [CanvasRenderingContext2D] object.",
+        " *",
+        " * Example usage:",
+        " *",
+        " *     var canvas = new CanvasElement(width: 600, height: 600);",
+        " *     var ctx = canvas.context2d;",
+        " *     var img = new ImageElement();",
+        " *     // Image src needs to be loaded before pattern is applied.",
+        " *     img.onLoad.listen((event) {",
+        " *       // When the image is loaded, create a pattern",
+        " *       // from the ImageElement.",
+        " *       CanvasPattern pattern = ctx.createPattern(img, 'repeat');",
+        " *       ctx.rect(0, 0, canvas.width, canvas.height);",
+        " *       ctx.fillStyle = pattern;",
+        " *       ctx.fill();",
+        " *     });",
+        " *     img.src = \"images/foo.jpg\";",
+        " *     document.body.children.add(canvas);",
+        " *",
+        " * See also:",
+        " * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.",
+        " * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.",
+        " * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.",
+        " */"
+      ]
+    },
+    "CanvasRenderingContext": {
+      "comment": [
+        "/**",
+        " * A rendering context for a canvas element.",
+        " *",
+        " * This context is extended by [CanvasRenderingContext2D] and",
+        " * [WebGLRenderingContext].",
+        " */"
+      ],
+      "members": {
+        "canvas": [
+          "/// Reference to the canvas element to which this context belongs."
+        ]
+      }
+    },
+    "Document": {
+      "members": {
+        "body": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "caretRangeFromPoint": [
+          "/// Use the [Range] constructor instead."
+        ],
+        "createElement": [
+          "/// Deprecated: use new Element.tag(tagName) instead."
+        ],
+        "createTouchList": [
+          "/// Use the [TouchList] constructor instead."
+        ],
+        "getCSSCanvasContext": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "getElementById": [
+          "/// Deprecated: use query(\"#$elementId\") instead."
+        ],
+        "head": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "lastModified": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "querySelector": [
+          "/// Deprecated: renamed to the shorter name [query]."
+        ],
+        "querySelectorAll": [
+          "/// Deprecated: use query(\"#$elementId\") instead."
+        ],
+        "referrer": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "styleSheets": [
+          "/// Moved to [HtmlDocument]"
+        ],
+        "title": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitCancelFullScreen": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitExitFullscreen": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitExitPointerLock": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitFullscreenElement": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitFullscreenEnabled": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitHidden": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitIsFullScreen": [
+          "/// Moved to [HtmlDocument]."
+        ],
+        "webkitPointerLockElement": [
+          "/// Moved to [HtmlDocument]."
+        ]
+      }
+    },
+    "HTMLCanvasElement": {
+      "members": {
+        "height": [
+          "/// The height of this canvas element in CSS pixels."
+        ],
+        "toDataURL": [
+          "/**",
+          "   * Returns a data URI containing a representation of the image in the",
+          "   * format specified by type (defaults to 'image/png').",
+          "   *",
+          "   * Data Uri format is as follow `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`",
+          "   *",
+          "   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when requesting [type]",
+          "   * 'image/jpeg' or 'image/webp'. If [quality] is not passed the default",
+          "   * value is used. Note: the default value varies by browser.",
+          "   *",
+          "   * If the height or width of this canvas element is 0, then 'data:' is returned,",
+          "   * representing no data.",
+          "   *",
+          "   * If the type requested is not 'image/png', and the returned value is",
+          "   * 'data:image/png', then the requested type is not supported.",
+          "   *",
+          "   * Example usage:",
+          "   *",
+          "   *     CanvasElement canvas = new CanvasElement();",
+          "   *     var ctx = canvas.context2d",
+          "   *     ..fillStyle = \"rgb(200,0,0)\"",
+          "   *     ..fillRect(10, 10, 55, 50);",
+          "   *     var dataUrl = canvas.toDataURL(\"image/jpeg\", 0.95);",
+          "   *     // The Data Uri would look similar to",
+          "   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA",
+          "   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO",
+          "   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='",
+          "   *     //Create a new image element from the data URI.",
+          "   *     var img = new ImageElement();",
+          "   *     img.src = dataUrl;",
+          "   *     document.body.children.add(img);",
+          "   *",
+          "   * See also:",
+          "   *",
+          "   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.",
+          "   *",
+          "   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.",
+          "   *",
+          "   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.",
+          "   */"
+        ],
+        "width": [
+          "/// The width of this canvas element in CSS pixels."
+        ]
+      }
+    },
+    "HTMLDivElement": {
+      "comment": [
+        "/**",
+        " * Represents an HTML <div> element.",
+        " *",
+        " * The [DivElement] is a generic container for content and does not have any",
+        " * special significance. It is functionally similar to [SpanElement].",
+        " *",
+        " * The [DivElement] is a block-level element, as opposed to [SpanElement],",
+        " * which is an inline-level element.",
+        " *",
+        " * Example usage:",
+        " *",
+        " *     DivElement div = new DivElement();",
+        " *     div.text = 'Here's my new DivElem",
+        " *     document.body.elements.add(elem);",
+        " *",
+        " * See also:",
+        " *",
+        " * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.",
+        " * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.",
+        " * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.",
+        " */"
+      ]
+    },
+    "XMLHttpRequest": {
+      "members": {
+        "abort": [
+          "/**",
+          "   * Stop the current request.",
+          "   *",
+          "   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or",
+          "   * `LOADING`. If this method is not in the process of being sent, the method",
+          "   * has no effect.",
+          "   */"
+        ],
+        "getAllResponseHeaders": [
+          "/**",
+          "   * Retrieve all the response headers from a request.",
+          "   *",
+          "   * `null` if no headers have been received. For multipart requests,",
+          "   * `getAllResponseHeaders` will return the response headers for the current",
+          "   * part of the request.",
+          "   *",
+          "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
+          "   * for a list of common response headers.",
+          "   */"
+        ],
+        "getResponseHeader": [
+          "/**",
+          "   * Return the response header named `header`, or `null` if not found.",
+          "   *",
+          "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
+          "   * for a list of common response headers.",
+          "   */"
+        ],
+        "open": [
+          "/**",
+          "   * Specify the desired `url`, and `method` to use in making the request.",
+          "   *",
+          "   * By default the request is done asyncronously, with no user or password",
+          "   * authentication information. If `async` is false, the request will be send",
+          "   * synchronously.",
+          "   *",
+          "   * Calling `open` again on a currently active request is equivalent to",
+          "   * calling `abort`.",
+          "   */"
+        ],
+        "overrideMimeType": [
+          "/**",
+          "   * Specify a particular MIME type (such as `text/xml`) desired for the",
+          "   * response.",
+          "   *",
+          "   * This value must be set before the request has been sent. See also the list",
+          "   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)",
+          "   */"
+        ],
+        "readyState": [
+          "/**",
+          "   * Indicator of the current state of the request:",
+          "   *",
+          "   * <table>",
+          "   *   <tr>",
+          "   *     <td>Value</td>",
+          "   *     <td>State</td>",
+          "   *     <td>Meaning</td>",
+          "   *   </tr>",
+          "   *   <tr>",
+          "   *     <td>0</td>",
+          "   *     <td>unsent</td>",
+          "   *     <td><code>open()</code> has not yet been called</td>",
+          "   *   </tr>",
+          "   *   <tr>",
+          "   *     <td>1</td>",
+          "   *     <td>opened</td>",
+          "   *     <td><code>send()</code> has not yet been called</td>",
+          "   *   </tr>",
+          "   *   <tr>",
+          "   *     <td>2</td>",
+          "   *     <td>headers received</td>",
+          "   *     <td><code>sent()</code> has been called; response headers and <code>status</code> are available</td>",
+          "   *   </tr>",
+          "   *   <tr>",
+          "   *     <td>3</td> <td>loading</td> <td><code>responseText</code> holds some data</td>",
+          "   *   </tr>",
+          "   *   <tr>",
+          "   *     <td>4</td> <td>done</td> <td>request is complete</td>",
+          "   *   </tr>",
+          "   * </table>",
+          "   */"
+        ],
+        "response": [
+          "/**",
+          "   * The data received as a reponse from the request.",
+          "   *",
+          "   * The data could be in the",
+          "   * form of a [String], [ArrayBuffer], [Document], [Blob], or json (also a",
+          "   * [String]). `null` indicates request failure.",
+          "   */"
+        ],
+        "responseText": [
+          "/**",
+          "   * The response in string form or `null on failure.",
+          "   */"
+        ],
+        "responseType": [
+          "/**",
+          "   * [String] telling the server the desired response format.",
+          "   *",
+          "   * Default is `String`.",
+          "   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',",
+          "   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if",
+          "   * `responseType` is set while performing a synchronous request.",
+          "   *",
+          "   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)",
+          "   */"
+        ],
+        "responseXML": [
+          "/**",
+          "   * The request response, or null on failure.",
+          "   *",
+          "   * The response is processed as",
+          "   * `text/xml` stream, unless responseType = 'document' and the request is",
+          "   * synchronous.",
+          "   */"
+        ],
+        "send": [
+          "/**",
+          "   * Send the request with any given `data`.",
+          "   *",
+          "   * See also:",
+          "   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())",
+          "   * from MDN.",
+          "   */"
+        ],
+        "status": [
+          "/**",
+          "   * The http result code from the request (200, 404, etc).",
+          "   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
+          "   */"
+        ],
+        "statusText": [
+          "/**",
+          "   * The request response string (such as \\\"200 OK\\\").",
+          "   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
+          "   */"
+        ],
+        "upload": [
+          "/**",
+          "   * [EventTarget] that can hold listeners to track the progress of the request.",
+          "   * The events fired will be members of [HttpRequestUploadEvents].",
+          "   */"
+        ],
+        "withCredentials": [
+          "/**",
+          "   * True if cross-site requests should use credentials such as cookies",
+          "   * or authorization headers; false otherwise.",
+          "   *",
+          "   * This value is ignored for same-site requests.",
+          "   */"
+        ],
+        "XMLHttpRequest": [
+          "/**",
+          "   * General constructor for any type of request (GET, POST, etc).",
+          "   *",
+          "   * This call is used in conjunction with [open]:",
+          "   *",
+          "   *     var request = new HttpRequest();",
+          "   *     request.open('GET', 'http://dartlang.org')",
+          "   *     request.on.load.add((event) => print('Request complete'));",
+          "   *",
+          "   * is the (more verbose) equivalent of",
+          "   *",
+          "   *     var request = new HttpRequest.get('http://dartlang.org',",
+          "   *         (event) => print('Request complete'));",
+          "   */"
+        ]
+      }
+    }
+  }
+}

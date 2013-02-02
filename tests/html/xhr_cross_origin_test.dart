@@ -38,7 +38,7 @@ main() {
       expect(data['feed'], contains('entry'));
       expect(data, isMap);
     });
-    xhr.on.readyStateChange.add((e) {
+    xhr.onReadyStateChange.listen((e) {
       guardAsync(() {
         if (xhr.readyState == HttpRequest.DONE) {
           validate(json.parse(xhr.response));
@@ -50,7 +50,7 @@ main() {
 
   test('XHR.get Cross-domain', () {
     var url = "http://localhost:$port/tests/html/xhr_cross_origin_data.txt";
-    new HttpRequest.get(url, expectAsync1((xhr) {
+    HttpRequest.request(url).then(expectAsync1((xhr) {
       var data = json.parse(xhr.response);
       expect(data, contains('feed'));
       expect(data['feed'], contains('entry'));
@@ -60,7 +60,7 @@ main() {
 
   test('XHR.getWithCredentials Cross-domain', () {
     var url = "http://localhost:$port/tests/html/xhr_cross_origin_data.txt";
-    new HttpRequest.getWithCredentials(url, expectAsync1((xhr) {
+    HttpRequest.request(url, withCredentials: true).then(expectAsync1((xhr) {
       var data = json.parse(xhr.response);
       expect(data, contains('feed'));
       expect(data['feed'], contains('entry'));

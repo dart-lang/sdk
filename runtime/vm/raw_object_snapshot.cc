@@ -767,7 +767,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   if (kind == Snapshot::kScript) {
     NoGCScope no_gc;
     RawExternalUint8Array* stream = token_stream.GetStream();
-    reader->ReadBytes(stream->ptr()->external_data_->data(), len);
+    reader->ReadBytes(stream->ptr()->data_, len);
   }
 
   // Read in the literal/identifier token array.
@@ -799,7 +799,7 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
   RawExternalUint8Array* stream = ptr()->stream_;
   intptr_t len = Smi::Value(stream->ptr()->length_);
   writer->Write<RawObject*>(stream->ptr()->length_);
-  writer->WriteBytes(stream->ptr()->external_data_->data(), len);
+  writer->WriteBytes(stream->ptr()->data_, len);
 
   // Write out the literal/identifier token array.
   writer->WriteObjectImpl(ptr()->token_objects_);
@@ -2035,10 +2035,14 @@ RawExternal##name##Array* External##name##Array::ReadFrom(                     \
   ASSERT(kind != Snapshot::kFull);                                             \
   intptr_t length = reader->ReadSmiValue();                                    \
   type* data = reinterpret_cast<type*>(reader->ReadIntptrValue());             \
+  const External##name##Array& obj = External##name##Array::Handle(            \
+      External##name##Array::New(data, length));                               \
   void* peer = reinterpret_cast<void*>(reader->ReadIntptrValue());             \
-  Dart_PeerFinalizer callback =                                                \
-      reinterpret_cast<Dart_PeerFinalizer>(reader->ReadIntptrValue());         \
-  return New(data, length, peer, callback, HEAP_SPACE(kind));                  \
+  Dart_WeakPersistentHandleFinalizer callback =                                \
+      reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(                    \
+          reader->ReadIntptrValue());                                          \
+  obj.AddFinalizer(peer, callback);                                            \
+  return obj.raw();                                                            \
 }                                                                              \
 
 
@@ -2109,7 +2113,7 @@ void RawExternal##name##Array::WriteTo(SnapshotWriter* writer,                 \
                    k##name##ArrayCid,                                          \
                    writer->GetObjectTags(this),                                \
                    ptr()->length_,                                             \
-                   ptr()->external_data_->data());                             \
+                   ptr()->data_);                                              \
 }                                                                              \
 
 

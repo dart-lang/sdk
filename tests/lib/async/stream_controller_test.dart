@@ -53,7 +53,7 @@ testMultiController() {
   c = new StreamController.broadcast();
   expectedEvents = new Events()..add("abab")..error("error")..close();
   sentEvents = new Events()..add("ab")..error("error")..close();
-  actualEvents = new Events.capture(c.stream.mappedBy((v) => "$v$v"));
+  actualEvents = new Events.capture(c.stream.map((v) => "$v$v"));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -93,10 +93,10 @@ testMultiController() {
   expectedEvents =
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
   actualEvents = new Events.capture(c.stream.transform(
-      new StreamTransformer.from(
-          onData: (v, s) { s.signalError(new AsyncError(v)); },
-          onError: (e, s) { s.add(e.error); },
-          onDone: (s) {
+      new StreamTransformer(
+          handleData: (v, s) { s.signalError(new AsyncError(v)); },
+          handleError: (e, s) { s.add(e.error); },
+          handleDone: (s) {
             s.add("foo");
             s.close();
           })));
@@ -114,7 +114,7 @@ testMultiController() {
   expectedEvents = new Events()..add(42)..error("not FormatException");
   actualEvents = new Events.capture(
       c.stream.where((v) => v is String)
-       .mappedBy((v) => int.parse(v))
+       .map((v) => int.parse(v))
        .handleError((v) {
           if (v.error is! FormatException) throw v;
         })
@@ -194,7 +194,7 @@ testSingleController() {
   c = new StreamController();
   expectedEvents = new Events()..add("abab")..error("error")..close();
   sentEvents = new Events()..add("ab")..error("error")..close();
-  actualEvents = new Events.capture(c.stream.mappedBy((v) => "$v$v"));
+  actualEvents = new Events.capture(c.stream.map((v) => "$v$v"));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -240,16 +240,52 @@ testSingleController() {
   c.add(9);
   c.close();
 
+  // test contains.
+  {
+    c = new StreamController();
+    // Error after match is not important.
+    sentEvents = new Events()..add("a")..add("x")..error("FAIL")..close();
+    Future<bool> contains = c.stream.contains("x");
+    contains.then((var c) {
+      Expect.isTrue(c);
+    });
+    sentEvents.replay(c);
+  }
+
+  {
+    c = new StreamController();
+    // Not matching is ok.
+    sentEvents = new Events()..add("a")..add("x")..add("b")..close();
+    Future<bool> contains = c.stream.contains("y");
+    contains.then((var c) {
+      Expect.isFalse(c);
+    });
+    sentEvents.replay(c);
+  }
+
+  {
+    c = new StreamController();
+    // Error before match makes future err.
+    sentEvents = new Events()..add("a")..error("FAIL")..add("b")..close();
+    Future<bool> contains = c.stream.contains("b");
+    contains.then((var c) {
+      Expect.fail("no value expected");
+    }).catchError((AsyncError e) {
+      Expect.equals("FAIL", e.error);
+    });
+    sentEvents.replay(c);
+  }
+
   // Test transform.
   c = new StreamController();
   sentEvents = new Events()..add("a")..error(42)..add("b")..close();
   expectedEvents =
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
   actualEvents = new Events.capture(c.stream.transform(
-      new StreamTransformer.from(
-          onData: (v, s) { s.signalError(new AsyncError(v)); },
-          onError: (e, s) { s.add(e.error); },
-          onDone: (s) {
+      new StreamTransformer(
+          handleData: (v, s) { s.signalError(new AsyncError(v)); },
+          handleError: (e, s) { s.add(e.error); },
+          handleDone: (s) {
             s.add("foo");
             s.close();
           })));
@@ -267,7 +303,7 @@ testSingleController() {
   expectedEvents = new Events()..add(42)..error("not FormatException");
   actualEvents = new Events.capture(
       c.stream.where((v) => v is String)
-       .mappedBy((v) => int.parse(v))
+       .map((v) => int.parse(v))
        .handleError((v) {
           if (v.error is! FormatException) throw v;
         })

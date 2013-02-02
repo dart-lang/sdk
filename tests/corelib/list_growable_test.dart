@@ -33,28 +33,4 @@ main() {
   a.clear();
   Expect.equals(0, a.length);
   Expect.throws(() => a[0], (e) => e is RangeError);
-
-  a = new List.filled(42, -1);
-  Expect.equals(42, a.length);
-  a.add(499);
-  Expect.equals(43, a.length);
-  Expect.equals(499, a[42]);
-  for (int i = 0; i < 42; i++) {
-    Expect.equals(-1, a[i]);
-  }
-  a.clear();
-  Expect.equals(0, a.length);
-  Expect.throws(() => a[0], (e) => e is RangeError);
-
-  a = new List<int>.filled(42, -1);
-  Expect.equals(42, a.length);
-  a.add(499);
-  Expect.equals(43, a.length);
-  Expect.equals(499, a[42]);
-  for (int i = 0; i < 42; i++) {
-    Expect.equals(-1, a[i]);
-  }
-  a.clear();
-  Expect.equals(0, a.length);
-  Expect.throws(() => a[0], (e) => e is RangeError);
 }

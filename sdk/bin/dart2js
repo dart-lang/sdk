@@ -42,7 +42,7 @@ declare -a EXTRA_VM_OPTIONS
 if test -f "$SNAPSHOT"; then
   # TODO(ahe): Remove the following line when we are relatively sure it works.
   echo Using snapshot "$SNAPSHOT" 1>&2
-  EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]="--use_script_snapshot=$SNAPSHOT"
+  EXTRA_VM_OPTIONS[${#EXTRA_VM_OPTIONS[@]}]="--use-script-snapshot=$SNAPSHOT"
 fi
 
 # Tell the VM to grow the heap more aggressively. This should only

@@ -220,6 +220,7 @@ class FlowGraphCompiler : public ValueObject {
   bool TryIntrinsify();
 
   void GenerateCallRuntime(intptr_t token_pos,
+                           intptr_t deopt_id,
                            const RuntimeEntry& entry,
                            LocationSummary* locs);
 
@@ -235,11 +236,13 @@ class FlowGraphCompiler : public ValueObject {
                         LocationSummary* locs);
 
   void GenerateAssertAssignable(intptr_t token_pos,
+                                intptr_t deopt_id,
                                 const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
   void GenerateInstanceOf(intptr_t token_pos,
+                          intptr_t deopt_id,
                           const AbstractType& type,
                           bool negate_result,
                           LocationSummary* locs);
@@ -394,6 +397,8 @@ class FlowGraphCompiler : public ValueObject {
                                                    Register index);
 
  private:
+  friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
+
   void EmitFrameEntry();
 
   void AddStaticCallTarget(const Function& function);

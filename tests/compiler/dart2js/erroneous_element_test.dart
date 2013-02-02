@@ -12,7 +12,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     show MessageKind;
 
 void main() {
-  ErroneousElement e = new ErroneousElementX(MessageKind.GENERIC, ['error'],
+  ErroneousElement e = new ErroneousElementX(MessageKind.GENERIC,
+                                             {'text': 'error'},
                                              buildSourceString('foo'), null);
   Expect.stringEquals('<foo: error>', '$e');
 }

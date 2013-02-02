@@ -185,6 +185,7 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary() const {
 
 static void EmitAssertBoolean(Register reg,
                               intptr_t token_pos,
+                              intptr_t deopt_id,
                               LocationSummary* locs,
                               FlowGraphCompiler* compiler) {
   // Check that the type of the value is allowed in conditional context.
@@ -198,6 +199,7 @@ static void EmitAssertBoolean(Register reg,
 
   __ pushl(reg);  // Push the source object.
   compiler->GenerateCallRuntime(token_pos,
+                                deopt_id,
                                 kConditionTypeErrorRuntimeEntry,
                                 locs);
   // We should never return here.
@@ -211,7 +213,7 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   if (!is_eliminated()) {
-    EmitAssertBoolean(obj, token_pos(), locs(), compiler);
+    EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
   }
   ASSERT(obj == result);
 }
@@ -238,6 +240,7 @@ void ArgumentDefinitionTestInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(formal_parameter_name());
   __ pushl(saved_args_desc);
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kArgumentDefinitionTestRuntimeEntry,
                                 locs());
   __ Drop(3);
@@ -498,7 +501,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
         }
       } else {
         if (branch->is_checked()) {
-          EmitAssertBoolean(EAX, token_pos, locs, compiler);
+          EmitAssertBoolean(EAX, token_pos, deopt_id, locs, compiler);
         }
         __ CompareObject(EAX, Bool::True());
         branch->EmitBranchOnCondition(compiler, cond);
@@ -869,7 +872,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                              locs(),
                              *ic_data());
   if (branch->is_checked()) {
-    EmitAssertBoolean(EAX, token_pos(), locs(), compiler);
+    EmitAssertBoolean(EAX, token_pos(), deopt_id(), locs(), compiler);
   }
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
   __ CompareObject(EAX, Bool::True());
@@ -1110,8 +1113,10 @@ intptr_t LoadIndexedInstr::ResultCid() const {
       return kSmiCid;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
-      // Result can be smi or mint when boxed.
-      return kDynamicCid;
+      // Result can be Smi or Mint when boxed.
+      // Instruction can deoptimize if we optimistically assumed that the result
+      // fits into Smi.
+      return CanDeoptimize() ? kSmiCid : kDynamicCid;
     default:
       UNIMPLEMENTED();
       return kDynamicCid;
@@ -1134,7 +1139,9 @@ Representation LoadIndexedInstr::representation() const {
       return kTagged;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
-      return kUnboxedMint;
+      // Instruction can deoptimize if we optimistically assumed that the result
+      // fits into Smi.
+      return CanDeoptimize() ? kTagged : kUnboxedMint;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
       return kUnboxedDouble;
@@ -1181,9 +1188,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(index.reg());
     }
     __ movl(result,
-            FieldAddress(array, ExternalUint8Array::external_data_offset()));
-    __ movl(result,
-            Address(result, ExternalByteArrayData<uint8_t>::data_offset()));
+            FieldAddress(array, ExternalUint8Array::data_offset()));
     __ movzxb(result, element_address);
     __ SmiTag(result);
     if (index.IsRegister()) {
@@ -1249,6 +1254,24 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTwoByteStringCid:
       __ movzxw(result, element_address);
       __ SmiTag(result);
+      break;
+    case kInt32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptInt32Load);
+        __ movl(result, element_address);
+        // Verify that the signed value in 'result' can fit inside a Smi.
+        __ cmpl(result, Immediate(0xC0000000));
+        __ j(NEGATIVE, deopt);
+        __ SmiTag(result);
+      }
+      break;
+    case kUint32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptUint32Load);
+        __ movl(result, element_address);
+        // Verify that the unsigned value in 'result' can fit inside a Smi.
+        __ testl(result, Immediate(0xC0000000));
+        __ j(NOT_ZERO, deopt);
+        __ SmiTag(result);
+      }
       break;
     default:
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
@@ -1523,6 +1546,7 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(2).reg() == EDX);  // Instantiator type arguments.
 
   compiler->GenerateInstanceOf(token_pos(),
+                               deopt_id(),
                                type(),
                                negate_result(),
                                locs());
@@ -1585,6 +1609,7 @@ void AllocateObjectWithBoundsCheckInstr::EmitNativeCode(
   __ pushl(type_arguments);
   __ pushl(instantiator_type_arguments);
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kAllocateObjectWithBoundsCheckRuntimeEntry,
                                 locs());
   // Pop instantiator type arguments, type arguments, and class.
@@ -1660,6 +1685,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ PushObject(type_arguments());
   __ pushl(instantiator_reg);  // Push instantiator type arguments.
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kInstantiateTypeArgumentsRuntimeEntry,
                                 locs());
   __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
@@ -1838,6 +1864,7 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushl(context_value);
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kCloneContextRuntimeEntry,
                                 locs());
   __ popl(result);  // Remove argument.
@@ -1892,9 +1919,15 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
     compiler->SaveLiveRegisters(instruction_->locs());
+    // pending_deoptimization_env_ is needed to generate a runtime call that
+    // may throw an exception.
+    ASSERT(compiler->pending_deoptimization_env_ == NULL);
+    compiler->pending_deoptimization_env_ = instruction_->env();
     compiler->GenerateCallRuntime(instruction_->token_pos(),
+                                  instruction_->deopt_id(),
                                   kStackOverflowRuntimeEntry,
                                   instruction_->locs());
+    compiler->pending_deoptimization_env_ = NULL;
     compiler->RestoreLiveRegisters(instruction_->locs());
     __ jmp(exit_label());
   }
@@ -2679,7 +2712,7 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RegisterOrSmiConstant(array()));
+  locs->set_in(0, Location::RegisterOrSmiConstant(length()));
   locs->set_in(1, Location::RegisterOrSmiConstant(index()));
   return locs;
 }
@@ -2695,29 +2728,24 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  intptr_t length_offset = LengthOffsetFor(array_type());
   if (locs()->in(1).IsConstant()) {
-    Register receiver = locs()->in(0).reg();
+    Register length = locs()->in(0).reg();
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
     const int32_t imm =
         reinterpret_cast<int32_t>(constant.raw());
-    __ cmpl(FieldAddress(receiver, length_offset), Immediate(imm));
+    __ cmpl(length, Immediate(imm));
     __ j(BELOW_EQUAL, deopt);
   } else if (locs()->in(0).IsConstant()) {
-    ASSERT(locs()->in(0).constant().IsArray() ||
-           locs()->in(0).constant().IsString());
-    intptr_t length = locs()->in(0).constant().IsArray()
-        ? Array::Cast(locs()->in(0).constant()).Length()
-        : String::Cast(locs()->in(0).constant()).Length();
+    ASSERT(locs()->in(0).constant().IsSmi());
+    const Smi& smi_const = Smi::Cast(locs()->in(0).constant());
     Register index = locs()->in(1).reg();
-    __ cmpl(index,
-        Immediate(reinterpret_cast<int32_t>(Smi::New(length))));
+    __ cmpl(index, Immediate(reinterpret_cast<int32_t>(smi_const.raw())));
     __ j(ABOVE_EQUAL, deopt);
   } else {
-    Register receiver = locs()->in(0).reg();
+    Register length = locs()->in(0).reg();
     Register index = locs()->in(1).reg();
-    __ cmpl(index, FieldAddress(receiver, length_offset));
+    __ cmpl(index, length);
     __ j(ABOVE_EQUAL, deopt);
   }
 }
@@ -3030,6 +3058,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kThrowRuntimeEntry,
                                 locs());
   __ int3();
@@ -3043,6 +3072,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
                                 kReThrowRuntimeEntry,
                                 locs());
   __ int3();

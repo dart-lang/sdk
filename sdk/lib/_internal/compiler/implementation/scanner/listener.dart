@@ -1919,12 +1919,6 @@ class PartialFunctionElement extends FunctionElementX {
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    if (patch == null) {
-      if (modifiers.isExternal()) {
-        listener.cancel("External method without an implementation",
-                        element: this);
-      }
-    }
     parseFunction(Parser p) {
       if (isMember() && modifiers.isFactory()) {
         p.parseFactoryMethod(beginToken);

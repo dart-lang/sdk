@@ -627,47 +627,57 @@ void Instruction::RecordAssignedVars(BitVector* assigned_vars,
 
 
 void Value::AddToInputUseList() {
-  set_next_use(definition()->input_use_list());
+  Value* next = definition()->input_use_list();
   definition()->set_input_use_list(this);
+  set_next_use(next);
+  set_previous_use(NULL);
+  if (next != NULL) next->set_previous_use(this);
 }
 
 
 void Value::AddToEnvUseList() {
-  set_next_use(definition()->env_use_list());
+  Value* next = definition()->env_use_list();
   definition()->set_env_use_list(this);
+  set_next_use(next);
+  set_previous_use(NULL);
+  if (next != NULL) next->set_previous_use(this);
 }
 
 
 void Value::RemoveFromInputUseList() {
-  if (definition_->input_use_list() == this) {
-    definition_->set_input_use_list(next_use_);
-    return;
+  Value* previous = previous_use();
+  Value* next = next_use();
+  if (previous == NULL) {
+    definition()->set_input_use_list(next);
+  } else {
+    previous->set_next_use(next);
   }
-
-  Value* prev = definition_->input_use_list();
-  while (prev->next_use_ != this) {
-    prev = prev->next_use_;
-  }
-  prev->next_use_ = next_use_;
-  definition_ = NULL;
+  if (next != NULL) next->set_previous_use(previous);
+  set_definition(NULL);
 }
 
 
 void Definition::ReplaceUsesWith(Definition* other) {
   ASSERT(other != NULL);
   ASSERT(this != other);
-  while (input_use_list_ != NULL) {
-    Value* current = input_use_list_;
-    input_use_list_ = input_use_list_->next_use();
+  Value* next = input_use_list();
+  while (next != NULL) {
+    Value* current = next;
+    next = current->next_use();
     current->set_definition(other);
     current->AddToInputUseList();
   }
-  while (env_use_list_ != NULL) {
-    Value* current = env_use_list_;
-    env_use_list_ = env_use_list_->next_use();
+
+  next = env_use_list();
+  while (next != NULL) {
+    Value* current = next;
+    next = current->next_use();
     current->set_definition(other);
     current->AddToEnvUseList();
   }
+
+  set_input_use_list(NULL);
+  set_env_use_list(NULL);
 }
 
 
@@ -1654,6 +1664,64 @@ Definition* Definition::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
+bool LoadFieldInstr::IsImmutableLengthLoad() const {
+  switch (recognized_kind()) {
+    case MethodRecognizer::kObjectArrayLength:
+    case MethodRecognizer::kImmutableArrayLength:
+    case MethodRecognizer::kByteArrayBaseLength:
+    case MethodRecognizer::kStringBaseLength:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
+MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
+    intptr_t cid) {
+  switch (cid) {
+    case kArrayCid:
+      return MethodRecognizer::kObjectArrayLength;
+    case kImmutableArrayCid:
+      return MethodRecognizer::kImmutableArrayLength;
+    case kGrowableObjectArrayCid:
+      return MethodRecognizer::kGrowableArrayLength;
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kExternalUint8ArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+    case kInt64ArrayCid:
+    case kUint64ArrayCid:
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid:
+      return MethodRecognizer::kByteArrayBaseLength;
+    default:
+      UNREACHABLE();
+      return MethodRecognizer::kUnknown;
+  }
+}
+
+
+Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  if (!IsImmutableLengthLoad()) return this;
+
+  // For fixed length arrays if the array is the result of a known constructor
+  // call we can replace the length load with the length argument passed to
+  // the constructor.
+  StaticCallInstr* call = value()->definition()->AsStaticCall();
+  if (call != NULL &&
+      call->is_known_constructor() &&
+      call->ResultCid() == kArrayCid) {
+    return call->ArgumentAt(1)->value()->definition();
+  }
+  return this;
+}
+
+
 Definition* AssertBooleanInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   const intptr_t value_cid = value()->ResultCid();
   return (value_cid == kBoolCid) ? value()->definition() : this;
@@ -2010,6 +2078,7 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!is_eliminated()) {
     compiler->GenerateAssertAssignable(token_pos(),
+                                       deopt_id(),
                                        dst_type(),
                                        dst_name(),
                                        locs());
@@ -2123,7 +2192,10 @@ static Definition* UnwrapConstraint(Definition* defn) {
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);
-  return (a == b) || (!a->AffectedBySideEffect() && a->Equals(b));
+  return (a == b) ||
+      (!a->AffectedBySideEffect() &&
+       !b->AffectedBySideEffect() &&
+       a->Equals(b));
 }
 
 
@@ -2497,9 +2569,7 @@ static bool SymbolicAdd(const RangeBoundary& a,
 
 static bool IsArrayLength(Definition* defn) {
   LoadFieldInstr* load = defn->AsLoadField();
-  return (load != NULL) &&
-      ((load->recognized_kind() == MethodRecognizer::kObjectArrayLength) ||
-       (load->recognized_kind() == MethodRecognizer::kImmutableArrayLength));
+  return (load != NULL) && load->IsImmutableLengthLoad();
 }
 
 
@@ -2718,8 +2788,8 @@ extern const RuntimeEntry kPowRuntimeEntry(
         static_cast<BinaryMathCFunction>(&pow)), 0, true);
 
 extern const RuntimeEntry kModRuntimeEntry(
-    "libc_fmod", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&fmod)), 0, true);
+    "DartModulo", reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&DartModulo)), 0, true);
 
 extern const RuntimeEntry kFloorRuntimeEntry(
     "libc_floor", reinterpret_cast<RuntimeFunction>(

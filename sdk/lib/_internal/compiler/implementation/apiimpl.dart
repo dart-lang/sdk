@@ -24,12 +24,17 @@ class Compiler extends leg.Compiler {
   bool mockableLibraryUsed = false;
   final Set<String> allowedLibraryCategories;
 
-  Compiler(this.provider, this.handler, this.libraryRoot, this.packageRoot,
+  Compiler(this.provider,
+           api.CompilerOutputProvider outputProvider,
+           this.handler,
+           this.libraryRoot,
+           this.packageRoot,
            List<String> options)
       : this.options = options,
         this.allowedLibraryCategories = getAllowedLibraryCategories(options),
         super(
             tracer: new ssa.HTracer(),
+            outputProvider: outputProvider,
             enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
             enableMinification: hasOption(options, '--minify'),

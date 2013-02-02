@@ -6,7 +6,6 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 7520.
-io/test_runner_test: Pass, Fail # Issue 1947
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -22,7 +21,11 @@ io/directory_fuzz_test: Skip
 [ $runtime == vm && $system == macos && $arch == x64 ]
 io/regress_7191_test: Pass, Timeout # http://dartbug.com/8091
 
-[ $runtime == vm && $system == macos ]
+[ $runtime == vm ]
+# Fails with a connection refused error on the buildbot.
+# Issue 8232.
+debugger/basic_debugger_test: Pass, Fail
+
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
@@ -41,12 +44,6 @@ io/process_non_ascii_test: Pass, Fail
 
 [ $runtime == vm && $system == windows ]
 io/file_system_links_test: Skip  # No links on Windows.
-io/test_extension_fail_test: Fail  # Issue 7157
-io/secure_no_builtin_roots_test: Pass, Crash  # Issue 7157
-io/secure_socket_bad_certificate_test: Pass, Crash, Fail, Timeout  # Issue 7157
-io/directory_list_nonexistent_test: Skip # Issue 7157
-io/web_socket_test: Skip # Issue 7157
-io/web_socket_no_secure_test: Pass # Issue 7157 - Remove test when fixed.
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser

@@ -191,7 +191,7 @@ void renamePlaceholders(
           sorted(functionScope.localPlaceholders,
               compareBy((LocalPlaceholder ph) => -ph.nodes.length));
       List<Set<Node>> currentSortedNodes =
-          currentSortedPlaceholders.mappedBy((ph) => ph.nodes).toList();
+          currentSortedPlaceholders.map((ph) => ph.nodes).toList();
       // Make room in all sorted locals list for new stuff.
       while (currentSortedNodes.length > allSortedLocals.length) {
         allSortedLocals.add(new Set<Node>());

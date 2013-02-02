@@ -1857,6 +1857,23 @@ class HLoopBranch extends HConditionalBranch {
   bool isDoWhile() {
     return identical(kind, DO_WHILE_LOOP);
   }
+
+  HBasicBlock computeLoopHeader() {
+    HBasicBlock result;
+    if (isDoWhile()) {
+      // In case of a do/while, the successor is a block that avoids
+      // a critical edge and branchs to the loop header.
+      result = block.successors[0].successors[0];
+    } else {
+      // For other loops, the loop header might be up the dominator
+      // tree if the loop condition has control flow.
+      result = block;
+      while (!result.isLoopHeader()) result = result.dominator;
+    }
+
+    assert(result.isLoopHeader());
+    return result;
+  }
 }
 
 class HConstant extends HInstruction {
@@ -2589,7 +2606,10 @@ class HLoopBlockInformation implements HStatementInformation {
                         this.target,
                         this.labels,
                         this.sourcePosition,
-                        this.endSourcePosition);
+                        this.endSourcePosition) {
+    assert(
+        (kind == DO_WHILE_LOOP ? body.start : condition.start).isLoopHeader());
+  }
 
   HBasicBlock get start {
     if (initializer != null) return initializer.start;
@@ -2614,6 +2634,8 @@ class HLoopBlockInformation implements HStatementInformation {
   static int loopType(Node node) {
     return node.accept(const LoopTypeVisitor());
   }
+
+  bool isDoWhile() => kind == DO_WHILE_LOOP;
 
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitLoopInfo(this);

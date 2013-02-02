@@ -44,6 +44,8 @@ abstract class CssClassSet implements Set<String> {
 
   String join([String separator]) => readClasses().join(separator);
 
+  Iterable map(f(String element)) => readClasses().map(f);
+
   Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
@@ -141,7 +143,7 @@ abstract class CssClassSet implements Set<String> {
    * Helper method used to modify the set of css classes on this element.
    *
    *   f - callback with:
-   *      s - a Set of all the css class name currently on this element.
+   *   s - a Set of all the css class name currently on this element.
    *
    *   After f returns, the modified set is written to the
    *       className property of this element.

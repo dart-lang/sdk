@@ -30,4 +30,10 @@ void main() {
   Expect.equals(998, foreign2());
   Expect.equals('1234567891011',
       foreign11('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'));
+  // Ensure there will be isNaN and NaN variable names.
+  var isNaN = called ? 42 : 44;
+  var NaN = called ? 52 : 54;
+  Expect.isFalse(JS('bool', 'isNaN(#)', isNaN));
+  Expect.isFalse(JS('bool', 'isNaN(#)', NaN));
+  Expect.isTrue(JS('bool', 'isNaN(#)', double.NAN));
 }

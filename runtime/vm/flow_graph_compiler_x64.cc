@@ -459,6 +459,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Returns:
 // - true or false in RAX.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
+                                           intptr_t deopt_id,
                                            const AbstractType& type,
                                            bool negate_result,
                                            LocationSummary* locs) {
@@ -501,7 +502,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ pushq(RDX);  // Instantiator type arguments.
     __ LoadObject(RAX, test_cache);
     __ pushq(RAX);
-    GenerateCallRuntime(token_pos, kInstanceofRuntimeEntry, locs);
+    GenerateCallRuntime(token_pos, deopt_id, kInstanceofRuntimeEntry, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ Drop(5);
@@ -541,6 +542,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 // Performance notes: positive checks must be quick, negative checks can be slow
 // as they throw an exception.
 void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
+                                                 intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
@@ -569,6 +571,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(error_message);
     GenerateCallRuntime(token_pos,
+                        deopt_id,
                         kMalformedTypeErrorRuntimeEntry,
                         locs);
     // We should never return here.
@@ -596,7 +599,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(RAX, test_cache);
   __ pushq(RAX);
-  GenerateCallRuntime(token_pos, kTypeCheckRuntimeEntry, locs);
+  GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(6);
@@ -1095,11 +1098,25 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
 
 
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
+                                            intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
   __ CallRuntime(entry);
-  AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
+  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
+  if (deopt_id != Isolate::kNoDeoptId) {
+    // Marks either the continuation point in unoptimized code or the
+    // deoptimization point in optimized code, after call.
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id, token_pos);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
+                           deopt_id,
+                           token_pos);
+    }
+  }
 }
 
 

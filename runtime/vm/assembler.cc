@@ -13,6 +13,10 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, code_comments, false,
+            "Include comments into code and disassembly");
+
+
 static uword NewContents(intptr_t capacity) {
   Zone* zone = Isolate::Current()->current_zone();
   uword result = zone->AllocUnsafe(capacity);
@@ -183,6 +187,33 @@ void Assembler::Unreachable(const char* message) {
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
   OS::SNPrint(buffer, len + 1, format, message);
   Stop(buffer);
+}
+
+
+void Assembler::Comment(const char* format, ...) {
+  if (FLAG_code_comments) {
+    char buffer[1024];
+
+    va_list args;
+    va_start(args, format);
+    OS::VSNPrint(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+    comments_.Add(new CodeComment(buffer_.GetPosition(),
+                                  String::Handle(String::New(buffer))));
+  }
+}
+
+
+const Code::Comments& Assembler::GetCodeComments() const {
+  Code::Comments& comments = Code::Comments::New(comments_.length());
+
+  for (intptr_t i = 0; i < comments_.length(); i++) {
+    comments.SetPCOffsetAt(i, comments_[i]->pc_offset());
+    comments.SetCommentAt(i, comments_[i]->comment());
+  }
+
+  return comments;
 }
 
 }  // namespace dart

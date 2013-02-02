@@ -29,7 +29,9 @@ const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
  *           comment: "$comment"
  *           members: {
  *             $member: [
- *               $comment1,
+ *               [$comment1line1,
+ *                $comment1line2,
+ *                ...],
  *               ...
  *             ],
  *             ...
@@ -85,7 +87,7 @@ Map _generateJsonFromLibraries(Compilation compilation) {
 
     var libraryJson = {};
     var sortedClasses = _sortAndFilterMirrors(
-        libMirror.classes.values.toList());
+        libMirror.classes.values.toList(), ignoreDocsEditable: true);
 
     for (ClassMirror classMirror in sortedClasses) {
       var classJson = {};
@@ -95,7 +97,8 @@ Map _generateJsonFromLibraries(Compilation compilation) {
       var membersJson = {};
       for (var memberMirror in sortedMembers) {
         var memberDomName = domNames(memberMirror)[0];
-        var memberComment = computeUntrimmedCommentAsList(memberMirror);
+        var memberComment = _splitCommentsByNewline(
+            computeUntrimmedCommentAsList(memberMirror));
 
         // Remove interface name from Dom Name.
         if (memberDomName.indexOf('.') >= 0) {
@@ -107,8 +110,11 @@ Map _generateJsonFromLibraries(Compilation compilation) {
         }
       }
 
-      var classComment = computeUntrimmedCommentAsList(classMirror);
-      if (!classComment.isEmpty) {
+      // Only include the comment if DocsEditable is set.
+      var classComment = _splitCommentsByNewline(
+          computeUntrimmedCommentAsList(classMirror));
+      if (!classComment.isEmpty &&
+          findMetadata(classMirror.metadata, 'DocsEditable') != null) {
         classJson.putIfAbsent('comment', () => classComment);
       }
       if (!membersJson.isEmpty) {
@@ -131,13 +137,19 @@ Map _generateJsonFromLibraries(Compilation compilation) {
   return convertedJson;
 }
 
-List<DeclarationMirror> _sortAndFilterMirrors(List<DeclarationMirror> mirrors) {
-  // Filter out mirrors that are private, or which are not part of this docs
-  // process. That is, ones without the DocsEditable annotation.
+/// Filter out mirrors that are private, or which are not part of this docs
+/// process. That is, ones without the DocsEditable annotation.
+/// If [ignoreDocsEditable] is true, relax the restriction on @DocsEditable.
+/// This is to account for classes that are defined in a template, but whose
+/// members are generated.
+List<DeclarationMirror> _sortAndFilterMirrors(List<DeclarationMirror> mirrors,
+    {ignoreDocsEditable: false}) {
+
   var filteredMirrors = mirrors.where((DeclarationMirror c) =>
       !domNames(c).isEmpty &&
       !c.displayName.startsWith('_') &&
-      (findMetadata(c.metadata, 'DocsEditable') != null))
+      (!ignoreDocsEditable ? (findMetadata(c.metadata, 'DocsEditable') != null)
+          : true))
       .toList();
 
   filteredMirrors.sort((x, y) =>
@@ -145,6 +157,16 @@ List<DeclarationMirror> _sortAndFilterMirrors(List<DeclarationMirror> mirrors) {
     domNames(y)[0].toUpperCase()));
 
   return filteredMirrors;
+}
+
+List<String> _splitCommentsByNewline(List<String> comments) {
+  var out = [];
+
+  comments.forEach((c) {
+    out.addAll(c.split(new RegExp('\n')));
+  });
+
+  return out;
 }
 
 /// Given the class mirror, returns the names found or an empty list.

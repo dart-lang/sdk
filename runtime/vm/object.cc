@@ -273,6 +273,16 @@ static type SpecialCharacter(type value) {
 }
 
 
+static void DeleteWeakPersistentHandle(Dart_Handle handle) {
+  ApiState* state = Isolate::Current()->api_state();
+  ASSERT(state != NULL);
+  FinalizablePersistentHandle* weak_ref =
+      reinterpret_cast<FinalizablePersistentHandle*>(handle);
+  ASSERT(state->IsValidWeakPersistentHandle(handle));
+  state->weak_persistent_handles().FreeHandle(weak_ref);
+}
+
+
 void Object::InitOnce() {
   // TODO(iposva): NoGCScope needs to be added here.
   ASSERT(class_class() == null_);
@@ -1281,6 +1291,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
                             Heap::Space space) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->no_callback_scope_depth() == 0);
   Heap* heap = isolate->heap();
 
   uword address = heap->Allocate(size, space);
@@ -1300,14 +1311,15 @@ RawObject* Object::Allocate(intptr_t cls_id,
 }
 
 
-class StoreBufferObjectPointerVisitor : public ObjectPointerVisitor {
+class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
  public:
-  explicit StoreBufferObjectPointerVisitor(Isolate* isolate) :
-      ObjectPointerVisitor(isolate) {
-  }
+  explicit StoreBufferUpdateVisitor(Isolate* isolate) :
+      ObjectPointerVisitor(isolate) { }
+
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** curr = first; curr <= last; ++curr) {
-      if ((*curr)->IsNewObject()) {
+      RawObject* raw_obj = *curr;
+      if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         uword ptr = reinterpret_cast<uword>(curr);
         isolate()->store_buffer()->AddPointer(ptr);
       }
@@ -1315,7 +1327,7 @@ class StoreBufferObjectPointerVisitor : public ObjectPointerVisitor {
   }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(StoreBufferObjectPointerVisitor);
+  DISALLOW_COPY_AND_ASSIGN(StoreBufferUpdateVisitor);
 };
 
 
@@ -1337,7 +1349,7 @@ RawObject* Object::Clone(const Object& src, Heap::Space space) {
   NoGCScope no_gc;
   memmove(raw_obj->ptr(), src.raw()->ptr(), size);
   if (space == Heap::kOld) {
-    StoreBufferObjectPointerVisitor visitor(Isolate::Current());
+    StoreBufferUpdateVisitor visitor(Isolate::Current());
     raw_obj->VisitPointers(&visitor);
   }
   return raw_obj;
@@ -4748,9 +4760,10 @@ void TokenStream::SetStream(const ExternalUint8Array& value) const {
 }
 
 
-void TokenStream::DataFinalizer(void *peer) {
+void TokenStream::DataFinalizer(Dart_Handle handle, void *peer) {
   ASSERT(peer != NULL);
   ::free(peer);
+  DeleteWeakPersistentHandle(handle);
 }
 
 
@@ -4966,7 +4979,8 @@ RawTokenStream* TokenStream::New(intptr_t len) {
   uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
   ASSERT(data != NULL);
   const ExternalUint8Array& stream = ExternalUint8Array::Handle(
-      ExternalUint8Array::New(data, len, data, DataFinalizer, Heap::kOld));
+      ExternalUint8Array::New(data, len, Heap::kOld));
+  stream.AddFinalizer(data, DataFinalizer);
   const TokenStream& result = TokenStream::Handle(TokenStream::New());
   result.SetStream(stream);
   return result.raw();
@@ -5139,11 +5153,8 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
 
   // Create and setup the token stream object.
   const ExternalUint8Array& stream = ExternalUint8Array::Handle(
-      ExternalUint8Array::New(data.GetStream(),
-                              data.Length(),
-                              data.GetStream(),
-                              DataFinalizer,
-                              Heap::kOld));
+      ExternalUint8Array::New(data.GetStream(), data.Length(), Heap::kOld));
+  stream.AddFinalizer(data.GetStream(), DataFinalizer);
   const TokenStream& result = TokenStream::Handle(New());
   result.SetPrivateKey(private_key);
   {
@@ -9316,14 +9327,28 @@ bool Type::HasResolvedTypeClass() const {
 
 RawClass* Type::type_class() const {
   ASSERT(HasResolvedTypeClass());
+#ifdef DEBUG
+  Class& type_class = Class::Handle();
+  type_class ^= raw_ptr()->type_class_;
+  return type_class.raw();
+#else
   return reinterpret_cast<RawClass*>(raw_ptr()->type_class_);
+#endif
 }
 
 
 RawUnresolvedClass* Type::unresolved_class() const {
+  ASSERT(!HasResolvedTypeClass());
+#ifdef DEBUG
+  UnresolvedClass& unresolved_class = UnresolvedClass::Handle();
+  unresolved_class ^= raw_ptr()->type_class_;
+  ASSERT(!unresolved_class.IsNull());
+  return unresolved_class.raw();
+#else
   ASSERT(!Object::Handle(raw_ptr()->type_class_).IsNull());
   ASSERT(Object::Handle(raw_ptr()->type_class_).IsUnresolvedClass());
   return reinterpret_cast<RawUnresolvedClass*>(raw_ptr()->type_class_);
+#endif
 }
 
 
@@ -10987,10 +11012,12 @@ void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
 }
 
 
-static void AddFinalizer(const Object& referent,
-                         void* peer,
-                         Dart_WeakPersistentHandleFinalizer callback) {
-  ASSERT(callback != NULL);
+static FinalizablePersistentHandle* AddFinalizer(
+    const Object& referent,
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback) {
+  ASSERT((callback != NULL && peer != NULL) ||
+         (callback == NULL && peer == NULL));
   ApiState* state = Isolate::Current()->api_state();
   ASSERT(state != NULL);
   FinalizablePersistentHandle* weak_ref =
@@ -10998,6 +11025,7 @@ static void AddFinalizer(const Object& referent,
   weak_ref->set_raw(referent);
   weak_ref->set_peer(peer);
   weak_ref->set_callback(callback);
+  return weak_ref;
 }
 
 
@@ -11601,16 +11629,6 @@ RawExternalOneByteString* ExternalOneByteString::New(
 }
 
 
-static void DeleteWeakPersistentHandle(Dart_Handle handle) {
-  ApiState* state = Isolate::Current()->api_state();
-  ASSERT(state != NULL);
-  FinalizablePersistentHandle* weak_ref =
-      reinterpret_cast<FinalizablePersistentHandle*>(handle);
-  ASSERT(state->IsValidWeakPersistentHandle(handle));
-  state->weak_persistent_handles().FreeHandle(weak_ref);
-}
-
-
 void ExternalOneByteString::Finalize(Dart_Handle handle, void* peer) {
   delete reinterpret_cast<ExternalStringData<uint8_t>*>(peer);
   DeleteWeakPersistentHandle(handle);
@@ -11966,19 +11984,10 @@ void ByteArray::Copy(const ByteArray& dst,
 }
 
 
-template<typename T>
-static void ExternalByteArrayFinalize(Dart_Handle handle, void* peer) {
-  delete reinterpret_cast<ExternalByteArrayData<T>*>(peer);
-  DeleteWeakPersistentHandle(handle);
-}
-
-
 template<typename HandleT, typename RawT, typename ElementT>
 RawT* ByteArray::NewExternalImpl(intptr_t class_id,
                                  ElementT* data,
                                  intptr_t len,
-                                 void* peer,
-                                 Dart_PeerFinalizer callback,
                                  Heap::Space space) {
   if (len < 0 || len > HandleT::kMaxElements) {
     // This should be caught before we reach here.
@@ -11986,16 +11995,13 @@ RawT* ByteArray::NewExternalImpl(intptr_t class_id,
            len);
   }
   HandleT& result = HandleT::Handle();
-  ExternalByteArrayData<ElementT>* external_data =
-      new ExternalByteArrayData<ElementT>(data, peer, callback);
   {
     RawObject* raw = Object::Allocate(class_id, HandleT::InstanceSize(), space);
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(len);
-    result.SetExternalData(external_data);
+    result.SetData(data);
   }
-  AddFinalizer(result, external_data, ExternalByteArrayFinalize<ElementT>);
   return result.raw();
 }
 
@@ -12004,6 +12010,14 @@ intptr_t ByteArray::ByteLength() const {
   // ByteArray is an abstract class.
   UNREACHABLE();
   return 0;
+}
+
+
+FinalizablePersistentHandle* ByteArray::AddFinalizer(
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback) const {
+  SetPeer(peer);
+  return dart::AddFinalizer(*this, peer, callback);
 }
 
 
@@ -12302,13 +12316,11 @@ const char* Float64Array::ToCString() const {
 
 RawExternalInt8Array* ExternalInt8Array::New(int8_t* data,
                                              intptr_t len,
-                                             void* peer,
-                                             Dart_PeerFinalizer callback,
                                              Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_int8_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalInt8Array, RawExternalInt8Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalInt8Array,
+                         RawExternalInt8Array>(kClassId, data, len, space);
 }
 
 
@@ -12319,13 +12331,11 @@ const char* ExternalInt8Array::ToCString() const {
 
 RawExternalUint8Array* ExternalUint8Array::New(uint8_t* data,
                                                intptr_t len,
-                                               void* peer,
-                                               Dart_PeerFinalizer callback,
                                                Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_uint8_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalUint8Array, RawExternalUint8Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalUint8Array,
+                         RawExternalUint8Array>(kClassId, data, len, space);
 }
 
 
@@ -12337,14 +12347,13 @@ const char* ExternalUint8Array::ToCString() const {
 RawExternalUint8ClampedArray* ExternalUint8ClampedArray::New(
     uint8_t* data,
     intptr_t len,
-    void* peer,
-    Dart_PeerFinalizer callback,
     Heap::Space space) {
   ASSERT(Isolate::Current()->
-             object_store()->external_uint8_clamped_array_class() !=
+         object_store()->external_uint8_clamped_array_class() !=
          Class::null());
   return NewExternalImpl<ExternalUint8ClampedArray,
-      RawExternalUint8ClampedArray>(kClassId, data, len, peer, callback, space);
+                         RawExternalUint8ClampedArray>(kClassId, data,
+                                                       len, space);
 }
 
 
@@ -12355,13 +12364,11 @@ const char* ExternalUint8ClampedArray::ToCString() const {
 
 RawExternalInt16Array* ExternalInt16Array::New(int16_t* data,
                                                intptr_t len,
-                                               void* peer,
-                                               Dart_PeerFinalizer callback,
                                                Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_int16_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalInt16Array, RawExternalInt16Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalInt16Array,
+                         RawExternalInt16Array>(kClassId, data, len, space);
 }
 
 
@@ -12372,13 +12379,11 @@ const char* ExternalInt16Array::ToCString() const {
 
 RawExternalUint16Array* ExternalUint16Array::New(uint16_t* data,
                                                  intptr_t len,
-                                                 void* peer,
-                                                 Dart_PeerFinalizer callback,
                                                  Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_uint16_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalUint16Array, RawExternalUint16Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalUint16Array,
+                         RawExternalUint16Array>(kClassId, data, len, space);
 }
 
 
@@ -12389,13 +12394,11 @@ const char* ExternalUint16Array::ToCString() const {
 
 RawExternalInt32Array* ExternalInt32Array::New(int32_t* data,
                                                intptr_t len,
-                                               void* peer,
-                                               Dart_PeerFinalizer callback,
                                                Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_int32_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalInt32Array, RawExternalInt32Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalInt32Array,
+                         RawExternalInt32Array>(kClassId, data, len, space);
 }
 
 
@@ -12406,13 +12409,11 @@ const char* ExternalInt32Array::ToCString() const {
 
 RawExternalUint32Array* ExternalUint32Array::New(uint32_t* data,
                                                  intptr_t len,
-                                                 void* peer,
-                                                 Dart_PeerFinalizer callback,
                                                  Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_uint32_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalUint32Array, RawExternalUint32Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalUint32Array,
+                         RawExternalUint32Array>(kClassId, data, len, space);
 }
 
 
@@ -12423,13 +12424,11 @@ const char* ExternalUint32Array::ToCString() const {
 
 RawExternalInt64Array* ExternalInt64Array::New(int64_t* data,
                                                intptr_t len,
-                                               void* peer,
-                                               Dart_PeerFinalizer callback,
                                                Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_int64_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalInt64Array, RawExternalInt64Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalInt64Array,
+                         RawExternalInt64Array>(kClassId, data, len, space);
 }
 
 
@@ -12440,13 +12439,11 @@ const char* ExternalInt64Array::ToCString() const {
 
 RawExternalUint64Array* ExternalUint64Array::New(uint64_t* data,
                                                  intptr_t len,
-                                                 void* peer,
-                                                 Dart_PeerFinalizer callback,
                                                  Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_uint64_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalUint64Array, RawExternalUint64Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalUint64Array,
+                         RawExternalUint64Array>(kClassId, data, len, space);
 }
 
 
@@ -12457,13 +12454,11 @@ const char* ExternalUint64Array::ToCString() const {
 
 RawExternalFloat32Array* ExternalFloat32Array::New(float* data,
                                                    intptr_t len,
-                                                   void* peer,
-                                                   Dart_PeerFinalizer callback,
                                                    Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_float32_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalFloat32Array, RawExternalFloat32Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalFloat32Array,
+                         RawExternalFloat32Array>(kClassId, data, len, space);
 }
 
 
@@ -12474,13 +12469,11 @@ const char* ExternalFloat32Array::ToCString() const {
 
 RawExternalFloat64Array* ExternalFloat64Array::New(double* data,
                                                    intptr_t len,
-                                                   void* peer,
-                                                   Dart_PeerFinalizer callback,
                                                    Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_float64_array_class() !=
          Class::null());
-  return NewExternalImpl<ExternalFloat64Array, RawExternalFloat64Array>(
-      kClassId, data, len, peer, callback, space);
+  return NewExternalImpl<ExternalFloat64Array,
+                         RawExternalFloat64Array>(kClassId, data, len, space);
 }
 
 

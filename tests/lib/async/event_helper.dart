@@ -6,7 +6,7 @@ library event_helper;
 
 import 'dart:async';
 
-class Event {
+abstract class Event {
   void replay(StreamSink sink);
 }
 
@@ -121,9 +121,6 @@ class Events implements StreamSink {
     throw new StateError("Not capturing events.");
   }
 
-  /** Whether the underlying subscription has been paused. */
-  bool get isPaused => false;
-
   /**
    * Sets an action to be called when this [Events] receives a 'done' event.
    */
@@ -164,8 +161,6 @@ class CaptureEvents extends Events {
   void resume() {
     subscription.resume();
   }
-
-  bool get isPaused => subscription.isPaused;
 
   void onDone(void action()) {
     onDoneSignal.future.whenComplete(action);

@@ -357,7 +357,7 @@ class Dartdoc {
     }
 
     startFile("apidoc.json");
-    var libraries = _sortedLibraries.mappedBy(
+    var libraries = _sortedLibraries.map(
         (lib) => new LibraryElement(lib.qualifiedName, lib))
         .toList();
     write(json_serializer.serialize(libraries));
@@ -1700,7 +1700,7 @@ class Dartdoc {
     final typeArgs = type.typeArguments;
     if (typeArgs.length > 0) {
       final args =
-          Strings.join(typeArgs.mappedBy((arg) => typeName(arg)), ', ');
+          Strings.join(typeArgs.map((arg) => typeName(arg)), ', ');
       return '${type.originalDeclaration.simpleName}&lt;$args&gt;';
     }
 

@@ -7,6 +7,7 @@
  */
 library unittest_html_config;
 
+import 'dart:async';
 import 'dart:html';
 import 'unittest.dart';
 
@@ -89,32 +90,28 @@ class HtmlConfiguration extends Configuration {
   final bool _isLayoutTest;
   HtmlConfiguration(this._isLayoutTest);
 
-  // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
-  EventListener _onErrorClosure;
-  EventListener _onMessageClosure;
+  StreamSubscription<Event> _onErrorSubscription;
+  StreamSubscription<Event> _onMessageSubscription;
 
   void _installHandlers() {
-    if (_onErrorClosure == null) {
-      _onErrorClosure =
-          (e) => handleExternalError(e, '(DOM callback has errors)');
-      // Listen for uncaught errors.
-      window.on.error.add(_onErrorClosure);
+    if (_onErrorSubscription == null) {
+      _onErrorSubscription = window.onError.listen(
+        (e) => handleExternalError(e, '(DOM callback has errors)'));
     }
-    if (_onMessageClosure == null) {
-      _onMessageClosure = (e) => processMessage(e);
-      // Listen for errors from JS.
-      window.on.message.add(_onMessageClosure);
+    if (_onMessageSubscription == null) {
+      _onMessageSubscription = window.onMessage.listen(
+        (e) => processMessage(e));
     }
   }
 
   void _uninstallHandlers() {
-    if (_onErrorClosure != null) {
-      window.on.error.remove(_onErrorClosure);
-      _onErrorClosure = null;
+    if (_onErrorSubscription != null) {
+      _onErrorSubscription.cancel();
+      _onErrorSubscription = null;
     }
-    if (_onMessageClosure != null) {
-      window.on.message.remove(_onMessageClosure);
-      _onMessageClosure = null;
+    if (_onMessageSubscription != null) {
+      _onMessageSubscription.cancel();
+      _onMessageSubscription = null;
     }
   }
 

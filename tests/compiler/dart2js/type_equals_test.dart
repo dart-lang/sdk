@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
+import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";

@@ -163,6 +163,10 @@ class _CommandLineParser {
       return args;
     }
 
+    //TODO(pquitslund): replace w/ the following once library skew issues are sorted out
+    //return args.where((arg) => !arg.startsWith('--') ||
+    //  _knownFlags.contains(arg.substring(2)));
+
     // Filter all unrecognized flags and options.
     var filtered = <String>[];
     for (var i=0; i < args.length; ++i) {

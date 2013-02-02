@@ -32,6 +32,6 @@ void main() {
   Expect.equals(1, compiler.warnings.length);
   Expect.equals(MessageKind.LIBRARY_NAME_MISMATCH,
                 compiler.warnings[0].message.kind);
-  Expect.equals("${MessageKind.LIBRARY_NAME_MISMATCH.error(['foo'])}",
-                compiler.warnings[0].message.toString());
+  Expect.equals('foo',
+      compiler.warnings[0].message.arguments['libraryName'].toString());
 }

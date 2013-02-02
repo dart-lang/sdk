@@ -229,6 +229,10 @@ abstract class _ByteArrayBase {
     }
   }
 
+  Iterable map(f(int element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
   List mappedBy(f(int element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -246,7 +250,7 @@ abstract class _ByteArrayBase {
     return IterableMixinWorkaround.where(this, f);
   }
 
-  List<int> take(int n) {
+  Iterable<int> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -254,7 +258,7 @@ abstract class _ByteArrayBase {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<int> skip(int n) {
+  Iterable<int> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 

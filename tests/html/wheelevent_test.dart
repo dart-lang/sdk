@@ -30,7 +30,7 @@ main() {
 
   test('wheelEvent', () {
     var element = new DivElement();
-    element.on.mouseWheel.add(expectAsync1((e) {
+    element.onMouseWheel.listen(expectAsync1((e) {
       expect(e.screenX, 100);
       expect(e.deltaX, 0);
       expect(e.deltaY, 240);

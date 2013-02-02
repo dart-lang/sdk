@@ -206,8 +206,9 @@ void main() {
     fs_upToDate.touchFile(fs_upToDate.testJs);
 
     void runTest(String name, FileUtils fileUtils, bool shouldRun) {
-      new runner.RunningProcess(makeTestCase(name,
-          new TestCompletedHandler(fileUtils, shouldRun))).start();
+      var testCase = makeTestCase(
+          name, new TestCompletedHandler(fileUtils, shouldRun));
+      new runner.RunningProcess(testCase, testCase.commands[0]).start();
     }
     runTest("fs_noTestJs", fs_noTestJs, true);
     runTest("fs_noTestJsDeps", fs_noTestJsDeps, true);

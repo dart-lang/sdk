@@ -191,6 +191,7 @@ class ObjectPointerVisitor;
   V(_instanceOf, "_instanceOf")                                                \
   V(PrivateGetterPrefix, "get:_")                                              \
   V(PrivateSetterPrefix, "set:_")                                              \
+  V(_New, "_new")                                                              \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

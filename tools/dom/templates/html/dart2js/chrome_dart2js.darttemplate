@@ -8,5 +8,11 @@
 library chrome;
 
 import 'dart:_foreign_helper' show JS;
+import 'dart:html_common';
+import 'dart:html';
 
-part '$AUXILIARY_DIR/chrome/sample.dart';
+part "$AUXILIARY_DIR/chrome/utils.dart";
+part "$AUXILIARY_DIR/chrome/chrome.dart";
+part "$AUXILIARY_DIR/chrome/app.runtime.dart";
+part "$AUXILIARY_DIR/chrome/app.window.dart";
+

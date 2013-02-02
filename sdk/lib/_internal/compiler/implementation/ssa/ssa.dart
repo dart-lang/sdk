@@ -9,6 +9,7 @@ import 'dart:collection';
 import '../closure.dart';
 import '../js/js.dart' as js;
 import '../dart2jslib.dart' hide Selector;
+import '../dart_types.dart';
 import '../source_file.dart';
 import '../source_map_builder.dart';
 import '../elements/elements.dart';

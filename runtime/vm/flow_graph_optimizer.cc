@@ -551,9 +551,19 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
     }
   }
   if (!skip_check) {
-    // Insert array bounds check.
+    // Insert array length load and bounds check.
+    const bool is_immutable = (class_id != kGrowableObjectArrayCid);
+    LoadFieldInstr* length = new LoadFieldInstr(
+        (*array)->Copy(),
+        CheckArrayBoundInstr::LengthOffsetFor(class_id),
+        Type::ZoneHandle(Type::SmiType()),
+        is_immutable);
+    length->set_result_cid(kSmiCid);
+    length->set_recognized_kind(
+        LoadFieldInstr::RecognizedKindFromArrayCid(class_id));
+    InsertBefore(call, length, NULL, Definition::kValue);
     InsertBefore(call,
-                 new CheckArrayBoundInstr((*array)->Copy(),
+                 new CheckArrayBoundInstr(new Value(length),
                                           (*index)->Copy(),
                                           class_id,
                                           call),
@@ -690,7 +700,11 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
                                   type_args,
                                   value_type,
                                   Symbols::Value());
-    InsertBefore(call, assert_value, NULL, Definition::kValue);
+    // Newly inserted instructions that can deoptimize or throw an exception
+    // must have a deoptimization id that is valid for lookup in the unoptimized
+    // code.
+    assert_value->deopt_id_ = call->deopt_id();
+    InsertBefore(call, assert_value, call->env(), Definition::kValue);
   }
 
   Value* array = NULL;
@@ -729,6 +743,8 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
 
 bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   const intptr_t class_id = ReceiverClassId(call);
+  // Set deopt_id to a valid id if the LoadIndexedInstr can cause deopt.
+  intptr_t deopt_id = Isolate::kNoDeoptId;
   switch (class_id) {
     case kArrayCid:
     case kImmutableArrayCid:
@@ -749,6 +765,14 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
       if ((kSmiBits < 32) && !FlowGraphCompiler::SupportsUnboxedMints()) {
         return false;
       }
+      {
+        // Set deopt_id if we can optimistically assume that the result is Smi.
+        // Assume mixed Mint/Smi if this instruction caused deoptimization once.
+        ASSERT(call->HasICData());
+        const ICData& ic_data = *call->ic_data();
+        deopt_id = (ic_data.deopt_reason() == kDeoptUnknown) ?
+            call->deopt_id() : Isolate::kNoDeoptId;
+      }
       break;
     default:
       return false;
@@ -756,7 +780,8 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   Value* array = NULL;
   Value* index = NULL;
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
-  Definition* array_op = new LoadIndexedInstr(array, index, array_cid);
+  Definition* array_op =
+      new LoadIndexedInstr(array, index, array_cid, deopt_id);
   call->ReplaceWith(array_op, current_iterator());
   RemovePushArguments(call);
   return true;
@@ -960,6 +985,13 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                  new CheckSmiInstr(right->Copy(), call->deopt_id()),
                  call->env(),
                  Definition::kEffect);
+    if (left->BindsToConstant() &&
+        ((op_kind == Token::kADD) || (op_kind == Token::kMUL))) {
+      // Constant should be on the right side.
+      Value* temp = left;
+      left = right;
+      right = temp;
+    }
     BinarySmiOpInstr* bin_op = new BinarySmiOpInstr(op_kind, call, left, right);
     call->ReplaceWith(bin_op, current_iterator());
     RemovePushArguments(call);
@@ -1277,15 +1309,24 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
   }
   if (!skip_check) {
     // Insert bounds check.
+    const bool is_immutable = true;
+    LoadFieldInstr* length = new LoadFieldInstr(
+        str->Copy(),
+        CheckArrayBoundInstr::LengthOffsetFor(cid),
+        Type::ZoneHandle(Type::SmiType()),
+        is_immutable);
+    length->set_result_cid(kSmiCid);
+    length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
+    InsertBefore(call, length, NULL, Definition::kValue);
     InsertBefore(call,
-                 new CheckArrayBoundInstr(str->Copy(),
+                 new CheckArrayBoundInstr(new Value(length),
                                           index->Copy(),
                                           cid,
                                           call),
                  call->env(),
                  Definition::kEffect);
   }
-  return new LoadIndexedInstr(str, index, cid);
+  return new LoadIndexedInstr(str, index, cid, Isolate::kNoDeoptId);
 }
 
 
@@ -2023,7 +2064,6 @@ class RangeAnalysis : public ValueObject {
   void ConstrainValueAfterBranch(Definition* defn, Value* use);
   void ConstrainValueAfterCheckArrayBound(Definition* defn,
                                           CheckArrayBoundInstr* check);
-  Definition* LoadArrayLength(CheckArrayBoundInstr* check);
 
   // Replace uses of the definition def that are dominated by instruction dom
   // with uses of other definition.
@@ -2082,53 +2122,6 @@ class RangeAnalysis : public ValueObject {
   // Worklist for induction variables analysis.
   GrowableArray<Definition*> worklist_;
   BitVector* marked_defns_;
-
-  class ArrayLengthData : public ValueObject {
-   public:
-    ArrayLengthData(Definition* array, Definition* array_length)
-        : array_(array), array_length_(array_length) { }
-
-    ArrayLengthData(const ArrayLengthData& other)
-        : ValueObject(),
-          array_(other.array_),
-          array_length_(other.array_length_) { }
-
-    ArrayLengthData& operator=(const ArrayLengthData& other) {
-      array_ = other.array_;
-      array_length_ = other.array_length_;
-      return *this;
-    }
-
-    Definition* array() const { return array_; }
-    Definition* array_length() const { return array_length_; }
-
-    typedef Definition* Value;
-    typedef Definition* Key;
-    typedef class ArrayLengthData Pair;
-
-    // KeyValueTrait members.
-    static Key KeyOf(const ArrayLengthData& data) {
-      return data.array();
-    }
-
-    static Value ValueOf(const ArrayLengthData& data) {
-      return data.array_length();
-    }
-
-    static inline intptr_t Hashcode(Key key) {
-      return reinterpret_cast<intptr_t>(key);
-    }
-
-    static inline bool IsKeyEqual(const ArrayLengthData& kv, Key key) {
-      return kv.array() == key;
-    }
-
-   private:
-    Definition* array_;
-    Definition* array_length_;
-  };
-
-  DirectChainedHashMap<ArrayLengthData> array_lengths_;
 
   DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
 };
@@ -2207,29 +2200,19 @@ void RangeAnalysis::RenameDominatedUses(Definition* def,
                                         Instruction* dom,
                                         Definition* other) {
   Value* next_use = NULL;
-  Value* prev_use = NULL;
   for (Value* use = def->input_use_list();
        use != NULL;
        use = next_use) {
     next_use = use->next_use();
 
     // Skip dead phis.
-    if (use->instruction()->IsPhi() &&
-        !use->instruction()->AsPhi()->is_alive()) {
-      prev_use = use;
-      continue;
-    }
+    PhiInstr* phi = use->instruction()->AsPhi();
+    if ((phi != NULL) && !phi->is_alive()) continue;
 
     if (IsDominatedUse(dom, use)) {
-      if (prev_use != NULL) {
-        prev_use->set_next_use(next_use);
-      } else {
-        def->set_input_use_list(next_use);
-      }
+      use->RemoveFromInputUseList();
       use->set_definition(other);
       use->AddToInputUseList();
-    } else {
-      prev_use = use;
     }
   }
 }
@@ -2373,47 +2356,13 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
 }
 
 
-Definition* RangeAnalysis::LoadArrayLength(CheckArrayBoundInstr* check) {
-  Definition* array = check->array()->definition();
-
-  Definition* length = array_lengths_.Lookup(array);
-  if (length != NULL) return length;
-
-  StaticCallInstr* allocation = array->AsStaticCall();
-  if ((allocation != NULL) &&
-      allocation->is_known_constructor() &&
-      (allocation->ResultCid() == kArrayCid)) {
-    // For fixed length arrays check if array is the result of a constructor
-    // call. In this case we can use the length passed to the constructor
-    // instead of loading it from array itself.
-    length = allocation->ArgumentAt(1)->value()->definition();
-  } else {
-    // Load length from the array. Do not insert instruction into the graph.
-    // It will only be used in range boundaries.
-    LoadFieldInstr* length_load = new LoadFieldInstr(
-        check->array()->Copy(),
-        CheckArrayBoundInstr::LengthOffsetFor(check->array_type()),
-        Type::ZoneHandle(Type::SmiType()),
-        true);  // Immutable.
-    length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
-    length_load->set_result_cid(kSmiCid);
-    length_load->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
-    length = length_load;
-  }
-
-  ASSERT(length != NULL);
-  array_lengths_.Insert(ArrayLengthData(array, length));
-  return length;
-}
-
-
 void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
     Definition* defn, CheckArrayBoundInstr* check) {
   if (!CheckArrayBoundInstr::IsFixedLengthArrayType(check->array_type())) {
     return;
   }
 
-  Definition* length = LoadArrayLength(check);
+  Definition* length = check->length()->definition();
 
   Range* constraint_range = new Range(
       RangeBoundary::FromConstant(0),
@@ -2610,7 +2559,7 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
                current->IsCheckArrayBound()) {
       CheckArrayBoundInstr* check = current->AsCheckArrayBound();
       RangeBoundary array_length =
-          RangeBoundary::FromDefinition(LoadArrayLength(check));
+          RangeBoundary::FromDefinition(check->length()->definition());
       if (check->IsRedundant(array_length)) it.RemoveCurrentFromGraph();
     }
   }
@@ -4200,9 +4149,25 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
         instr->value()->definition()->AsCreateArray()->ArgumentCount();
     const Object& result = Smi::ZoneHandle(Smi::New(length));
     SetValue(instr, result);
-  } else {
-    SetValue(instr, non_constant_);
+    return;
   }
+
+  if (instr->IsImmutableLengthLoad()) {
+    ConstantInstr* constant = instr->value()->definition()->AsConstant();
+    if (constant != NULL) {
+      if (constant->value().IsString()) {
+        SetValue(instr, Smi::ZoneHandle(
+            Smi::New(String::Cast(constant->value()).Length())));
+        return;
+      }
+      if (constant->value().IsArray()) {
+        SetValue(instr, Smi::ZoneHandle(
+            Smi::New(Array::Cast(constant->value()).Length())));
+        return;
+      }
+    }
+  }
+  SetValue(instr, non_constant_);
 }
 
 
@@ -4523,13 +4488,9 @@ void ConstantPropagator::Transform() {
       // Replace constant-valued instructions without observable side
       // effects.  Do this for smis only to avoid having to copy other
       // objects into the heap's old generation.
-      //
-      // TODO(kmillikin): Extend this to handle booleans, other number
-      // types, etc.
       if ((defn != NULL) &&
-          (defn->constant_value().IsSmi() ||
-           defn->constant_value().IsNull() ||
-           defn->constant_value().IsTypeArguments()) &&
+          IsConstant(defn->constant_value()) &&
+          (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
           !defn->IsConstant() &&
           !defn->IsPushArgument() &&
           !defn->IsStoreIndexed() &&

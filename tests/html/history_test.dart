@@ -3,16 +3,6 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
-/// Waits for a callback once, then removes the event handler.
-void expectAsync1Once(EventListenerList list, void callback(arg)) {
-  var fn = null;
-  fn = expectAsync1((arg) {
-    list.remove(fn);
-    callback(arg);
-  });
-  list.add(fn);
-}
-
 main() {
   useHtmlIndividualConfiguration();
 
@@ -53,10 +43,10 @@ main() {
 
         // Need to wait a frame or two to let the pushState events occur.
         window.setTimeout(expectAsync0(() {
-          expectAsync1Once(window.on.popState, (_) {
+          window.onPopState.first.then(expectAsync1((_){
             expect(window.history.length, length);
             expect(window.location.href.endsWith('dummy1'), isTrue);
-          });
+          }));
 
           window.history.back();
         }), 100);

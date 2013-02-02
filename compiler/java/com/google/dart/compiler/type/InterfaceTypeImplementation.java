@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.type;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -255,33 +256,24 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
   }
   
   @Override
-  public Member lookupSubTypeMember(String name) {
-    Member foundMember = null;
-    for (ClassElement subClass : subClasses.keySet()) {
-      // find one or more members in subClass elements
-      {
-        Element element = subClass.lookupLocalElement(name);
-        if (element != null) {
-          if (foundMember != null) {
-            return null;
-          }
-          foundMember = new MemberImplementation(this, element);
-          continue;
-        }
-      }
-      // try to find deeper
-      InterfaceType type = subClass.getType();
-      if (type != null) {
-        Member member = type.lookupSubTypeMember(name);
-        if (member != null) {
-          if (foundMember != null) {
-            return null;
-          }
-          foundMember = member;
-        }
+  public List<Member> lookupSubTypeMembers(String name) {
+    List<Member> members = Lists.newArrayList();
+    fillSubTypeMember(members, name);
+    return members;
+  }
+  
+  private void fillSubTypeMember(List<Member> members, String name) {
+    {
+      Member member = lookupMember(name);
+      if (member != null) {
+        members.add(member);
       }
     }
-    // may be found
-    return foundMember;
+    for (ClassElement subClass : subClasses.keySet()) {
+      InterfaceType type = subClass.getType();
+      if (type instanceof InterfaceTypeImplementation) {
+        ((InterfaceTypeImplementation)type).fillSubTypeMember(members, name);
+      }
+    }
   }
 }

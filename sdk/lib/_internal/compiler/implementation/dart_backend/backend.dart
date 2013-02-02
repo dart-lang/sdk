@@ -89,7 +89,7 @@ class FunctionBodyRewriter extends CloningVisitor {
       return false;
     }
 
-    rewiteStatement(Statement statement) {
+    rewriteStatement(Statement statement) {
       if (statement is Block) {
         Link statements = statement.statements.nodes;
         if (!statements.isEmpty && statements.tail.isEmpty) {
@@ -106,7 +106,7 @@ class FunctionBodyRewriter extends CloningVisitor {
     LinkBuilder<Statement> builder = new LinkBuilder<Statement>();
     for (Statement statement in statements.nodes) {
       if (!shouldOmit(statement)) {
-        builder.addLast(visit(rewiteStatement(statement)));
+        builder.addLast(visit(rewriteStatement(statement)));
       }
     }
     return new Block(rewriteNodeList(statements, builder.toLink()));
@@ -137,7 +137,7 @@ class DartBackend extends Backend {
     Set<DartType> processedTypes = new Set<DartType>();
     List<DartType> workQueue = new List<DartType>();
     workQueue.addAll(
-        classMembers.keys.mappedBy((classElement) => classElement.thisType));
+        classMembers.keys.map((classElement) => classElement.thisType));
     workQueue.addAll(compiler.resolverWorld.isChecks);
     Element typeErrorElement =
         compiler.coreLibrary.find(new SourceString('TypeError'));
@@ -387,8 +387,13 @@ class DartBackend extends Backend {
       SynthesizedConstructorElementX constructor =
           new SynthesizedConstructorElementX(classElement);
       constructor.type = new FunctionType(
-          compiler.types.voidType, const Link<DartType>(),
-          constructor);
+          constructor,
+          compiler.types.voidType,
+          const Link<DartType>(),
+          const Link<DartType>(),
+          const Link<SourceString>(),
+          const Link<DartType>()
+          );
       constructor.cachedNode = new FunctionExpression(
           new Send(classNode.name, synthesizedIdentifier),
           new NodeList(new StringToken(OPEN_PAREN_INFO, '(', -1),

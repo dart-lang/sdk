@@ -58,7 +58,7 @@ main() {
       .then((input) => input.readAll())
       .then((entries) {
       entries = entries
-          .mappedBy((entry) => [entry.pathname, entry.contents.trim()])
+          .map((entry) => [entry.pathname, entry.contents.trim()])
           .toList();
       expect(entries[0], orderedEquals(["filename1", "contents 1"]));
       expect(entries[1], orderedEquals(["filename2", "contents 2"]));

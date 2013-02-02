@@ -58,7 +58,7 @@ class CompactVMConfiguration extends VMConfiguration {
   }
 
   String _indent(String str) {
-    return str.split("\n").mappedBy((line) => "  $line").join("\n");
+    return str.split("\n").map((line) => "  $line").join("\n");
   }
 
   void onSummary(int passed, int failed, int errors, List<TestCase> results,

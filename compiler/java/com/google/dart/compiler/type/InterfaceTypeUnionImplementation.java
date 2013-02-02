@@ -5,6 +5,7 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ClassElementUnion;
 
@@ -105,8 +106,8 @@ class InterfaceTypeUnionImplementation implements InterfaceTypeUnion {
   }
 
   @Override
-  public Member lookupSubTypeMember(String name) {
-    return null;
+  public List<Member> lookupSubTypeMembers(String name) {
+    return Lists.newArrayList();
   }
 
   public List<InterfaceType> getTypes() {

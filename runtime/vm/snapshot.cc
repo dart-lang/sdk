@@ -422,12 +422,9 @@ RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
   uint8_t* array = const_cast<uint8_t*>(CurrentBufferAddress());
   ASSERT(array != NULL);
   Advance(len);
-  ExternalByteArrayData<uint8_t>* external_data =
-      new ExternalByteArrayData<uint8_t>(array, NULL, NULL);
-  ASSERT(external_data != NULL);
   data_ = reinterpret_cast<RawExternalUint8Array*>(
       AllocateUninitialized(cls_, ExternalUint8Array::InstanceSize()));
-  data_.SetExternalData(external_data);
+  data_.SetData(array);
   data_.SetLength(len);
   stream_.SetStream(data_);
   return stream_.raw();

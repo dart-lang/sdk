@@ -6,7 +6,7 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
-  static SpeechRecognition _create() {
+  factory SpeechRecognition() {
     return JS('SpeechRecognition',
         'new (window.SpeechRecognition || window.webkitSpeechRecognition)()');
   }

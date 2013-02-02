@@ -34,6 +34,7 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove element of a non-extendable array");
   }
 
+  // Collection interface.
   void removeAll(Iterable elements) {
     throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
@@ -54,6 +55,7 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove element of a non-extendable array");
   }
 
+  // List interface.
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     if (length < 0) {
       throw new ArgumentError("negative length $length");
@@ -84,7 +86,7 @@ class _ObjectArray<E> implements List<E> {
     return list;
   }
 
-  // Collection interface.
+  // Iterable interface.
 
   bool contains(E element) {
     return IterableMixinWorkaround.contains(this, element);
@@ -98,8 +100,12 @@ class _ObjectArray<E> implements List<E> {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
+  Iterable map(f(E element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
   List mappedBy(f(E element)) {
-    return IterableMixinWorkaround.mappedByList(this, f);
+    IterableMixinWorkaround.mappedByList(this, f);
   }
 
   reduce(initialValue, combine(previousValue, E element)) {
@@ -110,7 +116,7 @@ class _ObjectArray<E> implements List<E> {
     return IterableMixinWorkaround.where(this, f);
   }
 
-  List<E> take(int n) {
+  Iterable<E> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -118,7 +124,7 @@ class _ObjectArray<E> implements List<E> {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<E> skip(int n) {
+  Iterable<E> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
@@ -324,6 +330,10 @@ class _ImmutableArray<E> implements List<E> {
     IterableMixinWorkaround.forEach(this, f);
   }
 
+  Iterable map(f(E element)) {
+    return IterableMixinWorkaround.map(this, f);
+  }
+
   List mappedBy(f(E element)) {
     return IterableMixinWorkaround.mappedByList(this, f);
   }
@@ -340,7 +350,7 @@ class _ImmutableArray<E> implements List<E> {
     return IterableMixinWorkaround.where(this, f);
   }
 
-  List<E> take(int n) {
+  Iterable<E> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
@@ -348,7 +358,7 @@ class _ImmutableArray<E> implements List<E> {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  List<E> skip(int n) {
+  Iterable<E> skip(int n) {
     return IterableMixinWorkaround.skipList(this, n);
   }
 

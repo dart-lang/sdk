@@ -25,6 +25,11 @@ void main() {
     expect(client.send(request).then((response) {
       expect(response.request, equals(request));
       expect(response.statusCode, equals(200));
+      expect(response.headers['single'], equals('value'));
+      // dart:io internally normalizes outgoing headers so that they never have
+      // multiple headers with the same name, so there's no way to test whether
+      // we handle that case correctly.
+
       return response.stream.bytesToString();
     }).whenComplete(client.close), completion(parse(equals({
       'method': 'POST',

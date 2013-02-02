@@ -26,6 +26,8 @@ import '../dart2jslib.dart' show invariant,
                                  Constant,
                                  Compiler;
 
+import '../dart_types.dart';
+
 import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
 
 
@@ -297,7 +299,7 @@ class ElementX implements Element {
  */
 class ErroneousElementX extends ElementX implements ErroneousElement {
   final MessageKind messageKind;
-  final List messageArguments;
+  final Map messageArguments;
 
   ErroneousElementX(this.messageKind, this.messageArguments,
                     SourceString name, Element enclosing)
@@ -324,7 +326,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   computeSignature(compiler) => unsupported();
   requiredParameterCount(compiler) => unsupported();
   optionalParameterCount(compiler) => unsupported();
-  parameterCount(copmiler) => unsupported();
+  parameterCount(compiler) => unsupported();
 
   // TODO(kasperl): These seem unnecessary.
   set patch(value) => unsupported();
@@ -357,7 +359,7 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
   /**
    * The message arguments to report on resolving this element.
    */
-  final List messageArguments;
+  final Map messageArguments;
 
   /**
    * The first element that this ambiguous element might refer to.
@@ -491,10 +493,7 @@ class CompilationUnitElementX extends ElementX
       return;
     }
     if (!localMembers.isEmpty) {
-      listener.reportMessage(
-          listener.spanFromSpannable(tag),
-          MessageKind.BEFORE_TOP_LEVEL.error(),
-          api.Diagnostic.ERROR);
+      listener.reportErrorCode(tag, MessageKind.BEFORE_TOP_LEVEL);
       return;
     }
     if (partTag != null) {
@@ -512,7 +511,8 @@ class CompilationUnitElementX extends ElementX
       if (expectedName != actualName) {
         listener.reportMessage(
             listener.spanFromSpannable(tag.name),
-            MessageKind.LIBRARY_NAME_MISMATCH.error([expectedName]),
+            MessageKind.LIBRARY_NAME_MISMATCH.error(
+                {'libraryName': expectedName}),
             api.Diagnostic.WARNING);
       }
     }
@@ -603,7 +603,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
       // TODO(johnniwinther): Provide access to the import tags from which
       // the elements came.
       importScope[element.name] = new AmbiguousElementX(
-          MessageKind.DUPLICATE_IMPORT, [element.name],
+          MessageKind.DUPLICATE_IMPORT, {'name': element.name},
           this, existing, element);
     } else {
       importScope[element.name] = element;
@@ -1257,10 +1257,12 @@ class SynthesizedConstructorElementX extends FunctionElementX {
                                             Compiler compiler)
     : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
             Modifiers.EMPTY, enclosing) {
-    type = new FunctionType(
+    type = new FunctionType(this,
         compiler.types.voidType,
         const Link<DartType>(),
-        this);
+        const Link<DartType>(),
+        const Link<SourceString>(),
+        const Link<DartType>());
     cachedNode = new FunctionExpression(
         new Identifier(enclosing.position()),
         new NodeList.empty(),

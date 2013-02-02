@@ -80,6 +80,11 @@ abstract class String implements Comparable, Pattern {
 
   /**
    * Creates a new string by concatenating this string with [other].
+   *
+   * A sequence of strings can be concatenated by using [Iterable.join]:
+   *
+   *     var strings = ['foo', 'bar', 'geez'];
+   *     var concatenated = strings.join();
    */
   String concat(String other);
 

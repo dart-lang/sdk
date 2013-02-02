@@ -216,6 +216,9 @@ class IDLDictNode(IDLNode):
   def get(self, key, default=None):
     return self.__map.get(key, default)
 
+  def setdefault(self, key, value=None):
+    return self.__map.setdefault(key, value)
+
   def items(self):
     return self.__map.items()
 
@@ -287,18 +290,24 @@ class IDLExtAttrs(IDLDictNode):
       name = self._find_first(ext_attr, 'Id')
       value = self._find_first(ext_attr, 'ExtAttrValue')
 
+      if name == 'Constructor':
+        # There might be multiple constructor attributes, collect them
+        # as a list.  Represent plain Constructor attribute
+        # (without any signature) as None.
+        assert value is None
+        func_value = None
+        ctor_args = self._find_first(ext_attr, 'ExtAttrArgList')
+        if ctor_args:
+          func_value = IDLExtAttrFunctionValue(None, ctor_args)
+        self.setdefault('Constructor', []).append(func_value)
+        continue
+
       func_value = self._find_first(value, 'ExtAttrFunctionValue')
       if func_value:
         # E.g. NamedConstructor=Audio(in [Optional] DOMString src)
         self[name] = IDLExtAttrFunctionValue(
             func_value,
             self._find_first(func_value, 'ExtAttrArgList'))
-        continue
-
-      ctor_args = not value and self._find_first(ext_attr, 'ExtAttrArgList')
-      if ctor_args:
-        # E.g. Constructor(Element host)
-        self[name] = IDLExtAttrFunctionValue(None, ctor_args)
         continue
 
       self[name] = value

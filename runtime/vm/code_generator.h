@@ -73,6 +73,8 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
   V(CheckArrayBound)                                                           \
   V(AtCall)                                                                    \
   V(DoubleToSmi)                                                               \
+  V(Int32Load)                                                                 \
+  V(Uint32Load)                                                                \
   V(NumReasons)                                                                \
 
 enum DeoptReasonId {
@@ -92,6 +94,8 @@ RawCode* ResolveCompileInstanceCallTarget(
 
 void DeoptimizeAll();
 void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes);
+
+double DartModulo(double a, double b);
 
 }  // namespace dart
 
