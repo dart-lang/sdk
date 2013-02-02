@@ -71,6 +71,42 @@ main() {
         equals({"x": {"a":3, "b": -4.5}, "y":[{}],
                    "z":"hi","w":{"c":null,"d":true}, "v":null}));
 
+    // Errors.
+    expect(() => json.parse('True'), throwsFormatException);
+    // Unfinished maps.
+    expect(() => json.parse('{"a":10)'), throwsFormatException);
+    expect(() => json.parse('{"a":}'), throwsFormatException);
+    // Insist on double quotes.
+    expect(() => json.parse("{'a':1}"), throwsFormatException);
+    // Insist on quoted keys.
+    expect(() => json.parse('{a:1}'), throwsFormatException);
+  });
+
+  test('Parse-V8-bugs', () {
+    expect(json.parse('{"__proto__": {"x":42}, "y": 37}'),
+        equals({"__proto__": {"x":42}, "y": 37}));
+
+    expect(json.parse('{"__proto__": []}'),
+        equals({"__proto__": []}));
+  });
+
+  test('Reviver', () {
+    reviver(k, v) {
+      if (k == '') return [v];  // wrap top level in a list.
+      if (v is num || v is String || v is bool || v == null) return '$k$v';
+      return v;
+    }
+
+    go(input, expected) {
+      expect(json.parse(input, reviver), equals(expected));
+    }
+
+    go('null', [null]);
+    go('["a", "b", true]', [['0a', '1b', '2true']]);
+    go('{"a":100, "b":200}', [{"a":'a100', "b":'b200'}]);
+    go('{"a":100, "b":{"c":200}}', [{"a":'a100', "b":{"c":'c200'}}]);
+  });
+
   test('stringify', () {
     // Scalars.
     expect(json.stringify(5), equals('5'));
@@ -133,7 +169,6 @@ main() {
      * we try to stringify something that cannot be converted to json.
      */
     expect(() => json.stringify(new TestClass()), throws);
-    });
   });
 }
 
@@ -157,5 +192,3 @@ class ToJson {
 validateRoundTrip(expected) {
   expect(json.parse(json.stringify(expected)), equals(expected));
 }
-
-
