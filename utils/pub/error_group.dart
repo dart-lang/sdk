@@ -6,6 +6,8 @@ library error_group;
 
 import 'dart:async';
 
+import 'utils.dart';
+
 /// An [ErrorGroup] entangles the errors of multiple [Future]s and [Stream]s
 /// with one another. This allows APIs to expose multiple [Future]s and
 /// [Stream]s that have identical error conditions without forcing API consumers
@@ -260,7 +262,7 @@ class _ErrorGroupStream extends Stream {
     if (_isDone) return;
     _subscription.cancel();
     // Call these asynchronously to work around issue 7913.
-    new Future.immediate(null).then((_) {
+    defer(() {
       _controller.signalError(e.error, e.stackTrace);
       _controller.close();
     });

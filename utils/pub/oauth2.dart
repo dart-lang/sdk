@@ -51,12 +51,12 @@ final _scopes = ['https://www.googleapis.com/auth/userinfo.email'];
 Credentials _credentials;
 
 /// Delete the cached credentials, if they exist.
-Future clearCredentials(SystemCache cache) {
+void clearCredentials(SystemCache cache) {
   _credentials = null;
   var credentialsFile = _credentialsFile(cache);
-  return fileExists(credentialsFile).then((exists) {
-    if (exists) return deleteFile(credentialsFile);
-  });
+  if (!fileExists(credentialsFile)) return;
+
+  deleteFile(credentialsFile);
 }
 
 /// Asynchronously passes an OAuth2 [Client] to [fn], and closes the client when
@@ -71,7 +71,7 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
     return fn(client).whenComplete(() {
       client.close();
       // Be sure to save the credentials even when an error happens.
-      return _saveCredentials(cache, client.credentials);
+      _saveCredentials(cache, client.credentials);
     });
   }).catchError((asyncError) {
     if (asyncError.error is ExpirationException) {
@@ -84,7 +84,8 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
         message = "$message (${asyncError.error.description})";
       }
       log.error("$message.");
-      return clearCredentials(cache).then((_) => withClient(cache, fn));
+      clearCredentials(cache);
+      return withClient(cache, fn);
     } else {
       throw asyncError;
     }
@@ -94,58 +95,52 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
 /// Gets a new OAuth2 client. If saved credentials are available, those are
 /// used; otherwise, the user is prompted to authorize the pub client.
 Future<Client> _getClient(SystemCache cache) {
-  return _loadCredentials(cache).then((credentials) {
+  return defer(() {
+    var credentials = _loadCredentials(cache);
     if (credentials == null) return _authorize();
-    return new Client(_identifier, _secret, credentials,
-        httpClient: httpClient);
-  }).then((client) {
-    return _saveCredentials(cache, client.credentials).then((_) => client);
+
+    var client = new Client(_identifier, _secret, credentials,
+        httpClient: curlClient);
+    _saveCredentials(cache, client.credentials);
+    return client;
   });
 }
 
 /// Loads the user's OAuth2 credentials from the in-memory cache or the
 /// filesystem if possible. If the credentials can't be loaded for any reason,
 /// the returned [Future] will complete to null.
-Future<Credentials> _loadCredentials(SystemCache cache) {
+Credentials _loadCredentials(SystemCache cache) {
   log.fine('Loading OAuth2 credentials.');
 
-  if (_credentials != null) {
-    log.fine('Using already-loaded credentials.');
-    return new Future.immediate(_credentials);
-  }
+  try {
+    if (_credentials != null) return _credentials;
 
-  var path = _credentialsFile(cache);
-  return fileExists(path).then((credentialsExist) {
-    if (!credentialsExist) {
-      log.fine('No credentials found at $path.');
-      return;
+    var path = _credentialsFile(cache);
+    if (!fileExists(path)) return;
+
+    var credentials = new Credentials.fromJson(readTextFile(path));
+    if (credentials.isExpired && !credentials.canRefresh) {
+      log.error("Pub's authorization to upload packages has expired and "
+          "can't be automatically refreshed.");
+      return null; // null means re-authorize.
     }
 
-    return readTextFile(_credentialsFile(cache)).then((credentialsJson) {
-      var credentials = new Credentials.fromJson(credentialsJson);
-      if (credentials.isExpired && !credentials.canRefresh) {
-        log.error("Pub's authorization to upload packages has expired and "
-            "can't be automatically refreshed.");
-        return null; // null means re-authorize
-      }
-
-      return credentials;
-    });
-  }).catchError((e) {
+    return credentials;
+  } catch (e) {
     log.error('Warning: could not load the saved OAuth2 credentials: $e\n'
         'Obtaining new credentials...');
-    return null; // null means re-authorize
-  });
+    return null; // null means re-authorize.
+  }
 }
 
 /// Save the user's OAuth2 credentials to the in-memory cache and the
 /// filesystem.
-Future _saveCredentials(SystemCache cache, Credentials credentials) {
+void _saveCredentials(SystemCache cache, Credentials credentials) {
   log.fine('Saving OAuth2 credentials.');
   _credentials = credentials;
   var path = _credentialsFile(cache);
-  return ensureDir(dirname(path)).then((_) =>
-      writeTextFile(path, credentials.toJson(), dontLogContents: true));
+  ensureDir(dirname(path));
+  writeTextFile(path, credentials.toJson(), dontLogContents: true);
 }
 
 /// The path to the file in which the user's OAuth2 credentials are stored.
@@ -177,7 +172,7 @@ Future<Client> _authorize() {
   var server = new HttpServer();
   server.addRequestHandler((request) => request.path == "/",
       (request, response) {
-    chainToCompleter(new Future.immediate(null).then((_) {
+    chainToCompleter(defer(() {
       log.message('Authorization received, processing...');
       var queryString = request.queryString;
       if (queryString == null) queryString = '';

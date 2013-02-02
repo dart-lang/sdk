@@ -235,43 +235,34 @@ abstract class PubCommand {
       exit(_chooseExitCode(error));
     }
 
-    var future = new Future.immediate(null);
-    if (requiresEntrypoint) {
-      // TODO(rnystrom): Will eventually need better logic to walk up
-      // subdirectories until we hit one that looks package-like. For now, just
-      // assume the cwd is it.
-      future = Entrypoint.load(path.current, cache);
-    }
-
-    future = future.then((entrypoint) {
-      this.entrypoint = entrypoint;
-      try {
-        var commandFuture = onRun();
-        if (commandFuture == null) return true;
-
-        return commandFuture;
-      } catch (error, trace) {
-        handleError(error, trace);
+    defer(() {
+      if (requiresEntrypoint) {
+        // TODO(rnystrom): Will eventually need better logic to walk up
+        // subdirectories until we hit one that looks package-like. For now,
+        // just assume the cwd is it.
+        entrypoint = new Entrypoint(path.current, cache);
       }
-    });
 
-    future
-      .then((_) => cache_.deleteTempDir())
-      .catchError((asyncError) {
-        var e = asyncError.error;
-        if (e is PubspecNotFoundException && e.name == null) {
-          e = 'Could not find a file named "pubspec.yaml" in the directory '
-            '${path.current}.';
-        } else if (e is PubspecHasNoNameException && e.name == null) {
-          e = 'pubspec.yaml is missing the required "name" field (e.g. "name: '
-            '${basename(path.current)}").';
-        }
+      var commandFuture = onRun();
+      if (commandFuture == null) return true;
 
-        handleError(e, asyncError.stackTrace);
-      })
+      return commandFuture;
+    }).whenComplete(() => cache_.deleteTempDir()).catchError((asyncError) {
+      var e = asyncError.error;
+      if (e is PubspecNotFoundException && e.name == null) {
+        e = 'Could not find a file named "pubspec.yaml" in the directory '
+          '${path.current}.';
+      } else if (e is PubspecHasNoNameException && e.name == null) {
+        e = 'pubspec.yaml is missing the required "name" field (e.g. "name: '
+          '${basename(path.current)}").';
+      }
+
+      handleError(e, asyncError.stackTrace);
+    }).then((_) {
       // Explicitly exit on success to ensure that any dangling dart:io handles
       // don't cause the process to never terminate.
-      .then((_) => exit(0));
+      exit(0);
+    });
   }
 
   /// Override this to perform the specific command. Return a future that

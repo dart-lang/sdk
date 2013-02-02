@@ -10,6 +10,7 @@ import 'package.dart';
 import 'pubspec.dart';
 import 'sdk.dart' as sdk;
 import 'source.dart';
+import 'utils.dart';
 import 'version.dart';
 
 /// A package source that uses libraries from the Dart SDK.
@@ -20,10 +21,10 @@ class SdkSource extends Source {
   /// SDK packages are not individually versioned. Instead, their version is
   /// inferred from the revision number of the SDK itself.
   Future<Pubspec> describe(PackageId id) {
-    return _getPackagePath(id).then((packageDir) {
+    return defer(() {
+      var packageDir = _getPackagePath(id);
       // TODO(rnystrom): What if packageDir is null?
-      return Package.load(id.name, packageDir, systemCache.sources);
-    }).then((package) {
+      var package = new Package(id.name, packageDir, systemCache.sources);
       // Ignore the pubspec's version, and use the SDK's.
       return new Pubspec(id.name, sdk.version, package.pubspec.dependencies,
           package.pubspec.environment);
@@ -33,18 +34,18 @@ class SdkSource extends Source {
   /// Since all the SDK files are already available locally, installation just
   /// involves symlinking the SDK library into the packages directory.
   Future<bool> install(PackageId id, String destPath) {
-    return _getPackagePath(id).then((path) {
-      if (path == null) return new Future<bool>.immediate(false);
+    return defer(() {
+      var path = _getPackagePath(id);
+      if (path == null) return false;
 
-      return createPackageSymlink(id.name, path, destPath).then(
-          (_) => true);
+      return createPackageSymlink(id.name, path, destPath).then((_) => true);
     });
   }
 
   /// Gets the path in the SDK's "pkg" directory to the directory containing
   /// package [id]. Returns `null` if the package could not be found.
-  Future<String> _getPackagePath(PackageId id) {
+  String _getPackagePath(PackageId id) {
     var pkgPath = join(sdk.rootDirectory, "pkg", id.description);
-    return dirExists(pkgPath).then((found) => found ? pkgPath : null);
+    return dirExists(pkgPath) ? pkgPath : null;
   }
 }

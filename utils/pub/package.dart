@@ -15,31 +15,6 @@ final _README_REGEXP = new RegExp(r"^README($|\.)", caseSensitive: false);
 
 /// A named, versioned, unit of code and resource reuse.
 class Package {
-  /// Loads the package whose root directory is [packageDir]. [name] is the
-  /// expected name of that package (e.g. the name given in the dependency), or
-  /// null if the package being loaded is the entrypoint package.
-  static Future<Package> load(String name, String packageDir,
-      SourceRegistry sources) {
-    var pubspecPath = join(packageDir, 'pubspec.yaml');
-
-    return fileExists(pubspecPath).then((exists) {
-      if (!exists) throw new PubspecNotFoundException(name);
-      return readTextFile(pubspecPath);
-    }).then((contents) {
-      try {
-        var pubspec = new Pubspec.parse(contents, sources);
-
-        if (pubspec.name == null) throw new PubspecHasNoNameException(name);
-        if (name != null && pubspec.name != name) {
-          throw new PubspecNameMismatchException(name, pubspec.name);
-        }
-        return new Package._(packageDir, pubspec);
-      } on FormatException catch (ex) {
-        throw 'Could not parse $pubspecPath:\n${ex.message}';
-      }
-    });
-  }
-
   /// The path to the directory containing the package.
   final String dir;
 
@@ -78,6 +53,30 @@ class Package {
         return readme1.compareTo(readme2);
       });
     });
+  }
+
+  /// Loads the package whose root directory is [packageDir]. [name] is the
+  /// expected name of that package (e.g. the name given in the dependency), or
+  /// `null` if the package being loaded is the entrypoint package.
+  factory Package(String name, String packageDir, SourceRegistry sources) {
+    var pubspecPath = join(packageDir, 'pubspec.yaml');
+    if (!fileExists(pubspecPath)) throw new PubspecNotFoundException(name);
+
+    try {
+      var pubspec = new Pubspec.parse(readTextFile(pubspecPath), sources);
+
+      if (pubspec.name == null) {
+        throw new PubspecHasNoNameException(name);
+      }
+
+      if (name != null && pubspec.name != name) {
+        throw new PubspecNameMismatchException(name, pubspec.name);
+      }
+
+      return new Package._(packageDir, pubspec);
+    } on FormatException catch (ex) {
+      throw 'Could not parse $pubspecPath:\n${ex.message}';
+    }
   }
 
   /// Constructs a package with the given pubspec. The package will have no

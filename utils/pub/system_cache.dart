@@ -71,8 +71,8 @@ class SystemCache {
     // Try to get it from the system cache first.
     if (id.source.shouldCache) {
       return id.systemCacheDirectory.then((packageDir) {
-        if (!dirExistsSync(packageDir)) return getUncached();
-        return Package.load(id.name, packageDir, sources);
+        if (!dirExists(packageDir)) return getUncached();
+        return new Package(id.name, packageDir, sources);
       });
     }
 
@@ -105,7 +105,8 @@ class SystemCache {
   /// temp directory to ensure that it's on the same volume as the pub system
   /// cache so that it can move the directory from it.
   Future<Directory> createTempDir() {
-    return ensureDir(tempDir).then((temp) {
+    return defer(() {
+      var temp = ensureDir(tempDir);
       return io.createTempDir(join(temp, 'dir'));
     });
   }
@@ -113,8 +114,8 @@ class SystemCache {
   /// Delete's the system cache's internal temp directory.
   Future deleteTempDir() {
     log.fine('Clean up system cache temp directory $tempDir.');
-    return dirExists(tempDir).then((exists) {
-      if (!exists) return;
+    return defer(() {
+      if (!dirExists(tempDir)) return;
       return deleteDir(tempDir);
     });
   }

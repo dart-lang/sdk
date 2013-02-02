@@ -23,8 +23,8 @@ class LibValidator extends Validator {
   Future validate() {
     var libDir = join(entrypoint.root.dir, "lib");
 
-    return dirExists(libDir).then((libDirExists) {
-      if (!libDirExists) {
+    return defer(() {
+      if (!dirExists(libDir)) {
         errors.add('You must have a "lib" directory.\n'
             "Without that, users cannot import any code from your package.");
         return;

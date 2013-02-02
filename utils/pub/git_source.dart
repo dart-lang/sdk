@@ -42,21 +42,19 @@ class GitSource extends Source {
             "Please ensure Git is correctly installed.");
       }
 
-      return ensureDir(join(systemCacheRoot, 'cache'));
-    }).then((_) => _ensureRepoCache(id))
-      .then((_) => _revisionCachePath(id))
+      ensureDir(join(systemCacheRoot, 'cache'));
+      return _ensureRepoCache(id);
+    }).then((_) => _revisionCachePath(id))
       .then((path) {
       revisionCachePath = path;
-      return exists(revisionCachePath);
-    }).then((exists) {
-      if (exists) return;
+      if (entryExists(revisionCachePath)) return;
       return _clone(_repoCachePath(id), revisionCachePath, mirror: false);
     }).then((_) {
       var ref = _getEffectiveRef(id);
       if (ref == 'HEAD') return;
       return _checkOut(revisionCachePath, ref);
     }).then((_) {
-      return Package.load(id.name, revisionCachePath, systemCache.sources);
+      return new Package(id.name, revisionCachePath, systemCache.sources);
     });
   }
 
@@ -106,10 +104,9 @@ class GitSource extends Source {
   /// future that completes once this is finished and throws an exception if it
   /// fails.
   Future _ensureRepoCache(PackageId id) {
-    var path = _repoCachePath(id);
-    return exists(path).then((exists) {
-      if (!exists) return _clone(_getUrl(id), path, mirror: true);
-
+    return defer(() {
+      var path = _repoCachePath(id);
+      if (!entryExists(path)) return _clone(_getUrl(id), path, mirror: true);
       return git.run(["fetch"], workingDir: path).then((result) => null);
     });
   }
@@ -135,9 +132,10 @@ class GitSource extends Source {
   /// the working tree, but instead makes the repository a local mirror of the
   /// remote repository. See the manpage for `git clone` for more information.
   Future _clone(String from, String to, {bool mirror: false}) {
-    // Git on Windows does not seem to automatically create the destination
-    // directory.
-    return ensureDir(to).then((_) {
+    return defer(() {
+      // Git on Windows does not seem to automatically create the destination
+      // directory.
+      ensureDir(to);
       var args = ["clone", from, to];
       if (mirror) args.insertRange(1, 1, "--mirror");
       return git.run(args);

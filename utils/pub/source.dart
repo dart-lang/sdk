@@ -9,6 +9,7 @@ import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
 import 'system_cache.dart';
+import 'utils.dart';
 import 'version.dart';
 
 /// A source from which to install packages.
@@ -104,14 +105,15 @@ abstract class Source {
   ///
   /// By default, this uses [systemCacheDirectory] and [install].
   Future<Package> installToSystemCache(PackageId id) {
-    return systemCacheDirectory(id).then((path) {
-      return exists(path).then((exists) {
-        if (exists) return new Future<bool>.immediate(true);
-        return ensureDir(dirname(path)).then((_) => install(id, path));
-      }).then((found) {
-        if (!found) throw 'Package $id not found.';
-        return Package.load(id.name, path, systemCache.sources);
-      });
+    var path;
+    return systemCacheDirectory(id).then((p) {
+      path = p;
+      if (dirExists(path)) return true;
+      ensureDir(dirname(path));
+      return install(id, path);
+    }).then((found) {
+      if (!found) throw 'Package $id not found.';
+      return new Package(id.name, path, systemCache.sources);
     });
   }
 

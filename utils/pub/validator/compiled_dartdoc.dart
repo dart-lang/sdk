@@ -21,27 +21,26 @@ class CompiledDartdocValidator extends Validator {
 
   Future validate() {
     return listDir(entrypoint.root.dir, recursive: true).then((entries) {
-      return futureWhere(entries, (entry) {
+      for (var entry in entries) {
         if (basename(entry) != "nav.json") return false;
         var dir = dirname(entry);
 
         // Look for tell-tale Dartdoc output files all in the same directory.
-        return Future.wait([
-          fileExists(entry),
-          fileExists(join(dir, "index.html")),
-          fileExists(join(dir, "styles.css")),
-          fileExists(join(dir, "dart-logo-small.png")),
-          fileExists(join(dir, "client-live-nav.js"))
-        ]).then((results) => results.every((val) => val));
-      }).then((files) {
-        for (var dartdocDir in files.mappedBy(dirname)) {
-          var relativePath = path.relative(dartdocDir);
+        var files = [
+          entry,
+          join(dir, "index.html"),
+          join(dir, "styles.css"),
+          join(dir, "dart-logo-small.png"),
+          join(dir, "client-live-nav.js")
+        ];
+
+        if (files.every((val) => fileExists(val))) {
           warnings.add("Avoid putting generated documentation in "
-                  "$relativePath.\n"
+                  "${path.relative(dir)}.\n"
               "Generated documentation bloats the package with redundant "
                   "data.");
         }
-      });
+      }
     });
   }
 }

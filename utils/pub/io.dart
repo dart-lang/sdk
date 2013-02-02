@@ -54,59 +54,17 @@ bool isBeneath(entry, dir) {
 /// Returns the path to [target] from [base].
 String relativeTo(target, base) => path.relative(target, from: base);
 
-/// Asynchronously determines if [path], which can be a [String] file path, a
-/// [File], or a [Directory] exists on the file system. Returns a [Future] that
-/// completes with the result.
-Future<bool> exists(path) {
-  path = _getPath(path);
-  return Future.wait([fileExists(path), dirExists(path)]).then((results) {
-    return results[0] || results[1];
-  });
-}
+/// Determines if [path], which can be a [String] file path, a [File], or a
+/// [Directory] exists on the file system.
+bool entryExists(path) => fileExists(path) || dirExists(path);
 
-/// Asynchronously determines if [file], which can be a [String] file path or a
-/// [File], exists on the file system. Returns a [Future] that completes with
-/// the result.
-Future<bool> fileExists(file) {
-  var path = _getPath(file);
-  return log.ioAsync("Seeing if file $path exists.",
-      new File(path).exists(),
-      (exists) => "File $path ${exists ? 'exists' : 'does not exist'}.");
-}
-
-// TODO(rnystrom): Get rid of this and only use sync.
-/// Reads the contents of the text file [file], which can either be a [String]
-/// or a [File].
-Future<String> readTextFile(file) {
-  var path = _getPath(file);
-  return log.ioAsync("Reading text file $path.",
-      new File(path).readAsString(Encoding.UTF_8),
-      (contents) {
-        // Sanity check: don't spew a huge file.
-        if (contents.length < 1024 * 1024) {
-          return "Read $path. Contents:\n$contents";
-        } else {
-          return "Read ${contents.length} characters from $path.";
-        }
-      });
-}
+/// Determines if [file], which can be a [String] file path or a [File], exists
+/// on the file system.
+bool fileExists(file) => _getFile(file).existsSync();
 
 /// Reads the contents of the text file [file], which can either be a [String]
 /// or a [File].
-String readTextFileSync(file) {
-  var path = _getPath(file);
-  log.io("Reading text file $path.");
-  var contents = new File(path).readAsStringSync(Encoding.UTF_8);
-
-  // Sanity check: don't spew a huge file.
-  if (contents.length < 1024 * 1024) {
-    log.fine("Read $path. Contents:\n$contents");
-  } else {
-    log.fine("Read ${contents.length} characters from $path.");
-  }
-
-  return contents;
-}
+String readTextFile(file) => _getFile(file).readAsStringSync(Encoding.UTF_8);
 
 /// Reads the contents of the binary file [file], which can either be a [String]
 /// or a [File].
@@ -119,10 +77,10 @@ List<int> readBinaryFile(file) {
 }
 
 /// Creates [file] (which can either be a [String] or a [File]), and writes
-/// [contents] to it. Completes when the file is written and closed.
+/// [contents] to it.
 ///
 /// If [dontLogContents] is true, the contents of the file will never be logged.
-Future<File> writeTextFile(file, String contents, {dontLogContents: false}) {
+File writeTextFile(file, String contents, {dontLogContents: false}) {
   var path = _getPath(file);
   file = new File(path);
 
@@ -132,15 +90,12 @@ Future<File> writeTextFile(file, String contents, {dontLogContents: false}) {
     log.fine("Contents:\n$contents");
   }
 
-  return file.open(FileMode.WRITE).then((opened) {
-    return opened.writeString(contents).then((ignore) {
-        return opened.close().then((_) {
-          log.fine("Wrote text file $path.");
-          return file;
-        });
-    });
-  });
+  return file..writeAsStringSync(contents);
 }
+
+/// Deletes [file], which can be a [String] or a [File]. Returns a [Future]
+/// that completes when the deletion is done.
+File deleteFile(file) => _getFile(file)..delete();
 
 /// Creates [file] (which can either be a [String] or a [File]), and writes
 /// [contents] to it.
@@ -154,14 +109,6 @@ File writeBinaryFile(file, List<int> contents) {
       ..closeSync();
   log.fine("Wrote text file $path.");
   return file;
-}
-
-/// Asynchronously deletes [file], which can be a [String] or a [File]. Returns
-/// a [Future] that completes when the deletion is done.
-Future<File> deleteFile(file) {
-  var path = _getPath(file);
-  return log.ioAsync("delete file $path",
-      new File(path).delete());
 }
 
 /// Writes [stream] to a new file at [path], which may be a [String] or a
@@ -178,42 +125,32 @@ Future<File> createFileFromStream(Stream<List<int>> stream, path) {
   });
 }
 
-/// Creates a directory [dir]. Returns a [Future] that completes when the
-/// directory is created.
-Future<Directory> createDir(dir) {
-  dir = _getDirectory(dir);
-  return log.ioAsync("create directory ${dir.path}",
-      dir.create());
-}
+/// Creates a directory [dir].
+Directory createDir(dir) => _getDirectory(dir)..createSync();
 
 /// Ensures that [path] and all its parent directories exist. If they don't
-/// exist, creates them. Returns a [Future] that completes once all the
-/// directories are created.
-Future<Directory> ensureDir(path) {
+/// exist, creates them.
+Directory ensureDir(path) {
   path = _getPath(path);
+
   log.fine("Ensuring directory $path exists.");
-  if (path == '.') return new Future.immediate(new Directory('.'));
+  var dir = new Directory(path);
+  if (path == '.' || dirExists(path)) return dir;
 
-  return dirExists(path).then((exists) {
-    if (exists) {
-      log.fine("Directory $path already exists.");
-      return new Directory(path);
+  ensureDir(dirname(path));
+
+  try {
+    createDir(dir);
+  } on DirectoryIOException catch (ex) {
+    // Error 17 means the directory already exists (or 183 on Windows).
+    if (ex.osError.errorCode == 17 || ex.osError.errorCode == 183) {
+      log.fine("Got 'already exists' error when creating directory.");
+    } else {
+      throw ex;
     }
+  }
 
-    return ensureDir(dirname(path)).then((_) {
-      return createDir(path).catchError((asyncError) {
-        if (asyncError.error is! DirectoryIOException) throw asyncError;
-        // Error 17 means the directory already exists (or 183 on Windows).
-        if (asyncError.error.osError.errorCode == 17 ||
-            asyncError.error.osError.errorCode == 183) {
-          log.fine("Got 'already exists' error when creating directory.");
-          return _getDirectory(path);
-        }
-
-        throw asyncError;
-      });
-    });
-  });
+  return dir;
 }
 
 /// Creates a temp directory whose name will be based on [dir] with a unique
@@ -307,29 +244,16 @@ Future<List<String>> listDir(dir,
   return doList(_getDirectory(dir), new Set<String>());
 }
 
-// TODO(rnystrom): Migrate everything over to the sync one and get rid of this.
-/// Asynchronously determines if [dir], which can be a [String] directory path
-/// or a [Directory], exists on the file system. Returns a [Future] that
-/// completes with the result.
-Future<bool> dirExists(dir) {
-  dir = _getDirectory(dir);
-  return log.ioAsync("Seeing if directory ${dir.path} exists.",
-      dir.exists(),
-      (exists) => "Directory ${dir.path} "
-                  "${exists ? 'exists' : 'does not exist'}.");
-}
-
 /// Determines if [dir], which can be a [String] directory path or a
-/// [Directory], exists on the file system. Returns a [Future] that completes
-/// with the result.
-bool dirExistsSync(dir) => _getDirectory(dir).existsSync();
+/// [Directory], exists on the file system.
+bool dirExists(dir) => _getDirectory(dir).existsSync();
 
 /// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
 /// new empty directory will be created. Returns a [Future] that completes when
 /// the new clean directory is created.
 Future<Directory> cleanDir(dir) {
-  return dirExists(dir).then((exists) {
-    if (exists) {
+  return defer(() {
+    if (dirExists(dir)) {
       // Delete it first.
       return deleteDir(dir).then((_) => createDir(dir));
     } else {
@@ -416,11 +340,11 @@ Future<File> createSymlink(from, to) {
 /// appropriate and then does nothing.
 Future<File> createPackageSymlink(String name, from, to,
     {bool isSelfLink: false}) {
-  // See if the package has a "lib" directory.
-  from = join(from, 'lib');
-  return dirExists(from).then((exists) {
+  return defer(() {
+    // See if the package has a "lib" directory.
+    from = join(from, 'lib');
     log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
-    if (exists) return createSymlink(from, to);
+    if (dirExists(from)) return createSymlink(from, to);
 
     // It's OK for the self link (i.e. the root package) to not have a lib
     // directory since it may just be a leaf application that only has
@@ -430,7 +354,7 @@ Future<File> createPackageSymlink(String name, from, to,
                   'you will not be able to import any libraries from it.');
     }
 
-    return to;
+    return _getFile(to);
   });
 }
 
@@ -980,6 +904,14 @@ class PubProcessResult {
   const PubProcessResult(this.stdout, this.stderr, this.exitCode);
 
   bool get success => exitCode == 0;
+}
+
+/// Gets a dart:io [File] for [entry], which can either already be a File or be
+/// a path string.
+File _getFile(entry) {
+  if (entry is File) return entry;
+  if (entry is String) return new File(entry);
+  throw 'Entry $entry is not a supported type.';
 }
 
 /// Gets the path string for [entry], which can either already be a path string,

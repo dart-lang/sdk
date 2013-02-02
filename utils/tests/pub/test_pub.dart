@@ -604,14 +604,15 @@ void confirmPublish(ScheduledProcess pub) {
 /// [Future] may have a type other than [Process].
 Future _doPub(Function fn, sandboxDir, List args, Future<Uri> tokenEndpoint) {
   String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
-
-  return Future.wait([
-    ensureDir(pathInSandbox(appPath)),
-    _awaitObject(args),
-    tokenEndpoint == null ? new Future.immediate(null) : tokenEndpoint
-  ]).then((results) {
-    var args = results[1];
-    var tokenEndpoint = results[2];
+  return defer(() {
+    ensureDir(pathInSandbox(appPath));
+    return Future.wait([
+      _awaitObject(args),
+      tokenEndpoint == null ? new Future.immediate(null) : tokenEndpoint
+    ]);
+  }).then((results) {
+    var args = results[0];
+    var tokenEndpoint = results[1];
     // Find a Dart executable we can use to spawn. Use the same one that was
     // used to run this script itself.
     var dartBin = new Options().executable;
@@ -819,14 +820,14 @@ abstract class Descriptor {
   }
 
   /// Validates that at least one file in [dir] matching [name] is valid
-  /// according to [validate]. [validate] should complete to an exception if
-  /// the input path is invalid.
+  /// according to [validate]. [validate] should throw or complete to an
+  /// exception if the input path is invalid.
   Future _validateOneMatch(String dir, Future validate(String path)) {
     // Special-case strings to support multi-level names like "myapp/packages".
     if (name is String) {
       var path = join(dir, name);
-      return exists(path).then((exists) {
-        if (!exists) {
+      return defer(() {
+        if (!entryExists(path)) {
           throw new ExpectException('File $name in $dir not found.');
         }
         return validate(path);
@@ -897,25 +898,23 @@ class FileDescriptor extends Descriptor {
 
   /// Creates the file within [dir]. Returns a [Future] that is completed after
   /// the creation is done.
-  Future<File> create(dir) => new Future.immediate(null).then((_) =>
-      writeBinaryFile(join(dir, _stringName), contents));
+  Future<File> create(dir) =>
+      defer(() => writeBinaryFile(join(dir, _stringName), contents));
 
   /// Deletes the file within [dir]. Returns a [Future] that is completed after
   /// the deletion is done.
-  Future delete(dir) {
-    return deleteFile(join(dir, _stringName));
-  }
+  Future delete(dir) =>
+      defer(() => deleteFile(join(dir, _stringName)));
 
   /// Validates that this file correctly matches the actual file at [path].
   Future validate(String path) {
     return _validateOneMatch(path, (file) {
-      return readTextFile(file).then((text) {
-        if (text == textContents) return null;
+      var text = readTextFile(file);
+      if (text == textContents) return null;
 
-        throw new ExpectException(
-            'File $file should contain:\n\n$textContents\n\n'
-            'but contained:\n\n$text');
-      });
+      throw new ExpectException(
+          'File $file should contain:\n\n$textContents\n\n'
+          'but contained:\n\n$text');
     });
   }
 
@@ -944,13 +943,13 @@ class DirectoryDescriptor extends Descriptor {
   /// Creates the file within [dir]. Returns a [Future] that is completed after
   /// the creation is done.
   Future<Directory> create(parentDir) {
-    // Create the directory.
-    return ensureDir(join(parentDir, _stringName)).then((dir) {
-      if (contents == null) return new Future<Directory>.immediate(dir);
+    return defer(() {
+      // Create the directory.
+      var dir = ensureDir(join(parentDir, _stringName));
+      if (contents == null) return dir;
 
       // Recursively create all of its children.
-      final childFutures =
-          contents.map((child) => child.create(dir)).toList();
+      var childFutures = contents.map((child) => child.create(dir)).toList();
       // Only complete once all of the children have been created too.
       return Future.wait(childFutures).then((_) => dir);
     });
@@ -1154,8 +1153,8 @@ class NothingDescriptor extends Descriptor {
   Future delete(dir) => new Future.immediate(null);
 
   Future validate(String dir) {
-    return exists(join(dir, name)).then((exists) {
-      if (exists) {
+    return defer(() {
+      if (entryExists(join(dir, name))) {
         throw new ExpectException('File $name in $dir should not exist.');
       }
     });
@@ -1179,12 +1178,10 @@ typedef Validator ValidatorCreator(Entrypoint entrypoint);
 Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     ValidatorCreator fn) {
   return _scheduleValue((sandboxDir) {
-    var cache = new SystemCache.withSources(
-        join(sandboxDir, cachePath));
+    var cache = new SystemCache.withSources(join(sandboxDir, cachePath));
 
-    return Entrypoint.load(join(sandboxDir, appPath), cache)
-        .then((entrypoint) {
-      var validator = fn(entrypoint);
+    return defer(() {
+      var validator = fn(new Entrypoint(join(sandboxDir, appPath), cache));
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);
       });
@@ -1529,7 +1526,7 @@ class ScheduledServer {
   /// Raises an error complaining of an unexpected request.
   void _awaitHandle(HttpRequest request, HttpResponse response) {
     if (_ignored.contains(new Pair(request.method, request.path))) return;
-    var future = timeout(new Future.immediate(null).then((_) {
+    var future = timeout(defer(() {
       if (_handlers.isEmpty) {
         fail('Unexpected ${request.method} request to ${request.path}.');
       }

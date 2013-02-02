@@ -10,6 +10,7 @@ import 'dart:io';
 import '../../../pkg/path/lib/path.dart' as path;
 import '../entrypoint.dart';
 import '../io.dart';
+import '../utils.dart';
 import '../validator.dart';
 
 /// Dart reserved words, from the Dart spec.
@@ -47,8 +48,8 @@ class NameValidator extends Validator {
   /// to the package's root directory.
   Future<List<String>> get _libraries {
     var libDir = join(entrypoint.root.dir, "lib");
-    return dirExists(libDir).then((libDirExists) {
-      if (!libDirExists) return [];
+    return defer(() {
+      if (!dirExists(libDir)) return [];
       return listDir(libDir, recursive: true);
     }).then((files) {
       return files

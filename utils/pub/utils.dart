@@ -145,6 +145,16 @@ String sha1(String source) {
   return CryptoUtils.bytesToHex(sha.close());
 }
 
+/// Invokes the given callback asynchronously. Returns a [Future] that completes
+/// to the result of [callback].
+///
+/// This is also used to wrap synchronous code that may thrown an exception to
+/// ensure that methods that have both sync and async code only report errors
+/// asynchronously.
+Future defer(callback()) {
+  return new Future.immediate(null).then((_) => callback());
+}
+
 /// Returns a [Future] that completes in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
