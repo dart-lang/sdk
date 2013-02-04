@@ -10,7 +10,7 @@ import copy
 import json
 import os
 import re
-from htmlrenamer import html_interface_renames, renamed_html_members
+from htmlrenamer import html_interface_renames
 
 # Set up json file for retrieving comments.
 _current_dir = os.path.dirname(__file__)
@@ -891,10 +891,6 @@ def FindCommonAnnotations(library_name, interface_name, member_name=None):
 
   if (dart_annotations.get(key) != None):
     annotations.extend(dart_annotations.get(key))
-
-  if (member_name and member_name.startswith('webkit') and
-      key not in renamed_html_members):
-    annotations.extend(_webkit_experimental_annotations)
 
   return annotations
 

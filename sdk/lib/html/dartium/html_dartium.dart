@@ -1568,52 +1568,31 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  num get backingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
+  num get webkitBackingStorePixelRatio native "CanvasRenderingContext2D_webkitBackingStorePixelRatio_Getter";
 
   @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get imageSmoothingEnabled native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
+  bool get webkitImageSmoothingEnabled native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Getter";
 
   @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set imageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
+  void set webkitImageSmoothingEnabled(bool value) native "CanvasRenderingContext2D_webkitImageSmoothingEnabled_Setter";
 
   @DomName('CanvasRenderingContext2D.webkitLineDash')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  List get lineDash native "CanvasRenderingContext2D_webkitLineDash_Getter";
+  List get webkitLineDash native "CanvasRenderingContext2D_webkitLineDash_Getter";
 
   @DomName('CanvasRenderingContext2D.webkitLineDash')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set lineDash(List value) native "CanvasRenderingContext2D_webkitLineDash_Setter";
+  void set webkitLineDash(List value) native "CanvasRenderingContext2D_webkitLineDash_Setter";
 
   @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  num get lineDashOffset native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
+  num get webkitLineDashOffset native "CanvasRenderingContext2D_webkitLineDashOffset_Getter";
 
   @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set lineDashOffset(num value) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
+  void set webkitLineDashOffset(num value) native "CanvasRenderingContext2D_webkitLineDashOffset_Setter";
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable
@@ -1949,12 +1928,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  ImageData getImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
 
-  void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       _webkitPutImageDataHD_1(imagedata, dx, dy);
       return;
@@ -6573,10 +6549,7 @@ class DataTransferItem extends NativeFieldWrapperClass1 {
 
   @DomName('DataTransferItem.webkitGetAsEntry')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  Entry getAsEntry() native "DataTransferItem_webkitGetAsEntry_Callback";
+  Entry webkitGetAsEntry() native "DataTransferItem_webkitGetAsEntry_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7217,16 +7190,10 @@ class Document extends Node
 
   @DomName('Document.webkitpointerlockchangeEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
   @DomName('Document.webkitpointerlockerrorEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
   @DocsEditable
@@ -7326,48 +7293,30 @@ class Document extends Node
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Element get $dom_webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   bool get $dom_webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   bool get $dom_webkitHidden native "Document_webkitHidden_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   bool get $dom_webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Element get $dom_webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
 
   @DomName('Document.webkitVisibilityState')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
   /// Use the [Range] constructor instead.
@@ -7476,25 +7425,16 @@ class Document extends Node
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   void $dom_webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   void $dom_webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
   @DomName('Document.onabort')
@@ -7679,30 +7619,18 @@ class Document extends Node
 
   @DomName('Document.onwebkitfullscreenchange')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
   @DomName('Document.onwebkitfullscreenerror')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
   @DomName('Document.onwebkitpointerlockchange')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
   @DomName('Document.onwebkitpointerlockerror')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
 
 
@@ -9869,23 +9797,14 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.webkitTransitionEndEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
   @DomName('Element.webkitfullscreenchangeEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
 
   @DomName('Element.webkitfullscreenerrorEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   @DocsEditable
@@ -9922,7 +9841,7 @@ abstract class Element extends Node implements ElementTraversal {
 
   bool translate;
 
-  String dropzone;
+  String webkitdropzone;
 
   void click();
 
@@ -10036,24 +9955,15 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.webkitPseudo')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  String get pseudo native "Element_webkitPseudo_Getter";
+  String get webkitPseudo native "Element_webkitPseudo_Getter";
 
   @DomName('Element.webkitPseudo')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set pseudo(String value) native "Element_webkitPseudo_Setter";
+  void set webkitPseudo(String value) native "Element_webkitPseudo_Setter";
 
   @DomName('Element.webkitShadowRoot')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  ShadowRoot get shadowRoot native "Element_webkitShadowRoot_Getter";
+  ShadowRoot get webkitShadowRoot native "Element_webkitShadowRoot_Getter";
 
   @DomName('Element.blur')
   @DocsEditable
@@ -10161,24 +10071,15 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.webkitRequestFullScreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void requestFullScreen(int flags) native "Element_webkitRequestFullScreen_Callback";
+  void webkitRequestFullScreen(int flags) native "Element_webkitRequestFullScreen_Callback";
 
   @DomName('Element.webkitRequestFullscreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void requestFullscreen() native "Element_webkitRequestFullscreen_Callback";
+  void webkitRequestFullscreen() native "Element_webkitRequestFullscreen_Callback";
 
   @DomName('Element.webkitRequestPointerLock')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void requestPointerLock() native "Element_webkitRequestPointerLock_Callback";
+  void webkitRequestPointerLock() native "Element_webkitRequestPointerLock_Callback";
 
   @DomName('Element.onabort')
   @DocsEditable
@@ -10362,23 +10263,14 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.onwebkitTransitionEnd')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenchange')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenerror')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
 
 }
@@ -11461,10 +11353,7 @@ class File extends Blob {
 
   @DomName('File.webkitRelativePath')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  String get relativePath native "File_webkitRelativePath_Getter";
+  String get webkitRelativePath native "File_webkitRelativePath_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14592,9 +14481,6 @@ class InputElement extends _Element_Merged implements
 
   @DomName('HTMLInputElement.webkitSpeechChangeEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
   @DocsEditable
@@ -14929,52 +14815,31 @@ class InputElement extends _Element_Merged implements
 
   @DomName('HTMLInputElement.webkitEntries')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  List<Entry> get entries native "HTMLInputElement_webkitEntries_Getter";
+  List<Entry> get webkitEntries native "HTMLInputElement_webkitEntries_Getter";
 
   @DomName('HTMLInputElement.webkitGrammar')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get grammar native "HTMLInputElement_webkitGrammar_Getter";
+  bool get webkitGrammar native "HTMLInputElement_webkitGrammar_Getter";
 
   @DomName('HTMLInputElement.webkitGrammar')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set grammar(bool value) native "HTMLInputElement_webkitGrammar_Setter";
+  void set webkitGrammar(bool value) native "HTMLInputElement_webkitGrammar_Setter";
 
   @DomName('HTMLInputElement.webkitSpeech')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get speech native "HTMLInputElement_webkitSpeech_Getter";
+  bool get webkitSpeech native "HTMLInputElement_webkitSpeech_Getter";
 
   @DomName('HTMLInputElement.webkitSpeech')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set speech(bool value) native "HTMLInputElement_webkitSpeech_Setter";
+  void set webkitSpeech(bool value) native "HTMLInputElement_webkitSpeech_Setter";
 
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get directory native "HTMLInputElement_webkitdirectory_Getter";
+  bool get webkitdirectory native "HTMLInputElement_webkitdirectory_Getter";
 
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set directory(bool value) native "HTMLInputElement_webkitdirectory_Setter";
+  void set webkitdirectory(bool value) native "HTMLInputElement_webkitdirectory_Setter";
 
   @DomName('HTMLInputElement.width')
   @DocsEditable
@@ -15060,9 +14925,6 @@ class InputElement extends _Element_Merged implements
 
   @DomName('HTMLInputElement.onwebkitSpeechChange')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
 
 }
@@ -17106,30 +16968,18 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.webkitkeyaddedEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
 
   @DomName('HTMLMediaElement.webkitkeyerrorEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
 
   @DomName('HTMLMediaElement.webkitkeymessageEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
 
   @DomName('HTMLMediaElement.webkitneedkeyEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
   @DocsEditable
@@ -17318,52 +17168,31 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  int get audioDecodedByteCount native "HTMLMediaElement_webkitAudioDecodedByteCount_Getter";
+  int get webkitAudioDecodedByteCount native "HTMLMediaElement_webkitAudioDecodedByteCount_Getter";
 
   @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get closedCaptionsVisible native "HTMLMediaElement_webkitClosedCaptionsVisible_Getter";
+  bool get webkitClosedCaptionsVisible native "HTMLMediaElement_webkitClosedCaptionsVisible_Getter";
 
   @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set closedCaptionsVisible(bool value) native "HTMLMediaElement_webkitClosedCaptionsVisible_Setter";
+  void set webkitClosedCaptionsVisible(bool value) native "HTMLMediaElement_webkitClosedCaptionsVisible_Setter";
 
   @DomName('HTMLMediaElement.webkitHasClosedCaptions')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get hasClosedCaptions native "HTMLMediaElement_webkitHasClosedCaptions_Getter";
+  bool get webkitHasClosedCaptions native "HTMLMediaElement_webkitHasClosedCaptions_Getter";
 
   @DomName('HTMLMediaElement.webkitPreservesPitch')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get preservesPitch native "HTMLMediaElement_webkitPreservesPitch_Getter";
+  bool get webkitPreservesPitch native "HTMLMediaElement_webkitPreservesPitch_Getter";
 
   @DomName('HTMLMediaElement.webkitPreservesPitch')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set preservesPitch(bool value) native "HTMLMediaElement_webkitPreservesPitch_Setter";
+  void set webkitPreservesPitch(bool value) native "HTMLMediaElement_webkitPreservesPitch_Setter";
 
   @DomName('HTMLMediaElement.webkitVideoDecodedByteCount')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  int get videoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
+  int get webkitVideoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
   TextTrack addTextTrack(String kind, [String label, String language]) {
     if (?language) {
@@ -17403,7 +17232,7 @@ class MediaElement extends _Element_Merged {
   @DocsEditable
   void play() native "HTMLMediaElement_play_Callback";
 
-  void addKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) {
+  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) {
     if (?initData) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
@@ -17422,12 +17251,9 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void cancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
+  void webkitCancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void generateKeyRequest(String keySystem, [Uint8Array initData]) {
+  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) {
     if (?initData) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
@@ -17530,30 +17356,18 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.onwebkitkeyadded')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onwebkitkeyerror')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onwebkitkeymessage')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onwebkitneedkey')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 
 }
@@ -18577,17 +18391,11 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.webkitMovementX')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  int get movementX native "MouseEvent_webkitMovementX_Getter";
+  int get webkitMovementX native "MouseEvent_webkitMovementX_Getter";
 
   @DomName('MouseEvent.webkitMovementY')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  int get movementY native "MouseEvent_webkitMovementY_Getter";
+  int get webkitMovementY native "MouseEvent_webkitMovementY_Getter";
 
   @DomName('MouseEvent.x')
   @DocsEditable
@@ -19147,10 +18955,7 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DomName('Navigator.webkitBattery')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  BatteryManager get battery native "Navigator_webkitBattery_Getter";
+  BatteryManager get webkitBattery native "Navigator_webkitBattery_Getter";
 
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable
@@ -19162,10 +18967,7 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DomName('Navigator.webkitGetGamepads')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  List<Gamepad> getGamepads() native "Navigator_webkitGetGamepads_Callback";
+  List<Gamepad> webkitGetGamepads() native "Navigator_webkitGetGamepads_Callback";
 
   @DomName('Navigator.webkitGetUserMedia')
   @DocsEditable
@@ -25267,31 +25069,19 @@ class Touch extends NativeFieldWrapperClass1 {
 
   @DomName('Touch.webkitForce')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  num get force native "Touch_webkitForce_Getter";
+  num get webkitForce native "Touch_webkitForce_Getter";
 
   @DomName('Touch.webkitRadiusX')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  int get radiusX native "Touch_webkitRadiusX_Getter";
+  int get webkitRadiusX native "Touch_webkitRadiusX_Getter";
 
   @DomName('Touch.webkitRadiusY')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  int get radiusY native "Touch_webkitRadiusY_Getter";
+  int get webkitRadiusY native "Touch_webkitRadiusY_Getter";
 
   @DomName('Touch.webkitRotationAngle')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  num get rotationAngle native "Touch_webkitRotationAngle_Getter";
+  num get webkitRotationAngle native "Touch_webkitRotationAngle_Getter";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -26923,31 +26713,19 @@ class VideoElement extends MediaElement {
 
   @DomName('HTMLVideoElement.webkitDecodedFrameCount')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  int get decodedFrameCount native "HTMLVideoElement_webkitDecodedFrameCount_Getter";
+  int get webkitDecodedFrameCount native "HTMLVideoElement_webkitDecodedFrameCount_Getter";
 
   @DomName('HTMLVideoElement.webkitDisplayingFullscreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get displayingFullscreen native "HTMLVideoElement_webkitDisplayingFullscreen_Getter";
+  bool get webkitDisplayingFullscreen native "HTMLVideoElement_webkitDisplayingFullscreen_Getter";
 
   @DomName('HTMLVideoElement.webkitDroppedFrameCount')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  int get droppedFrameCount native "HTMLVideoElement_webkitDroppedFrameCount_Getter";
+  int get webkitDroppedFrameCount native "HTMLVideoElement_webkitDroppedFrameCount_Getter";
 
   @DomName('HTMLVideoElement.webkitSupportsFullscreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get supportsFullscreen native "HTMLVideoElement_webkitSupportsFullscreen_Getter";
+  bool get webkitSupportsFullscreen native "HTMLVideoElement_webkitSupportsFullscreen_Getter";
 
   @DomName('HTMLVideoElement.width')
   @DocsEditable
@@ -26959,31 +26737,19 @@ class VideoElement extends MediaElement {
 
   @DomName('HTMLVideoElement.webkitEnterFullScreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void enterFullScreen() native "HTMLVideoElement_webkitEnterFullScreen_Callback";
+  void webkitEnterFullScreen() native "HTMLVideoElement_webkitEnterFullScreen_Callback";
 
   @DomName('HTMLVideoElement.webkitEnterFullscreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void enterFullscreen() native "HTMLVideoElement_webkitEnterFullscreen_Callback";
+  void webkitEnterFullscreen() native "HTMLVideoElement_webkitEnterFullscreen_Callback";
 
   @DomName('HTMLVideoElement.webkitExitFullScreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void exitFullScreen() native "HTMLVideoElement_webkitExitFullScreen_Callback";
+  void webkitExitFullScreen() native "HTMLVideoElement_webkitExitFullScreen_Callback";
 
   @DomName('HTMLVideoElement.webkitExitFullscreen')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void exitFullscreen() native "HTMLVideoElement_webkitExitFullscreen_Callback";
+  void webkitExitFullscreen() native "HTMLVideoElement_webkitExitFullscreen_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28926,10 +28692,7 @@ class WheelEvent extends MouseEvent {
 
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  bool get directionInvertedFromDevice native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
+  bool get webkitDirectionInvertedFromDevice native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
 
   @DomName('WheelEvent.wheelDeltaX')
   @DocsEditable
@@ -29057,23 +28820,14 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.webkitAnimationEndEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
   @DomName('DOMWindow.webkitAnimationIterationEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
   @DomName('DOMWindow.webkitAnimationStartEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
   @DocsEditable
@@ -29298,10 +29052,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.webkitStorageInfo')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  StorageInfo get storageInfo native "DOMWindow_webkitStorageInfo_Getter";
+  StorageInfo get webkitStorageInfo native "DOMWindow_webkitStorageInfo_Getter";
 
   @DomName('DOMWindow.window')
   @DocsEditable
@@ -29448,10 +29199,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.webkitCancelAnimationFrame')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void cancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
+  void webkitCancelAnimationFrame(int id) native "DOMWindow_webkitCancelAnimationFrame_Callback";
 
   @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
   @DocsEditable
@@ -29463,10 +29211,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.webkitRequestAnimationFrame')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
 
   @DomName('DOMWindow.webkitRequestFileSystem')
   @DocsEditable
@@ -29682,30 +29427,18 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.onwebkitAnimationEnd')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
   @DomName('DOMWindow.onwebkitAnimationIteration')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
   @DomName('DOMWindow.onwebkitAnimationStart')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
   @DomName('DOMWindow.onwebkitTransitionEnd')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 }
@@ -30040,10 +29773,7 @@ class WorkerContext extends EventTarget {
 
   @DomName('WorkerContext.webkitNotifications')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  NotificationCenter get notifications native "WorkerContext_webkitNotifications_Getter";
+  NotificationCenter get webkitNotifications native "WorkerContext_webkitNotifications_Getter";
 
   @DomName('WorkerContext.addEventListener')
   @DocsEditable
@@ -31189,17 +30919,11 @@ class _Element_Merged extends Element {
 
   @DomName('HTMLElement.webkitdropzone')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  String get dropzone native "HTMLElement_webkitdropzone_Getter";
+  String get webkitdropzone native "HTMLElement_webkitdropzone_Getter";
 
   @DomName('HTMLElement.webkitdropzone')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void set dropzone(String value) native "HTMLElement_webkitdropzone_Setter";
+  void set webkitdropzone(String value) native "HTMLElement_webkitdropzone_Setter";
 
   @DomName('HTMLElement.click')
   @DocsEditable
