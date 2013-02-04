@@ -32,7 +32,6 @@ part "pattern.dart";
 part "print.dart";
 part "regexp.dart";
 part "set.dart";
-part "sink.dart";
 part "stopwatch.dart";
 part "string.dart";
 part "string_buffer.dart";

@@ -72,7 +72,7 @@ class Events implements StreamSink {
   factory Events.capture(Stream stream,
                          { bool unsubscribeOnError: false }) = CaptureEvents;
 
-  // Sink interface.
+  // StreamSink interface.
   add(var value) { events.add(new DataEvent(value)); }
 
   void signalError(AsyncError error) {
