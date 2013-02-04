@@ -123,6 +123,9 @@ typed_arrays_1_test/supported: Fail
 localstorage_test: Fail
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
+
+microtask_test: Pass, Fail # http://dartbug.com/8300
+
 #
 # Investigate and triage the following into bug reports.
 #
