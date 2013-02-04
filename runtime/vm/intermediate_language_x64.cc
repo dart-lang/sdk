@@ -1786,6 +1786,7 @@ static bool CanBeImmediate(const Object& constant) {
     Immediate(reinterpret_cast<int64_t>(constant.raw())).is_int32();
 }
 
+
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
 
@@ -1808,12 +1809,20 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    // Both inputs must be writable because they will be untagged.
-    summary->set_in(0, Location::RegisterLocation(RAX));
-    summary->set_in(1, Location::WritableRegister());
-    summary->set_out(Location::SameAsFirstInput());
-    // Will be used for sign extension and division.
-    summary->set_temp(0, Location::RegisterLocation(RDX));
+    if (RightIsPowerOfTwoConstant()) {
+      summary->set_in(0, Location::RequiresRegister());
+      ConstantInstr* right_constant = right()->definition()->AsConstant();
+      summary->set_in(1, Location::Constant(right_constant->value()));
+      summary->set_temp(0, Location::RequiresRegister());
+      summary->set_out(Location::SameAsFirstInput());
+    } else {
+      // Both inputs must be writable because they will be untagged.
+      summary->set_in(0, Location::RegisterLocation(RAX));
+      summary->set_in(1, Location::WritableRegister());
+      summary->set_out(Location::SameAsFirstInput());
+      // Will be used for sign extension and division.
+      summary->set_temp(0, Location::RegisterLocation(RDX));
+    }
     return summary;
   } else if (op_kind() == Token::kSHR) {
     const intptr_t kNumTemps = 0;
@@ -1842,7 +1851,6 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     return summary;
   }
 }
-
 
 void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
@@ -1875,6 +1883,38 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         const intptr_t value = Smi::Cast(constant).Value();
         __ imulq(left, Immediate(value));
         if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kTRUNCDIV: {
+        const intptr_t value = Smi::Cast(constant).Value();
+        if (value == 1) {
+          // Do nothing.
+          break;
+        } else if (value == -1) {
+          // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+          // case we cannot negate the result.
+          __ cmpq(left, Immediate(0x8000000000000000));
+          __ j(EQUAL, deopt);
+          __ negq(left);
+          break;
+        }
+
+        ASSERT((value != 0) && Utils::IsPowerOfTwo(Utils::Abs(value)));
+        const intptr_t shift_count =
+            Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
+        ASSERT(kSmiTagSize == 1);
+        Register temp = locs()->temp(0).reg();
+        __ movq(temp, left);
+        __ sarq(temp, Immediate(63));
+        ASSERT(shift_count > 1);  // 1, -1 case handled above.
+        __ shrq(temp, Immediate(64 - shift_count));
+        __ addq(left, temp);
+        ASSERT(shift_count > 0);
+        __ sarq(left, Immediate(shift_count));
+        if (value < 0) {
+          __ negq(left);
+        }
+        __ SmiTag(left);
         break;
       }
       case Token::kBIT_AND: {

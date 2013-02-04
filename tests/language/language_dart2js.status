@@ -90,6 +90,7 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 
 [ $compiler == dart2js ]
+div_with_power_of_two_test: Fail # Issue 8301.
 call_operator_test: Fail # Issue 7622.
 class_literal_test: Fail # Issue 7626.
 identical_closure2_test: Fail # Issues 563, 1533

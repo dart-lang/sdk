@@ -525,7 +525,7 @@ static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
 }
 
 
-// Returns array classid to load from, array and idnex value
+// Returns array classid to load from, array and index value
 
 intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
                                               intptr_t class_id,

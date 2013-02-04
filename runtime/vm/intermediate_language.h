@@ -3899,6 +3899,10 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
+  // Returns true if right is a non-zero Smi constant which absolute value is
+  // a power of two.
+  bool RightIsPowerOfTwoConstant() const;
+
  private:
   const Token::Kind op_kind_;
   InstanceCallInstr* instance_call_;

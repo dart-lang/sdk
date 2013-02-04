@@ -1377,6 +1377,16 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
 }
 
 
+bool BinarySmiOpInstr::RightIsPowerOfTwoConstant() const {
+  if (!right()->definition()->IsConstant()) return false;
+  const Object& constant = right()->definition()->AsConstant()->value();
+  if (!constant.IsSmi()) return false;
+  const intptr_t int_value = Smi::Cast(constant).Value();
+  if (int_value == 0) return false;
+  return Utils::IsPowerOfTwo(Utils::Abs(int_value));
+}
+
+
 RawAbstractType* BinaryMintOpInstr::CompileType() const {
   return Type::IntType();
 }
