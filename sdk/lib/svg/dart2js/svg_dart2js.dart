@@ -3209,7 +3209,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Length element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Length element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -3833,7 +3833,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Number element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Number element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -4733,7 +4733,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(PathSeg element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(PathSeg element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -5617,7 +5617,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(String element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(String element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -6780,7 +6780,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Transform element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Transform element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -7297,7 +7297,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(ElementInstance element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(ElementInstance element)) =>
       IterableMixinWorkaround.mappedByList(this, f);

@@ -243,7 +243,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   Iterable map(f(T element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(T element)) {

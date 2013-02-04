@@ -101,7 +101,7 @@ class _ObjectArray<E> implements List<E> {
   }
 
   Iterable map(f(E element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(E element)) {
@@ -331,7 +331,7 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   Iterable map(f(E element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(E element)) {

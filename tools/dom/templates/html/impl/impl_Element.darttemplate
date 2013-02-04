@@ -62,7 +62,7 @@ class _ChildrenElementList implements List {
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Element element)) {
@@ -279,7 +279,7 @@ class _FrozenElementList implements List {
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Element element)) {

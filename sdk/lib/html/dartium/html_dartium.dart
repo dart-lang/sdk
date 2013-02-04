@@ -7971,7 +7971,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(DomMimeType element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(DomMimeType element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -8239,7 +8239,7 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(DomPlugin element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(DomPlugin element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -8625,7 +8625,7 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(String element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(String element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -8905,7 +8905,7 @@ class _ChildrenElementList implements List {
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Element element)) {
@@ -9122,7 +9122,7 @@ class _FrozenElementList implements List {
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Element element)) {
@@ -11535,7 +11535,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(File element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(File element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -12204,7 +12204,7 @@ class Float32Array extends ArrayBufferView implements List<num> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(num element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(num element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -12439,7 +12439,7 @@ class Float64Array extends ArrayBufferView implements List<num> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(num element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(num element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -13024,7 +13024,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Node element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -13233,7 +13233,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Node element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -15588,7 +15588,7 @@ class Int16Array extends ArrayBufferView implements List<int> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -15823,7 +15823,7 @@ class Int32Array extends ArrayBufferView implements List<int> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -16058,7 +16058,7 @@ class Int8Array extends ArrayBufferView implements List<int> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -18667,7 +18667,7 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Node element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -19134,7 +19134,7 @@ class _ChildNodeListLazy implements List {
   }
 
   Iterable map(f(Node element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Node element)) {
@@ -19523,7 +19523,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Node element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -22232,7 +22232,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SourceBuffer element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(SourceBuffer element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -22550,7 +22550,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SpeechGrammar element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(SpeechGrammar element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -23251,7 +23251,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Map element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Map element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -24580,7 +24580,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(TextTrackCue element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(TextTrackCue element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -24795,7 +24795,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(TextTrack element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(TextTrack element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -25203,7 +25203,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Touch element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Touch element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -25690,7 +25690,7 @@ class Uint16Array extends ArrayBufferView implements List<int> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -25925,7 +25925,7 @@ class Uint32Array extends ArrayBufferView implements List<int> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -26160,7 +26160,7 @@ class Uint8Array extends ArrayBufferView implements List<int> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -26393,7 +26393,7 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -30248,7 +30248,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(ClientRect element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(ClientRect element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -30449,7 +30449,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(CssRule element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(CssRule element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -30650,7 +30650,7 @@ class _CssValueList extends CssValue implements List<CssValue> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(CssValue element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(CssValue element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -30988,7 +30988,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Entry element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Entry element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -31189,7 +31189,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(EntrySync element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(EntrySync element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -31390,7 +31390,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Gamepad element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Gamepad element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -31734,7 +31734,7 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(MediaStream element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(MediaStream element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -31935,7 +31935,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SpeechInputResult element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(SpeechInputResult element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -32136,7 +32136,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SpeechRecognitionResult element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(SpeechRecognitionResult element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -32337,7 +32337,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(StyleSheet element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(StyleSheet element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
