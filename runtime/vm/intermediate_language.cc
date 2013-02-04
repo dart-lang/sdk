@@ -626,58 +626,73 @@ void Instruction::RecordAssignedVars(BitVector* assigned_vars,
 }
 
 
-void Value::AddToInputUseList() {
-  Value* next = definition()->input_use_list();
-  definition()->set_input_use_list(this);
-  set_next_use(next);
-  set_previous_use(NULL);
-  if (next != NULL) next->set_previous_use(this);
+void Value::AddToList(Value* value, Value** list) {
+  Value* next = *list;
+  *list = value;
+  value->set_next_use(next);
+  value->set_previous_use(NULL);
+  if (next != NULL) next->set_previous_use(value);
 }
 
 
-void Value::AddToEnvUseList() {
-  Value* next = definition()->env_use_list();
-  definition()->set_env_use_list(this);
-  set_next_use(next);
-  set_previous_use(NULL);
-  if (next != NULL) next->set_previous_use(this);
-}
-
-
-void Value::RemoveFromInputUseList() {
-  Value* previous = previous_use();
+void Value::RemoveFromUseList() {
+  Definition* def = definition();
   Value* next = next_use();
-  if (previous == NULL) {
-    definition()->set_input_use_list(next);
+  if (this == def->input_use_list()) {
+    def->set_input_use_list(next);
+    if (next != NULL) next->set_previous_use(NULL);
+  } else if (this == def->env_use_list()) {
+    def->set_env_use_list(next);
+    if (next != NULL) next->set_previous_use(NULL);
   } else {
-    previous->set_next_use(next);
+    Value* prev = previous_use();
+    prev->set_next_use(next);
+    if (next != NULL) next->set_previous_use(prev);
   }
-  if (next != NULL) next->set_previous_use(previous);
+
   set_definition(NULL);
+  set_previous_use(NULL);
+  set_next_use(NULL);
 }
 
 
 void Definition::ReplaceUsesWith(Definition* other) {
   ASSERT(other != NULL);
   ASSERT(this != other);
+
+  Value* current = NULL;
   Value* next = input_use_list();
-  while (next != NULL) {
-    Value* current = next;
-    next = current->next_use();
-    current->set_definition(other);
-    current->AddToInputUseList();
+  if (next != NULL) {
+    // Change all the definitions.
+    while (next != NULL) {
+      current = next;
+      current->set_definition(other);
+      next = current->next_use();
+    }
+
+    // Concatenate the lists.
+    next = other->input_use_list();
+    current->set_next_use(next);
+    if (next != NULL) next->set_previous_use(current);
+    other->set_input_use_list(input_use_list());
+    set_input_use_list(NULL);
   }
 
+  // Repeat for environment uses.
+  current = NULL;
   next = env_use_list();
-  while (next != NULL) {
-    Value* current = next;
-    next = current->next_use();
-    current->set_definition(other);
-    current->AddToEnvUseList();
+  if (next != NULL) {
+    while (next != NULL) {
+      current = next;
+      current->set_definition(other);
+      next = current->next_use();
+    }
+    next = other->env_use_list();
+    current->set_next_use(next);
+    if (next != NULL) next->set_previous_use(current);
+    other->set_env_use_list(env_use_list());
+    set_env_use_list(NULL);
   }
-
-  set_input_use_list(NULL);
-  set_env_use_list(NULL);
 }
 
 
@@ -1770,9 +1785,9 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     // It is ok to insert instructions before the current during
     // forward iteration.
     optimizer->InsertBefore(this, null_constant, NULL, Definition::kValue);
-    instantiator_type_arguments()->RemoveFromInputUseList();
+    instantiator_type_arguments()->RemoveFromUseList();
     instantiator_type_arguments()->set_definition(null_constant);
-    instantiator_type_arguments()->AddToInputUseList();
+    null_constant->AddInputUse(instantiator_type_arguments());
   }
   return this;
 }
@@ -2125,7 +2140,7 @@ void Environment::DeepCopyTo(Instruction* instr) const {
     Value* value = it.CurrentValue();
     value->set_instruction(instr);
     value->set_use_index(use_index++);
-    value->AddToEnvUseList();
+    value->definition()->AddEnvUse(value);
   }
   instr->set_env(copy);
 }
@@ -2151,7 +2166,7 @@ void Environment::DeepCopyToOuter(Instruction* instr) const {
     Value* value = it.CurrentValue();
     value->set_instruction(instr);
     value->set_use_index(use_index++);
-    value->AddToEnvUseList();
+    value->definition()->AddEnvUse(value);
   }
   instr->env()->outer_ = copy;
 }

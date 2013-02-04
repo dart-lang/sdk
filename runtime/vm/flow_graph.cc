@@ -233,7 +233,7 @@ static void RecordInputUses(Instruction* instr) {
         (0 == MembershipCount(use, use->definition()->input_use_list())));
     use->set_instruction(instr);
     use->set_use_index(i);
-    use->AddToInputUseList();
+    use->definition()->AddInputUse(use);
   }
 }
 
@@ -252,7 +252,7 @@ static void RecordEnvUses(Instruction* instr) {
         (0 == MembershipCount(use, use->definition()->env_use_list())));
     use->set_instruction(instr);
     use->set_use_index(use_index++);
-    use->AddToEnvUseList();
+    use->definition()->AddEnvUse(use);
   }
 }
 
@@ -297,7 +297,7 @@ static void ComputeUseListsRecursive(BlockEntryInstr* block) {
             (0 == MembershipCount(use, use->definition()->input_use_list())));
         use->set_instruction(phi);
         use->set_use_index(pred_index);
-        use->AddToInputUseList();
+        use->definition()->AddInputUse(use);
       }
     }
   }

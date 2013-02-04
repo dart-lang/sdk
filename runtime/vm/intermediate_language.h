@@ -94,10 +94,8 @@ class Value : public ZoneAllocated {
   intptr_t use_index() const { return use_index_; }
   void set_use_index(intptr_t index) { use_index_ = index; }
 
-  void AddToInputUseList();
-  void AddToEnvUseList();
-
-  void RemoveFromInputUseList();
+  static void AddToList(Value* value, Value** list);
+  void RemoveFromUseList();
 
   Value* Copy() { return new Value(definition_); }
 
@@ -1109,6 +1107,9 @@ class Definition : public Instruction {
   Value* env_use_list() const { return env_use_list_; }
   void set_env_use_list(Value* head) { env_use_list_ = head; }
 
+  void AddInputUse(Value* value) { Value::AddToList(value, &input_use_list_); }
+  void AddEnvUse(Value* value) { Value::AddToList(value, &env_use_list_); }
+
   // Replace uses of this definition with uses of other definition or value.
   // Precondition: use lists must be properly calculated.
   // Postcondition: use lists and use values are still valid.
@@ -1810,13 +1811,13 @@ class ConstraintInstr : public TemplateDefinition<2> {
     Value* val = new Value(defn);
     val->set_use_index(1);
     val->set_instruction(this);
-    val->AddToInputUseList();
+    defn->AddInputUse(val);
     set_dependency(val);
   }
 
   void RemoveDependency() {
     if (dependency() != NULL) {
-      dependency()->RemoveFromInputUseList();
+      dependency()->RemoveFromUseList();
       set_dependency(NULL);
     }
   }

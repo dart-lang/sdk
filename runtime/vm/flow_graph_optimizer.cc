@@ -2210,9 +2210,9 @@ void RangeAnalysis::RenameDominatedUses(Definition* def,
     if ((phi != NULL) && !phi->is_alive()) continue;
 
     if (IsDominatedUse(dom, use)) {
-      use->RemoveFromInputUseList();
+      use->RemoveFromUseList();
       use->set_definition(other);
-      use->AddToInputUseList();
+      other->AddInputUse(use);
     }
   }
 }
@@ -2288,15 +2288,15 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Definition* defn,
   // No need to constrain constants.
   if (defn->IsConstant()) return NULL;
 
-  ConstraintInstr* constraint =
-      new ConstraintInstr(new Value(defn), constraint_range);
+  Value* value = new Value(defn);
+  ConstraintInstr* constraint = new ConstraintInstr(value, constraint_range);
   constraint->InsertAfter(after);
   constraint->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   RenameDominatedUses(defn, after, constraint);
   constraints_.Add(constraint);
-  constraint->value()->set_instruction(constraint);
-  constraint->value()->set_use_index(0);
-  constraint->value()->AddToInputUseList();
+  value->set_instruction(constraint);
+  value->set_use_index(0);
+  defn->AddInputUse(value);
   return constraint;
 }
 
@@ -2906,7 +2906,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
                                       BlockEntryInstr* header,
                                       BlockEntryInstr* pre_header,
                                       CheckSmiInstr* current) {
-  PhiInstr* phi = current->InputAt(0)->definition()->AsPhi();
+  PhiInstr* phi = current->value()->definition()->AsPhi();
   if (!header->loop_info()->Contains(phi->block()->preorder_number())) {
     return;
   }
@@ -2943,9 +2943,9 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
 
   // Replace value we are checking with phi's input. Maintain use lists.
   Definition* non_smi_input_defn = phi->InputAt(non_smi_input)->definition();
-  current->value()->RemoveFromInputUseList();
+  current->value()->RemoveFromUseList();
   current->value()->set_definition(non_smi_input_defn);
-  current->value()->AddToInputUseList();
+  non_smi_input_defn->AddInputUse(current->value());
 
   phi->SetPropagatedCid(kSmiCid);
 }
@@ -3478,13 +3478,14 @@ class LoadOptimizer : public ValueObject {
       // from the graph by this iteration.
       // To prevent using them we additionally mark definitions themselves
       // as replaced and store a pointer to the replacement.
-      Value* input = new Value((*pred_out_values)[expr_id]->Replacement());
+      Definition* replacement = (*pred_out_values)[expr_id]->Replacement();
+      Value* input = new Value(replacement);
       phi->SetInputAt(i, input);
 
       // TODO(vegorov): add a helper function to handle input insertion.
       input->set_instruction(phi);
       input->set_use_index(i);
-      input->AddToInputUseList();
+      replacement->AddInputUse(input);
     }
 
     phi->set_ssa_temp_index(graph_->alloc_ssa_temp_index());
