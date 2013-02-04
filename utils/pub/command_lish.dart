@@ -86,20 +86,19 @@ class LishCommand extends PubCommand {
   }
 
   Future onRun() {
-    var files;
-    var packageBytesFuture = _filesToPublish.then((f) {
-      files = f;
+    var packageBytesFuture = _filesToPublish.then((files) {
       log.fine('Archiving and publishing ${entrypoint.root}.');
+
+      // Show the package contents so the user can verify they look OK.
+      var package = entrypoint.root;
+      log.message(
+          'Publishing "${package.name}" ${package.version}:\n'
+          '${generateTree(files)}');
+
       return createTarGz(files, baseDir: entrypoint.root.dir);
     }).then((stream) => stream.toBytes());
 
-    // Show the package contents so the user can verify they look OK.
-    var package = entrypoint.root;
-    log.message(
-        'Publishing "${package.name}" ${package.version}:\n'
-        '${generateTree(files)}');
-
-      // Validate the package.
+    // Validate the package.
     return _validate(packageBytesFuture.then((bytes) => bytes.length))
         .then((_) => packageBytesFuture).then(_publish);
   }

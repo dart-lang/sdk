@@ -47,6 +47,7 @@ void handleUpload(ScheduledServer server) {
 }
 
 main() {
+  initConfig();
   setUp(() => normalPackage.scheduleCreate());
 
   integration('archives and uploads a package', () {
