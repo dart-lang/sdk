@@ -7,7 +7,7 @@
 /** The entry point for the analyzer. */
 library analyzer;
 
-//import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer-experimental/options.dart';
