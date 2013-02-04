@@ -5,49 +5,108 @@
 part of dart.core;
 
 /**
- * The String class represents character strings. Strings are
- * immutable. A string is represented by a list of 32-bit Unicode
- * scalar character codes accessible through the [charCodeAt] or the
- * [charCodes] method.
+ * The String class represents sequences of characters. Strings are
+ * immutable. A string is represented by a sequence of Unicode UTF-16
+ * code units accessible through the [codeUnitAt] or the
+ * [codeUnits] members. Their string representation is accessible through
+ * the index-operator.
+ *
+ * The characters of a string are encoded in UTF-16. Decoding UTF-16, which
+ * combines surrogate pairs, yields Unicode code points. Following a similar
+ * terminology to Go we use the name "rune" for an integer representing a
+ * Unicode code point. The runes of a string are accessible through the [runes]
+ * getter.
  */
 abstract class String implements Comparable, Pattern {
   /**
    * Allocates a new String for the specified [charCodes].
+   *
+   * The [charCodes] can be UTF-16 code units or runes. If a char-code value is
+   * 16-bit it is copied verbatim. If it is greater than 16 bits it is
+   * decomposed into a surrogate pair.
    */
-  external factory String.fromCharCodes(List<int> charCodes);
+  external factory String.fromCharCodes(Iterable<int> charCodes);
+
+  /**
+   * *Deprecated*. Use [String.fromCharCode] instead.
+   */
+  factory String.character(int charCode) => new String.fromCharCode(charCode);
 
   /**
    * Allocates a new String for the specified [charCode].
    *
-   * The built string is of [length] one, if the [charCode] lies inside the
-   * basic multilingual plane (plane 0). Otherwise the [length] is 2 and
+   * The new string contains a single code unit if the [charCode] can be
+   * represented by a single UTF-16 code unit. Otherwise the [length] is 2 and
    * the code units form a surrogate pair.
+   *
+   * It is allowed (though generally discouraged) to create a String with only
+   * one half of a surrogate pair.
    */
-  factory String.character(int charCode) {
+  factory String.fromCharCode(int charCode) {
     List<int> charCodes = new List<int>.fixedLength(1, fill: charCode);
     return new String.fromCharCodes(charCodes);
   }
 
   /**
    * Gets the character (as [String]) at the given [index].
+   *
+   * The returned string represents exactly one UTF-16 code unit which may be
+   * half of a surrogate pair. For example the Unicode character for a
+   * musical G-clef ("𝄞") with rune value 0x1D11E consists of a UTF-16 surrogate
+   * pair: `"\uDBFF\uDFFD"`. Using the index-operator on this string yields
+   * a String with half of a surrogate pair:
+   *
+   *     var clef = "\uDBFF\uDFFD";
+   *     clef.length;  // => 2
+   *     clef.runes.first == 0x1D11E;  // => true
+   *     clef.runes.length;  // => 1
+   *     // The following strings are halves of a UTF-16 surrogate pair and
+   *     // thus invalid UTF-16 strings:
+   *     clef[0];  // => "\uDBFF"
+   *     clef[1];  // => "\uDFFD"
+   *
+   * This method is equivalent to
+   * `new String.fromCharCode(this.codeUnitAt(index))`.
    */
   String operator [](int index);
 
   /**
    * Gets the scalar character code at the given [index].
+   *
+   * *This method is deprecated. Please use [codeUnitAt] instead.*
    */
   int charCodeAt(int index);
 
   /**
+   * Returns the 16-bit UTF-16 code unit at the given [index].
+   */
+  int codeUnitAt(int index);
+
+  /**
    * The length of the string.
+   *
+   * Returns the number of UTF-16 code units in this string. The number
+   * of [runes] might be less, if the string contains characters outside
+   * the basic multilingual plane (plane 0).
    */
   int get length;
 
   /**
-   * Returns whether the two strings are equal. This method compares
-   * each individual scalar character codes of the strings.
+   * Returns whether the two strings are equal.
+   *
+   * This method compares each individual code unit of the strings. It does not
+   * check for Unicode equivalence. For example the two following strings both
+   * represent the string "Amélie" but, due to their different encoding will
+   * not return equal.
+   *
+   *     "Am\xe9lie"
+   *     "Ame\u{301}lie"
+   *
+   * In the first string the "é" is encoded as a single unicode code unit,
+   * whereas the second string encodes it as "e" with the combining
+   * accent character "◌́".
    */
-  bool operator ==(String other);
+  bool operator ==(var other);
 
   /**
    * Returns whether this string ends with [other].
@@ -152,11 +211,31 @@ abstract class String implements Comparable, Pattern {
   /**
    * Splits the string around matches of [pattern]. Returns
    * a list of substrings.
+   *
+   * Splitting with an empty string pattern (`""`) splits at UTF-16 code unit
+   * boundaries and not at rune boundaries. The following two expressions
+   * are hence equivalent:
+   *
+   *     string.split("")
+   *     string.codeUnits.map((unit) => new String.character(unit))
+   *
+   * Unless it guaranteed that the string is in the basic multilingual plane
+   * (meaning that each code unit represents a rune) it is often better to
+   * map the runes instead:
+   *
+   *     string.runes.map((rune) => new String.character(rune))
    */
   List<String> split(Pattern pattern);
 
   /**
-   * Returns a list of the characters of this string.
+   * Returns a list of the individual code-units converted to strings.
+   *
+   * *Deprecated*
+   * If you want to split on code-unit boundaries, use [split]. If you
+   * want to split on rune boundaries, use [runes] and map the result.
+   *
+   *     Iterable<String> characters =
+   *         string.runes.map((c) => new String.fromCharCode(c));
    */
   List<String> splitChars();
 
@@ -178,19 +257,40 @@ abstract class String implements Comparable, Pattern {
                        String onNonMatch(String nonMatch)});
 
   /**
-   * Returns a list of the scalar character codes of this string.
+   * Returns a list of UTF-16 code units of this string.
+   *
+   * *This getter is deprecated. Use [codeUnits] instead.*
    */
   List<int> get charCodes;
 
   /**
-   * If this string is not already all lower case, returns a new string
-   * where all characters  are made lower case. Returns [:this:] otherwise.
+   * Returns an iterable of the UTF-16 code units of this string.
    */
+  // TODO(floitsch): should it return a list?
+  // TODO(floitsch): make it a bidirectional iterator.
+  Iterable<int> get codeUnits;
+
+  /**
+   * Returns an iterable of Unicode code-points of this string.
+   *
+   * If the string contains surrogate pairs, they will be combined and returned
+   * as one integer by this iterator. Unmatched surrogate halves are treated
+   * like valid 16-bit code-units.
+   */
+  // TODO(floitsch): make it a Runes class.
+  Iterable<int> get runes;
+
+  /**
+   * If this string is not already all lower case, returns a new string
+   * where all characters are made lower case. Returns [:this:] otherwise.
+   */
+  // TODO(floitsch): document better. (See EcmaScript for description).
   String toLowerCase();
 
   /**
-   * If this string is not already all uper case, returns a new string
+   * If this string is not already all upper case, returns a new string
    * where all characters are made upper case. Returns [:this:] otherwise.
    */
+  // TODO(floitsch): document better. (See EcmaScript for description).
   String toUpperCase();
 }
