@@ -46,7 +46,7 @@ class MappedIterator<S, T> extends Iterator<T> {
 
 /** Specialized alternative to [MappedIterable] for mapped [List]s. */
 class MappedListIterable<S, T> extends Iterable<T> {
-  final Iterable<S> _list;
+  final List<S> _list;
   /**
    * Start index of the part of the list to map.
    *
@@ -69,7 +69,7 @@ class MappedListIterable<S, T> extends Iterable<T> {
 
   MappedListIterable(this._list, T this._f(S element), this._start, this._end) {
     if (_end != null && _end < _start) {
-      throw new ArgumentError("End ($end) before start ($start)");
+      throw new ArgumentError("End ($_end) before start ($_start)");
     }
   }
 
@@ -220,7 +220,7 @@ class MappedListIterable<S, T> extends Iterable<T> {
     throw new StateError("No matching element");
   }
 
-  int min([int compare(T a, T b)]) {
+  T min([int compare(T a, T b)]) {
     if (compare == null) {
       var defaultCompare = Comparable.compare;
       compare = defaultCompare;
@@ -229,12 +229,12 @@ class MappedListIterable<S, T> extends Iterable<T> {
     int start = _startIndex;
     int end = _endIndex;
     if (start == end) return null;
-    int value = _f(_list[start]);
+    T value = _f(_list[start]);
     if (_list.length != length) {
       throw new ConcurrentModificationError(_list);
     }
     for (int i = start + 1; i < end; i++) {
-      int nextValue = _f(_list[i]);
+      T nextValue = _f(_list[i]);
       if (compare(value, nextValue) > 0) {
         value = nextValue;
       }
@@ -245,7 +245,7 @@ class MappedListIterable<S, T> extends Iterable<T> {
     return value;
   }
 
-  int max([int compare(T a, T b)]) {
+  T max([int compare(T a, T b)]) {
     if (compare == null) {
       var defaultCompare = Comparable.compare;
       compare = defaultCompare;
@@ -254,12 +254,12 @@ class MappedListIterable<S, T> extends Iterable<T> {
     int start = _startIndex;
     int end = _endIndex;
     if (start == end) return null;
-    int value = _f(_list[start]);
+    T value = _f(_list[start]);
     if (_list.length != length) {
       throw new ConcurrentModificationError(_list);
     }
     for (int i = start + 1; i < end; i++) {
-      int nextValue = _f(_list[i]);
+      T nextValue = _f(_list[i]);
       if (compare(value, nextValue) < 0) {
         value = nextValue;
       }
@@ -328,7 +328,7 @@ class MappedListIterable<S, T> extends Iterable<T> {
   }
 
   Set<T> toSet() {
-    List result = new Set<T>();
+    Set<T> result = new Set<T>();
     forEach(result.add);
     return result;
   }
@@ -588,24 +588,26 @@ class EmptyIterable<E> extends Iterable<E> {
   }
 
   E lastMatching(bool test(E element), { E orElse() }) {
-    return _source.lastMatching(test, orElse: orElse);
+    if (orElse != null) return orElse();
+    throw new StateError("No matching element");
   }
 
   E singleMatching(bool test(E element), { E orElse() }) {
-    return _source.singleMatching(test, orElse: orElse);
+    if (orElse != null) return orElse();
+    throw new StateError("No matching element");
   }
 
-  int min([int compare(E a, E b)]) => null;
+  E min([int compare(E a, E b)]) => null;
 
-  int max([int compare(E a, E b)]) => null;
+  E max([int compare(E a, E b)]) => null;
 
   String join([String separator]) => "";
 
   Iterable<E> where(bool test(E element)) => this;
 
-  Iterable map(f(E element)) => const Iterable();
+  Iterable map(f(E element)) => const EmptyIterable();
 
-  Iterable mappedBy(f(E element)) => const Iterable();
+  Iterable mappedBy(f(E element)) => const EmptyIterable();
 
   reduce(var initialValue, combine(var previousValue, E element)) {
     return initialValue;
