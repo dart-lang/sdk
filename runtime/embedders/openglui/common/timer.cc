@@ -43,24 +43,24 @@ void clock_gettime(int type, timespec* t) {
 Timer::Timer() : elapsed_(0.0f), last_time_(0.0) {
 }
 
-void Timer::reset() {
+void Timer::Reset() {
   elapsed_ = 0.0f;
-  last_time_ = now();
+  last_time_ = Now();
 }
 
-void Timer::update() {
-  double current = now();
+void Timer::Update() {
+  double current = Now();
   elapsed_ = (current - last_time_);
   last_time_ = current;
 }
 
-double Timer::now() {
+double Timer::Now() {
   timespec timeval;
   clock_gettime(CLOCK_MONOTONIC, &timeval);
   return timeval.tv_sec + (timeval.tv_nsec * NANO);
 }
 
-float Timer::elapsed() {
+float Timer::Elapsed() {
   return elapsed_;
 }
 

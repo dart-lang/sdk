@@ -5,17 +5,14 @@
 #ifndef EMBEDDERS_OPENGLUI_COMMON_GRAPHICS_HANDLER_H_
 #define EMBEDDERS_OPENGLUI_COMMON_GRAPHICS_HANDLER_H_
 
-#include <stdint.h>
-
 #include "embedders/openglui/common/isized.h"
+#include "embedders/openglui/common/opengl.h"
+#include "embedders/openglui/common/support.h"
 #include "embedders/openglui/common/timer.h"
 
 class GraphicsHandler : public ISized {
   public:
-    GraphicsHandler()
-      : width_(0),
-        height_(0) {
-    }
+    GraphicsHandler();
 
     const int32_t& height() {
       return height_;
@@ -25,23 +22,37 @@ class GraphicsHandler : public ISized {
       return width_;
     }
 
-    virtual int32_t Start() = 0;
-    virtual void Stop() = 0;
+    void ApplyOrtho(float maxX, float maxY) const;
+    void ApplyRotation(float degrees) const;
 
-    virtual void SwapBuffers() = 0;
+    virtual int32_t Start();
+    virtual void Stop();
 
-    virtual int32_t Update() {
-      return 0;
+    void SwapBuffers() {
+      GLSwapBuffers();
     }
 
-    virtual void SetViewport(int left, int top, int width, int height) = 0;
+    virtual int32_t Update();
+
+    void SetViewport(int left, int top, int width, int height);
+
+    SkCanvas* CreateCanvas();
+
+    void Flush() {
+      // TODO(gram): see if we really need this.
+      grcontext->flush();
+    }
 
     virtual ~GraphicsHandler() {
     }
 
   protected:
+    SkAutoGraphics ag;
+    GrContext* grcontext;
     int32_t width_, height_;
 };
+
+extern GraphicsHandler* graphics;
 
 #endif  // EMBEDDERS_OPENGLUI_COMMON_GRAPHICS_HANDLER_H_
 

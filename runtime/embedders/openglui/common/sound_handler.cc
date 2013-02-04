@@ -33,7 +33,6 @@ Sample* SoundHandler::GetSample(const char* path) {
   return sample;
 }
 
-
 int32_t PlayBackgroundSound(const char* path) {
   return SoundHandler::instance()->PlayBackground(path);
 }

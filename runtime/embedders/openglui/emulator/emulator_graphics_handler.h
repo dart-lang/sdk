@@ -5,9 +5,9 @@
 #ifndef EMBEDDERS_OPENGLUI_EMULATOR_EMULATOR_GRAPHICS_HANDLER_H_
 #define EMBEDDERS_OPENGLUI_EMULATOR_EMULATOR_GRAPHICS_HANDLER_H_
 
-#include "embedders/openglui/common/gl_graphics_handler.h"
+#include "embedders/openglui/common/graphics_handler.h"
 
-class EmulatorGraphicsHandler : public GLGraphicsHandler {
+class EmulatorGraphicsHandler : public GraphicsHandler {
   public:
     EmulatorGraphicsHandler(int argc, char** argv);
 

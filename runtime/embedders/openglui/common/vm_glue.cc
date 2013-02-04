@@ -43,17 +43,6 @@ VMGlue::VMGlue(ISized* surface,
   snprintf(extension_script_, len, "%s/%s", script_path, extension_script);
 }
 
-int VMGlue::ErrorExit(const char* format, ...) {
-  va_list arguments;
-  va_start(arguments, format);
-  LOGE(format, arguments);
-  va_end(arguments);
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
-  LOGE("Shutdown isolate");
-  return -1;
-}
-
 Dart_Handle VMGlue::CheckError(Dart_Handle handle) {
   if (Dart_IsError(handle)) {
     LOGE("Unexpected Error Handle: %s", Dart_GetError(handle));
@@ -129,8 +118,9 @@ bool VMGlue::CreateIsolateAndSetup(const char* script_uri,
 
 const char* VM_FLAGS[] = {
   "--enable_type_checks",  // TODO(gram): This should be an option!
-  "--trace_isolates",
-  "--trace_natives",
+  // "--trace_isolates",
+  // "--trace_natives",
+  // "--trace_compiler",
 };
 
 int VMGlue::InitializeVM() {
@@ -211,13 +201,14 @@ int VMGlue::StartMainIsolate() {
 int VMGlue::CallSetup() {
   if (!initialized_script_) {
     initialized_script_ = true;
-    LOGI("Invoking setup(0,0,%d,%d)", surface_->width(), surface_->height());
+    LOGI("Invoking setup(NULL, %d,%d)", surface_->width(), surface_->height());
     Dart_EnterIsolate(isolate_);
     Dart_EnterScope();
-    Dart_Handle args[2];
-    args[0] = CheckError(Dart_NewInteger(surface_->width()));
-    args[1] = CheckError(Dart_NewInteger(surface_->height()));
-    int rtn = Invoke("setup", 2, args);
+    Dart_Handle args[3];
+    args[0] = CheckError(Dart_Null());
+    args[1] = CheckError(Dart_NewInteger(surface_->width()));
+    args[2] = CheckError(Dart_NewInteger(surface_->height()));
+    int rtn = Invoke("setup", 3, args);
 
     if (rtn == 0) {
       // Plug in the print handler. It would be nice if we could do this
@@ -232,7 +223,6 @@ int VMGlue::CallSetup() {
       CheckError(Dart_SetField(corelib,
         Dart_NewStringFromCString("_printClosure"), print));
     }
-
     Dart_ExitScope();
     Dart_ExitIsolate();
     LOGI("Done setup");
@@ -305,7 +295,8 @@ int VMGlue::Invoke(const char* function,
   LOGI("looking up the root library");
   Dart_Handle library = Dart_RootLibrary();
   if (Dart_IsNull(library)) {
-     return ErrorExit("Unable to find root library\n");
+     LOGE("Unable to find root library\n");
+     return -1;
   }
 
   Dart_Handle nameHandle = Dart_NewStringFromCString(function);
@@ -314,10 +305,10 @@ int VMGlue::Invoke(const char* function,
   Dart_Handle result = Dart_Invoke(library, nameHandle, argc, args);
 
   if (Dart_IsError(result)) {
+    const char* error = Dart_GetError(result);
+    LOGE("Invoke %s failed: %s", function, error);
     if (failIfNotDefined) {
-      return ErrorExit("Invoke %s: %s\n", function, Dart_GetError(result));
-    } else {
-      LOGE("Invoke %s: %s", function, Dart_GetError(result));
+      return -1;
     }
   }
 
@@ -326,7 +317,8 @@ int VMGlue::Invoke(const char* function,
   LOGI("Entering Dart message loop");
   result = Dart_RunLoop();
   if (Dart_IsError(result)) {
-    return ErrorExit("Dart_RunLoop: %s\n", Dart_GetError(result));
+    LOGE("Dart_RunLoop: %s\n", Dart_GetError(result));
+    return -1;
   }
 
   LOGI("out invoke");

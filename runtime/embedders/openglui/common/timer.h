@@ -10,10 +10,10 @@
 class Timer {
  public:
   Timer();
-  void reset();
-  void update();
-  double now();
-  float elapsed();
+  void Reset();
+  void Update();
+  double Now();
+  float Elapsed();
 
  private:
   float elapsed_;

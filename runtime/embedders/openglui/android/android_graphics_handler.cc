@@ -6,7 +6,7 @@
 #include "embedders/openglui/common/log.h"
 
 AndroidGraphicsHandler::AndroidGraphicsHandler(android_app* application)
-    : GLGraphicsHandler(),
+    : GraphicsHandler(),
       application_(application),
       display_(EGL_NO_DISPLAY),
       surface_(EGL_NO_SURFACE),
@@ -32,7 +32,7 @@ int32_t AndroidGraphicsHandler::Start() {
       LOGI("eglChooseConfig");
       if (eglChooseConfig(display_, attributes, &config, 1, &numConfigs) &&
           numConfigs > 0) {
-        LOGI("eglGetConfigAttrib");
+        LOGI("eglGetConfigAttrib returned %d configs\n", numConfigs);
         if (eglGetConfigAttrib(display_, config,
                                EGL_NATIVE_VISUAL_ID, &format)) {
           ANativeWindow_setBuffersGeometry(application_->window, 0, 0, format);
@@ -48,8 +48,12 @@ int32_t AndroidGraphicsHandler::Start() {
                   width_ > 0 &&
                   eglQuerySurface(display_, surface_, EGL_HEIGHT, &height_) &&
                   height_ > 0) {
+                LOGI("Got dimensions %d x %d\n", width_, height_);
                 SetViewport(0, 0, width_, height_);
-                return 0;
+                LOGI("GL version %s\n", glGetString(GL_VERSION));
+                LOGI("GLSL version: %s\n",
+                    glGetString(GL_SHADING_LANGUAGE_VERSION));
+                return GraphicsHandler::Start();
               }
             }
           }
@@ -64,6 +68,7 @@ int32_t AndroidGraphicsHandler::Start() {
 
 void AndroidGraphicsHandler::Stop() {
   LOGI("Stopping graphics");
+  GraphicsHandler::Stop();
   if (display_ != EGL_NO_DISPLAY) {
     eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     if (context_ != EGL_NO_CONTEXT) {

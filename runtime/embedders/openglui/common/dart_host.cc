@@ -39,7 +39,7 @@ int32_t DartHost::Activate() {
     if (input_handler_->Start() != 0) {
       return -1;
     }
-    timer_->reset();
+    timer_->Reset();
     LOGI("Starting main isolate");
     int result = vm_glue_->StartMainIsolate();
     if (result != 0) {
@@ -47,7 +47,7 @@ int32_t DartHost::Activate() {
       return -1;
     }
     active_ = true;
-    vm_glue_->CallSetup();
+    return vm_glue_->CallSetup();
   }
   return 0;
 }
@@ -68,9 +68,9 @@ void DartHost::Deactivate() {
 }
 
 int32_t DartHost::OnStep() {
-  timer_->update();
-  vm_glue_->CallUpdate();
-  if (graphics_handler_->Update() != 0) {
+  timer_->Update();
+  if (vm_glue_->CallUpdate() != 0 ||
+      graphics_handler_->Update() != 0) {
     return -1;
   }
   return 0;

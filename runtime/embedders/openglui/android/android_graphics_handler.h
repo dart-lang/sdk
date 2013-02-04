@@ -6,9 +6,9 @@
 #define EMBEDDERS_OPENGLUI_ANDROID_ANDROID_GRAPHICS_HANDLER_H_
 
 #include <android_native_app_glue.h>
-#include "embedders/openglui/common/gl_graphics_handler.h"
+#include "embedders/openglui/common/graphics_handler.h"
 
-class AndroidGraphicsHandler : public GLGraphicsHandler {
+class AndroidGraphicsHandler : public GraphicsHandler {
   public:
     explicit AndroidGraphicsHandler(android_app* application);
 

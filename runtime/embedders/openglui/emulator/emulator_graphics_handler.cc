@@ -9,10 +9,9 @@
 
 EmulatorGraphicsHandler::EmulatorGraphicsHandler(int argc,
                                                  char** argv)
-  : GLGraphicsHandler() {
+  : GraphicsHandler() {
   glutInit(&argc, argv);
-  width_ = 480;
-  height_ = 800;
+  SetViewport(0, 0, 480, 800);
   for (int i = 1; i < argc; i++) {
     if (argv[i][0] == '-') {
       int next_arg = i + 1;
@@ -23,16 +22,17 @@ EmulatorGraphicsHandler::EmulatorGraphicsHandler(int argc,
       }
     }
   }
+  glutInitWindowSize(width_, height_);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL);
+  glutCreateWindow("Dart");
 }
 
 int32_t EmulatorGraphicsHandler::Start() {
-  glutInitWindowSize(width_, height_);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-  glutCreateWindow("Dart");
-  return 0;
+  return GraphicsHandler::Start();
 }
 
 void EmulatorGraphicsHandler::Stop() {
+  GraphicsHandler::Stop();
   exit(0);
 }
 
