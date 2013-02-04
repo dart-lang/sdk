@@ -30,7 +30,7 @@ testReadWrite(key, value, check,
   }
 
   step2(e) {
-    var transaction = db.transaction(storeName, 'readonly');
+    var transaction = db.transaction(storeName, mode : 'readonly');
     var request = transaction.objectStore(storeName).getObject(key);
     request.onSuccess.listen(expectAsync1((e) {
       var object = e.target.result;
@@ -41,7 +41,7 @@ testReadWrite(key, value, check,
   }
 
   step1() {
-    var transaction = db.transaction([storeName], 'readwrite');
+    var transaction = db.transaction([storeName], mode : 'readwrite');
     var request = transaction.objectStore(storeName).put(value, key);
     request.onSuccess.listen(expectAsync1(step2));
     request.onError.listen(fail);
