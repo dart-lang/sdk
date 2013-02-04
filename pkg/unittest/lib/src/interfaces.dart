@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of matcher;
+
 // To decouple the reporting of errors, and allow for extensibility of
 // matchers, we make use of some interfaces.
 
@@ -13,9 +15,6 @@
  * is replaced it may be desirable to replace the [stringDescription]
  * error formatter with another.
  */
-
-part of matcher;
-
 typedef String ErrorFormatter(actual, Matcher matcher, String reason,
     MatchState matchState, bool verbose);
 

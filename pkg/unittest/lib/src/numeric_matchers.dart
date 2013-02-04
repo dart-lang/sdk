@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of matcher;
+
 /**
  * Returns a matcher which matches if the match argument is greater
  * than the given [value].
  */
-
-part of matcher;
-
 Matcher greaterThan(value) =>
   new _OrderingComparison(value, false, false, true, 'a value greater than');
 
