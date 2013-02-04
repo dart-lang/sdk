@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library leap_server;
+
 import 'dart:io';
 
 class Conversation {
@@ -39,7 +41,7 @@ class Conversation {
     String path = request.path;
     if (path == '/') return redirect('/$landingPage');
     if (path == '/favicon.ico') {
-      path = '/lib/_internal/dartdoc/static/favicon.ico';
+      path = '/sdk/lib/_internal/dartdoc/static/favicon.ico';
     }
     if (path.contains('..') || path.contains('%')) return notFound();
     var f = new File("./$path");
