@@ -29,6 +29,7 @@
     'print.dart',
     'regexp.dart',
     'set.dart',
+    'sink.dart',
     'stopwatch.dart',
     'string.dart',
     'strings.dart',

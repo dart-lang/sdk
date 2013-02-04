@@ -215,13 +215,13 @@ abstract class Stream<T> {
   }
 
   // Deprecated method, previously called 'pipe', retained for compatibility.
-  Future pipeInto(StreamSink<T> sink,
+  Future pipeInto(Sink<T> sink,
                   {void onError(AsyncError error),
                    bool unsubscribeOnError}) {
     _FutureImpl<T> result = new _FutureImpl<T>();
     this.listen(
         sink.add,
-        onError: sink.signalError,
+        onError: onError,
         onDone: () {
           sink.close();
           result._setValue(null);
@@ -847,7 +847,7 @@ abstract class StreamSubscription<T> {
 /**
  * An interface that abstracts sending events into a [Stream].
  */
-abstract class StreamSink<T> {
+abstract class StreamSink<T> implements Sink<T> {
   void add(T event);
   /** Signal an async error to the receivers of this sink's values. */
   void signalError(AsyncError errorEvent);

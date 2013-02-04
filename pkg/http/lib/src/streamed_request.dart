@@ -24,7 +24,7 @@ class StreamedRequest extends BaseRequest {
   /// buffered.
   ///
   /// Closing this signals the end of the request.
-  StreamSink<List<int>> get sink => _controller.sink;
+  Sink<List<int>> get sink => _controller.sink;
 
   /// The controller for [sink], from which [BaseRequest] will read data for
   /// [finalize].

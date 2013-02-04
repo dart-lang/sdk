@@ -1107,14 +1107,12 @@ bool invariant(Spannable spannable, var condition, {String message: null}) {
 }
 
 /// A sink that drains into /dev/null.
-class NullSink extends StreamSink<String> {
+class NullSink extends Sink<String> {
   final String name;
 
   NullSink(this.name);
 
   add(String value) {}
-
-  void signalError(AsyncError error) {}
 
   void close() {}
 

@@ -73,7 +73,7 @@ class MultipartRequest extends BaseRequest {
   ///
   /// This doesn't need to be closed. When the request is sent, whichever files
   /// are written to this sink at that point will be used.
-  StreamSink<MultipartFile> get files => _files;
+  Sink<MultipartFile> get files => _files;
 
   /// The private version of [files], typed so that the underlying collection is
   /// accessible.

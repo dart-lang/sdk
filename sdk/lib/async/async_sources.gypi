@@ -6,7 +6,6 @@
 {
   'sources': [
     'async_error.dart',
-    'collection_sink.dart',
     'future.dart',
     'future_impl.dart',
     'stream.dart',
