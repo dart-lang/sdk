@@ -22,6 +22,7 @@ speechrecognition_test/supported: Pass, Fail       # Chrome stable does not supp
 shadow_dom_test/supported: Fail
 speechrecognition_test/types: Pass, Fail
 touchevent_test/supported: Fail
+touchlist_test/supported: Fail
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome]
 webgl_1_test: Pass, Fail # Issue 8219
@@ -93,6 +94,7 @@ svgelement_test/supported_animateMotion: Fail
 svgelement_test/supported_foreignObject: Fail
 svgelement_test/supported_set: Fail
 touchevent_test/supported: Fail
+touchlist_test/supported: Fail
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
@@ -120,6 +122,7 @@ form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
 inner_frame_test: Skip # Issue 5727 (timeout)
 typed_arrays_1_test/supported: Fail
+touchlist_test/supported: Fail
 localstorage_test: Fail
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
@@ -224,6 +227,7 @@ performance_api_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
+touchlist_test/supported: Fail
 webgl_1_test: Pass, Fail # Issue 8219
 
 audiocontext_test: Crash, Fail # Issue: 7414
@@ -264,6 +268,7 @@ speechrecognition_test/supported: Fail
 svg_test/supported_externalResourcesRequired: Fail
 svg_test/supported_langSpace: Fail
 typed_arrays_arraybuffer_test: Fail
+touchlist_test/supported: Fail
 url_test: Fail
 fileapi_test: Skip # Timeout.
 inner_frame_test: Skip # Timeout.
@@ -304,6 +309,7 @@ speechrecognition_test/supported: Fail
 svg_test/supported_externalResourcesRequired: Fail
 svg_test/supported_langSpace: Fail
 touchevent_test/supported: Fail
+touchlist_test/supported: Fail
 transferables_test: Fail   # Issue 3392.
 webgl_1_test: Pass, Fail   # Issue 8219
 websql_test/supported: Fail

@@ -22831,14 +22831,19 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
     return false;
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
-@DocsEditable
+
 @DomName('TouchList')
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
+  factory TouchList() => document.$dom_createTouchList();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!document.createTouchList');
 
   @DomName('TouchList.length')
   @DocsEditable
@@ -23027,6 +23032,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   @DomName('TouchList.item')
   @DocsEditable
   Touch item(int index) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

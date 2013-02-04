@@ -357,6 +357,7 @@ js_support_checks = dict({
     'SVGLangSpace': ('supported(SvgElement element)',
         "JS('bool', '#.xmlspace !== undefined && #.xmllang !== undefined', "
         "element, element)"),
+    'TouchList': "JS('bool', '!!document.createTouchList')",
     'XMLHttpRequestProgressEvent':
         "Event._isTypeSupported('XMLHttpRequestProgressEvent')",
     'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
