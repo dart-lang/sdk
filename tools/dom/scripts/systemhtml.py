@@ -931,7 +931,8 @@ class Dart2JSBackend(HtmlDartGenerator):
           TARGET=target,
           PARAMS=', '.join(target_parameters))
 
-    declaration = '%s%s %s(%s)' % (
+    declaration = '%s%s%s %s(%s)' % (
+        self._Annotations(info.type_name, info.declared_name),
         'static ' if info.IsStatic() else '',
         return_type,
         html_name,

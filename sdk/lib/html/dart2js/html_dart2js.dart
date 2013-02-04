@@ -1029,6 +1029,8 @@ class CanvasElement extends Element native "*HTMLCanvasElement" {
   @DocsEditable
   int width;
 
+  @DomName('HTMLCanvasElement.getContext')
+  @DocsEditable
   CanvasRenderingContext getContext(String contextId, [Map attrs]) {
     if (?attrs) {
       var attrs_1 = convertDartToNative_Dictionary(attrs);
@@ -1296,21 +1298,37 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   String textBaseline;
 
+  @JSName('webkitBackingStorePixelRatio')
   @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
   @DocsEditable
-  final num webkitBackingStorePixelRatio;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final num backingStorePixelRatio;
 
+  @JSName('webkitImageSmoothingEnabled')
   @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
   @DocsEditable
-  bool webkitImageSmoothingEnabled;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool imageSmoothingEnabled;
 
+  @JSName('webkitLineDash')
   @DomName('CanvasRenderingContext2D.webkitLineDash')
   @DocsEditable
-  List webkitLineDash;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  List lineDash;
 
+  @JSName('webkitLineDashOffset')
   @DomName('CanvasRenderingContext2D.webkitLineDashOffset')
   @DocsEditable
-  num webkitLineDashOffset;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  num lineDashOffset;
 
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable
@@ -1340,6 +1358,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   void closePath() native;
 
+  @DomName('CanvasRenderingContext2D.createImageData')
+  @DocsEditable
+  @Creates('ImageData|=Object')
   ImageData createImageData(imagedata_OR_sw, [num sh]) {
     if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
@@ -1389,6 +1410,9 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   void fillText(String text, num x, num y, [num maxWidth]) native;
 
+  @DomName('CanvasRenderingContext2D.getImageData')
+  @DocsEditable
+  @Creates('ImageData|=Object')
   ImageData getImageData(num sx, num sy, num sw, num sh) {
     return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
   }
@@ -1418,6 +1442,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   void moveTo(num x, num y) native;
 
+  @DomName('CanvasRenderingContext2D.putImageData')
+  @DocsEditable
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata);
@@ -1490,34 +1516,54 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   void translate(num tx, num ty) native;
 
-  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
-    return _convertNativeToDart_ImageData(_webkitGetImageDataHD_1(sx, sy, sw, sh));
+  @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  @Creates('ImageData|=Object')
+  ImageData getImageDataHD(num sx, num sy, num sw, num sh) {
+    return _convertNativeToDart_ImageData(_getImageDataHD_1(sx, sy, sw, sh));
   }
   @JSName('webkitGetImageDataHD')
   @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   @Creates('ImageData|=Object')
-  _webkitGetImageDataHD_1(sx, sy, sw, sh) native;
+  _getImageDataHD_1(sx, sy, sw, sh) native;
 
-  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
+  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (!?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata);
-      _webkitPutImageDataHD_1(imagedata_1, dx, dy);
+      _putImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
     var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-    _webkitPutImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    _putImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
     return;
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('webkitPutImageDataHD')
   @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
   @DocsEditable
-  void _webkitPutImageDataHD_1(imagedata, dx, dy) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void _putImageDataHD_1(imagedata, dx, dy) native;
   @JSName('webkitPutImageDataHD')
   @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
   @DocsEditable
-  void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void _putImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
 
   /**
@@ -5875,9 +5921,13 @@ class DataTransferItem native "*DataTransferItem" {
   @DocsEditable
   void getAsString([StringCallback callback]) native;
 
+  @JSName('webkitGetAsEntry')
   @DomName('DataTransferItem.webkitGetAsEntry')
   @DocsEditable
-  Entry webkitGetAsEntry() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Entry getAsEntry() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6082,6 +6132,8 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   DedicatedWorkerContextEvents get on =>
     new DedicatedWorkerContextEvents(this);
 
+  @DomName('DedicatedWorkerContext.postMessage')
+  @DocsEditable
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -6204,6 +6256,8 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   @DocsEditable
   DirectoryReader createReader() native;
 
+  @DomName('DirectoryEntry.getDirectory')
+  @DocsEditable
   void getDirectory(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -6240,6 +6294,8 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
   @DocsEditable
   void _getDirectory_4(path) native;
 
+  @DomName('DirectoryEntry.getFile')
+  @DocsEditable
   void getFile(String path, {Map options, EntryCallback successCallback, ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -6293,6 +6349,8 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
   @DocsEditable
   DirectoryReaderSync createReader() native;
 
+  @DomName('DirectoryEntrySync.getDirectory')
+  @DocsEditable
   DirectoryEntrySync getDirectory(String path, Map flags) {
     var flags_1 = convertDartToNative_Dictionary(flags);
     return _getDirectory_1(path, flags_1);
@@ -6302,6 +6360,8 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
   @DocsEditable
   DirectoryEntrySync _getDirectory_1(path, flags) native;
 
+  @DomName('DirectoryEntrySync.getFile')
+  @DocsEditable
   FileEntrySync getFile(String path, Map flags) {
     var flags_1 = convertDartToNative_Dictionary(flags);
     return _getFile_1(path, flags_1);
@@ -6406,10 +6466,16 @@ class Document extends Node  native "*Document"
 
   @DomName('Document.webkitpointerlockchangeEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
   @DomName('Document.webkitpointerlockerrorEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
   @DocsEditable
@@ -6502,35 +6568,53 @@ class Document extends Node  native "*Document"
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final Element $dom_webkitFullscreenElement;
 
   @JSName('webkitFullscreenEnabled')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitFullscreenEnabled')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final bool $dom_webkitFullscreenEnabled;
 
   @JSName('webkitHidden')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitHidden')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final bool $dom_webkitHidden;
 
   @JSName('webkitIsFullScreen')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitIsFullScreen')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final bool $dom_webkitIsFullScreen;
 
   @JSName('webkitPointerLockElement')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitPointerLockElement')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final Element $dom_webkitPointerLockElement;
 
   @JSName('webkitVisibilityState')
   @DomName('Document.webkitVisibilityState')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final String $dom_webkitVisibilityState;
 
   @JSName('caretRangeFromPoint')
@@ -6574,6 +6658,8 @@ class Document extends Node  native "*Document"
   @DocsEditable
   Text $dom_createTextNode(String data) native;
 
+  @DomName('Document.createTouch')
+  @DocsEditable
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
     var target_1 = _convertDartToNative_EventTarget(target);
     return _$dom_createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
@@ -6669,18 +6755,27 @@ class Document extends Node  native "*Document"
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitCancelFullScreen')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   void $dom_webkitCancelFullScreen() native;
 
   @JSName('webkitExitFullscreen')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitFullscreen')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   void $dom_webkitExitFullscreen() native;
 
   @JSName('webkitExitPointerLock')
   /// Moved to [HtmlDocument].
   @DomName('Document.webkitExitPointerLock')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   void $dom_webkitExitPointerLock() native;
 
   @DomName('Document.onabort')
@@ -6865,18 +6960,30 @@ class Document extends Node  native "*Document"
 
   @DomName('Document.onwebkitfullscreenchange')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
   @DomName('Document.onwebkitfullscreenerror')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
   @DomName('Document.onwebkitpointerlockchange')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
   @DomName('Document.onwebkitpointerlockerror')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
 
 
@@ -9102,14 +9209,23 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   @DomName('Element.webkitTransitionEndEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
   @DomName('Element.webkitfullscreenchangeEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
 
   @DomName('Element.webkitfullscreenerrorEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   @DocsEditable
@@ -9177,9 +9293,13 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   bool translate;
 
+  @JSName('webkitdropzone')
   @DomName('Element.webkitdropzone')
   @DocsEditable
-  String webkitdropzone;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  String dropzone;
 
   @DomName('Element.click')
   @DocsEditable
@@ -9279,13 +9399,21 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   final String tagName;
 
+  @JSName('webkitPseudo')
   @DomName('Element.webkitPseudo')
   @DocsEditable
-  String webkitPseudo;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  String pseudo;
 
+  @JSName('webkitShadowRoot')
   @DomName('Element.webkitShadowRoot')
   @DocsEditable
-  final ShadowRoot webkitShadowRoot;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final ShadowRoot shadowRoot;
 
   @DomName('Element.blur')
   @DocsEditable
@@ -9391,17 +9519,29 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Experimental
   ShadowRoot createShadowRoot() native;
 
+  @JSName('webkitRequestFullScreen')
   @DomName('Element.webkitRequestFullScreen')
   @DocsEditable
-  void webkitRequestFullScreen(int flags) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void requestFullScreen(int flags) native;
 
+  @JSName('webkitRequestFullscreen')
   @DomName('Element.webkitRequestFullscreen')
   @DocsEditable
-  void webkitRequestFullscreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void requestFullscreen() native;
 
+  @JSName('webkitRequestPointerLock')
   @DomName('Element.webkitRequestPointerLock')
   @DocsEditable
-  void webkitRequestPointerLock() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void requestPointerLock() native;
 
   @DomName('Element.onabort')
   @DocsEditable
@@ -9585,14 +9725,23 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   @DomName('Element.onwebkitTransitionEnd')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenchange')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenerror')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
 
 }
@@ -10582,9 +10731,13 @@ class File extends Blob native "*File" {
   @DocsEditable
   final String name;
 
+  @JSName('webkitRelativePath')
   @DomName('File.webkitRelativePath')
   @DocsEditable
-  final String webkitRelativePath;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final String relativePath;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13423,6 +13576,9 @@ class InputElement extends Element implements
 
   @DomName('HTMLInputElement.webkitSpeechChangeEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
   @DocsEditable
@@ -13607,23 +13763,39 @@ class InputElement extends Element implements
   @DocsEditable
   num valueAsNumber;
 
+  @JSName('webkitEntries')
   @DomName('HTMLInputElement.webkitEntries')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   @Returns('_EntryArray')
   @Creates('_EntryArray')
-  final List<Entry> webkitEntries;
+  final List<Entry> entries;
 
+  @JSName('webkitGrammar')
   @DomName('HTMLInputElement.webkitGrammar')
   @DocsEditable
-  bool webkitGrammar;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool grammar;
 
+  @JSName('webkitSpeech')
   @DomName('HTMLInputElement.webkitSpeech')
   @DocsEditable
-  bool webkitSpeech;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool speech;
 
+  @JSName('webkitdirectory')
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable
-  bool webkitdirectory;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool directory;
 
   @DomName('HTMLInputElement.width')
   @DocsEditable
@@ -13663,6 +13835,9 @@ class InputElement extends Element implements
 
   @DomName('HTMLInputElement.onwebkitSpeechChange')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
 
 }
@@ -15510,18 +15685,30 @@ class MediaElement extends Element native "*HTMLMediaElement" {
 
   @DomName('HTMLMediaElement.webkitkeyaddedEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
 
   @DomName('HTMLMediaElement.webkitkeyerrorEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
 
   @DomName('HTMLMediaElement.webkitkeymessageEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
 
   @DomName('HTMLMediaElement.webkitneedkeyEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
   @DocsEditable
@@ -15656,25 +15843,45 @@ class MediaElement extends Element native "*HTMLMediaElement" {
   @DocsEditable
   num volume;
 
+  @JSName('webkitAudioDecodedByteCount')
   @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
   @DocsEditable
-  final int webkitAudioDecodedByteCount;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int audioDecodedByteCount;
 
+  @JSName('webkitClosedCaptionsVisible')
   @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
   @DocsEditable
-  bool webkitClosedCaptionsVisible;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool closedCaptionsVisible;
 
+  @JSName('webkitHasClosedCaptions')
   @DomName('HTMLMediaElement.webkitHasClosedCaptions')
   @DocsEditable
-  final bool webkitHasClosedCaptions;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final bool hasClosedCaptions;
 
+  @JSName('webkitPreservesPitch')
   @DomName('HTMLMediaElement.webkitPreservesPitch')
   @DocsEditable
-  bool webkitPreservesPitch;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool preservesPitch;
 
+  @JSName('webkitVideoDecodedByteCount')
   @DomName('HTMLMediaElement.webkitVideoDecodedByteCount')
   @DocsEditable
-  final int webkitVideoDecodedByteCount;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int videoDecodedByteCount;
 
   @DomName('HTMLMediaElement.addTextTrack')
   @DocsEditable
@@ -15696,17 +15903,29 @@ class MediaElement extends Element native "*HTMLMediaElement" {
   @DocsEditable
   void play() native;
 
+  @JSName('webkitAddKey')
   @DomName('HTMLMediaElement.webkitAddKey')
   @DocsEditable
-  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void addKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]) native;
 
+  @JSName('webkitCancelKeyRequest')
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   @DocsEditable
-  void webkitCancelKeyRequest(String keySystem, String sessionId) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void cancelKeyRequest(String keySystem, String sessionId) native;
 
+  @JSName('webkitGenerateKeyRequest')
   @DomName('HTMLMediaElement.webkitGenerateKeyRequest')
   @DocsEditable
-  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void generateKeyRequest(String keySystem, [Uint8Array initData]) native;
 
   @DomName('HTMLMediaElement.oncanplay')
   @DocsEditable
@@ -15794,18 +16013,30 @@ class MediaElement extends Element native "*HTMLMediaElement" {
 
   @DomName('HTMLMediaElement.onwebkitkeyadded')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onwebkitkeyerror')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onwebkitkeymessage')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onwebkitneedkey')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 }
 
@@ -16485,6 +16716,8 @@ class MessagePort extends EventTarget native "*MessagePort" {
   @DocsEditable
   bool dispatchEvent(Event evt) native;
 
+  @DomName('MessagePort.postMessage')
+  @DocsEditable
   void postMessage(/*any*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -16718,13 +16951,21 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   @DocsEditable
   final Node toElement;
 
+  @JSName('webkitMovementX')
   @DomName('MouseEvent.webkitMovementX')
   @DocsEditable
-  final int webkitMovementX;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int movementX;
 
+  @JSName('webkitMovementY')
   @DomName('MouseEvent.webkitMovementY')
   @DocsEditable
-  final int webkitMovementY;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int movementY;
 
   @DomName('MouseEvent.x')
   @DocsEditable
@@ -16734,6 +16975,8 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   @DocsEditable
   final int y;
 
+  @DomName('MouseEvent.initMouseEvent')
+  @DocsEditable
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
@@ -16849,6 +17092,8 @@ class MutationObserver native "*MutationObserver" {
   @DocsEditable
   void disconnect() native;
 
+  @DomName('MutationObserver.observe')
+  @DocsEditable
   void _observe(Node target, Map options) {
     var options_1 = convertDartToNative_Dictionary(options);
     __observe_1(target, options_1);
@@ -17334,9 +17579,13 @@ class Navigator native "*Navigator" {
   @DocsEditable
   final String vendorSub;
 
+  @JSName('webkitBattery')
   @DomName('Navigator.webkitBattery')
   @DocsEditable
-  final BatteryManager webkitBattery;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final BatteryManager battery;
 
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable
@@ -17346,11 +17595,15 @@ class Navigator native "*Navigator" {
   @DocsEditable
   bool javaEnabled() native;
 
+  @JSName('webkitGetGamepads')
   @DomName('Navigator.webkitGetGamepads')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   @Returns('_GamepadList')
   @Creates('_GamepadList')
-  List<Gamepad> webkitGetGamepads() native;
+  List<Gamepad> getGamepads() native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19504,6 +19757,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void addIceCandidate(RtcIceCandidate candidate) native;
 
+  @DomName('RTCPeerConnection.addStream')
+  @DocsEditable
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
@@ -19526,6 +19781,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void close() native;
 
+  @DomName('RTCPeerConnection.createAnswer')
+  @DocsEditable
   void createAnswer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
@@ -19544,6 +19801,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void _createAnswer_2(RtcSessionDescriptionCallback successCallback, RtcErrorCallback failureCallback) native;
 
+  @DomName('RTCPeerConnection.createDataChannel')
+  @DocsEditable
   RtcDataChannel createDataChannel(String label, [Map options]) {
     if (?options) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -19560,6 +19819,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   RtcDataChannel _createDataChannel_2(label) native;
 
+  @DomName('RTCPeerConnection.createOffer')
+  @DocsEditable
   void createOffer(RtcSessionDescriptionCallback successCallback, [RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
@@ -19603,6 +19864,8 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, RtcErrorCallback failureCallback]) native;
 
+  @DomName('RTCPeerConnection.updateIce')
+  @DocsEditable
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (?mediaConstraints) {
       var configuration_1 = convertDartToNative_Dictionary(configuration);
@@ -21325,6 +21588,9 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   // -- end List<Map> mixins.
 
+  @DomName('SQLResultSetRowList.item')
+  @DocsEditable
+  @Creates('=Object')
   Map item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
@@ -22745,21 +23011,37 @@ class Touch native "*Touch" {
   @Returns('Element|Document')
   final dynamic _target;
 
+  @JSName('webkitForce')
   @DomName('Touch.webkitForce')
   @DocsEditable
-  final num webkitForce;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final num force;
 
+  @JSName('webkitRadiusX')
   @DomName('Touch.webkitRadiusX')
   @DocsEditable
-  final int webkitRadiusX;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int radiusX;
 
+  @JSName('webkitRadiusY')
   @DomName('Touch.webkitRadiusY')
   @DocsEditable
-  final int webkitRadiusY;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int radiusY;
 
+  @JSName('webkitRotationAngle')
   @DomName('Touch.webkitRotationAngle')
   @DocsEditable
-  final num webkitRotationAngle;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final num rotationAngle;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24230,41 +24512,73 @@ class VideoElement extends MediaElement native "*HTMLVideoElement" {
   @DocsEditable
   final int videoWidth;
 
+  @JSName('webkitDecodedFrameCount')
   @DomName('HTMLVideoElement.webkitDecodedFrameCount')
   @DocsEditable
-  final int webkitDecodedFrameCount;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int decodedFrameCount;
 
+  @JSName('webkitDisplayingFullscreen')
   @DomName('HTMLVideoElement.webkitDisplayingFullscreen')
   @DocsEditable
-  final bool webkitDisplayingFullscreen;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final bool displayingFullscreen;
 
+  @JSName('webkitDroppedFrameCount')
   @DomName('HTMLVideoElement.webkitDroppedFrameCount')
   @DocsEditable
-  final int webkitDroppedFrameCount;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final int droppedFrameCount;
 
+  @JSName('webkitSupportsFullscreen')
   @DomName('HTMLVideoElement.webkitSupportsFullscreen')
   @DocsEditable
-  final bool webkitSupportsFullscreen;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final bool supportsFullscreen;
 
   @DomName('HTMLVideoElement.width')
   @DocsEditable
   int width;
 
+  @JSName('webkitEnterFullScreen')
   @DomName('HTMLVideoElement.webkitEnterFullScreen')
   @DocsEditable
-  void webkitEnterFullScreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void enterFullScreen() native;
 
+  @JSName('webkitEnterFullscreen')
   @DomName('HTMLVideoElement.webkitEnterFullscreen')
   @DocsEditable
-  void webkitEnterFullscreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void enterFullscreen() native;
 
+  @JSName('webkitExitFullScreen')
   @DomName('HTMLVideoElement.webkitExitFullScreen')
   @DocsEditable
-  void webkitExitFullScreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void exitFullScreen() native;
 
+  @JSName('webkitExitFullscreen')
   @DomName('HTMLVideoElement.webkitExitFullscreen')
   @DocsEditable
-  void webkitExitFullscreen() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void exitFullscreen() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25469,6 +25783,8 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   @DocsEditable
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
+  @DomName('WebGLRenderingContext.texImage2D')
+  @DocsEditable
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]) {
     if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
@@ -25522,6 +25838,8 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
   @DocsEditable
   void texParameteri(int target, int pname, int param) native;
 
+  @DomName('WebGLRenderingContext.texSubImage2D')
+  @DocsEditable
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]) {
     if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
@@ -26069,9 +26387,13 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   }
 
 
+  @JSName('webkitDirectionInvertedFromDevice')
   @DomName('WheelEvent.webkitDirectionInvertedFromDevice')
   @DocsEditable
-  final bool webkitDirectionInvertedFromDevice;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final bool directionInvertedFromDevice;
 
   @JSName('initWebKitWheelEvent')
   @DomName('WheelEvent.initWebKitWheelEvent')
@@ -26426,14 +26748,23 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   @DomName('DOMWindow.webkitAnimationEndEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
   @DomName('DOMWindow.webkitAnimationIterationEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
   @DomName('DOMWindow.webkitAnimationStartEvent')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
   @DocsEditable
@@ -26633,9 +26964,13 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @Experimental
   final NotificationCenter notifications;
 
+  @JSName('webkitStorageInfo')
   @DomName('DOMWindow.webkitStorageInfo')
   @DocsEditable
-  final StorageInfo webkitStorageInfo;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final StorageInfo storageInfo;
 
   WindowBase get window => _convertNativeToDart_Window(this._window);
   @JSName('window')
@@ -26727,6 +27062,8 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @Creates('DatabaseSync')
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
+  @DomName('DOMWindow.postMessage')
+  @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?message && !?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -27024,18 +27361,30 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
 
   @DomName('DOMWindow.onwebkitAnimationEnd')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
   @DomName('DOMWindow.onwebkitAnimationIteration')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
   @DomName('DOMWindow.onwebkitAnimationStart')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
   @DomName('DOMWindow.onwebkitTransitionEnd')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 }
@@ -27294,6 +27643,8 @@ class Worker extends AbstractWorker native "*Worker" {
   WorkerEvents get on =>
     new WorkerEvents(this);
 
+  @DomName('Worker.postMessage')
+  @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
     if (?messagePorts) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
@@ -27365,9 +27716,13 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   final WorkerContext self;
 
+  @JSName('webkitNotifications')
   @DomName('WorkerContext.webkitNotifications')
   @DocsEditable
-  final NotificationCenter webkitNotifications;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final NotificationCenter notifications;
 
   @JSName('addEventListener')
   @DomName('WorkerContext.addEventListener')

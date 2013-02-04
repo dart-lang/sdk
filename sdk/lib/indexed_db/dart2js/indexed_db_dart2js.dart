@@ -170,6 +170,8 @@ class Cursor native "*IDBCursor" {
   @DocsEditable
   Request delete() native;
 
+  @DomName('IDBCursor.update')
+  @DocsEditable
   Request update(/*any*/ value) {
     var value_1 = convertDartToNative_SerializedScriptValue(value);
     return _update_1(value_1);
@@ -265,6 +267,8 @@ class Database extends EventTarget native "*IDBDatabase" {
   @DocsEditable
   void close() native;
 
+  @DomName('IDBDatabase.createObjectStore')
+  @DocsEditable
   ObjectStore createObjectStore(String name, [Map options]) {
     if (?options) {
       var options_1 = convertDartToNative_Dictionary(options);
@@ -359,9 +363,13 @@ class IdbFactory native "*IDBFactory" {
   @Creates('Database')
   OpenDBRequest open(String name, [int version]) native;
 
+  @JSName('webkitGetDatabaseNames')
   @DomName('IDBFactory.webkitGetDatabaseNames')
   @DocsEditable
-  Request webkitGetDatabaseNames() native;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Request getDatabaseNames() native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -520,6 +528,11 @@ class ObjectStore native "*IDBObjectStore" {
   @DocsEditable
   final Transaction transaction;
 
+  @DomName('IDBObjectStore.add')
+  @DocsEditable
+  @Returns('Request')
+  @Creates('Request')
+  @_annotation_Creates_IDBKey
   Request add(/*any*/ value, [/*any*/ key]) {
     if (?key) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
@@ -552,6 +565,8 @@ class ObjectStore native "*IDBObjectStore" {
   @DocsEditable
   Request count([key_OR_range]) native;
 
+  @DomName('IDBObjectStore.createIndex')
+  @DocsEditable
   Index createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is List<String> || keyPath == null) && !?options) {
       return _createIndex_1(name, keyPath);
@@ -613,6 +628,11 @@ class ObjectStore native "*IDBObjectStore" {
   @Creates('Cursor')
   Request openCursor([key_OR_range, String direction]) native;
 
+  @DomName('IDBObjectStore.put')
+  @DocsEditable
+  @Returns('Request')
+  @Creates('Request')
+  @_annotation_Creates_IDBKey
   Request put(/*any*/ value, [/*any*/ key]) {
     if (?key) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
@@ -728,9 +748,13 @@ class Request extends EventTarget native "*IDBRequest" {
   @DocsEditable
   final Transaction transaction;
 
+  @JSName('webkitErrorMessage')
   @DomName('IDBRequest.webkitErrorMessage')
   @DocsEditable
-  final String webkitErrorMessage;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final String errorMessage;
 
   @JSName('addEventListener')
   @DomName('IDBRequest.addEventListener')
@@ -806,9 +830,13 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   @DocsEditable
   final String mode;
 
+  @JSName('webkitErrorMessage')
   @DomName('IDBTransaction.webkitErrorMessage')
   @DocsEditable
-  final String webkitErrorMessage;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final String errorMessage;
 
   @DomName('IDBTransaction.abort')
   @DocsEditable

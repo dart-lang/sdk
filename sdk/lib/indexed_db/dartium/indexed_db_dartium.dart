@@ -277,7 +277,10 @@ class IdbFactory extends NativeFieldWrapperClass1 {
 
   @DomName('IDBFactory.webkitGetDatabaseNames')
   @DocsEditable
-  Request webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Request getDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -841,7 +844,10 @@ class Request extends EventTarget {
 
   @DomName('IDBRequest.webkitErrorMessage')
   @DocsEditable
-  String get webkitErrorMessage native "IDBRequest_webkitErrorMessage_Getter";
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  String get errorMessage native "IDBRequest_webkitErrorMessage_Getter";
 
   @DomName('IDBRequest.addEventListener')
   @DocsEditable
@@ -921,7 +927,10 @@ class Transaction extends EventTarget {
 
   @DomName('IDBTransaction.webkitErrorMessage')
   @DocsEditable
-  String get webkitErrorMessage native "IDBTransaction_webkitErrorMessage_Getter";
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  String get errorMessage native "IDBTransaction_webkitErrorMessage_Getter";
 
   @DomName('IDBTransaction.abort')
   @DocsEditable
