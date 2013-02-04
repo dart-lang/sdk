@@ -38,11 +38,7 @@ class _StringBase {
 
   String operator [](int index) native "String_charAt";
 
-  int charCodeAt(int index) {
-    return codeUnitAt(index);
-  }
-
-  int codeUnitAt(int index) native "String_charCodeAt";
+  int charCodeAt(int index) native "String_charCodeAt";
 
   int get length native "String_getLength";
 
@@ -431,14 +427,6 @@ class _StringBase {
       result[i] = this.charCodeAt(i);
     }
     return result;
-  }
-
-  Iterable<int> get codeUnits {
-    throw new UnimplementedError("String.codeUnits");
-  }
-
-  Iterable<int> get runes {
-    throw new UnimplementedError("String.runes");
   }
 
   String toUpperCase() native "String_toUpperCase";
