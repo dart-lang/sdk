@@ -6,8 +6,7 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
-  Transaction transaction(storeName_OR_storeNames, {String mode}) {
-    if (mode == null) mode = 'readonly';
+  Transaction transaction(storeName_OR_storeNames, String mode) {
     if (mode != 'readonly' && mode != 'readwrite') {
       throw new ArgumentError(mode);
     }

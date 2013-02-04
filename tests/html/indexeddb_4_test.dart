@@ -73,7 +73,7 @@ class Test {
 
   writeItems(int index) {
     if (index < 100) {
-      var transaction = db.transaction([STORE_NAME], mode : 'readwrite');
+      var transaction = db.transaction([STORE_NAME], 'readwrite');
       var request = transaction.objectStore(STORE_NAME)
           .put('Item $index', index);
       request.onSuccess.listen(expectAsync1((e) {
@@ -87,7 +87,7 @@ class Test {
   setupDb() { _createAndOpenDb(() => writeItems(0)); }
 
   testRange(range, expectedFirst, expectedLast) {
-    Transaction txn = db.transaction(STORE_NAME, mode : 'readonly');
+    Transaction txn = db.transaction(STORE_NAME, 'readonly');
     ObjectStore objectStore = txn.objectStore(STORE_NAME);
     Request cursorRequest = objectStore.openCursor(range);
     int itemCount = 0;
