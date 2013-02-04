@@ -502,23 +502,23 @@ abstract class Compiler implements DiagnosticListener {
 
   void initializeSpecialClasses() {
     final List missingCoreClasses = [];
-    ClassElement lookupCoreClass(SourceString name) {
-      ClassElement result = coreLibrary.find(name);
+    ClassElement lookupCoreClass(String name) {
+      ClassElement result = coreLibrary.find(new SourceString(name));
       if (result == null) {
-        missingCoreClasses.add(name.slowToString());
+        missingCoreClasses.add(name);
       }
       return result;
     }
-    objectClass = lookupCoreClass(const SourceString('Object'));
-    boolClass = lookupCoreClass(const SourceString('bool'));
-    numClass = lookupCoreClass(const SourceString('num'));
-    intClass = lookupCoreClass(const SourceString('int'));
-    doubleClass = lookupCoreClass(const SourceString('double'));
-    stringClass = lookupCoreClass(const SourceString('String'));
-    functionClass = lookupCoreClass(const SourceString('Function'));
-    listClass = lookupCoreClass(const SourceString('List'));
-    typeClass = lookupCoreClass(const SourceString('Type'));
-    mapClass = lookupCoreClass(const SourceString('Map'));
+    objectClass = lookupCoreClass('Object');
+    boolClass = lookupCoreClass('bool');
+    numClass = lookupCoreClass('num');
+    intClass = lookupCoreClass('int');
+    doubleClass = lookupCoreClass('double');
+    stringClass = lookupCoreClass('String');
+    functionClass = lookupCoreClass('Function');
+    listClass = lookupCoreClass('List');
+    typeClass = lookupCoreClass('Type');
+    mapClass = lookupCoreClass('Map');
     if (!missingCoreClasses.isEmpty) {
       internalErrorOnElement(coreLibrary,
           'dart:core library does not contain required classes: '
@@ -526,18 +526,17 @@ abstract class Compiler implements DiagnosticListener {
     }
 
     final List missingHelperClasses = [];
-    ClassElement lookupHelperClass(SourceString name) {
-      ClassElement result = jsHelperLibrary.find(name);
+    ClassElement lookupHelperClass(String name) {
+      ClassElement result = jsHelperLibrary.find(new SourceString(name));
       if (result == null) {
-        missingHelperClasses.add(name.slowToString());
+        missingHelperClasses.add(name);
       }
       return result;
     }
-    jsInvocationMirrorClass =
-        lookupHelperClass(const SourceString('JSInvocationMirror'));
-    closureClass = lookupHelperClass(const SourceString('Closure'));
-    dynamicClass = lookupHelperClass(const SourceString('Dynamic_'));
-    nullClass = lookupHelperClass(const SourceString('Null'));
+    jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
+    closureClass = lookupHelperClass('Closure');
+    dynamicClass = lookupHelperClass('Dynamic_');
+    nullClass = lookupHelperClass('Null');
     if (!missingHelperClasses.isEmpty) {
       internalErrorOnElement(jsHelperLibrary,
           'dart:_js_helper library does not contain required classes: '
