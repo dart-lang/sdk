@@ -138,7 +138,7 @@ const String TEST_13 = r"""
   f(p) => p.x(2.2);
   main() {
     new A().x(1);
-    f(null);
+    f(new A());
   }
 """;
 
@@ -190,6 +190,18 @@ const String TEST_17 = r"""
   }
 """;
 
+const String TEST_18 = r"""
+  class A {
+    x(p1, p2) => x(p1, p2);
+  }
+  class B extends A {
+  }
+  main() {
+    new B().x("a", "b");
+    new A().x(1, 2);
+  }
+""";
+
 void doTest(String test,
             bool enableInlining,
             List<HType> expectedTypes,
@@ -229,7 +241,7 @@ void test() {
   runTest(TEST_7);
   runTest(TEST_8, [HType.INTEGER, HType.UNKNOWN]);
   runTest(TEST_9, [HType.INTEGER, HType.INTEGER]);
-  runTest(TEST_10);
+  runTest(TEST_10, [HType.INTEGER, HType.INTEGER]);
   runTest(TEST_11);
 
   defaultTypes = new OptionalParameterTypes(1);
@@ -255,6 +267,8 @@ void test() {
   defaultTypes.update(0, const SourceString("p2"), HType.INTEGER);
   defaultTypes.update(1, const SourceString("p3"), HType.STRING);
   runTest(TEST_17, [HType.INTEGER, HType.BOOLEAN, HType.DOUBLE], defaultTypes);
+
+  runTest(TEST_18);
 }
 
 void main() {

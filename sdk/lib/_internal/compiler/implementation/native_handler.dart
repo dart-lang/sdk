@@ -91,6 +91,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   final queue = new Queue();
   bool flushing = false;
 
+  /// Maps JS foreign calls to their computed native behavior.
+  final Map<Node, NativeBehavior> nativeBehaviors =
+      new Map<Node, NativeBehavior>();
 
   final Enqueuer world;
   final Compiler compiler;
@@ -302,11 +305,13 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   void registerJsCall(Send node, ResolverVisitor resolver) {
-    processNativeBehavior(
-        NativeBehavior.ofJsCall(node, compiler, resolver),
-        node);
+    NativeBehavior behavior = NativeBehavior.ofJsCall(node, compiler, resolver);
+    processNativeBehavior(behavior, node);
+    nativeBehaviors[node] = behavior;
     flushQueue();
   }
+
+  NativeBehavior getNativeBehaviorOf(Send node) => nativeBehaviors[node];
 
   processNativeBehavior(NativeBehavior behavior, cause) {
     bool allUsedBefore = unusedClasses.isEmpty;
@@ -881,8 +886,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     }
 
     DartString jsCode = new DartString.literal(nativeMethodCall);
-    builder.push(
-        new HForeign(jsCode, const LiteralDartString('Object'), inputs));
+    builder.push(new HForeign(jsCode, HType.UNKNOWN, inputs));
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {

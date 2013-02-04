@@ -15,30 +15,32 @@ abstract class HType {
                                 Compiler compiler,
                                 [bool canBeNull = false]) {
     Element element = type.element;
-    if (identical(element.kind, ElementKind.TYPE_VARIABLE)) {
+    if (element.kind == ElementKind.TYPE_VARIABLE) {
       // TODO(ngeoffray): Replace object type with [type].
       return new HBoundedPotentialPrimitiveType(
           compiler.objectClass.computeType(compiler), canBeNull, true);
     }
 
-    if (identical(element, compiler.intClass)) {
+    if (element == compiler.intClass) {
       return canBeNull ? HType.INTEGER_OR_NULL : HType.INTEGER;
-    } else if (identical(element, compiler.numClass)) {
+    } else if (element == compiler.numClass) {
       return canBeNull ? HType.NUMBER_OR_NULL : HType.NUMBER;
-    } else if (identical(element, compiler.doubleClass)) {
+    } else if (element == compiler.doubleClass) {
       return canBeNull ? HType.DOUBLE_OR_NULL : HType.DOUBLE;
-    } else if (identical(element, compiler.stringClass)) {
+    } else if (element == compiler.stringClass) {
       return canBeNull ? HType.STRING_OR_NULL : HType.STRING;
-    } else if (identical(element, compiler.boolClass)) {
+    } else if (element == compiler.boolClass) {
       return canBeNull ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
-    } else if (identical(element, compiler.listClass)
+    } else if (element == compiler.nullClass) {
+      return HType.NULL;
+    } else if (element == compiler.listClass
         || Elements.isListSupertype(element, compiler)) {
       return new HBoundedPotentialPrimitiveArray(type, canBeNull);
     } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
       return new HBoundedPotentialPrimitiveNumberOrString(type, canBeNull);
     } else if (Elements.isStringOnlySupertype(element, compiler)) {
       return new HBoundedPotentialPrimitiveString(type, canBeNull);
-    } else if (identical(element, compiler.objectClass)) {
+    } else if (element == compiler.objectClass) {
       return new HBoundedPotentialPrimitiveType(
           compiler.objectClass.computeType(compiler), canBeNull, true);
     } else {
@@ -170,7 +172,9 @@ class HNullType extends HPrimitiveType {
   bool isNull() => true;
   String toString() => 'null';
 
-  DartType computeType(Compiler compiler) => null;
+  DartType computeType(Compiler compiler) {
+    return compiler.nullClass.computeType(compiler);
+  }
 
   HType union(HType other, Compiler compiler) {
     if (other.isConflicting()) return HType.NULL;
@@ -180,6 +184,8 @@ class HNullType extends HPrimitiveType {
     if (other.isDouble()) return HType.DOUBLE_OR_NULL;
     if (other.isNumber()) return HType.NUMBER_OR_NULL;
     if (other.isBoolean()) return HType.BOOLEAN_OR_NULL;
+    // TODO(ngeoffray): Deal with the type of null more generally.
+    if (other.isReadableArray()) return other.union(this, compiler);
     if (!other.canBeNull()) return HType.UNKNOWN;
     return other;
   }
@@ -597,6 +603,11 @@ class HReadableArrayType extends HIndexablePrimitiveType {
     if (other.isReadableArray()) return HType.READABLE_ARRAY;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
     if (other is HBoundedPotentialPrimitiveArray) return other;
+    if (other.isNull()) {
+      // TODO(ngeoffray): This should be readable array or null.
+      return new HBoundedPotentialPrimitiveArray(
+          compiler.listClass.computeType(compiler), true);
+    }
     return HType.UNKNOWN;
   }
 
@@ -623,6 +634,11 @@ class HMutableArrayType extends HReadableArrayType {
     if (other.isReadableArray()) return HType.READABLE_ARRAY;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
     if (other is HBoundedPotentialPrimitiveArray) return other;
+    if (other.isNull()) {
+      // TODO(ngeoffray): This should be mutable array or null.
+      return new HBoundedPotentialPrimitiveArray(
+          compiler.listClass.computeType(compiler), true);
+    }
     return HType.UNKNOWN;
   }
 
@@ -650,6 +666,11 @@ class HFixedArrayType extends HMutableArrayType {
     if (other.isReadableArray()) return HType.READABLE_ARRAY;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
     if (other is HBoundedPotentialPrimitiveArray) return other;
+    if (other.isNull()) {
+      // TODO(ngeoffray): This should be fixed array or null.
+      return new HBoundedPotentialPrimitiveArray(
+          compiler.listClass.computeType(compiler), true);
+    }
     return HType.UNKNOWN;
   }
 
@@ -678,6 +699,11 @@ class HExtendableArrayType extends HMutableArrayType {
     if (other.isReadableArray()) return HType.READABLE_ARRAY;
     if (other.isIndexablePrimitive()) return HType.INDEXABLE_PRIMITIVE;
     if (other is HBoundedPotentialPrimitiveArray) return other;
+    if (other.isNull()) {
+      // TODO(ngeoffray): This should be extendable array or null.
+      return new HBoundedPotentialPrimitiveArray(
+          compiler.listClass.computeType(compiler), true);
+    }
     return HType.UNKNOWN;
   }
 

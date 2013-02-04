@@ -1543,46 +1543,33 @@ class HLocalSet extends HFieldAccess {
 
 class HForeign extends HInstruction {
   final DartString code;
-  final HType foreignType;
+  final HType type;
   final bool isStatement;
 
   HForeign(this.code,
-           DartString declaredType,
+           this.type,
            List<HInstruction> inputs,
            {this.isStatement: false})
-      : foreignType = computeTypeFromDeclaredType(declaredType),
-        super(inputs) {
+      : super(inputs) {
     setAllSideEffects();
     setDependsOnSomething();
   }
 
   HForeign.statement(code, List<HInstruction> inputs)
-      : this(code, const LiteralDartString('var'), inputs, isStatement: true);
+      : this(code, HType.UNKNOWN, inputs, isStatement: true);
 
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
-  static HType computeTypeFromDeclaredType(DartString declaredType) {
-    if (declaredType.slowToString() == 'bool') return HType.BOOLEAN;
-    if (declaredType.slowToString() == 'int') return HType.INTEGER;
-    if (declaredType.slowToString() == 'double') return HType.DOUBLE;
-    if (declaredType.slowToString() == 'num') return HType.NUMBER;
-    if (declaredType.slowToString() == 'String') return HType.STRING;
-    if (declaredType.slowToString() == '=List') return HType.READABLE_ARRAY;
-    return HType.UNKNOWN;
-  }
-
-  HType get guaranteedType => foreignType;
+  HType get guaranteedType => type;
 
   bool isJsStatement() => isStatement;
   bool canThrow() => true;
-
 }
 
 class HForeignNew extends HForeign {
   ClassElement element;
-  HForeignNew(this.element, List<HInstruction> inputs)
-      : super(const LiteralDartString("new"),
-              const LiteralDartString("Object"), inputs);
+  HForeignNew(this.element, HType type, List<HInstruction> inputs)
+      : super(const LiteralDartString("new"), type, inputs);
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
 }
 
