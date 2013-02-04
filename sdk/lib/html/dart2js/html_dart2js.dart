@@ -1771,8 +1771,8 @@ class Console {
       JS('void', 'console.time(#)', title) : null;
 
   @DomName('Console.timeEnd')
-  void timeEnd(String title, Object arg) => _isConsoleDefined ?
-      JS('void', 'console.timeEnd(#, #)', title, arg) : null;
+  void timeEnd(String timerName) => _isConsoleDefined ?
+      JS('void', 'console.timeEnd(#)', timerName) : null;
 
   @DomName('Console.timeStamp')
   void timeStamp(Object arg) => _isConsoleDefined ?
