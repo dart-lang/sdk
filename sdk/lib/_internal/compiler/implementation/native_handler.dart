@@ -51,6 +51,8 @@ class NativeEnqueuer {
   /// Computes types instantiated due to setting a native field.
   void registerFieldStore(Element field) {}
 
+  NativeBehavior getNativeBehaviorOf(Send node) => null;
+
   /**
    * Handles JS-calls, which can be an instantiation point for types.
    *
