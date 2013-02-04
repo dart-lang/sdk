@@ -71,6 +71,23 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 
 class Value : public ZoneAllocated {
  public:
+  // A forward iterator that allows removing the current value from the
+  // underlying use list during iteration.
+  class Iterator {
+   public:
+    explicit Iterator(Value* head) : next_(head) { Advance(); }
+    Value* Current() const { return current_; }
+    bool Done() const { return current_ == NULL; }
+    void Advance() {
+      // Pre-fetch next on advance and cache it.
+      current_ = next_;
+      if (next_ != NULL) next_ = next_->next_use();
+    }
+   private:
+    Value* current_;
+    Value* next_;
+  };
+
   explicit Value(Definition* definition)
       : definition_(definition),
         previous_use_(NULL),
