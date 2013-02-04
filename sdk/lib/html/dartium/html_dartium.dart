@@ -454,6 +454,16 @@ class ApplicationCacheEvents extends Events {
 
 
 @DocsEditable
+/**
+ * DOM Area Element, which links regions of an image map with a hyperlink.
+ *
+ * The element can also define an uninteractive region of the map.
+ *
+ * See also:
+ *
+ * * [<area>](https://developer.mozilla.org/en-US/docs/HTML/Element/area)
+ * on MDN.
+ */
 @DomName('HTMLAreaElement')
 class AreaElement extends _Element_Merged {
   AreaElement.internal() : super.internal();
