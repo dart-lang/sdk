@@ -26,7 +26,7 @@ testReadWrite(key, value, matcher,
   }
 
   step2(e) {
-    var transaction = db.transaction(storeName, 'readonly');
+    var transaction = db.transaction(storeName);
     var request = transaction.objectStore(storeName).getObject(key);
     request.onSuccess.listen(expectAsync1((e) {
       var object = e.target.result;
@@ -102,7 +102,7 @@ testReadWriteTyped(key, value, matcher,
   }
 
   step2(e) {
-    idb.Transaction transaction = db.transaction(storeName, 'readonly');
+    idb.Transaction transaction = db.transaction(storeName);
     idb.Request request = transaction.objectStore(storeName).getObject(key);
     request.onSuccess.listen(expectAsync1((e) {
       var object = e.target.result;

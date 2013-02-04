@@ -206,7 +206,8 @@ class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
 @Experimental
 class Database extends EventTarget native "*IDBDatabase" {
 
-  Transaction transaction(storeName_OR_storeNames, String mode) {
+  Transaction transaction(storeName_OR_storeNames, {String mode}) {
+    if (mode == null) mode = 'readonly';
     if (mode != 'readonly' && mode != 'readwrite') {
       throw new ArgumentError(mode);
     }
