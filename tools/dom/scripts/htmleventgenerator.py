@@ -390,13 +390,15 @@ class HtmlEventGenerator(object):
 
     for event_info in events:
       (dom_name, html_name, event_type) = event_info
+      annotation_name = dom_name + 'Event'
 
       # If we're using a different provider, then don't declare one.
       if self._GetEventRedirection(interface, html_name, event_type):
         continue
 
       annotations = FormatAnnotationsAndComments(
-          GetAnnotationsAndComments(library_name, interface.id, dom_name), '  ')
+          GetAnnotationsAndComments(library_name, interface.id,
+                                    annotation_name), '  ')
 
       members_emitter.Emit(
           "\n"
@@ -416,6 +418,7 @@ class HtmlEventGenerator(object):
     for event_info in events:
       (dom_name, html_name, event_type) = event_info
       getter_name = 'on%s%s' % (html_name[:1].upper(), html_name[1:])
+      annotation_name = 'on' + dom_name
 
       # If the provider is declared elsewhere, point to that.
       redirection = self._GetEventRedirection(interface, html_name, event_type)
@@ -425,7 +428,8 @@ class HtmlEventGenerator(object):
         provider = html_name + 'Event'
 
       annotations = FormatAnnotationsAndComments(
-          GetAnnotationsAndComments(library_name, interface.id, dom_name), '  ')
+          GetAnnotationsAndComments(library_name, interface.id,
+                                    annotation_name), '  ')
 
       members_emitter.Emit(
           "\n"

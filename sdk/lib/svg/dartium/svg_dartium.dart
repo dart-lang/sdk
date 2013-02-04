@@ -998,163 +998,163 @@ class DescElement extends StyledElement implements LangSpace {
 class ElementInstance extends EventTarget {
   ElementInstance.internal() : super.internal();
 
-  @DomName('SVGElementInstance.abort')
+  @DomName('SVGElementInstance.abortEvent')
   @DocsEditable
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
-  @DomName('SVGElementInstance.beforecopy')
+  @DomName('SVGElementInstance.beforecopyEvent')
   @DocsEditable
   static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
 
-  @DomName('SVGElementInstance.beforecut')
+  @DomName('SVGElementInstance.beforecutEvent')
   @DocsEditable
   static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
 
-  @DomName('SVGElementInstance.beforepaste')
+  @DomName('SVGElementInstance.beforepasteEvent')
   @DocsEditable
   static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
 
-  @DomName('SVGElementInstance.blur')
+  @DomName('SVGElementInstance.blurEvent')
   @DocsEditable
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
-  @DomName('SVGElementInstance.change')
+  @DomName('SVGElementInstance.changeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
-  @DomName('SVGElementInstance.click')
+  @DomName('SVGElementInstance.clickEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
 
-  @DomName('SVGElementInstance.contextmenu')
+  @DomName('SVGElementInstance.contextmenuEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
 
-  @DomName('SVGElementInstance.copy')
+  @DomName('SVGElementInstance.copyEvent')
   @DocsEditable
   static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
 
-  @DomName('SVGElementInstance.cut')
+  @DomName('SVGElementInstance.cutEvent')
   @DocsEditable
   static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
 
-  @DomName('SVGElementInstance.dblclick')
+  @DomName('SVGElementInstance.dblclickEvent')
   @DocsEditable
   static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
-  @DomName('SVGElementInstance.drag')
+  @DomName('SVGElementInstance.dragEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
 
-  @DomName('SVGElementInstance.dragend')
+  @DomName('SVGElementInstance.dragendEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
 
-  @DomName('SVGElementInstance.dragenter')
+  @DomName('SVGElementInstance.dragenterEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
 
-  @DomName('SVGElementInstance.dragleave')
+  @DomName('SVGElementInstance.dragleaveEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
 
-  @DomName('SVGElementInstance.dragover')
+  @DomName('SVGElementInstance.dragoverEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
 
-  @DomName('SVGElementInstance.dragstart')
+  @DomName('SVGElementInstance.dragstartEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
 
-  @DomName('SVGElementInstance.drop')
+  @DomName('SVGElementInstance.dropEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
 
-  @DomName('SVGElementInstance.error')
+  @DomName('SVGElementInstance.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('SVGElementInstance.focus')
+  @DomName('SVGElementInstance.focusEvent')
   @DocsEditable
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
-  @DomName('SVGElementInstance.input')
+  @DomName('SVGElementInstance.inputEvent')
   @DocsEditable
   static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
 
-  @DomName('SVGElementInstance.keydown')
+  @DomName('SVGElementInstance.keydownEvent')
   @DocsEditable
   static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
 
-  @DomName('SVGElementInstance.keypress')
+  @DomName('SVGElementInstance.keypressEvent')
   @DocsEditable
   static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
 
-  @DomName('SVGElementInstance.keyup')
+  @DomName('SVGElementInstance.keyupEvent')
   @DocsEditable
   static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
 
-  @DomName('SVGElementInstance.load')
+  @DomName('SVGElementInstance.loadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
-  @DomName('SVGElementInstance.mousedown')
+  @DomName('SVGElementInstance.mousedownEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
 
-  @DomName('SVGElementInstance.mousemove')
+  @DomName('SVGElementInstance.mousemoveEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
 
-  @DomName('SVGElementInstance.mouseout')
+  @DomName('SVGElementInstance.mouseoutEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
 
-  @DomName('SVGElementInstance.mouseover')
+  @DomName('SVGElementInstance.mouseoverEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
 
-  @DomName('SVGElementInstance.mouseup')
+  @DomName('SVGElementInstance.mouseupEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
 
-  @DomName('SVGElementInstance.mousewheel')
+  @DomName('SVGElementInstance.mousewheelEvent')
   @DocsEditable
   static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
 
-  @DomName('SVGElementInstance.paste')
+  @DomName('SVGElementInstance.pasteEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
 
-  @DomName('SVGElementInstance.reset')
+  @DomName('SVGElementInstance.resetEvent')
   @DocsEditable
   static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
-  @DomName('SVGElementInstance.resize')
+  @DomName('SVGElementInstance.resizeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  @DomName('SVGElementInstance.scroll')
+  @DomName('SVGElementInstance.scrollEvent')
   @DocsEditable
   static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
 
-  @DomName('SVGElementInstance.search')
+  @DomName('SVGElementInstance.searchEvent')
   @DocsEditable
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
-  @DomName('SVGElementInstance.select')
+  @DomName('SVGElementInstance.selectEvent')
   @DocsEditable
   static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
 
-  @DomName('SVGElementInstance.selectstart')
+  @DomName('SVGElementInstance.selectstartEvent')
   @DocsEditable
   static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
 
-  @DomName('SVGElementInstance.submit')
+  @DomName('SVGElementInstance.submitEvent')
   @DocsEditable
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
 
-  @DomName('SVGElementInstance.unload')
+  @DomName('SVGElementInstance.unloadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
@@ -1196,163 +1196,163 @@ class ElementInstance extends EventTarget {
   @DocsEditable
   ElementInstance get previousSibling native "SVGElementInstance_previousSibling_Getter";
 
-  @DomName('SVGElementInstance.abort')
+  @DomName('SVGElementInstance.onabort')
   @DocsEditable
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.beforecopy')
+  @DomName('SVGElementInstance.onbeforecopy')
   @DocsEditable
   Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.beforecut')
+  @DomName('SVGElementInstance.onbeforecut')
   @DocsEditable
   Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.beforepaste')
+  @DomName('SVGElementInstance.onbeforepaste')
   @DocsEditable
   Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.blur')
+  @DomName('SVGElementInstance.onblur')
   @DocsEditable
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.change')
+  @DomName('SVGElementInstance.onchange')
   @DocsEditable
   Stream<Event> get onChange => changeEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.click')
+  @DomName('SVGElementInstance.onclick')
   @DocsEditable
   Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.contextmenu')
+  @DomName('SVGElementInstance.oncontextmenu')
   @DocsEditable
   Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.copy')
+  @DomName('SVGElementInstance.oncopy')
   @DocsEditable
   Stream<Event> get onCopy => copyEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.cut')
+  @DomName('SVGElementInstance.oncut')
   @DocsEditable
   Stream<Event> get onCut => cutEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.dblclick')
+  @DomName('SVGElementInstance.ondblclick')
   @DocsEditable
   Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.drag')
+  @DomName('SVGElementInstance.ondrag')
   @DocsEditable
   Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.dragend')
+  @DomName('SVGElementInstance.ondragend')
   @DocsEditable
   Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.dragenter')
+  @DomName('SVGElementInstance.ondragenter')
   @DocsEditable
   Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.dragleave')
+  @DomName('SVGElementInstance.ondragleave')
   @DocsEditable
   Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.dragover')
+  @DomName('SVGElementInstance.ondragover')
   @DocsEditable
   Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.dragstart')
+  @DomName('SVGElementInstance.ondragstart')
   @DocsEditable
   Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.drop')
+  @DomName('SVGElementInstance.ondrop')
   @DocsEditable
   Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.error')
+  @DomName('SVGElementInstance.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.focus')
+  @DomName('SVGElementInstance.onfocus')
   @DocsEditable
   Stream<Event> get onFocus => focusEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.input')
+  @DomName('SVGElementInstance.oninput')
   @DocsEditable
   Stream<Event> get onInput => inputEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.keydown')
+  @DomName('SVGElementInstance.onkeydown')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.keypress')
+  @DomName('SVGElementInstance.onkeypress')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.keyup')
+  @DomName('SVGElementInstance.onkeyup')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.load')
+  @DomName('SVGElementInstance.onload')
   @DocsEditable
   Stream<Event> get onLoad => loadEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.mousedown')
+  @DomName('SVGElementInstance.onmousedown')
   @DocsEditable
   Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.mousemove')
+  @DomName('SVGElementInstance.onmousemove')
   @DocsEditable
   Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.mouseout')
+  @DomName('SVGElementInstance.onmouseout')
   @DocsEditable
   Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.mouseover')
+  @DomName('SVGElementInstance.onmouseover')
   @DocsEditable
   Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.mouseup')
+  @DomName('SVGElementInstance.onmouseup')
   @DocsEditable
   Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.mousewheel')
+  @DomName('SVGElementInstance.onmousewheel')
   @DocsEditable
   Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.paste')
+  @DomName('SVGElementInstance.onpaste')
   @DocsEditable
   Stream<Event> get onPaste => pasteEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.reset')
+  @DomName('SVGElementInstance.onreset')
   @DocsEditable
   Stream<Event> get onReset => resetEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.resize')
+  @DomName('SVGElementInstance.onresize')
   @DocsEditable
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.scroll')
+  @DomName('SVGElementInstance.onscroll')
   @DocsEditable
   Stream<Event> get onScroll => scrollEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.search')
+  @DomName('SVGElementInstance.onsearch')
   @DocsEditable
   Stream<Event> get onSearch => searchEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.select')
+  @DomName('SVGElementInstance.onselect')
   @DocsEditable
   Stream<Event> get onSelect => selectEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.selectstart')
+  @DomName('SVGElementInstance.onselectstart')
   @DocsEditable
   Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.submit')
+  @DomName('SVGElementInstance.onsubmit')
   @DocsEditable
   Stream<Event> get onSubmit => submitEvent.forTarget(this);
 
-  @DomName('SVGElementInstance.unload')
+  @DomName('SVGElementInstance.onunload')
   @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 

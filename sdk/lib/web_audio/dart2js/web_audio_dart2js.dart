@@ -176,7 +176,7 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 @DomName('AudioContext')
 class AudioContext extends EventTarget native "*AudioContext" {
 
-  @DomName('AudioContext.complete')
+  @DomName('AudioContext.completeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
@@ -278,7 +278,7 @@ class AudioContext extends EventTarget native "*AudioContext" {
   @DocsEditable
   void startRendering() native;
 
-  @DomName('AudioContext.complete')
+  @DomName('AudioContext.oncomplete')
   @DocsEditable
   Stream<Event> get onComplete => completeEvent.forTarget(this);
 

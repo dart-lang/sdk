@@ -224,15 +224,15 @@ class Database extends EventTarget native "*IDBDatabase" {
   Transaction _transaction(stores, mode) native;
 
 
-  @DomName('IDBDatabase.abort')
+  @DomName('IDBDatabase.abortEvent')
   @DocsEditable
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
-  @DomName('IDBDatabase.error')
+  @DomName('IDBDatabase.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('IDBDatabase.versionchange')
+  @DomName('IDBDatabase.versionchangeEvent')
   @DocsEditable
   static const EventStreamProvider<UpgradeNeededEvent> versionChangeEvent = const EventStreamProvider<UpgradeNeededEvent>('versionchange');
 
@@ -294,15 +294,15 @@ class Database extends EventTarget native "*IDBDatabase" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('IDBDatabase.abort')
+  @DomName('IDBDatabase.onabort')
   @DocsEditable
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
-  @DomName('IDBDatabase.error')
+  @DomName('IDBDatabase.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('IDBDatabase.versionchange')
+  @DomName('IDBDatabase.onversionchange')
   @DocsEditable
   Stream<UpgradeNeededEvent> get onVersionChange => versionChangeEvent.forTarget(this);
 }
@@ -646,11 +646,11 @@ class ObjectStore native "*IDBObjectStore" {
 @DomName('IDBOpenDBRequest')
 class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBRequest" {
 
-  @DomName('IDBOpenDBRequest.blocked')
+  @DomName('IDBOpenDBRequest.blockedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
 
-  @DomName('IDBOpenDBRequest.upgradeneeded')
+  @DomName('IDBOpenDBRequest.upgradeneededEvent')
   @DocsEditable
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
@@ -660,11 +660,11 @@ class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBReq
   OpenDBRequestEvents get on =>
     new OpenDBRequestEvents(this);
 
-  @DomName('IDBOpenDBRequest.blocked')
+  @DomName('IDBOpenDBRequest.onblocked')
   @DocsEditable
   Stream<Event> get onBlocked => blockedEvent.forTarget(this);
 
-  @DomName('IDBOpenDBRequest.upgradeneeded')
+  @DomName('IDBOpenDBRequest.onupgradeneeded')
   @DocsEditable
   Stream<VersionChangeEvent> get onUpgradeNeeded => upgradeNeededEvent.forTarget(this);
 }
@@ -690,11 +690,11 @@ class OpenDBRequestEvents extends RequestEvents {
 @DomName('IDBRequest')
 class Request extends EventTarget native "*IDBRequest" {
 
-  @DomName('IDBRequest.error')
+  @DomName('IDBRequest.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('IDBRequest.success')
+  @DomName('IDBRequest.successEvent')
   @DocsEditable
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
 
@@ -746,11 +746,11 @@ class Request extends EventTarget native "*IDBRequest" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('IDBRequest.error')
+  @DomName('IDBRequest.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('IDBRequest.success')
+  @DomName('IDBRequest.onsuccess')
   @DocsEditable
   Stream<Event> get onSuccess => successEvent.forTarget(this);
 }
@@ -776,15 +776,15 @@ class RequestEvents extends Events {
 @DomName('IDBTransaction')
 class Transaction extends EventTarget native "*IDBTransaction" {
 
-  @DomName('IDBTransaction.abort')
+  @DomName('IDBTransaction.abortEvent')
   @DocsEditable
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
-  @DomName('IDBTransaction.complete')
+  @DomName('IDBTransaction.completeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
 
-  @DomName('IDBTransaction.error')
+  @DomName('IDBTransaction.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
@@ -832,15 +832,15 @@ class Transaction extends EventTarget native "*IDBTransaction" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('IDBTransaction.abort')
+  @DomName('IDBTransaction.onabort')
   @DocsEditable
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
-  @DomName('IDBTransaction.complete')
+  @DomName('IDBTransaction.oncomplete')
   @DocsEditable
   Stream<Event> get onComplete => completeEvent.forTarget(this);
 
-  @DomName('IDBTransaction.error')
+  @DomName('IDBTransaction.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 }
@@ -899,7 +899,7 @@ class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 @DomName('IDBVersionChangeRequest')
 class VersionChangeRequest extends Request implements EventTarget native "*IDBVersionChangeRequest" {
 
-  @DomName('IDBVersionChangeRequest.blocked')
+  @DomName('IDBVersionChangeRequest.blockedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
 
@@ -909,7 +909,7 @@ class VersionChangeRequest extends Request implements EventTarget native "*IDBVe
   VersionChangeRequestEvents get on =>
     new VersionChangeRequestEvents(this);
 
-  @DomName('IDBVersionChangeRequest.blocked')
+  @DomName('IDBVersionChangeRequest.onblocked')
   @DocsEditable
   Stream<Event> get onBlocked => blockedEvent.forTarget(this);
 }
