@@ -10,9 +10,9 @@ import 'parser_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart'
-    show Spannable;
+    show Spannable, Link;
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart'
-    show Node;
+    show Node, LibraryTag;
 
 void checkPosition(Spannable spannable, Node node, String source, compiler) {
   SourceSpan span = compiler.spanFromSpannable(spannable);
@@ -147,8 +147,74 @@ void testTopLevelFieldMetadata() {
   checkAnnotation('foo', 'var foo;');
 }
 
+void testLibraryTags() {
+  void compileAndCheckLibrary(
+      String source,
+      Link<MetadataAnnotation> extractMetadata(LibraryElement element)) {
+    Uri partUri = new Uri.fromComponents(scheme: 'source', path: 'part.dart');
+    String partSource = '@native part of foo;';
+
+    Uri libUri = new Uri.fromComponents(scheme: 'source', path: 'lib.dart');
+    String libSource = 'library lib;';
+
+    Uri uri = new Uri.fromComponents(scheme: 'source', path: 'main.dart');
+
+    var compiler = compilerFor(source, uri)
+        ..registerSource(partUri, partSource)
+        ..registerSource(libUri, libSource)
+        ..runCompiler(uri);
+    compiler.enqueuer.resolution.queueIsClosed = false;
+    LibraryElement element = compiler.libraries['$uri'];
+    Expect.isNotNull(element, 'Cannot find $uri');
+
+    Link<MetadataAnnotation> metadata = extractMetadata(element);
+    Expect.equals(1, length(metadata));
+
+    PartialMetadataAnnotation annotation = metadata.head;
+    annotation.ensureResolved(compiler);
+    Constant value = annotation.value;
+    Expect.stringEquals('xyz', value.value.slowToString());
+
+    checkPosition(annotation, annotation.cachedNode, source, compiler);
+  }
+
+  var source;
+
+  source = """@native
+              library foo;
+              const native = 'xyz';
+              main() {}""";
+  compileAndCheckLibrary(source, (e) => e.libraryTag.metadata);
+
+  source = """@native
+              import 'lib.dart';
+              const native = 'xyz';
+              main() {}""";
+  compileAndCheckLibrary(source, (e) => e.tags.single.metadata);
+
+  source = """@native
+              export 'lib.dart';
+              const native = 'xyz';
+              main() {}""";
+  compileAndCheckLibrary(source, (e) => e.tags.single.metadata);
+
+  source = """@native
+              part 'part.dart';
+              const native = 'xyz';
+              main() {}""";
+  compileAndCheckLibrary(source, (e) => e.tags.single.metadata);
+
+  source = """@native
+              part 'part.dart';
+              const native = 'xyz';
+              main() {}""";
+  compileAndCheckLibrary(source,
+                         (e) => e.compilationUnits.first.partTag.metadata);
+}
+
 void main() {
   testClassMetadata();
   testTopLevelMethodMetadata();
   testTopLevelFieldMetadata();
+  testLibraryTags();
 }

@@ -348,6 +348,9 @@ class Listener {
   void endRethrowStatement(Token throwToken, Token endToken) {
   }
 
+  void endTopLevelDeclaration(Token token) {
+  }
+
   void beginTopLevelMember(Token token) {
   }
 
@@ -682,7 +685,8 @@ class ElementListener extends Listener {
 
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     Expression name = popNode();
-    addLibraryTag(new LibraryName(libraryKeyword, name));
+    addLibraryTag(new LibraryName(libraryKeyword, name,
+                                  popMetadata(compilationUnitElement)));
   }
 
   void endImport(Token importKeyword, Token asKeyword, Token semicolon) {
@@ -692,13 +696,15 @@ class ElementListener extends Listener {
       prefix = popNode();
     }
     StringNode uri = popLiteralString();
-    addLibraryTag(new Import(importKeyword, uri, prefix, combinators));
+    addLibraryTag(new Import(importKeyword, uri, prefix, combinators,
+                             popMetadata(compilationUnitElement)));
   }
 
   void endExport(Token exportKeyword, Token semicolon) {
     NodeList combinators = popNode();
     StringNode uri = popNode();
-    addLibraryTag(new Export(exportKeyword, uri, combinators));
+    addLibraryTag(new Export(exportKeyword, uri, combinators,
+                             popMetadata(compilationUnitElement)));
   }
 
   void endCombinators(int count) {
@@ -728,12 +734,14 @@ class ElementListener extends Listener {
 
   void endPart(Token partKeyword, Token semicolon) {
     StringNode uri = popLiteralString();
-    addLibraryTag(new Part(partKeyword, uri));
+    addLibraryTag(new Part(partKeyword, uri,
+                           popMetadata(compilationUnitElement)));
   }
 
   void endPartOf(Token partKeyword, Token semicolon) {
     Expression name = popNode();
-    addPartOfTag(new PartOf(partKeyword, name));
+    addPartOfTag(new PartOf(partKeyword, name,
+                            popMetadata(compilationUnitElement)));
   }
 
   void addPartOfTag(PartOf tag) {
@@ -766,6 +774,14 @@ class ElementListener extends Listener {
     }
     popNode(); // Discard node (Send or Identifier).
     pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
+  }
+
+  void endTopLevelDeclaration(Token token) {
+    if (!metadata.isEmpty) {
+      recoverableError('Error: Metadata not supported here.',
+                       token: metadata.head.beginToken);
+      metadata = const Link<MetadataAnnotation>();
+    }
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -1050,11 +1066,17 @@ class ElementListener extends Listener {
   }
 
   void pushElement(Element element) {
+    popMetadata(element);
+    compilationUnitElement.addMember(element, listener);
+  }
+
+  Link<MetadataAnnotation> popMetadata(Element element) {
+    var result = metadata;
     for (Link link = metadata; !link.isEmpty; link = link.tail) {
       element.addMetadata(link.head);
     }
     metadata = const Link<MetadataAnnotation>();
-    compilationUnitElement.addMember(element, listener);
+    return result;
   }
 
   void pushMetadata(MetadataAnnotation annotation) {

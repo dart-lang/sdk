@@ -13,6 +13,8 @@ import '../util/characters.dart';
 
 import '../resolution/secret_tree_element.dart' show TreeElementMixin;
 
+import '../elements/elements.dart' show MetadataAnnotation;
+
 part 'dartstring.dart';
 part 'nodes.dart';
 part 'prettyprint.dart';

@@ -38,6 +38,7 @@ class Parser {
     int count = 0;
     while (!identical(token.kind, EOF_TOKEN)) {
       token = parseTopLevelDeclaration(token);
+      listener.endTopLevelDeclaration(token);
       count++;
     }
     listener.endCompilationUnit(count, token);

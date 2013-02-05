@@ -1701,11 +1701,11 @@ class ScriptTag extends Node {
         token.next = prefixToken.next;
         prefixNode = new Identifier(token);
       }
-      return new Import(tag.token, argument, prefixNode, null);
+      return new Import(tag.token, argument, prefixNode, null, null);
     } else if (isLibrary()) {
-      return new LibraryName(tag.token, argument);
+      return new LibraryName(tag.token, argument, null);
     } else if (isSource()) {
-      return new Part(tag.token, argument);
+      return new Part(tag.token, argument, null);
     } else {
       throw 'Unknown script tag ${tag.token.slowToString()}';
     }
@@ -1713,6 +1713,10 @@ class ScriptTag extends Node {
 }
 
 abstract class LibraryTag extends Node {
+  final Link<MetadataAnnotation> metadata;
+
+  LibraryTag(this.metadata);
+
   bool get isLibraryName => false;
   bool get isImport => false;
   bool get isExport => false;
@@ -1725,7 +1729,10 @@ class LibraryName extends LibraryTag {
 
   final Token libraryKeyword;
 
-  LibraryName(this.libraryKeyword, this.name);
+  LibraryName(this.libraryKeyword,
+              this.name,
+              Link<MetadataAnnotation> metadata)
+    : super(metadata);
 
   bool get isLibraryName => true;
 
@@ -1749,7 +1756,10 @@ abstract class LibraryDependency extends LibraryTag {
   final StringNode uri;
   final NodeList combinators;
 
-  LibraryDependency(this.uri, this.combinators);
+  LibraryDependency(this.uri,
+                    this.combinators,
+                    Link<MetadataAnnotation> metadata)
+    : super(metadata);
 }
 
 /**
@@ -1764,8 +1774,9 @@ class Import extends LibraryDependency {
   final Token importKeyword;
 
   Import(this.importKeyword, StringNode uri,
-         this.prefix, NodeList combinators)
-      : super(uri, combinators);
+         this.prefix, NodeList combinators,
+         Link<MetadataAnnotation> metadata)
+      : super(uri, combinators, metadata);
 
   bool get isImport => true;
 
@@ -1800,8 +1811,11 @@ class Import extends LibraryDependency {
 class Export extends LibraryDependency {
   final Token exportKeyword;
 
-  Export(this.exportKeyword, StringNode uri, NodeList combinators)
-      : super(uri, combinators);
+  Export(this.exportKeyword,
+         StringNode uri,
+         NodeList combinators,
+         Link<MetadataAnnotation> metadata)
+      : super(uri, combinators, metadata);
 
   bool get isExport => true;
 
@@ -1827,7 +1841,8 @@ class Part extends LibraryTag {
 
   final Token partKeyword;
 
-  Part(this.partKeyword, this.uri);
+  Part(this.partKeyword, this.uri, Link<MetadataAnnotation> metadata)
+    : super(metadata);
 
   bool get isPart => true;
 
@@ -1847,7 +1862,9 @@ class PartOf extends Node {
 
   final Token partKeyword;
 
-  PartOf(this.partKeyword, this.name);
+  final Link<MetadataAnnotation> metadata;
+
+  PartOf(this.partKeyword, this.name, this.metadata);
 
   Token get ofKeyword => partKeyword.next;
 

@@ -370,7 +370,7 @@ class PatchElementListener extends ElementListener implements PatchListener {
                        this.imports)
     : super(listener, patchElement, idGenerator);
 
-  MetadataAnnotation popMetadata() {
+  MetadataAnnotation popMetadataHack() {
     // TODO(ahe): Remove this method.
     popNode(); // Discard null.
     return new PatchMetadataAnnotation();
@@ -407,7 +407,7 @@ class PatchElementListener extends ElementListener implements PatchListener {
   void pushElement(Element element) {
     if (isMemberPatch || (isClassPatch && element is ClassElement)) {
       // Apply patch.
-      element.addMetadata(popMetadata());
+      element.addMetadata(popMetadataHack());
       LibraryElement originLibrary = compilationUnitElement.getLibrary();
       assert(originLibrary.isPatched);
       Element existing = originLibrary.localLookup(element.name);
@@ -470,7 +470,7 @@ class PatchMemberListener extends MemberListener implements PatchListener {
                       Element enclosingElement)
     : super(listener, enclosingElement);
 
-  MetadataAnnotation popMetadata() {
+  MetadataAnnotation popMetadataHack() {
     // TODO(ahe): Remove this method.
     popNode(); // Discard null.
     return new PatchMetadataAnnotation();
@@ -495,7 +495,7 @@ class PatchMemberListener extends MemberListener implements PatchListener {
 
   void addMember(Element element) {
     if (isMemberPatch || (isClassPatch && element is ClassElement)) {
-      element.addMetadata(popMetadata());
+      element.addMetadata(popMetadataHack());
     }
     super.addMember(element);
   }
