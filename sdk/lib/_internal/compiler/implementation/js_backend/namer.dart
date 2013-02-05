@@ -184,10 +184,14 @@ class Namer implements ClosureNamer {
   final Map<Element, String> globals;
   final Map<Selector, String> oneShotInterceptorNames;
   final Map<String, LibraryElement> shortPrivateNameOwners;
+
   final Set<String> usedGlobalNames;
   final Set<String> usedInstanceNames;
   final Map<String, String> globalNameMap;
+  final Map<String, String> suggestedGlobalNames;
   final Map<String, String> instanceNameMap;
+  final Map<String, String> suggestedInstanceNames;
+      
   final Map<String, String> operatorNameMap;
   final Map<String, int> popularNameCounters;
 
@@ -215,6 +219,8 @@ class Namer implements ClosureNamer {
         instanceNameMap = new Map<String, String>(),
         operatorNameMap = new Map<String, String>(),
         globalNameMap = new Map<String, String>(),
+        suggestedGlobalNames = new Map<String, String>(),
+        suggestedInstanceNames = new Map<String, String>(),
         constantNames = new Map<Constant, String>(),
         popularNameCounters = new Map<String, int>();
 
@@ -251,7 +257,8 @@ class Namer implements ClosureNamer {
       } else {
         longName = "CONSTANT";
       }
-      result = getFreshName(longName, usedGlobalNames, ensureSafe: true);
+      result = getFreshName(longName, usedGlobalNames, suggestedGlobalNames,
+                            ensureSafe: true);
       constantNames[constant] = result;
     }
     return result;
@@ -447,7 +454,8 @@ class Namer implements ClosureNamer {
   String getMappedGlobalName(String proposedName) {
     var newName = globalNameMap[proposedName];
     if (newName == null) {
-      newName = getFreshName(proposedName, usedGlobalNames, ensureSafe: true);
+      newName = getFreshName(proposedName, usedGlobalNames,
+                             suggestedGlobalNames, ensureSafe: true);
       globalNameMap[proposedName] = newName;
     }
     return newName;
@@ -456,7 +464,8 @@ class Namer implements ClosureNamer {
   String getMappedInstanceName(String proposedName) {
     var newName = instanceNameMap[proposedName];
     if (newName == null) {
-      newName = getFreshName(proposedName, usedInstanceNames, ensureSafe: true);
+      newName = getFreshName(proposedName, usedInstanceNames,
+                             suggestedInstanceNames, ensureSafe: true);
       instanceNameMap[proposedName] = newName;
     }
     return newName;
@@ -465,8 +474,8 @@ class Namer implements ClosureNamer {
   String getMappedOperatorName(String proposedName) {
     var newName = operatorNameMap[proposedName];
     if (newName == null) {
-      newName = getFreshName(
-          proposedName, usedInstanceNames, ensureSafe: false);
+      newName = getFreshName(proposedName, usedInstanceNames,
+                             suggestedInstanceNames, ensureSafe: false);
       operatorNameMap[proposedName] = newName;
     }
     return newName;
@@ -474,6 +483,7 @@ class Namer implements ClosureNamer {
 
   String getFreshName(String proposedName,
                       Set<String> usedNames,
+                      Map<String, String> suggestedNames,
                       {bool ensureSafe: true}) {
     var candidate;
     if (ensureSafe) {
@@ -537,11 +547,12 @@ class Namer implements ClosureNamer {
       // need to go through the generic getInterceptorMethod.
       return getName(element);
     }
-    // This gets the minified name, but it doesn't really make much difference.
-    // The important thing is that it is a unique name.
-    StringBuffer buffer = new StringBuffer('${getName(element)}\$');
+    // Use the unminified names here to construct the interceptor names.  This
+    // helps ensure that they don't all suddenly change names due to a name
+    // clash in the minifier, which would affect the diff size.
+    StringBuffer buffer = new StringBuffer('${element.name.slowToString()}\$');
     for (ClassElement cls in classes) {
-      buffer.add(getName(cls));
+      buffer.add(cls.name.slowToString());
     }
     return getMappedGlobalName(buffer.toString());
   }
@@ -625,7 +636,8 @@ class Namer implements ClosureNamer {
         }
         String result = fixedName
             ? guess
-            : getFreshName(guess, usedGlobalNames, ensureSafe: true);
+            : getFreshName(guess, usedGlobalNames, suggestedGlobalNames,
+                           ensureSafe: true);
         globals[element] = result;
         return result;
       }
@@ -685,7 +697,8 @@ class Namer implements ClosureNamer {
     String cached = oneShotInterceptorNames[selector];
     if (cached != null) return cached;
     SourceString name = operatorNameToIdentifier(selector.name);
-    String result = getFreshName(name.slowToString(), usedGlobalNames);
+    String result = getFreshName(name.slowToString(), usedGlobalNames,
+                                 suggestedGlobalNames);
     oneShotInterceptorNames[selector] = result;
     return result;
   }
