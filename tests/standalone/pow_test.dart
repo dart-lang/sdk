@@ -4,6 +4,8 @@
 //
 // Dart test program for testing math's pow.
 
+library pow_test;
+
 import 'dart:math';
 
 var expectedResults =
