@@ -293,22 +293,16 @@ bool hasMalformed(Link<DartType> types) {
   return false;
 }
 
-// TODO(johnniwinther): Add common supertype for InterfaceType and TypedefType.
-class InterfaceType extends DartType {
-  final ClassElement element;
+abstract class GenericType extends DartType {
   final Link<DartType> typeArguments;
   final bool isMalformed;
 
-  InterfaceType(this.element,
-                [Link<DartType> typeArguments = const Link<DartType>()])
-      : this.typeArguments = typeArguments,
-        this.isMalformed = hasMalformed(typeArguments) {
-    assert(invariant(element, element.isDeclaration));
-  }
+  GenericType(Link<DartType> this.typeArguments, bool this.isMalformed);
 
-  TypeKind get kind => TypeKind.INTERFACE;
+  TypeDeclarationElement get element;
 
-  SourceString get name => element.name;
+  /// Creates a new instance of this type using the provided type arguments.
+  GenericType _createType(Link<DartType> newTypeArguments);
 
   DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
     if (typeArguments.isEmpty) {
@@ -324,7 +318,7 @@ class InterfaceType extends DartType {
         Types.substTypes(typeArguments, arguments, parameters);
     if (!identical(typeArguments, newTypeArguments)) {
       // Create a new type only if necessary.
-      return new InterfaceType(element, newTypeArguments);
+      return _createType(newTypeArguments);
     }
     return this;
   }
@@ -337,26 +331,6 @@ class InterfaceType extends DartType {
     }
     return true;
   }
-
-  /**
-   * Returns the type as an instance of class [other], if possible, null
-   * otherwise.
-   */
-  DartType asInstanceOf(ClassElement other) {
-    if (element == other) return this;
-    for (InterfaceType supertype in element.allSupertypes) {
-      ClassElement superclass = supertype.element;
-      if (superclass == other) {
-        Link<DartType> arguments = Types.substTypes(supertype.typeArguments,
-                                                    typeArguments,
-                                                    element.typeVariables);
-        return new InterfaceType(superclass, arguments);
-      }
-    }
-    return null;
-  }
-
-  DartType unalias(Compiler compiler) => this;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -381,14 +355,59 @@ class InterfaceType extends DartType {
   }
 
   bool operator ==(other) {
-    if (other is !InterfaceType) return false;
     if (!identical(element, other.element)) return false;
     return typeArguments == other.typeArguments;
   }
 
   bool get isRaw => typeArguments.isEmpty || identical(this, element.rawType);
 
-  InterfaceType asRaw() => element.rawType;
+  GenericType asRaw() => element.rawType;
+}
+
+// TODO(johnniwinther): Add common supertype for InterfaceType and TypedefType.
+class InterfaceType extends GenericType {
+  final ClassElement element;
+
+  InterfaceType(this.element,
+                [Link<DartType> typeArguments = const Link<DartType>()])
+      : super(typeArguments, hasMalformed(typeArguments)) {
+    assert(invariant(element, element.isDeclaration));
+  }
+
+  TypeKind get kind => TypeKind.INTERFACE;
+
+  SourceString get name => element.name;
+
+  InterfaceType _createType(Link<DartType> newTypeArguments) {
+    return new InterfaceType(element, newTypeArguments);
+  }
+
+  /**
+   * Returns the type as an instance of class [other], if possible, null
+   * otherwise.
+   */
+  DartType asInstanceOf(ClassElement other) {
+    if (element == other) return this;
+    for (InterfaceType supertype in element.allSupertypes) {
+      ClassElement superclass = supertype.element;
+      if (superclass == other) {
+        Link<DartType> arguments = Types.substTypes(supertype.typeArguments,
+                                                    typeArguments,
+                                                    element.typeVariables);
+        return new InterfaceType(superclass, arguments);
+      }
+    }
+    return null;
+  }
+
+  DartType unalias(Compiler compiler) => this;
+
+  bool operator ==(other) {
+    if (other is !InterfaceType) return false;
+    return super == other;
+  }
+
+  InterfaceType asRaw() => super.asRaw();
 }
 
 class FunctionType extends DartType {
@@ -577,47 +596,20 @@ class FunctionType extends DartType {
   }
 }
 
-class TypedefType extends DartType {
+class TypedefType extends GenericType {
   final TypedefElement element;
-  final Link<DartType> typeArguments;
-  final bool isMalformed;
 
   TypedefType(this.element,
               [Link<DartType> typeArguments = const Link<DartType>()])
-      : this.typeArguments = typeArguments,
-        this.isMalformed = hasMalformed(typeArguments);
+      : super(typeArguments, hasMalformed(typeArguments));
+
+  TypedefType _createType(Link<DartType> newTypeArguments) {
+    return new TypedefType(element, newTypeArguments);
+  }
 
   TypeKind get kind => TypeKind.TYPEDEF;
 
   SourceString get name => element.name;
-
-  DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
-    if (typeArguments.isEmpty) {
-      // Return fast on non-generic typedefs.
-      return this;
-    }
-    if (parameters.isEmpty) {
-      assert(arguments.isEmpty);
-      // Return fast on empty substitutions.
-      return this;
-    }
-    Link<DartType> newTypeArguments = Types.substTypes(typeArguments, arguments,
-                                                       parameters);
-    if (!identical(typeArguments, newTypeArguments)) {
-      // Create a new type only if necessary.
-      return new TypedefType(element, newTypeArguments);
-    }
-    return this;
-  }
-
-  bool forEachMalformedType(bool f(MalformedType type)) {
-    for (DartType typeArgument in typeArguments) {
-      if (!typeArgument.forEachMalformedType(f)) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   DartType unalias(Compiler compiler) {
     // TODO(ahe): This should be [ensureResolved].
@@ -627,28 +619,12 @@ class TypedefType extends DartType {
     return definition.subst(typeArguments, declaration.typeArguments);
   }
 
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.add(name.slowToString());
-    if (!isRaw) {
-      sb.add('<');
-      typeArguments.printOn(sb, ', ');
-      sb.add('>');
-    }
-    return sb.toString();
-  }
-
-  int get hashCode => 17 * element.hashCode;
-
   bool operator ==(other) {
     if (other is !TypedefType) return false;
-    if (!identical(element, other.element)) return false;
-    return typeArguments == other.typeArguments;
+    return super == other;
   }
 
-  bool get isRaw => typeArguments.isEmpty || identical(this, element.rawType);
-
-  TypedefType asRaw() => element.rawType;
+  TypedefType asRaw() => super.asRaw();
 }
 
 /**

@@ -625,6 +625,8 @@ abstract class ConstructorBodyElement extends FunctionElement {
  * declarations and typedefs.
  */
 abstract class TypeDeclarationElement extends Element {
+  GenericType get rawType;
+
   /**
    * The type variables declared on this declaration. The type variables are not
    * available until the type of the element has been computed through
