@@ -686,7 +686,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     } else if (type.isArray()) {
       constantInterceptor = backend.jsArrayClass;
     } else if (type.isNull()) {
-      constantInterceptor = backend.jsIntClass;
+      constantInterceptor = backend.jsNullClass;
     } else if (type.isNumber()) {
       // If the method being intercepted is not defined in [int] or
       // [double] we can safely use the number interceptor.

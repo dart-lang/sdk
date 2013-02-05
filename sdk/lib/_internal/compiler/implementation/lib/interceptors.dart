@@ -86,5 +86,5 @@ class JSNull implements Null {
   String toString() => 'null';
 
   int get hashCode => 0;
-  Type get runtimeType => createRuntimeType('Null');
+  Type get runtimeType => Null;
 }
