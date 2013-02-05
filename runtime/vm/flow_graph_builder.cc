@@ -692,9 +692,9 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
   intptr_t current_context_level = owner()->context_level();
   ASSERT(current_context_level >= 0);
-  if (owner()->parsed_function().saved_context_var() != NULL) {
+  if (owner()->parsed_function().saved_entry_context_var() != NULL) {
     // CTX on entry was saved, but not linked as context parent.
-    BuildLoadContext(*owner()->parsed_function().saved_context_var());
+    BuildLoadContext(*owner()->parsed_function().saved_entry_context_var());
   } else {
     while (current_context_level-- > 0) {
       UnchainContext();
@@ -2763,7 +2763,7 @@ void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
 
 bool EffectGraphVisitor::MustSaveRestoreContext(SequenceNode* node) const {
   return (node == owner()->parsed_function().node_sequence()) &&
-         (owner()->parsed_function().saved_context_var() != NULL);
+         (owner()->parsed_function().saved_entry_context_var() != NULL);
 }
 
 
@@ -2803,7 +2803,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // In this case, the parser pre-allocates a variable to save the context.
     if (MustSaveRestoreContext(node)) {
       Value* current_context = Bind(new CurrentContextInstr());
-      Do(BuildStoreTemp(*owner()->parsed_function().saved_context_var(),
+      Do(BuildStoreTemp(*owner()->parsed_function().saved_entry_context_var(),
                         current_context));
       Value* null_context = Bind(new ConstantInstr(Object::ZoneHandle()));
       AddInstruction(new StoreContextInstr(null_context));
@@ -2902,7 +2902,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if (is_open()) {
     if (MustSaveRestoreContext(node)) {
       ASSERT(num_context_variables > 0);
-      BuildLoadContext(*owner()->parsed_function().saved_context_var());
+      BuildLoadContext(*owner()->parsed_function().saved_entry_context_var());
     } else if (num_context_variables > 0) {
       UnchainContext();
     }

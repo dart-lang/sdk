@@ -194,7 +194,7 @@ void ParsedFunction::AllocateVariables() {
                             Type::ZoneHandle(Type::DynamicType()));
       context_var->set_index(next_free_frame_index--);
       scope->AddVariable(context_var);
-      set_saved_context_var(context_var);
+      set_saved_entry_context_var(context_var);
     }
   }
 
