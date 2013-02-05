@@ -82,12 +82,12 @@ class MinifyNamer extends Namer {
             r'length', r'$sub', r'getInterceptor$JSStringJSArray', r'$add',
             r'$gt', r'$ge', r'$lt', r'$le', r'add', r'getInterceptor$JSNumber',
             r'iterator', r'$index', r'iae', r'getInterceptor$JSArray',
-            r'ArgumentError$', r'$lt', r'BoundClosure', r'StateError$',
+            r'ArgumentError$', r'BoundClosure', r'StateError$',
             r'getInterceptor', r'max', r'$mul', r'List_List', r'Map_Map',
             r'getInterceptor$JSString', r'$div', r'$indexSet',
             r'List_List$from', r'Set_Set$from', r'toString', r'toInt', r'min',
             r'StringBuffer_StringBuffer', r'contains1', r'WhereIterable$',
-            r'RangeError$value', r'getInterceptor', r'JSString', r'JSNumber',
+            r'RangeError$value', r'JSString', r'JSNumber',
             r'JSArray'
             ]);
   }
