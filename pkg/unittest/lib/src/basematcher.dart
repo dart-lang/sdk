@@ -23,10 +23,9 @@ class MatchState {
 
 /**
  * BaseMatcher is the base class for all matchers. To implement a new
- * matcher, either add a class that implements from IMatcher or
- * a class that inherits from Matcher. Inheriting from Matcher has
- * the benefit that a default implementation of describeMismatch will
- * be provided.
+ * matcher, either add a class that implements Matcher or a class that
+ * extends BaseMatcher. Extending BaseMatcher has the benefit that a
+ * default implementation of describeMismatch will be provided.
  */
 abstract class BaseMatcher implements Matcher {
   const BaseMatcher();
