@@ -156,8 +156,8 @@ class HtmlDiff {
     final domNameMetadata = findMetadata(htmlType.metadata, 'DomName');
     if (domNameMetadata != null) {
       var domNames = <String>[];
-      var tags = deprecatedFutureValue(domNameMetadata.getField('name'));
-      for (var s in tags.reflectee.split(',')) {
+      var names = deprecatedFutureValue(domNameMetadata.getField('name'));
+      for (var s in names.reflectee.split(',')) {
         domNames.add(s.trim());
       }
 
@@ -180,8 +180,8 @@ class HtmlDiff {
     final domNameMetadata = findMetadata(htmlMember.metadata, 'DomName');
     if (domNameMetadata != null) {
       var domNames = <String>[];
-      var tags = deprecatedFutureValue(domNameMetadata.getField('name'));
-      for (var s in tags.reflectee.split(',')) {
+      var names = deprecatedFutureValue(domNameMetadata.getField('name'));
+      for (var s in names.reflectee.split(',')) {
         domNames.add(s.trim());
       }
 

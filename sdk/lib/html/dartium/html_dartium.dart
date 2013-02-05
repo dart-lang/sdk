@@ -7853,7 +7853,7 @@ class DomError extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMException
+@DomName('DOMException')
 class DomException extends NativeFieldWrapperClass1 {
 
   static const String INDEX_SIZE = 'IndexSizeError';
@@ -17795,8 +17795,7 @@ class MediaSource extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStream; @docsEditable true@DomName('MediaStream')
-
+@DomName('MediaStream')
 class MediaStream extends EventTarget {
   MediaStream.internal() : super.internal();
 
