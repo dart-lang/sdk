@@ -363,7 +363,7 @@ class Parser {
       token = parseExpression(token.next);
       listener.handleValuedFormalParameter(equal, token);
     }
-    listener.endFormalParameter(token, thisKeyword);
+    listener.endFormalParameter(thisKeyword);
     return token;
   }
 
@@ -554,10 +554,26 @@ class Parser {
   /**
    * Returns true if the stringValue of the [token] is [value].
    */
-  bool optional(String value, Token token) => identical(value, token.stringValue);
+  bool optional(String value, Token token) {
+      return identical(value, token.stringValue);
+  }
+
+  /**
+   * Returns true if the stringValue of the [token] is either [value1],
+   * [value2], [value3], or [value4].
+   */
+  bool isOneOf4(Token token,
+                String value1, String value2, String value3, String value4) {
+    String stringValue = token.stringValue;
+    return identical(value1, stringValue) ||
+           identical(value2, stringValue) ||
+           identical(value3, stringValue) ||
+           identical(value4, stringValue);
+  }
 
   bool notEofOrValue(String value, Token token) {
-    return !identical(token.kind, EOF_TOKEN) && !identical(value, token.stringValue);
+    return !identical(token.kind, EOF_TOKEN) &&
+           !identical(value, token.stringValue);
   }
 
   Token parseType(Token token) {
@@ -1868,11 +1884,15 @@ class Parser {
   }
 
   Token parseVariablesDeclaration(Token token) {
-    token = parseVariablesDeclarationNoSemicolon(token);
-    return expectSemicolon(token);
+    return parseVariablesDeclarationMaybeSemicolon(token, true);
   }
 
   Token parseVariablesDeclarationNoSemicolon(Token token) {
+    return parseVariablesDeclarationMaybeSemicolon(token, false);
+  }
+
+  Token parseVariablesDeclarationMaybeSemicolon(Token token,
+                                                bool endWithSemicolon) {
     int count = 1;
     listener.beginVariablesDeclaration(token);
     token = parseModifiers(token);
@@ -1882,8 +1902,15 @@ class Parser {
       token = parseOptionallyInitializedIdentifier(token.next);
       ++count;
     }
-    listener.endVariablesDeclaration(count, token);
-    return token;
+    if (endWithSemicolon) {
+      Token semicolon = token;
+      token = expectSemicolon(semicolon);
+      listener.endVariablesDeclaration(count, semicolon);
+      return token;
+    } else {
+      listener.endVariablesDeclaration(count, null);
+      return token;
+    }
   }
 
   Token parseOptionallyInitializedIdentifier(Token token) {
@@ -1933,10 +1960,7 @@ class Parser {
     Token identifier = peekIdentifierAfterType(token);
     if (identifier != null) {
       assert(identifier.isIdentifier());
-      Token afterId = identifier.next;
-      int afterIdKind = afterId.kind;
-      if (identical(afterIdKind, EQ_TOKEN) || identical(afterIdKind, SEMICOLON_TOKEN) ||
-          identical(afterIdKind, COMMA_TOKEN) || optional('in', afterId)) {
+      if (isOneOf4(identifier.next, '=', ';', ',', 'in')) {
         return parseVariablesDeclarationNoSemicolon(token);
       }
     }

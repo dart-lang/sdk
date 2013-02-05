@@ -123,7 +123,7 @@ class Unparser implements Visitor {
     add(node.forToken.value);
     sb.add('(');
     visit(node.initializer);
-    if (node.initializer is !Statement) sb.add(';');
+    sb.add(';');
     visit(node.conditionStatement);
     visit(node.update);
     sb.add(')');
@@ -366,9 +366,6 @@ class Unparser implements Visitor {
       sb.add(' ');
     }
     visit(node.definitions);
-    if (node.endToken.value == const SourceString(';')) {
-      add(node.endToken.value);
-    }
   }
 
   visitDoWhile(DoWhile node) {
