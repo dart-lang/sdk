@@ -59,14 +59,27 @@ $endif
     this.nodes.addAll(nodes);
   }
 
+  /**
+   * Adds the specified element after the last child of this
+   * document fragment.
+   */
   void append(Element element) {
     this.children.add(element);
   }
 
+  /**
+   * Adds the specified text as a text node after the last child of this
+   * document fragment.
+   */
   void appendText(String text) {
     this.nodes.add(new Text(text));
   }
 
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this document fragment.
+   */
   void appendHtml(String text) {
     this.nodes.add(new DocumentFragment.html(text));
   }

@@ -19,6 +19,7 @@ import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
+/// The Dart HTML library.
 
 // Not actually used, but imported since dart:html can generate these objects.
 
@@ -26,8 +27,14 @@ import 'dart:_foreign_helper' show JS;
 
 
 
+/**
+ * The top-level Window object.
+ */
 Window get window => JS('Window', 'window');
 
+/**
+ * The top-level Document object.
+ */
 HtmlDocument get document => JS('Document', 'document');
 
 Element query(String selector) => document.query(selector);
@@ -7019,14 +7026,27 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     this.nodes.addAll(nodes);
   }
 
+  /**
+   * Adds the specified element after the last child of this
+   * document fragment.
+   */
   void append(Element element) {
     this.children.add(element);
   }
 
+  /**
+   * Adds the specified text as a text node after the last child of this
+   * document fragment.
+   */
   void appendText(String text) {
     this.nodes.add(new Text(text));
   }
 
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this document fragment.
+   */
   void appendHtml(String text) {
     this.nodes.add(new DocumentFragment.html(text));
   }
@@ -16787,6 +16807,15 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   void _$dom_initMouseEvent_1(type, canBubble, cancelable, Window view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
 
 
+  // TODO(amouravski): Move this documentation out of thise template files and
+  // put it into docs.json. Remember to add @DomName here.
+  /**
+   * The X coordinate of the mouse pointer in target node coordinates.
+   *
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
   int get offsetX {
   if (JS('bool', '!!#.offsetX', this)) {
       return JS('int', '#.offsetX', this);
@@ -16801,6 +16830,13 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
     }
   }
 
+  /**
+   * The Y coordinate of the mouse pointer in target node coordinates.
+   *
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
   int get offsetY {
     if (JS('bool', '!!#.offsetY', this)) {
       return JS('int', '#.offsetY', this);
@@ -21413,6 +21449,31 @@ class SqlTransactionSync native "*SQLTransactionSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * The type used by the
+ * [Window.localStorage] and [Window.sessionStorage] properties.
+ * Storage is implemented as a Map&lt;String, String>.
+ *
+ * To store and get values, use Dart's built-in map syntax:
+ *
+ *     window.localStorage['key1'] = 'val1';
+ *     window.localStorage['key2'] = 'val2';
+ *     window.localStorage['key3'] = 'val3';
+ *     assert(window.localStorage['key3'] == 'val3');
+ *
+ * You can use [Map](http://api.dartlang.org/dart_core/Map.html) APIs
+ * such as containsValue(), clear(), and length:
+ *
+ *     assert(window.localStorage.containsValue('does not exist') == false);
+ *     window.localStorage.clear();
+ *     assert(window.localStorage.length == 0);
+ *
+ * For more examples of using this API, see
+ * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
+ * For details on using the Map API, see the
+ * [Maps](http://www.dartlang.org/docs/library-tour/#maps-aka-dictionaries-or-hashes)
+ * section of the library tour.
+ */
 @DomName('Storage')
 class Storage implements Map<String, String>
      native "*Storage" {
@@ -25898,6 +25959,40 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
 
 @DocsEditable
+/**
+ * Use the WebSocket interface to connect to a WebSocket,
+ * and to send and receive data on that WebSocket.
+ *
+ * To use a WebSocket in your web app, first create a WebSocket object,
+ * passing the WebSocket URL as an argument to the constructor.
+ *
+ *     var webSocket = new WebSocket('ws://127.0.0.1:1337/ws');
+ *
+ * To send data on the WebSocket, use the [send] method.
+ *
+ *     if (webSocket != null && webSocket.readyState == WebSocket.OPEN) {
+ *       webSocket.send(data);
+ *     } else {
+ *       print('WebSocket not connected, message $data not sent');
+ *     }
+ *
+ * To receive data on the WebSocket, register a listener for message events.
+ *
+ *     webSocket.on.message.add((MessageEvent e) {
+ *       receivedData(e.data);
+ *     });
+ *
+ * The message event handler receives a [MessageEvent] object
+ * as its sole argument.
+ * You can also define open, close, and error handlers,
+ * as specified by [WebSocketEvents].
+ *
+ * For more information, see the
+ * [WebSockets](http://www.dartlang.org/docs/library-tour/#html-websockets)
+ * section of the library tour and
+ * [Introducing WebSockets](http://www.html5rocks.com/en/tutorials/websockets/basics/),
+ * an HTML5Rocks.com tutorial.
+ */
 @DomName('WebSocket')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
