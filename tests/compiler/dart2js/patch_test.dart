@@ -416,6 +416,22 @@ testExternalWithoutImplementationMember() {
                 compiler.errors[0].message.toString());
 }
 
+testIsSubclass() {
+  var compiler = applyPatch(
+      """
+      class A {}
+      """,
+      """
+      patch class A {}
+      """);
+  ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
+                            expectIsPatched: true);
+  ClassElement patch = cls.patch;
+  Expect.isTrue(cls != patch);
+  Expect.isTrue(cls.isSubclassOf(patch));
+  Expect.isTrue(patch.isSubclassOf(cls));
+}
+
 main() {
   testPatchFunction();
   testPatchMember();
@@ -427,4 +443,6 @@ main() {
 
   testExternalWithoutImplementationTopLevel();
   testExternalWithoutImplementationMember();
+
+  testIsSubclass();
 }

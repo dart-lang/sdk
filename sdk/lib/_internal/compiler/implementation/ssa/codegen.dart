@@ -1560,8 +1560,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node,
                                    Selector defaultSelector) {
-    // TODO(4434): For private members we need to use the untyped selector.
-    if (defaultSelector.name.isPrivate()) return defaultSelector;
     // TODO(ngeoffray): Type intercepted calls.
     if (node.isInterceptorCall) return defaultSelector;
     // If [JSInvocationMirror.invokeOn] has been called, we must not create a

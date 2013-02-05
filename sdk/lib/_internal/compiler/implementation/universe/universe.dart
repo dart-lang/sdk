@@ -453,12 +453,14 @@ class TypedSelector extends Selector {
    * invoked on an instance of [cls].
    */
   bool hasElementIn(ClassElement cls, Element element) {
-    Element resolved = cls.lookupMember(element.name);
-    if (identical(resolved, element)) return true;
+    // Use the selector for the lookup instead of [:element.name:]
+    // because the selector has the right privacy information.
+    Element resolved = cls.lookupSelector(this);
+    if (resolved == element) return true;
     if (resolved == null) return false;
-    if (identical(resolved.kind, ElementKind.ABSTRACT_FIELD)) {
+    if (resolved.isAbstractField()) {
       AbstractFieldElement field = resolved;
-      if (identical(element, field.getter) || identical(element, field.setter)) {
+      if (element == field.getter || element == field.setter) {
         return true;
       } else {
         ClassElement otherCls = field.getEnclosingClass();
