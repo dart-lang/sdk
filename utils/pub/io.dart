@@ -878,7 +878,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
       //
       // TODO(rnystrom): Should log the stderr and display it if an actual error
       // occurs.
-      store(process.stdout, controller);
+      return store(process.stdout, controller);
     });
   }).catchError((e) {
     // We don't have to worry about double-signaling here, since the store()

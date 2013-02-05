@@ -12,21 +12,3 @@
 
 [ $system == windows ]
 io_test: Timeout # Issue 7505
-
-# Issue 8264
-install/hosted/install_test: Fail, Pass
-install/hosted/do_not_update_on_removed_constraints_test: Fail, Pass
-install/hosted/stay_locked_test: Fail, Pass
-install/hosted/stay_locked_if_new_is_satisfied_test: Fail, Pass
-install/hosted/remove_removed_dependency_test: Fail, Pass
-install/hosted/install_transitive_test: Fail, Pass
-install/hosted/unlock_if_new_is_unsatisfied_test: Fail, Pass
-install/hosted/stay_locked_if_compatible_test: Fail, Pass
-install/hosted/resolve_constraints_test: Fail, Pass
-install/hosted/remove_removed_transitive_dependency_test: Fail, Pass
-install/hosted/unlock_if_incompatible_test: Fail, Pass
-update/hosted/unlock_if_necessary_test: Fail, Pass
-update/hosted/remove_removed_dependency_test: Fail, Pass
-update/hosted/unlock_dependers_test: Fail, Pass
-update/hosted/update_removed_constraints_test: Fail, Pass
-update/hosted/remove_removed_transitive_dependency_test: Fail, Pass
