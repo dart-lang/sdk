@@ -13,15 +13,6 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME.svg(String svgContent) =>
       _$(CLASSNAME)FactoryProvider.createDocumentFragment_svg(svgContent);
 
-  @deprecated
-  List<Element> get elements => this.children;
-
-  // TODO: The type of value should be Collection<Element>. See http://b/5392897
-  @deprecated
-  void set elements(value) {
-    this.children = value;
-  }
-
 $if DART2JS
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
@@ -68,14 +59,27 @@ $endif
     this.nodes.addAll(nodes);
   }
 
+  /**
+   * Adds the specified element after the last child of this
+   * document fragment.
+   */
   void append(Element element) {
     this.children.add(element);
   }
 
+  /**
+   * Adds the specified text as a text node after the last child of this
+   * document fragment.
+   */
   void appendText(String text) {
     this.nodes.add(new Text(text));
   }
 
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this document fragment.
+   */
   void appendHtml(String text) {
     this.nodes.add(new DocumentFragment.html(text));
   }

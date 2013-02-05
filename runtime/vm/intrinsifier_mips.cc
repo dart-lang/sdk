@@ -229,6 +229,16 @@ bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::ExternalUint8ClampedArray_getIndexed(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::ExternalUint8ClampedArray_setIndexed(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   return false;
 }

@@ -86,20 +86,19 @@ class LishCommand extends PubCommand {
   }
 
   Future onRun() {
-    var files;
-    var packageBytesFuture = _filesToPublish.then((f) {
-      files = f;
+    var packageBytesFuture = _filesToPublish.then((files) {
       log.fine('Archiving and publishing ${entrypoint.root}.');
+
+      // Show the package contents so the user can verify they look OK.
+      var package = entrypoint.root;
+      log.message(
+          'Publishing "${package.name}" ${package.version}:\n'
+          '${generateTree(files)}');
+
       return createTarGz(files, baseDir: entrypoint.root.dir);
-    }).then(consumeInputStream);
+    }).then((stream) => stream.toBytes());
 
-    // Show the package contents so the user can verify they look OK.
-    var package = entrypoint.root;
-    log.message(
-        'Publishing "${package.name}" ${package.version}:\n'
-        '${generateTree(files)}');
-
-      // Validate the package.
+    // Validate the package.
     return _validate(packageBytesFuture.then((bytes) => bytes.length))
         .then((_) => packageBytesFuture).then(_publish);
   }
@@ -109,7 +108,7 @@ class LishCommand extends PubCommand {
 
   /// The basenames of directories that are automatically excluded from
   /// archives.
-  final _BLACKLISTED_DIRECTORIES = const ['packages'];
+  final _BLACKLISTED_DIRS = const ['packages'];
 
   /// Returns a list of files that should be included in the published package.
   /// If this is a Git repository, this will respect .gitignore; otherwise, it
@@ -117,11 +116,8 @@ class LishCommand extends PubCommand {
   Future<List<String>> get _filesToPublish {
     var rootDir = entrypoint.root.dir;
 
-    return Future.wait([
-      dirExists(join(rootDir, '.git')),
-      git.isInstalled
-    ]).then((results) {
-      if (results[0] && results[1]) {
+    return git.isInstalled.then((gitInstalled) {
+      if (dirExists(join(rootDir, '.git')) && gitInstalled) {
         // List all files that aren't gitignored, including those not checked
         // in to Git.
         return git.run(["ls-files", "--cached", "--others",
@@ -129,27 +125,17 @@ class LishCommand extends PubCommand {
       }
 
       return listDir(rootDir, recursive: true).then((entries) {
-        return Future.wait(entries.map((entry) {
-          return fileExists(entry).then((isFile) {
-            // Skip directories.
-            if (!isFile) return null;
-
-            // TODO(rnystrom): Making these relative will break archive
-            // creation if the cwd is ever *not* the package root directory.
-            // Should instead only make these relative right before generating
-            // the tree display (which is what really needs them to be).
-            // Make it relative to the package root.
-            return relativeTo(entry, rootDir);
-          });
-        }));
+        return entries
+            .where(fileExists) // Skip directories.
+            .map((entry) => relativeTo(entry, rootDir));
       });
-    }).then((files) => files.where((file) {
-      if (file == null || _BLACKLISTED_FILES.contains(basename(file))) {
-        return false;
-      }
+    }).then((files) => files.where(_shouldPublish).toList());
+  }
 
-      return !splitPath(file).any(_BLACKLISTED_DIRECTORIES.contains);
-    }).toList());
+  /// Returns `true` if [file] should be published.
+  bool _shouldPublish(String file) {
+    if (_BLACKLISTED_FILES.contains(basename(file))) return false;
+    return !splitPath(file).any(_BLACKLISTED_DIRS.contains);
   }
 
   /// Returns the value associated with [key] in [map]. Throws a user-friendly

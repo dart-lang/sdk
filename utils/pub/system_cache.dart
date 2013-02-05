@@ -13,6 +13,7 @@ import 'io.dart';
 import 'io.dart' as io show createTempDir;
 import 'log.dart' as log;
 import 'package.dart';
+import 'pubspec.dart';
 import 'sdk_source.dart';
 import 'source.dart';
 import 'source_registry.dart';
@@ -59,6 +60,21 @@ class SystemCache {
     sources.register(source);
   }
 
+  /// Gets the package identified by [id]. If the package is already cached,
+  /// reads it from the cache. Otherwise, requests it from the source.
+  Future<Pubspec> describe(PackageId id) {
+    // Try to get it from the system cache first.
+    if (id.source.shouldCache) {
+      return id.systemCacheDirectory.then((packageDir) {
+        if (!dirExists(packageDir)) return id.describe();
+        return new Pubspec.load(id.name, packageDir, sources);
+      });
+    }
+
+    // Not cached, so get it from the source.
+    return id.describe();
+  }
+
   /// Ensures that the package identified by [id] is installed to the cache,
   /// loads it, and returns it.
   ///
@@ -84,7 +100,8 @@ class SystemCache {
   /// temp directory to ensure that it's on the same volume as the pub system
   /// cache so that it can move the directory from it.
   Future<Directory> createTempDir() {
-    return ensureDir(tempDir).then((temp) {
+    return defer(() {
+      var temp = ensureDir(tempDir);
       return io.createTempDir(join(temp, 'dir'));
     });
   }
@@ -92,8 +109,8 @@ class SystemCache {
   /// Delete's the system cache's internal temp directory.
   Future deleteTempDir() {
     log.fine('Clean up system cache temp directory $tempDir.');
-    return dirExists(tempDir).then((exists) {
-      if (!exists) return;
+    return defer(() {
+      if (!dirExists(tempDir)) return;
       return deleteDir(tempDir);
     });
   }

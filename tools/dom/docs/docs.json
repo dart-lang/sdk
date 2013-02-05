@@ -159,6 +159,20 @@
         ]
       }
     },
+    "HTMLAreaElement": {
+      "comment": [
+        "/**",
+        " * DOM Area Element, which links regions of an image map with a hyperlink.",
+        " *",
+        " * The element can also define an uninteractive region of the map.",
+        " *",
+        " * See also:",
+        " *",
+        " * * [<area>](https://developer.mozilla.org/en-US/docs/HTML/Element/area)",
+        " * on MDN.",
+        " */"
+      ]
+    },
     "HTMLCanvasElement": {
       "members": {
         "height": [
@@ -236,6 +250,58 @@
         " */"
       ]
     },
+    "HTMLMenuElement": {
+      "comment": [
+        "/**",
+        " * An HTML <menu> element.",
+        " *",
+        " * A <menu> element represents an unordered list of menu commands.",
+        " *",
+        " * See also:",
+        " *",
+        " *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.",
+        " *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.",
+        " */"
+      ]
+    },
+    "WebSocket": {
+      "comment": [
+        "/**",
+        " * Use the WebSocket interface to connect to a WebSocket,",
+        " * and to send and receive data on that WebSocket.",
+        " *",
+        " * To use a WebSocket in your web app, first create a WebSocket object,",
+        " * passing the WebSocket URL as an argument to the constructor.",
+        " *",
+        " *     var webSocket = new WebSocket('ws://127.0.0.1:1337/ws');",
+        " *",
+        " * To send data on the WebSocket, use the [send] method.",
+        " *",
+        " *     if (webSocket != null && webSocket.readyState == WebSocket.OPEN) {",
+        " *       webSocket.send(data);",
+        " *     } else {",
+        " *       print('WebSocket not connected, message $data not sent');",
+        " *     }",
+        " *",
+        " * To receive data on the WebSocket, register a listener for message events.",
+        " *",
+        " *     webSocket.on.message.add((MessageEvent e) {",
+        " *       receivedData(e.data);",
+        " *     });",
+        " *",
+        " * The message event handler receives a [MessageEvent] object",
+        " * as its sole argument.",
+        " * You can also define open, close, and error handlers,",
+        " * as specified by [WebSocketEvents].",
+        " *",
+        " * For more information, see the",
+        " * [WebSockets](http://www.dartlang.org/docs/library-tour/#html-websockets)",
+        " * section of the library tour and",
+        " * [Introducing WebSockets](http://www.html5rocks.com/en/tutorials/websockets/basics/),",
+        " * an HTML5Rocks.com tutorial.",
+        " */"
+      ]
+    },
     "XMLHttpRequest": {
       "members": {
         "abort": [
@@ -265,6 +331,51 @@
           "   *",
           "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
           "   * for a list of common response headers.",
+          "   */"
+        ],
+        "onabort": [
+          "/**",
+          "   * Event listeners to be notified when request has been aborted,",
+          "   * generally due to calling `httpRequest.abort()`.",
+          "   */"
+        ],
+        "onerror": [
+          "/**",
+          "   * Event listeners to be notified when a request has failed, such as when a",
+          "   * cross-domain error occurred or the file wasn't found on the server.",
+          "   */"
+        ],
+        "onload": [
+          "/**",
+          "   * Event listeners to be notified once the request has completed",
+          "   * *successfully*.",
+          "   */"
+        ],
+        "onloadend": [
+          "/**",
+          "   * Event listeners to be notified once the request has completed (on",
+          "   * either success or failure).",
+          "   */"
+        ],
+        "onloadstart": [
+          "/**",
+          "   * Event listeners to be notified when the request starts, once",
+          "   * `httpRequest.send()` has been called.",
+          "   */"
+        ],
+        "onprogress": [
+          "/**",
+          "   * Event listeners to be notified when data for the request",
+          "   * is being sent or loaded.",
+          "   *",
+          "   * Progress events are fired every 50ms or for every byte transmitted,",
+          "   * whichever is less frequent.",
+          "   */"
+        ],
+        "onreadystatechange": [
+          "/**",
+          "   * Event listeners to be notified every time the [HttpRequest]",
+          "   * object's `readyState` changes values.",
           "   */"
         ],
         "open": [

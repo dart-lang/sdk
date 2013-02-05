@@ -68,9 +68,15 @@ class IDLParser(object):
       return syntax_switch(
         # Web IDL:
         OR(Module, Interface, ExceptionDef, TypeDef, ImplStmt,
-           ValueTypeDef, Const),
+           ValueTypeDef, Const, Enum),
         # WebKit:
-        OR(Module, Interface))
+        OR(Module, Interface, Enum))
+
+    def Enum():
+      def StringLiteral():
+        return re.compile(r'"\w+"')
+
+      return ['enum', Id, '{', MAYBE(MANY(StringLiteral, ',')), '}', ';']
 
     def Module():
       return syntax_switch(

@@ -58,11 +58,10 @@ class UploaderCommand extends PubCommand {
       exit(exit_codes.USAGE);
     }
 
-    return new Future.immediate(null).then((_) {
+    return defer(() {
       var package = commandOptions['package'];
       if (package != null) return package;
-      return Entrypoint.load(path.current, cache)
-          .then((entrypoint) => entrypoint.root.name);
+      return new Entrypoint(path.current, cache).root.name;
     }).then((package) {
       var uploader = commandOptions.rest[0];
       return oauth2.withClient(cache, (client) {

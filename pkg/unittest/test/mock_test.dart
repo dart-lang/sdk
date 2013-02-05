@@ -63,6 +63,21 @@ main() {
     expect(s, 'ACDEB');
   });
 
+  test('Mocking: getters/setters', () {
+    var m = new Mock();
+    var x = 0;
+    m.when(callsTo('get foo')).alwaysReturn(3);
+    m.when(callsTo('set foo')).alwaysCall((v) { x = v; });
+    m.when(callsTo('get bar')).alwaysReturn(5);
+    m.when(callsTo('set bar')).alwaysCall((v) { x = 2 * v; });
+    expect(m.foo, 3);
+    expect(m.bar, 5);
+    m.foo = 10;
+    expect(x, 10);
+    m.bar = 8;
+    expect(x, 16);
+  });
+
   test('Mocking: Mock List', () {
     var l = new MockList();
     l.when(callsTo('get length')).thenReturn(1);

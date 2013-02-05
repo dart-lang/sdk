@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of matcher;
+
 /**
  * Returns a matcher which matches maps containing the given [value].
  */
-
-part of matcher;
-
 Matcher containsValue(value) => new _ContainsValue(value);
 
 class _ContainsValue extends BaseMatcher {

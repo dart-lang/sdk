@@ -58,8 +58,6 @@ const char* CanonicalFunction(const char* func);
   HANDLESCOPE(__temp_isolate__);
 
 
-const char* CheckIsolateState(Isolate *isolate);
-
 void SetupErrorResult(Dart_Handle* handle);
 
 
@@ -97,6 +95,10 @@ class Api : AllStatic {
   static FinalizablePersistentHandle* UnwrapAsPrologueWeakPersistentHandle(
       const ApiState& state,
       Dart_Handle object);
+
+  // Returns an Error handle if isolate is in an inconsistent state.
+  // Returns a Success handle when no error condition exists.
+  static Dart_Handle CheckIsolateState(Isolate *isolate);
 
   // Casts the internal Isolate* type to the external Dart_Isolate type.
   static Dart_Isolate CastIsolate(Isolate* isolate);

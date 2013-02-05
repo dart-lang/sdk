@@ -9,7 +9,7 @@ import 'entrypoint.dart';
 import 'log.dart' as log;
 import 'pub.dart';
 
-/// Handles the `update` pub command. 
+/// Handles the `update` pub command.
 class UpdateCommand extends PubCommand {
   String get description =>
     "Update the current package's dependencies to the latest versions.";
@@ -23,6 +23,8 @@ class UpdateCommand extends PubCommand {
     } else {
       future = entrypoint.updateDependencies(commandOptions.rest);
     }
-    return future.then((_) => log.message("Dependencies updated!"));
+    return future
+        .then((_) => log.message("Dependencies updated!"))
+        .then((_) => entrypoint.validateSdkConstraints());
   }
 }

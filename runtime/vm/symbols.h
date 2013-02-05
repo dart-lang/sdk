@@ -184,7 +184,6 @@ class ObjectPointerVisitor;
   V(RParenArrow, ") => ")                                                      \
   V(SpaceExtendsSpace, " extends ")                                            \
   V(PatchSpace, "patch ")                                                      \
-  V(AliasOwner, ":alias_owner")                                                \
   V(SwitchExpr, ":switch_expr")                                                \
   V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \

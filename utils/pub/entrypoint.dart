@@ -9,6 +9,8 @@ import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
+import 'pubspec.dart';
+import 'sdk.dart' as sdk;
 import 'system_cache.dart';
 import 'utils.dart';
 import 'version.dart';
@@ -39,16 +41,12 @@ class Entrypoint {
 
   /// Packages which are either currently being asynchronously installed to the
   /// directory, or have already been installed.
-  final Map<PackageId, Future<PackageId>> _installs;
-
-  Entrypoint(this.root, this.cache)
-  : _installs = new Map<PackageId, Future<PackageId>>();
+  final _installs = new Map<PackageId, Future<PackageId>>();
 
   /// Loads the entrypoint from a package at [rootDir].
-  static Future<Entrypoint> load(String rootDir, SystemCache cache) {
-    return Package.load(null, rootDir, cache.sources).then((package) =>
-        new Entrypoint(package, cache));
-  }
+  Entrypoint(String rootDir, SystemCache cache)
+      : root = new Package.load(null, rootDir, cache.sources),
+        cache = cache;
 
   // TODO(rnystrom): Make this path configurable.
   /// The path to this "packages" directory.
@@ -70,10 +68,10 @@ class Entrypoint {
     if (pendingOrCompleted != null) return pendingOrCompleted;
 
     var packageDir = join(path, id.name);
-    var future = ensureDir(dirname(packageDir)).then((_) {
-      return exists(packageDir);
-    }).then((exists) {
-      if (!exists) return;
+    var future = defer(() {
+      ensureDir(dirname(packageDir));
+      if (!dirExists(packageDir)) return;
+
       // TODO(nweiz): figure out when to actually delete the directory, and when
       // we can just re-use the existing symlink.
       log.fine("Deleting package directory for ${id.name} before install.");
@@ -100,9 +98,9 @@ class Entrypoint {
   /// directory, respecting the [LockFile] if present. Returns a [Future] that
   /// completes when all dependencies are installed.
   Future installDependencies() {
-    return loadLockFile()
-      .then((lockFile) => resolveVersions(cache.sources, root, lockFile))
-      .then(_installDependencies);
+    return defer(() {
+      return resolveVersions(cache.sources, root, loadLockFile());
+    }).then(_installDependencies);
   }
 
   /// Installs the latest available versions of all dependencies of the [root]
@@ -110,19 +108,19 @@ class Entrypoint {
   /// [Future] that completes when all dependencies are installed.
   Future updateAllDependencies() {
     return resolveVersions(cache.sources, root, new LockFile.empty())
-      .then(_installDependencies);
+        .then(_installDependencies);
   }
 
   /// Installs the latest available versions of [dependencies], while leaving
   /// other dependencies as specified by the [LockFile] if possible. Returns a
   /// [Future] that completes when all dependencies are installed.
   Future updateDependencies(List<String> dependencies) {
-    return loadLockFile().then((lockFile) {
-      var versionSolver = new VersionSolver(cache.sources, root, lockFile);
+    return defer(() {
+      var solver = new VersionSolver(cache.sources, root, loadLockFile());
       for (var dependency in dependencies) {
-        versionSolver.useLatestVersion(dependency);
+        solver.useLatestVersion(dependency);
       }
-      return versionSolver.solve();
+      return solver.solve();
     }).then(_installDependencies);
   }
 
@@ -139,45 +137,93 @@ class Entrypoint {
       .then(_linkSecondaryPackageDirs);
   }
 
-  /// Loads the list of concrete package versions from the `pubspec.lock`, if it
-  /// exists. If it doesn't, this completes to an empty [LockFile].
-  Future<LockFile> loadLockFile() {
-    var lockFilePath = join(root.dir, 'pubspec.lock');
+  /// Traverses the root's package dependency graph and loads each of the
+  /// reached packages. This should only be called after the lockfile has been
+  /// successfully generated.
+  Future<List<Pubspec>> walkDependencies() {
+    return defer(() {
+      var lockFile = loadLockFile();
+      var group = new FutureGroup<Pubspec>();
+      var visited = new Set<String>();
 
-    log.fine("Loading lockfile.");
-    return fileExists(lockFilePath).then((exists) {
-      if (!exists) {
-        log.fine("No lock file at $lockFilePath, creating empty one.");
-        return new LockFile.empty();
+      // Include the root package in the results.
+      group.add(new Future.immediate(root.pubspec));
+
+      visitPackage(Pubspec pubspec) {
+        for (var ref in pubspec.dependencies) {
+          if (visited.contains(ref.name)) continue;
+
+          // Look up the concrete version.
+          var id = lockFile.packages[ref.name];
+
+          visited.add(ref.name);
+          var future = cache.describe(id);
+          group.add(future.then(visitPackage));
+        }
+
+        return pubspec;
       }
 
-      return readTextFile(lockFilePath).then((text) =>
-          new LockFile.parse(text, cache.sources));
+      visitPackage(root.pubspec);
+      return group.future;
     });
   }
 
+  /// Validates that the current Dart SDK version matches the SDK constraints
+  /// of every package in the dependency graph. If a package's constraint does
+  /// not match, prints an error.
+  Future validateSdkConstraints() {
+    return walkDependencies().then((pubspecs) {
+      var errors = [];
+
+      for (var pubspec in pubspecs) {
+        var sdkConstraint = pubspec.environment.sdkVersion;
+        if (!sdkConstraint.allows(sdk.version)) {
+          errors.add("- '${pubspec.name}' requires ${sdkConstraint}");
+        }
+      }
+
+      if (errors.length > 0) {
+        log.error("Some packages are not compatible with your SDK version "
+                "${sdk.version}:\n"
+            "${errors.join('\n')}\n\n"
+            "You may be able to resolve this by upgrading to the latest Dart "
+                "SDK\n"
+            "or adding a version constraint to use an older version of a "
+                "package.");
+      }
+    });
+  }
+
+  /// Loads the list of concrete package versions from the `pubspec.lock`, if it
+  /// exists. If it doesn't, this completes to an empty [LockFile].
+  LockFile loadLockFile() {
+    var lockFilePath = join(root.dir, 'pubspec.lock');
+    if (!fileExists(lockFilePath)) return new LockFile.empty();
+    return new LockFile.parse(readTextFile(lockFilePath), cache.sources);
+  }
+
   /// Saves a list of concrete package versions to the `pubspec.lock` file.
-  Future _saveLockFile(List<PackageId> packageIds) {
+  void _saveLockFile(List<PackageId> packageIds) {
     var lockFile = new LockFile.empty();
     for (var id in packageIds) {
       if (!id.isRoot) lockFile.packages[id.name] = id;
     }
 
     var lockFilePath = join(root.dir, 'pubspec.lock');
-    log.fine("Saving lockfile.");
-    return writeTextFile(lockFilePath, lockFile.serialize());
+    writeTextFile(lockFilePath, lockFile.serialize());
   }
 
   /// Installs a self-referential symlink in the `packages` directory that will
   /// allow a package to import its own files using `package:`.
   Future _installSelfReference(_) {
-    var linkPath = join(path, root.name);
-    return exists(linkPath).then((exists) {
+    return defer(() {
+      var linkPath = join(path, root.name);
       // Create the symlink if it doesn't exist.
-      if (exists) return;
-      return ensureDir(path).then(
-          (_) => createPackageSymlink(root.name, root.dir, linkPath,
-              isSelfLink: true));
+      if (entryExists(linkPath)) return;
+      ensureDir(path);
+      return createPackageSymlink(root.name, root.dir, linkPath,
+          isSelfLink: true);
     });
   }
 
@@ -190,8 +236,8 @@ class Entrypoint {
     var testDir = join(root.dir, 'test');
     var toolDir = join(root.dir, 'tool');
     var webDir = join(root.dir, 'web');
-    return dirExists(binDir).then((exists) {
-      if (!exists) return;
+    return defer(() {
+      if (!dirExists(binDir)) return;
       return _linkSecondaryPackageDir(binDir);
     }).then((_) => _linkSecondaryPackageDirsRecursively(exampleDir))
       .then((_) => _linkSecondaryPackageDirsRecursively(testDir))
@@ -202,14 +248,14 @@ class Entrypoint {
   /// Creates a symlink to the `packages` directory in [dir] and all its
   /// subdirectories.
   Future _linkSecondaryPackageDirsRecursively(String dir) {
-    return dirExists(dir).then((exists) {
-      if (!exists) return;
+    return defer(() {
+      if (!dirExists(dir)) return;
       return _linkSecondaryPackageDir(dir)
-        .then((_) => _listDirWithoutPackages(dir))
-        .then((files) {
+          .then((_) => _listDirWithoutPackages(dir))
+          .then((files) {
         return Future.wait(files.map((file) {
-          return dirExists(file).then((isDir) {
-            if (!isDir) return;
+          return defer(() {
+            if (!dirExists(file)) return;
             return _linkSecondaryPackageDir(file);
           });
         }));
@@ -224,8 +270,8 @@ class Entrypoint {
     return listDir(dir).then((files) {
       return Future.wait(files.map((file) {
         if (basename(file) == 'packages') return new Future.immediate([]);
-        return dirExists(file).then((isDir) {
-          if (!isDir) return [];
+        return defer(() {
+          if (!dirExists(file)) return [];
           return _listDirWithoutPackages(file);
         }).then((subfiles) {
           var fileAndSubfiles = [file];
@@ -238,9 +284,9 @@ class Entrypoint {
 
   /// Creates a symlink to the `packages` directory in [dir] if none exists.
   Future _linkSecondaryPackageDir(String dir) {
-    var to = join(dir, 'packages');
-    return exists(to).then((exists) {
-      if (exists) return;
+    return defer(() {
+      var to = join(dir, 'packages');
+      if (entryExists(to)) return;
       return createSymlink(path, to);
     });
   }

@@ -12,6 +12,7 @@
             'target_name': 'android_embedder',
             'type': 'shared_library',
             'dependencies': [
+              'skia-android',
               'libdart_lib_withcore',
               'libdart_vm',
               'libjscre',
@@ -21,10 +22,17 @@
             'include_dirs': [
               '../..',
               '../../../third_party/android_tools/ndk/sources/android/native_app_glue',
+              '../../../third_party/skia/trunk/include',
+              '../../../third_party/skia/trunk/include/config',
+              '../../../third_party/skia/trunk/include/core',
+              '../../../third_party/skia/trunk/include/gpu',
+              '../../../third_party/skia/trunk/include/utils',
             ],
             'defines': [
               'DART_SHARED_LIB',
-              '__ANDROID__'
+              '__ANDROID__',
+              'SK_BUILD_FOR_ANDROID',
+              'SK_BUILD_FOR_ANDROID_NDK',
             ],
             'sources': [
               '../../include/dart_api.h',
@@ -45,14 +53,17 @@
               'android/log.h',
               'android/main.cc',
               'android/support_android.cc',
+              'common/canvas_context.cc',
+              'common/canvas_context.h',
+              'common/canvas_state.cc',
+              'common/canvas_state.h',
               'common/context.h',
               'common/dart_host.cc',
               'common/dart_host.h',
               'common/events.h',
               'common/extension.cc',
               'common/extension.h',
-              'common/gl_graphics_handler.cc',
-              'common/gl_graphics_handler.h',
+              'common/graphics_handler.cc',
               'common/graphics_handler.h',
               'common/input_handler.cc',
               'common/input_handler.h',
@@ -64,6 +75,7 @@
               'common/sample.h',
               'common/sound_handler.cc',
               'common/sound_handler.h',
+              'common/support.h',
               'common/timer.cc',
               'common/timer.h',
               'common/types.h',
@@ -72,15 +84,74 @@
               '<(version_cc_file)',
             ],
             'link_settings': {
-              'libraries': [ '-llog', '-lc', '-landroid', '-lEGL', '-lGLESv2', '-lOpenSLES', '-landroid' ],
               'ldflags': [
-                '-z', 'muldefs'
+                # The libraries we need should all be in
+                # Lthird_party/skia/trunk/out/config/android-x86/Debug but
+                # As I (gram) want to avoid patching the Skia gyp files to build
+                # real libraries we'll just point to the location of the 'thin'
+                # libraries used by the Skia build for now.
+                # TODO(gram): We need to support debug vs release modes.
+                '-Lthird_party/skia/trunk/out/config/android-x86/Debug/obj.target/gyp', 
+                '-z',
+                'muldefs',
+                '-g'
               ],
               'ldflags!': [
-                '-Wl,--exclude-libs=ALL',
+                '-Wl,--exclude-libs=ALL,-shared',
+              ],
+              'libraries': [
+                '-Wl,--start-group',
+                '-lexpat',
+                '-lfreetype',
+                '-lgif',
+                '-ljpeg',
+                '-lpng',
+                '-lskia_core',
+                '-lskia_effects',
+                '-lskia_gr',
+                '-lskia_images',
+                '-lskia_opts',
+                '-lskia_pdf',
+                '-lskia_ports',
+                '-lskia_sfnt',
+                '-lskia_skgr',
+                '-lskia_utils',
+                '-lskia_views',
+                '-lskia_xml',
+                '-lzlib',
+                '-Wl,--end-group',
+                '-llog',
+                '-lc',
+                '-lz',
+                '-landroid',
+                '-lEGL',
+                '-lGLESv2',
+                '-lOpenSLES',
+                '-landroid',
               ],
             },
           },
+          {
+            'target_name': 'skia-android',
+            'type': 'none',
+            'actions': [
+              {
+                'action_name': 'build_skia',
+                'inputs': [
+                  'build_skia.sh'
+                ],
+                'outputs': [
+                  '../../../third_party/skia/trunk/out/config/android-x86/Debug/libskia_core.a'
+                ],
+                'action': [
+                  'embedders/openglui/build_skia.sh',
+                  '--android',
+                  '..'
+                ],
+                'message': 'Building Skia.'
+              }
+            ]
+          }
         ],
       },
     ],
@@ -91,6 +162,7 @@
             'target_name': 'emulator_embedder',
             'type': 'shared_library',
             'dependencies': [
+              'skia-desktop',
               'libdart_lib_withcore',
               'libdart_vm',
               'libjscre',
@@ -99,6 +171,12 @@
             ],
             'include_dirs': [
               '../..',
+              '/usr/X11/include',
+              '../../../third_party/skia/trunk/include',
+              '../../../third_party/skia/trunk/include/config',
+              '../../../third_party/skia/trunk/include/core',
+              '../../../third_party/skia/trunk/include/gpu',
+              '../../../third_party/skia/trunk/include/utils',
             ],
             'defines': [
               'DART_SHARED_LIB'
@@ -109,14 +187,17 @@
               '../../vm/dart_api_impl.cc',
               '../../vm/debugger_api_impl.cc',
               '../../vm/version.h',
+              'common/canvas_context.cc',
+              'common/canvas_context.h',
+              'common/canvas_state.cc',
+              'common/canvas_state.h',
               'common/context.h',
               'common/dart_host.cc',
               'common/dart_host.h',
               'common/events.h',
               'common/extension.cc',
               'common/extension.h',
-              'common/gl_graphics_handler.cc',
-              'common/gl_graphics_handler.h',
+              'common/graphics_handler.cc',
               'common/graphics_handler.h',
               'common/input_handler.cc',
               'common/input_handler.h',
@@ -128,6 +209,8 @@
               'common/sample.h',
               'common/sound_handler.cc',
               'common/sound_handler.h',
+              'common/support.h',
+              'common/support.h',
               'common/timer.cc',
               'common/timer.h',
               'common/types.h',
@@ -140,6 +223,32 @@
               'emulator/emulator_resource.h',
               '<(version_cc_file)',
             ],
+            'link_settings': {
+              'ldflags': [
+                '-Wall',
+                '-g',
+                '-Lthird_party/skia/trunk/out/Debug', 
+                '-Wl,--start-group',
+                '-lskia_effects',
+                '-lskia_images',
+                '-lskia_core',
+                '-lskia_opts',
+                '-lskia_opts_ssse3',
+                '-lskia_ports',
+                '-lskia_sfnt',
+                '-lskia_utils',
+                '-lskia_gr',
+                '-lskia_skgr',
+                '-Wl,--end-group',
+                '-lfreetype',
+              ],
+              'libraries': [
+                '-lGL',
+                '-lglut',
+                '-lGLU',
+                '-lm'
+              ],
+            },
             'conditions': [
               ['OS=="mac"', {
                 'xcode_settings' : {
@@ -148,6 +257,26 @@
               }],
             ]
           },
+          {
+            'target_name': 'skia-desktop',
+            'type': 'none',
+            'actions': [
+              {
+                'action_name': 'build_skia',
+                'inputs': [
+                  'build_skia.sh'
+                ],
+                'outputs': [
+                  '../../../third_party/skia/trunk/out/Debug/libskia_core.a'
+                ],
+                'action': [
+                  'embedders/openglui/build_skia.sh',
+                  '..'
+                ],
+                'message': 'Building Skia.'
+              }
+            ]
+          }
         ],
       },
     ],

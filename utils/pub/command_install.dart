@@ -10,14 +10,14 @@ import 'entrypoint.dart';
 import 'log.dart' as log;
 import 'pub.dart';
 
-/// Handles the `install` pub command. 
+/// Handles the `install` pub command.
 class InstallCommand extends PubCommand {
   String get description => "Install the current package's dependencies.";
   String get usage => "pub install";
 
   Future onRun() {
-    return entrypoint.installDependencies().then((_) {
-      log.message("Dependencies installed!");
-    });
+    return entrypoint.installDependencies()
+        .then((_) => log.message("Dependencies installed!"))
+        .then((_) => entrypoint.validateSdkConstraints());
   }
 }

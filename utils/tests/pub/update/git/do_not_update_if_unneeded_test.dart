@@ -15,7 +15,7 @@ main() {
 
     git('foo.git', [
       libDir('foo'),
-      libPubspec("foo", "1.0.0", [{"git": "../foo-dep.git"}])
+      libPubspec("foo", "1.0.0", deps: [{"git": "../foo-dep.git"}])
     ]).scheduleCreate();
 
     git('foo-dep.git', [
@@ -39,7 +39,7 @@ main() {
 
     git('foo.git', [
       libDir('foo', 'foo 2'),
-      libPubspec("foo", "1.0.0", [{"git": "../foo-dep.git"}])
+      libPubspec("foo", "1.0.0", deps: [{"git": "../foo-dep.git"}])
     ]).scheduleCreate();
 
     git('foo-dep.git', [

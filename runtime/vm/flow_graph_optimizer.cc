@@ -224,46 +224,47 @@ void FlowGraphOptimizer::Canonicalize() {
 
 void FlowGraphOptimizer::InsertConversion(Representation from,
                                           Representation to,
-                                          Instruction* instr,
                                           Value* use,
-                                          Definition* def,
+                                          Instruction* insert_before,
                                           Instruction* deopt_target) {
   Definition* converted = NULL;
   if ((from == kTagged) && (to == kUnboxedMint)) {
+    ASSERT((deopt_target != NULL) ||
+           (use->definition()->GetPropagatedCid() == kDoubleCid));
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
-    converted = new UnboxIntegerInstr(new Value(def), deopt_id);
+    converted = new UnboxIntegerInstr(new Value(use->definition()), deopt_id);
   } else if ((from == kUnboxedMint) && (to == kTagged)) {
-    converted = new BoxIntegerInstr(new Value(def));
+    converted = new BoxIntegerInstr(new Value(use->definition()));
   } else if (from == kUnboxedMint && to == kUnboxedDouble) {
     // Convert by boxing/unboxing.
     // TODO(fschneider): Implement direct unboxed mint-to-double conversion.
-    BoxIntegerInstr* boxed = new BoxIntegerInstr(new Value(def));
-    InsertBefore(instr, boxed, NULL, Definition::kValue);
+    BoxIntegerInstr* boxed = new BoxIntegerInstr(new Value(use->definition()));
+    InsertBefore(insert_before, boxed, NULL, Definition::kValue);
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     converted = new UnboxDoubleInstr(new Value(boxed), deopt_id);
   } else if ((from == kUnboxedDouble) && (to == kTagged)) {
-    converted = new BoxDoubleInstr(new Value(def), NULL);
+    converted = new BoxDoubleInstr(new Value(use->definition()), NULL);
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
-    ASSERT((deopt_target != NULL) || (def->GetPropagatedCid() == kDoubleCid));
-    if (def->IsConstant() && def->AsConstant()->value().IsSmi()) {
-      const double dbl_val =
-          Smi::Cast(def->AsConstant()->value()).AsDoubleValue();
+    ASSERT((deopt_target != NULL) ||
+           (use->definition()->GetPropagatedCid() == kDoubleCid));
+    ConstantInstr* constant = use->definition()->AsConstant();
+    if ((constant != NULL) && constant->value().IsSmi()) {
+      const double dbl_val = Smi::Cast(constant->value()).AsDoubleValue();
       const Double& dbl_obj =
           Double::ZoneHandle(Double::New(dbl_val, Heap::kOld));
       ConstantInstr* double_const = new ConstantInstr(dbl_obj);
-      InsertBefore(instr, double_const, NULL, Definition::kValue);
+      InsertBefore(insert_before, double_const, NULL, Definition::kValue);
       converted = new UnboxDoubleInstr(new Value(double_const), deopt_id);
     } else {
-      converted = new UnboxDoubleInstr(new Value(def), deopt_id);
+      converted = new UnboxDoubleInstr(new Value(use->definition()), deopt_id);
     }
   }
   ASSERT(converted != NULL);
-  InsertBefore(instr, converted, use->instruction()->env(),
+  InsertBefore(insert_before, converted, use->instruction()->env(),
                Definition::kValue);
   use->set_definition(converted);
 }
@@ -272,29 +273,31 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
 void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
   const Representation from_rep = def->representation();
 
-  for (Value* use = def->input_use_list();
-       use != NULL;
-       use = use->next_use()) {
+  for (Value::Iterator it(def->input_use_list());
+       !it.Done();
+       it.Advance()) {
+    Value* use = it.Current();
     const Representation to_rep =
         use->instruction()->RequiredInputRepresentation(use->use_index());
     if (from_rep == to_rep) {
       continue;
     }
 
-    Instruction* deopt_target = NULL;
-    Instruction* instr = use->instruction();
-    if (instr->IsPhi()) {
-      if (!instr->AsPhi()->is_alive()) continue;
+    Instruction* insert_before;
+    Instruction* deopt_target;
+    PhiInstr* phi = use->instruction()->AsPhi();
+    if (phi != NULL) {
+      if (!phi->is_alive()) continue;
 
       // For phis conversions have to be inserted in the predecessor.
-      const BlockEntryInstr* pred =
-          instr->AsPhi()->block()->PredecessorAt(use->use_index());
-      instr = pred->last_instruction();
+      insert_before =
+          phi->block()->PredecessorAt(use->use_index())->last_instruction();
+      deopt_target = NULL;
     } else {
-      deopt_target = instr;
+      deopt_target = insert_before = use->instruction();
     }
 
-    InsertConversion(from_rep, to_rep, instr, use, def, deopt_target);
+    InsertConversion(from_rep, to_rep, use, insert_before, deopt_target);
   }
 }
 
@@ -522,7 +525,7 @@ static bool ArgIsAlwaysSmi(const ICData& ic_data, intptr_t arg_n) {
 }
 
 
-// Returns array classid to load from, array and idnex value
+// Returns array classid to load from, array and index value
 
 intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
                                               intptr_t class_id,
@@ -2199,20 +2202,19 @@ static bool IsDominatedUse(Instruction* dom, Value* use) {
 void RangeAnalysis::RenameDominatedUses(Definition* def,
                                         Instruction* dom,
                                         Definition* other) {
-  Value* next_use = NULL;
-  for (Value* use = def->input_use_list();
-       use != NULL;
-       use = next_use) {
-    next_use = use->next_use();
+  for (Value::Iterator it(def->input_use_list());
+       !it.Done();
+       it.Advance()) {
+    Value* use = it.Current();
 
     // Skip dead phis.
     PhiInstr* phi = use->instruction()->AsPhi();
     if ((phi != NULL) && !phi->is_alive()) continue;
 
     if (IsDominatedUse(dom, use)) {
-      use->RemoveFromInputUseList();
+      use->RemoveFromUseList();
       use->set_definition(other);
-      use->AddToInputUseList();
+      other->AddInputUse(use);
     }
   }
 }
@@ -2288,15 +2290,15 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Definition* defn,
   // No need to constrain constants.
   if (defn->IsConstant()) return NULL;
 
-  ConstraintInstr* constraint =
-      new ConstraintInstr(new Value(defn), constraint_range);
+  Value* value = new Value(defn);
+  ConstraintInstr* constraint = new ConstraintInstr(value, constraint_range);
   constraint->InsertAfter(after);
   constraint->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
   RenameDominatedUses(defn, after, constraint);
   constraints_.Add(constraint);
-  constraint->value()->set_instruction(constraint);
-  constraint->value()->set_use_index(0);
-  constraint->value()->AddToInputUseList();
+  value->set_instruction(constraint);
+  value->set_use_index(0);
+  defn->AddInputUse(value);
   return constraint;
 }
 
@@ -2906,7 +2908,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
                                       BlockEntryInstr* header,
                                       BlockEntryInstr* pre_header,
                                       CheckSmiInstr* current) {
-  PhiInstr* phi = current->InputAt(0)->definition()->AsPhi();
+  PhiInstr* phi = current->value()->definition()->AsPhi();
   if (!header->loop_info()->Contains(phi->block()->preorder_number())) {
     return;
   }
@@ -2943,9 +2945,9 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
 
   // Replace value we are checking with phi's input. Maintain use lists.
   Definition* non_smi_input_defn = phi->InputAt(non_smi_input)->definition();
-  current->value()->RemoveFromInputUseList();
+  current->value()->RemoveFromUseList();
   current->value()->set_definition(non_smi_input_defn);
-  current->value()->AddToInputUseList();
+  non_smi_input_defn->AddInputUse(current->value());
 
   phi->SetPropagatedCid(kSmiCid);
 }
@@ -3478,13 +3480,14 @@ class LoadOptimizer : public ValueObject {
       // from the graph by this iteration.
       // To prevent using them we additionally mark definitions themselves
       // as replaced and store a pointer to the replacement.
-      Value* input = new Value((*pred_out_values)[expr_id]->Replacement());
+      Definition* replacement = (*pred_out_values)[expr_id]->Replacement();
+      Value* input = new Value(replacement);
       phi->SetInputAt(i, input);
 
       // TODO(vegorov): add a helper function to handle input insertion.
       input->set_instruction(phi);
       input->set_use_index(i);
-      input->AddToInputUseList();
+      replacement->AddInputUse(input);
     }
 
     phi->set_ssa_temp_index(graph_->alloc_ssa_temp_index());

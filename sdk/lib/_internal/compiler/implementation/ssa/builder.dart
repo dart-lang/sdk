@@ -179,7 +179,7 @@ class LocalsHandler {
     // TODO(floitsch): Clean up this hack. Should we create a box-object by
     // just creating an empty object literal?
     HInstruction box = new HForeign(const LiteralDartString("{}"),
-                                    const LiteralDartString('Object'),
+                                    HType.UNKNOWN,
                                     <HInstruction>[]);
     builder.add(box);
     return box;
@@ -1358,11 +1358,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         includeBackendMembers: true,
         includeSuperMembers: true);
 
-    HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
+    InterfaceType type = classElement.computeType(compiler);
+    HType ssaType = new HBoundedType.exact(type);
+    HForeignNew newObject = new HForeignNew(classElement,
+                                            ssaType,
+                                            constructorArguments);
     add(newObject);
 
     // Create the runtime type information, if needed.
-    InterfaceType type = classElement.computeType(compiler);
     List<HInstruction> inputs = <HInstruction>[];
     if (compiler.world.needsRti(classElement)) {
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
@@ -2145,7 +2148,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     });
 
-    push(new HForeignNew(closureClassElement, capturedVariables));
+    HType type = new HBoundedType.exact(
+        compiler.functionClass.computeType(compiler));
+    push(new HForeignNew(closureClassElement, type, capturedVariables));
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
@@ -2539,10 +2544,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     push(result);
   }
 
-  HForeign createForeign(String code, String type, List<HInstruction> inputs) {
-    return new HForeign(new LiteralDartString(code),
-                        new LiteralDartString(type),
-                        inputs);
+  HForeign createForeign(String code, HType type, List<HInstruction> inputs) {
+    return new HForeign(new LiteralDartString(code), type, inputs);
   }
 
   HInstruction getRuntimeTypeInfo(HInstruction target) {
@@ -2554,7 +2557,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // (dartbug.com/7182).
   List<HInstruction> buildTypeArgumentRepresentations(DartType type) {
     HInstruction createForeignArray(String code, inputs) {
-      return createForeign(code, '=List', inputs);
+      return createForeign(code, HType.READABLE_ARRAY, inputs);
     }
     HInstruction typeInfo;
 
@@ -2654,7 +2657,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           HInstruction position = graph.addConstantInt(index, constantSystem);
           // Get the index'th type argument from the runtime type information.
           HInstruction typeArgument =
-              createForeign('#[#]', 'Object', [typeInfo, position]);
+              createForeign('#[#]', HType.UNKNOWN, [typeInfo, position]);
           add(typeArgument);
           // Create the call to isSubtype.
           List<HInstruction> inputs =
@@ -2852,26 +2855,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     pushWithPosition(new HInvokeClosure(closureSelector, inputs), node);
   }
 
-  void registerForeignTypes(String specString) {
-    CodegenEnqueuer enqueuer = compiler.enqueuer.codegen;
-    for (final typeString in specString.split('|')) {
-      if (typeString == '=List') {
-        enqueuer.registerInstantiatedClass(compiler.listClass);
-      } else if (typeString == 'int') {
-        enqueuer.registerInstantiatedClass(compiler.intClass);
-      } else if (typeString == 'double') {
-        enqueuer.registerInstantiatedClass(compiler.doubleClass);
-      } else if (typeString == 'num') {
-        enqueuer.registerInstantiatedClass(compiler.intClass);
-        enqueuer.registerInstantiatedClass(compiler.doubleClass);
-      } else if (typeString == 'Null') {
-        enqueuer.registerInstantiatedClass(compiler.nullClass);
-      } else if (typeString == 'String') {
-        enqueuer.registerInstantiatedClass(compiler.stringClass);
-      }
-    }
-  }
-
   void handleForeignJs(Send node) {
     Link<Node> link = node.arguments;
     // If the invoke is on foreign code, don't visit the first
@@ -2886,24 +2869,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Node code = link.tail.head;
     addGenericSendArgumentsToList(link.tail.tail, inputs);
 
-    if (type is !LiteralString) {
-      // The type must not be a juxtaposition or interpolation.
-      compiler.cancel('The type of a JS expression must be a string literal',
-                      node: type);
-    }
-    LiteralString typeString = type;
-    // TODO(ngeoffray): This should be registered in codegen, not here.
-    // Also, we should share the type parsing with the native
-    // enqueuer.
-    registerForeignTypes(typeString.dartString.slowToString());
-
+    native.NativeBehavior nativeBehavior =
+        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    HType ssaType = mapNativeBehaviorType(nativeBehavior);
     if (code is StringNode) {
       StringNode codeString = code;
       if (!codeString.isInterpolation) {
         // codeString may not be an interpolation, but may be a juxtaposition.
-        push(new HForeign(codeString.dartString,
-                          typeString.dartString,
-                          inputs));
+        push(new HForeign(codeString.dartString, ssaType, inputs));
         return;
       }
     }
@@ -2921,7 +2894,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // to fetch the Leg's current isolate.
       String name = backend.namer.CURRENT_ISOLATE;
       push(new HForeign(new DartString.literal(name),
-                        const LiteralDartString('var'),
+                        HType.UNKNOWN,
                         <HInstruction>[]));
     } else {
       // Call a helper method from the isolate library. The isolate
@@ -2994,7 +2967,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     String invocationName = backend.namer.invocationName(
         new Selector.callClosure(params.requiredParameterCount));
     push(new HForeign(new DartString.literal('#.$invocationName'),
-                      const LiteralDartString('var'),
+                      HType.UNKNOWN,
                       inputs));
   }
 
@@ -3006,7 +2979,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(node.arguments.head);
     String isolateName = backend.namer.CURRENT_ISOLATE;
     push(new HForeign(new DartString.literal("$isolateName = #"),
-                      const LiteralDartString('void'),
+                      HType.UNKNOWN,
                       <HInstruction>[pop()]));
   }
 
@@ -3017,7 +2990,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     String constructorName = backend.namer.isolateName;
     push(new HForeign(new DartString.literal("new $constructorName"),
-                      const LiteralDartString('var'),
+                      HType.UNKNOWN,
                       <HInstruction>[]));
   }
 
@@ -3184,7 +3157,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           typeInfo = pop();
         }
         int index = RuntimeTypeInformation.getTypeVariableIndex(type);
-        HInstruction foreign = createForeign('#[$index]', 'String',
+        HInstruction foreign = createForeign('#[$index]', HType.STRING,
                                              <HInstruction>[typeInfo]);
         add(foreign);
         inputs.add(foreign);
@@ -3198,7 +3171,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     String template = rti.getTypeRepresentation(argument,
                                                 addTypeVariableReference);
-    HInstruction result = createForeign(template, 'String', inputs);
+    HInstruction result = createForeign(template, HType.STRING, inputs);
     add(result);
     return result;
   }
@@ -4610,17 +4583,43 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.internalError('SsaBuilder.visitTypeVariable');
   }
 
+  HType mapBaseType(BaseType baseType) {
+    if (!baseType.isClass()) return HType.UNKNOWN;
+    ClassBaseType classBaseType = baseType;
+    return new HType.fromBoundedType(
+        classBaseType.element.computeType(compiler), compiler, false);
+  }
+
   HType mapInferredType(ConcreteType concreteType) {
     if (concreteType == null) return HType.UNKNOWN;
-    ClassElement element = concreteType.getUniqueType();
-    if (element == null) return HType.UNKNOWN;
-    if (element == builder.compiler.boolClass) return HType.BOOLEAN;
-    if (element == builder.compiler.doubleClass) return HType.DOUBLE;
-    if (element == builder.compiler.intClass) return HType.INTEGER;
-    if (element == builder.compiler.listClass) return HType.READABLE_ARRAY;
-    if (element == builder.compiler.nullClass) return HType.NULL;
-    if (element == builder.compiler.stringClass) return HType.STRING;
-    return HType.UNKNOWN;
+    HType ssaType = HType.CONFLICTING;
+    for (BaseType baseType in concreteType.baseTypes) {
+      ssaType = ssaType.union(mapBaseType(baseType), compiler);
+    }
+    assert(!ssaType.isConflicting());
+    return ssaType;
+  }
+
+  HType mapNativeType(type) {
+    if (type == native.SpecialType.JsObject) {
+      return new HBoundedType.exact(
+          compiler.objectClass.computeType(compiler));
+    } else if (type == native.SpecialType.JsArray) {
+      return HType.READABLE_ARRAY;
+    } else {
+      return new HType.fromBoundedType(type, compiler, false);
+    }
+  }
+
+  HType mapNativeBehaviorType(native.NativeBehavior nativeBehavior) {
+    if (nativeBehavior.typesInstantiated.isEmpty) return HType.UNKNOWN;
+
+    HType ssaType = HType.CONFLICTING;
+    for (final type in nativeBehavior.typesInstantiated) {
+      ssaType = ssaType.union(mapNativeType(type), compiler);
+    }
+    assert(!ssaType.isConflicting());
+    return ssaType;
   }
 }
 

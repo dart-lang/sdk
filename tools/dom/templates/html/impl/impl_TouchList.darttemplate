@@ -1,0 +1,15 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  /// NB: This constructor likely does not work as you might expect it to! This
+  /// constructor will simply fail (returning null) if you are not on a device
+  /// with touch enabled. See dartbug.com/8314.
+  factory $CLASSNAME() => document.$dom_createTouchList();
+$!MEMBERS
+}

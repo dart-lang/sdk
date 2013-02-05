@@ -5,6 +5,7 @@
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
+/// The Dart HTML library.
 library dart.dom.html;
 
 import 'dart:async';
@@ -49,8 +50,14 @@ part '$AUXILIARY_DIR/dart2js_TypedArrayFactoryProvider.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
 
 
+/**
+ * The top-level Window object.
+ */
 Window get window => JS('Window', 'window');
 
+/**
+ * The top-level Document object.
+ */
 HtmlDocument get document => JS('Document', 'document');
 
 Element query(String selector) => document.query(selector);

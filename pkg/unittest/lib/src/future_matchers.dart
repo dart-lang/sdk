@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of matcher;
+
 /**
  * Matches a [Future] that completes successfully with a value. Note that this
  * creates an asynchronous expectation. The call to `expect()` that includes
@@ -11,9 +13,6 @@
  * To test that a Future completes with an exception, you can use [throws] and
  * [throwsA].
  */
-
-part of matcher;
-
 Matcher completes = const _Completes(null);
 
 /**

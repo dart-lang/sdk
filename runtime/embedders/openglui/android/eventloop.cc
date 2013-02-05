@@ -27,9 +27,11 @@ void EventLoop::Run(LifeCycleHandler* lifecycle_handler,
   input_handler_ = input_handler;
   LOGI("Starting event loop");
   while (true) {
-    // If not enabled, block on events. If enabled, don't block
-    // so we can do useful work in onStep.
-    while ((result = ALooper_pollAll(enabled_ ? 0 : -1,
+    // If not enabled, block indefinitely on events. If enabled, block
+    // briefly so we can do useful work in onStep. Ultimately this is
+    // where we would want to look at elapsed time since the last call
+    // to onStep completed and use a delay that gives us ~60fps.
+    while ((result = ALooper_pollAll(enabled_ ? (1000/60) : -1,
                                      NULL,
                                      &events,
                                      reinterpret_cast<void**>(&source))) >= 0) {

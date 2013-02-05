@@ -24,6 +24,9 @@
  * [thenCall] and [alwaysCall] allow you to proxy mocked methods, chaining
  * to some other implementation. This provides a way to implement 'spies'.
  *
+ * For getters and setters, use "get foo" and "set foo"-style arguments
+ * to [callsTo].
+ *
  * You can disable logging for a particular [Behavior] easily:
  *
  *     m.when(callsTo('bar')).logging = false;
@@ -269,6 +272,10 @@ class CallMatcher {
  * Returns a [CallMatcher] for the specified signature. [method] can be
  * null to match anything, or a literal [String], a predicate [Function],
  * or a [Matcher]. The various arguments can be scalar values or [Matcher]s.
+ * To match getters and setters, use "get " and "set " prefixes on the names.
+ * For example, for a property "foo", you could use "get foo" and "set foo"
+ * as literal string arguments to callsTo to match the getter and setter
+ * of "foo".
  */
 CallMatcher callsTo([method,
                      arg0 = _noArg,
@@ -1286,9 +1293,12 @@ class Mock {
     var args = invocation.positionalArguments;
     if (invocation.isGetter) {
       method = 'get $method';
-    } else if (method.startsWith('get:')) {
-      // TODO(gram): Remove this when VM handles the isGetter version above.
-      method = 'get ${method.substring(4)}';
+    } else if (invocation.isSetter) {
+      method = 'set $method';
+      // Remove the trailing '='.
+      if (method[method.length-1] == '=') {
+        method = method.substring(0, method.length - 1);
+      }
     }
     bool matchedMethodName = false;
     MatchState matchState = new MatchState();

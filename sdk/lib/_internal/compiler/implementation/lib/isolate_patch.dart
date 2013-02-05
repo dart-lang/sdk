@@ -9,19 +9,19 @@ import 'dart:_isolate_helper' show IsolateNatives,
                                    ReceivePortImpl;
 
 patch class _Isolate {
-  patch ReceivePort get port {
+  patch static ReceivePort get port {
     if (lazyPort == null) {
       lazyPort = new ReceivePort();
     }
     return lazyPort;
   }
 
-  patch SendPort spawnFunction(void topLevelFunction(),
+  patch static SendPort spawnFunction(void topLevelFunction(),
       [bool UnhandledExceptionCallback(IsolateUnhandledException e)]) {
     return IsolateNatives.spawnFunction(topLevelFunction);
   }
 
-  patch SendPort spawnUri(String uri) {
+  patch static SendPort spawnUri(String uri) {
     return IsolateNatives.spawn(null, uri, false);
   }
 }

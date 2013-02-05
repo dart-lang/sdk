@@ -28,7 +28,7 @@ class HostedSource extends Source {
   final shouldCache = true;
 
   /// The URL of the default package repository.
-  static final defaultUrl = "http://pub.dartlang.org";
+  static final defaultUrl = "https://pub.dartlang.org";
 
   /// Downloads a list of all versions of a package that are available from the
   /// site.
@@ -77,7 +77,7 @@ class HostedSource extends Source {
           .then((response) => response.stream),
       systemCache.createTempDir()
     ]).then((args) {
-      var stream = streamToInputStream(args[0]);
+      var stream = args[0];
       tempDir = args[1];
       return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
           'fetching URL "$fullUrl"');
@@ -93,13 +93,15 @@ class HostedSource extends Source {
   /// for each separate repository URL that's used on the system. Each of these
   /// subdirectories then contains a subdirectory for each package installed
   /// from that site.
-  String systemCacheDirectory(PackageId id) {
+  Future<String> systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
     var url = parsed.last.replaceAll(new RegExp(r"^https?://"), "");
     var urlDir = replace(url, new RegExp(r'[<>:"\\/|?*%]'), (match) {
       return '%${match[0].charCodeAt(0)}';
     });
-    return join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}");
+
+    return new Future.immediate(
+        join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}"));
   }
 
   String packageName(description) => _parseDescription(description).first;

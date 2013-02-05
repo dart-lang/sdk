@@ -987,6 +987,52 @@ bool Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::ExternalUint8ClampedArray_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  TestByteArrayGetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
+  __ SmiUntag(EBX);
+  __ movl(EAX, FieldAddress(EAX, ExternalUint8ClampedArray::data_offset()));
+  __ movzxb(EAX, Address(EAX, EBX, TIMES_1, 0));
+  __ SmiTag(EAX);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::ExternalUint8ClampedArray_setIndexed(Assembler* assembler) {
+  Label fall_through, store_value, load_0xff;
+  TestByteArraySetIndex(assembler, &fall_through);
+  // EBX: index as Smi.
+  // EAX: array.
+  __ SmiUntag(EBX);
+  __ movl(EAX, FieldAddress(EAX, ExternalUint8ClampedArray::data_offset()));
+  // Free EBX for the value since we need a byte register.
+  __ leal(EAX, Address(EAX, EBX, TIMES_1, 0));
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Value.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+
+  __ SmiUntag(EBX);
+  __ cmpl(EBX, Immediate(0xFF));
+  __ j(BELOW_EQUAL, &store_value, Assembler::kNearJump);
+  // Clamp to 0x00 or 0xFF respectively.
+  __ j(GREATER, &load_0xff,  Assembler::kNearJump);
+  __ xorl(EBX, EBX);  // Zero.
+  __ jmp(&store_value, Assembler::kNearJump);
+  __ Bind(&load_0xff);
+  __ movl(EBX, Immediate(0xFF));
+
+  __ Bind(&store_value);
+  __ movb(Address(EAX, 0), BL);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 // Tests if two top most arguments are smis, jumps to label not_smi if not.
 // Topmost argument is in EAX.
 static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {

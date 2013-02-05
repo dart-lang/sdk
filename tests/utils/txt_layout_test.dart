@@ -17,8 +17,8 @@ main() {
   var div2Style = _style('red', 25, 30, 40, 10);
   var div1 = new Element.html('<div style="$div1Style"></div>');
   var div2 = new Element.html('<div style="$div2Style"></div>');
-  document.body.elements.add(div1);
-  document.body.elements.add(div2);
+  document.body.children.add(div1);
+  document.body.children.add(div2);
 }
 
 _style(String color, int top, int left, int width, int height) {

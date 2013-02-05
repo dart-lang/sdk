@@ -5,6 +5,8 @@
 #ifndef EMBEDDERS_OPENGLUI_COMMON_ISIZED_H_
 #define EMBEDDERS_OPENGLUI_COMMON_ISIZED_H_
 
+#include <stdint.h>
+
 // An interface for objects that have a size. VMGlue needs the window
 // size when calling setup() (and eventually resize()) but it does not
 // need to know anything else about the window, so we use this interface.

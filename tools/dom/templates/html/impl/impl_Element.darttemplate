@@ -62,7 +62,7 @@ class _ChildrenElementList implements List {
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Element element)) {
@@ -279,7 +279,7 @@ class _FrozenElementList implements List {
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Element element)) {
@@ -573,27 +573,6 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       attributes[key] = value[key];
     }
   }
-
-  /**
-   * Deprecated, use innerHtml instead.
-   */
-  @deprecated
-  String get innerHTML => this.innerHtml;
-  @deprecated
-  void set innerHTML(String value) {
-    this.innerHtml = value;
-  }
-
-  @deprecated
-  void set elements(Collection<Element> value) {
-    this.children = value;
-  }
-
-  /**
-   * Deprecated, use [children] instead.
-   */
-  @deprecated
-  List<Element> get elements => this.children;
 
   /**
    * List of the direct children of this element.
@@ -1049,7 +1028,8 @@ $if DART2JS
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   static dynamic createElement_tag(String tag) =>
-      JS('Element', 'document.createElement(#)', tag);
+      // Firefox may return a JS function for some types (Embed, Object).
+      JS('Element|=Object', 'document.createElement(#)', tag);
 $else
   static Element createElement_tag(String tag) =>
       document.$dom_createElement(tag);

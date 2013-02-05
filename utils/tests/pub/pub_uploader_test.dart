@@ -54,7 +54,7 @@ main() {
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
     server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
-      expect(consumeInputStream(request.inputStream).then((bodyBytes) {
+      expect(wrapInputStream(request.inputStream).toBytes().then((bodyBytes) {
         expect(new String.fromCharCodes(bodyBytes), equals('email=email'));
 
         response.headers.contentType = new ContentType("application", "json");

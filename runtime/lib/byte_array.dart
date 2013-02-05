@@ -230,7 +230,7 @@ abstract class _ByteArrayBase {
   }
 
   Iterable map(f(int element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(int element)) {

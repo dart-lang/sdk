@@ -596,7 +596,7 @@ class Class : public Object {
 
   // Return the signature type of this signature class.
   // For example, if this class represents a signature of the form
-  // '<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
+  // 'F<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
   // type with this class as the type class and type parameters 'T' and 'R'
   // as its type argument vector.
   RawType* SignatureType() const;
@@ -833,9 +833,14 @@ class Class : public Object {
   // The class may be type parameterized unless the signature_function is in a
   // static scope. In that case, the type parameters are copied from the owner
   // class of signature_function.
+  // A null signature function may be passed in and patched later. See below.
   static RawClass* NewSignatureClass(const String& name,
                                      const Function& signature_function,
-                                     const Script& script);
+                                     const Script& script,
+                                     intptr_t token_pos);
+
+  // Patch the signature function of a signature class allocated without it.
+  void PatchSignatureFunction(const Function& signature_function) const;
 
   // Return a class object corresponding to the specified kind. If
   // a canonicalized version of it exists then that object is returned
@@ -1426,16 +1431,10 @@ class Function : public Object {
   }
   void set_is_visible(bool value) const;
 
-  enum IntrinsicKind {
-    kUnknownIntrinsic = 0,  // Initial value.
-    kIsIntrinsic,
-    kIsNotIntrinsic,
-  };
-
-  IntrinsicKind intrinsic_kind() const {
-    return IntrinsicKindBits::decode(raw_ptr()->kind_tag_);
+  bool is_intrinsic() const {
+    return IntrinsicBit::decode(raw_ptr()->kind_tag_);
   }
-  void set_intrinsic_kind(IntrinsicKind value) const;
+  void set_is_intrinsic(bool value) const;
 
   bool HasOptimizedCode() const;
 
@@ -1582,9 +1581,8 @@ class Function : public Object {
     kAbstractBit = 6,
     kExternalBit = 7,
     kVisibleBit = 8,
-    kIntrinsicTagBit = 9,
-    kIntrinsicTagSize = 2,
-    kKindTagBit = 11,
+    kIntrinsicBit = 9,
+    kKindTagBit = 10,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -1596,9 +1594,7 @@ class Function : public Object {
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
   class VisibleBit : public BitField<bool, kVisibleBit, 1> {};
-  class IntrinsicKindBits :
-    public BitField<Function::IntrinsicKind,
-                    kIntrinsicTagBit, kIntrinsicTagSize> {};  // NOLINT
+  class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
 

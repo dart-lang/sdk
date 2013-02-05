@@ -15,7 +15,7 @@ namespace dart {
 //
 // When adding a new function for intrinsification add a 0 as fingerprint,
 // build and run to get the correct fingerprint from the mismatch error.
-#define INTRINSIC_LIST(V)                                                      \
+#define CORE_LIB_INTRINSIC_LIST(V)                                             \
   V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger, 726019207)\
   V(_IntegerImplementation, +, Integer_add, 959303888)                         \
   V(_IntegerImplementation, _subFromInteger, Integer_subFromInteger, 726019207)\
@@ -74,14 +74,20 @@ namespace dart {
   V(_GrowableObjectArray, add, GrowableArray_add, 1367698386)                  \
   V(_ImmutableArray, [], ImmutableArray_getIndexed, 486821199)                 \
   V(_ImmutableArray, get:length, ImmutableArray_getLength, 433698233)          \
-  V(::, sqrt, Math_sqrt, 1662640002)                                           \
-  V(::, sin, Math_sin, 1273932041)                                             \
-  V(::, cos, Math_cos, 1749547468)                                             \
   V(Object, ==, Object_equal, 2126956595)                                      \
   V(_StringBase, get:hashCode, String_getHashCode, 320803993)                  \
   V(_StringBase, get:isEmpty, String_getIsEmpty, 711547329)                    \
   V(_StringBase, get:length, String_getLength, 320803993)                      \
   V(_StringBase, charCodeAt, String_charCodeAt, 984449525)                     \
+
+
+#define MATH_LIB_INTRINSIC_LIST(V)                                             \
+  V(::, sqrt, Math_sqrt, 1662640002)                                           \
+  V(::, sin, Math_sin, 1273932041)                                             \
+  V(::, cos, Math_cos, 1749547468)                                             \
+
+
+#define SCALARLIST_LIB_INTRINSIC_LIST(V)                                       \
   V(_ByteArrayBase, get:length, ByteArrayBase_getLength, 1098081765)           \
   V(_Int8Array, [], Int8Array_getIndexed, 1295306322)                          \
   V(_Int8Array, []=, Int8Array_setIndexed, 1709956322)                         \
@@ -112,6 +118,11 @@ namespace dart {
   V(_Float64Array, []=, Float64Array_setIndexed, 1948811847)                   \
   V(_Float64Array, _new, Float64Array_new, 147668392)                          \
   V(_ExternalUint8Array, [], ExternalUint8Array_getIndexed, 753790851)         \
+  V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArray_getIndexed,      \
+      823759763)                                                               \
+  V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArray_setIndexed,     \
+      654373808)                                                               \
+
 
 // TODO(srdjan): Implement _FixedSizeArrayIterator, get:current and
 //   _FixedSizeArrayIterator, moveNext.
@@ -127,12 +138,16 @@ class Intrinsifier : public AllStatic {
   // path possible).
   static bool Intrinsify(const Function& function, Assembler* assembler);
   static bool CanIntrinsify(const Function& function);
+  static void InitializeState();
 
  private:
 #define DECLARE_FUNCTION(test_class_name, test_function_name, destination, fp) \
   static bool destination(Assembler* assembler);
 
-INTRINSIC_LIST(DECLARE_FUNCTION)
+  CORE_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
+  MATH_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
+  SCALARLIST_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
+
 #undef DECLARE_FUNCTION
 };
 

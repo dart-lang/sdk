@@ -13,7 +13,9 @@ part of _interceptors;
 class JSString implements String {
   const JSString();
 
-  int charCodeAt(index) {
+  int charCodeAt(index) => codeUnitAt(index);
+
+  int codeUnitAt(int index) {
     if (index is !num) throw new ArgumentError(index);
     if (index < 0) throw new RangeError.value(index);
     if (index >= length) throw new RangeError.value(index);
@@ -145,6 +147,14 @@ class JSString implements String {
       result[i] = JS('int', '#.charCodeAt(#)', this, i);
     }
     return result;
+  }
+
+  Iterable<int> get codeUnits {
+    throw new UnimplementedError("String.codeUnits");
+  }
+
+  Iterable<int> get runes {
+    throw new UnimplementedError("String.runes");
   }
 
   int indexOf(String other, [int start = 0]) {

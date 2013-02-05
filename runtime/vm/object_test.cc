@@ -2589,7 +2589,7 @@ TEST_CASE(Closure) {
   const String& function_name = String::Handle(Symbols::New("foo"));
   function = Function::NewClosureFunction(function_name, parent, 0);
   const Class& signature_class = Class::Handle(
-      Class::NewSignatureClass(function_name, function, script));
+      Class::NewSignatureClass(function_name, function, script, 0));
   const Instance& closure = Instance::Handle(Closure::New(function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT(closure_class.IsSignatureClass());

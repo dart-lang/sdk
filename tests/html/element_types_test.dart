@@ -48,7 +48,7 @@ main() {
 
   group('supported_object', () {
     test('supported', () {
-      expect(MeterElement.supported, true);
+      expect(ObjectElement.supported, true);
     });
   });
 

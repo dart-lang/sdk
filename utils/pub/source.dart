@@ -9,6 +9,7 @@ import 'io.dart';
 import 'package.dart';
 import 'pubspec.dart';
 import 'system_cache.dart';
+import 'utils.dart';
 import 'version.dart';
 
 /// A source from which to install packages.
@@ -104,13 +105,15 @@ abstract class Source {
   ///
   /// By default, this uses [systemCacheDirectory] and [install].
   Future<Package> installToSystemCache(PackageId id) {
-    var path = systemCacheDirectory(id);
-    return exists(path).then((exists) {
-      if (exists) return new Future<bool>.immediate(true);
-      return ensureDir(dirname(path)).then((_) => install(id, path));
+    var path;
+    return systemCacheDirectory(id).then((p) {
+      path = p;
+      if (dirExists(path)) return true;
+      ensureDir(dirname(path));
+      return install(id, path);
     }).then((found) {
       if (!found) throw 'Package $id not found.';
-      return Package.load(id.name, path, systemCache.sources);
+      return new Package.load(id.name, path, systemCache.sources);
     });
   }
 
@@ -118,11 +121,10 @@ abstract class Source {
   /// [id] should be installed to. This should return a path to a subdirectory
   /// of [systemCacheRoot].
   ///
-  /// This doesn't need to be implemented if [shouldCache] is false, or if
-  /// [installToSystemCache] is implemented.
-  String systemCacheDirectory(PackageId id) {
-    throw 'Source.systemCacheDirectory must be implemented if shouldCache is '
-        'true and installToSystemCache is not implemented.';
+  /// This doesn't need to be implemented if [shouldCache] is false.
+  Future<String> systemCacheDirectory(PackageId id) {
+    return new Future.immediateError(
+        "systemCacheDirectory() must be implemented if shouldCache is true.");
   }
 
   /// When a [Pubspec] or [LockFile] is parsed, it reads in the description for

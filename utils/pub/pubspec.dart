@@ -4,12 +4,15 @@
 
 library pubspec;
 
+import '../../pkg/yaml/lib/yaml.dart';
+import '../../pkg/path/lib/path.dart' as path;
+
+import 'io.dart';
 import 'package.dart';
 import 'source.dart';
 import 'source_registry.dart';
 import 'utils.dart';
 import 'version.dart';
-import '../../pkg/yaml/lib/yaml.dart';
 
 /// The parsed and validated contents of a pubspec file.
 class Pubspec {
@@ -29,6 +32,28 @@ class Pubspec {
   /// are derived.
   final Map<String, Object> fields;
 
+  /// Loads the pubspec for a package [name] located in [packageDir].
+  factory Pubspec.load(String name, String packageDir, SourceRegistry sources) {
+    var pubspecPath = path.join(packageDir, 'pubspec.yaml');
+    if (!fileExists(pubspecPath)) throw new PubspecNotFoundException(name);
+
+    try {
+      var pubspec = new Pubspec.parse(readTextFile(pubspecPath), sources);
+
+      if (pubspec.name == null) {
+        throw new PubspecHasNoNameException(name);
+      }
+
+      if (name != null && pubspec.name != name) {
+        throw new PubspecNameMismatchException(name, pubspec.name);
+      }
+
+      return pubspec;
+    } on FormatException catch (ex) {
+      throw 'Could not parse $pubspecPath:\n${ex.message}';
+    }
+  }
+
   Pubspec(this.name, this.version, this.dependencies, this.environment,
       [Map<String, Object> fields])
     : this.fields = fields == null ? {} : fields;
@@ -44,6 +69,7 @@ class Pubspec {
   bool get isEmpty =>
     name == null && version == Version.none && dependencies.isEmpty;
 
+  // TODO(rnystrom): Make this a static method to match corelib.
   /// Parses the pubspec whose text is [contents]. If the pubspec doesn't define
   /// version for itself, it defaults to [Version.none].
   factory Pubspec.parse(String contents, SourceRegistry sources) {

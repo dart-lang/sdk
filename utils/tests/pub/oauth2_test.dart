@@ -31,7 +31,9 @@ main() {
       response.outputStream.close();
     });
 
-    pub.kill();
+    // After we give pub an invalid response, it should crash. We wait for it to
+    // do so rather than killing it so it'll write out the credentials file.
+    pub.shouldExit(1);
 
     credentialsFile(server, 'access token').scheduleValidate();
   });
@@ -64,7 +66,7 @@ main() {
     confirmPublish(pub);
 
     server.handle('POST', '/token', (request, response) {
-      return consumeInputStream(request.inputStream).then((bytes) {
+      return wrapInputStream(request.inputStream).toBytes().then((bytes) {
         var body = new String.fromCharCodes(bytes);
         expect(body, matches(
             new RegExp(r'(^|&)refresh_token=refresh\+token(&|$)')));
@@ -112,7 +114,9 @@ main() {
       response.outputStream.close();
     });
 
-    pub.kill();
+    // After we give pub an invalid response, it should crash. We wait for it to
+    // do so rather than killing it so it'll write out the credentials file.
+    pub.shouldExit(1);
 
     credentialsFile(server, 'new access token').scheduleValidate();
   });
@@ -135,7 +139,10 @@ main() {
       response.outputStream.close();
     });
 
-    pub.kill();
+
+    // After we give pub an invalid response, it should crash. We wait for it to
+    // do so rather than killing it so it'll write out the credentials file.
+    pub.shouldExit(1);
 
     credentialsFile(server, 'new access token').scheduleValidate();
   });
@@ -190,7 +197,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
       .send();
   }).then((response) {
     expect(response.headers['location'],
-        equals(['http://pub.dartlang.org/authorized']));
+        equals('http://pub.dartlang.org/authorized'));
   }), anything);
 
   handleAccessTokenRequest(server, accessToken);
@@ -198,7 +205,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
 
 void handleAccessTokenRequest(ScheduledServer server, String accessToken) {
   server.handle('POST', '/token', (request, response) {
-    return consumeInputStream(request.inputStream).then((bytes) {
+    return wrapInputStream(request.inputStream).toBytes().then((bytes) {
       var body = new String.fromCharCodes(bytes);
       expect(body, matches(new RegExp(r'(^|&)code=access\+code(&|$)')));
 

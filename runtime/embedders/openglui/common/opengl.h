@@ -39,5 +39,17 @@
 #  define GLSwapBuffers()    glutSwapBuffers()
 #endif
 
+#include "core/SkCanvas.h"
+#include "core/SkGraphics.h"
+#include "core/SkPaint.h"
+#include "effects/SkBlurDrawLooper.h"
+#include "effects/SkDashPathEffect.h"
+#include "gpu/SkGpuDevice.h"
+#include "gpu/GrContext.h"
+#include "gpu/GrRenderTarget.h"
+#include "gpu/gl/GrGLInterface.h"
+#include "gpu/gl/SkNativeGLContext.h"
+#include "images/SkImageDecoder.h"
+
 #endif  // EMBEDDERS_OPENGLUI_COMMON_OPENGL_H_
 

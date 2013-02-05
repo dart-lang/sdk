@@ -38,7 +38,7 @@ class DependencyValidator extends Validator {
           // should warn about unittest. Until then, it's reasonable not to put
           // a constraint on it.
           dependency.name != 'unittest') {
-        return _warnAboutConstraint(dependency);
+        _warnAboutConstraint(dependency);
       }
 
       return new Future.immediate(null);
@@ -74,21 +74,20 @@ class DependencyValidator extends Validator {
   }
 
   /// Warn that dependencies should have version constraints.
-  Future _warnAboutConstraint(PackageRef ref) {
-    return entrypoint.loadLockFile().then((lockFile) {
-      var message = 'Your dependency on "${ref.name}" should have a version '
-          'constraint.';
-      var locked = lockFile.packages[ref.name];
-      if (locked != null) {
-        message = '$message For example:\n'
-          '\n'
-          'dependencies:\n'
-          '  ${ref.name}: ${_constraintForVersion(locked.version)}\n';
-      }
-      warnings.add("$message\n"
-          "Without a constraint, you're promising to support all future "
-          "versions of ${ref.name}.");
-    });
+  void _warnAboutConstraint(PackageRef ref) {
+    var lockFile = entrypoint.loadLockFile();
+    var message = 'Your dependency on "${ref.name}" should have a version '
+        'constraint.';
+    var locked = lockFile.packages[ref.name];
+    if (locked != null) {
+      message = '$message For example:\n'
+        '\n'
+        'dependencies:\n'
+        '  ${ref.name}: ${_constraintForVersion(locked.version)}\n';
+    }
+    warnings.add("$message\n"
+        "Without a constraint, you're promising to support all future "
+        "versions of ${ref.name}.");
   }
 
   /// Returns the suggested version constraint for a dependency that was tested

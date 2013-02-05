@@ -22,6 +22,15 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 $!MEMBERS
 
+  // TODO(amouravski): Move this documentation out of thise template files and
+  // put it into docs.json. Remember to add @DomName here.
+  /**
+   * The X coordinate of the mouse pointer in target node coordinates.
+   *
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
   int get offsetX {
   if (JS('bool', '!!#.offsetX', this)) {
       return JS('int', '#.offsetX', this);
@@ -36,6 +45,13 @@ $!MEMBERS
     }
   }
 
+  /**
+   * The Y coordinate of the mouse pointer in target node coordinates.
+   *
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
   int get offsetY {
     if (JS('bool', '!!#.offsetY', this)) {
       return JS('int', '#.offsetY', this);

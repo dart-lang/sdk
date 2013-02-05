@@ -317,6 +317,10 @@ class IterableMixinWorkaround {
     return new MappedIterable(iterable, f);
   }
 
+  static Iterable mapList(List list, f(var element)) {
+    return new MappedListIterable(list, f, 0, null);
+  }
+
   static List mappedByList(List list, f(var element)) {
     // This is currently a List as well as an Iterable.
     return new MappedList(list, f);

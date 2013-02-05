@@ -13,6 +13,8 @@ extern int32_t PlayBackgroundSound(const char* path);
 extern void StopBackgroundSound();
 extern int32_t LoadSoundSample(const char* path);
 extern int32_t PlaySoundSample(const char* path);
+extern int32_t Init2DGraphics();
+
 
 #endif  // EMBEDDERS_OPENGLUI_COMMON_EXTENSION_H_
 

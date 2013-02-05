@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of unittest;
+
 /**
  * testcase.dart: this file is sourced by unittest.dart. It defines [TestCase]
  * and assumes unittest defines the type [TestFunction].
  */
 
 /** Summarizes information about a single test case. */
-
-part of unittest;
-
 class TestCase {
   /** Identifier for this test. */
   final int id;

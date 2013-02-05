@@ -1535,9 +1535,20 @@ $lazyInitializerLogic
     if (closureClass == null) {
       // Either the class was not cached yet, or there are optional parameters.
       // Create a new closure class.
-      SourceString name = const SourceString("BoundClosure");
+      String name;
+      if (canBeShared) {
+        if (inInterceptor) {
+          name = 'BoundClosure\$i${parameterCount}';
+        } else {
+          name = 'BoundClosure\$${parameterCount}';
+        }
+      } else {
+        name = 'Bound_${member.name.slowToString()}'
+            '_${member.enclosingElement.name.slowToString()}';
+      }
+
       ClassElement closureClassElement = new ClosureClassElement(
-          name, compiler, member, member.getCompilationUnit());
+          new SourceString(name), compiler, member, member.getCompilationUnit());
       String mangledName = namer.getName(closureClassElement);
       String superName = namer.getName(closureClassElement.superclass);
       needsClosureClass = true;
@@ -1557,26 +1568,25 @@ $lazyInitializerLogic
 
       String invocationName = namer.instanceMethodName(callElement);
 
-      List<js.Parameter> parameters = <js.Parameter>[];
+      List<String> parameters = <String>[];
       List<js.Expression> arguments = <js.Expression>[];
       if (inInterceptor) {
-        arguments.add(new js.This().dot(fieldNames[2]));
+        arguments.add(js.use('this').dot(fieldNames[2]));
       }
       for (int i = 0; i < parameterCount; i++) {
         String name = 'p$i';
-        parameters.add(new js.Parameter(name));
-        arguments.add(new js.VariableUse(name));
+        parameters.add(name);
+        arguments.add(js.use(name));
       }
 
       js.Expression fun =
-          new js.Fun(parameters,
-              new js.Block(
-                  <js.Statement>[
-                      new js.Return(
-                          new js.PropertyAccess(
-                              new js.This().dot(fieldNames[0]),
-                              new js.This().dot(fieldNames[1]))
-                          .callWith(arguments))]));
+          js.fun(parameters,
+              js.block1(
+                  js.return_(
+                      new js.PropertyAccess(
+                          js.use('this').dot(fieldNames[0]),
+                          js.use('this').dot(fieldNames[1]))
+                      .callWith(arguments))));
       boundClosureBuilder.addProperty(invocationName, fun);
 
       addParameterStubs(callElement, boundClosureBuilder.addProperty);
@@ -1604,23 +1614,20 @@ $lazyInitializerLogic
     String getterName = namer.getterName(member);
     String targetName = namer.instanceMethodName(member);
 
-    List<js.Parameter> parameters = <js.Parameter>[];
+    List<String> parameters = <String>[];
     List<js.Expression> arguments = <js.Expression>[];
-    arguments.add(new js.This());
+    arguments.add(js.use('this'));
     arguments.add(js.string(targetName));
     if (inInterceptor) {
-      parameters.add(new js.Parameter(extraArg));
-      arguments.add(new js.VariableUse(extraArg));
+      parameters.add(extraArg);
+      arguments.add(js.use(extraArg));
     }
 
     js.Expression getterFunction =
-        new js.Fun(parameters,
-            new js.Block(
-                <js.Statement>[
-                    new js.Return(
-                        new js.New(
-                            new js.VariableUse(closureClass),
-                            arguments))]));
+        js.fun(parameters,
+            js.block1(
+                js.return_(
+                    new js.New(js.use(closureClass), arguments))));
 
     defineStub(getterName, getterFunction);
   }

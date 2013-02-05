@@ -1765,6 +1765,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assignVariable(variableNames.getName(node.receiver), pop());
   }
 
+  void registerForeignType(HType type) {
+    DartType dartType = type.computeType(compiler);
+    if (dartType == null) {
+      assert(type == HType.UNKNOWN);
+      return;
+    }
+    world.registerInstantiatedClass(dartType.element);
+  }
+
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
@@ -1782,10 +1791,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       push(new js.LiteralExpression.withData(code, data), node);
     }
-    DartType type = types[node].computeType(compiler);
-    if (type != null) {
-      world.registerInstantiatedClass(type.element);
-    }
+    registerForeignType(types[node]);
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
   }
 
@@ -1801,6 +1807,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
     // as if it was a string.
     push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
+    registerForeignType(types[node]);
   }
 
   js.Expression newLiteralBool(bool value) {

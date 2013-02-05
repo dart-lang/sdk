@@ -19,6 +19,7 @@ import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
+/// The Dart HTML library.
 
 // Not actually used, but imported since dart:html can generate these objects.
 
@@ -26,8 +27,14 @@ import 'dart:_foreign_helper' show JS;
 
 
 
+/**
+ * The top-level Window object.
+ */
 Window get window => JS('Window', 'window');
 
+/**
+ * The top-level Document object.
+ */
 HtmlDocument get document => JS('Document', 'document');
 
 Element query(String selector) => document.query(selector);
@@ -61,7 +68,7 @@ spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);
 @DomName('AbstractWorker')
 class AbstractWorker extends EventTarget native "*AbstractWorker" {
 
-  @DomName('AbstractWorker.error')
+  @DomName('AbstractWorker.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
@@ -85,7 +92,7 @@ class AbstractWorker extends EventTarget native "*AbstractWorker" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('AbstractWorker.error')
+  @DomName('AbstractWorker.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 }
@@ -215,35 +222,35 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
 
-  @DomName('DOMApplicationCache.cached')
+  @DomName('DOMApplicationCache.cachedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> cachedEvent = const EventStreamProvider<Event>('cached');
 
-  @DomName('DOMApplicationCache.checking')
+  @DomName('DOMApplicationCache.checkingEvent')
   @DocsEditable
   static const EventStreamProvider<Event> checkingEvent = const EventStreamProvider<Event>('checking');
 
-  @DomName('DOMApplicationCache.downloading')
+  @DomName('DOMApplicationCache.downloadingEvent')
   @DocsEditable
   static const EventStreamProvider<Event> downloadingEvent = const EventStreamProvider<Event>('downloading');
 
-  @DomName('DOMApplicationCache.error')
+  @DomName('DOMApplicationCache.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('DOMApplicationCache.noupdate')
+  @DomName('DOMApplicationCache.noupdateEvent')
   @DocsEditable
   static const EventStreamProvider<Event> noUpdateEvent = const EventStreamProvider<Event>('noupdate');
 
-  @DomName('DOMApplicationCache.obsolete')
+  @DomName('DOMApplicationCache.obsoleteEvent')
   @DocsEditable
   static const EventStreamProvider<Event> obsoleteEvent = const EventStreamProvider<Event>('obsolete');
 
-  @DomName('DOMApplicationCache.progress')
+  @DomName('DOMApplicationCache.progressEvent')
   @DocsEditable
   static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
 
-  @DomName('DOMApplicationCache.updateready')
+  @DomName('DOMApplicationCache.updatereadyEvent')
   @DocsEditable
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
@@ -298,35 +305,35 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
   @DocsEditable
   void update() native;
 
-  @DomName('DOMApplicationCache.cached')
+  @DomName('DOMApplicationCache.oncached')
   @DocsEditable
   Stream<Event> get onCached => cachedEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.checking')
+  @DomName('DOMApplicationCache.onchecking')
   @DocsEditable
   Stream<Event> get onChecking => checkingEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.downloading')
+  @DomName('DOMApplicationCache.ondownloading')
   @DocsEditable
   Stream<Event> get onDownloading => downloadingEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.error')
+  @DomName('DOMApplicationCache.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.noupdate')
+  @DomName('DOMApplicationCache.onnoupdate')
   @DocsEditable
   Stream<Event> get onNoUpdate => noUpdateEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.obsolete')
+  @DomName('DOMApplicationCache.onobsolete')
   @DocsEditable
   Stream<Event> get onObsolete => obsoleteEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.progress')
+  @DomName('DOMApplicationCache.onprogress')
   @DocsEditable
   Stream<Event> get onProgress => progressEvent.forTarget(this);
 
-  @DomName('DOMApplicationCache.updateready')
+  @DomName('DOMApplicationCache.onupdateready')
   @DocsEditable
   Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
 }
@@ -367,6 +374,16 @@ class ApplicationCacheEvents extends Events {
 
 
 @DocsEditable
+/**
+ * DOM Area Element, which links regions of an image map with a hyperlink.
+ *
+ * The element can also define an uninteractive region of the map.
+ *
+ * See also:
+ *
+ * * [<area>](https://developer.mozilla.org/en-US/docs/HTML/Element/area)
+ * on MDN.
+ */
 @DomName('HTMLAreaElement')
 class AreaElement extends Element native "*HTMLAreaElement" {
 
@@ -591,19 +608,19 @@ class BaseElement extends Element native "*HTMLBaseElement" {
 @DomName('BatteryManager')
 class BatteryManager extends EventTarget native "*BatteryManager" {
 
-  @DomName('BatteryManager.chargingchange')
+  @DomName('BatteryManager.chargingchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> chargingChangeEvent = const EventStreamProvider<Event>('chargingchange');
 
-  @DomName('BatteryManager.chargingtimechange')
+  @DomName('BatteryManager.chargingtimechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> chargingTimeChangeEvent = const EventStreamProvider<Event>('chargingtimechange');
 
-  @DomName('BatteryManager.dischargingtimechange')
+  @DomName('BatteryManager.dischargingtimechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> dischargingTimeChangeEvent = const EventStreamProvider<Event>('dischargingtimechange');
 
-  @DomName('BatteryManager.levelchange')
+  @DomName('BatteryManager.levelchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
 
@@ -643,19 +660,19 @@ class BatteryManager extends EventTarget native "*BatteryManager" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('BatteryManager.chargingchange')
+  @DomName('BatteryManager.onchargingchange')
   @DocsEditable
   Stream<Event> get onChargingChange => chargingChangeEvent.forTarget(this);
 
-  @DomName('BatteryManager.chargingtimechange')
+  @DomName('BatteryManager.onchargingtimechange')
   @DocsEditable
   Stream<Event> get onChargingTimeChange => chargingTimeChangeEvent.forTarget(this);
 
-  @DomName('BatteryManager.dischargingtimechange')
+  @DomName('BatteryManager.ondischargingtimechange')
   @DocsEditable
   Stream<Event> get onDischargingTimeChange => dischargingTimeChangeEvent.forTarget(this);
 
-  @DomName('BatteryManager.levelchange')
+  @DomName('BatteryManager.onlevelchange')
   @DocsEditable
   Stream<Event> get onLevelChange => levelChangeEvent.forTarget(this);
 }
@@ -740,55 +757,55 @@ class Blob native "*Blob" {
 @DomName('HTMLBodyElement')
 class BodyElement extends Element native "*HTMLBodyElement" {
 
-  @DomName('HTMLBodyElement.beforeunload')
+  @DomName('HTMLBodyElement.beforeunloadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
 
-  @DomName('HTMLBodyElement.blur')
+  @DomName('HTMLBodyElement.blurEvent')
   @DocsEditable
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
-  @DomName('HTMLBodyElement.error')
+  @DomName('HTMLBodyElement.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('HTMLBodyElement.focus')
+  @DomName('HTMLBodyElement.focusEvent')
   @DocsEditable
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
-  @DomName('HTMLBodyElement.hashchange')
+  @DomName('HTMLBodyElement.hashchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
-  @DomName('HTMLBodyElement.load')
+  @DomName('HTMLBodyElement.loadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
-  @DomName('HTMLBodyElement.message')
+  @DomName('HTMLBodyElement.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DomName('HTMLBodyElement.offline')
+  @DomName('HTMLBodyElement.offlineEvent')
   @DocsEditable
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
-  @DomName('HTMLBodyElement.online')
+  @DomName('HTMLBodyElement.onlineEvent')
   @DocsEditable
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
-  @DomName('HTMLBodyElement.popstate')
+  @DomName('HTMLBodyElement.popstateEvent')
   @DocsEditable
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
-  @DomName('HTMLBodyElement.resize')
+  @DomName('HTMLBodyElement.resizeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  @DomName('HTMLBodyElement.storage')
+  @DomName('HTMLBodyElement.storageEvent')
   @DocsEditable
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
-  @DomName('HTMLBodyElement.unload')
+  @DomName('HTMLBodyElement.unloadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
@@ -802,55 +819,55 @@ class BodyElement extends Element native "*HTMLBodyElement" {
   BodyElementEvents get on =>
     new BodyElementEvents(this);
 
-  @DomName('HTMLBodyElement.beforeunload')
+  @DomName('HTMLBodyElement.onbeforeunload')
   @DocsEditable
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.blur')
+  @DomName('HTMLBodyElement.onblur')
   @DocsEditable
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.error')
+  @DomName('HTMLBodyElement.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.focus')
+  @DomName('HTMLBodyElement.onfocus')
   @DocsEditable
   Stream<Event> get onFocus => focusEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.hashchange')
+  @DomName('HTMLBodyElement.onhashchange')
   @DocsEditable
   Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.load')
+  @DomName('HTMLBodyElement.onload')
   @DocsEditable
   Stream<Event> get onLoad => loadEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.message')
+  @DomName('HTMLBodyElement.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.offline')
+  @DomName('HTMLBodyElement.onoffline')
   @DocsEditable
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.online')
+  @DomName('HTMLBodyElement.ononline')
   @DocsEditable
   Stream<Event> get onOnline => onlineEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.popstate')
+  @DomName('HTMLBodyElement.onpopstate')
   @DocsEditable
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.resize')
+  @DomName('HTMLBodyElement.onresize')
   @DocsEditable
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.storage')
+  @DomName('HTMLBodyElement.onstorage')
   @DocsEditable
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
-  @DomName('HTMLBodyElement.unload')
+  @DomName('HTMLBodyElement.onunload')
   @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
@@ -1761,8 +1778,8 @@ class Console {
       JS('void', 'console.time(#)', title) : null;
 
   @DomName('Console.timeEnd')
-  void timeEnd(String title, Object arg) => _isConsoleDefined ?
-      JS('void', 'console.timeEnd(#, #)', title, arg) : null;
+  void timeEnd(String timerName) => _isConsoleDefined ?
+      JS('void', 'console.timeEnd(#)', timerName) : null;
 
   @DomName('Console.timeStamp')
   void timeStamp(Object arg) => _isConsoleDefined ?
@@ -6062,7 +6079,7 @@ class DatabaseSync native "*DatabaseSync" {
 @DomName('DedicatedWorkerContext')
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
-  @DomName('DedicatedWorkerContext.message')
+  @DomName('DedicatedWorkerContext.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
@@ -6091,7 +6108,7 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   @DocsEditable
   void _postMessage_2(message) native;
 
-  @DomName('DedicatedWorkerContext.message')
+  @DomName('DedicatedWorkerContext.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
@@ -6386,19 +6403,19 @@ class Document extends Node  native "*Document"
 {
 
 
-  @DomName('Document.readystatechange')
+  @DomName('Document.readystatechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
 
-  @DomName('Document.selectionchange')
+  @DomName('Document.selectionchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
 
-  @DomName('Document.webkitpointerlockchange')
+  @DomName('Document.webkitpointerlockchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
-  @DomName('Document.webkitpointerlockerror')
+  @DomName('Document.webkitpointerlockerrorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
@@ -6673,199 +6690,199 @@ class Document extends Node  native "*Document"
   @DocsEditable
   void $dom_webkitExitPointerLock() native;
 
-  @DomName('Document.abort')
+  @DomName('Document.onabort')
   @DocsEditable
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  @DomName('Document.beforecopy')
+  @DomName('Document.onbeforecopy')
   @DocsEditable
   Stream<Event> get onBeforeCopy => Element.beforeCopyEvent.forTarget(this);
 
-  @DomName('Document.beforecut')
+  @DomName('Document.onbeforecut')
   @DocsEditable
   Stream<Event> get onBeforeCut => Element.beforeCutEvent.forTarget(this);
 
-  @DomName('Document.beforepaste')
+  @DomName('Document.onbeforepaste')
   @DocsEditable
   Stream<Event> get onBeforePaste => Element.beforePasteEvent.forTarget(this);
 
-  @DomName('Document.blur')
+  @DomName('Document.onblur')
   @DocsEditable
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  @DomName('Document.change')
+  @DomName('Document.onchange')
   @DocsEditable
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  @DomName('Document.click')
+  @DomName('Document.onclick')
   @DocsEditable
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  @DomName('Document.contextmenu')
+  @DomName('Document.oncontextmenu')
   @DocsEditable
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  @DomName('Document.copy')
+  @DomName('Document.oncopy')
   @DocsEditable
   Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
 
-  @DomName('Document.cut')
+  @DomName('Document.oncut')
   @DocsEditable
   Stream<Event> get onCut => Element.cutEvent.forTarget(this);
 
-  @DomName('Document.dblclick')
+  @DomName('Document.ondblclick')
   @DocsEditable
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
-  @DomName('Document.drag')
+  @DomName('Document.ondrag')
   @DocsEditable
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  @DomName('Document.dragend')
+  @DomName('Document.ondragend')
   @DocsEditable
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  @DomName('Document.dragenter')
+  @DomName('Document.ondragenter')
   @DocsEditable
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  @DomName('Document.dragleave')
+  @DomName('Document.ondragleave')
   @DocsEditable
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  @DomName('Document.dragover')
+  @DomName('Document.ondragover')
   @DocsEditable
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  @DomName('Document.dragstart')
+  @DomName('Document.ondragstart')
   @DocsEditable
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  @DomName('Document.drop')
+  @DomName('Document.ondrop')
   @DocsEditable
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  @DomName('Document.error')
+  @DomName('Document.onerror')
   @DocsEditable
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  @DomName('Document.focus')
+  @DomName('Document.onfocus')
   @DocsEditable
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
-  @DomName('Document.input')
+  @DomName('Document.oninput')
   @DocsEditable
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  @DomName('Document.invalid')
+  @DomName('Document.oninvalid')
   @DocsEditable
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  @DomName('Document.keydown')
+  @DomName('Document.onkeydown')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  @DomName('Document.keypress')
+  @DomName('Document.onkeypress')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  @DomName('Document.keyup')
+  @DomName('Document.onkeyup')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  @DomName('Document.load')
+  @DomName('Document.onload')
   @DocsEditable
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
-  @DomName('Document.mousedown')
+  @DomName('Document.onmousedown')
   @DocsEditable
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  @DomName('Document.mousemove')
+  @DomName('Document.onmousemove')
   @DocsEditable
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  @DomName('Document.mouseout')
+  @DomName('Document.onmouseout')
   @DocsEditable
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  @DomName('Document.mouseover')
+  @DomName('Document.onmouseover')
   @DocsEditable
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  @DomName('Document.mouseup')
+  @DomName('Document.onmouseup')
   @DocsEditable
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  @DomName('Document.mousewheel')
+  @DomName('Document.onmousewheel')
   @DocsEditable
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
-  @DomName('Document.paste')
+  @DomName('Document.onpaste')
   @DocsEditable
   Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
 
-  @DomName('Document.readystatechange')
+  @DomName('Document.onreadystatechange')
   @DocsEditable
   Stream<Event> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
-  @DomName('Document.reset')
+  @DomName('Document.onreset')
   @DocsEditable
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
-  @DomName('Document.scroll')
+  @DomName('Document.onscroll')
   @DocsEditable
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  @DomName('Document.search')
+  @DomName('Document.onsearch')
   @DocsEditable
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  @DomName('Document.select')
+  @DomName('Document.onselect')
   @DocsEditable
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
-  @DomName('Document.selectionchange')
+  @DomName('Document.onselectionchange')
   @DocsEditable
   Stream<Event> get onSelectionChange => selectionChangeEvent.forTarget(this);
 
-  @DomName('Document.selectstart')
+  @DomName('Document.onselectstart')
   @DocsEditable
   Stream<Event> get onSelectStart => Element.selectStartEvent.forTarget(this);
 
-  @DomName('Document.submit')
+  @DomName('Document.onsubmit')
   @DocsEditable
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  @DomName('Document.touchcancel')
+  @DomName('Document.ontouchcancel')
   @DocsEditable
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  @DomName('Document.touchend')
+  @DomName('Document.ontouchend')
   @DocsEditable
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  @DomName('Document.touchmove')
+  @DomName('Document.ontouchmove')
   @DocsEditable
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  @DomName('Document.touchstart')
+  @DomName('Document.ontouchstart')
   @DocsEditable
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
-  @DomName('Document.webkitfullscreenchange')
+  @DomName('Document.onwebkitfullscreenchange')
   @DocsEditable
   Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
-  @DomName('Document.webkitfullscreenerror')
+  @DomName('Document.onwebkitfullscreenerror')
   @DocsEditable
   Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
-  @DomName('Document.webkitpointerlockchange')
+  @DomName('Document.onwebkitpointerlockchange')
   @DocsEditable
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
-  @DomName('Document.webkitpointerlockerror')
+  @DomName('Document.onwebkitpointerlockerror')
   @DocsEditable
   Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
 
@@ -6965,15 +6982,6 @@ class DocumentFragment extends Node native "*DocumentFragment" {
   factory DocumentFragment.svg(String svgContent) =>
       _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
 
-  @deprecated
-  List<Element> get elements => this.children;
-
-  // TODO: The type of value should be Collection<Element>. See http://b/5392897
-  @deprecated
-  void set elements(value) {
-    this.children = value;
-  }
-
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
   @Creates('Null')
@@ -7018,14 +7026,27 @@ class DocumentFragment extends Node native "*DocumentFragment" {
     this.nodes.addAll(nodes);
   }
 
+  /**
+   * Adds the specified element after the last child of this
+   * document fragment.
+   */
   void append(Element element) {
     this.children.add(element);
   }
 
+  /**
+   * Adds the specified text as a text node after the last child of this
+   * document fragment.
+   */
   void appendText(String text) {
     this.nodes.add(new Text(text));
   }
 
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this document fragment.
+   */
   void appendHtml(String text) {
     this.nodes.add(new DocumentFragment.html(text));
   }
@@ -7220,7 +7241,7 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(DomMimeType element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(DomMimeType element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -7474,7 +7495,7 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(DomPlugin element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(DomPlugin element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -7835,7 +7856,7 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(String element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(String element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -8094,7 +8115,7 @@ class _ChildrenElementList implements List {
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Element element)) {
@@ -8311,7 +8332,7 @@ class _FrozenElementList implements List {
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Element element)) {
@@ -8606,27 +8627,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
       attributes[key] = value[key];
     }
   }
-
-  /**
-   * Deprecated, use innerHtml instead.
-   */
-  @deprecated
-  String get innerHTML => this.innerHtml;
-  @deprecated
-  void set innerHTML(String value) {
-    this.innerHtml = value;
-  }
-
-  @deprecated
-  void set elements(Collection<Element> value) {
-    this.children = value;
-  }
-
-  /**
-   * Deprecated, use [children] instead.
-   */
-  @deprecated
-  List<Element> get elements => this.children;
 
   /**
    * List of the direct children of this element.
@@ -8944,191 +8944,191 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   }
 
 
-  @DomName('Element.abort')
+  @DomName('Element.abortEvent')
   @DocsEditable
   static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
 
-  @DomName('Element.beforecopy')
+  @DomName('Element.beforecopyEvent')
   @DocsEditable
   static const EventStreamProvider<Event> beforeCopyEvent = const EventStreamProvider<Event>('beforecopy');
 
-  @DomName('Element.beforecut')
+  @DomName('Element.beforecutEvent')
   @DocsEditable
   static const EventStreamProvider<Event> beforeCutEvent = const EventStreamProvider<Event>('beforecut');
 
-  @DomName('Element.beforepaste')
+  @DomName('Element.beforepasteEvent')
   @DocsEditable
   static const EventStreamProvider<Event> beforePasteEvent = const EventStreamProvider<Event>('beforepaste');
 
-  @DomName('Element.blur')
+  @DomName('Element.blurEvent')
   @DocsEditable
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
-  @DomName('Element.change')
+  @DomName('Element.changeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
-  @DomName('Element.click')
+  @DomName('Element.clickEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
 
-  @DomName('Element.contextmenu')
+  @DomName('Element.contextmenuEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
 
-  @DomName('Element.copy')
+  @DomName('Element.copyEvent')
   @DocsEditable
   static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
 
-  @DomName('Element.cut')
+  @DomName('Element.cutEvent')
   @DocsEditable
   static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
 
-  @DomName('Element.dblclick')
+  @DomName('Element.dblclickEvent')
   @DocsEditable
   static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
 
-  @DomName('Element.drag')
+  @DomName('Element.dragEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
 
-  @DomName('Element.dragend')
+  @DomName('Element.dragendEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
 
-  @DomName('Element.dragenter')
+  @DomName('Element.dragenterEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
 
-  @DomName('Element.dragleave')
+  @DomName('Element.dragleaveEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
 
-  @DomName('Element.dragover')
+  @DomName('Element.dragoverEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
 
-  @DomName('Element.dragstart')
+  @DomName('Element.dragstartEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
 
-  @DomName('Element.drop')
+  @DomName('Element.dropEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
 
-  @DomName('Element.error')
+  @DomName('Element.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('Element.focus')
+  @DomName('Element.focusEvent')
   @DocsEditable
   static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
 
-  @DomName('Element.input')
+  @DomName('Element.inputEvent')
   @DocsEditable
   static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
 
-  @DomName('Element.invalid')
+  @DomName('Element.invalidEvent')
   @DocsEditable
   static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
 
-  @DomName('Element.keydown')
+  @DomName('Element.keydownEvent')
   @DocsEditable
   static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
 
-  @DomName('Element.keypress')
+  @DomName('Element.keypressEvent')
   @DocsEditable
   static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
 
-  @DomName('Element.keyup')
+  @DomName('Element.keyupEvent')
   @DocsEditable
   static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
 
-  @DomName('Element.load')
+  @DomName('Element.loadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
 
-  @DomName('Element.mousedown')
+  @DomName('Element.mousedownEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
 
-  @DomName('Element.mousemove')
+  @DomName('Element.mousemoveEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
 
-  @DomName('Element.mouseout')
+  @DomName('Element.mouseoutEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
 
-  @DomName('Element.mouseover')
+  @DomName('Element.mouseoverEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
 
-  @DomName('Element.mouseup')
+  @DomName('Element.mouseupEvent')
   @DocsEditable
   static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
 
-  @DomName('Element.paste')
+  @DomName('Element.pasteEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
 
-  @DomName('Element.reset')
+  @DomName('Element.resetEvent')
   @DocsEditable
   static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
 
-  @DomName('Element.scroll')
+  @DomName('Element.scrollEvent')
   @DocsEditable
   static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
 
-  @DomName('Element.search')
+  @DomName('Element.searchEvent')
   @DocsEditable
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
-  @DomName('Element.select')
+  @DomName('Element.selectEvent')
   @DocsEditable
   static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
 
-  @DomName('Element.selectstart')
+  @DomName('Element.selectstartEvent')
   @DocsEditable
   static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
 
-  @DomName('Element.submit')
+  @DomName('Element.submitEvent')
   @DocsEditable
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
 
-  @DomName('Element.touchcancel')
+  @DomName('Element.touchcancelEvent')
   @DocsEditable
   static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
 
-  @DomName('Element.touchend')
+  @DomName('Element.touchendEvent')
   @DocsEditable
   static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
 
-  @DomName('Element.touchenter')
+  @DomName('Element.touchenterEvent')
   @DocsEditable
   static const EventStreamProvider<TouchEvent> touchEnterEvent = const EventStreamProvider<TouchEvent>('touchenter');
 
-  @DomName('Element.touchleave')
+  @DomName('Element.touchleaveEvent')
   @DocsEditable
   static const EventStreamProvider<TouchEvent> touchLeaveEvent = const EventStreamProvider<TouchEvent>('touchleave');
 
-  @DomName('Element.touchmove')
+  @DomName('Element.touchmoveEvent')
   @DocsEditable
   static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
 
-  @DomName('Element.touchstart')
+  @DomName('Element.touchstartEvent')
   @DocsEditable
   static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
 
-  @DomName('Element.webkitTransitionEnd')
+  @DomName('Element.webkitTransitionEndEvent')
   @DocsEditable
   static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
-  @DomName('Element.webkitfullscreenchange')
+  @DomName('Element.webkitfullscreenchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
 
-  @DomName('Element.webkitfullscreenerror')
+  @DomName('Element.webkitfullscreenerrorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
@@ -9423,195 +9423,195 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   void webkitRequestPointerLock() native;
 
-  @DomName('Element.abort')
+  @DomName('Element.onabort')
   @DocsEditable
   Stream<Event> get onAbort => abortEvent.forTarget(this);
 
-  @DomName('Element.beforecopy')
+  @DomName('Element.onbeforecopy')
   @DocsEditable
   Stream<Event> get onBeforeCopy => beforeCopyEvent.forTarget(this);
 
-  @DomName('Element.beforecut')
+  @DomName('Element.onbeforecut')
   @DocsEditable
   Stream<Event> get onBeforeCut => beforeCutEvent.forTarget(this);
 
-  @DomName('Element.beforepaste')
+  @DomName('Element.onbeforepaste')
   @DocsEditable
   Stream<Event> get onBeforePaste => beforePasteEvent.forTarget(this);
 
-  @DomName('Element.blur')
+  @DomName('Element.onblur')
   @DocsEditable
   Stream<Event> get onBlur => blurEvent.forTarget(this);
 
-  @DomName('Element.change')
+  @DomName('Element.onchange')
   @DocsEditable
   Stream<Event> get onChange => changeEvent.forTarget(this);
 
-  @DomName('Element.click')
+  @DomName('Element.onclick')
   @DocsEditable
   Stream<MouseEvent> get onClick => clickEvent.forTarget(this);
 
-  @DomName('Element.contextmenu')
+  @DomName('Element.oncontextmenu')
   @DocsEditable
   Stream<MouseEvent> get onContextMenu => contextMenuEvent.forTarget(this);
 
-  @DomName('Element.copy')
+  @DomName('Element.oncopy')
   @DocsEditable
   Stream<Event> get onCopy => copyEvent.forTarget(this);
 
-  @DomName('Element.cut')
+  @DomName('Element.oncut')
   @DocsEditable
   Stream<Event> get onCut => cutEvent.forTarget(this);
 
-  @DomName('Element.dblclick')
+  @DomName('Element.ondblclick')
   @DocsEditable
   Stream<Event> get onDoubleClick => doubleClickEvent.forTarget(this);
 
-  @DomName('Element.drag')
+  @DomName('Element.ondrag')
   @DocsEditable
   Stream<MouseEvent> get onDrag => dragEvent.forTarget(this);
 
-  @DomName('Element.dragend')
+  @DomName('Element.ondragend')
   @DocsEditable
   Stream<MouseEvent> get onDragEnd => dragEndEvent.forTarget(this);
 
-  @DomName('Element.dragenter')
+  @DomName('Element.ondragenter')
   @DocsEditable
   Stream<MouseEvent> get onDragEnter => dragEnterEvent.forTarget(this);
 
-  @DomName('Element.dragleave')
+  @DomName('Element.ondragleave')
   @DocsEditable
   Stream<MouseEvent> get onDragLeave => dragLeaveEvent.forTarget(this);
 
-  @DomName('Element.dragover')
+  @DomName('Element.ondragover')
   @DocsEditable
   Stream<MouseEvent> get onDragOver => dragOverEvent.forTarget(this);
 
-  @DomName('Element.dragstart')
+  @DomName('Element.ondragstart')
   @DocsEditable
   Stream<MouseEvent> get onDragStart => dragStartEvent.forTarget(this);
 
-  @DomName('Element.drop')
+  @DomName('Element.ondrop')
   @DocsEditable
   Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
 
-  @DomName('Element.error')
+  @DomName('Element.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('Element.focus')
+  @DomName('Element.onfocus')
   @DocsEditable
   Stream<Event> get onFocus => focusEvent.forTarget(this);
 
-  @DomName('Element.input')
+  @DomName('Element.oninput')
   @DocsEditable
   Stream<Event> get onInput => inputEvent.forTarget(this);
 
-  @DomName('Element.invalid')
+  @DomName('Element.oninvalid')
   @DocsEditable
   Stream<Event> get onInvalid => invalidEvent.forTarget(this);
 
-  @DomName('Element.keydown')
+  @DomName('Element.onkeydown')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyDown => keyDownEvent.forTarget(this);
 
-  @DomName('Element.keypress')
+  @DomName('Element.onkeypress')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyPress => keyPressEvent.forTarget(this);
 
-  @DomName('Element.keyup')
+  @DomName('Element.onkeyup')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyUp => keyUpEvent.forTarget(this);
 
-  @DomName('Element.load')
+  @DomName('Element.onload')
   @DocsEditable
   Stream<Event> get onLoad => loadEvent.forTarget(this);
 
-  @DomName('Element.mousedown')
+  @DomName('Element.onmousedown')
   @DocsEditable
   Stream<MouseEvent> get onMouseDown => mouseDownEvent.forTarget(this);
 
-  @DomName('Element.mousemove')
+  @DomName('Element.onmousemove')
   @DocsEditable
   Stream<MouseEvent> get onMouseMove => mouseMoveEvent.forTarget(this);
 
-  @DomName('Element.mouseout')
+  @DomName('Element.onmouseout')
   @DocsEditable
   Stream<MouseEvent> get onMouseOut => mouseOutEvent.forTarget(this);
 
-  @DomName('Element.mouseover')
+  @DomName('Element.onmouseover')
   @DocsEditable
   Stream<MouseEvent> get onMouseOver => mouseOverEvent.forTarget(this);
 
-  @DomName('Element.mouseup')
+  @DomName('Element.onmouseup')
   @DocsEditable
   Stream<MouseEvent> get onMouseUp => mouseUpEvent.forTarget(this);
 
-  @DomName('Element.mousewheel')
+  @DomName('Element.onmousewheel')
   @DocsEditable
   Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
 
-  @DomName('Element.paste')
+  @DomName('Element.onpaste')
   @DocsEditable
   Stream<Event> get onPaste => pasteEvent.forTarget(this);
 
-  @DomName('Element.reset')
+  @DomName('Element.onreset')
   @DocsEditable
   Stream<Event> get onReset => resetEvent.forTarget(this);
 
-  @DomName('Element.scroll')
+  @DomName('Element.onscroll')
   @DocsEditable
   Stream<Event> get onScroll => scrollEvent.forTarget(this);
 
-  @DomName('Element.search')
+  @DomName('Element.onsearch')
   @DocsEditable
   Stream<Event> get onSearch => searchEvent.forTarget(this);
 
-  @DomName('Element.select')
+  @DomName('Element.onselect')
   @DocsEditable
   Stream<Event> get onSelect => selectEvent.forTarget(this);
 
-  @DomName('Element.selectstart')
+  @DomName('Element.onselectstart')
   @DocsEditable
   Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
 
-  @DomName('Element.submit')
+  @DomName('Element.onsubmit')
   @DocsEditable
   Stream<Event> get onSubmit => submitEvent.forTarget(this);
 
-  @DomName('Element.touchcancel')
+  @DomName('Element.ontouchcancel')
   @DocsEditable
   Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
 
-  @DomName('Element.touchend')
+  @DomName('Element.ontouchend')
   @DocsEditable
   Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
 
-  @DomName('Element.touchenter')
+  @DomName('Element.ontouchenter')
   @DocsEditable
   Stream<TouchEvent> get onTouchEnter => touchEnterEvent.forTarget(this);
 
-  @DomName('Element.touchleave')
+  @DomName('Element.ontouchleave')
   @DocsEditable
   Stream<TouchEvent> get onTouchLeave => touchLeaveEvent.forTarget(this);
 
-  @DomName('Element.touchmove')
+  @DomName('Element.ontouchmove')
   @DocsEditable
   Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
 
-  @DomName('Element.touchstart')
+  @DomName('Element.ontouchstart')
   @DocsEditable
   Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
 
-  @DomName('Element.webkitTransitionEnd')
+  @DomName('Element.onwebkitTransitionEnd')
   @DocsEditable
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
-  @DomName('Element.webkitfullscreenchange')
+  @DomName('Element.onwebkitfullscreenchange')
   @DocsEditable
   Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
 
-  @DomName('Element.webkitfullscreenerror')
+  @DomName('Element.onwebkitfullscreenerror')
   @DocsEditable
   Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
 
@@ -9747,7 +9747,8 @@ class _ElementFactoryProvider {
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   static dynamic createElement_tag(String tag) =>
-      JS('Element', 'document.createElement(#)', tag);
+      // Firefox may return a JS function for some types (Embed, Object).
+      JS('Element|=Object', 'document.createElement(#)', tag);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10331,15 +10332,15 @@ class EventException native "*EventException" {
 @DomName('EventSource')
 class EventSource extends EventTarget native "*EventSource" {
 
-  @DomName('EventSource.error')
+  @DomName('EventSource.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('EventSource.message')
+  @DomName('EventSource.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DomName('EventSource.open')
+  @DomName('EventSource.openEvent')
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
@@ -10396,15 +10397,15 @@ class EventSource extends EventTarget native "*EventSource" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('EventSource.error')
+  @DomName('EventSource.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('EventSource.message')
+  @DomName('EventSource.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DomName('EventSource.open')
+  @DomName('EventSource.onopen')
   @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
 }
@@ -10776,7 +10777,7 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(File element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(File element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -10940,27 +10941,27 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 @DomName('FileReader')
 class FileReader extends EventTarget native "*FileReader" {
 
-  @DomName('FileReader.abort')
+  @DomName('FileReader.abortEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
-  @DomName('FileReader.error')
+  @DomName('FileReader.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('FileReader.load')
+  @DomName('FileReader.loadEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
-  @DomName('FileReader.loadend')
+  @DomName('FileReader.loadendEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
-  @DomName('FileReader.loadstart')
+  @DomName('FileReader.loadstartEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
-  @DomName('FileReader.progress')
+  @DomName('FileReader.progressEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
@@ -11031,27 +11032,27 @@ class FileReader extends EventTarget native "*FileReader" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('FileReader.abort')
+  @DomName('FileReader.onabort')
   @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
-  @DomName('FileReader.error')
+  @DomName('FileReader.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('FileReader.load')
+  @DomName('FileReader.onload')
   @DocsEditable
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
-  @DomName('FileReader.loadend')
+  @DomName('FileReader.onloadend')
   @DocsEditable
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
-  @DomName('FileReader.loadstart')
+  @DomName('FileReader.onloadstart')
   @DocsEditable
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
-  @DomName('FileReader.progress')
+  @DomName('FileReader.onprogress')
   @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
@@ -11167,27 +11168,27 @@ class FileSystemSync native "*DOMFileSystemSync" {
 @DomName('FileWriter')
 class FileWriter extends EventTarget native "*FileWriter" {
 
-  @DomName('FileWriter.abort')
+  @DomName('FileWriter.abortEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
-  @DomName('FileWriter.error')
+  @DomName('FileWriter.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('FileWriter.progress')
+  @DomName('FileWriter.progressEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  @DomName('FileWriter.write')
+  @DomName('FileWriter.writeEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeEvent = const EventStreamProvider<ProgressEvent>('write');
 
-  @DomName('FileWriter.writeend')
+  @DomName('FileWriter.writeendEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeEndEvent = const EventStreamProvider<ProgressEvent>('writeend');
 
-  @DomName('FileWriter.writestart')
+  @DomName('FileWriter.writestartEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
@@ -11249,27 +11250,27 @@ class FileWriter extends EventTarget native "*FileWriter" {
   @DocsEditable
   void write(Blob data) native;
 
-  @DomName('FileWriter.abort')
+  @DomName('FileWriter.onabort')
   @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
-  @DomName('FileWriter.error')
+  @DomName('FileWriter.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('FileWriter.progress')
+  @DomName('FileWriter.onprogress')
   @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
-  @DomName('FileWriter.write')
+  @DomName('FileWriter.onwrite')
   @DocsEditable
   Stream<ProgressEvent> get onWrite => writeEvent.forTarget(this);
 
-  @DomName('FileWriter.writeend')
+  @DomName('FileWriter.onwriteend')
   @DocsEditable
   Stream<ProgressEvent> get onWriteEnd => writeEndEvent.forTarget(this);
 
-  @DomName('FileWriter.writestart')
+  @DomName('FileWriter.onwritestart')
   @DocsEditable
   Stream<ProgressEvent> get onWriteStart => writeStartEvent.forTarget(this);
 }
@@ -11391,7 +11392,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(num element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(num element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -11607,7 +11608,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(num element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(num element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -12122,7 +12123,7 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Node element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -12329,7 +12330,7 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Node element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -12777,38 +12778,31 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   }
 
 
-  /**
-   * Stop the current request.
-   *
-   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
-   * `LOADING`. If this method is not in the process of being sent, the method
-   * has no effect.
-   */
-  @DomName('XMLHttpRequest.abort')
+  @DomName('XMLHttpRequest.abortEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
-  @DomName('XMLHttpRequest.error')
+  @DomName('XMLHttpRequest.errorEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
 
-  @DomName('XMLHttpRequest.load')
+  @DomName('XMLHttpRequest.loadEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
-  @DomName('XMLHttpRequest.loadend')
+  @DomName('XMLHttpRequest.loadendEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
-  @DomName('XMLHttpRequest.loadstart')
+  @DomName('XMLHttpRequest.loadstartEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
-  @DomName('XMLHttpRequest.progress')
+  @DomName('XMLHttpRequest.progressEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  @DomName('XMLHttpRequest.readystatechange')
+  @DomName('XMLHttpRequest.readystatechangeEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
 
@@ -13054,37 +13048,61 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   void setRequestHeader(String header, String value) native;
 
   /**
-   * Stop the current request.
-   *
-   * The request can only be stopped if readyState is `HEADERS_RECIEVED` or
-   * `LOADING`. If this method is not in the process of being sent, the method
-   * has no effect.
+   * Event listeners to be notified when request has been aborted,
+   * generally due to calling `httpRequest.abort()`.
    */
-  @DomName('XMLHttpRequest.abort')
+  @DomName('XMLHttpRequest.onabort')
   @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
-  @DomName('XMLHttpRequest.error')
+  /**
+   * Event listeners to be notified when a request has failed, such as when a
+   * cross-domain error occurred or the file wasn't found on the server.
+   */
+  @DomName('XMLHttpRequest.onerror')
   @DocsEditable
   Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
 
-  @DomName('XMLHttpRequest.load')
+  /**
+   * Event listeners to be notified once the request has completed
+   * *successfully*.
+   */
+  @DomName('XMLHttpRequest.onload')
   @DocsEditable
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
-  @DomName('XMLHttpRequest.loadend')
+  /**
+   * Event listeners to be notified once the request has completed (on
+   * either success or failure).
+   */
+  @DomName('XMLHttpRequest.onloadend')
   @DocsEditable
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
-  @DomName('XMLHttpRequest.loadstart')
+  /**
+   * Event listeners to be notified when the request starts, once
+   * `httpRequest.send()` has been called.
+   */
+  @DomName('XMLHttpRequest.onloadstart')
   @DocsEditable
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
-  @DomName('XMLHttpRequest.progress')
+  /**
+   * Event listeners to be notified when data for the request
+   * is being sent or loaded.
+   *
+   * Progress events are fired every 50ms or for every byte transmitted,
+   * whichever is less frequent.
+   */
+  @DomName('XMLHttpRequest.onprogress')
   @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
-  @DomName('XMLHttpRequest.readystatechange')
+  /**
+   * Event listeners to be notified every time the [HttpRequest]
+   * object's `readyState` changes values.
+   */
+  @DomName('XMLHttpRequest.onreadystatechange')
   @DocsEditable
   Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
@@ -13178,27 +13196,27 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
 @DomName('XMLHttpRequestUpload')
 class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
 
-  @DomName('XMLHttpRequestUpload.abort')
+  @DomName('XMLHttpRequestUpload.abortEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> abortEvent = const EventStreamProvider<ProgressEvent>('abort');
 
-  @DomName('XMLHttpRequestUpload.error')
+  @DomName('XMLHttpRequestUpload.errorEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> errorEvent = const EventStreamProvider<ProgressEvent>('error');
 
-  @DomName('XMLHttpRequestUpload.load')
+  @DomName('XMLHttpRequestUpload.loadEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEvent = const EventStreamProvider<ProgressEvent>('load');
 
-  @DomName('XMLHttpRequestUpload.loadend')
+  @DomName('XMLHttpRequestUpload.loadendEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadEndEvent = const EventStreamProvider<ProgressEvent>('loadend');
 
-  @DomName('XMLHttpRequestUpload.loadstart')
+  @DomName('XMLHttpRequestUpload.loadstartEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> loadStartEvent = const EventStreamProvider<ProgressEvent>('loadstart');
 
-  @DomName('XMLHttpRequestUpload.progress')
+  @DomName('XMLHttpRequestUpload.progressEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
@@ -13222,27 +13240,27 @@ class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('XMLHttpRequestUpload.abort')
+  @DomName('XMLHttpRequestUpload.onabort')
   @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
-  @DomName('XMLHttpRequestUpload.error')
+  @DomName('XMLHttpRequestUpload.onerror')
   @DocsEditable
   Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
 
-  @DomName('XMLHttpRequestUpload.load')
+  @DomName('XMLHttpRequestUpload.onload')
   @DocsEditable
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
-  @DomName('XMLHttpRequestUpload.loadend')
+  @DomName('XMLHttpRequestUpload.onloadend')
   @DocsEditable
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
-  @DomName('XMLHttpRequestUpload.loadstart')
+  @DomName('XMLHttpRequestUpload.onloadstart')
   @DocsEditable
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
-  @DomName('XMLHttpRequestUpload.progress')
+  @DomName('XMLHttpRequestUpload.onprogress')
   @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 }
@@ -13455,7 +13473,7 @@ class InputElement extends Element implements
     return e;
   }
 
-  @DomName('HTMLInputElement.webkitSpeechChange')
+  @DomName('HTMLInputElement.webkitSpeechChangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
@@ -13695,7 +13713,7 @@ class InputElement extends Element implements
   @DocsEditable
   void stepUp([int n]) native;
 
-  @DomName('HTMLInputElement.webkitSpeechChange')
+  @DomName('HTMLInputElement.onwebkitSpeechChange')
   @DocsEditable
   Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
 
@@ -14348,7 +14366,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -14564,7 +14582,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -14780,7 +14798,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -15458,103 +15476,103 @@ class MediaController extends EventTarget native "*MediaController" {
 @DomName('HTMLMediaElement')
 class MediaElement extends Element native "*HTMLMediaElement" {
 
-  @DomName('HTMLMediaElement.canplay')
+  @DomName('HTMLMediaElement.canplayEvent')
   @DocsEditable
   static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
 
-  @DomName('HTMLMediaElement.canplaythrough')
+  @DomName('HTMLMediaElement.canplaythroughEvent')
   @DocsEditable
   static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
 
-  @DomName('HTMLMediaElement.durationchange')
+  @DomName('HTMLMediaElement.durationchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
 
-  @DomName('HTMLMediaElement.emptied')
+  @DomName('HTMLMediaElement.emptiedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
 
-  @DomName('HTMLMediaElement.ended')
+  @DomName('HTMLMediaElement.endedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DomName('HTMLMediaElement.loadeddata')
+  @DomName('HTMLMediaElement.loadeddataEvent')
   @DocsEditable
   static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
 
-  @DomName('HTMLMediaElement.loadedmetadata')
+  @DomName('HTMLMediaElement.loadedmetadataEvent')
   @DocsEditable
   static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
 
-  @DomName('HTMLMediaElement.loadstart')
+  @DomName('HTMLMediaElement.loadstartEvent')
   @DocsEditable
   static const EventStreamProvider<Event> loadStartEvent = const EventStreamProvider<Event>('loadstart');
 
-  @DomName('HTMLMediaElement.pause')
+  @DomName('HTMLMediaElement.pauseEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
 
-  @DomName('HTMLMediaElement.play')
+  @DomName('HTMLMediaElement.playEvent')
   @DocsEditable
   static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
 
-  @DomName('HTMLMediaElement.playing')
+  @DomName('HTMLMediaElement.playingEvent')
   @DocsEditable
   static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
 
-  @DomName('HTMLMediaElement.progress')
+  @DomName('HTMLMediaElement.progressEvent')
   @DocsEditable
   static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
 
-  @DomName('HTMLMediaElement.ratechange')
+  @DomName('HTMLMediaElement.ratechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
 
-  @DomName('HTMLMediaElement.seeked')
+  @DomName('HTMLMediaElement.seekedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
 
-  @DomName('HTMLMediaElement.seeking')
+  @DomName('HTMLMediaElement.seekingEvent')
   @DocsEditable
   static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
 
-  @DomName('HTMLMediaElement.show')
+  @DomName('HTMLMediaElement.showEvent')
   @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
-  @DomName('HTMLMediaElement.stalled')
+  @DomName('HTMLMediaElement.stalledEvent')
   @DocsEditable
   static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
 
-  @DomName('HTMLMediaElement.suspend')
+  @DomName('HTMLMediaElement.suspendEvent')
   @DocsEditable
   static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
 
-  @DomName('HTMLMediaElement.timeupdate')
+  @DomName('HTMLMediaElement.timeupdateEvent')
   @DocsEditable
   static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
 
-  @DomName('HTMLMediaElement.volumechange')
+  @DomName('HTMLMediaElement.volumechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
 
-  @DomName('HTMLMediaElement.waiting')
+  @DomName('HTMLMediaElement.waitingEvent')
   @DocsEditable
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
-  @DomName('HTMLMediaElement.webkitkeyadded')
+  @DomName('HTMLMediaElement.webkitkeyaddedEvent')
   @DocsEditable
   static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
 
-  @DomName('HTMLMediaElement.webkitkeyerror')
+  @DomName('HTMLMediaElement.webkitkeyerrorEvent')
   @DocsEditable
   static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
 
-  @DomName('HTMLMediaElement.webkitkeymessage')
+  @DomName('HTMLMediaElement.webkitkeymessageEvent')
   @DocsEditable
   static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
 
-  @DomName('HTMLMediaElement.webkitneedkey')
+  @DomName('HTMLMediaElement.webkitneedkeyEvent')
   @DocsEditable
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
@@ -15742,103 +15760,103 @@ class MediaElement extends Element native "*HTMLMediaElement" {
   @DocsEditable
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]) native;
 
-  @DomName('HTMLMediaElement.canplay')
+  @DomName('HTMLMediaElement.oncanplay')
   @DocsEditable
   Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.canplaythrough')
+  @DomName('HTMLMediaElement.oncanplaythrough')
   @DocsEditable
   Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.durationchange')
+  @DomName('HTMLMediaElement.ondurationchange')
   @DocsEditable
   Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.emptied')
+  @DomName('HTMLMediaElement.onemptied')
   @DocsEditable
   Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.ended')
+  @DomName('HTMLMediaElement.onended')
   @DocsEditable
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.loadeddata')
+  @DomName('HTMLMediaElement.onloadeddata')
   @DocsEditable
   Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.loadedmetadata')
+  @DomName('HTMLMediaElement.onloadedmetadata')
   @DocsEditable
   Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.loadstart')
+  @DomName('HTMLMediaElement.onloadstart')
   @DocsEditable
   Stream<Event> get onLoadStart => loadStartEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.pause')
+  @DomName('HTMLMediaElement.onpause')
   @DocsEditable
   Stream<Event> get onPause => pauseEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.play')
+  @DomName('HTMLMediaElement.onplay')
   @DocsEditable
   Stream<Event> get onPlay => playEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.playing')
+  @DomName('HTMLMediaElement.onplaying')
   @DocsEditable
   Stream<Event> get onPlaying => playingEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.progress')
+  @DomName('HTMLMediaElement.onprogress')
   @DocsEditable
   Stream<Event> get onProgress => progressEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.ratechange')
+  @DomName('HTMLMediaElement.onratechange')
   @DocsEditable
   Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.seeked')
+  @DomName('HTMLMediaElement.onseeked')
   @DocsEditable
   Stream<Event> get onSeeked => seekedEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.seeking')
+  @DomName('HTMLMediaElement.onseeking')
   @DocsEditable
   Stream<Event> get onSeeking => seekingEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.show')
+  @DomName('HTMLMediaElement.onshow')
   @DocsEditable
   Stream<Event> get onShow => showEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.stalled')
+  @DomName('HTMLMediaElement.onstalled')
   @DocsEditable
   Stream<Event> get onStalled => stalledEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.suspend')
+  @DomName('HTMLMediaElement.onsuspend')
   @DocsEditable
   Stream<Event> get onSuspend => suspendEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.timeupdate')
+  @DomName('HTMLMediaElement.ontimeupdate')
   @DocsEditable
   Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.volumechange')
+  @DomName('HTMLMediaElement.onvolumechange')
   @DocsEditable
   Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.waiting')
+  @DomName('HTMLMediaElement.onwaiting')
   @DocsEditable
   Stream<Event> get onWaiting => waitingEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.webkitkeyadded')
+  @DomName('HTMLMediaElement.onwebkitkeyadded')
   @DocsEditable
   Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.webkitkeyerror')
+  @DomName('HTMLMediaElement.onwebkitkeyerror')
   @DocsEditable
   Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.webkitkeymessage')
+  @DomName('HTMLMediaElement.onwebkitkeymessage')
   @DocsEditable
   Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
 
-  @DomName('HTMLMediaElement.webkitneedkey')
+  @DomName('HTMLMediaElement.onwebkitneedkey')
   @DocsEditable
   Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 }
@@ -16141,7 +16159,7 @@ class MediaSource extends EventTarget native "*MediaSource" {
 
 class MediaStream extends EventTarget native "*MediaStream" {
 
-  @DomName('MediaStream.ended')
+  @DomName('MediaStream.endedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
@@ -16215,7 +16233,7 @@ class MediaStream extends EventTarget native "*MediaStream" {
   @DocsEditable
   void removeTrack(MediaStreamTrack track) native;
 
-  @DomName('MediaStream.ended')
+  @DomName('MediaStream.onended')
   @DocsEditable
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
@@ -16276,15 +16294,15 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 @DomName('MediaStreamTrack')
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
-  @DomName('MediaStreamTrack.ended')
+  @DomName('MediaStreamTrack.endedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
-  @DomName('MediaStreamTrack.mute')
+  @DomName('MediaStreamTrack.muteEvent')
   @DocsEditable
   static const EventStreamProvider<Event> muteEvent = const EventStreamProvider<Event>('mute');
 
-  @DomName('MediaStreamTrack.unmute')
+  @DomName('MediaStreamTrack.unmuteEvent')
   @DocsEditable
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
@@ -16328,15 +16346,15 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('MediaStreamTrack.ended')
+  @DomName('MediaStreamTrack.onended')
   @DocsEditable
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 
-  @DomName('MediaStreamTrack.mute')
+  @DomName('MediaStreamTrack.onmute')
   @DocsEditable
   Stream<Event> get onMute => muteEvent.forTarget(this);
 
-  @DomName('MediaStreamTrack.unmute')
+  @DomName('MediaStreamTrack.onunmute')
   @DocsEditable
   Stream<Event> get onUnmute => unmuteEvent.forTarget(this);
 }
@@ -16399,6 +16417,16 @@ class MemoryInfo native "*MemoryInfo" {
 
 
 @DocsEditable
+/**
+ * An HTML <menu> element.
+ *
+ * A <menu> element represents an unordered list of menu commands.
+ *
+ * See also:
+ *
+ *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
+ *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
+ */
 @DomName('HTMLMenuElement')
 class MenuElement extends Element native "*HTMLMenuElement" {
 
@@ -16496,7 +16524,7 @@ class MessageEvent extends Event native "*MessageEvent" {
 @DomName('MessagePort')
 class MessagePort extends EventTarget native "*MessagePort" {
 
-  @DomName('MessagePort.message')
+  @DomName('MessagePort.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
@@ -16547,7 +16575,7 @@ class MessagePort extends EventTarget native "*MessagePort" {
   @DocsEditable
   void start() native;
 
-  @DomName('MessagePort.message')
+  @DomName('MessagePort.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
@@ -16779,6 +16807,15 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   void _$dom_initMouseEvent_1(type, canBubble, cancelable, Window view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
 
 
+  // TODO(amouravski): Move this documentation out of thise template files and
+  // put it into docs.json. Remember to add @DomName here.
+  /**
+   * The X coordinate of the mouse pointer in target node coordinates.
+   *
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
   int get offsetX {
   if (JS('bool', '!!#.offsetX', this)) {
       return JS('int', '#.offsetX', this);
@@ -16793,6 +16830,13 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
     }
   }
 
+  /**
+   * The Y coordinate of the mouse pointer in target node coordinates.
+   *
+   * This value may vary between platforms if the target node moves
+   * after the event has fired or if the element has CSS transforms affecting
+   * it.
+   */
   int get offsetY {
     if (JS('bool', '!!#.offsetY', this)) {
       return JS('int', '#.offsetY', this);
@@ -17069,7 +17113,7 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Node element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -17539,7 +17583,7 @@ class _ChildNodeListLazy implements List {
   }
 
   Iterable map(f(Node element)) {
-    return IterableMixinWorkaround.map(this, f);
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   List mappedBy(f(Node element)) {
@@ -17931,7 +17975,7 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Node element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -18113,23 +18157,23 @@ class Notation extends Node native "*Notation" {
 @DomName('Notification')
 class Notification extends EventTarget native "*Notification" {
 
-  @DomName('Notification.click')
+  @DomName('Notification.clickEvent')
   @DocsEditable
   static const EventStreamProvider<Event> clickEvent = const EventStreamProvider<Event>('click');
 
-  @DomName('Notification.close')
+  @DomName('Notification.closeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
-  @DomName('Notification.display')
+  @DomName('Notification.displayEvent')
   @DocsEditable
   static const EventStreamProvider<Event> displayEvent = const EventStreamProvider<Event>('display');
 
-  @DomName('Notification.error')
+  @DomName('Notification.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('Notification.show')
+  @DomName('Notification.showEvent')
   @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
@@ -18196,23 +18240,23 @@ class Notification extends EventTarget native "*Notification" {
   @DocsEditable
   void show() native;
 
-  @DomName('Notification.click')
+  @DomName('Notification.onclick')
   @DocsEditable
   Stream<Event> get onClick => clickEvent.forTarget(this);
 
-  @DomName('Notification.close')
+  @DomName('Notification.onclose')
   @DocsEditable
   Stream<Event> get onClose => closeEvent.forTarget(this);
 
-  @DomName('Notification.display')
+  @DomName('Notification.ondisplay')
   @DocsEditable
   Stream<Event> get onDisplay => displayEvent.forTarget(this);
 
-  @DomName('Notification.error')
+  @DomName('Notification.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('Notification.show')
+  @DomName('Notification.onshow')
   @DocsEditable
   Stream<Event> get onShow => showEvent.forTarget(this);
 }
@@ -18311,7 +18355,7 @@ class OListElement extends Element native "*HTMLOListElement" {
 @DocsEditable
 @DomName('HTMLObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends Element native "*HTMLObjectElement" {
 
@@ -19286,19 +19330,19 @@ class RgbColor native "*RGBColor" {
 @DomName('RTCDataChannel')
 class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
-  @DomName('RTCDataChannel.close')
+  @DomName('RTCDataChannel.closeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
-  @DomName('RTCDataChannel.error')
+  @DomName('RTCDataChannel.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('RTCDataChannel.message')
+  @DomName('RTCDataChannel.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DomName('RTCDataChannel.open')
+  @DomName('RTCDataChannel.openEvent')
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
@@ -19350,19 +19394,19 @@ class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
   @DocsEditable
   void send(data) native;
 
-  @DomName('RTCDataChannel.close')
+  @DomName('RTCDataChannel.onclose')
   @DocsEditable
   Stream<Event> get onClose => closeEvent.forTarget(this);
 
-  @DomName('RTCDataChannel.error')
+  @DomName('RTCDataChannel.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('RTCDataChannel.message')
+  @DomName('RTCDataChannel.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DomName('RTCDataChannel.open')
+  @DomName('RTCDataChannel.onopen')
   @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
 }
@@ -19448,31 +19492,31 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 @DomName('RTCPeerConnection')
 class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 
-  @DomName('RTCPeerConnection.addstream')
+  @DomName('RTCPeerConnection.addstreamEvent')
   @DocsEditable
   static const EventStreamProvider<MediaStreamEvent> addStreamEvent = const EventStreamProvider<MediaStreamEvent>('addstream');
 
-  @DomName('RTCPeerConnection.datachannel')
+  @DomName('RTCPeerConnection.datachannelEvent')
   @DocsEditable
   static const EventStreamProvider<RtcDataChannelEvent> dataChannelEvent = const EventStreamProvider<RtcDataChannelEvent>('datachannel');
 
-  @DomName('RTCPeerConnection.icecandidate')
+  @DomName('RTCPeerConnection.icecandidateEvent')
   @DocsEditable
   static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
 
-  @DomName('RTCPeerConnection.icechange')
+  @DomName('RTCPeerConnection.icechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> iceChangeEvent = const EventStreamProvider<Event>('icechange');
 
-  @DomName('RTCPeerConnection.negotiationneeded')
+  @DomName('RTCPeerConnection.negotiationneededEvent')
   @DocsEditable
   static const EventStreamProvider<Event> negotiationNeededEvent = const EventStreamProvider<Event>('negotiationneeded');
 
-  @DomName('RTCPeerConnection.removestream')
+  @DomName('RTCPeerConnection.removestreamEvent')
   @DocsEditable
   static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
 
-  @DomName('RTCPeerConnection.statechange')
+  @DomName('RTCPeerConnection.statechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
@@ -19665,31 +19709,31 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void _updateIce_3() native;
 
-  @DomName('RTCPeerConnection.addstream')
+  @DomName('RTCPeerConnection.onaddstream')
   @DocsEditable
   Stream<MediaStreamEvent> get onAddStream => addStreamEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.datachannel')
+  @DomName('RTCPeerConnection.ondatachannel')
   @DocsEditable
   Stream<RtcDataChannelEvent> get onDataChannel => dataChannelEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.icecandidate')
+  @DomName('RTCPeerConnection.onicecandidate')
   @DocsEditable
   Stream<RtcIceCandidateEvent> get onIceCandidate => iceCandidateEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.icechange')
+  @DomName('RTCPeerConnection.onicechange')
   @DocsEditable
   Stream<Event> get onIceChange => iceChangeEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.negotiationneeded')
+  @DomName('RTCPeerConnection.onnegotiationneeded')
   @DocsEditable
   Stream<Event> get onNegotiationNeeded => negotiationNeededEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.removestream')
+  @DomName('RTCPeerConnection.onremovestream')
   @DocsEditable
   Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.statechange')
+  @DomName('RTCPeerConnection.onstatechange')
   @DocsEditable
   Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
 }
@@ -20219,7 +20263,7 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 @DomName('SharedWorkerContext')
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
 
-  @DomName('SharedWorkerContext.connect')
+  @DomName('SharedWorkerContext.connectEvent')
   @DocsEditable
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
@@ -20233,7 +20277,7 @@ class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
   @DocsEditable
   final String name;
 
-  @DomName('SharedWorkerContext.connect')
+  @DomName('SharedWorkerContext.onconnect')
   @DocsEditable
   Stream<Event> get onConnect => connectEvent.forTarget(this);
 }
@@ -20314,7 +20358,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SourceBuffer element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(SourceBuffer element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -20594,7 +20638,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SpeechGrammar element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(SpeechGrammar element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -20799,47 +20843,47 @@ class SpeechInputResult native "*SpeechInputResult" {
 @Experimental
 class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 
-  @DomName('SpeechRecognition.audioend')
+  @DomName('SpeechRecognition.audioendEvent')
   @DocsEditable
   static const EventStreamProvider<Event> audioEndEvent = const EventStreamProvider<Event>('audioend');
 
-  @DomName('SpeechRecognition.audiostart')
+  @DomName('SpeechRecognition.audiostartEvent')
   @DocsEditable
   static const EventStreamProvider<Event> audioStartEvent = const EventStreamProvider<Event>('audiostart');
 
-  @DomName('SpeechRecognition.end')
+  @DomName('SpeechRecognition.endEvent')
   @DocsEditable
   static const EventStreamProvider<Event> endEvent = const EventStreamProvider<Event>('end');
 
-  @DomName('SpeechRecognition.error')
+  @DomName('SpeechRecognition.errorEvent')
   @DocsEditable
   static const EventStreamProvider<SpeechRecognitionError> errorEvent = const EventStreamProvider<SpeechRecognitionError>('error');
 
-  @DomName('SpeechRecognition.nomatch')
+  @DomName('SpeechRecognition.nomatchEvent')
   @DocsEditable
   static const EventStreamProvider<SpeechRecognitionEvent> noMatchEvent = const EventStreamProvider<SpeechRecognitionEvent>('nomatch');
 
-  @DomName('SpeechRecognition.result')
+  @DomName('SpeechRecognition.resultEvent')
   @DocsEditable
   static const EventStreamProvider<SpeechRecognitionEvent> resultEvent = const EventStreamProvider<SpeechRecognitionEvent>('result');
 
-  @DomName('SpeechRecognition.soundend')
+  @DomName('SpeechRecognition.soundendEvent')
   @DocsEditable
   static const EventStreamProvider<Event> soundEndEvent = const EventStreamProvider<Event>('soundend');
 
-  @DomName('SpeechRecognition.soundstart')
+  @DomName('SpeechRecognition.soundstartEvent')
   @DocsEditable
   static const EventStreamProvider<Event> soundStartEvent = const EventStreamProvider<Event>('soundstart');
 
-  @DomName('SpeechRecognition.speechend')
+  @DomName('SpeechRecognition.speechendEvent')
   @DocsEditable
   static const EventStreamProvider<Event> speechEndEvent = const EventStreamProvider<Event>('speechend');
 
-  @DomName('SpeechRecognition.speechstart')
+  @DomName('SpeechRecognition.speechstartEvent')
   @DocsEditable
   static const EventStreamProvider<Event> speechStartEvent = const EventStreamProvider<Event>('speechstart');
 
-  @DomName('SpeechRecognition.start')
+  @DomName('SpeechRecognition.startEvent')
   @DocsEditable
   static const EventStreamProvider<Event> startEvent = const EventStreamProvider<Event>('start');
 
@@ -20898,47 +20942,47 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
   @DocsEditable
   void stop() native;
 
-  @DomName('SpeechRecognition.audioend')
+  @DomName('SpeechRecognition.onaudioend')
   @DocsEditable
   Stream<Event> get onAudioEnd => audioEndEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.audiostart')
+  @DomName('SpeechRecognition.onaudiostart')
   @DocsEditable
   Stream<Event> get onAudioStart => audioStartEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.end')
+  @DomName('SpeechRecognition.onend')
   @DocsEditable
   Stream<Event> get onEnd => endEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.error')
+  @DomName('SpeechRecognition.onerror')
   @DocsEditable
   Stream<SpeechRecognitionError> get onError => errorEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.nomatch')
+  @DomName('SpeechRecognition.onnomatch')
   @DocsEditable
   Stream<SpeechRecognitionEvent> get onNoMatch => noMatchEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.result')
+  @DomName('SpeechRecognition.onresult')
   @DocsEditable
   Stream<SpeechRecognitionEvent> get onResult => resultEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.soundend')
+  @DomName('SpeechRecognition.onsoundend')
   @DocsEditable
   Stream<Event> get onSoundEnd => soundEndEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.soundstart')
+  @DomName('SpeechRecognition.onsoundstart')
   @DocsEditable
   Stream<Event> get onSoundStart => soundStartEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.speechend')
+  @DomName('SpeechRecognition.onspeechend')
   @DocsEditable
   Stream<Event> get onSpeechEnd => speechEndEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.speechstart')
+  @DomName('SpeechRecognition.onspeechstart')
   @DocsEditable
   Stream<Event> get onSpeechStart => speechStartEvent.forTarget(this);
 
-  @DomName('SpeechRecognition.start')
+  @DomName('SpeechRecognition.onstart')
   @DocsEditable
   Stream<Event> get onStart => startEvent.forTarget(this);
 
@@ -21208,7 +21252,7 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Map element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Map element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -21405,6 +21449,31 @@ class SqlTransactionSync native "*SQLTransactionSync" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * The type used by the
+ * [Window.localStorage] and [Window.sessionStorage] properties.
+ * Storage is implemented as a Map&lt;String, String>.
+ *
+ * To store and get values, use Dart's built-in map syntax:
+ *
+ *     window.localStorage['key1'] = 'val1';
+ *     window.localStorage['key2'] = 'val2';
+ *     window.localStorage['key3'] = 'val3';
+ *     assert(window.localStorage['key3'] == 'val3');
+ *
+ * You can use [Map](http://api.dartlang.org/dart_core/Map.html) APIs
+ * such as containsValue(), clear(), and length:
+ *
+ *     assert(window.localStorage.containsValue('does not exist') == false);
+ *     window.localStorage.clear();
+ *     assert(window.localStorage.length == 0);
+ *
+ * For more examples of using this API, see
+ * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
+ * For details on using the Map API, see the
+ * [Maps](http://www.dartlang.org/docs/library-tour/#maps-aka-dictionaries-or-hashes)
+ * section of the library tour.
+ */
 @DomName('Storage')
 class Storage implements Map<String, String>
      native "*Storage" {
@@ -21805,7 +21874,7 @@ class TableElement extends Element native "*HTMLTableElement" {
       return this._createTBody();
     }
     var tbody = new Element.tag('tbody');
-    this.elements.add(tbody);
+    this.children.add(tbody);
     return tbody;
   }
 
@@ -22068,7 +22137,7 @@ class TextMetrics native "*TextMetrics" {
 @DomName('TextTrack')
 class TextTrack extends EventTarget native "*TextTrack" {
 
-  @DomName('TextTrack.cuechange')
+  @DomName('TextTrack.cuechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
 
@@ -22124,7 +22193,7 @@ class TextTrack extends EventTarget native "*TextTrack" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('TextTrack.cuechange')
+  @DomName('TextTrack.oncuechange')
   @DocsEditable
   Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
 }
@@ -22147,11 +22216,11 @@ class TextTrackEvents extends Events {
 @DomName('TextTrackCue')
 class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
-  @DomName('TextTrackCue.enter')
+  @DomName('TextTrackCue.enterEvent')
   @DocsEditable
   static const EventStreamProvider<Event> enterEvent = const EventStreamProvider<Event>('enter');
 
-  @DomName('TextTrackCue.exit')
+  @DomName('TextTrackCue.exitEvent')
   @DocsEditable
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
@@ -22235,11 +22304,11 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('TextTrackCue.enter')
+  @DomName('TextTrackCue.onenter')
   @DocsEditable
   Stream<Event> get onEnter => enterEvent.forTarget(this);
 
-  @DomName('TextTrackCue.exit')
+  @DomName('TextTrackCue.onexit')
   @DocsEditable
   Stream<Event> get onExit => exitEvent.forTarget(this);
 }
@@ -22298,7 +22367,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(TextTrackCue element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(TextTrackCue element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -22466,7 +22535,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 @DomName('TextTrackList')
 class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
 
-  @DomName('TextTrackList.addtrack')
+  @DomName('TextTrackList.addtrackEvent')
   @DocsEditable
   static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
 
@@ -22509,7 +22578,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(TextTrack element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(TextTrack element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -22678,7 +22747,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('TextTrackList.addtrack')
+  @DomName('TextTrackList.onaddtrack')
   @DocsEditable
   Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
 }
@@ -22865,14 +22934,22 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
     return false;
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
-@DocsEditable
+
 @DomName('TouchList')
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
+  /// NB: This constructor likely does not work as you might expect it to! This
+  /// constructor will simply fail (returning null) if you are not on a device
+  /// with touch enabled. See dartbug.com/8314.
+  factory TouchList() => document.$dom_createTouchList();
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!document.createTouchList');
 
   @DomName('TouchList.length')
   @DocsEditable
@@ -22907,7 +22984,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Touch element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Touch element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -23061,6 +23138,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   @DomName('TouchList.item')
   @DocsEditable
   Touch item(int index) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23348,7 +23426,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -23564,7 +23642,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -23780,7 +23858,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -23993,7 +24071,7 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(int element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -25881,6 +25959,40 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
 
 @DocsEditable
+/**
+ * Use the WebSocket interface to connect to a WebSocket,
+ * and to send and receive data on that WebSocket.
+ *
+ * To use a WebSocket in your web app, first create a WebSocket object,
+ * passing the WebSocket URL as an argument to the constructor.
+ *
+ *     var webSocket = new WebSocket('ws://127.0.0.1:1337/ws');
+ *
+ * To send data on the WebSocket, use the [send] method.
+ *
+ *     if (webSocket != null && webSocket.readyState == WebSocket.OPEN) {
+ *       webSocket.send(data);
+ *     } else {
+ *       print('WebSocket not connected, message $data not sent');
+ *     }
+ *
+ * To receive data on the WebSocket, register a listener for message events.
+ *
+ *     webSocket.on.message.add((MessageEvent e) {
+ *       receivedData(e.data);
+ *     });
+ *
+ * The message event handler receives a [MessageEvent] object
+ * as its sole argument.
+ * You can also define open, close, and error handlers,
+ * as specified by [WebSocketEvents].
+ *
+ * For more information, see the
+ * [WebSockets](http://www.dartlang.org/docs/library-tour/#html-websockets)
+ * section of the library tour and
+ * [Introducing WebSockets](http://www.html5rocks.com/en/tutorials/websockets/basics/),
+ * an HTML5Rocks.com tutorial.
+ */
 @DomName('WebSocket')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -25888,19 +26000,19 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class WebSocket extends EventTarget native "*WebSocket" {
 
-  @DomName('WebSocket.close')
+  @DomName('WebSocket.closeEvent')
   @DocsEditable
   static const EventStreamProvider<CloseEvent> closeEvent = const EventStreamProvider<CloseEvent>('close');
 
-  @DomName('WebSocket.error')
+  @DomName('WebSocket.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DomName('WebSocket.message')
+  @DomName('WebSocket.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DomName('WebSocket.open')
+  @DomName('WebSocket.openEvent')
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
@@ -25990,19 +26102,19 @@ class WebSocket extends EventTarget native "*WebSocket" {
   @DocsEditable
   void send(data) native;
 
-  @DomName('WebSocket.close')
+  @DomName('WebSocket.onclose')
   @DocsEditable
   Stream<CloseEvent> get onClose => closeEvent.forTarget(this);
 
-  @DomName('WebSocket.error')
+  @DomName('WebSocket.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-  @DomName('WebSocket.message')
+  @DomName('WebSocket.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DomName('WebSocket.open')
+  @DomName('WebSocket.onopen')
   @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
 }
@@ -26396,71 +26508,71 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   }
 
 
-  @DomName('DOMWindow.DOMContentLoaded')
+  @DomName('DOMWindow.DOMContentLoadedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
-  @DomName('DOMWindow.beforeunload')
+  @DomName('DOMWindow.beforeunloadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
 
-  @DomName('DOMWindow.devicemotion')
+  @DomName('DOMWindow.devicemotionEvent')
   @DocsEditable
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
-  @DomName('DOMWindow.deviceorientation')
+  @DomName('DOMWindow.deviceorientationEvent')
   @DocsEditable
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
-  @DomName('DOMWindow.hashchange')
+  @DomName('DOMWindow.hashchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
-  @DomName('DOMWindow.message')
+  @DomName('DOMWindow.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DomName('DOMWindow.offline')
+  @DomName('DOMWindow.offlineEvent')
   @DocsEditable
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
-  @DomName('DOMWindow.online')
+  @DomName('DOMWindow.onlineEvent')
   @DocsEditable
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
-  @DomName('DOMWindow.pagehide')
+  @DomName('DOMWindow.pagehideEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pageHideEvent = const EventStreamProvider<Event>('pagehide');
 
-  @DomName('DOMWindow.pageshow')
+  @DomName('DOMWindow.pageshowEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
 
-  @DomName('DOMWindow.popstate')
+  @DomName('DOMWindow.popstateEvent')
   @DocsEditable
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
-  @DomName('DOMWindow.resize')
+  @DomName('DOMWindow.resizeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  @DomName('DOMWindow.storage')
+  @DomName('DOMWindow.storageEvent')
   @DocsEditable
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
-  @DomName('DOMWindow.unload')
+  @DomName('DOMWindow.unloadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  @DomName('DOMWindow.webkitAnimationEnd')
+  @DomName('DOMWindow.webkitAnimationEndEvent')
   @DocsEditable
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
-  @DomName('DOMWindow.webkitAnimationIteration')
+  @DomName('DOMWindow.webkitAnimationIterationEvent')
   @DocsEditable
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
-  @DomName('DOMWindow.webkitAnimationStart')
+  @DomName('DOMWindow.webkitAnimationStartEvent')
   @DocsEditable
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
@@ -26850,219 +26962,219 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @Experimental
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  @DomName('DOMWindow.DOMContentLoaded')
+  @DomName('DOMWindow.onDOMContentLoaded')
   @DocsEditable
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
-  @DomName('DOMWindow.abort')
+  @DomName('DOMWindow.onabort')
   @DocsEditable
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  @DomName('DOMWindow.beforeunload')
+  @DomName('DOMWindow.onbeforeunload')
   @DocsEditable
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
-  @DomName('DOMWindow.blur')
+  @DomName('DOMWindow.onblur')
   @DocsEditable
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  @DomName('DOMWindow.change')
+  @DomName('DOMWindow.onchange')
   @DocsEditable
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  @DomName('DOMWindow.click')
+  @DomName('DOMWindow.onclick')
   @DocsEditable
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  @DomName('DOMWindow.contextmenu')
+  @DomName('DOMWindow.oncontextmenu')
   @DocsEditable
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  @DomName('DOMWindow.dblclick')
+  @DomName('DOMWindow.ondblclick')
   @DocsEditable
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
-  @DomName('DOMWindow.devicemotion')
+  @DomName('DOMWindow.ondevicemotion')
   @DocsEditable
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
-  @DomName('DOMWindow.deviceorientation')
+  @DomName('DOMWindow.ondeviceorientation')
   @DocsEditable
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
-  @DomName('DOMWindow.drag')
+  @DomName('DOMWindow.ondrag')
   @DocsEditable
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  @DomName('DOMWindow.dragend')
+  @DomName('DOMWindow.ondragend')
   @DocsEditable
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  @DomName('DOMWindow.dragenter')
+  @DomName('DOMWindow.ondragenter')
   @DocsEditable
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  @DomName('DOMWindow.dragleave')
+  @DomName('DOMWindow.ondragleave')
   @DocsEditable
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  @DomName('DOMWindow.dragover')
+  @DomName('DOMWindow.ondragover')
   @DocsEditable
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  @DomName('DOMWindow.dragstart')
+  @DomName('DOMWindow.ondragstart')
   @DocsEditable
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  @DomName('DOMWindow.drop')
+  @DomName('DOMWindow.ondrop')
   @DocsEditable
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  @DomName('DOMWindow.error')
+  @DomName('DOMWindow.onerror')
   @DocsEditable
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  @DomName('DOMWindow.focus')
+  @DomName('DOMWindow.onfocus')
   @DocsEditable
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
-  @DomName('DOMWindow.hashchange')
+  @DomName('DOMWindow.onhashchange')
   @DocsEditable
   Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
 
-  @DomName('DOMWindow.input')
+  @DomName('DOMWindow.oninput')
   @DocsEditable
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  @DomName('DOMWindow.invalid')
+  @DomName('DOMWindow.oninvalid')
   @DocsEditable
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  @DomName('DOMWindow.keydown')
+  @DomName('DOMWindow.onkeydown')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  @DomName('DOMWindow.keypress')
+  @DomName('DOMWindow.onkeypress')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  @DomName('DOMWindow.keyup')
+  @DomName('DOMWindow.onkeyup')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  @DomName('DOMWindow.load')
+  @DomName('DOMWindow.onload')
   @DocsEditable
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
-  @DomName('DOMWindow.message')
+  @DomName('DOMWindow.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DomName('DOMWindow.mousedown')
+  @DomName('DOMWindow.onmousedown')
   @DocsEditable
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  @DomName('DOMWindow.mousemove')
+  @DomName('DOMWindow.onmousemove')
   @DocsEditable
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  @DomName('DOMWindow.mouseout')
+  @DomName('DOMWindow.onmouseout')
   @DocsEditable
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  @DomName('DOMWindow.mouseover')
+  @DomName('DOMWindow.onmouseover')
   @DocsEditable
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  @DomName('DOMWindow.mouseup')
+  @DomName('DOMWindow.onmouseup')
   @DocsEditable
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  @DomName('DOMWindow.mousewheel')
+  @DomName('DOMWindow.onmousewheel')
   @DocsEditable
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
-  @DomName('DOMWindow.offline')
+  @DomName('DOMWindow.onoffline')
   @DocsEditable
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
-  @DomName('DOMWindow.online')
+  @DomName('DOMWindow.ononline')
   @DocsEditable
   Stream<Event> get onOnline => onlineEvent.forTarget(this);
 
-  @DomName('DOMWindow.pagehide')
+  @DomName('DOMWindow.onpagehide')
   @DocsEditable
   Stream<Event> get onPageHide => pageHideEvent.forTarget(this);
 
-  @DomName('DOMWindow.pageshow')
+  @DomName('DOMWindow.onpageshow')
   @DocsEditable
   Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
 
-  @DomName('DOMWindow.popstate')
+  @DomName('DOMWindow.onpopstate')
   @DocsEditable
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
-  @DomName('DOMWindow.reset')
+  @DomName('DOMWindow.onreset')
   @DocsEditable
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
-  @DomName('DOMWindow.resize')
+  @DomName('DOMWindow.onresize')
   @DocsEditable
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  @DomName('DOMWindow.scroll')
+  @DomName('DOMWindow.onscroll')
   @DocsEditable
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  @DomName('DOMWindow.search')
+  @DomName('DOMWindow.onsearch')
   @DocsEditable
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  @DomName('DOMWindow.select')
+  @DomName('DOMWindow.onselect')
   @DocsEditable
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
-  @DomName('DOMWindow.storage')
+  @DomName('DOMWindow.onstorage')
   @DocsEditable
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
-  @DomName('DOMWindow.submit')
+  @DomName('DOMWindow.onsubmit')
   @DocsEditable
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  @DomName('DOMWindow.touchcancel')
+  @DomName('DOMWindow.ontouchcancel')
   @DocsEditable
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  @DomName('DOMWindow.touchend')
+  @DomName('DOMWindow.ontouchend')
   @DocsEditable
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  @DomName('DOMWindow.touchmove')
+  @DomName('DOMWindow.ontouchmove')
   @DocsEditable
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  @DomName('DOMWindow.touchstart')
+  @DomName('DOMWindow.ontouchstart')
   @DocsEditable
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
-  @DomName('DOMWindow.unload')
+  @DomName('DOMWindow.onunload')
   @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
-  @DomName('DOMWindow.webkitAnimationEnd')
+  @DomName('DOMWindow.onwebkitAnimationEnd')
   @DocsEditable
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
-  @DomName('DOMWindow.webkitAnimationIteration')
+  @DomName('DOMWindow.onwebkitAnimationIteration')
   @DocsEditable
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
-  @DomName('DOMWindow.webkitAnimationStart')
+  @DomName('DOMWindow.onwebkitAnimationStart')
   @DocsEditable
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
-  @DomName('DOMWindow.webkitTransitionEnd')
+  @DomName('DOMWindow.onwebkitTransitionEnd')
   @DocsEditable
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
@@ -27305,7 +27417,7 @@ class WindowEvents extends Events {
 @DomName('Worker')
 class Worker extends AbstractWorker native "*Worker" {
 
-  @DomName('Worker.message')
+  @DomName('Worker.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
@@ -27345,7 +27457,7 @@ class Worker extends AbstractWorker native "*Worker" {
   @DocsEditable
   void terminate() native;
 
-  @DomName('Worker.message')
+  @DomName('Worker.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
@@ -27367,7 +27479,7 @@ class WorkerEvents extends AbstractWorkerEvents {
 @DomName('WorkerContext')
 class WorkerContext extends EventTarget native "*WorkerContext" {
 
-  @DomName('WorkerContext.error')
+  @DomName('WorkerContext.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
@@ -27477,7 +27589,7 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @Experimental
   void resolveLocalFileSystemUrl(String url, EntryCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  @DomName('WorkerContext.error')
+  @DomName('WorkerContext.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
@@ -27810,24 +27922,6 @@ class XsltProcessor native "*XSLTProcessor" {
 
 
 @DocsEditable
-@DomName('HTMLAppletElement')
-class _AppletElement extends Element native "*HTMLAppletElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('HTMLBaseFontElement')
-class _BaseFontElement extends Element native "*HTMLBaseFontElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('ClientRectList')
 class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> native "*ClientRectList" {
 
@@ -27864,7 +27958,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(ClientRect element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(ClientRect element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -28061,7 +28155,7 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(CssRule element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(CssRule element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -28258,7 +28352,7 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(CssValue element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(CssValue element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -28419,15 +28513,6 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
 
 @DocsEditable
-@DomName('HTMLDirectoryElement')
-class _DirectoryElement extends Element native "*HTMLDirectoryElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('EntryArray')
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
@@ -28464,7 +28549,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Entry element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Entry element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -28661,7 +28746,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(EntrySync element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(EntrySync element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -28822,85 +28907,6 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
 
 
 @DocsEditable
-@DomName('HTMLFontElement')
-class _FontElement extends Element native "*HTMLFontElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('HTMLFrameElement')
-class _FrameElement extends Element native "*HTMLFrameElement" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('HTMLFrameSetElement')
-class _FrameSetElement extends Element native "*HTMLFrameSetElement" {
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  _FrameSetElementEvents get on =>
-    new _FrameSetElementEvents(this);
-}
-
-@DocsEditable
-@deprecated
-class _FrameSetElementEvents extends ElementEvents {
-  @DocsEditable
-  _FrameSetElementEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  @DocsEditable
-  EventListenerList get blur => this['blur'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get focus => this['focus'];
-
-  @DocsEditable
-  EventListenerList get hashChange => this['hashchange'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get offline => this['offline'];
-
-  @DocsEditable
-  EventListenerList get online => this['online'];
-
-  @DocsEditable
-  EventListenerList get popState => this['popstate'];
-
-  @DocsEditable
-  EventListenerList get resize => this['resize'];
-
-  @DocsEditable
-  EventListenerList get storage => this['storage'];
-
-  @DocsEditable
-  EventListenerList get unload => this['unload'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('GamepadList')
 class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
 
@@ -28937,7 +28943,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Gamepad element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(Gamepad element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -29098,8 +29104,114 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
 
 @DocsEditable
+@DomName('HTMLAppletElement')
+class _HTMLAppletElement extends Element native "*HTMLAppletElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('HTMLBaseFontElement')
+class _HTMLBaseFontElement extends Element native "*HTMLBaseFontElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('HTMLDirectoryElement')
+class _HTMLDirectoryElement extends Element native "*HTMLDirectoryElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('HTMLFontElement')
+class _HTMLFontElement extends Element native "*HTMLFontElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('HTMLFrameElement')
+class _HTMLFrameElement extends Element native "*HTMLFrameElement" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('HTMLFrameSetElement')
+class _HTMLFrameSetElement extends Element native "*HTMLFrameSetElement" {
+
+  @DocsEditable
+  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  @deprecated
+  _HTMLFrameSetElementEvents get on =>
+    new _HTMLFrameSetElementEvents(this);
+}
+
+@DocsEditable
+@deprecated
+class _HTMLFrameSetElementEvents extends ElementEvents {
+  @DocsEditable
+  _HTMLFrameSetElementEvents(EventTarget _ptr) : super(_ptr);
+
+  @DocsEditable
+  EventListenerList get beforeUnload => this['beforeunload'];
+
+  @DocsEditable
+  EventListenerList get blur => this['blur'];
+
+  @DocsEditable
+  EventListenerList get error => this['error'];
+
+  @DocsEditable
+  EventListenerList get focus => this['focus'];
+
+  @DocsEditable
+  EventListenerList get hashChange => this['hashchange'];
+
+  @DocsEditable
+  EventListenerList get load => this['load'];
+
+  @DocsEditable
+  EventListenerList get message => this['message'];
+
+  @DocsEditable
+  EventListenerList get offline => this['offline'];
+
+  @DocsEditable
+  EventListenerList get online => this['online'];
+
+  @DocsEditable
+  EventListenerList get popState => this['popstate'];
+
+  @DocsEditable
+  EventListenerList get resize => this['resize'];
+
+  @DocsEditable
+  EventListenerList get storage => this['storage'];
+
+  @DocsEditable
+  EventListenerList get unload => this['unload'];
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('HTMLMarqueeElement')
-class _MarqueeElement extends Element native "*HTMLMarqueeElement" {
+class _HTMLMarqueeElement extends Element native "*HTMLMarqueeElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29143,7 +29255,7 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(MediaStream element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(MediaStream element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -29340,7 +29452,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SpeechInputResult element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(SpeechInputResult element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -29537,7 +29649,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SpeechRecognitionResult element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(SpeechRecognitionResult element)) =>
       IterableMixinWorkaround.mappedByList(this, f);
@@ -29734,7 +29846,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(StyleSheet element)) =>
-      IterableMixinWorkaround.map(this, f);
+      IterableMixinWorkaround.mapList(this, f);
 
   List mappedBy(f(StyleSheet element)) =>
       IterableMixinWorkaround.mappedByList(this, f);

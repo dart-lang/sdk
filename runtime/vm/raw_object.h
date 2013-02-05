@@ -455,6 +455,8 @@ class RawClass : public RawObject {
   friend class Object;
   friend class RawInstance;
   friend class RawInstructions;
+  friend class RawType;  // TODO(regis): To temporarily print unfinalized types.
+  friend class RawTypeParameter;  // To temporarily print unfinalized types.
   friend class SnapshotReader;
 };
 
@@ -471,6 +473,8 @@ class RawUnresolvedClass : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->ident_);
   }
   intptr_t token_pos_;
+
+  friend class RawType;  // TODO(regis): To temporarily print unfinalized types.
 };
 
 

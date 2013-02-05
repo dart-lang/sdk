@@ -1954,12 +1954,20 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     const intptr_t kNumTemps = 1;
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    // Both inputs must be writable because they will be untagged.
-    summary->set_in(0, Location::RegisterLocation(EAX));
-    summary->set_in(1, Location::WritableRegister());
-    summary->set_out(Location::SameAsFirstInput());
-    // Will be used for sign extension and division.
-    summary->set_temp(0, Location::RegisterLocation(EDX));
+    if (RightIsPowerOfTwoConstant()) {
+      summary->set_in(0, Location::RequiresRegister());
+      ConstantInstr* right_constant = right()->definition()->AsConstant();
+      summary->set_in(1, Location::Constant(right_constant->value()));
+      summary->set_temp(0, Location::RequiresRegister());
+      summary->set_out(Location::SameAsFirstInput());
+    } else {
+      // Both inputs must be writable because they will be untagged.
+      summary->set_in(0, Location::RegisterLocation(EAX));
+      summary->set_in(1, Location::WritableRegister());
+      summary->set_out(Location::SameAsFirstInput());
+      // Will be used for sign extension and division.
+      summary->set_temp(0, Location::RegisterLocation(EDX));
+    }
     return summary;
   } else if (op_kind() == Token::kSHR) {
     const intptr_t kNumTemps = 0;
@@ -1996,8 +2004,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(left == result);
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-      deopt  = compiler->AddDeoptStub(deopt_id(),
-                                      kDeoptBinarySmiOp);
+    deopt  = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
   }
 
   if (locs()->in(1).IsConstant()) {
@@ -2020,6 +2027,37 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         const intptr_t value = Smi::Cast(constant).Value();
         __ imull(left, Immediate(value));
         if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kTRUNCDIV: {
+        const intptr_t value = Smi::Cast(constant).Value();
+        if (value == 1) {
+          // Do nothing.
+          break;
+        } else if (value == -1) {
+          // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+          // case we cannot negate the result.
+          __ cmpl(left, Immediate(0x80000000));
+          __ j(EQUAL, deopt);
+          __ negl(left);
+          break;
+        }
+        ASSERT((value != 0) && Utils::IsPowerOfTwo(Utils::Abs(value)));
+        const intptr_t shift_count =
+            Utils::ShiftForPowerOfTwo(Utils::Abs(value)) + kSmiTagSize;
+        ASSERT(kSmiTagSize == 1);
+        Register temp = locs()->temp(0).reg();
+        __ movl(temp, left);
+        __ sarl(temp, Immediate(31));
+        ASSERT(shift_count > 1);  // 1, -1 case handled above.
+        __ shrl(temp, Immediate(32 - shift_count));
+        __ addl(left, temp);
+        ASSERT(shift_count > 0);
+        __ sarl(left, Immediate(shift_count));
+        if (value < 0) {
+          __ negl(left);
+        }
+        __ SmiTag(left);
         break;
       }
       case Token::kBIT_AND: {
