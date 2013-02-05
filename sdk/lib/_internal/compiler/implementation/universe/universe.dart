@@ -236,6 +236,8 @@ class Selector {
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
   DartType get receiverType => null;
 
+  Selector get asUntyped => this;
+
   /**
    * The member name for invocation mirrors created from this selector.
    */
@@ -438,14 +440,18 @@ class TypedSelector extends Selector {
    */
   final DartType receiverType;
 
+  final Selector asUntyped;
+
   TypedSelector(DartType this.receiverType, Selector selector)
-    : super(selector.kind,
-            selector.name,
-            selector.library,
-            selector.argumentCount,
-            selector.namedArguments) {
+      : asUntyped = selector.asUntyped,
+        super(selector.kind,
+              selector.name,
+              selector.library,
+              selector.argumentCount,
+              selector.namedArguments) {
     // Invariant: Typed selector can not be based on a malformed type.
     assert(!identical(receiverType.kind, TypeKind.MALFORMED_TYPE));
+    assert(asUntyped.receiverType == null);
   }
 
   /**

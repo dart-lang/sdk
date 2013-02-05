@@ -1660,8 +1660,17 @@ $lazyInitializerLogic
       }
     }
 
+    // Two selectors may match but differ only in type.  To avoid generating
+    // identical stubs for each we track untyped selectors which already have
+    // stubs.
+    Set<Selector> generatedSelectors = new Set<Selector>();
+
     for (Selector selector in selectors) {
       if (selector.applies(member, compiler)) {
+        selector = selector.asUntyped;
+        if (generatedSelectors.contains(selector)) continue;
+        generatedSelectors.add(selector);
+
         String invocationName = namer.invocationName(selector);
         Selector callSelector = new Selector.callClosureFrom(selector);
         String closureCallName = namer.invocationName(callSelector);
