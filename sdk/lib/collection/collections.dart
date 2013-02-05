@@ -326,6 +326,10 @@ class IterableMixinWorkaround {
     return new MappedList(list, f);
   }
 
+  static Iterable expand(Iterable iterable, Iterable f(var element)) {
+    return new ExpandIterable(iterable, f);
+  }
+
   static Iterable takeList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
     // This is currently a List as well as an Iterable.

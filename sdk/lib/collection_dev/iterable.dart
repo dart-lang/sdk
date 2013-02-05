@@ -405,6 +405,55 @@ class WhereIterator<E> extends Iterator<E> {
   E get current => _iterator.current;
 }
 
+typedef Iterable<T> _ExpandFunction<S, T>(S sourceElement);
+
+class ExpandIterable<S, T> extends Iterable<T> {
+  final Iterable<S> _iterable;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode. http://dartbug.com/7733
+  final /* _ExpandFunction */ _f;
+
+  ExpandIterable(this._iterable, Iterable<T> this._f(S element));
+
+  Iterator<T> get iterator => new ExpandIterator<S, T>(_iterable.iterator, _f);
+}
+
+class ExpandIterator<S, T> implements Iterator<T> {
+  final Iterator<S> _iterator;
+  // TODO(ahe): Restore type when feature is implemented in dart2js
+  // checked mode. http://dartbug.com/7733
+  final /* _ExpandFunction */ _f;
+  // Initialize _currentExpansion to an empty iterable. A null value
+  // marks the end of iteration, and we don't want to call _f before
+  // the first moveNext call.
+  Iterator<T> _currentExpansion = const EmptyIterator();
+  T _current;
+
+  ExpandIterator(this._iterator, Iterable<T> this._f(S element));
+
+  void _nextExpansion() {
+  }
+
+  T get current => _current;
+
+  bool moveNext() {
+    if (_currentExpansion == null) return false;
+    while (!_currentExpansion.moveNext()) {
+      _current = null;
+      if (_iterator.moveNext()) {
+        // If _f throws, this ends iteration. Otherwise _currentExpansion and
+        // _current will be set again below.
+        _currentExpansion = null;
+        _currentExpansion = _f(_iterator.current).iterator;
+      } else {
+        return false;
+      }
+    }
+    _current = _currentExpansion.current;
+    return true;
+  }
+}
+
 class TakeIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final int _takeCount;

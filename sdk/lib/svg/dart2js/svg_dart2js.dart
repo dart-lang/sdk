@@ -3217,6 +3217,9 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   Iterable<Length> where(bool f(Length element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Length element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Length element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Length element)) => IterableMixinWorkaround.any(this, f);
@@ -3840,6 +3843,9 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   Iterable<Number> where(bool f(Number element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Number element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Number element)) => IterableMixinWorkaround.every(this, f);
 
@@ -4741,6 +4747,9 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   Iterable<PathSeg> where(bool f(PathSeg element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(PathSeg element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(PathSeg element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(PathSeg element)) => IterableMixinWorkaround.any(this, f);
@@ -5624,6 +5633,9 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(String element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
 
@@ -6788,6 +6800,9 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   Iterable<Transform> where(bool f(Transform element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Transform element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Transform element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Transform element)) => IterableMixinWorkaround.any(this, f);
@@ -7304,6 +7319,9 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
 
   Iterable<ElementInstance> where(bool f(ElementInstance element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(ElementInstance element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(ElementInstance element)) => IterableMixinWorkaround.every(this, f);
 

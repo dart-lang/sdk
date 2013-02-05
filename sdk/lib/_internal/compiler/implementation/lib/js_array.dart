@@ -65,6 +65,10 @@ class JSArray<E> implements List<E> {
     return IterableMixinWorkaround.where(this, f);
   }
 
+  Iterable expand(Iterable f(E element)) {
+    return IterableMixinWorkaround.expand(this, f);
+  }
+
   void addAll(Collection<E> collection) {
     for (E e in collection) {
       this.add(e);

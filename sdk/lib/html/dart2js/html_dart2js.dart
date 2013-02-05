@@ -7249,6 +7249,9 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
   Iterable<DomMimeType> where(bool f(DomMimeType element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(DomMimeType element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(DomMimeType element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
@@ -7502,6 +7505,9 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   Iterable<DomPlugin> where(bool f(DomPlugin element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(DomPlugin element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(DomPlugin element)) => IterableMixinWorkaround.every(this, f);
 
@@ -7864,6 +7870,9 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(String element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
@@ -8126,6 +8135,10 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.where(this, f);
   }
 
+  Iterable expand(Iterable f(Element element)) {
+    return IterableMixinWorkaround.expand(this, f);
+  }
+
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
@@ -8341,6 +8354,10 @@ class _FrozenElementList implements List {
 
   Iterable<Element> where(bool f(Element element)) {
     return IterableMixinWorkaround.where(this, f);
+  }
+
+  Iterable expand(Iterable f(Element element)) {
+    return IterableMixinWorkaround.expand(this, f);
   }
 
   bool every(bool f(Element element)) {
@@ -10785,6 +10802,9 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
   Iterable<File> where(bool f(File element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(File element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(File element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
@@ -11400,6 +11420,9 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(num element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
@@ -11615,6 +11638,9 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(num element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
@@ -12131,6 +12157,9 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
@@ -12337,6 +12366,9 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
@@ -14374,6 +14406,9 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
@@ -14590,6 +14625,9 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
@@ -14805,6 +14843,9 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -17121,6 +17162,9 @@ class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*Na
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
@@ -17594,6 +17638,10 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.where(this, f);
   }
 
+  Iterable expand(Iterable f(Node element)) {
+    return IterableMixinWorkaround.expand(this, f);
+  }
+
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
@@ -17982,6 +18030,9 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
@@ -20366,6 +20417,9 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   Iterable<SourceBuffer> where(bool f(SourceBuffer element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(SourceBuffer element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(SourceBuffer element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
@@ -20645,6 +20699,9 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(SpeechGrammar element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(SpeechGrammar element)) => IterableMixinWorkaround.every(this, f);
 
@@ -21259,6 +21316,9 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   Iterable<Map> where(bool f(Map element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Map element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Map element)) => IterableMixinWorkaround.every(this, f);
 
@@ -22375,6 +22435,9 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   Iterable<TextTrackCue> where(bool f(TextTrackCue element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(TextTrackCue element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(TextTrackCue element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
@@ -22585,6 +22648,9 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   Iterable<TextTrack> where(bool f(TextTrack element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(TextTrack element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(TextTrack element)) => IterableMixinWorkaround.every(this, f);
 
@@ -22991,6 +23057,9 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   Iterable<Touch> where(bool f(Touch element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Touch element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Touch element)) => IterableMixinWorkaround.every(this, f);
 
@@ -23434,6 +23503,9 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
@@ -23649,6 +23721,9 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -23866,6 +23941,9 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
@@ -24078,6 +24156,9 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -27966,6 +28047,9 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<ClientRect> na
   Iterable<ClientRect> where(bool f(ClientRect element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(ClientRect element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(ClientRect element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
@@ -28162,6 +28246,9 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   Iterable<CssRule> where(bool f(CssRule element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(CssRule element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(CssRule element)) => IterableMixinWorkaround.every(this, f);
 
@@ -28360,6 +28447,9 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
   Iterable<CssValue> where(bool f(CssValue element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(CssValue element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(CssValue element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(CssValue element)) => IterableMixinWorkaround.any(this, f);
@@ -28556,6 +28646,9 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   Iterable<Entry> where(bool f(Entry element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Entry element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Entry element)) => IterableMixinWorkaround.every(this, f);
 
@@ -28754,6 +28847,9 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   Iterable<EntrySync> where(bool f(EntrySync element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(EntrySync element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(EntrySync element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
@@ -28950,6 +29046,9 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   Iterable<Gamepad> where(bool f(Gamepad element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Gamepad element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Gamepad element)) => IterableMixinWorkaround.every(this, f);
 
@@ -29263,6 +29362,9 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
   Iterable<MediaStream> where(bool f(MediaStream element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(MediaStream element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(MediaStream element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(MediaStream element)) => IterableMixinWorkaround.any(this, f);
@@ -29459,6 +29561,9 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(SpeechInputResult element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(SpeechInputResult element)) => IterableMixinWorkaround.every(this, f);
 
@@ -29657,6 +29762,9 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(SpeechRecognitionResult element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
@@ -29853,6 +29961,9 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   Iterable<StyleSheet> where(bool f(StyleSheet element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(StyleSheet element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(StyleSheet element)) => IterableMixinWorkaround.every(this, f);
 
@@ -30401,6 +30512,8 @@ abstract class CssClassSet implements Set<String> {
   Iterable mappedBy(f(String element)) => readClasses().mappedBy(f);
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
+
+  Iterable expand(Iterable f(E element)) => readClasses.expand(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 

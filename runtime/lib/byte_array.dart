@@ -246,8 +246,12 @@ abstract class _ByteArrayBase {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  Collection where(bool f(element)) {
+  Collection where(bool f(int element)) {
     return IterableMixinWorkaround.where(this, f);
+  }
+
+  Iterable expand(Iterable f(int element)) {
+    return IterableMixinWorkaround.expand(this, f);
   }
 
   Iterable<int> take(int n) {

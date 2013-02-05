@@ -73,6 +73,10 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.where(this, f);
   }
 
+  Iterable expand(Iterable f(Element element)) {
+    return IterableMixinWorkaround.expand(this, f);
+  }
+
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
@@ -288,6 +292,10 @@ class _FrozenElementList implements List {
 
   Iterable<Element> where(bool f(Element element)) {
     return IterableMixinWorkaround.where(this, f);
+  }
+
+  Iterable expand(Iterable f(Element element)) {
+    return IterableMixinWorkaround.expand(this, f);
   }
 
   bool every(bool f(Element element)) {

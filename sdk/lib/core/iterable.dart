@@ -58,16 +58,29 @@ abstract class Iterable<E> {
   Iterable mappedBy(f(E element)) => map(f);
 
   /**
-    * Returns a lazy [Iterable] with all elements that satisfy the
-    * predicate [f].
-    *
-    * This method returns a view of the mapped elements. As long as the
-    * returned [Iterable] is not iterated over, the supplied function [f] will
-    * not be invoked. Iterating will not cache results, and thus iterating
-    * multiple times over the the returned [Iterable] will invoke the supplied
-    * function [f] multiple times on the same element.
-    */
+   * Returns a lazy [Iterable] with all elements that satisfy the
+   * predicate [f].
+   *
+   * This method returns a view of the mapped elements. As long as the
+   * returned [Iterable] is not iterated over, the supplied function [f] will
+   * not be invoked. Iterating will not cache results, and thus iterating
+   * multiple times over the the returned [Iterable] will invoke the supplied
+   * function [f] multiple times on the same element.
+   */
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
+
+
+  /**
+   * Expand each element of this [Iterable] into zero or more elements.
+   *
+   * The resulting Iterable will run through the elements returned
+   * by [f] for each element of this, in order.
+   *
+   * The returned [Iterable] is lazy, and will call [f] for each element
+   * of this every time it's iterated.
+   */
+  Iterable expand(Iterable f(E element)) =>
+      new ExpandIterable<E, dynamic>(this, f);
 
   /**
    * Check whether the collection contains an element equal to [element].

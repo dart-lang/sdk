@@ -38,6 +38,9 @@ $endif
   Iterable<$E> where(bool f($E element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f($E element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f($E element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f($E element)) => IterableMixinWorkaround.any(this, f);
