@@ -2587,6 +2587,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           HInstruction runtimeType = getTypeArgument(variable);
           add(runtimeType);
           inputs.add(runtimeType);
+          return '#';
         });
         HInstruction representation = createForeignArray(template, inputs);
         add(representation);
@@ -2640,34 +2641,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (type.element.isTypeVariable() ||
           RuntimeTypeInformation.hasTypeArguments(type)) {
         HInstruction typeInfo = getRuntimeTypeInfo(expression);
-        // TODO(karlklose): make isSubtype a HInstruction to enable
-        // optimizations?
-        Element helper = compiler.findHelper(const SourceString('isSubtype'));
-        HInstruction isSubtype = new HStatic(helper);
-        add(isSubtype);
-        // Build a list of representations for the type arguments.
+        Element helper =
+            compiler.findHelper(const SourceString('checkArguments'));
+        HInstruction helperCall = new HStatic(helper);
+        add(helperCall);
         List<HInstruction> representations =
             buildTypeArgumentRepresentations(type);
-        // For each type argument, build a call to isSubtype, with the type
-        // argument as first and the representation of the tested type as
-        // second argument.
-        List<HInstruction> checks = <HInstruction>[];
-        int index = 0;
-        representations.forEach((HInstruction representation) {
-          HInstruction position = graph.addConstantInt(index, constantSystem);
-          // Get the index'th type argument from the runtime type information.
-          HInstruction typeArgument =
-              createForeign('#[#]', HType.UNKNOWN, [typeInfo, position]);
-          add(typeArgument);
-          // Create the call to isSubtype.
-          List<HInstruction> inputs =
-              <HInstruction>[isSubtype, typeArgument, representation];
-          HInstruction call = new HInvokeStatic(inputs);
-          add(call);
-          checks.add(call);
-          index++;
-        });
-        instruction = new HIs(type, <HInstruction>[expression]..addAll(checks));
+        String substitution = backend.namer.substitutionName(type.element);
+        HInstruction fieldGet =
+            createForeign('#.$substitution', HType.UNKNOWN, [expression]);
+        HInstruction representationList = new HLiteralList(representations);
+        add(fieldGet);
+        add(representationList);
+        List<HInstruction> inputs = <HInstruction>[helperCall,
+                                                   fieldGet,
+                                                   typeInfo,
+                                                   representationList];
+        HInstruction check = new HInvokeStatic(inputs);
+        add(check);
+        instruction = new HIs(type, <HInstruction>[expression, check]);
       } else {
         instruction = new HIs(type, <HInstruction>[expression]);
       }
@@ -3013,6 +3005,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignCreateIsolate(node);
     } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')) {
       stack.add(addConstantString(node, backend.namer.operatorIsPrefix()));
+    } else if (name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
+      stack.add(addConstantString(node, backend.namer.operatorAsPrefix()));
     } else {
       throw "Unknown foreign: ${selector}";
     }
@@ -3131,14 +3125,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return graph.addConstantNull(constantSystem);
     }
 
-    // These variables are shared between invocations of the helper.
-    HInstruction typeInfo;
+    // The inputs are shared between invocations of the helper.
     List<HInstruction> inputs = <HInstruction>[];
 
     /**
      * Helper to create an instruction that gets the value of a type variable.
      */
-    void addTypeVariableReference(TypeVariableType type) {
+    String addTypeVariableReference(TypeVariableType type) {
       Element member = currentElement;
       if (member.enclosingElement.isClosure()) {
         ClosureClassElement closureClass = member.enclosingElement;
@@ -3146,27 +3139,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         member = member.getOutermostEnclosingMemberOrTopLevel();
       }
       if (member.isFactoryConstructor()) {
-        // The type variable is stored in a parameter of the factory.
+        // The type variable is stored in a parameter of the method.
         inputs.add(localsHandler.readLocal(type.element));
-      } else if (member.isInstanceMember()
-                 || member.isGenerativeConstructor()) {
+      } else if (member.isInstanceMember() ||
+          member.isGenerativeConstructor()) {
         // The type variable is stored in [this].
-        if (typeInfo == null) {
-          pushInvokeHelper1(backend.getGetRuntimeTypeInfo(),
-                            localsHandler.readThis());
-          typeInfo = pop();
-        }
         int index = RuntimeTypeInformation.getTypeVariableIndex(type);
-        HInstruction foreign = createForeign('#[$index]', HType.STRING,
-                                             <HInstruction>[typeInfo]);
-        add(foreign);
-        inputs.add(foreign);
+        pushInvokeHelper2(backend.getGetRuntimeTypeArgument(),
+                          localsHandler.readThis(),
+                          graph.addConstantInt(index, constantSystem));
+        inputs.add(pop());
       } else {
         // TODO(ngeoffray): Match the VM behavior and throw an
         // exception at runtime.
         compiler.cancel('Unimplemented unresolved type variable',
                         node: currentNode);
       }
+      return '#';
     }
 
     String template = rti.getTypeRepresentation(argument,
@@ -3180,13 +3169,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Node currentNode,
                              HInstruction newObject) {
     if (!compiler.world.needsRti(type.element)) return;
-    List<HInstruction> inputs = <HInstruction>[];
     if (!type.isRaw) {
+      List<HInstruction> inputs = <HInstruction>[];
       type.typeArguments.forEach((DartType argument) {
         inputs.add(analyzeTypeArgument(argument, currentNode));
       });
+      callSetRuntimeTypeInfo(type.element, inputs, newObject);
     }
-    callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
   void callSetRuntimeTypeInfo(ClassElement element,

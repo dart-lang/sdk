@@ -133,3 +133,8 @@ dynamic JS_CREATE_ISOLATE() {}
  * Returns the prefix used for generated is checks on classes.
  */
 String JS_OPERATOR_IS_PREFIX() {}
+
+/**
+ * Returns the prefix used for generated type argument substitutions on classes.
+ */
+String JS_OPERATOR_AS_PREFIX() {}
