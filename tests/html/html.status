@@ -59,7 +59,6 @@ element_types_test/supported_content: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_meter: Fail
-element_types_test/supported_object: Fail
 element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
 form_data_test: Fail # TODO(efortuna): Issue 7875.
@@ -111,7 +110,6 @@ element_types_test/supported_datalist: Fail
 element_types_test/supported_details: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_meter: Fail
-element_types_test/supported_object: Fail
 element_types_test/supported_output: Fail
 element_types_test/supported_progress: Fail
 element_types_test/supported_shadow: Fail

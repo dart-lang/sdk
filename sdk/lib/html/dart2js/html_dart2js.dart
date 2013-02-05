@@ -18319,6 +18319,7 @@ class OListElement extends Element native "*HTMLOListElement" {
 @DocsEditable
 @DomName('HTMLObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends Element native "*HTMLObjectElement" {
 

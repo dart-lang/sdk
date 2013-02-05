@@ -767,6 +767,7 @@ dart_annotations = {
   'HTMLMeterElement': _no_ie_annotations,
   'HTMLObjectElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.IE)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
   'HTMLOutputElement': _no_ie_annotations,

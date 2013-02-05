@@ -19977,6 +19977,7 @@ class OListElement extends _Element_Merged {
 @DocsEditable
 @DomName('HTMLObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends _Element_Merged {
   ObjectElement.internal() : super.internal();
