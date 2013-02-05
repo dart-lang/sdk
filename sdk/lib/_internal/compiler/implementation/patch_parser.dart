@@ -118,6 +118,7 @@ import "dart:uri";
 import "tree/tree.dart" as tree;
 import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
 import "apiimpl.dart";
+import "../compiler.dart" as api;
 import "scanner/scannerlib.dart";  // Scanner, Parsers, Listeners
 import "elements/elements.dart";
 import "elements/modelx.dart" show LibraryElementX, MetadataAnnotationX;
@@ -192,89 +193,14 @@ class PatchParserTask extends leg.CompilerTask {
     }));
   }
 
-  void applyContainerPatch(ScopeContainerElement original,
+  void applyContainerPatch(ClassElement originClass,
                            Link<Element> patches) {
-    while (!patches.isEmpty) {
-      Element patchElement = patches.head;
-      Element originalElement = original.localLookup(patchElement.name);
-      if (patchElement.isAccessor() && originalElement != null) {
-        if (!identical(originalElement.kind, ElementKind.ABSTRACT_FIELD)) {
-          compiler.internalError(
-              "Cannot patch non-getter/setter with getter/setter",
-              element: originalElement);
-        }
-        AbstractFieldElement originalField = originalElement;
-        if (patchElement.isGetter()) {
-          originalElement = originalField.getter;
-        } else {
-          originalElement = originalField.setter;
-        }
-      }
-      if (originalElement == null) {
-        if (isPatchElement(patchElement)) {
-          compiler.internalError("Cannot patch non-existing member '"
-                        "${patchElement.name.slowToString()}'.");
-        }
-      } else {
-        patchMember(originalElement, patchElement);
-      }
-      patches = patches.tail;
-    }
-  }
+    for (Element patch in patches) {
+      if (!isPatchElement(patch)) continue;
 
-  bool isPatchElement(Element element) {
-    // TODO(lrn): More checks needed if we introduce metadata for real.
-    // In that case, it must have the identifier "native" as metadata.
-    for (Link link = element.metadata; !link.isEmpty; link = link.tail) {
-      if (link.head is PatchMetadataAnnotation) return true;
+      Element origin = originClass.localLookup(patch.name);
+      patchElement(compiler, origin, patch);
     }
-    return false;
-  }
-
-  void patchMember(Element originalElement, Element patchElement) {
-    // The original library has an element with the same name as the patch
-    // library element.
-    // In this case, the patch library element must be a function marked as
-    // "patch" and it must have the same signature as the function it patches.
-    if (!isPatchElement(patchElement)) {
-      compiler.internalError("Cannot overwrite existing '"
-                    "${originalElement.name.slowToString()}' with non-patch.");
-    }
-    if (originalElement is! FunctionElement) {
-      // TODO(lrn): Handle class declarations too.
-      compiler.internalError("Can only patch functions", element: originalElement);
-    }
-    FunctionElement original = originalElement;
-    if (!original.modifiers.isExternal()) {
-      compiler.internalError("Can only patch external functions.", element: original);
-    }
-    if (patchElement is! FunctionElement ||
-        !patchSignatureMatches(original, patchElement)) {
-      compiler.internalError("Can only patch functions with matching signatures",
-                    element: original);
-    }
-    applyFunctionPatch(original, patchElement);
-  }
-
-  bool patchSignatureMatches(FunctionElement original, FunctionElement patch) {
-    // TODO(lrn): Check that patches actually match the signature of
-    // the function it's patching.
-    return true;
-  }
-
-  void applyFunctionPatch(FunctionElement element,
-                          FunctionElement patchElement) {
-    if (element.isPatched) {
-      compiler.internalError("Trying to patch a function more than once.",
-                    element: element);
-    }
-    if (element.cachedNode != null) {
-      compiler.internalError("Trying to patch an already compiled function.",
-                    element: element);
-    }
-    // Don't just assign the patch field. This also updates the cachedNode.
-    element.setPatch(patchElement);
-    patchElement.origin = element;
   }
 }
 
@@ -404,59 +330,16 @@ class PatchElementListener extends ElementListener implements PatchListener {
     imports.addLast(tag);
   }
 
-  void pushElement(Element element) {
-    if (isMemberPatch || (isClassPatch && element is ClassElement)) {
+  void pushElement(Element patch) {
+    if (isMemberPatch || (isClassPatch && patch is ClassElement)) {
       // Apply patch.
-      element.addMetadata(popMetadataHack());
+      patch.addMetadata(popMetadataHack());
       LibraryElement originLibrary = compilationUnitElement.getLibrary();
       assert(originLibrary.isPatched);
-      Element existing = originLibrary.localLookup(element.name);
-      if (isMemberPatch) {
-        if (element is! FunctionElement) {
-          listener.internalErrorOnElement(element,
-                                          "Member patch is not a function.");
-        }
-        FunctionElement functionElement = element;
-        if (identical(existing.kind, ElementKind.ABSTRACT_FIELD)) {
-          if (!element.isAccessor()) {
-            listener.internalErrorOnElement(
-                functionElement, "Patching non-accessor with accessor");
-          }
-          AbstractFieldElement field = existing;
-          if (functionElement.isGetter()) {
-            existing = field.getter;
-          } else {
-            existing = field.setter;
-          }
-        }
-        if (existing is! FunctionElement) {
-          listener.internalErrorOnElement(functionElement,
-                                          "No corresponding method for patch.");
-        }
-        FunctionElement existingFunction = existing;
-        if (existingFunction.isPatched) {
-          listener.internalErrorOnElement(
-              functionElement, "Patching the same function more than once.");
-        }
-        existingFunction.patch = functionElement;
-        functionElement.origin = existingFunction;
-      } else {
-        assert(leg.invariant(element, element is ClassElement));
-        ClassElement classElement = element;
-        if (existing is! ClassElement) {
-          listener.internalErrorOnElement(
-              classElement, "Patching a non-class with a class patch.");
-        }
-        ClassElement existingClass = existing;
-        if (existingClass.isPatched) {
-          listener.internalErrorOnElement(
-              classElement, "Patching the same class more than once.");
-        }
-        existingClass.patch = classElement;
-        classElement.origin = existingClass;
-      }
+      Element origin = originLibrary.localLookup(patch.name);
+      patchElement(listener, origin, patch);
     }
-    super.pushElement(element);
+    super.pushElement(patch);
   }
 }
 
@@ -509,4 +392,205 @@ class PatchMetadataAnnotation extends MetadataAnnotationX {
 
   Token get beginToken => null;
   Token get endToken => null;
+}
+
+void patchElement(leg.DiagnosticListener listener,
+                   Element origin,
+                   Element patch) {
+  if (origin == null) {
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_NON_EXISTING.error({'name': patch.name}),
+        api.Diagnostic.ERROR);
+    return;
+  }
+  if (!(origin.isClass() ||
+        origin.isConstructor() ||
+        origin.isFunction() ||
+        origin.isAbstractField())) {
+    listener.reportMessage(
+        listener.spanFromSpannable(origin),
+        leg.MessageKind.PATCH_NONPATCHABLE.error(),
+        api.Diagnostic.ERROR);
+    return;
+  }
+  if (patch.isClass()) {
+    tryPatchClass(listener, origin, patch);
+  } else if (patch.isGetter()) {
+    tryPatchGetter(listener, origin, patch);
+  } else if (patch.isSetter()) {
+    tryPatchSetter(listener, origin, patch);
+  } else if (patch.isConstructor()) {
+    tryPatchConstructor(listener, origin, patch);
+  } else if(patch.isFunction()) {
+    tryPatchFunction(listener, origin, patch);
+  } else {
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_NONPATCHABLE.error(),
+        api.Diagnostic.ERROR);
+  }
+}
+
+void tryPatchClass(leg.DiagnosticListener listener,
+                    Element origin,
+                    ClassElement patch) {
+  if (!origin.isClass()) {
+    listener.reportMessage(
+        listener.spanFromSpannable(origin),
+        leg.MessageKind.PATCH_NON_CLASS.error({'className': patch.name}),
+        api.Diagnostic.ERROR);
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_POINT_TO_CLASS.error({'className': patch.name}),
+        api.Diagnostic.INFO);
+    return;
+  }
+  patchClass(listener, origin, patch);
+}
+
+void patchClass(leg.DiagnosticListener listener,
+                 ClassElement origin,
+                 ClassElement patch) {
+  if (origin.isPatched) {
+    listener.internalErrorOnElement(
+        origin, "Patching the same class more than once.");
+  }
+  // TODO(johnniwinther): Change to functions on the ElementX class.
+  origin.patch = patch;
+  patch.origin = origin;
+}
+
+void tryPatchGetter(leg.DiagnosticListener listener,
+                     Element origin,
+                     FunctionElement patch) {
+  if (!origin.isAbstractField()) {
+    listener.reportMessage(
+        listener.spanFromSpannable(origin),
+        leg.MessageKind.PATCH_NON_GETTER.error({'name': origin.name}),
+        api.Diagnostic.ERROR);
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_POINT_TO_GETTER.error({'getterName': patch.name}),
+        api.Diagnostic.INFO);
+    return;
+  }
+  AbstractFieldElement originField = origin;
+  if (originField.getter == null) {
+    listener.reportMessage(
+        listener.spanFromSpannable(origin),
+        leg.MessageKind.PATCH_NO_GETTER.error({'getterName': patch.name}),
+        api.Diagnostic.ERROR);
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_POINT_TO_GETTER.error({'getterName': patch.name}),
+        api.Diagnostic.INFO);
+    return;
+  }
+  patchFunction(listener, originField.getter, patch);
+}
+
+void tryPatchSetter(leg.DiagnosticListener listener,
+                     Element origin,
+                     FunctionElement patch) {
+  if (!origin.isAbstractField()) {
+    listener.reportMessage(
+        listener.spanFromSpannable(origin),
+        leg.MessageKind.PATCH_NON_SETTER.error({'name': origin.name}),
+        api.Diagnostic.ERROR);
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_POINT_TO_SETTER.error({'setterName': patch.name}),
+        api.Diagnostic.INFO);
+    return;
+  }
+  AbstractFieldElement originField = origin;
+  if (originField.setter == null) {
+    listener.reportMessage(
+        listener.spanFromSpannable(origin),
+        leg.MessageKind.PATCH_NO_SETTER.error({'setterName': patch.name}),
+        api.Diagnostic.ERROR);
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_POINT_TO_SETTER.error({'setterName': patch.name}),
+        api.Diagnostic.INFO);
+    return;
+  }
+  patchFunction(listener, originField.setter, patch);
+}
+
+void tryPatchConstructor(leg.DiagnosticListener listener,
+                          Element origin,
+                          FunctionElement patch) {
+  if (!origin.isConstructor()) {
+    listener.reportMessage(
+        listener.spanFromSpannable(origin),
+        leg.MessageKind.PATCH_NON_CONSTRUCTOR.error(
+            {'constructorName': patch.name}),
+        api.Diagnostic.ERROR);
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_POINT_TO_CONSTRUCTOR.error(
+            {'constructorName': patch.name}),
+        api.Diagnostic.INFO);
+    return;
+  }
+  patchFunction(listener, origin, patch);
+}
+
+void tryPatchFunction(leg.DiagnosticListener listener,
+                       Element origin,
+                       FunctionElement patch) {
+  if (!origin.isFunction()) {
+    listener.reportMessage(
+        listener.spanFromSpannable(origin),
+        leg.MessageKind.PATCH_NON_FUNCTION.error({'functionName': patch.name}),
+        api.Diagnostic.ERROR);
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_POINT_TO_FUNCTION.error(
+            {'functionName': patch.name}),
+        api.Diagnostic.INFO);
+    return;
+  }
+  patchFunction(listener, origin, patch);
+}
+
+void patchFunction(leg.DiagnosticListener listener,
+                    FunctionElement origin,
+                    FunctionElement patch) {
+  if (!origin.modifiers.isExternal()) {
+    listener.reportMessage(
+        listener.spanFromSpannable(origin),
+        leg.MessageKind.PATCH_NON_EXTERNAL.error(),
+        api.Diagnostic.ERROR);
+    listener.reportMessage(
+        listener.spanFromSpannable(patch),
+        leg.MessageKind.PATCH_POINT_TO_FUNCTION.error(
+            {'functionName': patch.name}),
+        api.Diagnostic.INFO);
+    return;
+  }
+  if (origin.isPatched) {
+    listener.internalErrorOnElement(origin,
+        "Trying to patch a function more than once.");
+  }
+  if (origin.cachedNode != null) {
+    listener.internalErrorOnElement(origin,
+        "Trying to patch an already compiled function.");
+  }
+  // Don't just assign the patch field. This also updates the cachedNode.
+  // TODO(johnniwinther): Change to functions on the ElementX class.
+  origin.setPatch(patch);
+  patch.origin = origin;
+}
+
+// TODO(johnniwinther): Add unittest when patch is (real) metadata.
+bool isPatchElement(Element element) {
+  // TODO(lrn): More checks needed if we introduce metadata for real.
+  // In that case, it must have the identifier "native" as metadata.
+  for (Link link = element.metadata; !link.isEmpty; link = link.tail) {
+    if (link.head is PatchMetadataAnnotation) return true;
+  }
+  return false;
 }

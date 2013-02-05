@@ -44,7 +44,8 @@ Element ensure(compiler,
                 bool expectIsPatch: false,
                 bool checkHasBody: false,
                 bool expectIsGetter: false,
-                bool expectIsFound: true}) {
+                bool expectIsFound: true,
+                bool expectIsRegular: false}) {
   var element = lookup(buildSourceString(name));
   if (!expectIsFound) {
     Expect.isNull(element);
@@ -86,7 +87,7 @@ Element ensure(compiler,
   } else {
     Expect.isTrue(element.isDeclaration);
   }
-  if (!(element.isPatched || element.isPatch)) {
+  if (expectIsRegular) {
     Expect.isNull(element.origin);
     Expect.isNull(element.patch);
 
@@ -109,6 +110,43 @@ testPatchFunction() {
          expectIsPatched: true, checkHasBody: true);
   ensure(compiler, "test", compiler.coreLibrary.patch.find,
          expectIsPatch: true, checkHasBody: true);
+
+  Expect.isTrue(compiler.warnings.isEmpty,
+                "Unexpected warnings: ${compiler.warnings}");
+  Expect.isTrue(compiler.errors.isEmpty,
+                "Unexpected errors: ${compiler.errors}");
+}
+
+testPatchConstructor() {
+  var compiler = applyPatch(
+      """
+      class Class {
+        external Class();
+      }
+      """,
+      """
+      patch class Class {
+        patch Class();
+      }
+      """);
+  var classOrigin = ensure(compiler, "Class", compiler.coreLibrary.find,
+                           expectIsPatched: true);
+  classOrigin.ensureResolved(compiler);
+  var classPatch = ensure(compiler, "Class", compiler.coreLibrary.patch.find,
+                          expectIsPatch: true);
+
+  Expect.equals(classPatch, classOrigin.patch);
+  Expect.equals(classOrigin, classPatch.origin);
+
+  var constructorOrigin = ensure(compiler, "Class",
+                                 (name) => classOrigin.localLookup(name),
+                                 expectIsPatched: true);
+  var constructorPatch = ensure(compiler, "Class",
+                                (name) => classPatch.localLookup(name),
+                                expectIsPatch: true);
+
+  Expect.equals(constructorPatch, constructorOrigin.patch);
+  Expect.equals(constructorOrigin, constructorPatch.origin);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -197,9 +235,9 @@ testRegularMember() {
          expectIsPatch: true);
 
   ensure(compiler, "regular", container.lookupLocalMember,
-         checkHasBody: true);
+         checkHasBody: true, expectIsRegular: true);
   ensure(compiler, "regular", container.patch.lookupLocalMember,
-         checkHasBody: true);
+         checkHasBody: true, expectIsRegular: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -227,7 +265,7 @@ testGhostMember() {
   ensure(compiler, "ghost", container.lookupLocalMember,
          expectIsFound: false);
   ensure(compiler, "ghost", container.patch.lookupLocalMember,
-         checkHasBody: true);
+         checkHasBody: true, expectIsRegular: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -246,7 +284,7 @@ testInjectFunction() {
   ensure(compiler,
          "_function",
          compiler.coreLibrary.patch.find,
-         checkHasBody: true);
+         checkHasBody: true, expectIsRegular: true);
 
   Expect.isTrue(compiler.warnings.isEmpty,
                 "Unexpected warnings: ${compiler.warnings}");
@@ -380,7 +418,7 @@ testExternalWithoutImplementationTopLevel() {
   Expect.equals(1, compiler.errors.length);
   Expect.isTrue(
       compiler.errors[0].message.kind ==
-          MessageKind.EXTERNAL_WITHOUT_IMPLEMENTATION);
+          MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
   Expect.equals('External method without an implementation.',
                 compiler.errors[0].message.toString());
 }
@@ -411,7 +449,7 @@ testExternalWithoutImplementationMember() {
   Expect.equals(1, compiler.errors.length);
   Expect.isTrue(
       compiler.errors[0].message.kind ==
-          MessageKind.EXTERNAL_WITHOUT_IMPLEMENTATION);
+          MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
   Expect.equals('External method without an implementation.',
                 compiler.errors[0].message.toString());
 }
@@ -432,7 +470,234 @@ testIsSubclass() {
   Expect.isTrue(patch.isSubclassOf(cls));
 }
 
+testPatchNonExistingTopLevel() {
+  var compiler = applyPatch(
+      """
+      // class Class {}
+      """,
+      """
+      patch class Class {}
+      """);
+  Expect.isTrue(compiler.warnings.isEmpty,
+                "Unexpected warnings: ${compiler.warnings}");
+  print('testPatchNonExistingTopLevel:${compiler.errors}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NON_EXISTING);
+}
+
+testPatchNonExistingMember() {
+  var compiler = applyPatch(
+      """
+      class Class {}
+      """,
+      """
+      patch class Class {
+        patch void foo() {}
+      }
+      """);
+  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
+                         expectIsPatched: true);
+  container.parseNode(compiler);
+
+  Expect.isTrue(compiler.warnings.isEmpty,
+                "Unexpected warnings: ${compiler.warnings}");
+  print('testPatchNonExistingMember:${compiler.errors}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NON_EXISTING);
+}
+
+testPatchNonPatchablePatch() {
+  var compiler = applyPatch(
+      """
+      external get foo;
+      """,
+      """
+      patch var foo;
+      """);
+  ensure(compiler, "foo", compiler.coreLibrary.find);
+
+  Expect.isTrue(compiler.warnings.isEmpty,
+                "Unexpected warnings: ${compiler.warnings}");
+  print('testPatchNonPatchablePatch:${compiler.errors}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NONPATCHABLE);
+}
+
+testPatchNonPatchableOrigin() {
+  var compiler = applyPatch(
+      """
+      external var foo;
+      """,
+      """
+      patch get foo => 0;
+      """);
+  ensure(compiler, "foo", compiler.coreLibrary.find);
+
+  Expect.isTrue(compiler.warnings.isEmpty,
+                "Unexpected warnings: ${compiler.warnings}");
+  print('testPatchNonPatchableOrigin:${compiler.errors}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NONPATCHABLE);
+}
+
+testPatchNonExternalTopLevel() {
+  var compiler = applyPatch(
+      """
+      void foo() {}
+      """,
+      """
+      patch void foo() {}
+      """);
+  print('testPatchNonExternalTopLevel.errors:${compiler.errors}');
+  print('testPatchNonExternalTopLevel.warnings:${compiler.warnings}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NON_EXTERNAL);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.isTrue(
+      compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_FUNCTION);
+}
+
+testPatchNonExternalMember() {
+  var compiler = applyPatch(
+      """
+      class Class {
+        void foo() {}
+      }
+      """,
+      """
+      patch class Class {
+        patch void foo() {}
+      }
+      """);
+  var container = ensure(compiler, "Class", compiler.coreLibrary.find,
+                         expectIsPatched: true);
+  container.parseNode(compiler);
+
+  print('testPatchNonExternalMember.errors:${compiler.errors}');
+  print('testPatchNonExternalMember.warnings:${compiler.warnings}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NON_EXTERNAL);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.isTrue(
+      compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_FUNCTION);
+}
+
+testPatchNonClass() {
+  var compiler = applyPatch(
+      """
+      external void Class() {}
+      """,
+      """
+      patch class Class {}
+      """);
+  print('testPatchNonClass.errors:${compiler.errors}');
+  print('testPatchNonClass.warnings:${compiler.warnings}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NON_CLASS);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.isTrue(
+      compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_CLASS);
+}
+
+testPatchNonGetter() {
+  var compiler = applyPatch(
+      """
+      external void foo() {}
+      """,
+      """
+      patch get foo => 0;
+      """);
+  print('testPatchNonClass.errors:${compiler.errors}');
+  print('testPatchNonClass.warnings:${compiler.warnings}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NON_GETTER);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.isTrue(
+      compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_GETTER);
+}
+
+testPatchNoGetter() {
+  var compiler = applyPatch(
+      """
+      external set foo(var value) {}
+      """,
+      """
+      patch get foo => 0;
+      """);
+  print('testPatchNonClass.errors:${compiler.errors}');
+  print('testPatchNonClass.warnings:${compiler.warnings}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NO_GETTER);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.isTrue(
+      compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_GETTER);
+}
+
+testPatchNonSetter() {
+  var compiler = applyPatch(
+      """
+      external void foo() {}
+      """,
+      """
+      patch set foo(var value) {}
+      """);
+  print('testPatchNonClass.errors:${compiler.errors}');
+  print('testPatchNonClass.warnings:${compiler.warnings}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NON_SETTER);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.isTrue(
+      compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_SETTER);
+}
+
+testPatchNoSetter() {
+  var compiler = applyPatch(
+      """
+      external get foo;
+      """,
+      """
+      patch set foo(var value) {}
+      """);
+  print('testPatchNonClass.errors:${compiler.errors}');
+  print('testPatchNonClass.warnings:${compiler.warnings}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NO_SETTER);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.isTrue(
+      compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_SETTER);
+}
+
+testPatchNonFunction() {
+  var compiler = applyPatch(
+      """
+      external get foo;
+      """,
+      """
+      patch void foo() {}
+      """);
+  print('testPatchNonClass.errors:${compiler.errors}');
+  print('testPatchNonClass.warnings:${compiler.warnings}');
+  Expect.equals(1, compiler.errors.length);
+  Expect.isTrue(
+      compiler.errors[0].message.kind == MessageKind.PATCH_NON_FUNCTION);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.isTrue(
+      compiler.warnings[0].message.kind == MessageKind.PATCH_POINT_TO_FUNCTION);
+}
+
 main() {
+  testPatchConstructor();
   testPatchFunction();
   testPatchMember();
   testPatchGetter();
@@ -445,4 +710,17 @@ main() {
   testExternalWithoutImplementationMember();
 
   testIsSubclass();
+
+  testPatchNonExistingTopLevel();
+  testPatchNonExistingMember();
+  testPatchNonPatchablePatch();
+  testPatchNonPatchableOrigin();
+  testPatchNonExternalTopLevel();
+  testPatchNonExternalMember();
+  testPatchNonClass();
+  testPatchNonGetter();
+  testPatchNoGetter();
+  testPatchNonSetter();
+  testPatchNoSetter();
+  testPatchNonFunction();
 }

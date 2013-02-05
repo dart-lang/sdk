@@ -360,31 +360,6 @@ Invalid offset (#{offset}) in source map.
 File: #{fileName}
 Length: #{length}''');
 
-  static const PATCH_RETURN_TYPE_MISMATCH = const MessageKind(
-      "Patch return type '#{patchReturnType}' doesn't match "
-      "'#{originReturnType}' on origin method '#{methodName}'.");
-
-  static const PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH = const MessageKind(
-      "Required parameter count of patch method (#{patchParameterCount}) "
-      "doesn't match parameter count on origin method '#{methodName}' "
-      "(#{originParameterCount}).");
-
-  static const PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH = const MessageKind(
-      "Optional parameter count of patch method (#{patchParameterCount}) "
-      "doesn't match parameter count on origin method '#{methodName}' "
-      "(#{originParameterCount}).");
-
-  static const PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH = const MessageKind(
-      "Optional parameters of origin and patch method '#{methodName}' must "
-      "both be either named or positional.");
-
-  static const PATCH_PARAMETER_MISMATCH = const MessageKind(
-      "Patch method parameter '#{patchParameter}' doesn't match "
-      "'#{originParameter}' on origin method #{methodName}.");
-
-  static const EXTERNAL_WITHOUT_IMPLEMENTATION = const MessageKind(
-      "External method without an implementation.");
-
   static const TOP_LEVEL_VARIABLE_DECLARED_STATIC = const MessageKind(
       "Top-level variable cannot be declared static.");
 
@@ -423,6 +398,87 @@ Please include the following information:
 * the entire message you see here (including the full stack trace
   below as well as the source location above).
 ''');
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Patch errors start.
+  //////////////////////////////////////////////////////////////////////////////
+
+  static const PATCH_RETURN_TYPE_MISMATCH = const MessageKind(
+      "Patch return type '#{patchReturnType}' doesn't match "
+      "'#{originReturnType}' on origin method '#{methodName}'.");
+
+  static const PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH = const MessageKind(
+      "Required parameter count of patch method (#{patchParameterCount}) "
+      "doesn't match parameter count on origin method '#{methodName}' "
+      "(#{originParameterCount}).");
+
+  static const PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH = const MessageKind(
+      "Optional parameter count of patch method (#{patchParameterCount}) "
+      "doesn't match parameter count on origin method '#{methodName}' "
+      "(#{originParameterCount}).");
+
+  static const PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH = const MessageKind(
+      "Optional parameters of origin and patch method '#{methodName}' must "
+      "both be either named or positional.");
+
+  static const PATCH_PARAMETER_MISMATCH = const MessageKind(
+      "Patch method parameter '#{patchParameter}' doesn't match "
+      "'#{originParameter}' on origin method #{methodName}.");
+
+  static const PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION = const MessageKind(
+      "External method without an implementation.");
+
+  static const PATCH_POINT_TO_FUNCTION = const MessageKind(
+      "Info: This is the function patch '#{functionName}'.");
+
+  static const PATCH_POINT_TO_CLASS = const MessageKind(
+      "Info: This is the class patch '#{className}'.");
+
+  static const PATCH_POINT_TO_GETTER = const MessageKind(
+      "Info: This is the getter patch '#{getterName}'.");
+
+  static const PATCH_POINT_TO_SETTER = const MessageKind(
+      "Info: This is the setter patch '#{setterName}'.");
+
+  static const PATCH_POINT_TO_CONSTRUCTOR = const MessageKind(
+      "Info: This is the constructor patch '#{constructorName}'.");
+
+  static const PATCH_NON_EXISTING = const MessageKind(
+      "Error: Origin does not exist for patch '#{name}'.");
+
+  static const PATCH_NONPATCHABLE = const MessageKind(
+      "Error: Only classes and functions can be patched.");
+
+  static const PATCH_NON_EXTERNAL = const MessageKind(
+      "Error: Only external functions can be patched.");
+
+  static const PATCH_NON_CLASS = const MessageKind(
+      "Error: Patching non-class with class patch '#{className}'.");
+
+  static const PATCH_NON_GETTER = const MessageKind(
+      "Error: Cannot patch non-getter '#{name}' with getter patch.");
+
+  static const PATCH_NO_GETTER = const MessageKind(
+      "Error: No getter found for getter patch '#{getterName}'.");
+
+  static const PATCH_NON_SETTER = const MessageKind(
+      "Error: Cannot patch non-setter '#{name}' with setter patch.");
+
+  static const PATCH_NO_SETTER = const MessageKind(
+      "Error: No setter found for setter patch '#{setterName}'.");
+
+  static const PATCH_NON_CONSTRUCTOR = const MessageKind(
+      "Error: Cannot patch non-constructor with constructor patch "
+      "'#{constructorName}'.");
+
+  static const PATCH_NON_FUNCTION = const MessageKind(
+      "Error: Cannot patch non-function with function patch "
+      "'#{functionName}'.");
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Patch errors end.
+  //////////////////////////////////////////////////////////////////////////////
 
   toString() => template;
 
