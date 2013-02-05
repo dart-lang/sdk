@@ -632,14 +632,16 @@ class _In extends BaseMatcher {
 
 /**
  * Returns a matcher that uses an arbitrary function that returns
- * true or false for the actual value.
+ * true or false for the actual value. For example:
+ *
+ *     expect(v, predicate((x) => ((x % 2) == 0), "is even"))
  */
-Matcher predicate(f, [description ='satisfies function']) =>
+Matcher predicate(Function f, [description ='satisfies function']) =>
     new _Predicate(f, description);
 
 class _Predicate extends BaseMatcher {
 
-  final _matcher;
+  final Function _matcher;
   final String _description;
 
   const _Predicate(this._matcher, this._description);
