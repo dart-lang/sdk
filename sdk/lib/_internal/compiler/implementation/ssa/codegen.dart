@@ -2363,13 +2363,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkType(input, type);
       attachLocationToLast(node);
     }
-    if (node.hasArgumentsCheck()) {
+    if (node.hasArgumentChecks()) {
       InterfaceType interfaceType = type;
       ClassElement cls = type.element;
       Link<DartType> arguments = interfaceType.typeArguments;
       js.Expression result = pop();
-      use(node.checkCall);
-      result = new js.Binary('&&', result, pop());
+      for (int i = 0; i < node.checkCount; i++) {
+        use(node.getCheck(i));
+        result = new js.Binary('&&', result, pop());
+      }
       push(result, node);
     }
     if (node.nullOk) {

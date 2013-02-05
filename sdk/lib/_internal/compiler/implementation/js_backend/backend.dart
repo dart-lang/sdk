@@ -1206,8 +1206,4 @@ class JavaScriptBackend extends Backend {
   Element getGetRuntimeTypeInfo() {
     return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
   }
-
-  Element getGetRuntimeTypeArgument() {
-    return compiler.findHelper(const SourceString('getRuntimeTypeArgument'));
-  }
 }

@@ -10,7 +10,6 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_CALL_IN_ISOLATE,
                                    JS_CURRENT_ISOLATE,
                                    JS_OPERATOR_IS_PREFIX,
-                                   JS_OPERATOR_AS_PREFIX,
                                    JS_HAS_EQUALS,
                                    RAW_DART_FUNCTION_REF,
                                    UNINTERCEPTED;
@@ -1054,12 +1053,12 @@ setRuntimeTypeInfo(target, typeInfo) {
 
 getRuntimeTypeInfo(target) {
   if (target == null) return null;
-  return JS('var', r'#.$builtinTypeInfo', target);
-}
-
-getRuntimeTypeArgument(target, index) {
-  var rti = getRuntimeTypeInfo(target);
-  return (rti != null) ? JS('var', r'#[#]', rti, index) : null;
+  var res = JS('var', r'#.$builtinTypeInfo', target);
+  // If the object does not have runtime type information, return an
+  // empty literal, to avoid null checks.
+  // TODO(ngeoffray): Make the object a top-level field to avoid
+  // allocating a new object every single time.
+  return (res == null) ? JS('var', '{}') : res;
 }
 
 /**
@@ -1421,7 +1420,7 @@ String getClassName(var object) {
   return JS('String', r'#.constructor.builtin$cls', object);
 }
 
-String getRuntimeTypeAsString(List runtimeType) {
+String getTypeArgumentAsString(List runtimeType) {
   String className = getConstructorName(runtimeType[0]);
   if (runtimeType.length == 1) return className;
   return '$className<${joinArguments(runtimeType, 1)}>';
@@ -1434,7 +1433,7 @@ String runtimeTypeToString(type) {
     return 'dynamic';
   } else if (isJsArray(type)) {
     // A list representing a type with arguments.
-    return getRuntimeTypeAsString(type);
+    return getTypeArgumentAsString(type);
   } else {
     // A reference to the constructor.
     return getConstructorName(type);
@@ -1463,50 +1462,6 @@ String getRuntimeTypeString(var object) {
   return "$className<${joinArguments(typeInfo, 0)}>";
 }
 
-bool isJsFunction(var o) => JS('bool', r"typeof # == 'function'", o);
-
-Object invoke(function, arguments) {
-  return JS('var', r'#.apply(null, #)', function, arguments);
-}
-
-/**
- * Check that the types in the list [arguments] are subtypes of the types in
- * list [checks] (at the respective positions), possibly applying [substitution]
- * to the arguments before the check.
- *
- * See [:RuntimeTypes.getSubtypeSubstitution:] for a description of the possible
- * values for [substitution].
- */
-bool checkArguments(var substitution, var arguments, var checks) {
-  if (isJsArray(substitution)) {
-    arguments = substitution;
-  } else if (isJsFunction(substitution)) {
-    arguments = invoke(substitution, arguments);
-  }
-  return areSubtypes(arguments, checks);
-}
-
-bool areSubtypes(List s, List t) {
-  // [:null:] means a raw type.
-  if (s == null || t == null) return true;
-
-  assert(isJsArray(s));
-  assert(isJsArray(t));
-  assert(s.length == t.length);
-
-  int len = s.length;
-  for (int i = 0; i < len; i++) {
-    if (!isSubtype(s[i], t[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-getArguments(var type) => JS('var', r'#.slice(1)', type);
-
-getField(var object, String name) => JS('var', r'#[#]', object, name);
-
 /**
  * Check whether the type represented by [s] is a subtype of the type
  * represented by [t].
@@ -1530,20 +1485,20 @@ bool isSubtype(var s, var t) {
   // constructed from the type of [t].
   var typeOfS = isJsArray(s) ? s[0] : s;
   var typeOfT = isJsArray(t) ? t[0] : t;
-  // Check for a subtyping flag.
   var test = '${JS_OPERATOR_IS_PREFIX()}${runtimeTypeToString(typeOfT)}';
-  if (getField(typeOfS, test) == null) return false;
+  if (JS('var', r'#[#]', typeOfS, test) == null) return false;
   // The class of [s] is a subclass of the class of [t]. If either of the types
   // is raw, [s] is a subtype of [t].
   if (!isJsArray(s) || !isJsArray(t)) return true;
-  // Get the necessary substitution of the type arguments, if there is one.
-  var substitution;
-  if (JS('bool', '# !== #', typeOfT, typeOfS)) {
-    var field = '${JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}';
-    substitution = getField(typeOfS, field);
-  }
   // Recursively check the type arguments.
-  return checkArguments(substitution, getArguments(s), getArguments(t));
+  int len = s.length;
+  if (len != t.length) return false;
+  for (int i = 1; i < len; i++) {
+    if (!isSubtype(s[i], t[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 createRuntimeType(String name) => new TypeImpl(name);

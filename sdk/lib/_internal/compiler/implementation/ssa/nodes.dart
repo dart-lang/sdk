@@ -2282,9 +2282,10 @@ class HIs extends HInstruction {
   }
 
   HInstruction get expression => inputs[0];
-  HInstruction get checkCall => inputs[1];
+  HInstruction getCheck(int index) => inputs[index + 1];
+  int get checkCount => inputs.length - 1;
 
-  bool hasArgumentsCheck() => inputs.length > 1;
+  bool hasArgumentChecks() => inputs.length > 1;
 
   HType get guaranteedType => HType.BOOLEAN;
 
