@@ -13027,30 +13027,61 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
   @DocsEditable
   void setRequestHeader(String header, String value) native;
 
+  /**
+   * Event listeners to be notified when request has been aborted,
+   * generally due to calling `httpRequest.abort()`.
+   */
   @DomName('XMLHttpRequest.onabort')
   @DocsEditable
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
 
+  /**
+   * Event listeners to be notified when a request has failed, such as when a
+   * cross-domain error occurred or the file wasn't found on the server.
+   */
   @DomName('XMLHttpRequest.onerror')
   @DocsEditable
   Stream<ProgressEvent> get onError => errorEvent.forTarget(this);
 
+  /**
+   * Event listeners to be notified once the request has completed
+   * *successfully*.
+   */
   @DomName('XMLHttpRequest.onload')
   @DocsEditable
   Stream<ProgressEvent> get onLoad => loadEvent.forTarget(this);
 
+  /**
+   * Event listeners to be notified once the request has completed (on
+   * either success or failure).
+   */
   @DomName('XMLHttpRequest.onloadend')
   @DocsEditable
   Stream<ProgressEvent> get onLoadEnd => loadEndEvent.forTarget(this);
 
+  /**
+   * Event listeners to be notified when the request starts, once
+   * `httpRequest.send()` has been called.
+   */
   @DomName('XMLHttpRequest.onloadstart')
   @DocsEditable
   Stream<ProgressEvent> get onLoadStart => loadStartEvent.forTarget(this);
 
+  /**
+   * Event listeners to be notified when data for the request
+   * is being sent or loaded.
+   *
+   * Progress events are fired every 50ms or for every byte transmitted,
+   * whichever is less frequent.
+   */
   @DomName('XMLHttpRequest.onprogress')
   @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
+  /**
+   * Event listeners to be notified every time the [HttpRequest]
+   * object's `readyState` changes values.
+   */
   @DomName('XMLHttpRequest.onreadystatechange')
   @DocsEditable
   Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
@@ -16366,6 +16397,16 @@ class MemoryInfo native "*MemoryInfo" {
 
 
 @DocsEditable
+/**
+ * An HTML <menu> element.
+ *
+ * A <menu> element represents an unordered list of menu commands.
+ *
+ * See also:
+ *
+ *  * [Menu Element](https://developer.mozilla.org/en-US/docs/HTML/Element/menu) from MDN.
+ *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
+ */
 @DomName('HTMLMenuElement')
 class MenuElement extends Element native "*HTMLMenuElement" {
 
