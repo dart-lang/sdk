@@ -47,9 +47,28 @@ class MinifyNamer extends Namer {
     // From issue 7554.  These should not be used on objects (as instance
     // variables) because they clash with names from the DOM.
     const reservedNativeProperties = const <String>[
-        'Q', 'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z', 'ch', 'cx',
-        'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1', 'k2', 'k3',
-        'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2'];
+        'Q', 'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z',
+        // 2-letter:
+        'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
+        'k2', 'k3', 'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2',
+        // 3-letter:
+        'add', 'all', 'alt', 'arc', 'CCW', 'cmp', 'dir', 'end', 'get', 'in1',
+        'in2', 'INT', 'key', 'log', 'low', 'm11', 'm12', 'm13', 'm14', 'm21',
+        'm22', 'm23', 'm24', 'm31', 'm32', 'm33', 'm34', 'm41', 'm42', 'm43',
+        'm44', 'max', 'min', 'now', 'ONE', 'put', 'red', 'rel', 'rev', 'RGB',
+        'sdp', 'set', 'src', 'tag', 'top', 'uid', 'uri', 'url', 'URL',
+        // 4-letter:
+        'abbr', 'atob', 'Attr', 'axes', 'axis', 'back', 'BACK', 'beta', 'bias',
+        'Blob', 'blue', 'blur', 'BLUR', 'body', 'BOOL', 'BOTH', 'btoa', 'BYTE',
+        'cite', 'clip', 'code', 'cols', 'cues', 'data', 'DECR', 'DONE', 'face',
+        'file', 'File', 'fill', 'find', 'font', 'form', 'gain', 'hash', 'head',
+        'high', 'hint', 'host', 'href', 'HRTF', 'IDLE', 'INCR', 'info', 'INIT',
+        'isId', 'item', 'KEEP', 'kind', 'knee', 'lang', 'left', 'LESS', 'line',
+        'link', 'list', 'load', 'loop', 'mode', 'name', 'Node', 'None', 'NONE',
+        'only', 'open', 'OPEN', 'ping', 'play', 'port', 'rect', 'Rect', 'refX',
+        'refY', 'RGBA', 'root', 'rows', 'save', 'seed', 'seek', 'self', 'send',
+        'show', 'SINE', 'size', 'span', 'stat', 'step', 'stop', 'tags', 'text',
+        'Text', 'time', 'type', 'view', 'warn', 'wrap', 'ZERO'];
     for (var name in reservedNativeProperties) {
       if (name.length < 2) {
         instanceNameMap[name] = name;
