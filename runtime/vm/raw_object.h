@@ -527,9 +527,9 @@ class RawPatchClass : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->patched_class_);
   }
   RawClass* patched_class_;
-  RawScript* script_;
+  RawClass* source_class_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->script_);
+    return reinterpret_cast<RawObject**>(&ptr()->source_class_);
   }
 };
 

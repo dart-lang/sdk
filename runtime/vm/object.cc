@@ -1787,9 +1787,8 @@ const char* Class::ApplyPatch(const Class& patch) const {
   // Shared handles used during the iteration.
   String& member_name = String::Handle();
 
-  const Script& patch_script = Script::Handle(patch.script());
-  const PatchClass& patch_class = PatchClass::Handle(
-      PatchClass::New(*this, patch_script));
+  const PatchClass& patch_class =
+      PatchClass::Handle(PatchClass::New(*this, patch));
 
   Array& orig_list = Array::Handle(functions());
   intptr_t orig_len = orig_list.Length();
@@ -3246,10 +3245,10 @@ const char* PatchClass::ToCString() const {
 
 
 RawPatchClass* PatchClass::New(const Class& patched_class,
-                               const Script& script) {
+                               const Class& source_class) {
   const PatchClass& result = PatchClass::Handle(PatchClass::New());
   result.set_patched_class(patched_class);
-  result.set_script(script);
+  result.set_source_class(source_class);
   return result.raw();
 }
 
@@ -3263,13 +3262,19 @@ RawPatchClass* PatchClass::New() {
 }
 
 
+RawScript* PatchClass::Script() const {
+  const Class& source_class = Class::Handle(this->source_class());
+  return source_class.script();
+}
+
+
 void PatchClass::set_patched_class(const Class& value) const {
   StorePointer(&raw_ptr()->patched_class_, value.raw());
 }
 
 
-void PatchClass::set_script(const Script& value) const {
-  StorePointer(&raw_ptr()->script_, value.raw());
+void PatchClass::set_source_class(const Class& value) const {
+  StorePointer(&raw_ptr()->source_class_, value.raw());
 }
 
 
@@ -4375,7 +4380,7 @@ RawScript* Function::script() const {
     return Class::Cast(obj).script();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).script();
+  return PatchClass::Cast(obj).Script();
 }
 
 

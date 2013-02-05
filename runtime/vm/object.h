@@ -1146,17 +1146,19 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
 class PatchClass : public Object {
  public:
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
-  RawScript* script() const { return raw_ptr()->script_; }
+  RawClass* source_class() const { return raw_ptr()->source_class_; }
+  RawScript* Script() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawPatchClass));
   }
 
-  static RawPatchClass* New(const Class& patched_class, const Script& script);
+  static RawPatchClass* New(const Class& patched_class,
+                            const Class& source_class);
 
  private:
   void set_patched_class(const Class& value) const;
-  void set_script(const Script& value) const;
+  void set_source_class(const Class& value) const;
   static RawPatchClass* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
