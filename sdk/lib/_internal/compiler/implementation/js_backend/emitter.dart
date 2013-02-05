@@ -1125,11 +1125,6 @@ $lazyInitializerLogic
     if (classElement.isNative()) {
       nativeEmitter.generateNativeClass(classElement);
       return;
-    } else {
-      // TODO(ngeoffray): Instead of switching between buffer, we
-      // should create code sections, and decide where to emit them at
-      // the end.
-      buffer = mainBuffer;
     }
 
     needsDefineClass = true;
