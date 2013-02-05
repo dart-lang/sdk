@@ -474,8 +474,15 @@ final _TIMEOUT = 30000;
 
 /// Defines an integration test. The [body] should schedule a series of
 /// operations which will be run asynchronously.
-void integration(String description, void body()) {
-  test(description, () {
+void integration(String description, void body()) =>
+  _integration(description, body, test);
+
+/// Like [integration], but causes only this test to run.
+void solo_integration(String description, void body()) =>
+  _integration(description, body, solo_test);
+
+void _integration(String description, void body(), [Function testFn]) {
+  testFn(description, () {
     // Ensure the SDK version is always available.
     dir(sdkPath, [
       file('version', '0.1.2.3')
@@ -828,7 +835,7 @@ abstract class Descriptor {
       var path = join(dir, name);
       return defer(() {
         if (!entryExists(path)) {
-          throw new ExpectException('File $name in $dir not found.');
+          throw new ExpectException('Entry $path not found.');
         }
         return validate(path);
       });
@@ -1286,16 +1293,19 @@ class ScheduledProcess {
     var pairFuture = process.then((p) {
       _process = p;
 
-      var stdoutTee = tee(p.stdout.handleError((e) {
-        registerException(e.error, e.stackTrace);
-      }));
+      byteStreamToLines(stream) {
+        var handledErrors = wrapStream(stream.handleError((e) {
+          registerException(e.error, e.stackTrace);
+        }));
+        return streamToLines(new ByteStream(handledErrors).toStringStream());
+      }
+
+      var stdoutTee = tee(byteStreamToLines(p.stdout));
       var stdoutPair = streamWithSubscription(stdoutTee.last);
       _stdout = stdoutPair.first;
       _stdoutSubscription = stdoutPair.last;
 
-      var stderrTee = tee(p.stderr.handleError((e) {
-        registerException(e.error, e.stackTrace);
-      }));
+      var stderrTee = tee(byteStreamToLines(p.stderr));
       var stderrPair = streamWithSubscription(stderrTee.last);
       _stderr = stderrPair.first;
       _stderrSubscription = stderrPair.last;
@@ -1312,7 +1322,7 @@ class ScheduledProcess {
             "or kill() called before the test is run.");
       }
 
-      return process.then((p) => p.exitCode).then((exitCode) {
+      process.then((p) => p.exitCode).then((exitCode) {
         if (_endExpected) {
           _exitCode = exitCode;
           _exitCodeCompleter.complete(exitCode);
@@ -1321,18 +1331,18 @@ class ScheduledProcess {
 
         // Sleep for half a second in case _endExpected is set in the next
         // scheduled event.
-        sleep(500).then((_) {
+        return sleep(500).then((_) {
           if (_endExpected) {
             _exitCodeCompleter.complete(exitCode);
             return;
           }
 
-          return _printStreams().then((_) {
-            registerException(new ExpectException("Process $name ended "
-                "earlier than scheduled with exit code $exitCode"));
-          });
+          return _printStreams();
+        }).then((_) {
+          registerException(new ExpectException("Process $name ended "
+              "earlier than scheduled with exit code $exitCode"));
         });
-      });
+      }).catchError((e) => registerException(e.error, e.stackTrace));
     });
 
     _scheduleOnException((_) {
@@ -1409,7 +1419,7 @@ class ScheduledProcess {
   /// Writes [line] to the process as stdin.
   void writeLine(String line) {
     _schedule((_) => _processFuture.then(
-        (p) => p.stdin.write('$line\n'.charCodes)));
+        (p) => p.stdin.add('$line\n'.charCodes)));
   }
 
   /// Kills the process, and waits until it's dead.

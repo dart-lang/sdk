@@ -100,7 +100,7 @@ Future<Client> _getClient(SystemCache cache) {
     if (credentials == null) return _authorize();
 
     var client = new Client(_identifier, _secret, credentials,
-        httpClient: curlClient);
+        httpClient: httpClient);
     _saveCredentials(cache, client.credentials);
     return client;
   });
