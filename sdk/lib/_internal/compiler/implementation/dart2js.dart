@@ -201,7 +201,6 @@ void compile(List<String> argv) {
     new OptionHandler('--analyze-all', passThrough),
     new OptionHandler('--analyze-only', setAnalyzeOnly),
     new OptionHandler('--disable-native-live-type-analysis', passThrough),
-    new OptionHandler('--enable-native-live-type-analysis', passThrough),
     new OptionHandler('--reject-deprecated-language-features', passThrough),
     new OptionHandler('--report-sdk-use-of-deprecated-language-features',
                       passThrough),
@@ -430,12 +429,12 @@ be removed in a future version:
   --enable-concrete-type-inference
     Enable experimental concrete type inference.
 
-  --enable-native-live-type-analysis
-    Remove unused native types from dart:html and related libraries. This is
-    expected to become the default behavior.
+  --disable-native-live-type-analysis
+    Disable the optimization that removes unused native types from dart:html
+    and related libraries.
 
   --disallow-unsafe-eval
-    Disables dynamic generation of code in the generated output. This is
+    Disable dynamic generation of code in the generated output. This is
     necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
     This flag is not continuously tested. Please report breakages and we
     will fix them as soon as possible.
