@@ -192,6 +192,6 @@ class MemberListener extends NodeListener {
       popNode(); // Discard name.
     }
     popNode(); // Discard node (Send or Identifier).
-    pushMetadata(new PartialMetadataAnnotation(beginToken));
+    pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
   }
 }

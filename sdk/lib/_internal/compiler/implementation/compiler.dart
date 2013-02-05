@@ -450,6 +450,8 @@ abstract class Compiler implements DiagnosticListener {
       return spanFromHInstruction(node);
     } else if (node is Element) {
       return spanFromElement(node);
+    } else if (node is MetadataAnnotation) {
+      return spanFromTokens(node.beginToken, node.endToken);
     } else {
       throw 'No error location.';
     }

@@ -9,6 +9,22 @@ import 'parser_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart'
+    show Spannable;
+import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart'
+    show Node;
+
+void checkPosition(Spannable spannable, Node node, String source, compiler) {
+  SourceSpan span = compiler.spanFromSpannable(spannable);
+  Expect.isTrue(span.begin < span.end,
+                'begin = ${span.begin}; end = ${span.end}');
+  Expect.isTrue(span.end < source.length,
+                'end = ${span.end}; length = ${source.length}');
+  String yield = source.substring(span.begin, span.end);
+
+  // TODO(ahe): The node does not include "@". Fix that.
+  Expect.stringEquals('@$node', yield);
+}
 
 void checkAnnotation(String name, String declaration,
                      {bool isTopLevelOnly: false}) {
@@ -24,10 +40,12 @@ void checkAnnotation(String name, String declaration,
   compileAndCheck(source, name, (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(1, length(element.metadata));
-    MetadataAnnotation annotation = element.metadata.head;
+    PartialMetadataAnnotation annotation = element.metadata.head;
     annotation.ensureResolved(compiler);
     Constant value = annotation.value;
     Expect.stringEquals('xyz', value.value.slowToString());
+
+    checkPosition(annotation, annotation.cachedNode, source, compiler);
   });
 
   // Ensure that each repeated annotation has a unique instance of
@@ -40,8 +58,8 @@ void checkAnnotation(String name, String declaration,
   compileAndCheck(source, name, (compiler, element) {
     compiler.enqueuer.resolution.queueIsClosed = false;
     Expect.equals(2, length(element.metadata));
-    MetadataAnnotation annotation1 = element.metadata.head;
-    MetadataAnnotation annotation2 = element.metadata.tail.head;
+    PartialMetadataAnnotation annotation1 = element.metadata.head;
+    PartialMetadataAnnotation annotation2 = element.metadata.tail.head;
     annotation1.ensureResolved(compiler);
     annotation2.ensureResolved(compiler);
     Expect.isFalse(identical(annotation1, annotation2),
@@ -52,6 +70,9 @@ void checkAnnotation(String name, String declaration,
     Expect.identical(value1, value2, 'expected same compile-time constant');
     Expect.stringEquals('xyz', value1.value.slowToString());
     Expect.stringEquals('xyz', value2.value.slowToString());
+
+    checkPosition(annotation1, annotation1.cachedNode, source, compiler);
+    checkPosition(annotation2, annotation2.cachedNode, source, compiler);
   });
 
   if (isTopLevelOnly) return;
@@ -72,10 +93,12 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(0, length(element.metadata));
     element = element.lookupLocalMember(buildSourceString(name));
     Expect.equals(1, length(element.metadata));
-    MetadataAnnotation annotation = element.metadata.head;
+    PartialMetadataAnnotation annotation = element.metadata.head;
     annotation.ensureResolved(compiler);
     Constant value = annotation.value;
     Expect.stringEquals('xyz', value.value.slowToString());
+
+    checkPosition(annotation, annotation.cachedNode, source, compiler);
   });
 
   // Ensure that each repeated annotation has a unique instance of
@@ -94,8 +117,8 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(0, length(element.metadata));
     element = element.lookupLocalMember(buildSourceString(name));
     Expect.equals(2, length(element.metadata));
-    MetadataAnnotation annotation1 = element.metadata.head;
-    MetadataAnnotation annotation2 = element.metadata.tail.head;
+    PartialMetadataAnnotation annotation1 = element.metadata.head;
+    PartialMetadataAnnotation annotation2 = element.metadata.tail.head;
     annotation1.ensureResolved(compiler);
     annotation2.ensureResolved(compiler);
     Expect.isFalse(identical(annotation1, annotation2),
@@ -106,6 +129,9 @@ void checkAnnotation(String name, String declaration,
     Expect.identical(value1, value2, 'expected same compile-time constant');
     Expect.stringEquals('xyz', value1.value.slowToString());
     Expect.stringEquals('xyz', value2.value.slowToString());
+
+    checkPosition(annotation1, annotation1.cachedNode, source, compiler);
+    checkPosition(annotation1, annotation2.cachedNode, source, compiler);
   });
 }
 

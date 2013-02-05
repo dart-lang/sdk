@@ -775,11 +775,12 @@ abstract class TypeVariableElement extends Element {
   void set bound(DartType value);
 }
 
-abstract class MetadataAnnotation {
+abstract class MetadataAnnotation implements Spannable {
   Constant get value;
   Element get annotatedElement;
   int get resolutionState;
   Token get beginToken;
+  Token get endToken;
 
   // TODO(kasperl): Try to get rid of these.
   void set annotatedElement(Element value);

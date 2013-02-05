@@ -765,7 +765,7 @@ class ElementListener extends Listener {
       popNode(); // Discard name.
     }
     popNode(); // Discard node (Send or Identifier).
-    pushMetadata(new PartialMetadataAnnotation(beginToken));
+    pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -2008,10 +2008,19 @@ class PartialTypedefElement extends TypedefElementX {
 /// A [MetadataAnnotation] which is constructed on demand.
 class PartialMetadataAnnotation extends MetadataAnnotationX {
   final Token beginToken;
+  final Token tokenAfterEndToken;
   Expression cachedNode;
   Constant value;
 
-  PartialMetadataAnnotation(this.beginToken);
+  PartialMetadataAnnotation(this.beginToken, this.tokenAfterEndToken);
+
+  Token get endToken {
+    Token token = beginToken;
+    while (token.kind != EOF_TOKEN) {
+      if (identical(token.next, tokenAfterEndToken)) return token;
+      token = token.next;
+    }
+  }
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
