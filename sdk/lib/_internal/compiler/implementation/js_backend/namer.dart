@@ -195,15 +195,6 @@ class Namer implements ClosureNamer {
   final Map<String, String> operatorNameMap;
   final Map<String, int> popularNameCounters;
 
-  /**
-   * A cache of names used for bailout methods. We make sure two
-   * bailout methods cannot have the same name because if the two
-   * bailout methods are in a class and a subclass, we would
-   * call the wrong bailout method at runtime. To make it
-   * simple, we don't keep track of inheritance and always avoid
-   * similar names.
-   */
-  final Set<String> usedBailoutInstanceNames;
   final Map<Element, String> bailoutNames;
 
   final Map<Constant, String> constantNames;
@@ -213,7 +204,6 @@ class Namer implements ClosureNamer {
         oneShotInterceptorNames = new Map<Selector, String>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
         bailoutNames = new Map<Element, String>(),
-        usedBailoutInstanceNames = new Set<String>(),
         usedGlobalNames = new Set<String>(),
         usedInstanceNames = new Set<String>(),
         instanceNameMap = new Map<String, String>(),
@@ -569,12 +559,21 @@ class Namer implements ClosureNamer {
     if (global) {
       name = getMappedGlobalName(unminifiedName);
     } else {
-      name = unminifiedName;
-      int i = 0;
-      while (usedBailoutInstanceNames.contains(name)) {
-        name = '$unminifiedName${i++}';
+      // Make sure two bailout methods on the same inheritance chain do not have
+      // the same name to prevent a subclass bailout method being accidentally
+      // called from the superclass main method.  Use the count of the number of
+      // elements with the same name on the superclass chain to disambiguate
+      // based on 'level'.
+      int level = 0;
+      ClassElement classElement = element.getEnclosingClass().superclass;
+      while (classElement != null) {
+        if (classElement.localLookup(element.name) != null) level++;
+        classElement = classElement.superclass;
       }
-      usedBailoutInstanceNames.add(name);
+      name = unminifiedName;
+      if (level != 0) {
+        name = '$unminifiedName$level';
+      }
       name = getMappedInstanceName(name);
     }
     bailoutNames[element] = name;
