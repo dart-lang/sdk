@@ -262,7 +262,7 @@ void compile(List<String> argv) {
     }
   }
 
-  Sink<String> outputProvider(String name, String extension) {
+  StreamSink<String> outputProvider(String name, String extension) {
     Uri uri;
     String sourceMapFileName;
     bool isPrimaryOutput = false;
@@ -313,8 +313,8 @@ void compile(List<String> argv) {
 }
 
 // TODO(ahe): Get rid of this class if http://dartbug.com/8118 is fixed.
-class CountingSink implements Sink<String> {
-  final Sink<String> sink;
+class CountingSink implements StreamSink<String> {
+  final StreamSink<String> sink;
   int count = 0;
 
   CountingSink(this.sink);
@@ -323,6 +323,8 @@ class CountingSink implements Sink<String> {
     sink.add(value);
     count += value.length;
   }
+
+  signalError(AsyncError error) => sink.signalError(error);
 
   close() => sink.close();
 }

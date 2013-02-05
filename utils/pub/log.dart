@@ -208,7 +208,7 @@ void _logToStderrWithLabel(Entry entry) {
   _logToStream(stderrSink, entry, showLabel: true);
 }
 
-void _logToStream(Sink<List<int>> sink, Entry entry, {bool showLabel}) {
+void _logToStream(StreamSink<List<int>> sink, Entry entry, {bool showLabel}) {
   bool firstLine = true;
   for (var line in entry.lines) {
     if (showLabel) {
