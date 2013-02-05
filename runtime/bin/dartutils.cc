@@ -22,7 +22,6 @@ const char* DartUtils::kCryptoLibURL = "dart:crypto";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
 const char* DartUtils::kJsonLibURL = "dart:json";
-const char* DartUtils::kJsonLibPatchURL = "dart:json-patch";
 const char* DartUtils::kUriLibURL = "dart:uri";
 const char* DartUtils::kUtfLibURL = "dart:utf";
 const char* DartUtils::kIsolateLibURL = "dart:isolate";

@@ -169,7 +169,6 @@ class DartUtils {
   static const char* kIOLibURL;
   static const char* kIOLibPatchURL;
   static const char* kJsonLibURL;
-  static const char* kJsonLibPatchURL;
   static const char* kUriLibURL;
   static const char* kUtfLibURL;
   static const char* kIsolateLibURL;

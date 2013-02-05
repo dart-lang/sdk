@@ -1,10 +1,10 @@
-# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This file contains all runtime-specific sources for the dart:json library.
+# This file contains all sources for the dart:io library.
 {
   'sources': [
-    'json_patch.dart',
+    '../../sdk/lib/json/json.dart',
   ],
 }

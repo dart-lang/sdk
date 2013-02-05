@@ -13,8 +13,7 @@
 Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   /* { url_, source_, patch_url_, patch_source_, has_natives_ } */
   { DartUtils::kBuiltinLibURL, builtin_source_, NULL, NULL, true },
-  { DartUtils::kJsonLibURL, json_source_,
-    DartUtils::kJsonLibPatchURL, json_patch_, false },
+  { DartUtils::kJsonLibURL, json_source_, NULL, NULL, false },
   { DartUtils::kUriLibURL, uri_source_, NULL, NULL, false },
   { DartUtils::kCryptoLibURL, crypto_source_, NULL, NULL, false },
   { DartUtils::kIOLibURL, io_source_,
