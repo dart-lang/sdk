@@ -35,21 +35,24 @@ class JsonUnsupportedObjectError implements Error {
 
 
 /**
- * Parses [json] and build the corresponding parsed JSON value.
+ * Parses [json] and builds the corresponding parsed JSON value.
  *
  * Parsed JSON values are of the types [num], [String], [bool], [Null],
  * [List]s of parsed JSON values or [Map]s from [String] to parsed
  * JSON values.
  *
- * The optional [revivier] function, if provided, is called once for each
- * object or list property parsed. The arguments are the property name
- * ([String]) or list index ([int]), and the value is the parsed value.
- * The return value of the revivier will be used as the value of that property
- * instead the parsed value.
+ * The optional [reviver] function, if provided, is called once for each object
+ * or list property parsed. The arguments are the property name ([String]) or
+ * list index ([int]), and the value is the parsed value.  The return value of
+ * the reviver will be used as the value of that property instead of the parsed
+ * value.  The top level value is passed to the reviver with the empty string as
+ * a key.
  *
  * Throws [FormatException] if the input is not valid JSON text.
  */
-parse(String json, [reviver(var key, var value)]) {
+external parse(String json, [reviver(var key, var value)]);
+
+_parse(String json, [reviver(var key, var value)]) {
   BuildJsonListener listener;
   if (reviver == null) {
     listener = new BuildJsonListener();
