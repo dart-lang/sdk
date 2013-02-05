@@ -145,15 +145,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     while (instruction != null) {
       HInstruction next = instruction.next;
       HInstruction replacement = instruction.accept(this);
-      if (!identical(replacement, instruction)) {
-        if (!replacement.isInBasicBlock()) {
-          // The constant folding can return an instruction that is already
-          // part of the graph (like an input), so we only add the replacement
-          // if necessary.
-          block.addAfter(instruction, replacement);
-        }
+      if (replacement != instruction) {
         block.rewrite(instruction, replacement);
-        block.remove(instruction);
 
         // If we can replace [instruction] with [replacement], then
         // [replacement]'s type can be narrowed.
@@ -169,6 +162,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         if (replacement.sourcePosition == null) {
           replacement.sourcePosition = instruction.sourcePosition;
         }
+        if (!replacement.isInBasicBlock()) {
+          // The constant folding can return an instruction that is already
+          // part of the graph (like an input), so we only add the replacement
+          // if necessary.
+          block.addAfter(instruction, replacement);
+          // Visit the replacement as the next instruction in case it
+          // can also be constant folded away.
+          next = replacement;
+        }
+        block.remove(instruction);
       }
       instruction = next;
     }
@@ -220,15 +223,43 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return null;
   }
 
+  HInstruction optimizeLengthInterceptedGetter(HInvokeDynamic node) {
+    HInstruction actualReceiver = node.inputs[1];
+    if (actualReceiver.isIndexablePrimitive(types)) {
+      if (actualReceiver.isConstantString()) {
+        HConstant constantInput = actualReceiver;
+        StringConstant constant = constantInput.constant;
+        return graph.addConstantInt(constant.length, constantSystem);
+      } else if (actualReceiver.isConstantList()) {
+        HConstant constantInput = actualReceiver;
+        ListConstant constant = constantInput.constant;
+        return graph.addConstantInt(constant.length, constantSystem);
+      }
+      Element element;
+      bool isAssignable;
+      if (actualReceiver.isString(types)) {
+        element = backend.jsStringLength;
+        isAssignable = false;
+      } else {
+        element = backend.jsArrayLength;
+        isAssignable = !actualReceiver.isFixedArray(types);
+      }
+      HFieldGet result = new HFieldGet(
+          element, actualReceiver, isAssignable: isAssignable);
+      result.guaranteedType = HType.INTEGER;
+      types[result] = HType.INTEGER;
+      return result;
+    } else if (actualReceiver.isConstantMap()) {
+      HConstant constantInput = actualReceiver;
+      MapConstant constant = constantInput.constant;
+      return graph.addConstantInt(constant.length, constantSystem);
+    }
+    return node;
+  }
+
   HInstruction handleInterceptorCall(HInvokeDynamic node) {
     // We only optimize for intercepted method calls in this method.
-    if (node.selector.isGetter() || node.selector.isSetter()) return node;
-
-    HInstruction input = node.inputs[1];
-    if (input.isString(types)
-        && node.selector.name == const SourceString('toString')) {
-      return node.inputs[1];
-    }
+    Selector selector = node.selector;
 
     // Try constant folding the instruction.
     Operation operation = node.specializer.operation(constantSystem);
@@ -245,6 +276,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (instruction != null) return instruction;
 
     // Check if this call does not need to be intercepted.
+    HInstruction input = node.inputs[1];
     HType type = types[input];
     var interceptor = node.inputs[0];
     if (interceptor is !HThis && !type.canBePrimitive()) {
@@ -260,42 +292,54 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         }
         if (interceptedClasses.contains(compiler.objectClass)) return node;
       }
-      // Change the call to a regular invoke dynamic call.
-      return new HInvokeDynamicMethod(
-          node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+      if (selector.isGetter()) {
+        // Change the call to a regular invoke dynamic call.
+        return new HInvokeDynamicGetter(selector, null, input, false);
+      } else if (selector.isSetter()) {
+        return new HInvokeDynamicSetter(
+            selector, null, input, node.inputs[2], false);
+      } else {
+        // Change the call to a regular invoke dynamic call.
+        return new HInvokeDynamicMethod(
+            selector, node.inputs.getRange(1, node.inputs.length - 1));
+      }
     }
 
-    Selector selector = node.selector;
-    SourceString selectorName = selector.name;
-    Element target;
-    if (input.isExtendableArray(types)) {
-      if (selectorName == backend.jsArrayRemoveLast.name
-          && selector.argumentCount == 0) {
-        target = backend.jsArrayRemoveLast;
-      } else if (selectorName == backend.jsArrayAdd.name
-                 && selector.argumentCount == 1
-                 && selector.namedArgumentCount == 0
-                 && !compiler.enableTypeAssertions) {
-        target = backend.jsArrayAdd;
+    if (selector.isCall()) {
+      Element target;
+      if (input.isExtendableArray(types)) {
+        if (selector.applies(backend.jsArrayRemoveLast, compiler)) {
+          target = backend.jsArrayRemoveLast;
+        } else if (selector.applies(backend.jsArrayAdd, compiler)) {
+          // The codegen special cases array calls, but does not
+          // inline argument type checks.
+          if (!compiler.enableTypeAssertions) {
+            target = backend.jsArrayAdd;
+          }
+        }
+      } else if (input.isString(types)) {
+        if (selector.applies(backend.jsStringSplit, compiler)) {
+          if (node.inputs[2].isString(types)) {
+            target = backend.jsStringSplit;
+          }
+        } else if (selector.applies(backend.jsStringConcat, compiler)) {
+          if (node.inputs[2].isString(types)) {
+            target = backend.jsStringConcat;
+          }
+        } else if (selector.applies(backend.jsStringToString, compiler)) {
+          return input;
+        }
       }
-    } else if (input.isString(types)) {
-      if (selectorName == backend.jsStringSplit.name
-          && selector.argumentCount == 1
-          && selector.namedArgumentCount == 0
-          && node.inputs[2].isString(types)) {
-        target = backend.jsStringSplit;
-      } else if (selectorName == backend.jsStringConcat.name
-                 && selector.argumentCount == 1
-                 && selector.namedArgumentCount == 0
-                 && node.inputs[2].isString(types)) {
-        target = backend.jsStringConcat;
+      if (target != null) {
+        HInvokeDynamicMethod result = new HInvokeDynamicMethod(
+            node.selector, node.inputs.getRange(1, node.inputs.length - 1));
+        result.element = target;
+        return result;
       }
-    }
-    if (target != null) {
-      HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-          node.selector, node.inputs.getRange(1, node.inputs.length - 1));
-      result.element = target;
-      return result;
+    } else if (selector.isGetter()) {
+      if (selector.applies(backend.jsArrayLength, compiler)) {
+        return optimizeLengthInterceptedGetter(node);
+      }
     }
     return node;
   }
@@ -343,29 +387,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     }
     return node;
-  }
-
-  /**
-   * Turns a primitive instruction (e.g. [HIndex], [HAdd], ...) into a
-   * [HInvokeDynamic] because we know the receiver is not a JS
-   * primitive object.
-   */
-  HInstruction fromPrimitiveInstructionToDynamicInvocation(HInstruction node,
-                                                           Selector selector) {
-    HBoundedType type = types[node.inputs[1]];
-    HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-        selector,
-        node.inputs.getRange(1, node.inputs.length - 1));
-    if (type.isExact()) {
-      HBoundedType concrete = type;
-      // TODO(johnniwinther): Add lookup by selector to HBoundedType.
-      Element element = concrete.lookupMember(selector.name);
-      if (selector.applies(element, compiler)) {
-        // The target is only valid if the selector applies.
-        result.element = element;
-      }
-    }
-    return result;
   }
 
   HInstruction visitIntegerCheck(HIntegerCheck node) {
@@ -584,45 +605,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  HInstruction optimizeLengthInterceptedCall(HInvokeDynamicGetter node) {
-    HInstruction actualReceiver = node.inputs[1];
-    if (actualReceiver.isIndexablePrimitive(types)) {
-      if (actualReceiver.isConstantString()) {
-        HConstant constantInput = actualReceiver;
-        StringConstant constant = constantInput.constant;
-        return graph.addConstantInt(constant.length, constantSystem);
-      } else if (actualReceiver.isConstantList()) {
-        HConstant constantInput = actualReceiver;
-        ListConstant constant = constantInput.constant;
-        return graph.addConstantInt(constant.length, constantSystem);
-      }
-      Element element;
-      bool isAssignable;
-      if (actualReceiver.isString(types)) {
-        element = backend.jsStringLength;
-        isAssignable = false;
-      } else {
-        element = backend.jsArrayLength;
-        isAssignable = !actualReceiver.isFixedArray(types);
-      }
-      HFieldGet result = new HFieldGet(
-          element, actualReceiver, isAssignable: isAssignable);
-      result.guaranteedType = HType.INTEGER;
-      types[result] = HType.INTEGER;
-      return result;
-    } else if (actualReceiver.isConstantMap()) {
-      HConstant constantInput = actualReceiver;
-      MapConstant constant = constantInput.constant;
-      return graph.addConstantInt(constant.length, constantSystem);
-    }
-    return node;
-  }
-
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
-    if (node.selector.name == const SourceString('length')
-        && node.isInterceptorCall) {
-      return optimizeLengthInterceptedCall(node);
-    }
+    if (node.isInterceptorCall) return handleInterceptorCall(node);
 
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
@@ -647,6 +631,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
+    if (node.isInterceptorCall) return handleInterceptorCall(node);
+
     Element field =
         findConcreteFieldForDynamicAccess(node.receiver, node.selector);
     if (field == null || !field.isAssignable()) return node;

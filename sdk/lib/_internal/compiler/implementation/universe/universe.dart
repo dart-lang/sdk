@@ -50,7 +50,7 @@ class Universe {
                            Compiler compiler) {
     if (selectors == null) return false;
     for (Selector selector in selectors) {
-      if (selector.applies(member, compiler)) return true;
+      if (selector.appliesUnnamed(member, compiler)) return true;
     }
     return false;
   }
@@ -255,10 +255,13 @@ class Selector {
     return kind;
   }
 
-  bool applies(Element element, Compiler compiler)
-      => appliesUntyped(element, compiler);
+  bool appliesUnnamed(Element element, Compiler compiler) {
+    assert(sameNameHack(element, compiler));
+    return appliesUntyped(element, compiler);
+  }
 
   bool appliesUntyped(Element element, Compiler compiler) {
+    assert(sameNameHack(element, compiler));
     if (Elements.isUnresolved(element)) return false;
     if (name.isPrivate() && library != element.getLibrary()) return false;
     if (element.isForeign(compiler)) return true;
@@ -301,7 +304,27 @@ class Selector {
     }
   }
 
+  bool sameNameHack(Element element, Compiler compiler) {
+    // TODO(ngeoffray): Remove workaround checks.
+    return element == compiler.assertMethod
+        || element.isConstructor()
+        || name == element.name;
+  }
+
+  bool applies(Element element, Compiler compiler) {
+    if (!sameNameHack(element, compiler)) return false;
+    return appliesUnnamed(element, compiler);
+  }
+
   /**
+   * Fills [list] with the arguments in a defined order.
+   *
+   * [compileArgument] is a function that returns a compiled version
+   * of an argument located in [arguments].
+   *
+   * [compileConstant] is a function that returns a compiled constant
+   * of an optional argument that is not in [arguments.
+   *
    * Returns [:true:] if the selector and the [element] match; [:false:]
    * otherwise.
    *
@@ -447,7 +470,8 @@ class TypedSelector extends Selector {
     return false;
   }
 
-  bool applies(Element element, Compiler compiler) {
+  bool appliesUnnamed(Element element, Compiler compiler) {
+    assert(sameNameHack(element, compiler));
     // [TypedSelector] are only used when compiling.
     assert(compiler.phase == Compiler.PHASE_COMPILING);
     if (!element.isMember()) return false;

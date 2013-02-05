@@ -636,6 +636,7 @@ class JavaScriptBackend extends Backend {
   Element jsArrayAdd;
   Element jsStringSplit;
   Element jsStringConcat;
+  Element jsStringToString;
   Element getInterceptorMethod;
   Element fixedLengthListConstructor;
   bool seenAnyClass = false;
@@ -801,6 +802,8 @@ class JavaScriptBackend extends Backend {
         jsStringClass, const SourceString('split'));
     jsStringConcat = compiler.lookupElementIn(
         jsStringClass, const SourceString('concat'));
+    jsStringToString = compiler.lookupElementIn(
+        jsStringClass, const SourceString('toString'));
 
     for (ClassElement cls in classes) {
       if (cls != null) interceptedClasses[cls] = null;

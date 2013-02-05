@@ -62,6 +62,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSString {
     var length;
     operator[](index) {}
+    toString() {}
   }
   class JSNumber {
     operator-() {}

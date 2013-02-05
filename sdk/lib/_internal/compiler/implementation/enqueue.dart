@@ -272,7 +272,7 @@ abstract class Enqueuer {
 
   void handleUnseenSelector(SourceString methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
-      if (selector.applies(member, compiler)) {
+      if (selector.appliesUnnamed(member, compiler)) {
         if (member.isField() && member.enclosingElement.isNative()) {
           if (selector.isGetter() || selector.isCall()) {
             nativeEnqueuer.registerFieldLoad(member);
