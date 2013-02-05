@@ -508,4 +508,5 @@ class PatchMetadataAnnotation extends MetadataAnnotationX {
   PatchMetadataAnnotation() : super(STATE_DONE);
 
   Token get beginToken => null;
+  Token get endToken => null;
 }
