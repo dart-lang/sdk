@@ -1413,6 +1413,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DocsEditable
   bool isPointInPath(num x, num y, [String winding]) native;
 
+  @DomName('CanvasRenderingContext2D.isPointInStroke')
+  @DocsEditable
+  bool isPointInStroke(num x, num y) native;
+
   @DomName('CanvasRenderingContext2D.lineTo')
   @DocsEditable
   void lineTo(num x, num y) native;
@@ -2341,6 +2345,8 @@ class CssRule native "*CSSRule" {
   static const int STYLE_RULE = 1;
 
   static const int UNKNOWN_RULE = 0;
+
+  static const int WEBKIT_FILTER_RULE = 17;
 
   static const int WEBKIT_KEYFRAMES_RULE = 7;
 
@@ -18639,7 +18645,7 @@ class OutputElement extends Element native "*HTMLOutputElement" {
 
   @DomName('HTMLOutputElement.htmlFor')
   @DocsEditable
-  DomSettableTokenList htmlFor;
+  final DomSettableTokenList htmlFor;
 
   @DomName('HTMLOutputElement.labels')
   @DocsEditable
@@ -23284,16 +23290,20 @@ class TrackEvent extends Event native "*TrackEvent" {
 
 
 @DocsEditable
-@DomName('WebKitTransitionEvent')
-class TransitionEvent extends Event native "*WebKitTransitionEvent" {
+@DomName('TransitionEvent')
+class TransitionEvent extends Event native "*TransitionEvent" {
 
-  @DomName('WebKitTransitionEvent.elapsedTime')
+  @DomName('TransitionEvent.elapsedTime')
   @DocsEditable
   final num elapsedTime;
 
-  @DomName('WebKitTransitionEvent.propertyName')
+  @DomName('TransitionEvent.propertyName')
   @DocsEditable
   final String propertyName;
+
+  @DomName('TransitionEvent.pseudoElement')
+  @DocsEditable
+  final String pseudoElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25941,6 +25951,19 @@ class WebGLVertexArrayObject native "*WebGLVertexArrayObjectOES" {
 
 
 @DocsEditable
+@DomName('WebKitCSSFilterRule')
+class WebKitCssFilterRule extends CssRule native "*WebKitCSSFilterRule" {
+
+  @DomName('WebKitCSSFilterRule.style')
+  @DocsEditable
+  final CssStyleDeclaration style;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('WebKitCSSFilterValue')
 class WebKitCssFilterValue extends _CssValueList native "*WebKitCSSFilterValue" {
 
@@ -26033,6 +26056,27 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
   @DomName('WebKitNamedFlow.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebKitTransitionEvent')
+class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
+
+  @DomName('WebKitTransitionEvent.elapsedTime')
+  @DocsEditable
+  final num elapsedTime;
+
+  @DomName('WebKitTransitionEvent.propertyName')
+  @DocsEditable
+  final String propertyName;
+
+  @DomName('WebKitTransitionEvent.pseudoElement')
+  @DocsEditable
+  final String pseudoElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

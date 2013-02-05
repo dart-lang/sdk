@@ -350,7 +350,7 @@ class IdbFactory native "*IDBFactory" {
 
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable
-  VersionChangeRequest deleteDatabase(String name) native;
+  OpenDBRequest deleteDatabase(String name) native;
 
   @DomName('IDBFactory.open')
   @DocsEditable
@@ -867,61 +867,15 @@ class TransactionEvents extends Events {
 
 @DocsEditable
 @DomName('IDBVersionChangeEvent')
-class UpgradeNeededEvent extends Event native "*IDBVersionChangeEvent" {
-
-  @DomName('IDBUpgradeNeededEvent.newVersion')
-  @DocsEditable
-  final int newVersion;
-
-  @DomName('IDBUpgradeNeededEvent.oldVersion')
-  @DocsEditable
-  final int oldVersion;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('IDBVersionChangeEvent')
 class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
-  @DomName('IDBVersionChangeEvent.version')
+  @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable
-  final String version;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+  final dynamic newVersion;
 
-
-@DocsEditable
-@DomName('IDBVersionChangeRequest')
-class VersionChangeRequest extends Request implements EventTarget native "*IDBVersionChangeRequest" {
-
-  @DomName('IDBVersionChangeRequest.blockedEvent')
+  @DomName('IDBVersionChangeEvent.oldVersion')
   @DocsEditable
-  static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  VersionChangeRequestEvents get on =>
-    new VersionChangeRequestEvents(this);
-
-  @DomName('IDBVersionChangeRequest.onblocked')
-  @DocsEditable
-  Stream<Event> get onBlocked => blockedEvent.forTarget(this);
-}
-
-@DocsEditable
-@deprecated
-class VersionChangeRequestEvents extends RequestEvents {
-  @DocsEditable
-  VersionChangeRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get blocked => this['blocked'];
+  final dynamic oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

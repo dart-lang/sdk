@@ -258,7 +258,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
 
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable
-  VersionChangeRequest deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
+  OpenDBRequest deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
   OpenDBRequest open(String name, [int version]) {
     if (?version) {
@@ -981,71 +981,17 @@ class TransactionEvents extends Events {
 
 @DocsEditable
 @DomName('IDBVersionChangeEvent')
-class UpgradeNeededEvent extends Event {
-  UpgradeNeededEvent.internal() : super.internal();
-
-  @DomName('IDBUpgradeNeededEvent.newVersion')
-  @DocsEditable
-  int get newVersion native "IDBUpgradeNeededEvent_newVersion_Getter";
-
-  @DomName('IDBUpgradeNeededEvent.oldVersion')
-  @DocsEditable
-  int get oldVersion native "IDBUpgradeNeededEvent_oldVersion_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('IDBVersionChangeEvent')
 class VersionChangeEvent extends Event {
   VersionChangeEvent.internal() : super.internal();
 
-  @DomName('IDBVersionChangeEvent.version')
+  @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable
-  String get version native "IDBVersionChangeEvent_version_Getter";
+  dynamic get newVersion native "IDBVersionChangeEvent_newVersion_Getter";
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('IDBVersionChangeRequest')
-class VersionChangeRequest extends Request implements EventTarget {
-  VersionChangeRequest.internal() : super.internal();
-
-  @DomName('IDBVersionChangeRequest.blockedEvent')
+  @DomName('IDBVersionChangeEvent.oldVersion')
   @DocsEditable
-  static const EventStreamProvider<Event> blockedEvent = const EventStreamProvider<Event>('blocked');
+  dynamic get oldVersion native "IDBVersionChangeEvent_oldVersion_Getter";
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  VersionChangeRequestEvents get on =>
-    new VersionChangeRequestEvents(this);
-
-  @DomName('IDBVersionChangeRequest.onblocked')
-  @DocsEditable
-  Stream<Event> get onBlocked => blockedEvent.forTarget(this);
-
-}
-
-@DocsEditable
-@deprecated
-class VersionChangeRequestEvents extends RequestEvents {
-  @DocsEditable
-  VersionChangeRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get blocked => this['blocked'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

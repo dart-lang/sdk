@@ -1816,6 +1816,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable
   bool _isPointInPath_2(x, y) native "CanvasRenderingContext2D__isPointInPath_2_Callback";
 
+  @DomName('CanvasRenderingContext2D.isPointInStroke')
+  @DocsEditable
+  bool isPointInStroke(num x, num y) native "CanvasRenderingContext2D_isPointInStroke_Callback";
+
   @DomName('CanvasRenderingContext2D.lineTo')
   @DocsEditable
   void lineTo(num x, num y) native "CanvasRenderingContext2D_lineTo_Callback";
@@ -2945,6 +2949,8 @@ class CssRule extends NativeFieldWrapperClass1 {
   static const int STYLE_RULE = 1;
 
   static const int UNKNOWN_RULE = 0;
+
+  static const int WEBKIT_FILTER_RULE = 17;
 
   static const int WEBKIT_KEYFRAMES_RULE = 7;
 
@@ -20347,10 +20353,6 @@ class OutputElement extends _Element_Merged {
   @DocsEditable
   DomSettableTokenList get htmlFor native "HTMLOutputElement_htmlFor_Getter";
 
-  @DomName('HTMLOutputElement.htmlFor')
-  @DocsEditable
-  void set htmlFor(DomSettableTokenList value) native "HTMLOutputElement_htmlFor_Setter";
-
   @DomName('HTMLOutputElement.labels')
   @DocsEditable
   List<Node> get labels native "HTMLOutputElement_labels_Getter";
@@ -25613,17 +25615,21 @@ class TrackEvent extends Event {
 
 
 @DocsEditable
-@DomName('WebKitTransitionEvent')
+@DomName('TransitionEvent')
 class TransitionEvent extends Event {
   TransitionEvent.internal() : super.internal();
 
-  @DomName('WebKitTransitionEvent.elapsedTime')
+  @DomName('TransitionEvent.elapsedTime')
   @DocsEditable
-  num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
+  num get elapsedTime native "TransitionEvent_elapsedTime_Getter";
 
-  @DomName('WebKitTransitionEvent.propertyName')
+  @DomName('TransitionEvent.propertyName')
   @DocsEditable
-  String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
+  String get propertyName native "TransitionEvent_propertyName_Getter";
+
+  @DomName('TransitionEvent.pseudoElement')
+  @DocsEditable
+  String get pseudoElement native "TransitionEvent_pseudoElement_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28539,6 +28545,23 @@ class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('WebKitCSSFilterRule')
+class WebKitCssFilterRule extends CssRule {
+  WebKitCssFilterRule.internal() : super.internal();
+
+  @DomName('WebKitCSSFilterRule.style')
+  @DocsEditable
+  CssStyleDeclaration get style native "WebKitCSSFilterRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('WebKitCSSFilterValue')
 class WebKitCssFilterValue extends _CssValueList {
   WebKitCssFilterValue.internal() : super.internal();
@@ -28632,6 +28655,31 @@ class WebKitNamedFlow extends EventTarget {
   @DomName('WebKitNamedFlow.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitTransitionEvent')
+class WebKitTransitionEvent extends Event {
+  WebKitTransitionEvent.internal() : super.internal();
+
+  @DomName('WebKitTransitionEvent.elapsedTime')
+  @DocsEditable
+  num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
+
+  @DomName('WebKitTransitionEvent.propertyName')
+  @DocsEditable
+  String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
+
+  @DomName('WebKitTransitionEvent.pseudoElement')
+  @DocsEditable
+  String get pseudoElement native "WebKitTransitionEvent_pseudoElement_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
