@@ -134,7 +134,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.versionchangeEvent')
   @DocsEditable
-  static const EventStreamProvider<UpgradeNeededEvent> versionChangeEvent = const EventStreamProvider<UpgradeNeededEvent>('versionchange');
+  static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -213,7 +213,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.onversionchange')
   @DocsEditable
-  Stream<UpgradeNeededEvent> get onVersionChange => versionChangeEvent.forTarget(this);
+  Stream<VersionChangeEvent> get onVersionChange => versionChangeEvent.forTarget(this);
 
 }
 
