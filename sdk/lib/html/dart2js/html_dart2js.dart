@@ -9727,7 +9727,8 @@ class _ElementFactoryProvider {
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   static dynamic createElement_tag(String tag) =>
-      JS('Element', 'document.createElement(#)', tag);
+      // Firefox may return a JS function for some types (Embed, Object).
+      JS('Element|=Object', 'document.createElement(#)', tag);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18277,7 +18278,6 @@ class OListElement extends Element native "*HTMLOListElement" {
 @DocsEditable
 @DomName('HTMLObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends Element native "*HTMLObjectElement" {
 
@@ -22840,6 +22840,9 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
 
 @DomName('TouchList')
 class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
+  /// NB: This constructor likely does not work as you might expect it to! This
+  /// constructor will simply fail (returning null) if you are not on a device
+  /// with touch enabled. See dartbug.com/8314.
   factory TouchList() => document.$dom_createTouchList();
 
   /// Checks if this type is supported on the current platform.

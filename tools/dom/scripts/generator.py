@@ -765,7 +765,10 @@ dart_annotations = {
   ],
   'HTMLKeygenElement': _webkit_experimental_annotations,
   'HTMLMeterElement': _no_ie_annotations,
-  'HTMLObjectElement': _no_ie_annotations,
+  'HTMLObjectElement': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+  ],
   'HTMLOutputElement': _no_ie_annotations,
   'HTMLProgressElement': _all_but_ie9_annotations,
   'HTMLShadowElement': [

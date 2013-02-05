@@ -19936,7 +19936,6 @@ class OListElement extends _Element_Merged {
 @DocsEditable
 @DomName('HTMLObjectElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class ObjectElement extends _Element_Merged {
   ObjectElement.internal() : super.internal();
@@ -25163,6 +25162,9 @@ class TouchEvent extends UIEvent {
 
 @DomName('TouchList')
 class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
+  /// NB: This constructor likely does not work as you might expect it to! This
+  /// constructor will simply fail (returning null) if you are not on a device
+  /// with touch enabled. See dartbug.com/8314.
   factory TouchList() => document.$dom_createTouchList();
   TouchList.internal();
 

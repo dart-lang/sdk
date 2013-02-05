@@ -1028,7 +1028,8 @@ $if DART2JS
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   static dynamic createElement_tag(String tag) =>
-      JS('Element', 'document.createElement(#)', tag);
+      // Firefox may return a JS function for some types (Embed, Object).
+      JS('Element|=Object', 'document.createElement(#)', tag);
 $else
   static Element createElement_tag(String tag) =>
       document.$dom_createElement(tag);
