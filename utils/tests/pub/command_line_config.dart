@@ -10,15 +10,23 @@ import '../../../pkg/path/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/utils.dart';
 
-const _GREEN = '\u001b[32m';
-const _RED = '\u001b[31m';
-const _MAGENTA = '\u001b[35m';
-const _NONE = '\u001b[0m';
+/// Gets a "special" string (ANSI escape or Unicode). On Windows, returns
+/// something else since those aren't supported.
+String _getSpecial(String color, [String onWindows = '']) {
+  // No ANSI escapes on windows.
+  if (Platform.operatingSystem == 'windows') return onWindows;
+  return color;
+}
 
 /// Pretty Unicode characters!
-const _CHECKBOX = '\u2713';
-const _BALLOT_X = '\u2717';
-const _LAMBDA   = '\u03bb';
+final _checkbox = _getSpecial('\u2713', 'PASS');
+final _ballotX  = _getSpecial('\u2717', 'FAIL');
+final _lambda   = _getSpecial('\u03bb', '<fn>');
+
+final _green = _getSpecial('\u001b[32m');
+final _red = _getSpecial('\u001b[31m');
+final _magenta = _getSpecial('\u001b[35m');
+final _none = _getSpecial('\u001b[0m');
 
 /// A custom unittest configuration for running the pub tests from the
 /// command-line and generating human-friendly output.
@@ -30,9 +38,9 @@ class CommandLineConfiguration extends Configuration {
   void onTestResult(TestCase testCase) {
     var result;
     switch (testCase.result) {
-      case PASS: result = '$_GREEN$_CHECKBOX$_NONE'; break;
-      case FAIL: result = '$_RED$_BALLOT_X$_NONE'; break;
-      case ERROR: result = '$_MAGENTA?$_NONE'; break;
+      case PASS: result = '$_green$_checkbox$_none'; break;
+      case FAIL: result = '$_red$_ballotX$_none'; break;
+      case ERROR: result = '$_magenta?$_none'; break;
     }
     print('$result ${testCase.description}');
 
@@ -51,15 +59,15 @@ class CommandLineConfiguration extends Configuration {
     if (uncaughtError != null) {
       print('Top-level uncaught error: $uncaughtError');
     } else if (errors != 0) {
-      print('${_GREEN}$passed${_NONE} passed, ${_RED}$failed${_NONE} failed, '
-            '${_MAGENTA}$errors${_NONE} errors.');
+      print('${_green}$passed${_none} passed, ${_red}$failed${_none} failed, '
+            '${_magenta}$errors${_none} errors.');
     } else if (failed != 0) {
-      print('${_GREEN}$passed${_NONE} passed, ${_RED}$failed${_NONE} '
+      print('${_green}$passed${_none} passed, ${_red}$failed${_none} '
             'failed.');
     } else if (passed == 0) {
       print('No tests found.');
     } else {
-      print('All ${_GREEN}$passed${_NONE} tests passed!');
+      print('All ${_green}$passed${_none} tests passed!');
       success = true;
     }
   }
@@ -154,7 +162,7 @@ class _StackFrame {
       library = path.relative(library);
     }
 
-    var member = match[1].replaceAll("<anonymous closure>", _LAMBDA);
+    var member = match[1].replaceAll("<anonymous closure>", _lambda);
     return new _StackFrame._(isCore, library, match[3], match[4], member);
   }
 }

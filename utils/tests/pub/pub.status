@@ -11,7 +11,7 @@
 *: Skip
 
 [ $system == windows ]
-io_test: Fail, Pass, Timeout # Issue 7505
+io_test: Timeout # Issue 7505
 
 # Issue 8264
 install/hosted/install_test: Fail, Pass

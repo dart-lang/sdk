@@ -7,8 +7,11 @@ library io_test;
 import '../../../pkg/unittest/lib/unittest.dart';
 import '../../pub/io.dart';
 import '../../pub/utils.dart';
+import 'test_pub.dart';
 
 main() {
+  initConfig();
+
   group('listDir', () {
     test('lists a simple directory non-recursively', () {
       expect(withTempDir((path) {
@@ -37,11 +40,12 @@ main() {
           writeTextFile(join(path, 'subdir', 'file3.txt'), '');
           return listDir(path, recursive: true);
         });
+
         expect(future, completion(unorderedEquals([
           join(path, 'file1.txt'),
           join(path, 'file2.txt'),
           join(path, 'subdir'),
-          join(path, 'subdir/file3.txt'),
+          join(path, 'subdir', 'file3.txt'),
         ])));
         return future;
       }), completes);
@@ -80,7 +84,7 @@ main() {
           join(path, 'file2.txt'),
           join(path, '.file3.txt'),
           join(path, '.subdir'),
-          join(path, '.subdir/file3.txt')
+          join(path, '.subdir', 'file3.txt')
         ])));
         return future;
       }), completes);
@@ -90,21 +94,25 @@ main() {
       expect(withTempDir((path) {
         var dirToList = join(path, 'dir-to-list');
         var future = defer(() {
-          writeTextFile(join(path, 'file1.txt'), '');
-          writeTextFile(join(path, 'file2.txt'), '');
+          createDir(join(path, 'dir1'));
+          writeTextFile(join(path, 'dir1', 'file1.txt'), '');
+          createDir(join(path, 'dir2'));
+          writeTextFile(join(path, 'dir2', 'file2.txt'), '');
           createDir(dirToList);
-          return createSymlink(join(path, 'file1.txt'),
-                               join(dirToList, 'link1'));
+          return createSymlink(join(path, 'dir1'),
+                               join(dirToList, 'linked-dir1'));
         }).then((_) {
           createDir(join(dirToList, 'subdir'));
           return createSymlink(
-                  join(path, 'file2.txt'),
-                  join(dirToList, 'subdir', 'link2'));
+                  join(path, 'dir2'),
+                  join(dirToList, 'subdir', 'linked-dir2'));
         }).then((_) => listDir(dirToList, recursive: true));
         expect(future, completion(unorderedEquals([
-          join(dirToList, 'link1'),
+          join(dirToList, 'linked-dir1'),
+          join(dirToList, 'linked-dir1', 'file1.txt'),
           join(dirToList, 'subdir'),
-          join(dirToList, 'subdir/link2'),
+          join(dirToList, 'subdir', 'linked-dir2'),
+          join(dirToList, 'subdir', 'linked-dir2', 'file2.txt'),
         ])));
         return future;
       }), completes);

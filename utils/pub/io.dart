@@ -190,6 +190,7 @@ Future<List<String>> listDir(dir,
     if (listedDirectories.contains(resolvedPath)) {
       return new Future.immediate([]);
     }
+
     listedDirectories = new Set<String>.from(listedDirectories);
     listedDirectories.add(resolvedPath);
 
@@ -220,7 +221,6 @@ Future<List<String>> listDir(dir,
       if (!includeHiddenFiles && basename(file).startsWith('.')) return;
       file = join(dir, basename(file));
       contents.add(file);
-
       // TODO(nweiz): don't manually recurse once issue 7358 is fixed. Note that
       // once we remove the manual recursion, we'll need to explicitly filter
       // out files in hidden directories.
@@ -228,6 +228,7 @@ Future<List<String>> listDir(dir,
         children.add(doList(new Directory(file), listedDirectories));
       }
     };
+
     lister.onFile = (file) {
       if (!includeHiddenFiles && basename(file).startsWith('.')) return;
       contents.add(join(dir, basename(file)));
@@ -308,6 +309,8 @@ Future _attemptRetryable(Future callback()) {
 /// Creates a new symlink that creates an alias from [from] to [to], both of
 /// which can be a [String], [File], or [Directory]. Returns a [Future] which
 /// completes to the symlink file (i.e. [to]).
+///
+/// Note that on Windows, only directories may be symlinked to.
 Future<File> createSymlink(from, to) {
   from = _getPath(from);
   to = _getPath(to);
