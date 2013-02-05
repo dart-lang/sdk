@@ -1852,6 +1852,10 @@ const char* Class::ApplyPatch(const Class& patch) const {
     new_list.SetAt(patch_len + i, field);
   }
   SetFields(new_list);
+
+  // The functions and fields in the patch class are no longer needed.
+  patch.SetFunctions(Object::empty_array());
+  patch.SetFields(Object::empty_array());
   return NULL;
 }
 
