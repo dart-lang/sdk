@@ -466,6 +466,19 @@ class FunctionType extends DartType {
 
   TypeKind get kind => TypeKind.FUNCTION;
 
+  DartType getNamedParameterType(SourceString name) {
+    Link<SourceString> namedParameter = namedParameters;
+    Link<DartType> namedParameterType = namedParameterTypes;
+    while (!namedParameter.isEmpty && !namedParameterType.isEmpty) {
+      if (namedParameter.head == name) {
+        return namedParameterType.head;
+      }
+      namedParameter = namedParameter.tail;
+      namedParameterType = namedParameterType.tail;
+    }
+    return null;
+  }
+
   DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
     if (parameters.isEmpty) {
       assert(arguments.isEmpty);

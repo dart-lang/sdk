@@ -195,6 +195,73 @@ void testMethodInvocationArgumentCount() {
   analyze("${header}c.intTwoArgumentMethod(1, 2, 3); }",
           MessageKind.ADDITIONAL_ARGUMENT);
   // analyze("${header}c.untypedField(); }");
+
+  analyze("${header}c.intOneArgumentOneOptionalMethod(); }",
+          [MessageKind.MISSING_ARGUMENT]);
+  analyze("${header}c.intOneArgumentOneOptionalMethod(0); }");
+  analyze("${header}c.intOneArgumentOneOptionalMethod(0, 1); }");
+  analyze("${header}c.intOneArgumentOneOptionalMethod(0, 1, 2); }",
+          [MessageKind.ADDITIONAL_ARGUMENT]);
+  analyze("${header}c.intOneArgumentOneOptionalMethod(0, 1, c: 2); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  analyze("${header}c.intOneArgumentOneOptionalMethod(0, b: 1); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  analyze("${header}c.intOneArgumentOneOptionalMethod(a: 0, b: 1); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND,
+           MessageKind.NAMED_ARGUMENT_NOT_FOUND,
+           MessageKind.MISSING_ARGUMENT]);
+
+  analyze("${header}c.intTwoOptionalMethod(); }");
+  analyze("${header}c.intTwoOptionalMethod(0); }");
+  analyze("${header}c.intTwoOptionalMethod(0, 1); }");
+  analyze("${header}c.intTwoOptionalMethod(0, 1, 2); }",
+          [MessageKind.ADDITIONAL_ARGUMENT]);
+  analyze("${header}c.intTwoOptionalMethod(a: 0); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  analyze("${header}c.intTwoOptionalMethod(0, b: 1); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+
+  analyze("${header}c.intOneArgumentOneNamedMethod(); }",
+          [MessageKind.MISSING_ARGUMENT]);
+  analyze("${header}c.intOneArgumentOneNamedMethod(0); }");
+  analyze("${header}c.intOneArgumentOneNamedMethod(0, b: 1); }");
+  analyze("${header}c.intOneArgumentOneNamedMethod(b: 1); }",
+          [MessageKind.MISSING_ARGUMENT]);
+  analyze("${header}c.intOneArgumentOneNamedMethod(0, b: 1, c: 2); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  analyze("${header}c.intOneArgumentOneNamedMethod(0, 1); }",
+          [MessageKind.ADDITIONAL_ARGUMENT]);
+  analyze("${header}c.intOneArgumentOneNamedMethod(0, 1, c: 2); }",
+          [MessageKind.ADDITIONAL_ARGUMENT,
+           MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  analyze("${header}c.intOneArgumentOneNamedMethod(a: 1, b: 1); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND,
+           MessageKind.MISSING_ARGUMENT]);
+
+  analyze("${header}c.intTwoNamedMethod(); }");
+  analyze("${header}c.intTwoNamedMethod(a: 0); }");
+  analyze("${header}c.intTwoNamedMethod(b: 1); }");
+  analyze("${header}c.intTwoNamedMethod(a: 0, b: 1); }");
+  analyze("${header}c.intTwoNamedMethod(b: 1, a: 0); }");
+  analyze("${header}c.intTwoNamedMethod(0); }",
+          [MessageKind.ADDITIONAL_ARGUMENT]);
+  analyze("${header}c.intTwoNamedMethod(c: 2); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  analyze("${header}c.intTwoNamedMethod(a: 0, c: 2); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  analyze("${header}c.intTwoNamedMethod(a: 0, b: 1, c: 2); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  analyze("${header}c.intTwoNamedMethod(c: 2, b: 1, a: 0); }",
+          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  analyze("${header}c.intTwoNamedMethod(0, b: 1); }",
+          [MessageKind.ADDITIONAL_ARGUMENT]);
+  analyze("${header}c.intTwoNamedMethod(0, 1); }",
+          [MessageKind.ADDITIONAL_ARGUMENT,
+           MessageKind.ADDITIONAL_ARGUMENT]);
+  analyze("${header}c.intTwoNamedMethod(0, c: 2); }",
+          [MessageKind.ADDITIONAL_ARGUMENT,
+           MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+
 }
 
 void testMethodInvocations() {
@@ -513,6 +580,11 @@ class ClassWithMethods {
   int intNoArgumentMethod() {}
   int intOneArgumentMethod(int argument) {}
   int intTwoArgumentMethod(int argument1, int argument2) {}
+
+  void intOneArgumentOneOptionalMethod(int a, [int b]) {}
+  void intTwoOptionalMethod([int a, int b]) {}
+  void intOneArgumentOneNamedMethod(int a, {int b}) {}
+  void intTwoNamedMethod({int a, int b}) {}
 
   Function functionField;
   var untypedField;

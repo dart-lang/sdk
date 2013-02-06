@@ -87,8 +87,11 @@ library _foreign_helper;
  * optimizations around the code.  This might be an extension of [JS] or a new
  * function similar to [JS] with additional arguments for the new information.
  */
+// Add additional optional arguments if needed. The method is treated internally
+// as a variable argument method.
 dynamic JS(String typeDescription, String codeTemplate,
-    [var arg0, var arg1, var arg2]) {}
+    [var arg0, var arg1, var arg2, var arg3, var arg4, var arg5, var arg6,
+     var arg7, var arg8, var arg9, var arg10, var arg11]) {}
 
 /**
  * Returns the isolate in which this code is running.
