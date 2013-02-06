@@ -363,7 +363,7 @@
       },
       'includes': [
         # Load the shared collection_dev library sources.
-        '../../sdk/lib/collection_dev/collection_dev_sources.gypi',
+        '../../sdk/lib/_collection_dev/collection_dev_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
