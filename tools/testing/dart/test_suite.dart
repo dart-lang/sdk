@@ -825,8 +825,8 @@ class StandardTestSuite extends TestSuite {
     file = TestUtils.absolutePath(file);
     var fileString = file.toString();
     
-    var relativeBuildDir = TestUtils.buildDir(configuration);
-    var buildDir = TestUtils.absolutePath(new Path(relativeBuildDir));
+    var relativeBuildDir = new Path(TestUtils.buildDir(configuration));
+    var buildDir = TestUtils.absolutePath(relativeBuildDir);
     var dartDir = TestUtils.dartDir();
 
     var pathComponent;
