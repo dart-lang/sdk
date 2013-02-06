@@ -13,6 +13,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_HAS_EQUALS,
                                    RAW_DART_FUNCTION_REF,
                                    UNINTERCEPTED;
+import 'dart:_interceptors' show getInterceptor;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -95,11 +96,19 @@ class JSInvocationMirror implements InvocationMirror {
     return map;
   }
 
+  static final _objectInterceptor = getInterceptor(new Object());
   invokeOn(Object object) {
-    List arguments = _arguments;
-    if (!isJsArray(arguments)) arguments = new List.from(arguments);
-    return JS("var", "#[#].apply(#, #)",
-              object, _internalName, object, arguments);
+    var interceptor = getInterceptor(object);
+    var receiver = object;
+    var name = _internalName;
+    var arguments = _arguments;
+    if (identical(interceptor, _objectInterceptor)) {
+      if (!isJsArray(arguments)) arguments = new List.from(arguments);
+    } else {
+      arguments = [object]..addAll(arguments);
+      receiver = interceptor;
+    }
+    return JS("var", "#[#].apply(#, #)", receiver, name, receiver, arguments);
   }
 }
 
