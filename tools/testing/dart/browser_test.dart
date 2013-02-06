@@ -5,8 +5,6 @@
 part of test_suite;
 
 String getHtmlContents(String title,
-                       Path controllerScript,
-                       Path dartJsScript,
                        String scriptType,
                        Path sourceScript) =>
 """
@@ -24,10 +22,10 @@ String getHtmlContents(String title,
 </head>
 <body>
   <h1> Running $title </h1>
-  <script type="text/javascript" src="$controllerScript"></script>
+  <script type="text/javascript" src="/pkg/unittest/test_controller.js"></script>
   <script type="$scriptType" src="$sourceScript" onerror="externalError(null)">
   </script>
-  <script type="text/javascript" src="$dartJsScript"></script>
+  <script type="text/javascript" src="/pkg/browser/lib/dart.js"></script>
 </body>
 </html>
 """;
@@ -48,37 +46,27 @@ String getHtmlLayoutContents(String scriptType, String sourceScript) =>
 </html>
 """;
 
-String wrapDartTestInLibrary(Path test, String testPath) =>
+String wrapDartTestInLibrary(Path testRelativeToDart) =>
 """
 library libraryWrapper;
-part '${pathLib.relative(test.toNativePath(),
-    from: pathLib.dirname(testPath)).replaceAll('\\', '\\\\')}';
+part '/$testRelativeToDart';
 """;
 
-String dartTestWrapper(Path dartHome, String testPath, Path library) {
-  var testPathDir = pathLib.dirname(testPath);
-  var dartHomePath = dartHome.toNativePath();
-  // TODO(efortuna): Unify path libraries used in test.dart.
-  var unitTest = pathLib.relative(pathLib.join(dartHomePath,
-    'pkg/unittest/lib'), from: testPathDir).replaceAll('\\', '\\\\');
-
-  var libString = library.toNativePath();
-  if (!pathLib.isAbsolute(libString)) {
-    libString = pathLib.join(dartHome.toNativePath(), libString);
-  }
+String dartTestWrapper(bool usePackageImport, String libraryPathComponent) {
   // Tests inside "pkg" import unittest using "package:". All others use a
   // relative path. The imports need to agree, so use a matching form here.
-  if (pathLib.split(pathLib.relative(libString,
-      from: dartHome.toNativePath())).contains("pkg")) {
+  var unitTest;
+  if (usePackageImport) {
     unitTest = 'package:unittest';
+  } else {
+    unitTest = '/pkg/unittest/lib';
   }
   return """
 library test;
 
 import '$unitTest/unittest.dart' as unittest;
 import '$unitTest/html_config.dart' as config;
-import '${pathLib.relative(libString, from: testPathDir).replaceAll(
-    '\\', '\\\\')}' as Test;
+import '$libraryPathComponent' as Test;
 
 main() {
   config.useHtmlConfiguration();
