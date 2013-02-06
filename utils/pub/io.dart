@@ -425,6 +425,21 @@ Future<bool> confirm(String message) {
       .then((line) => new RegExp(r"^[yY]").hasMatch(line));
 }
 
+/// Reads and discards all output from [inputStream]. Returns a [Future] that
+/// completes when the stream is closed.
+Future drainInputStream(InputStream inputStream) {
+  var completer = new Completer();
+  if (inputStream.closed) {
+    completer.complete();
+    return completer.future;
+  }
+
+  inputStream.onClosed = () => completer.complete();
+  inputStream.onData = inputStream.read;
+  inputStream.onError = (error) => completer.completeError(error);
+  return completer.future;
+}
+
 /// Wraps [stream] in a single-subscription [Stream] that emits the same data.
 ByteStream wrapInputStream(InputStream stream) {
   var controller = new StreamController();

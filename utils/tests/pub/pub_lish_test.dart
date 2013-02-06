@@ -38,7 +38,9 @@ void handleUpload(ScheduledServer server) {
   server.handle('POST', '/upload', (request, response) {
     // TODO(nweiz): Once a multipart/form-data parser in Dart exists, validate
     // that the request body is correctly formatted. See issue 6952.
-    return server.url.then((url) {
+    return drainInputStream(request.inputStream).then((_) {
+      return server.url;
+    }).then((url) {
       response.statusCode = 302;
       response.headers.set('location', url.resolve('/create').toString());
       response.outputStream.close();
@@ -260,11 +262,13 @@ main() {
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request, response) {
-      response.statusCode = 400;
-      response.headers.contentType = new ContentType('application', 'xml');
-      response.outputStream.writeString('<Error><Message>Your request sucked.'
-          '</Message></Error>');
-      response.outputStream.close();
+      return drainInputStream(request.inputStream).then((_) {
+        response.statusCode = 400;
+        response.headers.contentType = new ContentType('application', 'xml');
+        response.outputStream.writeString('<Error><Message>Your request sucked.'
+            '</Message></Error>');
+        response.outputStream.close();
+      });
     });
 
     // TODO(nweiz): This should use the server's error message once the client
@@ -282,8 +286,10 @@ main() {
     handleUploadForm(server);
 
     server.handle('POST', '/upload', (request, response) {
-      // don't set the location header
-      response.outputStream.close();
+      return drainInputStream(request.inputStream).then((_) {
+        // Don't set the location header.
+        response.outputStream.close();
+      });
     });
 
     expectLater(pub.nextErrLine(), equals('Failed to upload the package.'));
