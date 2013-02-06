@@ -331,8 +331,3 @@ isolates_test: Skip   # Timeout because leg does not support web workers.
 
 [ $compiler == dart2js && $runtime == ff ]
 inner_frame_test: Skip # Timeout
-
-[ $compiler == dart2js && $runtime == chrome ]
-indexeddb_2_test: Fail
-indexeddb_3_test: Fail
-indexeddb_4_test: Fail

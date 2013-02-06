@@ -43,8 +43,9 @@ testReadWrite(key, value, check,
   step1() {
     var transaction = db.transaction([storeName], 'readwrite');
     var request = transaction.objectStore(storeName).put(value, key);
-    request.onSuccess.listen(expectAsync1(step2));
     request.onError.listen(fail);
+
+    transaction.onComplete.listen(expectAsync1(step2));
   }
 
   initDb(e) {
