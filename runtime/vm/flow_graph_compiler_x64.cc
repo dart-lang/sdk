@@ -1562,6 +1562,7 @@ Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
     Register index) {
   switch (cid) {
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
       return Address(array, index, ToScaleFactor(index_scale), 0);
     default:
       UNIMPLEMENTED();

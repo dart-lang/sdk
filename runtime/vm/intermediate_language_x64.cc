@@ -970,6 +970,7 @@ intptr_t LoadIndexedInstr::ResultCid() const {
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
     case kOneByteStringCid:
@@ -992,6 +993,7 @@ Representation LoadIndexedInstr::representation() const {
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
     case kOneByteStringCid:
@@ -1034,7 +1036,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
-  if (class_id() == kExternalUint8ArrayCid) {
+  if ((class_id() == kExternalUint8ArrayCid) ||
+      (class_id() == kExternalUint8ClampedArrayCid)) {
     Register result = locs()->out().reg();
     Address element_address = index.IsRegister()
         ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
@@ -1064,7 +1067,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Smi::Cast(index.constant()).Value());
 
   if (representation() == kUnboxedDouble) {
-    if (index_scale() == 1 && index.IsRegister()) {
+    if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
 
@@ -1079,13 +1082,13 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movsd(result, element_address);
     }
 
-    if (index_scale() == 1 && index.IsRegister()) {
+    if ((index_scale() == 1) && index.IsRegister()) {
         __ SmiTag(index.reg());  // Re-tag.
     }
     return;
   }
 
-  if (index_scale() == 1 && index.IsRegister()) {
+  if ((index_scale() == 1) && index.IsRegister()) {
     __ SmiUntag(index.reg());
   }
   Register result = locs()->out().reg();
@@ -1123,7 +1126,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movq(result, element_address);
       break;
   }
-  if (index_scale() == 1 && index.IsRegister()) {
+  if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiTag(index.reg());  // Re-tag.
   }
 }

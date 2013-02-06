@@ -1219,6 +1219,7 @@ RawAbstractType* LoadIndexedInstr::CompileType() const {
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
     case kInt32ArrayCid:
@@ -1715,6 +1716,7 @@ MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
     case kInt32ArrayCid:
@@ -2498,6 +2500,7 @@ void LoadIndexedInstr::InferRange() {
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(255));
       break;
@@ -2777,6 +2780,7 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
     case kFloat64ArrayCid:
     case kFloat32ArrayCid:
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
       return ByteArray::length_offset();
     default:
       UNREACHABLE();

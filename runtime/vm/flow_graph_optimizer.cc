@@ -759,6 +759,7 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
       break;
@@ -1469,7 +1470,8 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
-  if (IsSupportedByteArrayCid(class_ids[0]) && ic_data.NumberOfChecks() == 1) {
+  if (IsSupportedByteArrayCid(class_ids[0]) &&
+      (ic_data.NumberOfChecks() == 1)) {
     Definition* array_op = NULL;
     switch (recognized_kind) {
       case MethodRecognizer::kByteArrayBaseGetInt8:

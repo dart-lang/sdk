@@ -1106,6 +1106,7 @@ intptr_t LoadIndexedInstr::ResultCid() const {
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
     case kOneByteStringCid:
@@ -1132,6 +1133,7 @@ Representation LoadIndexedInstr::representation() const {
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kExternalUint8ArrayCid:
+    case kExternalUint8ClampedArrayCid:
     case kInt16ArrayCid:
     case kUint16ArrayCid:
     case kOneByteStringCid:
@@ -1177,7 +1179,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
-  if (class_id() == kExternalUint8ArrayCid) {
+  if ((class_id() == kExternalUint8ArrayCid) ||
+      (class_id() == kExternalUint8ClampedArrayCid)) {
     Register result = locs()->out().reg();
     const Address& element_address = index.IsRegister()
         ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
@@ -1209,7 +1212,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint)) {
     XmmRegister result = locs()->out().fpu_reg();
-    if (index_scale() == 1 && index.IsRegister()) {
+    if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
     switch (class_id()) {
@@ -1230,14 +1233,14 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movsd(result, element_address);
         break;
     }
-    if (index_scale() == 1 && index.IsRegister()) {
+    if ((index_scale() == 1) && index.IsRegister()) {
         __ SmiTag(index.reg());  // Re-tag.
     }
     return;
   }
 
   Register result = locs()->out().reg();
-  if (index_scale() == 1 && index.IsRegister()) {
+  if ((index_scale() == 1) && index.IsRegister()) {
     __ SmiUntag(index.reg());
   }
   switch (class_id()) {
@@ -1285,7 +1288,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movl(result, element_address);
       break;
   }
-  if (index_scale() == 1 && index.IsRegister()) {
+  if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiTag(index.reg());  // Re-tag.
   }
 }
