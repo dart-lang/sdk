@@ -121,20 +121,37 @@ main() {
     cacheDir = '${Platform.environment['HOME']}/.pub-cache';
   }
 
-  var cache = new SystemCache.withSources(cacheDir);
+  validatePlatform().then((_) {
+    var cache = new SystemCache.withSources(cacheDir);
 
-  // Select the command.
-  var command = pubCommands[globalOptions.rest[0]];
-  if (command == null) {
-    log.error('Could not find a command named "${globalOptions.rest[0]}".');
-    log.error('Run "pub help" to see available commands.');
-    exit(exit_codes.USAGE);
-    return;
-  }
+    // Select the command.
+    var command = pubCommands[globalOptions.rest[0]];
+    if (command == null) {
+      log.error('Could not find a command named "${globalOptions.rest[0]}".');
+      log.error('Run "pub help" to see available commands.');
+      exit(exit_codes.USAGE);
+      return;
+    }
 
-  var commandArgs =
-      globalOptions.rest.getRange(1, globalOptions.rest.length - 1);
-  command.run(cache, globalOptions, commandArgs);
+    var commandArgs =
+        globalOptions.rest.getRange(1, globalOptions.rest.length - 1);
+    command.run(cache, globalOptions, commandArgs);
+  });
+}
+
+/// Checks that pub is running on a supported platform. If it isn't, it prints
+/// an error message and exits. Completes when the validation is done.
+Future validatePlatform() {
+  return defer(() {
+    if (Platform.operatingSystem != 'windows') return;
+
+    return runProcess('ver', []).then((result) {
+      if (result.stdout.join('\n').contains('XP')) {
+        log.error('Sorry, but pub is not supported on Windows XP.');
+        exit(exit_codes.USAGE);
+      }
+    });
+  });
 }
 
 /// Displays usage information for the app.
