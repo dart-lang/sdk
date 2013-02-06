@@ -555,7 +555,8 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
   }
   if (!skip_check) {
     // Insert array length load and bounds check.
-    const bool is_immutable = (class_id != kGrowableObjectArrayCid);
+    const bool is_immutable =
+        CheckArrayBoundInstr::IsFixedLengthArrayType(class_id);
     LoadFieldInstr* length = new LoadFieldInstr(
         (*array)->Copy(),
         CheckArrayBoundInstr::LengthOffsetFor(class_id),
@@ -1260,7 +1261,9 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
         return false;
       }
       const bool is_immutable =
-          (recognized_kind != MethodRecognizer::kGrowableArrayLength);
+          (recognized_kind == MethodRecognizer::kObjectArrayLength) ||
+          (recognized_kind == MethodRecognizer::kImmutableArrayLength) ||
+          (recognized_kind == MethodRecognizer::kByteArrayBaseLength);
       InlineArrayLengthGetter(call,
                               OffsetForLengthGetter(recognized_kind),
                               is_immutable,
