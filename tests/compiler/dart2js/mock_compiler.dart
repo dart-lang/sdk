@@ -47,6 +47,9 @@ const String DEFAULT_HELPERLIB = r'''
   boolConversionCheck(x) {}
   abstract class JavaScriptIndexingBehavior {}
   class JSInvocationMirror {}
+  class Closure {}
+  class Null {}
+  class Dynamic_ {}
   S() {}
   assertHelper(a){}
   throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
@@ -112,9 +115,6 @@ const String DEFAULT_CORELIB = r'''
   class Function {}
   class List<E> {}
   abstract class Map<K,V> {}
-  class Closure {}
-  class Null {}
-  class Dynamic_ {}
   bool identical(Object a, Object b) {}''';
 
 const String DEFAULT_ISOLATE_HELPERLIB = r'''

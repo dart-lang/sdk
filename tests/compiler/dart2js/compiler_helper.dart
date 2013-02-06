@@ -46,15 +46,18 @@ String compile(String code, {String entry: 'main',
   return compiler.enqueuer.codegen.assembleCode(element);
 }
 
-MockCompiler compilerFor(String code, Uri uri, {bool analyzeAll: false}) {
-  MockCompiler compiler = new MockCompiler(analyzeAll: analyzeAll);
+MockCompiler compilerFor(String code, Uri uri,
+                         {bool analyzeAll: false,
+                          String coreSource: DEFAULT_CORELIB}) {
+  MockCompiler compiler = new MockCompiler(
+      analyzeAll: analyzeAll, coreSource: coreSource);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   return compiler;
 }
 
-String compileAll(String code) {
+String compileAll(String code, {String coreSource: DEFAULT_CORELIB}) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
-  MockCompiler compiler = compilerFor(code, uri);
+  MockCompiler compiler = compilerFor(code, uri, coreSource: coreSource);
   compiler.runCompiler(uri);
   Expect.isFalse(compiler.compilationFailed,
                  'Unexpected compilation error');
