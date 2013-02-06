@@ -4255,6 +4255,13 @@ void Parser::ParseLibraryImportExport() {
   const Namespace& ns =
     Namespace::Handle(Namespace::New(library, show_names, hide_names));
   if (is_import) {
+    // Ensure that private dart:_ libraries are only imported into dart:
+    // libraries.
+    const String& lib_url = String::Handle(library_.url());
+    if (canon_url.StartsWith(Symbols::DartSchemePrivate()) &&
+        !lib_url.StartsWith(Symbols::DartScheme())) {
+      ErrorMsg(import_pos, "private library is not accessible");
+    }
     if (prefix.IsNull() || (prefix.Length() == 0)) {
       library_.AddImport(ns);
     } else {

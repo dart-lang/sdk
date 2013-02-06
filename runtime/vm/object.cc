@@ -6216,7 +6216,7 @@ RawLibrary* Library::New(const String& url) {
 
 
 void Library::InitASyncLibrary(Isolate* isolate) {
-  const String& url = String::Handle(Symbols::New("dart:async"));
+  const String& url = Symbols::DartAsync();
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   isolate->object_store()->set_async_library(lib);
@@ -6224,7 +6224,7 @@ void Library::InitASyncLibrary(Isolate* isolate) {
 
 
 void Library::InitCoreLibrary(Isolate* isolate) {
-  const String& core_lib_url = String::Handle(Symbols::New("dart:core"));
+  const String& core_lib_url = Symbols::DartCore();
   const Library& core_lib =
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
@@ -6257,7 +6257,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 
 
 void Library::InitCollectionLibrary(Isolate* isolate) {
-  const String& url = String::Handle(Symbols::New("dart:collection"));
+  const String& url = Symbols::DartCollection();
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& math_lib = Library::Handle(Library::MathLibrary());
@@ -6274,7 +6274,7 @@ void Library::InitCollectionLibrary(Isolate* isolate) {
 
 
 void Library::InitCollectionDevLibrary(Isolate* isolate) {
-  const String& url = String::Handle(Symbols::New("dart:collection-dev"));
+  const String& url = Symbols::DartCollectionDev();
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   isolate->object_store()->set_collection_dev_library(lib);
@@ -6282,7 +6282,7 @@ void Library::InitCollectionDevLibrary(Isolate* isolate) {
 
 
 void Library::InitMathLibrary(Isolate* isolate) {
-  const String& url = String::Handle(Symbols::New("dart:math"));
+  const String& url = Symbols::DartMath();
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   isolate->object_store()->set_math_library(lib);
@@ -6290,7 +6290,7 @@ void Library::InitMathLibrary(Isolate* isolate) {
 
 
 void Library::InitIsolateLibrary(Isolate* isolate) {
-  const String& url = String::Handle(Symbols::New("dart:isolate"));
+  const String& url = Symbols::DartIsolate();
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& async_lib = Library::Handle(Library::ASyncLibrary());
@@ -6302,7 +6302,7 @@ void Library::InitIsolateLibrary(Isolate* isolate) {
 
 
 void Library::InitMirrorsLibrary(Isolate* isolate) {
-  const String& url = String::Handle(Symbols::New("dart:mirrors"));
+  const String& url = Symbols::DartMirrors();
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
@@ -6323,7 +6323,7 @@ void Library::InitMirrorsLibrary(Isolate* isolate) {
 
 
 void Library::InitScalarlistLibrary(Isolate* isolate) {
-  const String& url = String::Handle(Symbols::New("dart:scalarlist"));
+  const String& url = Symbols::DartScalarlist();
   const Library& lib = Library::Handle(Library::NewLibraryHelper(url, true));
   lib.Register();
   const Library& collection_lib =
@@ -6338,8 +6338,7 @@ void Library::InitScalarlistLibrary(Isolate* isolate) {
 void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   static const int kNumNativeWrappersClasses = 4;
   ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
-  const String& native_flds_lib_url = String::Handle(
-      Symbols::New("dart:nativewrappers"));
+  const String& native_flds_lib_url = Symbols::DartNativeWrappers();
   const Library& native_flds_lib = Library::Handle(
       Library::NewLibraryHelper(native_flds_lib_url, false));
   native_flds_lib.Register();
