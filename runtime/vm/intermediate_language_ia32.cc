@@ -1181,9 +1181,11 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register result = locs()->out().reg();
     const Address& element_address = index.IsRegister()
         ? FlowGraphCompiler::ExternalElementAddressForRegIndex(
-            class_id(), result, index.reg())
+            class_id(), index_scale(), result, index.reg())
         : FlowGraphCompiler::ExternalElementAddressForIntIndex(
-            class_id(), result, Smi::Cast(index.constant()).Value());
+            class_id(), index_scale(), result,
+            Smi::Cast(index.constant()).Value());
+    ASSERT(index_scale() == 1);
     if (index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
@@ -1199,13 +1201,17 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   FieldAddress element_address = index.IsRegister()
       ? FlowGraphCompiler::ElementAddressForRegIndex(
-          class_id(), array, index.reg())
+          class_id(), index_scale(), array, index.reg())
       : FlowGraphCompiler::ElementAddressForIntIndex(
-          class_id(), array, Smi::Cast(index.constant()).Value());
+          class_id(), index_scale(), array,
+          Smi::Cast(index.constant()).Value());
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedMint)) {
     XmmRegister result = locs()->out().fpu_reg();
+    if (index_scale() == 1 && index.IsRegister()) {
+      __ SmiUntag(index.reg());
+    }
     switch (class_id()) {
       case kInt32ArrayCid:
         __ movss(result, element_address);
@@ -1224,27 +1230,28 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ movsd(result, element_address);
         break;
     }
+    if (index_scale() == 1 && index.IsRegister()) {
+        __ SmiTag(index.reg());  // Re-tag.
+    }
     return;
   }
 
   Register result = locs()->out().reg();
+  if (index_scale() == 1 && index.IsRegister()) {
+    __ SmiUntag(index.reg());
+  }
   switch (class_id()) {
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
     case kOneByteStringCid:
-      if (index.IsRegister()) {
-        __ SmiUntag(index.reg());
-      }
+      ASSERT(index_scale() == 1);
       if (class_id() == kInt8ArrayCid) {
         __ movsxb(result, element_address);
       } else {
         __ movzxb(result, element_address);
       }
       __ SmiTag(result);
-      if (index.IsRegister()) {
-        __ SmiTag(index.reg());  // Re-tag.
-      }
       break;
     case kInt16ArrayCid:
       __ movsxw(result, element_address);
@@ -1277,6 +1284,9 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
       __ movl(result, element_address);
       break;
+  }
+  if (index_scale() == 1 && index.IsRegister()) {
+      __ SmiTag(index.reg());  // Re-tag.
   }
 }
 
@@ -1358,11 +1368,13 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
+  intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id());
+
   FieldAddress element_address = index.IsRegister() ?
       FlowGraphCompiler::ElementAddressForRegIndex(
-          class_id(), array, index.reg()) :
+          class_id(), index_scale, array, index.reg()) :
       FlowGraphCompiler::ElementAddressForIntIndex(
-          class_id(), array, Smi::Cast(index.constant()).Value());
+          class_id(), index_scale, array, Smi::Cast(index.constant()).Value());
 
   switch (class_id()) {
     case kArrayCid:

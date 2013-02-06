@@ -75,6 +75,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   LoadIndexedInstr* BuildStringCharCodeAt(InstanceCallInstr* call,
                                           intptr_t cid);
 
+  LoadIndexedInstr* BuildByteArrayViewLoad(InstanceCallInstr* call,
+                                           intptr_t receiver_cid,
+                                           intptr_t view_cid);
+
   void AddCheckClass(InstanceCallInstr* call, Value* value);
 
   void InsertAfter(Instruction* prev,

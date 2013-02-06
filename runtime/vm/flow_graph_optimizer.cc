@@ -784,7 +784,11 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   Value* index = NULL;
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
   Definition* array_op =
-      new LoadIndexedInstr(array, index, array_cid, deopt_id);
+      new LoadIndexedInstr(array,
+                           index,
+                           FlowGraphCompiler::ElementSizeFor(array_cid),
+                           array_cid,
+                           deopt_id);
   call->ReplaceWith(array_op, current_iterator());
   RemovePushArguments(call);
   return true;
@@ -1329,7 +1333,11 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCharCodeAt(
                  call->env(),
                  Definition::kEffect);
   }
-  return new LoadIndexedInstr(str, index, cid, Isolate::kNoDeoptId);
+  return new LoadIndexedInstr(str,
+                              index,
+                              FlowGraphCompiler::ElementSizeFor(cid),
+                              cid,
+                              Isolate::kNoDeoptId);  // Can't deoptimize.
 }
 
 
@@ -1346,6 +1354,24 @@ void FlowGraphOptimizer::ReplaceWithMathCFunction(
       new InvokeMathCFunctionInstr(args, call, recognized_kind);
   call->ReplaceWith(invoke, current_iterator());
   RemovePushArguments(call);
+}
+
+
+static bool IsSupportedByteArrayCid(intptr_t cid) {
+  switch (cid) {
+    case kInt8ArrayCid:
+    case kUint8ArrayCid:
+    case kUint8ClampedArrayCid:
+    case kInt16ArrayCid:
+    case kUint16ArrayCid:
+    case kInt32ArrayCid:
+    case kUint32ArrayCid:
+    case kFloat32ArrayCid:
+    case kFloat64ArrayCid:
+      return true;
+    default:
+      return false;
+  }
 }
 
 
@@ -1440,7 +1466,94 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
+  if (IsSupportedByteArrayCid(class_ids[0]) && ic_data.NumberOfChecks() == 1) {
+    Definition* array_op = NULL;
+    switch (recognized_kind) {
+      case MethodRecognizer::kByteArrayBaseGetInt8:
+        array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt8ArrayCid);
+        break;
+      case MethodRecognizer::kByteArrayBaseGetUint8:
+        array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint8ArrayCid);
+        break;
+      case MethodRecognizer::kByteArrayBaseGetInt16:
+        array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt16ArrayCid);
+        break;
+      case MethodRecognizer::kByteArrayBaseGetUint16:
+        array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint16ArrayCid);
+        break;
+      case MethodRecognizer::kByteArrayBaseGetInt32:
+        array_op = BuildByteArrayViewLoad(call, class_ids[0], kInt32ArrayCid);
+        break;
+      case MethodRecognizer::kByteArrayBaseGetUint32:
+        array_op = BuildByteArrayViewLoad(call, class_ids[0], kUint32ArrayCid);
+        break;
+      case MethodRecognizer::kByteArrayBaseGetFloat32:
+        array_op = BuildByteArrayViewLoad(call, class_ids[0], kFloat32ArrayCid);
+        break;
+      case MethodRecognizer::kByteArrayBaseGetFloat64:
+        array_op = BuildByteArrayViewLoad(call, class_ids[0], kFloat64ArrayCid);
+        break;
+      default:
+        // Unsupported method.
+        return false;
+    }
+    ASSERT(array_op != NULL);
+    call->ReplaceWith(array_op, current_iterator());
+    RemovePushArguments(call);
+    return true;
+  }
   return false;
+}
+
+
+LoadIndexedInstr* FlowGraphOptimizer::BuildByteArrayViewLoad(
+    InstanceCallInstr* call,
+    intptr_t receiver_cid,
+    intptr_t view_cid) {
+    Value* array = call->ArgumentAt(0)->value();
+    Value* byte_index = call->ArgumentAt(1)->value();
+
+    AddCheckClass(call, array->Copy());
+    const bool is_immutable = true;
+    LoadFieldInstr* length = new LoadFieldInstr(
+        array->Copy(),
+        CheckArrayBoundInstr::LengthOffsetFor(receiver_cid),
+        Type::ZoneHandle(Type::SmiType()),
+        is_immutable);
+    length->set_result_cid(kSmiCid);
+    length->set_recognized_kind(
+        LoadFieldInstr::RecognizedKindFromArrayCid(receiver_cid));
+    InsertBefore(call, length, NULL, Definition::kValue);
+
+    // len_in_bytes = length * kBytesPerElement(receiver)
+    intptr_t element_size = FlowGraphCompiler::ElementSizeFor(receiver_cid);
+    ConstantInstr* bytes_per_element =
+        new ConstantInstr(Smi::Handle(Smi::New(element_size)));
+    InsertBefore(call, bytes_per_element, NULL, Definition::kValue);
+    BinarySmiOpInstr* len_in_bytes =
+        new BinarySmiOpInstr(Token::kMUL,
+                             call,
+                             new Value(length),
+                             new Value(bytes_per_element));
+    InsertBefore(call, len_in_bytes, call->env(), Definition::kValue);
+
+    // Check byte_index < len_in_bytes.
+    InsertBefore(call,
+                 new CheckArrayBoundInstr(new Value(len_in_bytes),
+                                          byte_index->Copy(),
+                                          receiver_cid,
+                                          call),
+                 call->env(),
+                 Definition::kEffect);
+
+    // TODO(fschneider): Optimistically build smi load for Int32 and Uint32
+    // loads on ia32 like we do for normal array loads, and only revert to
+    // mint case after deoptimizing here.
+    return new LoadIndexedInstr(array,
+                                byte_index,
+                                1,  // Index scale.
+                                view_cid,
+                                Isolate::kNoDeoptId);  // Can't deoptimize.
 }
 
 

@@ -1504,70 +1504,61 @@ bool FlowGraphCompiler::EvaluateCondition(Condition condition,
 
 
 FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                          intptr_t index_scale,
                                                           Register array,
                                                           intptr_t index) {
   const int64_t disp =
-      static_cast<int64_t>(index) * ElementSizeFor(cid) + DataOffsetFor(cid);
+      static_cast<int64_t>(index) * index_scale + DataOffsetFor(cid);
   ASSERT(Utils::IsInt(32, disp));
   return FieldAddress(array, static_cast<int32_t>(disp));
 }
 
 
-FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
-                                                          Register array,
-                                                          Register index) {
-  // Note that index is smi-tagged, (i.e, times 2) for all arrays with element
-  // size > 1. For Uint8Array and OneByteString the index is expected to be
-  // untagged before accessing.
+static ScaleFactor ToScaleFactor(intptr_t index_scale) {
+  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays with
+  // index scale factor > 1. E.g., for Uint8Array and OneByteString the index is
+  // expected to be untagged before accessing.
   ASSERT(kSmiTagShift == 1);
-  switch (cid) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return FieldAddress(
-          array, index, TIMES_HALF_WORD_SIZE, Array::data_offset());
-    case kFloat32ArrayCid:
-      return FieldAddress(array, index, TIMES_2, Float32Array::data_offset());
-    case kFloat64ArrayCid:
-      return FieldAddress(array, index, TIMES_4, Float64Array::data_offset());
-    case kInt8ArrayCid:
-      return FieldAddress(array, index, TIMES_1, Int8Array::data_offset());
-    case kUint8ArrayCid:
-      return FieldAddress(array, index, TIMES_1, Uint8Array::data_offset());
-    case kUint8ClampedArrayCid:
-      return
-          FieldAddress(array, index, TIMES_1, Uint8ClampedArray::data_offset());
-    case kInt16ArrayCid:
-      return FieldAddress(array, index, TIMES_1, Int16Array::data_offset());
-    case kUint16ArrayCid:
-      return FieldAddress(array, index, TIMES_1, Uint16Array::data_offset());
-    case kInt32ArrayCid:
-      return FieldAddress(array, index, TIMES_2, Int32Array::data_offset());
-    case kUint32ArrayCid:
-      return FieldAddress(array, index, TIMES_2, Uint32Array::data_offset());
-    case kOneByteStringCid:
-      return FieldAddress(array, index, TIMES_1, OneByteString::data_offset());
-    case kTwoByteStringCid:
-      return FieldAddress(array, index, TIMES_1, TwoByteString::data_offset());
+  switch (index_scale) {
+    case 1: return TIMES_1;
+    case 2: return TIMES_1;
+    case 4: return TIMES_2;
+    case 8: return TIMES_4;
     default:
-      UNIMPLEMENTED();
-      return FieldAddress(SPREG, 0);
+      UNREACHABLE();
+      return TIMES_1;
   }
 }
 
 
-Address FlowGraphCompiler::ExternalElementAddressForIntIndex(intptr_t cid,
-                                                             Register array,
-                                                             intptr_t index) {
-  return Address(array, index * ElementSizeFor(cid));
+FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
+                                                          intptr_t index_scale,
+                                                          Register array,
+                                                          Register index) {
+  return FieldAddress(array,
+                      index,
+                      ToScaleFactor(index_scale),
+                      DataOffsetFor(cid));
 }
 
 
-Address FlowGraphCompiler::ExternalElementAddressForRegIndex(intptr_t cid,
-                                                             Register array,
-                                                             Register index) {
+Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
+    intptr_t cid,
+    intptr_t index_scale,
+    Register array,
+    intptr_t index) {
+  return Address(array, index * index_scale);
+}
+
+
+Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
+    intptr_t cid,
+    intptr_t index_scale,
+    Register array,
+    Register index) {
   switch (cid) {
     case kExternalUint8ArrayCid:
-      return Address(array, index, TIMES_1, 0);
+      return Address(array, index, ToScaleFactor(index_scale), 0);
     default:
       UNIMPLEMENTED();
       return Address(SPREG, 0);

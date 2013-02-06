@@ -304,6 +304,7 @@ bool FlowGraphCompiler::EvaluateCondition(Condition condition,
 
 
 FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
+                                                          intptr_t index_scale,
                                                           Register array,
                                                           intptr_t index) {
   UNIMPLEMENTED();
@@ -312,6 +313,7 @@ FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
 
 
 FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
+                                                          intptr_t index_scale,
                                                           Register array,
                                                           Register index) {
   UNIMPLEMENTED();
@@ -319,17 +321,21 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
 }
 
 
-Address FlowGraphCompiler::ExternalElementAddressForIntIndex(intptr_t cid,
-                                                             Register array,
-                                                             intptr_t index) {
+Address FlowGraphCompiler::ExternalElementAddressForIntIndex(
+    intptr_t cid,
+    intptr_t index_scale,
+    Register array,
+    intptr_t index) {
   UNIMPLEMENTED();
   return FieldAddress(array, index);
 }
 
 
-Address FlowGraphCompiler::ExternalElementAddressForRegIndex(intptr_t cid,
-                                                             Register array,
-                                                             Register index) {
+Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
+    intptr_t cid,
+    intptr_t index_scale,
+    Register array,
+    Register index) {
   UNIMPLEMENTED();
   return FieldAddress(array, index);
 }

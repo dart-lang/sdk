@@ -36,6 +36,14 @@ class FlowGraphOptimizer;
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
   V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1098081765)               \
+  V(_ByteArrayBase, _getInt8, ByteArrayBaseGetInt8, 261365835)                 \
+  V(_ByteArrayBase, _getUint8, ByteArrayBaseGetUint8, 261365835)               \
+  V(_ByteArrayBase, _getInt16, ByteArrayBaseGetInt16, 261365835)               \
+  V(_ByteArrayBase, _getUint16, ByteArrayBaseGetUint16, 261365835)             \
+  V(_ByteArrayBase, _getInt32, ByteArrayBaseGetInt32, 261365835)               \
+  V(_ByteArrayBase, _getUint32, ByteArrayBaseGetUint32, 261365835)             \
+  V(_ByteArrayBase, _getFloat32, ByteArrayBaseGetFloat32, 434247298)           \
+  V(_ByteArrayBase, _getFloat64, ByteArrayBaseGetFloat64, 434247298)           \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
@@ -2721,9 +2729,10 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
  public:
   LoadIndexedInstr(Value* array,
                    Value* index,
+                   intptr_t index_scale,
                    intptr_t class_id,
                    intptr_t deopt_id)
-      : class_id_(class_id) {
+      : index_scale_(index_scale), class_id_(class_id) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
@@ -2736,6 +2745,7 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
 
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
+  intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
 
   virtual bool CanDeoptimize() const {
@@ -2755,6 +2765,7 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   virtual void InferRange();
 
  private:
+  const intptr_t index_scale_;
   const intptr_t class_id_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
