@@ -5,7 +5,7 @@
 library _interceptors;
 
 import 'dart:collection';
-import 'dart:collection-dev';
+import 'dart:_collection-dev';
 import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               Null,
                               JSSyntaxRegExp,

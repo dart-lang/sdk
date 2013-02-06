@@ -25,7 +25,7 @@
 # ......_internal/
 # ......async/
 # ......collection/
-# ......collection_dev/
+# ......_collection_dev/
 # ......core/
 # ......crypto/
 # ......html/
@@ -199,7 +199,7 @@ def Main(argv):
   #
 
   os.makedirs(join(LIB, 'html'))
-  for library in ['_internal', 'async', 'collection', 'collection_dev', 'core',
+  for library in ['_internal', 'async', 'collection', '_collection_dev', 'core',
                   'crypto', 'io', 'isolate',
                   join('chrome', 'dart2js'), join('chrome', 'dartium'),
                   join('html', 'dart2js'), join('html', 'dartium'),
