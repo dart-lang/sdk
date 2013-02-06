@@ -35,6 +35,10 @@ const Map<String, LibraryInfo> LIBRARIES = const {
 
   "collection": const LibraryInfo("collection/collection.dart"),
 
+  "collection-dev": const LibraryInfo(
+      "collection_dev/collection_dev.dart",
+      documented: false),
+
   "core": const LibraryInfo(
       "core/core.dart",
       dart2jsPatchPath: "_internal/compiler/implementation/lib/core_patch.dart"),
@@ -106,11 +110,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
         "web_audio/dartium/web_audio_dartium.dart",
         category: "Client",
         dart2jsPath: "web_audio/dart2js/web_audio_dart2js.dart"),
-
-  "_collection-dev": const LibraryInfo(
-      "_collection_dev/collection_dev.dart",
-      category: "Internal",
-      documented: false),
 
   "_js_helper": const LibraryInfo(
       "_internal/compiler/implementation/lib/js_helper.dart",

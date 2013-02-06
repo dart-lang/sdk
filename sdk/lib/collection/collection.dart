@@ -4,7 +4,7 @@
 
 library dart.collection;
 
-import 'dart:_collection-dev';
+import 'dart:collection-dev';
 
 part 'arrays.dart';
 part 'collections.dart';
