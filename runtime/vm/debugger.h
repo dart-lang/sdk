@@ -119,14 +119,21 @@ class CodeBreakpoint {
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
  public:
-  explicit ActivationFrame(uword pc, uword fp, uword sp, const Context& ctx);
+  ActivationFrame(uword pc, uword fp, uword sp,
+                  const Code& code, const Context& ctx);
 
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
   uword sp() const { return sp_; }
+  const Function& function() const {
+    ASSERT(!function_.IsNull());
+    return function_;
+  }
+  const Code& code() const {
+    ASSERT(!code_.IsNull());
+    return code_;
+  }
 
-  const Function& DartFunction();
-  const Code& DartCode();
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
@@ -167,9 +174,8 @@ class ActivationFrame : public ZoneAllocated {
 
   // The anchor of the context chain for this function.
   const Context& ctx_;
-
-  Function& function_;
-  Code& code_;
+  const Code& code_;
+  const Function& function_;
   intptr_t token_pos_;
   intptr_t pc_desc_index_;
   intptr_t line_number_;
