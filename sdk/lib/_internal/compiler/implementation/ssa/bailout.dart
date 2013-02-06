@@ -112,9 +112,17 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     if (source != null) {
       DartType sourceType = source.computeType(compiler);
       DartType speculatedType = speculativeType.computeType(compiler);
-      if (speculatedType != null &&
-          !compiler.types.isAssignable(speculatedType, sourceType)) {
-        return false;
+      JavaScriptBackend backend = compiler.backend;
+      if (speculatedType != null) {
+        // Use the num type instead of JSNumber because JSNumber
+        // is not assignment compatible with int and double, but we
+        // still want to generate a type guard.
+        if (speculatedType.element == backend.jsNumberClass) {
+          speculatedType = compiler.numClass.computeType(compiler);
+        }
+        if (!compiler.types.isAssignable(speculatedType, sourceType)) {
+          return false;
+        }
       }
     }
 

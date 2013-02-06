@@ -319,8 +319,26 @@ abstract class Enqueuer {
     registerInvocation(methodName, selector);
   }
 
-  void registerDynamicInvocationOf(Element element) {
-    addToWorkList(element);
+  void registerDynamicInvocationOf(Element element, Selector selector) {
+    assert(selector.isCall()
+           || selector.isOperator()
+           || selector.isIndex()
+           || selector.isIndexSet());
+    if (element.isFunction()) {
+      addToWorkList(element);
+    } else if (element.isAbstractField()) {
+      AbstractFieldElement field = element;
+      // Since the invocation is a dynamic call on a getter, we only
+      // need to schedule the getter on the work list.
+      addToWorkList(field.getter);
+    } else {
+      assert(element.isField());
+    }
+    // We also need to add the selector to the invoked names map,
+    // because the emitter uses that map to generate parameter stubs.
+    Set<Selector> selectors = universe.invokedNames.putIfAbsent(
+        element.name, () => new Set<Selector>());
+    selectors.add(selector);
   }
 
   void registerDynamicGetter(SourceString methodName, Selector selector) {
@@ -445,12 +463,12 @@ class ResolutionEnqueuer extends Enqueuer {
 
   void enableNoSuchMethod(Element element) {
     if (compiler.enabledNoSuchMethod) return;
+    Selector selector = new Selector.noSuchMethod();
     if (identical(element.getEnclosingClass(), compiler.objectClass)) {
-      registerDynamicInvocationOf(element);
+      registerDynamicInvocationOf(element, selector);
       return;
     }
     compiler.enabledNoSuchMethod = true;
-    Selector selector = new Selector.noSuchMethod();
     registerInvocation(Compiler.NO_SUCH_METHOD, selector);
 
     compiler.createInvocationMirrorElement =

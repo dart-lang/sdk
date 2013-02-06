@@ -1111,6 +1111,13 @@ class JavaScriptBackend extends Backend {
     return fieldTypes.optimisticFieldType(element);
   }
 
+  /**
+   * Return the checked mode helper name that will be needed to do a
+   * type check on [type] at runtime. Note that this method is being
+   * called both by the resolver with interface types (int, String,
+   * ...), and by the SSA backend with implementation types (JSInt,
+   * JSString, ...).
+   */
   SourceString getCheckedModeHelper(DartType type) {
     Element element = type.element;
     bool nativeCheck =
@@ -1121,17 +1128,18 @@ class JavaScriptBackend extends Backend {
       return const SourceString('malformedTypeCheck');
     } else if (type == compiler.types.voidType) {
       return const SourceString('voidTypeCheck');
-    } else if (element == compiler.stringClass) {
+    } else if (element == jsStringClass || element == compiler.stringClass) {
       return const SourceString('stringTypeCheck');
-    } else if (element == compiler.doubleClass) {
+    } else if (element == jsDoubleClass || element == compiler.doubleClass) {
       return const SourceString('doubleTypeCheck');
-    } else if (element == compiler.numClass) {
+    } else if (element == jsNumberClass || element == compiler.numClass) {
       return const SourceString('numTypeCheck');
-    } else if (element == compiler.boolClass) {
+    } else if (element == jsBoolClass || element == compiler.boolClass) {
       return const SourceString('boolTypeCheck');
-    } else if (element == compiler.functionClass) {
+    } else if (element == jsFunctionClass
+               || element == compiler.functionClass) {
       return const SourceString('functionTypeCheck');
-    } else if (element == compiler.intClass) {
+    } else if (element == jsIntClass || element == compiler.intClass) {
       return const SourceString('intTypeCheck');
     } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
       return nativeCheck
@@ -1141,7 +1149,7 @@ class JavaScriptBackend extends Backend {
       return nativeCheck
           ? const SourceString('stringSuperNativeTypeCheck')
           : const SourceString('stringSuperTypeCheck');
-    } else if (identical(element, compiler.listClass)) {
+    } else if (element == compiler.listClass || element == jsArrayClass) {
       return const SourceString('listTypeCheck');
     } else {
       if (Elements.isListSupertype(element, compiler)) {

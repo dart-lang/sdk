@@ -1519,18 +1519,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // seen selectors.
       if (target.isGenerativeConstructorBody()) {
         methodName = name.slowToString();
-      } else if (target == backend.jsArrayAdd) {
-        methodName = 'push';
-      } else if (target == backend.jsArrayRemoveLast) {
-        methodName = 'pop';
-      } else if (target == backend.jsStringSplit) {
-        methodName = 'split';
-        // Split returns a List, so we make sure the backend knows the
-        // list class is instantiated.
-        world.registerInstantiatedClass(compiler.listClass);
-      } else if (target == backend.jsStringConcat) {
-        push(new js.Binary('+', object, arguments[0]), node);
-        return;
+      } else if (!node.isInterceptorCall) {
+        if (target == backend.jsArrayAdd) {
+          methodName = 'push';
+        } else if (target == backend.jsArrayRemoveLast) {
+          methodName = 'pop';
+        } else if (target == backend.jsStringSplit) {
+          methodName = 'split';
+          // Split returns a List, so we make sure the backend knows the
+          // list class is instantiated.
+          world.registerInstantiatedClass(compiler.listClass);
+        } else if (target == backend.jsStringConcat) {
+          push(new js.Binary('+', object, arguments[0]), node);
+          return;
+        }
       }
     }
 
@@ -1560,15 +1562,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node,
                                    Selector defaultSelector) {
-    // TODO(ngeoffray): Type intercepted calls.
-    if (node.isInterceptorCall) return defaultSelector;
     // If [JSInvocationMirror.invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
     if (node.element == null && // Invocation is not exact.
         backend.compiler.enabledInvokeOn) {
       return defaultSelector;
     }
-    HType receiverHType = types[node.inputs[0]];
+    int receiverIndex = node.isInterceptorCall ? 1 : 0;
+    HType receiverHType = types[node.inputs[receiverIndex]];
     DartType receiverType = receiverHType.computeType(compiler);
     if (receiverType != null &&
         !identical(receiverType.kind, TypeKind.MALFORMED_TYPE)) {
@@ -1615,7 +1616,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (target != null) {
       // If we know we're calling a specific method, register that
       // method only.
-      world.registerDynamicInvocationOf(target);
+      world.registerDynamicInvocationOf(target, selector);
     } else {
       SourceString name = node.selector.name;
       world.registerDynamicInvocation(name, selector);
@@ -2423,10 +2424,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       world.registerIsCheck(type);
 
       if (node.isArgumentTypeCheck) {
-        if (element == compiler.intClass) {
+        if (element == backend.jsIntClass) {
           checkInt(node.checkedInput, '!==');
         } else {
-          assert(element == compiler.numClass);
+          assert(element == backend.jsNumberClass);
           checkNum(node.checkedInput, '!==');
         }
         js.Expression test = pop();

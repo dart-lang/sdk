@@ -10,7 +10,7 @@ part of _interceptors;
  * [:this:] to actually use the receiver of the method, which is
  * generated as an extra argument added to each member.
  */
-class JSNumber {
+class JSNumber implements num {
   const JSNumber();
 
   int compareTo(num b) {
@@ -254,7 +254,7 @@ class JSNumber {
   }
 }
 
-class JSInt extends JSNumber {
+class JSInt extends JSNumber implements int {
   const JSInt();
 
   bool get isEven => (this & 1) == 0;
@@ -266,7 +266,7 @@ class JSInt extends JSNumber {
   int operator ~() => JS('int', r'(~#) >>> 0', this);
 }
 
-class JSDouble extends JSNumber {
+class JSDouble extends JSNumber implements double {
   const JSDouble();
   Type get runtimeType => double;
 }

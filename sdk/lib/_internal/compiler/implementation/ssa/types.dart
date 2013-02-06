@@ -173,7 +173,8 @@ class HNullType extends HPrimitiveType {
   String toString() => 'null';
 
   DartType computeType(Compiler compiler) {
-    return compiler.nullClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsNullClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -211,7 +212,8 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
   bool isBooleanOrNull() => true;
 
   DartType computeType(Compiler compiler) {
-    return compiler.boolClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsBoolClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -243,7 +245,8 @@ class HBooleanType extends HPrimitiveType {
   String toString() => "boolean";
 
   DartType computeType(Compiler compiler) {
-    return compiler.boolClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsBoolClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -270,7 +273,8 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
   String toString() => "number or null";
 
   DartType computeType(Compiler compiler) {
-    return compiler.numClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsNumberClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -306,7 +310,8 @@ class HNumberType extends HPrimitiveType {
   String toString() => "number";
 
   DartType computeType(Compiler compiler) {
-    return compiler.numClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsNumberClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -335,7 +340,8 @@ class HIntegerOrNullType extends HNumberOrNullType {
   String toString() => "integer or null";
 
   DartType computeType(Compiler compiler) {
-    return compiler.intClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsIntClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -373,7 +379,8 @@ class HIntegerType extends HNumberType {
   String toString() => "integer";
 
   DartType computeType(Compiler compiler) {
-    return compiler.intClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsIntClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -406,7 +413,8 @@ class HDoubleOrNullType extends HNumberOrNullType {
   String toString() => "double or null";
 
   DartType computeType(Compiler compiler) {
-    return compiler.doubleClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsDoubleClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -444,7 +452,8 @@ class HDoubleType extends HNumberType {
   String toString() => "double";
 
   DartType computeType(Compiler compiler) {
-    return compiler.doubleClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsDoubleClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -512,7 +521,8 @@ class HStringOrNullType extends HPrimitiveOrNullType {
   String toString() => "String or null";
 
   DartType computeType(Compiler compiler) {
-    return compiler.stringClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsStringClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -562,7 +572,8 @@ class HStringType extends HIndexablePrimitiveType {
   String toString() => "String";
 
   DartType computeType(Compiler compiler) {
-    return compiler.stringClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsStringClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {
@@ -594,7 +605,8 @@ class HReadableArrayType extends HIndexablePrimitiveType {
   String toString() => "readable array";
 
   DartType computeType(Compiler compiler) {
-    return compiler.listClass.computeType(compiler);
+    JavaScriptBackend backend = compiler.backend;
+    return backend.jsArrayClass.computeType(compiler);
   }
 
   HType union(HType other, Compiler compiler) {

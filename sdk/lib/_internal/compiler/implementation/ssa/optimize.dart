@@ -185,10 +185,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
-    if (input.isBoolean(types)) return input;
+    HType type = types[input];
+    if (type.isBoolean()) return input;
     // All values !== true are boolified to false.
-    DartType type = types[input].computeType(compiler);
-    if (type != null && !identical(type.element, compiler.boolClass)) {
+    if (!type.isBooleanOrNull() && !type.isUnknown()) {
       return graph.addConstantBool(false, constantSystem);
     }
     return node;
@@ -279,6 +279,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = node.inputs[1];
     HType type = types[input];
     var interceptor = node.inputs[0];
+
+    if (interceptor.isConstant() && selector.isCall()) {
+      DartType type = types[interceptor].computeType(compiler);
+      node.element = type.element.lookupSelector(selector);
+    }
+
     if (interceptor is !HThis && !type.canBePrimitive()) {
       // If the type can be null, and the intercepted method can be in
       // the object class, keep the interceptor.
@@ -331,6 +337,14 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         }
       }
       if (target != null) {
+        // TODO(ngeoffray): There is a strong dependency between codegen
+        // and this optimization that the dynamic invoke does not need an
+        // interceptor. We currently need to keep a
+        // HInvokeDynamicMethod and not create a HForeign because
+        // HForeign is too opaque for the SssaCheckInserter (that adds a
+        // bounds check on removeLast). Once we start inlining, the
+        // bounds check will become explicit, so we won't need this
+        // optimization.
         HInvokeDynamicMethod result = new HInvokeDynamicMethod(
             node.selector, node.inputs.getRange(1, node.inputs.length - 1));
         result.element = target;
@@ -812,6 +826,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     Element element = node.element;
+    if (node.isInterceptorCall) return;
     if (element != backend.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
     insertBoundsCheck(
