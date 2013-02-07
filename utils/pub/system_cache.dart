@@ -63,6 +63,8 @@ class SystemCache {
   /// Gets the package identified by [id]. If the package is already cached,
   /// reads it from the cache. Otherwise, requests it from the source.
   Future<Pubspec> describe(PackageId id) {
+    if (id.isRoot) throw new ArgumentError("Cannot describe the root package.");
+
     // Try to get it from the system cache first.
     if (id.source.shouldCache) {
       return id.systemCacheDirectory.then((packageDir) {
