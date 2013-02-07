@@ -13711,6 +13711,11 @@ class HttpRequest extends EventTarget {
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
    *
+   * Note that requests for file:// URIs are only supported by Chrome extensions
+   * with appropriate permissions in their manifest. Requests to file:// URIs
+   * will also never fail- the Future will always complete successfully, even
+   * when the file cannot be found.
+   *
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   static Future<HttpRequest> request(String url,
@@ -13737,8 +13742,9 @@ class HttpRequest extends EventTarget {
     }
 
     xhr.onLoad.listen((e) {
-      if (xhr.status >= 200 && xhr.status < 300 ||
-          xhr.status == 304 ) {
+      // Note: file:// URIs have status of 0.
+      if ((xhr.status >= 200 && xhr.status < 300) ||
+          xhr.status == 0 || xhr.status == 304) {
         completer.complete(xhr);
       } else {
         completer.completeError(e);
