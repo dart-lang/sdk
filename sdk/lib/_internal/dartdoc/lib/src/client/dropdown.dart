@@ -345,7 +345,7 @@ void shortcutHandler(KeyboardEvent event) {
  * Setup window shortcuts.
  */
 void setupShortcuts() {
-  window.on.keyDown.add(shortcutHandler);
+  window.onKeyDown.listen(shortcutHandler);
 }
 
 /** Setup search hooks. */
@@ -354,10 +354,10 @@ void setupSearch(var libraries) {
   searchInput = query('#q');
   dropdown = query('#drop-down');
 
-  searchInput.on.keyDown.add(handleUpDown);
-  searchInput.on.keyUp.add(updateDropDown);
-  searchInput.on.change.add(updateDropDown);
-  searchInput.on.reset.add(updateDropDown);
-  searchInput.on.focus.add((event) => showDropDown());
-  searchInput.on.blur.add((event) => hideDropDown());
+  searchInput.onKeyDown.listen(handleUpDown);
+  searchInput.onKeyUp.listen(updateDropDown);
+  searchInput.onChange.listen(updateDropDown);
+  searchInput.onReset.listen(updateDropDown);
+  searchInput.onFocus.listen((event) => showDropDown());
+  searchInput.onBlur.listen((event) => hideDropDown());
 }

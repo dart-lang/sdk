@@ -20,8 +20,8 @@ main() {
   setup();
 
   // Request the navigation data so we can build the HTML for it.
-  new HttpRequest.get('${prefix}nav.json', (request) {
-    var json = jsonlib.parse(request.responseText);
+  HttpRequest.getString('${prefix}nav.json').then((text) {
+    var json = jsonlib.parse(text);
     buildNavigation(json);
     setupSearch(json);
   });
@@ -54,7 +54,7 @@ buildNavigation(List libraries) {
 
   // Insert it into the DOM.
   final navElement = document.query('.nav');
-  navElement.innerHTML = html.toString();
+  navElement.innerHtml = html.toString();
 }
 
 /** Writes the navigation for the types contained by [library] to [html]. */
