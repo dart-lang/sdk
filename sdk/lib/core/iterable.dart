@@ -52,9 +52,8 @@ abstract class Iterable<E> {
 
   /**
    * Deprecated alias for [map].
-   *
-   * @deprecated
    */
+  @deprecated
   Iterable mappedBy(f(E element)) => map(f);
 
   /**
