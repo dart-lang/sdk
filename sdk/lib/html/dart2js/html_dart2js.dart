@@ -1596,6 +1596,10 @@ class CharacterData extends Node native "*CharacterData" {
   @DocsEditable
   void insertData(int offset, String data) native;
 
+  @DomName('CharacterData.remove')
+  @DocsEditable
+  void remove() native;
+
   @DomName('CharacterData.replaceData')
   @DocsEditable
   void replaceData(int offset, int length, String data) native;

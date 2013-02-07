@@ -230,7 +230,6 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'CanvasRenderingContext2D.setMiterLimit',
     'CanvasRenderingContext2D.setShadow',
     'CanvasRenderingContext2D.setStrokeColor',
-    'CharacterData.remove',
     'DOMWindow.call:blur',
     'DOMWindow.clientInformation',
     'DOMWindow.call:focus',
