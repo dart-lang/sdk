@@ -276,17 +276,20 @@ abstract class Future<T> {
    *
    * If the call to [action] returns a [Future], `f2`, then completion of
    * `f` is delayed until `f2` completes. If `f2` completes with
-   * an error, that will be the result of `f` too.
+   * an error, that will be the result of `f` too. The value of `f2` is always
+   * ignored.
    *
    * This method is equivalent to:
    *
    *     Future<T> whenComplete(action()) {
    *       this.then((v) {
-   *                   action();
+   *                   var f2 = action();
+   *                   if (f2 is Future) return f2.then((_) => v);
    *                   return v
    *                 },
    *                 onError: (AsyncError e) {
-   *                   action();
+   *                   var f2 = action();
+   *                   if (f2 is Future) return f2.then((_) { throw e; });
    *                   throw e;
    *                 });
    *     }
