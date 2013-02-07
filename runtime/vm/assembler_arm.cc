@@ -72,7 +72,7 @@ uint32_t Address::vencoding() const {
   const uint32_t offset_mask = (1 << 12) - 1;
   uint32_t offset = encoding_ & offset_mask;
   ASSERT(offset < (1 << 10));  // In the range 0 to +1020.
-  ASSERT(Utils::Utils::IsAligned(offset, 2));  // Multiple of 4.
+  ASSERT(Utils::IsAligned(offset, 4));  // Multiple of 4.
   int mode = encoding_ & ((8|4|1) << 21);
   ASSERT((mode == Offset) || (mode == NegOffset));
   uint32_t vencoding = (encoding_ & (0xf << kRnShift)) | (offset >> 2);
@@ -80,6 +80,17 @@ uint32_t Address::vencoding() const {
     vencoding |= 1 << 23;
   }
   return vencoding;
+}
+
+
+void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
+  ASSERT(Utils::IsAligned(data, 4));
+  ASSERT(Utils::IsAligned(length, 4));
+  const uword end = data + length;
+  while (data < end) {
+    *reinterpret_cast<int32_t*>(data) = Instr::kBreakPointInstruction;
+    data += 4;
+  }
 }
 
 
@@ -1020,7 +1031,18 @@ void Assembler::MarkExceptionHandler(Label* label) {
 
 
 void Assembler::LoadObject(Register rd, const Object& object) {
-  UNIMPLEMENTED();
+  // TODO(regis): If the object is never relocated (null, true, false, ...),
+  // load as immediate.
+  const int32_t offset =
+      Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
+  if (Address::CanHoldLoadOffset(kLoadWord, offset)) {
+    ldr(rd, Address(CP, offset));
+  } else {
+    int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
+    uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
+    AddConstant(rd, CP, offset12_hi);
+    ldr(rd, Address(rd, offset12_lo));
+  }
 }
 
 
@@ -1139,22 +1161,37 @@ void Assembler::Rrx(Register rd, Register rm, Condition cond) {
 
 
 void Assembler::Branch(const ExternalLabel* label) {
-  // TODO(regis): Revisit this code sequence.
   LoadImmediate(IP, label->address());  // Target address is never patched.
   mov(PC, ShifterOperand(IP));
 }
 
 
 void Assembler::BranchLink(const ExternalLabel* label) {
-  // TODO(regis): Revisit this code sequence.
-  // Make sure that CodePatcher is able to patch this code sequence.
+  // TODO(regis): Make sure that CodePatcher is able to patch the label referred
+  // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
-  ldr(LR, Address(PC));
-  Label skip;
-  b(&skip);
-  Emit(label->address());  // May get patched.
-  Bind(&skip);
+  const int32_t offset =
+      Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
+  if (Address::CanHoldLoadOffset(kLoadWord, offset)) {
+    ldr(LR, Address(CP, offset));
+  } else {
+    int32_t offset12_hi = offset & ~kOffset12Mask;  // signed
+    uint32_t offset12_lo = offset & kOffset12Mask;  // unsigned
+    // Inline a simplified version of AddConstant(LR, CP, offset12_hi).
+    ShifterOperand shifter_op;
+    if (ShifterOperand::CanHold(offset12_hi, &shifter_op)) {
+      add(LR, CP, shifter_op);
+    } else {
+      movw(LR, Utils::Low16Bits(offset12_hi));
+      const uint16_t value_high = Utils::High16Bits(offset12_hi);
+      if (value_high != 0) {
+        movt(LR, value_high);
+      }
+      add(LR, CP, ShifterOperand(LR));
+    }
+    ldr(LR, Address(LR, offset12_lo));
+  }
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -1492,6 +1529,29 @@ int32_t Assembler::EncodeBranchOffset(int offset, int32_t inst) {
 int Assembler::DecodeBranchOffset(int32_t inst) {
   // Sign-extend, left-shift by 2, then add 8.
   return ((((inst & kBranchOffsetMask) << 8) >> 6) + 8);
+}
+
+
+int32_t Assembler::AddObject(const Object& obj) {
+  for (int i = 0; i < object_pool_.Length(); i++) {
+    if (object_pool_.At(i) == obj.raw()) {
+      return i;
+    }
+  }
+  object_pool_.Add(obj);
+  return object_pool_.Length();
+}
+
+
+int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
+  const uword address = label->address();
+  ASSERT(Utils::IsAligned(address, 4));
+  // The address is stored in the object array as a RawSmi.
+  const Smi& smi = Smi::Handle(Smi::New(address >> kSmiTagShift));
+  // Do not reuse an existing entry, since each reference may be patched
+  // independently.
+  object_pool_.Add(smi);
+  return object_pool_.Length();
 }
 
 }  // namespace dart

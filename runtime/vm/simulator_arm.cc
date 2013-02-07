@@ -37,11 +37,11 @@ DEFINE_FLAG(int, stop_sim_at, 0, "Address to stop simulator at.");
 class StatsCounter {
  public:
   explicit StatsCounter(const char* name) {
-    UNIMPLEMENTED();
+    // UNIMPLEMENTED();
   }
 
   void Increment() {
-    UNIMPLEMENTED();
+    // UNIMPLEMENTED();
   }
 };
 
@@ -651,7 +651,10 @@ Simulator::Simulator() {
 
 Simulator::~Simulator() {
   delete[] stack_;
-  Isolate::Current()->set_simulator(NULL);
+  Isolate* isolate = Isolate::Current();
+  if (isolate != NULL) {
+    isolate->set_simulator(NULL);
+  }
 }
 
 

@@ -22,11 +22,36 @@ Simulator::Simulator() {
 
 
 Simulator::~Simulator() {
-  UNIMPLEMENTED();
+  Isolate* isolate = Isolate::Current();
+  if (isolate != NULL) {
+    isolate->set_simulator(NULL);
+  }
+}
+
+
+// Get the active Simulator for the current isolate.
+Simulator* Simulator::Current() {
+  Simulator* simulator = Isolate::Current()->simulator();
+  if (simulator == NULL) {
+    simulator = new Simulator();
+    Isolate::Current()->set_simulator(simulator);
+  }
+  return simulator;
 }
 
 
 void Simulator::InitOnce() {
+}
+
+
+int64_t Simulator::Call(int32_t entry,
+                        int32_t parameter0,
+                        int32_t parameter1,
+                        int32_t parameter2,
+                        int32_t parameter3,
+                        int32_t parameter4) {
+  UNIMPLEMENTED();
+  return 0LL;
 }
 
 }  // namespace dart

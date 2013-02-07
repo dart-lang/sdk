@@ -66,7 +66,6 @@ cc/FrameLookup: Skip
 cc/IcDataAccess: Skip
 cc/Jump: Skip
 cc/PatchStaticCall: Skip
-cc/Simple: Skip
 cc/UseDartApi: Skip
 # Tests needing Dart execution.
 dart/*: Skip
