@@ -2027,10 +2027,6 @@ class CharacterData extends Node {
   @DocsEditable
   void insertData(int offset, String data) native "CharacterData_insertData_Callback";
 
-  @DomName('CharacterData.remove')
-  @DocsEditable
-  void remove() native "CharacterData_remove_Callback";
-
   @DomName('CharacterData.replaceData')
   @DocsEditable
   void replaceData(int offset, int length, String data) native "CharacterData_replaceData_Callback";
