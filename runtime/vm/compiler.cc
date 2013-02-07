@@ -196,10 +196,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         propagator.PropagateTypes();
       }
 
-      // Verify that the use lists are still valid.
-      DEBUG_ASSERT(flow_graph->ValidateUseLists());
-
       // Propagate sminess from CheckSmi to phis.
+      flow_graph->ComputeUseLists();
       optimizer.PropagateSminess();
 
       // Use propagated class-ids to optimize further.
@@ -244,7 +242,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         // We have to perform range analysis after LICM because it
         // optimistically moves CheckSmi through phis into loop preheaders
         // making some phis smi.
-        flow_graph->ComputeUseLists();
         optimizer.InferSmiRanges();
       }
 

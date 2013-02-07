@@ -696,6 +696,16 @@ void Definition::ReplaceUsesWith(Definition* other) {
 }
 
 
+void Instruction::UnuseAllInputs() {
+  for (intptr_t i = InputCount() - 1; i >= 0; --i) {
+    InputAt(i)->RemoveFromUseList();
+  }
+  for (Environment::DeepIterator it(env()); !it.Done(); it.Advance()) {
+    it.CurrentValue()->RemoveFromUseList();
+  }
+}
+
+
 void Definition::ReplaceWith(Definition* other,
                              ForwardInstructionIterator* iterator) {
   if ((iterator != NULL) && (this == iterator->Current())) {
@@ -2131,13 +2141,20 @@ Environment* Environment::From(const GrowableArray<Definition*>& definitions,
 
 
 Environment* Environment::DeepCopy() const {
+  return (this == NULL) ? NULL : DeepCopy(Length());
+}
+
+
+Environment* Environment::DeepCopy(intptr_t length) const {
+  ASSERT(length <= values_.length());
+  if (this == NULL) return NULL;
   Environment* copy =
-      new Environment(values_.length(),
+      new Environment(length,
                       fixed_parameter_count_,
                       deopt_id_,
                       function_,
-                      (outer_ == NULL) ? NULL : outer_->DeepCopy());
-  for (intptr_t i = 0; i < values_.length(); ++i) {
+                      outer_->DeepCopy());
+  for (intptr_t i = 0; i < length; ++i) {
     copy->values_.Add(values_[i]->Copy());
   }
   return copy;
@@ -2146,6 +2163,10 @@ Environment* Environment::DeepCopy() const {
 
 // Copies the environment and updates the environment use lists.
 void Environment::DeepCopyTo(Instruction* instr) const {
+  for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
+    it.CurrentValue()->RemoveFromUseList();
+  }
+
   Environment* copy = DeepCopy();
   intptr_t use_index = 0;
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
@@ -2161,18 +2182,11 @@ void Environment::DeepCopyTo(Instruction* instr) const {
 // Copies the environment as outer on an inlined instruction and updates the
 // environment use lists.
 void Environment::DeepCopyToOuter(Instruction* instr) const {
-  ASSERT(instr->env()->outer() == NULL);
   // Create a deep copy removing caller arguments from the environment.
+  ASSERT(this != NULL);
+  ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
-  Environment* copy =
-      new Environment(values_.length() - argument_count,
-                      fixed_parameter_count_,
-                      deopt_id_,
-                      function_,
-                      (outer_ == NULL) ? NULL : outer_->DeepCopy());
-  for (intptr_t i = 0; i < values_.length() - argument_count; ++i) {
-    copy->values_.Add(values_[i]->Copy());
-  }
+  Environment* copy = DeepCopy(values_.length() - argument_count);
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
   for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();

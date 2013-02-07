@@ -359,6 +359,10 @@ class Instruction : public ZoneAllocated {
   virtual Value* InputAt(intptr_t i) const = 0;
   virtual void SetInputAt(intptr_t i, Value* value) = 0;
 
+  // Remove all inputs (including in the environment) from their
+  // definition's use lists.
+  void UnuseAllInputs();
+
   // Call instructions override this function and return the number of
   // pushed arguments.
   virtual intptr_t ArgumentCount() const = 0;
@@ -1810,6 +1814,10 @@ class ConstraintInstr : public TemplateDefinition<2> {
 
   DECLARE_INSTRUCTION(Constraint)
 
+  virtual intptr_t InputCount() const {
+    return (inputs_[1] == NULL) ? 1 : 2;
+  }
+
   virtual RawAbstractType* CompileType() const {
     return Type::SmiType();
   }
@@ -1838,13 +1846,6 @@ class ConstraintInstr : public TemplateDefinition<2> {
     val->set_instruction(this);
     defn->AddInputUse(val);
     set_dependency(val);
-  }
-
-  void RemoveDependency() {
-    if (dependency() != NULL) {
-      dependency()->RemoveFromUseList();
-      set_dependency(NULL);
-    }
   }
 
  private:
@@ -4466,7 +4467,11 @@ class Environment : public ZoneAllocated {
         function_(function),
         outer_(outer) { }
 
+  // Deep copy the environment.  A 'length' parameter can be given, which
+  // may be less than the environment's length in order to drop values
+  // (e.g., passed arguments) from the copy.
   Environment* DeepCopy() const;
+  Environment* DeepCopy(intptr_t length) const;
 
   GrowableArray<Value*> values_;
   Location* locations_;

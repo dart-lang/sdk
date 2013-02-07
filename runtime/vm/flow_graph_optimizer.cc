@@ -176,7 +176,7 @@ static void EnsureSSATempIndex(FlowGraph* graph,
 }
 
 
-static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
+static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
                                       Instruction* current,
                                       Instruction* replacement,
                                       FlowGraph* graph) {
@@ -200,7 +200,8 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* it,
       OS::Print("Removing v%"Pd".\n", current_defn->ssa_temp_index());
     }
   }
-  it->RemoveCurrentFromGraph();
+  current->UnuseAllInputs();
+  iterator->RemoveCurrentFromGraph();
 }
 
 
@@ -2680,7 +2681,10 @@ void RangeAnalysis::InferRangesRecursive(BlockEntryInstr* block) {
       CheckArrayBoundInstr* check = current->AsCheckArrayBound();
       RangeBoundary array_length =
           RangeBoundary::FromDefinition(check->length()->definition());
-      if (check->IsRedundant(array_length)) it.RemoveCurrentFromGraph();
+      if (check->IsRedundant(array_length)) {
+        current->UnuseAllInputs();
+        it.RemoveCurrentFromGraph();
+      }
     }
   }
 
@@ -2720,7 +2724,7 @@ void RangeAnalysis::RemoveConstraints() {
       def = def->AsConstraint()->value()->definition();
     }
     constraints_[i]->ReplaceUsesWith(def);
-    constraints_[i]->RemoveDependency();
+    constraints_[i]->UnuseAllInputs();
     constraints_[i]->RemoveFromGraph();
   }
 }
@@ -3032,6 +3036,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   }
 
   if (phi->GetPropagatedCid() == kSmiCid) {
+    current->UnuseAllInputs();
     it->RemoveCurrentFromGraph();
     return;
   }
@@ -3440,6 +3445,7 @@ class LoadOptimizer : public ValueObject {
           }
 
           defn->ReplaceUsesWith(replacement);
+          defn->UnuseAllInputs();
           instr_it.RemoveCurrentFromGraph();
           continue;
         } else if (!kill->Contains(expr_id)) {
@@ -3651,6 +3657,7 @@ class LoadOptimizer : public ValueObject {
           }
 
           load->ReplaceUsesWith(replacement);
+          load->UnuseAllInputs();
           load->RemoveFromGraph();
           load->SetReplacement(replacement);
         }
