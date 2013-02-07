@@ -99,7 +99,11 @@ class ResolverTask extends CompilerTask {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
         return null;
-      } else if (element.isTypedef() || element.isTypeVariable()) {
+      } else if (element.isTypedef()) {
+        TypedefElement typdef = element;
+        resolveTypedef(typdef);
+        return null;
+      } else if (element.isTypeVariable()) {
         element.computeType(compiler);
         return null;
       }
