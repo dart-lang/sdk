@@ -2623,6 +2623,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralMap(LiteralMap node) {
+    world.registerInstantiatedClass(compiler.mapClass);
     node.visitChildren(this);
   }
 

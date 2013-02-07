@@ -893,6 +893,12 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsIntClass, enqueuer);
       addInterceptors(jsDoubleClass, enqueuer);
       addInterceptors(jsNumberClass, enqueuer);
+    } else if (cls == compiler.mapClass) {
+      // The backend will use a literal list to initialize the entries
+      // of the map.
+      if (enqueuer.isResolutionQueue) {
+        enqueuer.registerInstantiatedClass(compiler.listClass); 
+      }
     }
   }
 

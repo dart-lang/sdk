@@ -2399,7 +2399,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // creating an [HStatic].
         push(new HStatic(element.declaration));
         if (element.isGetter()) {
-          push(new HInvokeStatic(<HInstruction>[pop()]));
+          push(new HInvokeStatic(<HInstruction>[pop()], HType.UNKNOWN));
         }
       }
     } else if (Elements.isInstanceSend(send, elements)) {
@@ -2455,7 +2455,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (element.isSetter()) {
         HStatic target = new HStatic(element);
         add(target);
-        addWithPosition(new HInvokeStatic(<HInstruction>[target, value]), send);
+        addWithPosition(
+            new HInvokeStatic(<HInstruction>[target, value], HType.UNKNOWN),
+            send);
       } else {
         value = potentiallyCheckType(value, element.computeType(compiler));
         addWithPosition(new HStaticStore(element, value), send);
@@ -2493,54 +2495,69 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return interceptor;
   }
 
-  void pushInvokeHelper0(Element helper) {
+  void pushInvokeHelper0(Element helper, HType type) {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference];
-    HInstruction result = new HInvokeStatic(inputs);
+    HInstruction result = new HInvokeStatic(inputs, type);
     push(result);
   }
 
-  void pushInvokeHelper1(Element helper, HInstruction a0) {
+  void pushInvokeHelper1(Element helper, HInstruction a0, HType type) {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0];
-    HInstruction result = new HInvokeStatic(inputs);
+    HInstruction result = new HInvokeStatic(inputs, type);
     push(result);
   }
 
-  void pushInvokeHelper2(Element helper, HInstruction a0, HInstruction a1) {
+  void pushInvokeHelper2(Element helper,
+                         HInstruction a0,
+                         HInstruction a1,
+                         HType type) {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0, a1];
-    HInstruction result = new HInvokeStatic(inputs);
+    HInstruction result = new HInvokeStatic(inputs, type);
     push(result);
   }
 
-  void pushInvokeHelper3(Element helper, HInstruction a0, HInstruction a1,
-                         HInstruction a2) {
+  void pushInvokeHelper3(Element helper,
+                         HInstruction a0,
+                         HInstruction a1,
+                         HInstruction a2,
+                         HType type) {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2];
-    HInstruction result = new HInvokeStatic(inputs);
+    HInstruction result = new HInvokeStatic(inputs, type);
     push(result);
   }
 
-  void pushInvokeHelper4(Element helper, HInstruction a0, HInstruction a1,
-                         HInstruction a2, HInstruction a3) {
+  void pushInvokeHelper4(Element helper,
+                         HInstruction a0,
+                         HInstruction a1,
+                         HInstruction a2,
+                         HInstruction a3,
+                         HType type) {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2, a3];
-    HInstruction result = new HInvokeStatic(inputs);
+    HInstruction result = new HInvokeStatic(inputs, type);
     push(result);
   }
 
-  void pushInvokeHelper5(Element helper, HInstruction a0, HInstruction a1,
-                         HInstruction a2, HInstruction a3, HInstruction a4) {
+  void pushInvokeHelper5(Element helper,
+                         HInstruction a0,
+                         HInstruction a1,
+                         HInstruction a2,
+                         HInstruction a3,
+                         HInstruction a4,
+                         HType type) {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2, a3, a4];
-    HInstruction result = new HInvokeStatic(inputs);
+    HInstruction result = new HInvokeStatic(inputs, type);
     push(result);
   }
 
@@ -2549,7 +2566,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction getRuntimeTypeInfo(HInstruction target) {
-    pushInvokeHelper1(backend.getGetRuntimeTypeInfo(), target);
+    pushInvokeHelper1(backend.getGetRuntimeTypeInfo(), target, HType.UNKNOWN);
     return pop();
   }
 
@@ -2662,7 +2679,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           // Create the call to isSubtype.
           List<HInstruction> inputs =
               <HInstruction>[isSubtype, typeArgument, representation];
-          HInstruction call = new HInvokeStatic(inputs);
+          HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
           add(call);
           checks.add(call);
           index++;
@@ -2906,7 +2923,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.cancel(
             'Isolate library and compiler mismatch', node: node);
       }
-      pushInvokeHelper0(element);
+      pushInvokeHelper0(element, HType.UNKNOWN);
     }
   }
 
@@ -2930,7 +2947,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(target);
       List<HInstruction> inputs = <HInstruction>[target];
       addGenericSendArgumentsToList(link, inputs);
-      push(new HInvokeStatic(inputs));
+      push(new HInvokeStatic(inputs, HType.UNKNOWN));
     }
   }
 
@@ -3067,7 +3084,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       graph.addConstant(internalNameConstant),
                       graph.addConstant(kindConstant),
                       argumentsInstruction,
-                      argumentNamesInstruction);
+                      argumentNamesInstruction,
+                      HType.UNKNOWN);
 
     var inputs = <HInstruction>[
         target,
@@ -3153,7 +3171,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // The type variable is stored in [this].
         if (typeInfo == null) {
           pushInvokeHelper1(backend.getGetRuntimeTypeInfo(),
-                            localsHandler.readThis());
+                            localsHandler.readThis(),
+                            HType.UNKNOWN);
           typeInfo = pop();
         }
         int index = RuntimeTypeInformation.getTypeVariableIndex(type);
@@ -3204,7 +3223,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
     add(typeInfoSetter);
     add(new HInvokeStatic(
-        <HInstruction>[typeInfoSetter, newObject, typeInfo]));
+        <HInstruction>[typeInfoSetter, newObject, typeInfo], HType.UNKNOWN));
   }
 
   /**
@@ -3334,7 +3353,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
       }
 
-      HInvokeStatic instruction = new HInvokeStatic(inputs);
+      HInvokeStatic instruction = new HInvokeStatic(inputs, HType.UNKNOWN);
       // TODO(ngeoffray): Only do this if knowing the return type is
       // useful.
       HType returnType =
@@ -3395,7 +3414,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void generateError(Node node, String message, Element helper) {
     HInstruction errorMessage = addConstantString(node, message);
-    pushInvokeHelper1(helper, errorMessage);
+    pushInvokeHelper1(helper, errorMessage, HType.UNKNOWN);
   }
 
   void generateRuntimeError(Node node, String message) {
@@ -3446,7 +3465,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       existingNamesList = graph.addConstantNull(constantSystem);
     }
-    pushInvokeHelper4(helper, receiver, name, arguments, existingNamesList);
+    pushInvokeHelper4(
+        helper, receiver, name, arguments, existingNamesList, HType.UNKNOWN);
   }
 
   /**
@@ -3473,7 +3493,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction typeString = addConstantString(node, type.toString());
     HInstruction reasonsString = addConstantString(node, reasons);
     Element helper = backend.getThrowMalformedSubtypeError();
-    pushInvokeHelper3(helper, value, typeString, reasonsString);
+    pushInvokeHelper3(helper, value, typeString, reasonsString, HType.UNKNOWN);
   }
 
   visitNewExpression(NewExpression node) {
@@ -4000,7 +4020,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HLiteralList keyValuePairs = new HLiteralList(inputs);
     add(keyValuePairs);
-    pushInvokeHelper1(backend.getMapMaker(), keyValuePairs);
+    pushInvokeHelper1(backend.getMapMaker(), keyValuePairs,
+        new HType.fromBoundedType(compiler.mapClass.computeType(compiler),
+                                  compiler,
+                                  false));
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
@@ -4161,7 +4184,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       localsHandler = new LocalsHandler.from(savedLocals);
       visit(switchCase.statements);
       if (!isAborted() && caseIterator.hasNext) {
-        pushInvokeHelper0(getFallThroughErrorElement);
+        pushInvokeHelper0(getFallThroughErrorElement, HType.UNKNOWN);
         HInstruction error = pop();
         close(new HThrow(error));
       }
@@ -4278,7 +4301,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.reportWarning(node, 'Missing break at end of switch case');
         Element element =
             compiler.findHelper(const SourceString("getFallThroughError"));
-        pushInvokeHelper0(element);
+        pushInvokeHelper0(element, HType.UNKNOWN);
         HInstruction error = pop();
         close(new HThrow(error));
       }
@@ -4415,7 +4438,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
 
-      pushInvokeHelper1(backend.getExceptionUnwrapper(), exception);
+      pushInvokeHelper1(
+          backend.getExceptionUnwrapper(), exception, HType.UNKNOWN);
       HInvokeStatic unwrappedException = pop();
       tryInstruction.exception = exception;
       Link<Node> link = node.catchBlocks.nodes;
@@ -4462,7 +4486,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         Node trace = catchBlock.trace;
         if (trace != null) {
-          pushInvokeHelper1(backend.getTraceFromException(), exception);
+          pushInvokeHelper1(
+              backend.getTraceFromException(), exception, HType.UNKNOWN);
           HInstruction traceInstruction = pop();
           localsHandler.updateLocal(elements[trace], traceInstruction);
         }
