@@ -40,6 +40,7 @@ class Socket {
   static void GetError(intptr_t fd, OSError* os_error);
   static int GetType(intptr_t fd);
   static intptr_t GetStdioHandle(int num);
+  static void Close(intptr_t fd);
 
   // Perform a IPv4 hostname lookup. Returns the hostname string in
   // IPv4 dotted-decimal format.

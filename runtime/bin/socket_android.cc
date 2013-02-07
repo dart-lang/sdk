@@ -248,3 +248,15 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
   }
   return socket;
 }
+
+
+void Socket::Close(intptr_t fd) {
+  ASSERT(fd >= 0);
+  int err = TEMP_FAILURE_RETRY(close(fd));
+  if (err != 0) {
+    const int kBufferSize = 1024;
+    char error_message[kBufferSize];
+    strerror_r(errno, error_message, kBufferSize);
+    Log::PrintErr("%s\n", error_message);
+  }
+}

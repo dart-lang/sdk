@@ -264,7 +264,7 @@ void DebuggerConnectionHandler::SendError(int debug_fd,
 
 void DebuggerConnectionHandler::CloseDbgConnection() {
   if (debug_fd_ >= 0) {
-    // TODO(hausner): need a Socket::Close() function.
+    Socket::Close(debug_fd_);
   }
   if (msgbuf_ != NULL) {
     delete msgbuf_;
