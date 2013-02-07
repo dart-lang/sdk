@@ -37,6 +37,7 @@ class ParsedFunction : public ZoneAllocated {
         node_sequence_(NULL),
         instantiator_(NULL),
         default_parameter_values_(Array::ZoneHandle()),
+        saved_current_context_var_(NULL),
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
         first_parameter_index_(0),
@@ -63,6 +64,14 @@ class ParsedFunction : public ZoneAllocated {
   void set_default_parameter_values(const Array& default_parameter_values) {
     ASSERT(default_parameter_values.IsZoneHandle());
     default_parameter_values_ = default_parameter_values.raw();
+  }
+
+  LocalVariable* saved_current_context_var() const {
+    return saved_current_context_var_;
+  }
+  void set_saved_current_context_var(LocalVariable* saved_current_context_var) {
+    ASSERT(saved_current_context_var != NULL);
+    saved_current_context_var_ = saved_current_context_var;
   }
 
   LocalVariable* saved_entry_context_var() const {
@@ -102,6 +111,7 @@ class ParsedFunction : public ZoneAllocated {
   SequenceNode* node_sequence_;
   AstNode* instantiator_;
   Array& default_parameter_values_;
+  LocalVariable* saved_current_context_var_;
   LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
 
@@ -584,6 +594,7 @@ class Parser : public ValueObject {
 
   const LocalVariable* GetIncrementTempLocal();
   void EnsureExpressionTemp();
+  void EnsureSavedCurrentContext();
   AstNode* CreateAssignmentNode(AstNode* original, AstNode* rhs);
   AstNode* InsertClosureCallNodes(AstNode* condition);
 
@@ -632,6 +643,9 @@ class Parser : public ValueObject {
 
   // Allocate temporary only once per function.
   LocalVariable* expression_temp_;
+
+  // Allocate saved current context only if needed.
+  LocalVariable* saved_current_context_;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };

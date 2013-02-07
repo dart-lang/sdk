@@ -27,7 +27,13 @@ uword StackFrame::GetCallerSp() const {
 }
 
 
-intptr_t EntryFrame::ExitLinkOffset() {
+intptr_t EntryFrame::ExitLinkOffset() const {
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
+intptr_t EntryFrame::SavedContextOffset() const {
   UNIMPLEMENTED();
   return 0;
 }

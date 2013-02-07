@@ -1870,7 +1870,8 @@ ClosureCallInstr* EffectGraphVisitor::BuildClosureCall(
   BuildPushArguments(*node->arguments(), arguments);
 
   // Save context around the call.
-  BuildStoreContext(*owner()->parsed_function().expression_temp_var());
+  ASSERT(owner()->parsed_function().saved_current_context_var() != NULL);
+  BuildStoreContext(*owner()->parsed_function().saved_current_context_var());
   return new ClosureCallInstr(node, arguments);
 }
 
@@ -1878,14 +1879,16 @@ ClosureCallInstr* EffectGraphVisitor::BuildClosureCall(
 void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
   Do(BuildClosureCall(node));
   // Restore context from saved location.
-  BuildLoadContext(*owner()->parsed_function().expression_temp_var());
+  ASSERT(owner()->parsed_function().saved_current_context_var() != NULL);
+  BuildLoadContext(*owner()->parsed_function().saved_current_context_var());
 }
 
 
 void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
   Value* result = Bind(BuildClosureCall(node));
   // Restore context from temp.
-  BuildLoadContext(*owner()->parsed_function().expression_temp_var());
+  ASSERT(owner()->parsed_function().saved_current_context_var() != NULL);
+  BuildLoadContext(*owner()->parsed_function().saved_current_context_var());
   ReturnValue(result);
 }
 

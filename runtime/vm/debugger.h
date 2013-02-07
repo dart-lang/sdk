@@ -119,8 +119,7 @@ class CodeBreakpoint {
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
  public:
-  ActivationFrame(uword pc, uword fp, uword sp,
-                  const Code& code, const Context& ctx);
+  ActivationFrame(uword pc, uword fp, uword sp, const Code& code);
 
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
@@ -140,6 +139,7 @@ class ActivationFrame : public ZoneAllocated {
   RawLibrary* Library();
   intptr_t TokenPos();
   intptr_t LineNumber();
+  void SetContext(const Context& ctx) { ctx_ = ctx.raw(); }
 
   // The context level of a frame is the context level at the
   // PC/token index of the frame. It determines the depth of the context
@@ -157,7 +157,7 @@ class ActivationFrame : public ZoneAllocated {
                   Instance* value);
 
   RawArray* GetLocalVariables();
-  RawContext* CallerContext();
+  RawContext* GetSavedContext();
 
  private:
   intptr_t PcDescIndex();
@@ -173,7 +173,7 @@ class ActivationFrame : public ZoneAllocated {
   uword sp_;
 
   // The anchor of the context chain for this function.
-  const Context& ctx_;
+  Context& ctx_;
   const Code& code_;
   const Function& function_;
   intptr_t token_pos_;

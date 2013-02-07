@@ -134,11 +134,9 @@ void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp,
-                                 const Code& code,
-                                 const Context& ctx)
+ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp, const Code& code)
     : pc_(pc), fp_(fp), sp_(sp),
-      ctx_(Context::ZoneHandle(ctx.raw())),
+      ctx_(Context::ZoneHandle()),
       code_(Code::ZoneHandle(code.raw())),
       function_(Function::ZoneHandle(code.function())),
       token_pos_(-1),
@@ -340,7 +338,7 @@ intptr_t ActivationFrame::ContextLevel() {
 }
 
 
-RawContext* ActivationFrame::CallerContext() {
+RawContext* ActivationFrame::GetSavedContext() {
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   for (int i = 0; i < var_desc_len; i++) {
@@ -350,8 +348,8 @@ RawContext* ActivationFrame::CallerContext() {
       return reinterpret_cast<RawContext*>(GetLocalVarValue(var_info.index));
     }
   }
-  // Caller uses same context chain.
-  return ctx_.raw();
+  UNREACHABLE();
+  return Context::null();
 }
 
 
@@ -859,16 +857,27 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   Context& ctx = Context::Handle(isolate->top_context());
   Code& code = Code::Handle(isolate);
-  DartFrameIterator iterator;
+  StackFrameIterator iterator(false);
   StackFrame* frame = iterator.NextFrame();
+  bool get_saved_context = false;
   while (frame != NULL) {
     ASSERT(frame->IsValid());
-    ASSERT(frame->IsDartFrame());
-    code = frame->LookupDartCode();
-    ActivationFrame* activation =
-        new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code, ctx);
-    ctx = activation->CallerContext();
-    stack_trace->AddActivation(activation);
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      ActivationFrame* activation = new ActivationFrame(frame->pc(),
+                                                        frame->fp(),
+                                                        frame->sp(),
+                                                        code);
+      if (get_saved_context) {
+        ctx = activation->GetSavedContext();
+      }
+      activation->SetContext(ctx);
+      stack_trace->AddActivation(activation);
+      get_saved_context = activation->function().IsClosureFunction();
+    } else if (frame->IsEntryFrame()) {
+      ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
+      get_saved_context = false;
+    }
     frame = iterator.NextFrame();
   }
   return stack_trace;

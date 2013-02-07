@@ -13,6 +13,7 @@ namespace dart {
 
 // The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
 // code in the InvokeDartCode stub.
+static const int kSavedContextOffsetInEntryFrame = -5 * kWordSize;
 static const int kExitLinkOffsetInEntryFrame = -4 * kWordSize;
 static const int kPcAddressOffsetFromSp = -1 * kWordSize;
 static const int kSpOffsetFromPreviousFp = 2 * kWordSize;
@@ -33,8 +34,13 @@ uword StackFrame::GetCallerFp() const {
 }
 
 
-intptr_t EntryFrame::ExitLinkOffset() {
+intptr_t EntryFrame::ExitLinkOffset() const {
   return kExitLinkOffsetInEntryFrame;
+}
+
+
+intptr_t EntryFrame::SavedContextOffset() const {
+  return kSavedContextOffsetInEntryFrame;
 }
 
 

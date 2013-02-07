@@ -745,18 +745,20 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
 
   // Save the top exit frame info. Use EDX as a temporary register.
+  // StackFrameIterator reads the top exit frame info saved in this frame.
+  // The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
+  // code below: kExitLinkOffsetInEntryFrame = -4 * kWordSize.
   __ movl(EDX, Address(EDI, Isolate::top_exit_frame_info_offset()));
   __ pushl(EDX);
   __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
-
-  // StackFrameIterator reads the top exit frame info saved in this frame.
-  // The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
-  // code above.
 
   // Save the old Context pointer. Use ECX as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
   // GC marking, since it traverses any information between SP and
   // FP - kExitLinkOffsetInEntryFrame.
+  // EntryFrame::SavedContext reads the context saved in this frame.
+  // The constant kSavedContextOffsetInEntryFrame must be kept in sync with
+  // the code below: kSavedContextOffsetInEntryFrame = -5 * kWordSize.
   __ movl(ECX, Address(EDI, Isolate::top_context_offset()));
   __ pushl(ECX);
 
@@ -1270,7 +1272,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       __ movl(EDX, FieldAddress(CTX, Context::isolate_offset()));
       __ movl(Address(ECX, Context::isolate_offset()), EDX);
 
-      // Set the parent field to null.
+      // Set the parent to null.
       __ movl(Address(ECX, Context::parent_offset()), raw_null);
 
       // Initialize the context variable to the receiver.

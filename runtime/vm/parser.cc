@@ -265,7 +265,8 @@ Parser::Parser(const Script& script, const Library& library)
       current_class_(Class::Handle()),
       library_(library),
       try_blocks_list_(NULL),
-      expression_temp_(NULL) {
+      expression_temp_(NULL),
+      saved_current_context_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -287,7 +288,8 @@ Parser::Parser(const Script& script,
       current_class_(Class::Handle(current_function_.Owner())),
       library_(Library::Handle(current_class_.library())),
       try_blocks_list_(NULL),
-      expression_temp_(NULL) {
+      expression_temp_(NULL),
+      saved_current_context_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!function.IsNull());
   if (FLAG_enable_type_checks) {
@@ -768,6 +770,12 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   }
   if (parsed_function->has_expression_temp_var()) {
     node_sequence->scope()->AddVariable(parsed_function->expression_temp_var());
+  }
+  if (parser.saved_current_context_ != NULL) {
+    parsed_function->set_saved_current_context_var(
+        parser.saved_current_context_);
+    node_sequence->scope()->AddVariable(
+        parsed_function->saved_current_context_var());
   }
   parsed_function->SetNodeSequence(node_sequence);
 
@@ -1452,7 +1460,7 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
                                             /* is_super_getter */ true,
                                             super_class,
                                             function_name);
-    EnsureExpressionTemp();
+    EnsureSavedCurrentContext();
     // 'this' is not passed as parameter to the closure.
     ArgumentListNode* closure_arguments = new ArgumentListNode(supercall_pos);
     for (int i = 1; i < arguments->length(); i++) {
@@ -5799,7 +5807,7 @@ AstNode* Parser::InsertClosureCallNodes(AstNode* condition) {
   if (condition->IsClosureNode() ||
       (condition->IsStoreLocalNode() &&
        condition->AsStoreLocalNode()->value()->IsClosureNode())) {
-    EnsureExpressionTemp();
+    EnsureSavedCurrentContext();
     // Function literal in assert implies a call.
     const intptr_t pos = condition->token_pos();
     condition = new ClosureCallNode(pos, condition, new ArgumentListNode(pos));
@@ -5938,9 +5946,10 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   TRACE_PARSER("ParseTryStatement");
 
   // We create three stack slots for exceptions here:
-  // ':saved_context_var' - Used to save the context before start of the try
-  //                        block. The context register is restored from this
-  //                        slot before processing the catch block handler.
+  // ':saved_try_context_var' - Used to save the context before start of the try
+  //                            block. The context register is restored from
+  //                            this slot before processing the catch block
+  //                            handler.
   // ':exception_var' - Used to save the current exception object that was
   //                    thrown.
   // ':stacktrace_var' - Used to save the current stack trace object into which
@@ -5950,10 +5959,10 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // and the stacktrace object when an exception is thrown.
   // These three implicit variables can never be captured variables.
   LocalVariable* context_var =
-      current_block_->scope->LocalLookupVariable(Symbols::SavedContextVar());
+      current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
   if (context_var == NULL) {
     context_var = new LocalVariable(TokenPos(),
-                                    Symbols::SavedContextVar(),
+                                    Symbols::SavedTryContextVar(),
                                     Type::ZoneHandle(Type::DynamicType()));
     current_block_->scope->AddVariable(context_var);
   }
@@ -6789,6 +6798,19 @@ void Parser::EnsureExpressionTemp() {
 }
 
 
+void Parser::EnsureSavedCurrentContext() {
+  // Used later by the flow_graph_builder to save current context.
+  if (saved_current_context_ == NULL) {
+    // Allocate a local variable to save the current context when we call into
+    // any closure function as the call will destroy the current context.
+    saved_current_context_ =
+        new LocalVariable(current_function().token_pos(),
+                          Symbols::SavedCurrentContextVar(),
+                          Type::ZoneHandle(Type::DynamicType()));
+  }
+}
+
+
 LocalVariable* Parser::CreateTempConstVariable(intptr_t token_pos,
                                                const char* s) {
   char name[64];
@@ -7229,7 +7251,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                      Resolver::kIsQualified);
       if (!func.IsNull()) {
         ASSERT(func.kind() != RawFunction::kConstImplicitGetter);
-        EnsureExpressionTemp();
+        EnsureSavedCurrentContext();
         closure = new StaticGetterNode(call_pos,
                                        NULL,
                                        false,
@@ -7238,7 +7260,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
         return new ClosureCallNode(call_pos, closure, arguments);
       }
     } else {
-      EnsureExpressionTemp();
+      EnsureSavedCurrentContext();
       closure = GenerateStaticFieldLookup(field, call_pos);
       return new ClosureCallNode(call_pos, closure, arguments);
     }
@@ -7264,7 +7286,7 @@ AstNode* Parser::ParseClosureCall(AstNode* closure) {
   TRACE_PARSER("ParseClosureCall");
   const intptr_t call_pos = TokenPos();
   ASSERT(CurrentToken() == Token::kLPAREN);
-  EnsureExpressionTemp();
+  EnsureSavedCurrentContext();
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
   return new ClosureCallNode(call_pos, closure, arguments);
 }
