@@ -62,31 +62,29 @@ class HostedSource extends Source {
 
   /// Downloads a package from the site and unpacks it.
   Future<bool> install(PackageId id, String destPath) {
-    var parsedDescription = _parseDescription(id.description);
-    var name = parsedDescription.first;
-    var url = parsedDescription.last;
+    return defer(() {
+      var parsedDescription = _parseDescription(id.description);
+      var name = parsedDescription.first;
+      var url = parsedDescription.last;
 
-    var fullUrl = "$url/packages/$name/versions/${id.version}.tar.gz";
+      var fullUrl = "$url/packages/$name/versions/${id.version}.tar.gz";
 
-    log.message('Downloading $id...');
+      log.message('Downloading $id...');
 
-    // Download and extract the archive to a temp directory.
-    var tempDir;
-    return Future.wait([
-      httpClient.send(new http.Request("GET", Uri.parse(fullUrl)))
-          .then((response) => response.stream),
-      systemCache.createTempDir()
-    ]).then((args) {
-      var stream = args[0];
-      tempDir = args[1];
-      return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
-          'fetching URL "$fullUrl"');
-    }).then((_) {
-      // Now that the install has succeeded, move it to the real location in
-      // the cache. This ensures that we don't leave half-busted ghost
-      // directories in the user's pub cache if an install fails.
-      return renameDir(tempDir, destPath);
-    }).then((_) => true);
+      // Download and extract the archive to a temp directory.
+      var tempDir = systemCache.createTempDir();
+      return httpClient.send(new http.Request("GET", Uri.parse(fullUrl)))
+          .then((response) => response.stream)
+          .then((stream) {
+        return timeout(extractTarGz(stream, tempDir), HTTP_TIMEOUT,
+            'fetching URL "$fullUrl"');
+      }).then((_) {
+        // Now that the install has succeeded, move it to the real location in
+        // the cache. This ensures that we don't leave half-busted ghost
+        // directories in the user's pub cache if an install fails.
+        return renameDir(tempDir, destPath);
+      }).then((_) => true);
+    });
   }
 
   /// The system cache directory for the hosted source contains subdirectories

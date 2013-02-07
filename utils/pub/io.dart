@@ -157,10 +157,10 @@ Directory ensureDir(path) {
 /// suffix appended to it. If [dir] is not provided, a temp directory will be
 /// created in a platform-dependent temporary location. Returns a [Future] that
 /// completes when the directory is created.
-Future<Directory> createTempDir([dir = '']) {
-  dir = _getDirectory(dir);
-  return log.ioAsync("create temp directory ${dir.path}",
-      dir.createTemp());
+Directory createTempDir([dir = '']) {
+  var tempDir = _getDirectory(dir).createTempSync();
+  log.io("Created temp directory ${tempDir.path}");
+  return tempDir;
 }
 
 /// Asynchronously recursively deletes [dir], which can be a [String] or a
@@ -722,14 +722,15 @@ Future timeout(Future input, int milliseconds, String description) {
 /// Creates a temporary directory and passes its path to [fn]. Once the [Future]
 /// returned by [fn] completes, the temporary directory and all its contents
 /// will be deleted.
+///
+/// Returns a future that completes to the value that the future returned from
+/// [fn] completes to.
 Future withTempDir(Future fn(String path)) {
-  var tempDir;
-  return createTempDir().then((dir) {
-    tempDir = dir;
-    return fn(tempDir.path);
-  }).whenComplete(() {
-    log.fine('Cleaning up temp directory ${tempDir.path}.');
-    return deleteDir(tempDir);
+  return defer(() {
+    var tempDir = createTempDir();
+    return fn(tempDir.path).whenComplete(() {
+      return deleteDir(tempDir);
+    });
   });
 }
 
@@ -779,51 +780,44 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
   var pathTo7zip = '../../third_party/7zip/7za.exe';
   var command = relativeToPub(pathTo7zip);
 
-  var tempDir;
-
-  // TODO(rnystrom): Use withTempDir().
-  return createTempDir().then((temp) {
+  return withTempDir((tempDir) {
     // Write the archive to a temp file.
-    tempDir = temp;
-    return createFileFromStream(stream, join(tempDir, 'data.tar.gz'));
-  }).then((_) {
-    // 7zip can't unarchive from gzip -> tar -> destination all in one step
-    // first we un-gzip it to a tar file.
-    // Note: Setting the working directory instead of passing in a full file
-    // path because 7zip says "A full path is not allowed here."
-    return runProcess(command, ['e', 'data.tar.gz'], workingDir: tempDir);
-  }).then((result) {
-    if (result.exitCode != 0) {
-      throw 'Could not un-gzip (exit code ${result.exitCode}). Error:\n'
-          '${Strings.join(result.stdout, "\n")}\n'
-          '${Strings.join(result.stderr, "\n")}';
-    }
-    // Find the tar file we just created since we don't know its name.
-    return listDir(tempDir);
-  }).then((files) {
-    var tarFile;
-    for (var file in files) {
-      if (path.extension(file) == '.tar') {
-        tarFile = file;
-        break;
+    return createFileFromStream(stream, join(tempDir, 'data.tar.gz')).then((_) {
+      // 7zip can't unarchive from gzip -> tar -> destination all in one step
+      // first we un-gzip it to a tar file.
+      // Note: Setting the working directory instead of passing in a full file
+      // path because 7zip says "A full path is not allowed here."
+      return runProcess(command, ['e', 'data.tar.gz'], workingDir: tempDir);
+    }).then((result) {
+      if (result.exitCode != 0) {
+        throw 'Could not un-gzip (exit code ${result.exitCode}). Error:\n'
+            '${Strings.join(result.stdout, "\n")}\n'
+            '${Strings.join(result.stderr, "\n")}';
       }
-    }
+      // Find the tar file we just created since we don't know its name.
+      return listDir(tempDir);
+    }).then((files) {
+      var tarFile;
+      for (var file in files) {
+        if (path.extension(file) == '.tar') {
+          tarFile = file;
+          break;
+        }
+      }
 
-    if (tarFile == null) throw 'The gzip file did not contain a tar file.';
+      if (tarFile == null) throw 'The gzip file did not contain a tar file.';
 
-    // Untar the archive into the destination directory.
-    return runProcess(command, ['x', tarFile], workingDir: destination);
-  }).then((result) {
-    if (result.exitCode != 0) {
-      throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'
-          '${Strings.join(result.stdout, "\n")}\n'
-          '${Strings.join(result.stderr, "\n")}';
-    }
-
-    log.fine('Clean up 7zip temp directory ${tempDir.path}.');
-    // TODO(rnystrom): Should also delete this if anything fails.
-    return deleteDir(tempDir);
-  }).then((_) => true);
+      // Untar the archive into the destination directory.
+      return runProcess(command, ['x', tarFile], workingDir: destination);
+    }).then((result) {
+      if (result.exitCode != 0) {
+        throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'
+            '${Strings.join(result.stdout, "\n")}\n'
+            '${Strings.join(result.stderr, "\n")}';
+      }
+      return true;
+    });
+  });
 }
 
 /// Create a .tar.gz archive from a list of entries. Each entry can be a
