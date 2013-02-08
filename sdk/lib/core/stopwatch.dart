@@ -63,6 +63,11 @@ abstract class Stopwatch {
    * Returns the frequency of the elapsed counter in Hz.
    */
   int get frequency;
+
+  /**
+   * Returns wether the [StopWatch] is currently running.
+   */
+  bool get isRunning;
 }
 
 class _StopwatchImpl implements Stopwatch {
@@ -77,14 +82,12 @@ class _StopwatchImpl implements Stopwatch {
   _StopwatchImpl() : _start = null, _stop = null {}
 
   void start() {
+    if (isRunning) return;
     if (_start == null) {
       // This stopwatch has never been started.
       _start = _now();
     } else {
-      if (_stop == null) {
-        return;
-      }
-      // Restarting this stopwatch. Prepend the elapsed time to the current
+      // Restart this stopwatch. Prepend the elapsed time to the current
       // start time.
       _start = _now() - (_stop - _start);
       _stop = null;
@@ -92,9 +95,7 @@ class _StopwatchImpl implements Stopwatch {
   }
 
   void stop() {
-    if (_start == null || _stop != null) {
-      return;
-    }
+    if (!isRunning) return;
     _stop = _now();
   }
 
@@ -126,6 +127,8 @@ class _StopwatchImpl implements Stopwatch {
   }
 
   int get frequency => _frequency();
+
+  bool get isRunning => _start != null && _stop == null;
 
   external static int _frequency();
   external static int _now();

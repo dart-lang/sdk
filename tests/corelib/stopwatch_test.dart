@@ -8,7 +8,9 @@ library stopwatch_test;
 
 class StopwatchTest {
   static bool checkTicking(Stopwatch sw) {
+    Expect.isFalse(sw.isRunning);
     sw.start();
+    Expect.isTrue(sw.isRunning);
     for (int i = 0; i < 10000; i++) {
       int.parse(i.toString());
       if (sw.elapsedTicks > 0) {
@@ -20,10 +22,12 @@ class StopwatchTest {
 
   static bool checkStopping(Stopwatch sw) {
     sw.stop();
+    Expect.isFalse(sw.isRunning);
     int v1 = sw.elapsedTicks;
     Expect.isTrue(v1 > 0);  // Expect a non-zero elapsed time.
     Stopwatch sw2 = new Stopwatch();  // Used for verification.
     sw2.start();
+    Expect.isTrue(sw2.isRunning);
     int sw2LastElapsed = 0;
     for (int i = 0; i < 100000; i++) {
       int.parse(i.toString());
@@ -46,7 +50,9 @@ class StopwatchTest {
 
   static checkRestart() {
     Stopwatch sw = new Stopwatch();
+    Expect.isFalse(sw.isRunning);
     sw.start();
+    Expect.isTrue(sw.isRunning);
     for (int i = 0; i < 100000; i++) {
       int.parse(i.toString());
       if (sw.elapsedTicks > 0) {
@@ -54,8 +60,10 @@ class StopwatchTest {
       }
     }
     sw.stop();
+    Expect.isFalse(sw.isRunning);
     int initial = sw.elapsedTicks;
     sw.start();
+    Expect.isTrue(sw.isRunning);
     for (int i = 0; i < 100000; i++) {
       int.parse(i.toString());
       if (sw.elapsedTicks > initial) {
@@ -63,12 +71,15 @@ class StopwatchTest {
       }
     }
     sw.stop();
+    Expect.isFalse(sw.isRunning);
     Expect.isTrue(sw.elapsedTicks > initial);
   }
 
   static checkReset() {
     Stopwatch sw = new Stopwatch();
+    Expect.isFalse(sw.isRunning);
     sw.start();
+    Expect.isTrue(sw.isRunning);
     for (int i = 0; i < 100000; i++) {
       int.parse(i.toString());
       if (sw.elapsedTicks > 0) {
@@ -76,9 +87,12 @@ class StopwatchTest {
       }
     }
     sw.stop();
+    Expect.isFalse(sw.isRunning);
     sw.reset();
+    Expect.isFalse(sw.isRunning);
     Expect.equals(0, sw.elapsedTicks);
     sw.start();
+    Expect.isTrue(sw.isRunning);
     for (int i = 0; i < 100000; i++) {
       int.parse(i.toString());
       if (sw.elapsedTicks > 0) {
@@ -86,6 +100,7 @@ class StopwatchTest {
       }
     }
     sw.reset();
+    Expect.isTrue(sw.isRunning);
     for (int i = 0; i < 100000; i++) {
       int.parse(i.toString());
       if (sw.elapsedTicks > 0) {
@@ -93,6 +108,7 @@ class StopwatchTest {
       }
     }
     sw.stop();
+    Expect.isFalse(sw.isRunning);
     Expect.isTrue(sw.elapsedTicks > 0);
   }
 
