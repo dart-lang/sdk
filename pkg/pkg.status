@@ -21,6 +21,10 @@ http/test/*: Skip
 oauth2/test/*: Skip
 path/test/*: Skip
 
+# Issue 8440 forces us to use path in the scheduled_test tests, which would
+# otherwise be dart2js-compatible.
+scheduled_test/test/*: Skip
+
 # Skip tests that use local file access if we're running in any browser
 [ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt  || $runtime == jsshell]
 http/test/*: Skip

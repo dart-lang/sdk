@@ -115,6 +115,7 @@ Future<bool> get _inChildIsolate {
 /// Runs the test described by [description] in its own isolate. Returns a map
 /// describing the results of that test run.
 Future<Map> _runInIsolate(String description) {
+  // TODO(nweiz): Don't use path here once issue 8440 is fixed.
   var future = spawnUri(path.join(path.current, new Options().script))
       .call(description);
   // TODO(nweiz): Remove this timeout once issue 8417 is fixed and we can
