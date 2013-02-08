@@ -34,6 +34,45 @@ class HasPrice extends CustomMatcher {
   featureValueOf(actual) => actual.price;
 }
 
+class SimpleIterable extends Iterable {
+  int count;
+  SimpleIterable(this.count);
+  
+  bool contains(int val) => count < val ? false : true;
+  
+  bool any(bool f(element)) {
+    for(var i = 0; i <= count; i++) {
+      if(f(i)) return true;
+    }
+    return false;
+  }
+  
+  String toString() => "<[$count]>";
+
+  Iterator get iterator {
+    return new SimpleIterator(count);
+  }
+}
+
+class SimpleIterator implements Iterator {
+  int _count;
+  int _current;
+
+  SimpleIterator(this._count);
+
+  bool moveNext() {
+    if (_count > 0) {
+      _current = _count;
+      _count--;
+      return true;
+    }
+    _current = null;
+    return false;
+  }
+
+  get current => _current;
+}
+
 void main() {
 
   initUtils();
@@ -164,6 +203,16 @@ void main() {
         "Expected: throws an exception which matches UnsupportedError "
         "but:  exception <Exception> does not match "
             "UnsupportedError.");
+    });
+    
+    test('throwsStateError', () {
+      shouldPass(() { throw new StateError(''); },
+          throwsStateError);
+      shouldFail(() { throw new Exception(); },
+          throwsStateError,
+        "Expected: throws an exception which matches StateError "
+        "but:  exception <Exception> does not match "
+            "StateError.");
     });
 
     test('returnsNormally', () {
@@ -388,6 +437,21 @@ void main() {
     });
   });
 
+  group('Iterable Matchers', () {
+    test('isEmpty', () {
+      var d = new SimpleIterable(0);
+      var e = new SimpleIterable(1);
+      shouldPass(d, isEmpty);
+      shouldFail(e, isEmpty, "Expected: empty but: was <[1]>.");
+    });
+    
+    test('contains', () {
+      var d = new SimpleIterable(3);
+      shouldPass(d, contains(2));
+      shouldFail(d, contains(5), "Expected: contains <5> but: was <[3]>.");
+    });
+  });
+  
   group('Collection Matchers', () {
 
     test('isEmpty', () {

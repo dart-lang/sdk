@@ -5,14 +5,15 @@
 part of matcher;
 
 /**
- * Returns a matcher that matches empty strings, maps or collections.
+ * Returns a matcher that matches empty strings, maps or iterables
+ * (including collections).
  */
 const Matcher isEmpty = const _Empty();
 
 class _Empty extends BaseMatcher {
   const _Empty();
   bool matches(item, MatchState matchState) {
-    if (item is Map || item is Collection) {
+    if (item is Map || item is Iterable) {
       return item.isEmpty;
     } else if (item is String) {
       return item.length == 0;
@@ -572,9 +573,10 @@ class _HasLength extends BaseMatcher {
 /**
  * Returns a matcher that matches if the match argument contains
  * the expected value. For [String]s this means substring matching;
- * for [Map]s is means the map has the key, and for [Collection]s it
- * means the collection has a matching element. In the case of collections,
- * [expected] can itself be a matcher.
+ * for [Map]s it means the map has the key, and for [Iterable]s
+ * (including [Collection]s) it means the iterable has a matching
+ * element. In the case of iterables, [expected] can itself be a
+ * matcher.
  */
 Matcher contains(expected) => new _Contains(expected);
 
@@ -587,11 +589,11 @@ class _Contains extends BaseMatcher {
   bool matches(item, MatchState matchState) {
     if (item is String) {
       return item.indexOf(_expected) >= 0;
-    } else if (item is Collection) {
+    } else if (item is Iterable) {
       if (_expected is Matcher) {
         return item.any((e) => _expected.matches(e, matchState));
       } else {
-        return item.any((e) => e == _expected);
+        return item.contains(_expected);
       }
     } else if (item is Map) {
       return item.containsKey(_expected);
