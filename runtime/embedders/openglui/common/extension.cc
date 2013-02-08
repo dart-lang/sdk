@@ -923,18 +923,7 @@ void PlaySample(Dart_NativeArguments arguments) {
 
 // 2D Canvas.
 
-// TODO(gram): this should be dynamic.
-#define MAX_CONTEXTS 16
-CanvasContext* contexts[MAX_CONTEXTS] = { 0 };
-
 CanvasContext* display_context;
-
-CanvasContext* Context2D(int handle) {
-  if (handle < 0 || handle >= MAX_CONTEXTS) {
-    return NULL;
-  }
-  return contexts[handle];
-}
 
 void C2DCreateNativeContext(Dart_NativeArguments arguments) {
   LOGI("In C2DCreateNativeContext");
@@ -944,14 +933,10 @@ void C2DCreateNativeContext(Dart_NativeArguments arguments) {
   int width = GetArgAsInt(arguments, 1);
   int height = GetArgAsInt(arguments, 2);
 
-  // ASSERT(handle >= 0 && handle < MAX_CONTEXTS &&
-  //          contexts[handle] == NULL)
-  CanvasContext* rtn = new CanvasContext(width, height);
-  rtn->Create();
+  CanvasContext* rtn = new CanvasContext(handle, width, height);
   if (display_context == NULL) {
     display_context = rtn;
   }
-  contexts[handle] = rtn;
   Dart_ExitScope();
   LOGI("Out C2DCreateNativeContext");
 }

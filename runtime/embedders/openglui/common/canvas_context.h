@@ -43,7 +43,7 @@ class CanvasContext {
   }
 
  public:
-  CanvasContext(int16_t width, int16_t height);
+  CanvasContext(int handle, int16_t width, int16_t height);
   virtual ~CanvasContext();
 
   inline void setGlobalAlpha(float alpha) {
@@ -292,11 +292,10 @@ class CanvasContext {
 
   virtual void Flush() {
     canvas_->flush();
-    graphics->Flush();
   }
-
-  void Create();
 };
+
+CanvasContext* Context2D(int handle);
 
 #endif  // EMBEDDERS_OPENGLUI_COMMON_CANVAS_CONTEXT_H_
 

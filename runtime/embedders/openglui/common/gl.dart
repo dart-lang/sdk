@@ -14,6 +14,11 @@ class CanvasElement {
   CanvasRenderingContext2D _context2d;
   WebGLRenderingContext _context3d;
 
+  // For use with drawImage, we want to support a src property
+  // like ImageElement, which maps to the context handle in native
+  // code.
+  get src => "context2d://${_context2d.handle}";
+
   CanvasElement({int width, int height}) {
     _width = (width == null) ? getDeviceScreenWidth() : width;
     _height = (height == null) ? getDeviceScreenHeight() : height;
@@ -396,6 +401,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   // handle 0 being the physical display.
   static int _next_handle = 0;
   int _handle = 0;
+  get handle => _handle;
 
   int _width, _height;
   set width(int w) { _width = C2DSetWidth(_handle, w); }
@@ -410,7 +416,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   double _alpha = 1.0;
-  set globalAlpha(numa) {
+  set globalAlpha(num a) {
     _alpha = C2DSetGlobalAlpha(_handle, a.toDouble());
   }
   get globalAlpha => _alpha;
@@ -574,18 +580,18 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new Exception('Unimplemented createRadialGradient');
   }
 
-  void drawImage(ImageElement image, num x1, num y1,
+  void drawImage(element, num x1, num y1,
                 [num w1, num h1, num x2, num y2, num w2, num h2]) {
-    var w = (image.width == null) ? 0 : image.width;
-    var h = (image.height == null) ?  0 : image.height;
-    if (!?w1) { // drawImage(image, dx, dy)
-      C2DDrawImage(_handle, image.src, 0, 0, false, w, h,
+    var w = (element.width == null) ? 0 : element.width;
+    var h = (element.height == null) ?  0 : element.height;
+    if (!?w1) { // drawImage(element, dx, dy)
+      C2DDrawImage(_handle, element.src, 0, 0, false, w, h,
                    x1.toInt(), y1.toInt(), false, 0, 0);
-    } else if (!?x2) {  // drawImage(image, dx, dy, dw, dh)
-      C2DDrawImage(_handle, image.src, 0, 0, false, w, h,
+    } else if (!?x2) {  // drawImage(element, dx, dy, dw, dh)
+      C2DDrawImage(_handle, element.src, 0, 0, false, w, h,
                    x1.toInt(), y1.toInt(), true, w1.toInt(), h1.toInt());
     } else {  // drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
-      C2DDrawImage(_handle, image.src, 
+      C2DDrawImage(_handle, element.src, 
                    x1.toInt(), y1.toInt(), true, w1.toInt(), h1.toInt(),
                    x2.toInt(), y2.toInt(), true, w2.toInt(), h2.toInt());
     }
