@@ -33430,6 +33430,17 @@ class EventStreamProvider<T extends Event> {
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventType, useCapture);
   }
+
+  /**
+   * Gets the type of the event which this would listen for on the specified
+   * event target.
+   *
+   * The target is necessary because some browsers may use different event names
+   * for the same purpose and the target allows differentiating browser support.
+   */
+  String getEventType(EventTarget target) {
+    return _eventType;
+  }
 }
 
 /**
@@ -33444,6 +33455,10 @@ class _CustomEventStreamProvider<T extends Event>
 
   Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
     return new _EventStream(e, _eventTypeGetter(e), useCapture);
+  }
+
+  String getEventType(EventTarget target) {
+    return _eventTypeGetter(target);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
