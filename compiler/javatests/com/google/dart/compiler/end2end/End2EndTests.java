@@ -22,7 +22,8 @@ public class End2EndTests extends TestSetup {
     TestSuite suite = new TestSuite("Dart end-to-end test suite.");
     suite.addTestSuite(IncrementalCompilationTest.class);
     suite.addTestSuite(IncrementalCompilation2Test.class);
-    suite.addTestSuite(IncrementalCompilationWithPrefixTest.class);
+    // TODO(8426): reenable the following test.
+    // suite.addTestSuite(IncrementalCompilationWithPrefixTest.class);
     return new End2EndTests(suite);
   }
 }
