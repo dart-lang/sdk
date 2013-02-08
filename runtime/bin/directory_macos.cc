@@ -29,7 +29,7 @@ class PathBuffer {
                               "%s",
                               name);
     data[PATH_MAX] = '\0';
-    if (written == strnlen(name, PATH_MAX + 1)) {
+    if (written == strlen(name)) {
       length += written;
       return true;
     } else {
@@ -69,7 +69,7 @@ static PathBuffer* ComputeFullPath(const char* dir_name) {
     delete path;
     return NULL;
   }
-  path->length = strnlen(path->data, PATH_MAX);
+  path->length = strlen(path->data);
   if (path->Add(File::PathSeparator())) {
     return path;
   } else {
@@ -384,7 +384,7 @@ char* Directory::CreateTemp(const char* const_template) {
     delete path;
     return NULL;
   }
-  int length = strnlen(path->data, PATH_MAX);
+  int length = strlen(path->data);
   result = static_cast<char*>(malloc(length + 1));
   strncpy(result, path->data, length);
   result[length] = '\0';
