@@ -31,6 +31,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'WebKitCSSMatrix': 'CssMatrix',
     'WebKitCSSTransformValue': 'CssTransformValue',
     'WebKitPoint': 'DomPoint',
+    'WebKitTransitionEvent': '_WebKitTransitionEvent',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestException': 'HttpRequestException',
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',

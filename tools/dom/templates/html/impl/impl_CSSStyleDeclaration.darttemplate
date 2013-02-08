@@ -21,6 +21,24 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
+String _cachedBrowserPropertyPrefix;
+
+/// Prefix as used for JS property names.
+String get _browserPropertyPrefix {
+  if (_cachedBrowserPropertyPrefix == null) {
+    if (_Device.isFirefox) {
+      _cachedBrowserPropertyPrefix = 'moz';
+    } else if (_Device.isIE) {
+      _cachedBrowserPropertyPrefix = 'ms';
+    } else if (_Device.isOpera) {
+      _cachedBrowserPropertyPrefix = 'o';
+    } else {
+      _cachedBrowserPropertyPrefix = 'webkit';
+    }
+  }
+  return _cachedBrowserPropertyPrefix;
+}
+
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.create$CLASSNAME();
   factory $CLASSNAME.css(String css) =>
@@ -41,6 +59,22 @@ $if DART2JS
       JS('void', '#.setAttribute(#, #)', this, propertyName, value);
     }
   }
+
+  /**
+   * Checks to see if CSS Transitions are supported.
+   */
+  static bool get supportsTransitions {
+    if (JS('bool', '"transition" in document.body.style')) {
+      return true;
+    }
+    var propertyName = '${_browserPropertyPrefix}Transition';
+    return JS('bool', '# in document.body.style', propertyName);
+  }
+$else
+  /**
+   * Checks to see if CSS Transitions are supported.
+   */
+  static bool get supportsTransitions => true;
 $endif
 
   // TODO(jacobr): generate this list of properties using the existing script.
@@ -2970,10 +3004,18 @@ $endif
   }
 
   /** Gets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   String get transition =>
     getPropertyValue('${_browserPrefix}transition');
 
   /** Sets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   void set transition(String value) {
     setProperty('${_browserPrefix}transition', value, '');
   }

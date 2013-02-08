@@ -2995,6 +2995,24 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
+String _cachedBrowserPropertyPrefix;
+
+/// Prefix as used for JS property names.
+String get _browserPropertyPrefix {
+  if (_cachedBrowserPropertyPrefix == null) {
+    if (_Device.isFirefox) {
+      _cachedBrowserPropertyPrefix = 'moz';
+    } else if (_Device.isIE) {
+      _cachedBrowserPropertyPrefix = 'ms';
+    } else if (_Device.isOpera) {
+      _cachedBrowserPropertyPrefix = 'o';
+    } else {
+      _cachedBrowserPropertyPrefix = 'webkit';
+    }
+  }
+  return _cachedBrowserPropertyPrefix;
+}
+
 @DomName('CSSStyleDeclaration')
 class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
@@ -3057,6 +3075,10 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
     return propValue != null ? propValue : '';
   }
 
+  /**
+   * Checks to see if CSS Transitions are supported.
+   */
+  static bool get supportsTransitions => true;
 
   // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */
@@ -5985,10 +6007,18 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   }
 
   /** Gets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   String get transition =>
     getPropertyValue('${_browserPrefix}transition');
 
   /** Sets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   void set transition(String value) {
     setProperty('${_browserPrefix}transition', value, '');
   }
@@ -10295,6 +10325,10 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.onwebkitTransitionEnd')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenchange')
@@ -28666,31 +28700,6 @@ class WebKitNamedFlow extends EventTarget {
 
 
 @DocsEditable
-@DomName('WebKitTransitionEvent')
-class WebKitTransitionEvent extends Event {
-  WebKitTransitionEvent.internal() : super.internal();
-
-  @DomName('WebKitTransitionEvent.elapsedTime')
-  @DocsEditable
-  num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
-
-  @DomName('WebKitTransitionEvent.propertyName')
-  @DocsEditable
-  String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
-
-  @DomName('WebKitTransitionEvent.pseudoElement')
-  @DocsEditable
-  String get pseudoElement native "WebKitTransitionEvent_pseudoElement_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 /**
  * Use the WebSocket interface to connect to a WebSocket,
  * and to send and receive data on that WebSocket.
@@ -32767,6 +32776,29 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   @DocsEditable
   StyleSheet item(int index) native "StyleSheetList_item_Callback";
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// This class maps WebKitTransitionEvent to TransitionEvent for older Chrome
+// browser versions.
+@DomName('WebKitTransitionEvent')
+class _WebKitTransitionEvent implements TransitionEvent  {
+  _WebKitTransitionEvent.internal() : super.internal();
+
+  @DomName('WebKitTransitionEvent.elapsedTime')
+  @DocsEditable
+  num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
+
+  @DomName('WebKitTransitionEvent.propertyName')
+  @DocsEditable
+  String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
+
+  @DomName('WebKitTransitionEvent.pseudoElement')
+  @DocsEditable
+  String get pseudoElement native "WebKitTransitionEvent_pseudoElement_Getter";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

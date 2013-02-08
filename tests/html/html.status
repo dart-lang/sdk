@@ -117,6 +117,7 @@ element_types_test/supported_track: Fail
 form_data_test: Fail # Issue 4793.
 form_element_test: Fail # Issue 4793.
 inner_frame_test: Skip # Issue 5727 (timeout)
+transition_event_test/supported: Fail
 typed_arrays_1_test/supported: Fail
 localstorage_test: Fail
 webgl_1_test/supported: Fail

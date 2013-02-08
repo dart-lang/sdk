@@ -2386,6 +2386,24 @@ String get _browserPrefix {
   return _cachedBrowserPrefix;
 }
 
+String _cachedBrowserPropertyPrefix;
+
+/// Prefix as used for JS property names.
+String get _browserPropertyPrefix {
+  if (_cachedBrowserPropertyPrefix == null) {
+    if (_Device.isFirefox) {
+      _cachedBrowserPropertyPrefix = 'moz';
+    } else if (_Device.isIE) {
+      _cachedBrowserPropertyPrefix = 'ms';
+    } else if (_Device.isOpera) {
+      _cachedBrowserPropertyPrefix = 'o';
+    } else {
+      _cachedBrowserPropertyPrefix = 'webkit';
+    }
+  }
+  return _cachedBrowserPropertyPrefix;
+}
+
 @DomName('CSSStyleDeclaration')
 class CssStyleDeclaration native "*CSSStyleDeclaration" {
   factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
@@ -2447,6 +2465,17 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
     if (JS('bool', '!!#.setAttribute', this)) {
       JS('void', '#.setAttribute(#, #)', this, propertyName, value);
     }
+  }
+
+  /**
+   * Checks to see if CSS Transitions are supported.
+   */
+  static bool get supportsTransitions {
+    if (JS('bool', '"transition" in document.body.style')) {
+      return true;
+    }
+    var propertyName = '${_browserPropertyPrefix}Transition';
+    return JS('bool', '# in document.body.style', propertyName);
   }
 
   // TODO(jacobr): generate this list of properties using the existing script.
@@ -5376,10 +5405,18 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   }
 
   /** Gets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   String get transition =>
     getPropertyValue('${_browserPrefix}transition');
 
   /** Sets the value of "transition" */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   void set transition(String value) {
     setProperty('${_browserPrefix}transition', value, '');
   }
@@ -8832,6 +8869,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   var xtag;
 
+  @DomName('Element.mouseWheelEvent')
   static const EventStreamProvider<WheelEvent> mouseWheelEvent =
       const _CustomEventStreamProvider<WheelEvent>(
         Element._determineMouseWheelEventType);
@@ -8849,6 +8887,20 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     }
   }
 
+  @DomName('Element.webkitTransitionEndEvent')
+  static const EventStreamProvider<TransitionEvent> transitionEndEvent =
+      const _CustomEventStreamProvider<TransitionEvent>(
+        Element._determineTransitionEventType);
+
+  static String _determineTransitionEventType(EventTarget e) {
+    // Unfortunately the normal 'ontransitionend' style checks don't work here.
+    if (_Device.isWebKit) {
+      return 'webkitTransitionEnd';
+    } else if (_Device.isOpera) {
+      return 'oTransitionEnd';
+    }
+    return 'transitionend';
+  }
   /**
    * Creates a text node and inserts it into the DOM at the specified location.
    *
@@ -9138,10 +9190,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DomName('Element.touchstartEvent')
   @DocsEditable
   static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
-
-  @DomName('Element.webkitTransitionEndEvent')
-  @DocsEditable
-  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
   @DomName('Element.webkitfullscreenchangeEvent')
   @DocsEditable
@@ -9624,6 +9672,10 @@ abstract class Element extends Node implements ElementTraversal native "*Element
 
   @DomName('Element.onwebkitTransitionEnd')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenchange')
@@ -9909,9 +9961,6 @@ class ElementEvents extends Events {
 
   @DocsEditable
   EventListenerList get touchStart => this['touchstart'];
-
-  @DocsEditable
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
 
   @DocsEditable
   EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
@@ -26064,27 +26113,6 @@ class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
 
 @DocsEditable
-@DomName('WebKitTransitionEvent')
-class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
-
-  @DomName('WebKitTransitionEvent.elapsedTime')
-  @DocsEditable
-  final num elapsedTime;
-
-  @DomName('WebKitTransitionEvent.propertyName')
-  @DocsEditable
-  final String propertyName;
-
-  @DomName('WebKitTransitionEvent.pseudoElement')
-  @DocsEditable
-  final String pseudoElement;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 /**
  * Use the WebSocket interface to connect to a WebSocket,
  * and to send and receive data on that WebSocket.
@@ -30156,6 +30184,28 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
   @DomName('StyleSheetList.item')
   @DocsEditable
   StyleSheet item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// This class maps WebKitTransitionEvent to TransitionEvent for older Chrome
+// browser versions.
+@DomName('WebKitTransitionEvent')
+class _WebKitTransitionEvent implements TransitionEvent  native "*WebKitTransitionEvent" {
+
+  @DomName('WebKitTransitionEvent.elapsedTime')
+  @DocsEditable
+  final num elapsedTime;
+
+  @DomName('WebKitTransitionEvent.propertyName')
+  @DocsEditable
+  final String propertyName;
+
+  @DomName('WebKitTransitionEvent.pseudoElement')
+  @DocsEditable
+  final String pseudoElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

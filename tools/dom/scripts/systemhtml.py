@@ -45,6 +45,7 @@ _js_custom_members = set([
     'Element.webkitMatchesSelector',
     'Element.remove',
     'ElementEvents.mouseWheel',
+    'ElementEvents.transitionEnd',
     'DOMException.name',
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
