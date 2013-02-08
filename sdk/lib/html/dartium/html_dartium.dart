@@ -19189,7 +19189,7 @@ class _ChildNodeListLazy implements List {
   void remove(Object object) {
     if (object is! Node) return;
     Node node = object;
-    if (!identical(this, node.parentNode)) return;
+    if (!identical(_this, node.parentNode)) return;
     _this.$dom_removeChild(node);
   }
 
