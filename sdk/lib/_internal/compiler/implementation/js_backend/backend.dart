@@ -621,6 +621,19 @@ class JavaScriptBackend extends Backend {
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
 
+  /**
+   * The generated code as a js AST for compiled methods. 
+   */
+  Map<Element, js.Expression> get generatedCode {
+    return compiler.enqueuer.codegen.generatedCode;
+  }
+
+  /**
+   * The generated code as a js AST for compiled bailout methods. 
+   */
+  final Map<Element, js.Expression> generatedBailoutCode =
+      new Map<Element, js.Expression>();
+
   ClassElement jsStringClass;
   ClassElement jsArrayClass;
   ClassElement jsNumberClass;
@@ -928,7 +941,8 @@ class JavaScriptBackend extends Backend {
   }
 
   void codegen(CodegenWorkItem work) {
-    if (work.element.kind.category == ElementCategory.VARIABLE) {
+    Element element = work.element;
+    if (element.kind.category == ElementCategory.VARIABLE) {
       Constant initialValue = compiler.constantHandler.compileWorkItem(work);
       if (initialValue != null) {
         return;
@@ -946,13 +960,13 @@ class JavaScriptBackend extends Backend {
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
       js.Expression code = generator.generateBailoutMethod(work, graph);
-      compiler.codegenWorld.addBailoutCode(work, code);
+      generatedBailoutCode[element] = code;
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph, true);
     }
     js.Expression code = generator.generateCode(work, graph);
-    compiler.codegenWorld.addGeneratedCode(work, code);
-    invalidateAfterCodegen.forEach(compiler.enqueuer.codegen.eagerRecompile);
+    generatedCode[element] = code;
+    invalidateAfterCodegen.forEach(eagerRecompile);
     invalidateAfterCodegen.clear();
   }
 
@@ -962,6 +976,16 @@ class JavaScriptBackend extends Backend {
 
   native.NativeEnqueuer nativeCodegenEnqueuer(Enqueuer world) {
     return new native.NativeCodegenEnqueuer(world, compiler, emitter);
+  }
+
+  /**
+   * Unit test hook that returns code of an element as a String.
+   *
+   * Invariant: [element] must be a declaration element.
+   */
+  String assembleCode(Element element) {
+    assert(invariant(element, element.isDeclaration));
+    return js.prettyPrint(generatedCode[element], compiler).getText();
   }
 
   void assembleProgram() {
@@ -1221,5 +1245,18 @@ class JavaScriptBackend extends Backend {
 
   Element getGetRuntimeTypeInfo() {
     return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
+  }
+
+  /**
+   * Remove [element] from the set of generated code, and put it back
+   * into the worklist.
+   *
+   * Invariant: [element] must be a declaration element.
+   */
+  void eagerRecompile(Element element) {
+    assert(invariant(element, element.isDeclaration));
+    generatedCode.remove(element);
+    generatedBailoutCode.remove(element);
+    compiler.enqueuer.codegen.addToWorkList(element);
   }
 }

@@ -35,6 +35,18 @@ class Universe {
   final Map<SourceString, Set<Selector>> invokedNames;
   final Map<SourceString, Set<Selector>> invokedGetters;
   final Map<SourceString, Set<Selector>> invokedSetters;
+
+  /**
+   * Fields accessed. Currently only the codegen knows this
+   * information. The resolver is too conservative when seeing a
+   * getter and only registers an invoked getter.
+   */
+  final Map<SourceString, Set<Selector>> fieldGetters;
+
+  /**
+   * Fields set. See comment in [fieldGetters].
+   */
+  final Map<SourceString, Set<Selector>> fieldSetters;
   final Set<DartType> isChecks;
 
   Universe() : instantiatedClasses = new Set<ClassElement>(),
@@ -42,6 +54,8 @@ class Universe {
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),
+               fieldGetters = new Map<SourceString, Set<Selector>>(),
+               fieldSetters = new Map<SourceString, Set<Selector>>(),
                invokedSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<DartType>();
 
@@ -65,46 +79,6 @@ class Universe {
 
   bool hasInvokedSetter(Element member, Compiler compiler) {
     return hasMatchingSelector(invokedSetters[member.name], member, compiler);
-  }
-}
-
-/// [Universe] which is specific to resolution.
-class ResolutionUniverse extends Universe {
-}
-
-/// [Universe] which is specific to code generation.
-class CodegenUniverse extends Universe {
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Key elements are declaration elements.
-   */
-  Map<Element, js.Expression> generatedCode;
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Key elements are declaration elements.
-   */
-  Map<Element, js.Expression> generatedBailoutCode;
-
-  final Map<SourceString, Set<Selector>> fieldGetters;
-  final Map<SourceString, Set<Selector>> fieldSetters;
-
-  CodegenUniverse()
-      : generatedCode = new Map<Element, js.Expression>(),
-        generatedBailoutCode = new Map<Element, js.Expression>(),
-        fieldGetters = new Map<SourceString, Set<Selector>>(),
-        fieldSetters = new Map<SourceString, Set<Selector>>();
-
-  void addGeneratedCode(CodegenWorkItem work, js.Expression code) {
-    assert(invariant(work.element, work.element.isDeclaration));
-    generatedCode[work.element] = code;
-  }
-
-  void addBailoutCode(CodegenWorkItem work, js.Expression code) {
-    assert(invariant(work.element, work.element.isDeclaration));
-    generatedBailoutCode[work.element] = code;
   }
 
   bool hasFieldGetter(Element member, Compiler compiler) {

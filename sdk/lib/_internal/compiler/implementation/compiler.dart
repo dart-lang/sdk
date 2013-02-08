@@ -80,8 +80,7 @@ class CodegenWorkItem extends WorkItem {
   }
 
   void run(Compiler compiler, CodegenEnqueuer world) {
-    js.Expression code = world.universe.generatedCode[element];
-    if (code != null) return;
+    if (world.isProcessed(element)) return;
     compiler.codegen(this, world);
   }
 }
@@ -376,8 +375,8 @@ abstract class Compiler implements DiagnosticListener {
         this, backend.constantSystem, isMetadata: true);
   }
 
-  ResolutionUniverse get resolverWorld => enqueuer.resolution.universe;
-  CodegenUniverse get codegenWorld => enqueuer.codegen.universe;
+  Universe get resolverWorld => enqueuer.resolution.universe;
+  Universe get codegenWorld => enqueuer.codegen.universe;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -722,7 +721,7 @@ abstract class Compiler implements DiagnosticListener {
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
     var resolved = new Set.from(enqueuer.resolution.resolvedElements.keys);
-    for (Element e in codegenWorld.generatedCode.keys) {
+    for (Element e in enqueuer.codegen.generatedCode.keys) {
       resolved.remove(e);
     }
     for (Element e in new Set.from(resolved)) {
@@ -799,7 +798,7 @@ abstract class Compiler implements DiagnosticListener {
     if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      log('Compiled ${codegenWorld.generatedCode.length} methods.');
+      log('Compiled ${enqueuer.codegen.generatedCode.length} methods.');
       progress.reset();
     }
     backend.codegen(work);

@@ -47,7 +47,8 @@ String compile(String code, {String entry: 'main',
       new leg.CodegenWorkItem(element, resolutionWork.resolutionTree, context);
   compiler.phase = Compiler.PHASE_COMPILING;
   work.run(compiler, compiler.enqueuer.codegen);
-  return compiler.enqueuer.codegen.assembleCode(element);
+  js.JavaScriptBackend backend = compiler.backend;
+  return backend.assembleCode(element);
 }
 
 MockCompiler compilerFor(String code, Uri uri,

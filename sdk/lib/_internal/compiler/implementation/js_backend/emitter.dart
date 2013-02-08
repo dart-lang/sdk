@@ -714,10 +714,11 @@ $lazyInitializerLogic
         || member.isGenerativeConstructorBody()
         || member.isAccessor()) {
       if (member.isAbstract(compiler)) return;
-      js.Expression code = compiler.codegenWorld.generatedCode[member];
+      JavaScriptBackend backend = compiler.backend;
+      js.Expression code = backend.generatedCode[member];
       if (code == null) return;
       builder.addProperty(namer.getName(member), code);
-      code = compiler.codegenWorld.generatedBailoutCode[member];
+      code = backend.generatedBailoutCode[member];
       if (code != null) {
         builder.addProperty(namer.getBailoutName(member), code);
       }
@@ -1392,21 +1393,21 @@ $lazyInitializerLogic
   }
 
   void emitStaticFunctions(CodeBuffer buffer) {
+    JavaScriptBackend backend = compiler.backend;
     bool isStaticFunction(Element element) =>
         !element.isInstanceMember() && !element.isField();
 
     Iterable<Element> elements =
-        compiler.codegenWorld.generatedCode.keys.where(isStaticFunction);
+        backend.generatedCode.keys.where(isStaticFunction);
     Set<Element> pendingElementsWithBailouts =
-        compiler.codegenWorld.generatedBailoutCode.keys
+        backend.generatedBailoutCode.keys
             .where(isStaticFunction)
             .toSet();
 
     for (Element element in Elements.sortedByPosition(elements)) {
-      js.Expression code = compiler.codegenWorld.generatedCode[element];
+      js.Expression code = backend.generatedCode[element];
       emitStaticFunction(buffer, namer.getName(element), code);
-      js.Expression bailoutCode =
-          compiler.codegenWorld.generatedBailoutCode[element];
+      js.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
         pendingElementsWithBailouts.remove(element);
         emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
@@ -1416,8 +1417,7 @@ $lazyInitializerLogic
     // Is it possible the primary function was inlined but the bailout was not?
     for (Element element in
              Elements.sortedByPosition(pendingElementsWithBailouts)) {
-      js.Expression bailoutCode =
-          compiler.codegenWorld.generatedBailoutCode[element];
+      js.Expression bailoutCode = backend.generatedBailoutCode[element];
       emitStaticFunction(buffer, namer.getBailoutName(element), bailoutCode);
     }
   }
@@ -1723,11 +1723,12 @@ $lazyInitializerLogic
     ConstantHandler handler = compiler.constantHandler;
     List<VariableElement> lazyFields =
         handler.getLazilyInitializedFieldsForEmission();
+    JavaScriptBackend backend = compiler.backend;
     if (!lazyFields.isEmpty) {
       needsLazyInitializer = true;
       for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
-        assert(compiler.codegenWorld.generatedBailoutCode[element] == null);
-        js.Expression code = compiler.codegenWorld.generatedCode[element];
+        assert(backend.generatedBailoutCode[element] == null);
+        js.Expression code = backend.generatedCode[element];
         assert(code != null);
         // The code only computes the initial value. We build the lazy-check
         // here:

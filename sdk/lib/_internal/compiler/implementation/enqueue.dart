@@ -31,6 +31,7 @@ abstract class Enqueuer {
   final Function itemCompilationContextCreator;
   final Map<String, Link<Element>> instanceMembersByName;
   final Set<ClassElement> seenClasses;
+  final Universe universe;
 
   bool queueIsClosed = false;
   EnqueueTask task;
@@ -40,9 +41,8 @@ abstract class Enqueuer {
            ItemCompilationContext itemCompilationContextCreator())
     : this.itemCompilationContextCreator = itemCompilationContextCreator,
       instanceMembersByName = new Map<String, Link<Element>>(),
+      universe = new Universe(),
       seenClasses = new Set<ClassElement>();
-
-  Universe get universe;
 
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
@@ -349,6 +349,28 @@ abstract class Enqueuer {
     registerInvokedSetter(methodName, selector);
   }
 
+  void registerFieldGetter(SourceString getterName,
+                           LibraryElement library,
+                           DartType type) {
+    task.measure(() {
+      Selector getter = new Selector.getter(getterName, library);
+      registerNewSelector(getterName,
+                          new TypedSelector(type, getter),
+                          universe.fieldGetters);
+    });
+  }
+
+  void registerFieldSetter(SourceString setterName,
+                           LibraryElement library,
+                           DartType type) {
+    task.measure(() {
+      Selector setter = new Selector.setter(setterName, library);
+      registerNewSelector(setterName,
+                          new TypedSelector(type, setter),
+                          universe.fieldSetters);
+    });
+  }
+
   void registerIsCheck(DartType type) {
     universe.isChecks.add(type);
   }
@@ -368,8 +390,6 @@ abstract class Enqueuer {
 
 /// [Enqueuer] which is specific to resolution.
 class ResolutionEnqueuer extends Enqueuer {
-  final ResolutionUniverse universe;
-
   /**
    * Map from declaration elements to the [TreeElements] object holding the
    * resolution mapping for the element implementation.
@@ -384,7 +404,6 @@ class ResolutionEnqueuer extends Enqueuer {
                      ItemCompilationContext itemCompilationContextCreator())
       : super('resolution enqueuer', compiler, itemCompilationContextCreator),
         resolvedElements = new Map<Element, TreeElements>(),
-        universe = new ResolutionUniverse(),
         queue = new Queue<ResolutionWorkItem>();
 
   bool get isResolutionQueue => true;
@@ -494,40 +513,16 @@ class ResolutionEnqueuer extends Enqueuer {
 
 /// [Enqueuer] which is specific to code generation.
 class CodegenEnqueuer extends Enqueuer {
-  final CodegenUniverse universe;
-
   final Queue<CodegenWorkItem> queue;
+  final Map<Element, js.Expression> generatedCode =
+      new Map<Element, js.Expression>();
 
   CodegenEnqueuer(Compiler compiler,
                   ItemCompilationContext itemCompilationContextCreator())
       : super('codegen enqueuer', compiler, itemCompilationContextCreator),
-        universe = new CodegenUniverse(),
         queue = new Queue<CodegenWorkItem>();
 
-  bool isProcessed(Element member) =>
-      universe.generatedCode.containsKey(member);
-
-  /**
-   * Unit test hook that returns code of an element as a String.
-   *
-   * Invariant: [element] must be a declaration element.
-   */
-  String assembleCode(Element element) {
-    assert(invariant(element, element.isDeclaration));
-    return js.prettyPrint(universe.generatedCode[element], compiler).getText();
-  }
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [element] must be a declaration element.
-   */
-  void eagerRecompile(Element element) {
-    assert(invariant(element, element.isDeclaration));
-    universe.generatedCode.remove(element);
-    universe.generatedBailoutCode.remove(element);
-    addToWorkList(element);
-  }
+  bool isProcessed(Element member) => generatedCode.containsKey(member);
 
   bool addElementToWorkList(Element element, [TreeElements elements]) {
     if (queueIsClosed) {
@@ -544,28 +539,6 @@ class CodegenEnqueuer extends Enqueuer {
     return true;
   }
 
-  void registerFieldGetter(SourceString getterName,
-                           LibraryElement library,
-                           DartType type) {
-    task.measure(() {
-      Selector getter = new Selector.getter(getterName, library);
-      registerNewSelector(getterName,
-                          new TypedSelector(type, getter),
-                          universe.fieldGetters);
-    });
-  }
-
-  void registerFieldSetter(SourceString setterName,
-                           LibraryElement library,
-                           DartType type) {
-    task.measure(() {
-      Selector setter = new Selector.setter(setterName, library);
-      registerNewSelector(setterName,
-                          new TypedSelector(type, setter),
-                          universe.fieldSetters);
-    });
-  }
-
   void forEach(f(WorkItem work)) {
     while(!queue.isEmpty) {
       // TODO(johnniwinther): Find an optimal process order for codegen.
@@ -574,6 +547,6 @@ class CodegenEnqueuer extends Enqueuer {
   }
 
   void _logSpecificSummary(log(message)) {
-    log('Compiled ${universe.generatedCode.length} methods.');
+    log('Compiled ${generatedCode.length} methods.');
   }
 }
