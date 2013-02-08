@@ -263,7 +263,6 @@ main() {
       testEvent(target.onTouchLeave, 'touchleave');
       testEvent(target.onTouchMove, 'touchmove');
       testEvent(target.onTouchStart, 'touchstart');
-      testEvent(target.onTransitionEnd, 'webkitTransitionEnd');
     });
   });
 

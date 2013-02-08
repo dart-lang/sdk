@@ -30193,7 +30193,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 // This class maps WebKitTransitionEvent to TransitionEvent for older Chrome
 // browser versions.
 @DomName('WebKitTransitionEvent')
-class _WebKitTransitionEvent implements TransitionEvent  native "*WebKitTransitionEvent" {
+class _WebKitTransitionEvent extends Event implements TransitionEvent  native "*WebKitTransitionEvent" {
 
   @DomName('WebKitTransitionEvent.elapsedTime')
   @DocsEditable

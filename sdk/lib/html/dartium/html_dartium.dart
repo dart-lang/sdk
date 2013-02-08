@@ -32785,7 +32785,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 // This class maps WebKitTransitionEvent to TransitionEvent for older Chrome
 // browser versions.
 @DomName('WebKitTransitionEvent')
-class _WebKitTransitionEvent implements TransitionEvent  {
+class _WebKitTransitionEvent extends Event implements TransitionEvent  {
   _WebKitTransitionEvent.internal() : super.internal();
 
   @DomName('WebKitTransitionEvent.elapsedTime')
