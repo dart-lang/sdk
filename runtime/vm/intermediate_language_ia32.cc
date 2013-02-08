@@ -462,7 +462,11 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
     ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmiCid) || (i == 0));
     Label next_test;
     __ cmpl(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
-    __ j(NOT_EQUAL, &next_test);
+    if (i < len - 1) {
+      __ j(NOT_EQUAL, &next_test);
+    } else {
+      __ j(NOT_EQUAL, deopt);
+    }
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
     if (target.Owner() == object_store->object_class()) {
       // Object.== is same as ===.
@@ -497,7 +501,6 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
           __ jmp(&done);
           __ Bind(&false_label);
           __ LoadObject(EAX, Bool::False());
-          __ jmp(&done);
         }
       } else {
         if (branch->is_checked()) {
@@ -507,11 +510,11 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
         branch->EmitBranchOnCondition(compiler, cond);
       }
     }
-    __ jmp(&done);
-    __ Bind(&next_test);
+    if (i < len - 1) {
+      __ jmp(&done);
+      __ Bind(&next_test);
+    }
   }
-  // Fall through leads to deoptimization
-  __ jmp(deopt);
   __ Bind(&done);
 }
 
