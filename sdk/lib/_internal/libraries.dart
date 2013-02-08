@@ -27,8 +27,11 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       dart2jsPatchPath: "_internal/compiler/implementation/lib/async_patch.dart"),
 
   "chrome": const LibraryInfo(
-      "chrome/dartium/chrome_dart2js.dart",
-      category: "Client"),
+      "chrome/dartium/chrome_dartium.dart",
+      category: "Client",
+      dart2jsPath: "chrome/dart2js/chrome_dart2js.dart",
+      documented: false,
+      implementation: true), // Not really, just hiding it for now.
 
   "collection": const LibraryInfo("collection/collection.dart"),
 
