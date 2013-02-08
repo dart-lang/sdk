@@ -56,6 +56,7 @@
             '--exclude-lib=yaml',
             '--include-lib=matcher',
             '--include-lib=mock',
+            '--include-lib=scheduled_test',
           ],
           'message': 'Running apidoc: <(_action)',
         },
