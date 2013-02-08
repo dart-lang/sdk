@@ -9,7 +9,7 @@ class RegExp3Test {
     try {
       RegExp exp = new RegExp("[");
       i = 100;  // Should not reach here.
-    } on IllegalJSRegExpException catch (e) {
+    } on FormatException catch (e) {
       i = 0;
     }
     Expect.equals(0, i);
