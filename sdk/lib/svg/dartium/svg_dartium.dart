@@ -3481,6 +3481,9 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   Iterable<Length> where(bool f(Length element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Length element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Length element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Length element)) => IterableMixinWorkaround.any(this, f);
@@ -4181,6 +4184,9 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   Iterable<Number> where(bool f(Number element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Number element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Number element)) => IterableMixinWorkaround.every(this, f);
 
@@ -5359,6 +5365,9 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   Iterable<PathSeg> where(bool f(PathSeg element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(PathSeg element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(PathSeg element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(PathSeg element)) => IterableMixinWorkaround.any(this, f);
@@ -6340,6 +6349,9 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(String element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
 
@@ -7593,6 +7605,9 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   Iterable<Transform> where(bool f(Transform element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Transform element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Transform element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Transform element)) => IterableMixinWorkaround.any(this, f);
@@ -8163,6 +8178,9 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   Iterable<ElementInstance> where(bool f(ElementInstance element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(ElementInstance element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(ElementInstance element)) => IterableMixinWorkaround.every(this, f);
 

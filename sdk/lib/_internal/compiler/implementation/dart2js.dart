@@ -201,7 +201,6 @@ void compile(List<String> argv) {
     new OptionHandler('--analyze-all', passThrough),
     new OptionHandler('--analyze-only', setAnalyzeOnly),
     new OptionHandler('--disable-native-live-type-analysis', passThrough),
-    new OptionHandler('--enable-native-live-type-analysis', passThrough),
     new OptionHandler('--reject-deprecated-language-features', passThrough),
     new OptionHandler('--report-sdk-use-of-deprecated-language-features',
                       passThrough),
@@ -263,7 +262,7 @@ void compile(List<String> argv) {
     }
   }
 
-  Sink<String> outputProvider(String name, String extension) {
+  StreamSink<String> outputProvider(String name, String extension) {
     Uri uri;
     String sourceMapFileName;
     bool isPrimaryOutput = false;
@@ -314,8 +313,8 @@ void compile(List<String> argv) {
 }
 
 // TODO(ahe): Get rid of this class if http://dartbug.com/8118 is fixed.
-class CountingSink implements Sink<String> {
-  final Sink<String> sink;
+class CountingSink implements StreamSink<String> {
+  final StreamSink<String> sink;
   int count = 0;
 
   CountingSink(this.sink);
@@ -324,6 +323,8 @@ class CountingSink implements Sink<String> {
     sink.add(value);
     count += value.length;
   }
+
+  signalError(AsyncError error) => sink.signalError(error);
 
   close() => sink.close();
 }
@@ -430,12 +431,12 @@ be removed in a future version:
   --enable-concrete-type-inference
     Enable experimental concrete type inference.
 
-  --enable-native-live-type-analysis
-    Remove unused native types from dart:html and related libraries. This is
-    expected to become the default behavior.
+  --disable-native-live-type-analysis
+    Disable the optimization that removes unused native types from dart:html
+    and related libraries.
 
   --disallow-unsafe-eval
-    Disables dynamic generation of code in the generated output. This is
+    Disable dynamic generation of code in the generated output. This is
     necessary to satisfy CSP restrictions (see http://www.w3.org/TR/CSP/).
     This flag is not continuously tested. Please report breakages and we
     will fix them as soon as possible.

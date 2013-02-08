@@ -158,7 +158,7 @@ patch class DateTime {
 
 
 // Patch for Stopwatch implementation.
-patch class _StopwatchImpl {
+patch class Stopwatch {
   patch static int _frequency() => 1000000;
   patch static int _now() => Primitives.numMicroseconds();
 }

@@ -301,7 +301,7 @@ _html_event_types = {
   'HTMLMediaElement.webkitkeyerror': ('keyError', 'MediaKeyEvent'),
   'HTMLMediaElement.webkitkeymessage': ('keyMessage', 'MediaKeyEvent'),
   'HTMLMediaElement.webkitneedkey': ('needKey', 'MediaKeyEvent'),
-  'IDBDatabase.versionchange': ('versionChange', 'UpgradeNeededEvent'),
+  'IDBDatabase.versionchange': ('versionChange', 'VersionChangeEvent'),
   'IDBOpenDBRequest.blocked': ('blocked', 'Event'),
   'IDBOpenDBRequest.upgradeneeded': ('upgradeNeeded', 'VersionChangeEvent'),
   'IDBRequest.success': ('success', 'Event'),

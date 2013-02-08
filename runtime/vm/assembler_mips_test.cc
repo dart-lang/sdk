@@ -22,7 +22,7 @@ ASSEMBLER_TEST_GENERATE(Simple, assembler) {
 
 ASSEMBLER_TEST_RUN(Simple, entry) {
   typedef int (*SimpleCode)();
-  EXPECT_EQ(42, reinterpret_cast<SimpleCode>(entry)());
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, entry));
 }
 
 }  // namespace dart

@@ -1441,8 +1441,8 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 
 class HInvokeStatic extends HInvoke {
   /** The first input must be the target. */
-  HInvokeStatic(inputs, [HType knownType = HType.UNKNOWN]) : super(inputs) {
-    guaranteedType = knownType;
+  HInvokeStatic(inputs, HType type) : super(inputs) {
+    guaranteedType = type;
   }
 
   toString() => 'invoke static: ${element.name}';
@@ -1454,7 +1454,7 @@ class HInvokeStatic extends HInvoke {
 
 class HInvokeSuper extends HInvokeStatic {
   final bool isSetter;
-  HInvokeSuper(inputs, {this.isSetter: false}) : super(inputs);
+  HInvokeSuper(inputs, {this.isSetter: false}) : super(inputs, HType.UNKNOWN);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 

@@ -108,9 +108,9 @@ class Result {
 
     row = table.insertRow(table.rows.length);
     row.classes.add('drop-down-link-tr');
-    row.on.mouseDown.add((event) => hideDropDownSuspend = true);
-    row.on.click.add(clickHandler);
-    row.on.mouseUp.add((event) => hideDropDownSuspend = false);
+    row.onMouseDown.listen((event) => hideDropDownSuspend = true);
+    row.onClick.listen(clickHandler);
+    row.onMouseUp.listen((event) => hideDropDownSuspend = false);
     var sb = new StringBuffer();
     sb.add('<td class="drop-down-link-td">');
     sb.add('<table class="drop-down-table"><tr><td colspan="2">');
@@ -146,7 +146,7 @@ class Result {
       sb.add('library $library');
     }
     sb.add('</td></tr></table></td>');
-    row.innerHTML = sb.toString();
+    row.innerHtml = sb.toString();
   }
 }
 

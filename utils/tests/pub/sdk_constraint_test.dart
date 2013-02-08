@@ -117,5 +117,40 @@ main() {
             or adding a version constraint to use an older version of a package.
             """);
     });
+
+    integration("handles a circular dependency on the root package", () {
+      // Using an SDK source, but this should be true of all sources.
+      dir(sdkPath, [
+        dir("pkg", [
+          dir("foo", [
+            libPubspec("foo", "0.0.1", sdk: ">3.0.0", deps: [
+              {"sdk": "myapp"}
+            ]),
+            libDir("foo")
+          ])
+        ])
+      ]).scheduleCreate();
+
+      dir(appPath, [
+        pubspec({
+          "name": "myapp",
+          "dependencies": {
+            "foo": { "sdk": "foo" }
+          },
+          "environment": {"sdk": ">2.0.0"}
+        })
+      ]).scheduleCreate();
+
+      schedulePub(args: [command],
+          error:
+            """
+            Some packages are not compatible with your SDK version 0.1.2+3:
+            - 'myapp' requires >2.0.0
+            - 'foo' requires >3.0.0
+
+            You may be able to resolve this by upgrading to the latest Dart SDK
+            or adding a version constraint to use an older version of a package.
+            """);
+    });
   }
 }

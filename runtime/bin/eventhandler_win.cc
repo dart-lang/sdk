@@ -261,12 +261,7 @@ bool Handle::IssueRead() {
       return true;
     }
     IOBuffer::DisposeBuffer(buffer);
-
-    if (GetLastError() == ERROR_BROKEN_PIPE) {
-      event_handler_->HandleClosed(this);
-    } else {
-      event_handler_->HandleError(this);
-    }
+    HandleIssueError();
     return false;
   } else {
     // Completing asynchronously through thread.
@@ -301,13 +296,19 @@ bool Handle::IssueWrite() {
     return true;
   }
   IOBuffer::DisposeBuffer(buffer);
+  HandleIssueError();
+  return false;
+}
 
-  if (GetLastError() == ERROR_BROKEN_PIPE) {
+
+void Handle::HandleIssueError() {
+  DWORD error = GetLastError();
+  if (error == ERROR_BROKEN_PIPE) {
     event_handler_->HandleClosed(this);
   } else {
     event_handler_->HandleError(this);
   }
-  return false;
+  SetLastError(error);
 }
 
 
@@ -326,6 +327,17 @@ bool FileHandle::IsClosed() {
 
 
 void FileHandle::AfterClose() {
+}
+
+
+void SocketHandle::HandleIssueError() {
+  int error = WSAGetLastError();
+  if (error == WSAECONNRESET) {
+    event_handler_->HandleClosed(this);
+  } else {
+    event_handler_->HandleError(this);
+  }
+  WSASetLastError(error);
 }
 
 
@@ -564,12 +576,7 @@ bool ClientSocket::IssueRead() {
   }
   IOBuffer::DisposeBuffer(buffer);
   pending_read_ = NULL;
-
-  if (WSAGetLastError() == WSAECONNRESET) {
-    event_handler_->HandleClosed(this);
-  } else {
-    event_handler_->HandleError(this);
-  }
+  HandleIssueError();
   return false;
 }
 
@@ -592,12 +599,7 @@ bool ClientSocket::IssueWrite() {
   }
   IOBuffer::DisposeBuffer(pending_write_);
   pending_write_ = NULL;
-
-  if (WSAGetLastError() == WSAECONNRESET) {
-    event_handler_->HandleClosed(this);
-  } else {
-    event_handler_->HandleError(this);
-  }
+  HandleIssueError();
   return false;
 }
 

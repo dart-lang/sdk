@@ -4,12 +4,14 @@
 
 part of dart.core;
 
+@deprecated
 abstract class Strings {
   /**
    * Joins all the given strings to create a new string.
    *
    * *Deprecated* Use `strings.join(separator)` instead.
    */
+  @deprecated
   external static String join(Iterable<String> strings, String separator);
 
   /**
@@ -17,5 +19,6 @@ abstract class Strings {
    *
    * *Deprecated* Use `strings.join()` instead.
    */
+  @deprecated
   external static String concatAll(Iterable<String> strings);
 }

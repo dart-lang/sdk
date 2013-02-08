@@ -116,6 +116,10 @@ class _ObjectArray<E> implements List<E> {
     return IterableMixinWorkaround.where(this, f);
   }
 
+  Iterable expand(Iterable f(E element)) {
+    return IterableMixinWorkaround.expand(this, f);
+  }
+
   Iterable<E> take(int n) {
     return IterableMixinWorkaround.takeList(this, n);
   }
@@ -348,6 +352,10 @@ class _ImmutableArray<E> implements List<E> {
 
   Iterable<E> where(bool f(E element)) {
     return IterableMixinWorkaround.where(this, f);
+  }
+
+  Iterable expand(Iterable f(E element)) {
+    return IterableMixinWorkaround.expand(this, f);
   }
 
   Iterable<E> take(int n) {

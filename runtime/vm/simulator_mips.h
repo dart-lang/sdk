@@ -23,8 +23,22 @@ class Simulator {
   Simulator();
   ~Simulator();
 
+  // The currently executing Simulator instance, which is associated to the
+  // current isolate
+  static Simulator* Current();
+
   // Call on program start.
   static void InitOnce();
+
+  // Dart generally calls into generated code with 5 parameters. This is a
+  // convenience function, which sets up the simulator state and grabs the
+  // result on return.
+  int64_t Call(int32_t entry,
+               int32_t parameter0,
+               int32_t parameter1,
+               int32_t parameter2,
+               int32_t parameter3,
+               int32_t parameter4);
 };
 
 }  // namespace dart

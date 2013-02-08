@@ -2405,5 +2405,7 @@ class ByteArrayTest {
 }
 
 main() {
-  ByteArrayTest.testMain();
+  for (var i=0; i<1000; i++) {
+    ByteArrayTest.testMain();
+  }
 }

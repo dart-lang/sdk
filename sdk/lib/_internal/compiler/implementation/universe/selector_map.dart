@@ -90,7 +90,7 @@ class SelectorMap<T> extends PartialTypeTree {
         Selector selector = existing.selector;
         // Since we're running through the entire tree we have to use
         // the applies method that takes types into account.
-        if (selector.applies(member, compiler)) {
+        if (selector.appliesUnnamed(member, compiler)) {
           if (!visit(selector, existing.value)) return false;
         }
       }

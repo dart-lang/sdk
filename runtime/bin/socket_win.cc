@@ -273,3 +273,9 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   ListenSocket* listen_socket = new ListenSocket(s);
   return reinterpret_cast<intptr_t>(listen_socket);
 }
+
+
+void Socket::Close(intptr_t fd) {
+  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
+  client_socket->close();
+}

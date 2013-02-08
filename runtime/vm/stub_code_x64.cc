@@ -735,18 +735,20 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ movq(R8, FieldAddress(CTX, Context::isolate_offset()));
 
   // Save the top exit frame info. Use RAX as a temporary register.
+  // StackFrameIterator reads the top exit frame info saved in this frame.
+  // The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
+  // code below: kExitLinkOffsetInEntryFrame = -8 * kWordSize.
   __ movq(RAX, Address(R8, Isolate::top_exit_frame_info_offset()));
   __ pushq(RAX);
   __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), Immediate(0));
-
-  // StackFrameIterator reads the top exit frame info saved in this frame.
-  // The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
-  // code above: kExitLinkOffsetInEntryFrame = -8 * kWordSize.
 
   // Save the old Context pointer. Use RAX as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
   // GC marking, since it traverses any information between SP and
   // FP - kExitLinkOffsetInEntryFrame.
+  // EntryFrame::SavedContext reads the context saved in this frame.
+  // The constant kSavedContextOffsetInEntryFrame must be kept in sync with
+  // the code below: kSavedContextOffsetInEntryFrame = -9 * kWordSize.
   __ movq(RAX, Address(R8, Isolate::top_context_offset()));
   __ pushq(RAX);
 
@@ -1258,7 +1260,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       __ movq(R10, FieldAddress(CTX, Context::isolate_offset()));
       __ movq(Address(RBX, Context::isolate_offset()), R10);
 
-      // Set the parent field to null.
+      // Set the parent to null.
       __ movq(Address(RBX, Context::parent_offset()), raw_null);
 
       // Initialize the context variable to the receiver.

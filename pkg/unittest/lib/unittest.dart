@@ -468,7 +468,7 @@ class _SpreadArgsHelper {
  * tracked and reported. [callback] should take between 0 and 4 positional
  * arguments (named arguments are not supported here).
  */
-Function _expectAsync(Function callback, [int count = 1]) {
+Function _expectAsync(Function callback, {int count: 1}) {
   return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke;
 }
 
@@ -481,7 +481,7 @@ Function _expectAsync(Function callback, [int count = 1]) {
  * arguments are not supported).
  */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
-Function expectAsync0(Function callback, [int count = 1]) {
+Function expectAsync0(Function callback, {int count: 1}) {
   return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke0;
 }
 
@@ -493,7 +493,7 @@ Function expectAsync1(Function callback, {int count: 1}) {
 
 /** Like [expectAsync0] but [callback] should take 2 positional arguments. */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
-Function expectAsync2(Function callback, [int count = 1]) {
+Function expectAsync2(Function callback, {int count: 1}) {
   return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke2;
 }
 

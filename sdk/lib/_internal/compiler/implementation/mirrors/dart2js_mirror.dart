@@ -12,10 +12,10 @@ import 'dart:uri';
 import '../../compiler.dart' as diagnostics;
 import '../elements/elements.dart';
 import '../resolution/resolution.dart' show ResolverTask, ResolverVisitor;
-import '../apiimpl.dart' as api;
+import '../apiimpl.dart' show Compiler;
 import '../scanner/scannerlib.dart' hide SourceString;
 import '../ssa/ssa.dart';
-import '../dart2jslib.dart';
+import '../dart2jslib.dart' hide Compiler;
 import '../dart_types.dart';
 import '../filenames.dart';
 import '../source_file.dart';
@@ -237,152 +237,20 @@ class Dart2JsDiagnosticListener implements DiagnosticListener {
 }
 
 //------------------------------------------------------------------------------
-// Compiler extension for apidoc.
-//------------------------------------------------------------------------------
-
-/**
- * Extension of the compiler that enables the analysis of several libraries with
- * no particular entry point.
- */
-class LibraryCompiler extends api.Compiler {
-  LibraryCompiler(diagnostics.ReadStringFromUri provider,
-                  diagnostics.DiagnosticHandler handler,
-                  Uri libraryRoot, Uri packageRoot,
-                  List<String> options)
-      : super(provider, null, handler, libraryRoot, packageRoot, options) {
-    checker = new LibraryTypeCheckerTask(this);
-    resolver = new LibraryResolverTask(this);
-  }
-
-  // TODO(johnniwinther): The following methods are added to enable the analysis
-  // of a collection of libraries to be used for apidoc. Most of the methods
-  // are based on copies of existing methods and could probably be implemented
-  // such that the duplicate code is avoided. Not to affect the correctness and
-  // speed of dart2js as is, the redundancy is accepted temporarily.
-
-  /**
-   * Run the compiler on a list of libraries. No entry point is used.
-   */
-  bool runList(List<Uri> uriList) {
-    bool success = _runList(uriList);
-    for (final task in tasks) {
-      log('${task.name} took ${task.timing}msec');
-    }
-    return success;
-  }
-
-  bool _runList(List<Uri> uriList) {
-    try {
-      runCompilerList(uriList);
-    } on CompilerCancelledException catch (exception) {
-      log(exception.toString());
-      log('compilation failed');
-      return false;
-    }
-    tracer.close();
-    log('compilation succeeded');
-    return true;
-  }
-
-  void runCompilerList(List<Uri> uriList) {
-    scanBuiltinLibraries();
-    var elementList = <LibraryElement>[];
-    for (var uri in uriList) {
-      elementList.add(libraryLoader.loadLibrary(uri, null, uri));
-    }
-
-    world.populate();
-
-    log('Resolving...');
-    phase = Compiler.PHASE_RESOLVING;
-    backend.enqueueHelpers(enqueuer.resolution);
-    processQueueList(enqueuer.resolution, elementList);
-    log('Resolved ${enqueuer.resolution.resolvedElements.length} elements.');
-  }
-
-  void processQueueList(Enqueuer world, List<LibraryElement> elements) {
-    world.nativeEnqueuer.processNativeClasses(libraries.values);
-    for (var library in elements) {
-      fullyEnqueueLibrary(library);
-    }
-    progress.reset();
-    world.forEach((WorkItem work) {
-      withCurrentElement(work.element, () => work.run(this, world));
-    });
-  }
-
-  String codegen(WorkItem work, Enqueuer world) {
-    return null;
-  }
-}
-
-// TODO(johnniwinther): The source for the apidoc includes calls to methods on
-// for instance [MathPrimitives] which are not resolved by dart2js. Since we
-// do not need to analyse the body of functions to produce the documenation
-// we use a specialized resolver which bypasses method bodies.
-class LibraryResolverTask extends ResolverTask {
-  LibraryResolverTask(api.Compiler compiler) : super(compiler);
-
-  void visitBody(ResolverVisitor visitor, Statement body) {}
-}
-
-// TODO(johnniwinther): As a side-effect of bypassing method bodies in
-// [LibraryResolveTask] we can not perform the typecheck.
-class LibraryTypeCheckerTask extends TypeCheckerTask {
-  LibraryTypeCheckerTask(api.Compiler compiler) : super(compiler);
-
-  void check(Node tree, TreeElements elements) {}
-}
-
-//------------------------------------------------------------------------------
 // Compilation implementation
 //------------------------------------------------------------------------------
 
+// TODO(johnniwinther): Support client configurable handlers/providers.
 class Dart2JsCompilation implements Compilation {
-  bool isWindows = (Platform.operatingSystem == 'windows');
-  api.Compiler _compiler;
-  Uri cwd;
-  bool isAborting = false;
-  Map<String, SourceFile> sourceFiles;
-
-  Future<String> provider(Uri uri) {
-    if (uri.scheme != 'file') {
-      throw new ArgumentError(uri);
-    }
-    String source;
-    try {
-      source = readAll(uriPathToNative(uri.path));
-    } on FileIOException catch (ex) {
-      throw 'Error: Cannot read "${relativize(cwd, uri, isWindows)}" '
-            '(${ex.osError}).';
-    }
-    sourceFiles[uri.toString()] =
-      new SourceFile(relativize(cwd, uri, isWindows), source);
-    return new Future.immediate(source);
-  }
-
-  void handler(Uri uri, int begin, int end,
-               String message, diagnostics.Diagnostic kind) {
-    if (isAborting) return;
-    bool fatal =
-        kind == diagnostics.Diagnostic.CRASH ||
-        kind == diagnostics.Diagnostic.ERROR;
-    if (uri == null) {
-      if (!fatal) {
-        return;
-      }
-      print(message);
-      throw message;
-    } else if (fatal) {
-      SourceFile file = sourceFiles[uri.toString()];
-      print(file.getLocationMessage(message, begin, end, true, (s) => s));
-      throw message;
-    }
-  }
+  Compiler _compiler;
+  final Uri cwd;
+  final SourceFileProvider provider;
 
   Dart2JsCompilation(Path script, Path libraryRoot,
                      [Path packageRoot, List<String> opts = const <String>[]])
-      : cwd = getCurrentDirectory(), sourceFiles = <String, SourceFile>{} {
+      : cwd = getCurrentDirectory(),
+        provider = new SourceFileProvider() {
+    var handler = new FormattingDiagnosticHandler(provider);
     var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
     if (packageRoot != null) {
@@ -390,8 +258,10 @@ class Dart2JsCompilation implements Compilation {
     } else {
       packageUri = libraryUri;
     }
-    _compiler = new api.Compiler(provider, null, handler,
-        libraryUri, packageUri, opts);
+    _compiler = new Compiler(provider.readStringFromUri,
+                                 null,
+                                 handler.diagnosticHandler,
+                                 libraryUri, packageUri, opts);
     var scriptUri = cwd.resolve(script.toString());
     // TODO(johnniwinther): Detect file not found
     _compiler.run(scriptUri);
@@ -399,7 +269,8 @@ class Dart2JsCompilation implements Compilation {
 
   Dart2JsCompilation.library(List<Path> libraries, Path libraryRoot,
                      [Path packageRoot, List<String> opts = const <String>[]])
-      : cwd = getCurrentDirectory(), sourceFiles = <String, SourceFile>{} {
+      : cwd = getCurrentDirectory(),
+        provider = new SourceFileProvider() {
     var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
     if (packageRoot != null) {
@@ -407,15 +278,20 @@ class Dart2JsCompilation implements Compilation {
     } else {
       packageUri = libraryUri;
     }
-    _compiler = new LibraryCompiler(provider, handler,
-        libraryUri, packageUri, opts);
+    opts = new List<String>.from(opts);
+    opts.add('--analyze-only');
+    opts.add('--analyze-all');
+    _compiler = new Compiler(provider.readStringFromUri,
+                                 null,
+                                 silentDiagnosticHandler,
+                                 libraryUri, packageUri, opts);
     var librariesUri = <Uri>[];
     for (Path library in libraries) {
       librariesUri.add(cwd.resolve(library.toString()));
       // TODO(johnniwinther): Detect file not found
     }
-    LibraryCompiler libraryCompiler = _compiler;
-    libraryCompiler.runList(librariesUri);
+    _compiler.librariesToAnalyzeWhenRun = librariesUri;
+    _compiler.run(null);
   }
 
   MirrorSystem get mirrors => new Dart2JsMirrorSystem(_compiler);
@@ -581,7 +457,7 @@ abstract class Dart2JsMemberMirror extends Dart2JsElementMirror
 //------------------------------------------------------------------------------
 
 class Dart2JsMirrorSystem implements MirrorSystem {
-  final api.Compiler compiler;
+  final Compiler compiler;
   Map<String, Dart2JsLibraryMirror> _libraries;
   Map<LibraryElement, Dart2JsLibraryMirror> _libraryMap;
 

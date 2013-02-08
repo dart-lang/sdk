@@ -477,7 +477,6 @@ DEFINE_NATIVE_ENTRY(isolate_spawnUri, 1) {
   if (!CanonicalizeUri(arguments->isolate(), root_lib, uri,
                        &canonical_uri, &error)) {
     const String& msg = String::Handle(String::New(error));
-    free(error);
     ThrowIsolateSpawnException(msg);
   }
 

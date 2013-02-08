@@ -215,6 +215,8 @@ class _ForwardingStreamSubscription<S, T>
   }
 
   void _handleDone() {
+    // On a done-event, we have already been unsubscribed.
+    _subscription = null;
     _stream._handleDone(this);
   }
 }

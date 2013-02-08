@@ -625,6 +625,8 @@ abstract class ConstructorBodyElement extends FunctionElement {
  * declarations and typedefs.
  */
 abstract class TypeDeclarationElement extends Element {
+  GenericType get rawType;
+
   /**
    * The type variables declared on this declaration. The type variables are not
    * available until the type of the element has been computed through
@@ -775,11 +777,12 @@ abstract class TypeVariableElement extends Element {
   void set bound(DartType value);
 }
 
-abstract class MetadataAnnotation {
+abstract class MetadataAnnotation implements Spannable {
   Constant get value;
   Element get annotatedElement;
   int get resolutionState;
   Token get beginToken;
+  Token get endToken;
 
   // TODO(kasperl): Try to get rid of these.
   void set annotatedElement(Element value);

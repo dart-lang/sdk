@@ -138,7 +138,10 @@ public class SystemLibraryManager  {
     HashSet<String> explicitShortNames = new HashSet<String>();
     
     for (Entry<String, DartLibrary> entry : declaredLibraries.entrySet()) {
-      if (entry.getValue().getCategory().equals("Internal")){
+      if (entry.getValue().getCategory().equals("Internal")
+          // TODO(8365): the following line allows dart:_collection-dev to
+          // be imported even though it's a hidden library.
+          && !entry.getKey().equals("dart:_collection-dev")) {
         continue;
       }
       String shortName = entry.getKey().trim();

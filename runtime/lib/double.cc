@@ -79,12 +79,13 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
     args.SetAt(0, String::Handle(String::New(error_msg)));
     Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
-  if ((Smi::kMinValue <= val) && (val <= Smi::kMaxValue)) {
-    return Smi::New(static_cast<intptr_t>(val));
-  } else if ((Mint::kMinValue <= val) && (val <= Mint::kMaxValue)) {
-    return Mint::New(static_cast<int64_t>(val));
+  const Bigint& big = Bigint::Handle(BigintOperations::NewFromDouble(val));
+  if (BigintOperations::FitsIntoSmi(big)) {
+    return BigintOperations::ToSmi(big);
+  } else if (BigintOperations::FitsIntoMint(big)) {
+    return Mint::New(BigintOperations::ToMint(big));
   } else {
-    return BigintOperations::NewFromDouble(val);
+    return big.raw();
   }
 }
 

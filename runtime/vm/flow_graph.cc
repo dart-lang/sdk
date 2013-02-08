@@ -169,7 +169,11 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
     while (curr != NULL) {
       ASSERT(prev == curr->previous_use());
       ASSERT(defn == curr->definition());
-      ASSERT(curr == curr->instruction()->InputAt(curr->use_index()));
+      Instruction* instr = curr->instruction();
+      // The instruction should not be removed from the graph (phis are not
+      // removed until register allocation.)
+      ASSERT(instr->IsPhi() || (instr->previous() != NULL));
+      ASSERT(curr == instr->InputAt(curr->use_index()));
       prev = curr;
       curr = curr->next_use();
     }
@@ -179,8 +183,11 @@ static void ValidateUseListsInInstruction(Instruction* instr) {
     while (curr != NULL) {
       ASSERT(prev == curr->previous_use());
       ASSERT(defn == curr->definition());
-      ASSERT(curr ==
-             curr->instruction()->env()->ValueAtUseIndex(curr->use_index()));
+      Instruction* instr = curr->instruction();
+      ASSERT(curr == instr->env()->ValueAtUseIndex(curr->use_index()));
+      // The instruction should not be removed from the graph (phis are not
+      // removed until register allocation.)
+      ASSERT(instr->IsPhi() || (instr->previous() != NULL));
       prev = curr;
       curr = curr->next_use();
     }

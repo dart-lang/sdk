@@ -13,6 +13,7 @@ namespace dart {
 
 // Forward declarations.
 class ObjectPointerVisitor;
+class RawContext;
 
 
 // Generic stack frame.
@@ -118,6 +119,8 @@ class EntryFrame : public StackFrame {
   bool IsStubFrame() const { return false; }
   bool IsEntryFrame() const { return true; }
 
+  RawContext* SavedContext() const;
+
   // Visit objects in the frame.
   virtual void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -126,7 +129,8 @@ class EntryFrame : public StackFrame {
 
  private:
   EntryFrame() { }
-  intptr_t ExitLinkOffset();
+  intptr_t ExitLinkOffset() const;
+  intptr_t SavedContextOffset() const;
 
   friend class StackFrameIterator;
   DISALLOW_COPY_AND_ASSIGN(EntryFrame);

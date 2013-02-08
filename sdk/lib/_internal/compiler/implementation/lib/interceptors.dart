@@ -5,7 +5,7 @@
 library _interceptors;
 
 import 'dart:collection';
-import 'dart:collection-dev';
+import 'dart:_collection-dev';
 import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               Null,
                               JSSyntaxRegExp,
@@ -43,7 +43,7 @@ class ObjectInterceptor {
  * to emit a call to an intercepted method, that is a method that is
  * defined in an interceptor class.
  */
-getInterceptor() {
+getInterceptor(object) {
   // This is a magic method: the compiler does specialization of it
   // depending on the uses of intercepted methods and instantiated
   // primitive types.
@@ -86,5 +86,5 @@ class JSNull implements Null {
   String toString() => 'null';
 
   int get hashCode => 0;
-  Type get runtimeType => createRuntimeType('Null');
+  Type get runtimeType => Null;
 }

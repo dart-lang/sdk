@@ -258,6 +258,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     return types.dynamicType;
   }
 
+  // TODO(johnniwinther): Provide the element from which the type came in order
+  // to give better error messages.
   void analyzeArguments(Send send, DartType type) {
     Link<Node> arguments = send.arguments;
     if (type == null || identical(type, types.dynamicType)) {
@@ -268,17 +270,50 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     } else {
       FunctionType funType = type;
       Link<DartType> parameterTypes = funType.parameterTypes;
-      while (!arguments.isEmpty && !parameterTypes.isEmpty) {
-        checkAssignable(arguments.head, parameterTypes.head,
-                        analyze(arguments.head));
+      Link<DartType> optionalParameterTypes = funType.optionalParameterTypes;
+      while (!arguments.isEmpty) {
+        Node argument = arguments.head;
+        NamedArgument namedArgument = argument.asNamedArgument();
+        if (namedArgument != null) {
+          argument = namedArgument.expression;
+          SourceString argumentName = namedArgument.name.source;
+          DartType namedParameterType =
+              funType.getNamedParameterType(argumentName);
+          if (namedParameterType == null) {
+            // TODO(johnniwinther): Provide better information on the called
+            // function.
+            reportTypeWarning(argument, MessageKind.NAMED_ARGUMENT_NOT_FOUND,
+                {'argumentName': argumentName});
+
+            analyze(argument);
+          } else {
+            checkAssignable(argument, namedParameterType, analyze(argument));
+          }
+        } else {
+          if (parameterTypes.isEmpty) {
+            if (optionalParameterTypes.isEmpty) {
+              // TODO(johnniwinther): Provide better information on the
+              // called function.
+              reportTypeWarning(argument, MessageKind.ADDITIONAL_ARGUMENT);
+
+              analyze(argument);
+            } else {
+              checkAssignable(argument, optionalParameterTypes.head,
+                              analyze(argument));
+              optionalParameterTypes = optionalParameterTypes.tail;
+            }
+          } else {
+            checkAssignable(argument, parameterTypes.head, analyze(argument));
+            parameterTypes = parameterTypes.tail;
+          }
+        }
         arguments = arguments.tail;
-        parameterTypes = parameterTypes.tail;
       }
-      if (!arguments.isEmpty) {
-        reportTypeWarning(arguments.head, MessageKind.ADDITIONAL_ARGUMENT);
-      } else if (!parameterTypes.isEmpty) {
+      if (!parameterTypes.isEmpty) {
+        // TODO(johnniwinther): Provide better information on the called
+        // function.
         reportTypeWarning(send, MessageKind.MISSING_ARGUMENT,
-                          {'argumentType': parameterTypes.head});
+            {'argumentType': parameterTypes.head});
       }
     }
   }

@@ -67,7 +67,7 @@ class FunctionSet extends PartialTypeTree {
       Element member = node.membersByName[selector.name];
       // Since we're running through the entire tree we have to use
       // the applies method that takes types into account.
-      if (member != null && selector.applies(member, compiler)) {
+      if (member != null && selector.appliesUnnamed(member, compiler)) {
         result.add(member);
       }
       return true;
@@ -95,7 +95,7 @@ class FunctionSet extends PartialTypeTree {
       Element member = node.membersByName[selector.name];
       // Since we're running through the entire tree we have to use
       // the applies method that takes types into account.
-      if (member != null && selector.applies(member, compiler)) {
+      if (member != null && selector.appliesUnnamed(member, compiler)) {
         result = true;
         // End the traversal.
         return false;

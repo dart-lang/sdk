@@ -99,7 +99,11 @@ class ResolverTask extends CompilerTask {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
         return null;
-      } else if (element.isTypedef() || element.isTypeVariable()) {
+      } else if (element.isTypedef()) {
+        TypedefElement typdef = element;
+        resolveTypedef(typdef);
+        return null;
+      } else if (element.isTypeVariable()) {
         element.computeType(compiler);
         return null;
       }
@@ -250,7 +254,7 @@ class ResolverTask extends CompilerTask {
       return compiler.withCurrentElement(element, () {
         FunctionExpression tree = element.parseNode(compiler);
         if (tree.modifiers.isExternal()) {
-          error(tree, MessageKind.EXTERNAL_WITHOUT_IMPLEMENTATION);
+          error(tree, MessageKind.PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION);
           return;
         }
         if (isConstructor) {
@@ -691,13 +695,16 @@ class ResolverTask extends CompilerTask {
     if (value == null) return;
     if (!(isUserDefinableOperator(value) || identical(value, 'unary-'))) return;
 
+    bool isMinus = false;
     int requiredParameterCount;
     MessageKind messageKind;
     FunctionSignature signature = function.computeSignature(compiler);
     if (identical(value, 'unary-')) {
+      isMinus = true;
       messageKind = MessageKind.MINUS_OPERATOR_BAD_ARITY;
       requiredParameterCount = 0;
     } else if (isMinusOperator(value)) {
+      isMinus = true;
       messageKind = MessageKind.MINUS_OPERATOR_BAD_ARITY;
       requiredParameterCount = 1;
     } else if (isUnaryOperator(value)) {
@@ -713,17 +720,40 @@ class ResolverTask extends CompilerTask {
       compiler.internalErrorOnElement(function,
           'Unexpected user defined operator $value');
     }
-    checkArity(function, requiredParameterCount, messageKind);
+    checkArity(function, requiredParameterCount, messageKind, isMinus);
   }
 
   void checkArity(FunctionElement function,
-                  int requiredParameterCount, MessageKind messageKind) {
+                  int requiredParameterCount, MessageKind messageKind,
+                  bool isMinus) {
     FunctionExpression node = function.parseNode(compiler);
     FunctionSignature signature = function.computeSignature(compiler);
     if (signature.requiredParameterCount != requiredParameterCount) {
       Node errorNode = node;
       if (node.parameters != null) {
-        if (signature.requiredParameterCount < requiredParameterCount) {
+        if (isMinus ||
+            signature.requiredParameterCount < requiredParameterCount) {
+          // If there are too few parameters, point to the whole parameter list.
+          // For instance
+          //
+          //     int operator +() {}
+          //                   ^^
+          //
+          //     int operator []=(value) {}
+          //                     ^^^^^^^
+          //
+          // For operator -, always point the whole parameter list, like
+          //
+          //     int operator -(a, b) {}
+          //                   ^^^^^^
+          //
+          // instead of
+          //
+          //     int operator -(a, b) {}
+          //                       ^
+          //
+          // since the correction might not be to remove 'b' but instead to
+          // remove 'a, b'.
           errorNode = node.parameters;
         } else {
           errorNode = node.parameters.nodes.skip(requiredParameterCount).head;
@@ -2593,6 +2623,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralMap(LiteralMap node) {
+    world.registerInstantiatedClass(compiler.mapClass);
     node.visitChildren(this);
   }
 

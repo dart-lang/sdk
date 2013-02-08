@@ -494,24 +494,21 @@ void _integration(String description, void body(), [Function testFn]) {
     // Run all of the scheduled tasks. If an error occurs, it will propagate
     // through the futures back up to here where we can hand it off to unittest.
     var asyncDone = expectAsync0(() {});
-    var createdSandboxDir;
-    _setUpSandbox().then((sandboxDir) {
-      createdSandboxDir = sandboxDir;
-      return timeout(_runScheduled(sandboxDir, _scheduled),
-          _TIMEOUT, 'waiting for a test to complete');
-    }).catchError((e) {
-      return _runScheduled(createdSandboxDir, _scheduledOnException).then((_) {
+    var sandboxDir = createTempDir();
+    return timeout(_runScheduled(sandboxDir, _scheduled),
+          _TIMEOUT, 'waiting for a test to complete').catchError((e) {
+      return _runScheduled(sandboxDir, _scheduledOnException).then((_) {
         // Rethrow the original error so it keeps propagating.
         throw e;
       });
     }).whenComplete(() {
       // Clean up after ourselves. Do this first before reporting back to
       // unittest because it will advance to the next test immediately.
-      return _runScheduled(createdSandboxDir, _scheduledCleanup).then((_) {
+      return _runScheduled(sandboxDir, _scheduledCleanup).then((_) {
         _scheduled = null;
         _scheduledCleanup = null;
         _scheduledOnException = null;
-        if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
+        if (sandboxDir != null) return deleteDir(sandboxDir);
       });
     }).then((_) {
       // If we got here, the test completed successfully so tell unittest so.
@@ -679,8 +676,6 @@ void useMockClient(MockClient client) {
     httpClient.inner = oldInnerClient;
   });
 }
-
-Future<Directory> _setUpSandbox() => createTempDir();
 
 Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   if (scheduled == null) return new Future.immediate(null);
@@ -1104,17 +1099,13 @@ class TarFileDescriptor extends Descriptor {
   /// Creates the files and directories within this tar file, then archives
   /// them, compresses them, and saves the result to [parentDir].
   Future<File> create(parentDir) {
-    // TODO(rnystrom): Use withTempDir().
-    var tempDir;
-    return createTempDir().then((_tempDir) {
-      tempDir = _tempDir;
-      return Future.wait(contents.map((child) => child.create(tempDir)));
-    }).then((createdContents) {
-      return createTarGz(createdContents, baseDir: tempDir).toBytes();
-    }).then((bytes) {
-      return new File(join(parentDir, _stringName)).writeAsBytes(bytes);
-    }).then((file) {
-      return deleteDir(tempDir).then((_) => file);
+    return withTempDir((tempDir) {
+      return Future.wait(contents.map((child) => child.create(tempDir)))
+          .then((createdContents) {
+        return createTarGz(createdContents, baseDir: tempDir).toBytes();
+      }).then((bytes) {
+        return new File(join(parentDir, _stringName)).writeAsBytes(bytes);
+      });
     });
   }
 
@@ -1136,16 +1127,11 @@ class TarFileDescriptor extends Descriptor {
     }
 
     var controller = new StreamController<List<int>>();
-    var tempDir;
-    // TODO(rnystrom): Use withTempDir() here.
     // TODO(nweiz): propagate any errors to the return value. See issue 3657.
-    createTempDir().then((_tempDir) {
-      tempDir = _tempDir;
-      return create(tempDir);
-    }).then((tar) {
-      var sourceStream = tar.openInputStream();
-      return store(wrapInputStream(sourceStream), controller).then((_) {
-        tempDir.delete(recursive: true);
+    withTempDir((tempDir) {
+      return create(tempDir).then((tar) {
+        var sourceStream = tar.openInputStream();
+        return store(wrapInputStream(sourceStream), controller);
       });
     });
     return new ByteStream(controller.stream);

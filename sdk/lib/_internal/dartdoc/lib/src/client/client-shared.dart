@@ -48,7 +48,7 @@ enableCodeBlocks() {
 
     var preList = elem.queryAll('pre.source');
 
-    showCode.on.click.add((e) {
+    showCode.onClick.listen((e) {
       for (final pre in preList) {
         if (pre.classes.contains('expanded')) {
           pre.classes.remove('expanded');
@@ -72,7 +72,7 @@ void enableShowHideInherited() {
   var showInherited = document.query('#show-inherited');
   if (showInherited == null) return;
   showInherited.dataAttributes.putIfAbsent('show-inherited', () => 'block');
-  showInherited.on.click.add((e) {
+  showInherited.onClick.listen((e) {
     String display = showInherited.dataAttributes['show-inherited'];
     if (display == 'block') {
       display = 'none';

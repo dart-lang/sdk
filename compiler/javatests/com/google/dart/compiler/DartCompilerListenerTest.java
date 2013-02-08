@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.resolver.TypeErrorCode;
+
 /**
  * Testing implementation of {@link DartCompilerListener}.
  */
@@ -49,6 +51,11 @@ public class DartCompilerListenerTest extends DartCompilerListener.Empty {
 
   @Override
   public void onError(DartCompilationError event) {
+    // ignore deprecated
+    if (event.getErrorCode() == TypeErrorCode.DEPRECATED_ELEMENT) {
+      return;
+    }
+    // validate
     String reportedSrcName = (event.getSource() != null)
         ? event.getSource().getName()
         : null;

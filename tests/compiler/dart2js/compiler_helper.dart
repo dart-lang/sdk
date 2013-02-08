@@ -16,6 +16,8 @@ import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart"
 import "../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart" as ssa;
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+       show Compiler;
 
 import "mock_compiler.dart";
 import "parser_helper.dart";
@@ -34,6 +36,7 @@ String compile(String code, {String entry: 'main',
   compiler.parseScript(code);
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));
   if (element == null) return null;
+  compiler.phase = Compiler.PHASE_RESOLVING;
   compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
   compiler.processQueue(compiler.enqueuer.resolution, element);
   var context = new js.JavaScriptItemCompilationContext();
@@ -42,19 +45,24 @@ String compile(String code, {String entry: 'main',
   resolutionWork.run(compiler, compiler.enqueuer.resolution);
   leg.CodegenWorkItem work =
       new leg.CodegenWorkItem(element, resolutionWork.resolutionTree, context);
+  compiler.phase = Compiler.PHASE_COMPILING;
   work.run(compiler, compiler.enqueuer.codegen);
-  return compiler.enqueuer.codegen.assembleCode(element);
+  js.JavaScriptBackend backend = compiler.backend;
+  return backend.assembleCode(element);
 }
 
-MockCompiler compilerFor(String code, Uri uri, {bool analyzeAll: false}) {
-  MockCompiler compiler = new MockCompiler(analyzeAll: analyzeAll);
+MockCompiler compilerFor(String code, Uri uri,
+                         {bool analyzeAll: false,
+                          String coreSource: DEFAULT_CORELIB}) {
+  MockCompiler compiler = new MockCompiler(
+      analyzeAll: analyzeAll, coreSource: coreSource);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   return compiler;
 }
 
-String compileAll(String code) {
+String compileAll(String code, {String coreSource: DEFAULT_CORELIB}) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
-  MockCompiler compiler = compilerFor(code, uri);
+  MockCompiler compiler = compilerFor(code, uri, coreSource: coreSource);
   compiler.runCompiler(uri);
   Expect.isFalse(compiler.compilationFailed,
                  'Unexpected compilation error');

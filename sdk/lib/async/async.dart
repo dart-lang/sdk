@@ -5,6 +5,7 @@
 library dart.async;
 
 part 'async_error.dart';
+part 'collection_sink.dart';
 part 'future.dart';
 part 'future_impl.dart';
 part 'stream.dart';

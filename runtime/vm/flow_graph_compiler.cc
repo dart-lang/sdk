@@ -903,6 +903,8 @@ intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
       return TwoByteString::kBytesPerElement;
     case kExternalUint8ArrayCid:
       return ExternalUint8Array::kBytesPerElement;
+    case kExternalUint8ClampedArrayCid:
+      return ExternalUint8ClampedArray::kBytesPerElement;
     default:
       UNIMPLEMENTED();
       return 0;

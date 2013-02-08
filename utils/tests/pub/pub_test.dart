@@ -42,6 +42,8 @@ final VERSION_STRING = '''
     ''';
 
 main() {
+  initConfig();
+  
   integration('running pub with no command displays usage', () {
     schedulePub(args: [], output: USAGE_STRING);
   });

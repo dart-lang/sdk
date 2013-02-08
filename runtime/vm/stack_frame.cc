@@ -35,6 +35,11 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+RawContext* EntryFrame::SavedContext() const {
+  return *(reinterpret_cast<RawContext**>(fp() + SavedContextOffset()));
+}
+
+
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);

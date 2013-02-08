@@ -80,8 +80,7 @@ class CodegenWorkItem extends WorkItem {
   }
 
   void run(Compiler compiler, CodegenEnqueuer world) {
-    js.Expression code = world.universe.generatedCode[element];
-    if (code != null) return;
+    if (world.isProcessed(element)) return;
     compiler.codegen(this, world);
   }
 }
@@ -376,8 +375,8 @@ abstract class Compiler implements DiagnosticListener {
         this, backend.constantSystem, isMetadata: true);
   }
 
-  ResolutionUniverse get resolverWorld => enqueuer.resolution.universe;
-  CodegenUniverse get codegenWorld => enqueuer.codegen.universe;
+  Universe get resolverWorld => enqueuer.resolution.universe;
+  Universe get codegenWorld => enqueuer.codegen.universe;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -450,6 +449,8 @@ abstract class Compiler implements DiagnosticListener {
       return spanFromHInstruction(node);
     } else if (node is Element) {
       return spanFromElement(node);
+    } else if (node is MetadataAnnotation) {
+      return spanFromTokens(node.beginToken, node.endToken);
     } else {
       throw 'No error location.';
     }
@@ -720,7 +721,7 @@ abstract class Compiler implements DiagnosticListener {
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
     var resolved = new Set.from(enqueuer.resolution.resolvedElements.keys);
-    for (Element e in codegenWorld.generatedCode.keys) {
+    for (Element e in enqueuer.codegen.generatedCode.keys) {
       resolved.remove(e);
     }
     for (Element e in new Set.from(resolved)) {
@@ -762,8 +763,11 @@ abstract class Compiler implements DiagnosticListener {
     Node tree = parser.parse(element);
     validator.validate(tree);
     elements = resolver.resolve(element);
-    checker.check(tree, elements);
-    typesTask.analyze(tree, elements);
+    if (elements != null) {
+      // Only analyze nodes with a corresponding [TreeElements].
+      checker.check(tree, elements);
+      typesTask.analyze(tree, elements);
+    }
     return elements;
   }
 
@@ -794,7 +798,7 @@ abstract class Compiler implements DiagnosticListener {
     if (progress.elapsedMilliseconds > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
-      log('Compiled ${codegenWorld.generatedCode.length} methods.');
+      log('Compiled ${enqueuer.codegen.generatedCode.length} methods.');
       progress.reset();
     }
     backend.codegen(work);
@@ -839,7 +843,6 @@ abstract class Compiler implements DiagnosticListener {
       if (identical(message.message.kind, MessageKind.NOT_ASSIGNABLE)) return;
       if (identical(message.message.kind, MessageKind.MISSING_RETURN)) return;
       if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) return;
-      if (identical(message.message.kind, MessageKind.ADDITIONAL_ARGUMENT)) return;
       if (identical(message.message.kind, MessageKind.METHOD_NOT_FOUND)) return;
     }
     SourceSpan span = spanFromNode(node);
@@ -1107,12 +1110,14 @@ bool invariant(Spannable spannable, var condition, {String message: null}) {
 }
 
 /// A sink that drains into /dev/null.
-class NullSink extends Sink<String> {
+class NullSink extends StreamSink<String> {
   final String name;
 
   NullSink(this.name);
 
   add(String value) {}
+
+  void signalError(AsyncError error) {}
 
   void close() {}
 

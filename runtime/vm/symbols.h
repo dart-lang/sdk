@@ -54,8 +54,9 @@ class ObjectPointerVisitor;
   V(GetIterator, "iterator")                                                   \
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(SavedArgDescVarPrefix, ":saved_args_desc_var")                             \
+  V(SavedCurrentContextVar, ":saved_current_context_var")                      \
   V(SavedEntryContextVar, ":saved_entry_context_var")                          \
-  V(SavedContextVar, ":saved_context_var")                                     \
+  V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(ExceptionVar, ":exception_var")                                            \
   V(StacktraceVar, ":stacktrace_var")                                          \
   V(ListLiteralElement, "list literal element")                                \
@@ -191,6 +192,17 @@ class ObjectPointerVisitor;
   V(PrivateGetterPrefix, "get:_")                                              \
   V(PrivateSetterPrefix, "set:_")                                              \
   V(_New, "_new")                                                              \
+  V(DartScheme, "dart:")                                                       \
+  V(DartSchemePrivate, "dart:_")                                               \
+  V(DartCore, "dart:core")                                                     \
+  V(DartCollection, "dart:collection")                                         \
+  V(DartCollectionDev, "dart:_collection-dev")                                 \
+  V(DartMath, "dart:math")                                                     \
+  V(DartIsolate, "dart:isolate")                                               \
+  V(DartMirrors, "dart:mirrors")                                               \
+  V(DartScalarlist, "dart:scalarlist")                                         \
+  V(DartNativeWrappers, "dart:nativewrappers")                                 \
+  V(DartAsync, "dart:async")                                                   \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

@@ -30,6 +30,7 @@ abstract class String implements Comparable, Pattern {
   /**
    * *Deprecated*. Use [String.fromCharCode] instead.
    */
+  @deprecated
   factory String.character(int charCode) => new String.fromCharCode(charCode);
 
   /**
@@ -75,6 +76,7 @@ abstract class String implements Comparable, Pattern {
    *
    * *This method is deprecated. Please use [codeUnitAt] instead.*
    */
+  @deprecated
   int charCodeAt(int index);
 
   /**
@@ -237,6 +239,7 @@ abstract class String implements Comparable, Pattern {
    *     Iterable<String> characters =
    *         string.runes.map((c) => new String.fromCharCode(c));
    */
+  @deprecated
   List<String> splitChars();
 
   /**

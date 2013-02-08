@@ -105,7 +105,7 @@ class Listener {
   void beginFormalParameter(Token token) {
   }
 
-  void endFormalParameter(Token token, Token thisKeyword) {
+  void endFormalParameter(Token thisKeyword) {
   }
 
   void handleNoFormalParameters(Token token) {
@@ -346,6 +346,9 @@ class Listener {
   }
 
   void endRethrowStatement(Token throwToken, Token endToken) {
+  }
+
+  void endTopLevelDeclaration(Token token) {
   }
 
   void beginTopLevelMember(Token token) {
@@ -682,7 +685,8 @@ class ElementListener extends Listener {
 
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     Expression name = popNode();
-    addLibraryTag(new LibraryName(libraryKeyword, name));
+    addLibraryTag(new LibraryName(libraryKeyword, name,
+                                  popMetadata(compilationUnitElement)));
   }
 
   void endImport(Token importKeyword, Token asKeyword, Token semicolon) {
@@ -692,13 +696,15 @@ class ElementListener extends Listener {
       prefix = popNode();
     }
     StringNode uri = popLiteralString();
-    addLibraryTag(new Import(importKeyword, uri, prefix, combinators));
+    addLibraryTag(new Import(importKeyword, uri, prefix, combinators,
+                             popMetadata(compilationUnitElement)));
   }
 
   void endExport(Token exportKeyword, Token semicolon) {
     NodeList combinators = popNode();
     StringNode uri = popNode();
-    addLibraryTag(new Export(exportKeyword, uri, combinators));
+    addLibraryTag(new Export(exportKeyword, uri, combinators,
+                             popMetadata(compilationUnitElement)));
   }
 
   void endCombinators(int count) {
@@ -728,12 +734,14 @@ class ElementListener extends Listener {
 
   void endPart(Token partKeyword, Token semicolon) {
     StringNode uri = popLiteralString();
-    addLibraryTag(new Part(partKeyword, uri));
+    addLibraryTag(new Part(partKeyword, uri,
+                           popMetadata(compilationUnitElement)));
   }
 
   void endPartOf(Token partKeyword, Token semicolon) {
     Expression name = popNode();
-    addPartOfTag(new PartOf(partKeyword, name));
+    addPartOfTag(new PartOf(partKeyword, name,
+                            popMetadata(compilationUnitElement)));
   }
 
   void addPartOfTag(PartOf tag) {
@@ -765,7 +773,15 @@ class ElementListener extends Listener {
       popNode(); // Discard name.
     }
     popNode(); // Discard node (Send or Identifier).
-    pushMetadata(new PartialMetadataAnnotation(beginToken));
+    pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
+  }
+
+  void endTopLevelDeclaration(Token token) {
+    if (!metadata.isEmpty) {
+      recoverableError('Error: Metadata not supported here.',
+                       token: metadata.head.beginToken);
+      metadata = const Link<MetadataAnnotation>();
+    }
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -1050,11 +1066,17 @@ class ElementListener extends Listener {
   }
 
   void pushElement(Element element) {
+    popMetadata(element);
+    compilationUnitElement.addMember(element, listener);
+  }
+
+  Link<MetadataAnnotation> popMetadata(Element element) {
+    var result = metadata;
     for (Link link = metadata; !link.isEmpty; link = link.tail) {
       element.addMetadata(link.head);
     }
     metadata = const Link<MetadataAnnotation>();
-    compilationUnitElement.addMember(element, listener);
+    return result;
   }
 
   void pushMetadata(MetadataAnnotation annotation) {
@@ -1252,9 +1274,9 @@ class NodeListener extends ElementListener {
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
-    NodeList variables = makeNodeList(count, null, null, ",");
+    NodeList variables = makeNodeList(count, null, endToken, ",");
     Modifiers modifiers = popNode();
-    pushNode(new VariableDefinitions(null, modifiers, variables, endToken));
+    pushNode(new VariableDefinitions(null, modifiers, variables));
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
@@ -1275,7 +1297,7 @@ class NodeListener extends ElementListener {
                                            modifiers, compilationUnitElement));
   }
 
-  void endFormalParameter(Token token, Token thisKeyword) {
+  void endFormalParameter(Token thisKeyword) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -1287,8 +1309,8 @@ class NodeListener extends ElementListener {
     }
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new VariableDefinitions(type, modifiers,
-                                     new NodeList.singleton(name), token));
+    pushNode(
+        new VariableDefinitions(type, modifiers, new NodeList.singleton(name)));
   }
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {
@@ -1507,10 +1529,10 @@ class NodeListener extends ElementListener {
   void endVariablesDeclaration(int count, Token endToken) {
     // TODO(ahe): Pick one name for this concept, either
     // VariablesDeclaration or VariableDefinitions.
-    NodeList variables = makeNodeList(count, null, null, ",");
+    NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new VariableDefinitions(type, modifiers, variables, endToken));
+    pushNode(new VariableDefinitions(type, modifiers, variables));
   }
 
   void endInitializer(Token assignmentOperator) {
@@ -1617,10 +1639,10 @@ class NodeListener extends ElementListener {
   }
 
   void endFields(int count, Token beginToken, Token endToken) {
-    NodeList variables = makeNodeList(count, null, null, ",");
+    NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(new VariableDefinitions(type, modifiers, variables, endToken));
+    pushNode(new VariableDefinitions(type, modifiers, variables));
   }
 
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
@@ -2008,10 +2030,19 @@ class PartialTypedefElement extends TypedefElementX {
 /// A [MetadataAnnotation] which is constructed on demand.
 class PartialMetadataAnnotation extends MetadataAnnotationX {
   final Token beginToken;
+  final Token tokenAfterEndToken;
   Expression cachedNode;
   Constant value;
 
-  PartialMetadataAnnotation(this.beginToken);
+  PartialMetadataAnnotation(this.beginToken, this.tokenAfterEndToken);
+
+  Token get endToken {
+    Token token = beginToken;
+    while (token.kind != EOF_TOKEN) {
+      if (identical(token.next, tokenAfterEndToken)) return token;
+      token = token.next;
+    }
+  }
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;

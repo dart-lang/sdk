@@ -119,20 +119,27 @@ class CodeBreakpoint {
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
  public:
-  explicit ActivationFrame(uword pc, uword fp, uword sp, const Context& ctx);
+  ActivationFrame(uword pc, uword fp, uword sp, const Code& code);
 
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
   uword sp() const { return sp_; }
+  const Function& function() const {
+    ASSERT(!function_.IsNull());
+    return function_;
+  }
+  const Code& code() const {
+    ASSERT(!code_.IsNull());
+    return code_;
+  }
 
-  const Function& DartFunction();
-  const Code& DartCode();
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
   RawLibrary* Library();
   intptr_t TokenPos();
   intptr_t LineNumber();
+  void SetContext(const Context& ctx) { ctx_ = ctx.raw(); }
 
   // The context level of a frame is the context level at the
   // PC/token index of the frame. It determines the depth of the context
@@ -150,7 +157,7 @@ class ActivationFrame : public ZoneAllocated {
                   Instance* value);
 
   RawArray* GetLocalVariables();
-  RawContext* CallerContext();
+  RawContext* GetSavedContext();
 
  private:
   intptr_t PcDescIndex();
@@ -166,10 +173,9 @@ class ActivationFrame : public ZoneAllocated {
   uword sp_;
 
   // The anchor of the context chain for this function.
-  const Context& ctx_;
-
-  Function& function_;
-  Code& code_;
+  Context& ctx_;
+  const Code& code_;
+  const Function& function_;
   intptr_t token_pos_;
   intptr_t pc_desc_index_;
   intptr_t line_number_;

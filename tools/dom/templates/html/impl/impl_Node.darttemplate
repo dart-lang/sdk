@@ -150,6 +150,10 @@ $endif
     return IterableMixinWorkaround.where(this, f);
   }
 
+  Iterable expand(Iterable f(Node element)) {
+    return IterableMixinWorkaround.expand(this, f);
+  }
+
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);

@@ -35,6 +35,18 @@ class Universe {
   final Map<SourceString, Set<Selector>> invokedNames;
   final Map<SourceString, Set<Selector>> invokedGetters;
   final Map<SourceString, Set<Selector>> invokedSetters;
+
+  /**
+   * Fields accessed. Currently only the codegen knows this
+   * information. The resolver is too conservative when seeing a
+   * getter and only registers an invoked getter.
+   */
+  final Map<SourceString, Set<Selector>> fieldGetters;
+
+  /**
+   * Fields set. See comment in [fieldGetters].
+   */
+  final Map<SourceString, Set<Selector>> fieldSetters;
   final Set<DartType> isChecks;
 
   Universe() : instantiatedClasses = new Set<ClassElement>(),
@@ -42,6 +54,8 @@ class Universe {
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Map<SourceString, Set<Selector>>(),
+               fieldGetters = new Map<SourceString, Set<Selector>>(),
+               fieldSetters = new Map<SourceString, Set<Selector>>(),
                invokedSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<DartType>();
 
@@ -50,7 +64,7 @@ class Universe {
                            Compiler compiler) {
     if (selectors == null) return false;
     for (Selector selector in selectors) {
-      if (selector.applies(member, compiler)) return true;
+      if (selector.appliesUnnamed(member, compiler)) return true;
     }
     return false;
   }
@@ -65,46 +79,6 @@ class Universe {
 
   bool hasInvokedSetter(Element member, Compiler compiler) {
     return hasMatchingSelector(invokedSetters[member.name], member, compiler);
-  }
-}
-
-/// [Universe] which is specific to resolution.
-class ResolutionUniverse extends Universe {
-}
-
-/// [Universe] which is specific to code generation.
-class CodegenUniverse extends Universe {
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Key elements are declaration elements.
-   */
-  Map<Element, js.Expression> generatedCode;
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: Key elements are declaration elements.
-   */
-  Map<Element, js.Expression> generatedBailoutCode;
-
-  final Map<SourceString, Set<Selector>> fieldGetters;
-  final Map<SourceString, Set<Selector>> fieldSetters;
-
-  CodegenUniverse()
-      : generatedCode = new Map<Element, js.Expression>(),
-        generatedBailoutCode = new Map<Element, js.Expression>(),
-        fieldGetters = new Map<SourceString, Set<Selector>>(),
-        fieldSetters = new Map<SourceString, Set<Selector>>();
-
-  void addGeneratedCode(CodegenWorkItem work, js.Expression code) {
-    assert(invariant(work.element, work.element.isDeclaration));
-    generatedCode[work.element] = code;
-  }
-
-  void addBailoutCode(CodegenWorkItem work, js.Expression code) {
-    assert(invariant(work.element, work.element.isDeclaration));
-    generatedBailoutCode[work.element] = code;
   }
 
   bool hasFieldGetter(Element member, Compiler compiler) {
@@ -236,6 +210,8 @@ class Selector {
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
   DartType get receiverType => null;
 
+  Selector get asUntyped => this;
+
   /**
    * The member name for invocation mirrors created from this selector.
    */
@@ -255,10 +231,13 @@ class Selector {
     return kind;
   }
 
-  bool applies(Element element, Compiler compiler)
-      => appliesUntyped(element, compiler);
+  bool appliesUnnamed(Element element, Compiler compiler) {
+    assert(sameNameHack(element, compiler));
+    return appliesUntyped(element, compiler);
+  }
 
   bool appliesUntyped(Element element, Compiler compiler) {
+    assert(sameNameHack(element, compiler));
     if (Elements.isUnresolved(element)) return false;
     if (name.isPrivate() && library != element.getLibrary()) return false;
     if (element.isForeign(compiler)) return true;
@@ -301,7 +280,27 @@ class Selector {
     }
   }
 
+  bool sameNameHack(Element element, Compiler compiler) {
+    // TODO(ngeoffray): Remove workaround checks.
+    return element == compiler.assertMethod
+        || element.isConstructor()
+        || name == element.name;
+  }
+
+  bool applies(Element element, Compiler compiler) {
+    if (!sameNameHack(element, compiler)) return false;
+    return appliesUnnamed(element, compiler);
+  }
+
   /**
+   * Fills [list] with the arguments in a defined order.
+   *
+   * [compileArgument] is a function that returns a compiled version
+   * of an argument located in [arguments].
+   *
+   * [compileConstant] is a function that returns a compiled constant
+   * of an optional argument that is not in [arguments.
+   *
    * Returns [:true:] if the selector and the [element] match; [:false:]
    * otherwise.
    *
@@ -415,14 +414,18 @@ class TypedSelector extends Selector {
    */
   final DartType receiverType;
 
+  final Selector asUntyped;
+
   TypedSelector(DartType this.receiverType, Selector selector)
-    : super(selector.kind,
-            selector.name,
-            selector.library,
-            selector.argumentCount,
-            selector.namedArguments) {
+      : asUntyped = selector.asUntyped,
+        super(selector.kind,
+              selector.name,
+              selector.library,
+              selector.argumentCount,
+              selector.namedArguments) {
     // Invariant: Typed selector can not be based on a malformed type.
     assert(!identical(receiverType.kind, TypeKind.MALFORMED_TYPE));
+    assert(asUntyped.receiverType == null);
   }
 
   /**
@@ -430,12 +433,14 @@ class TypedSelector extends Selector {
    * invoked on an instance of [cls].
    */
   bool hasElementIn(ClassElement cls, Element element) {
-    Element resolved = cls.lookupMember(element.name);
-    if (identical(resolved, element)) return true;
+    // Use the selector for the lookup instead of [:element.name:]
+    // because the selector has the right privacy information.
+    Element resolved = cls.lookupSelector(this);
+    if (resolved == element) return true;
     if (resolved == null) return false;
-    if (identical(resolved.kind, ElementKind.ABSTRACT_FIELD)) {
+    if (resolved.isAbstractField()) {
       AbstractFieldElement field = resolved;
-      if (identical(element, field.getter) || identical(element, field.setter)) {
+      if (element == field.getter || element == field.setter) {
         return true;
       } else {
         ClassElement otherCls = field.getEnclosingClass();
@@ -447,7 +452,8 @@ class TypedSelector extends Selector {
     return false;
   }
 
-  bool applies(Element element, Compiler compiler) {
+  bool appliesUnnamed(Element element, Compiler compiler) {
+    assert(sameNameHack(element, compiler));
     // [TypedSelector] are only used when compiling.
     assert(compiler.phase == Compiler.PHASE_COMPILING);
     if (!element.isMember()) return false;

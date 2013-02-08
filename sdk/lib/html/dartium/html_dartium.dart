@@ -1816,6 +1816,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable
   bool _isPointInPath_2(x, y) native "CanvasRenderingContext2D__isPointInPath_2_Callback";
 
+  @DomName('CanvasRenderingContext2D.isPointInStroke')
+  @DocsEditable
+  bool isPointInStroke(num x, num y) native "CanvasRenderingContext2D_isPointInStroke_Callback";
+
   @DomName('CanvasRenderingContext2D.lineTo')
   @DocsEditable
   void lineTo(num x, num y) native "CanvasRenderingContext2D_lineTo_Callback";
@@ -2022,10 +2026,6 @@ class CharacterData extends Node {
   @DomName('CharacterData.insertData')
   @DocsEditable
   void insertData(int offset, String data) native "CharacterData_insertData_Callback";
-
-  @DomName('CharacterData.remove')
-  @DocsEditable
-  void remove() native "CharacterData_remove_Callback";
 
   @DomName('CharacterData.replaceData')
   @DocsEditable
@@ -2945,6 +2945,8 @@ class CssRule extends NativeFieldWrapperClass1 {
   static const int STYLE_RULE = 1;
 
   static const int UNKNOWN_RULE = 0;
+
+  static const int WEBKIT_FILTER_RULE = 17;
 
   static const int WEBKIT_KEYFRAMES_RULE = 7;
 
@@ -7847,7 +7849,7 @@ class DomError extends NativeFieldWrapperClass1 {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName DOMException
+@DomName('DOMException')
 class DomException extends NativeFieldWrapperClass1 {
 
   static const String INDEX_SIZE = 'IndexSizeError';
@@ -8001,6 +8003,9 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
 
   Iterable<DomMimeType> where(bool f(DomMimeType element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(DomMimeType element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(DomMimeType element)) => IterableMixinWorkaround.every(this, f);
 
@@ -8269,6 +8274,9 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   Iterable<DomPlugin> where(bool f(DomPlugin element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(DomPlugin element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(DomPlugin element)) => IterableMixinWorkaround.every(this, f);
 
@@ -8656,6 +8664,9 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   Iterable<String> where(bool f(String element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(String element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
@@ -8939,6 +8950,10 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.where(this, f);
   }
 
+  Iterable expand(Iterable f(Element element)) {
+    return IterableMixinWorkaround.expand(this, f);
+  }
+
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
   }
@@ -9154,6 +9169,10 @@ class _FrozenElementList implements List {
 
   Iterable<Element> where(bool f(Element element)) {
     return IterableMixinWorkaround.where(this, f);
+  }
+
+  Iterable expand(Iterable f(Element element)) {
+    return IterableMixinWorkaround.expand(this, f);
   }
 
   bool every(bool f(Element element)) {
@@ -11566,6 +11585,9 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
   Iterable<File> where(bool f(File element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(File element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(File element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
@@ -12235,6 +12257,9 @@ class Float32Array extends ArrayBufferView implements List<num> {
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(num element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
@@ -12469,6 +12494,9 @@ class Float64Array extends ArrayBufferView implements List<num> {
 
   Iterable<num> where(bool f(num element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(num element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
 
@@ -13055,6 +13083,9 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
@@ -13263,6 +13294,9 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
@@ -13673,6 +13707,11 @@ class HttpRequest extends EventTarget {
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
    *
+   * Note that requests for file:// URIs are only supported by Chrome extensions
+   * with appropriate permissions in their manifest. Requests to file:// URIs
+   * will also never fail- the Future will always complete successfully, even
+   * when the file cannot be found.
+   *
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   static Future<HttpRequest> request(String url,
@@ -13699,8 +13738,9 @@ class HttpRequest extends EventTarget {
     }
 
     xhr.onLoad.listen((e) {
-      if (xhr.status >= 200 && xhr.status < 300 ||
-          xhr.status == 304 ) {
+      // Note: file:// URIs have status of 0.
+      if ((xhr.status >= 200 && xhr.status < 300) ||
+          xhr.status == 0 || xhr.status == 304) {
         completer.complete(xhr);
       } else {
         completer.completeError(e);
@@ -15636,6 +15676,9 @@ class Int16Array extends ArrayBufferView implements List<int> {
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
@@ -15871,6 +15914,9 @@ class Int32Array extends ArrayBufferView implements List<int> {
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
@@ -16105,6 +16151,9 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -17748,8 +17797,7 @@ class MediaSource extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 
-/// @domName MediaStream; @docsEditable true@DomName('MediaStream')
-
+@DomName('MediaStream')
 class MediaStream extends EventTarget {
   MediaStream.internal() : super.internal();
 
@@ -18725,6 +18773,9 @@ class NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
@@ -19195,6 +19246,10 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.where(this, f);
   }
 
+  Iterable expand(Iterable f(Node element)) {
+    return IterableMixinWorkaround.expand(this, f);
+  }
+
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
@@ -19580,6 +19635,9 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   Iterable<Node> where(bool f(Node element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
 
@@ -20295,10 +20353,6 @@ class OutputElement extends _Element_Merged {
   @DomName('HTMLOutputElement.htmlFor')
   @DocsEditable
   DomSettableTokenList get htmlFor native "HTMLOutputElement_htmlFor_Getter";
-
-  @DomName('HTMLOutputElement.htmlFor')
-  @DocsEditable
-  void set htmlFor(DomSettableTokenList value) native "HTMLOutputElement_htmlFor_Setter";
 
   @DomName('HTMLOutputElement.labels')
   @DocsEditable
@@ -22290,6 +22344,9 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   Iterable<SourceBuffer> where(bool f(SourceBuffer element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(SourceBuffer element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(SourceBuffer element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
@@ -22607,6 +22664,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(SpeechGrammar element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(SpeechGrammar element)) => IterableMixinWorkaround.every(this, f);
 
@@ -23308,6 +23368,9 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   Iterable<Map> where(bool f(Map element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Map element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Map element)) => IterableMixinWorkaround.every(this, f);
 
@@ -24663,6 +24726,9 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   Iterable<TextTrackCue> where(bool f(TextTrackCue element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(TextTrackCue element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(TextTrackCue element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
@@ -24877,6 +24943,9 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   Iterable<TextTrack> where(bool f(TextTrack element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(TextTrack element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(TextTrack element)) => IterableMixinWorkaround.every(this, f);
 
@@ -25292,6 +25361,9 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   Iterable<Touch> where(bool f(Touch element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Touch element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Touch element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Touch element)) => IterableMixinWorkaround.any(this, f);
@@ -25544,17 +25616,21 @@ class TrackEvent extends Event {
 
 
 @DocsEditable
-@DomName('WebKitTransitionEvent')
+@DomName('TransitionEvent')
 class TransitionEvent extends Event {
   TransitionEvent.internal() : super.internal();
 
-  @DomName('WebKitTransitionEvent.elapsedTime')
+  @DomName('TransitionEvent.elapsedTime')
   @DocsEditable
-  num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
+  num get elapsedTime native "TransitionEvent_elapsedTime_Getter";
 
-  @DomName('WebKitTransitionEvent.propertyName')
+  @DomName('TransitionEvent.propertyName')
   @DocsEditable
-  String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
+  String get propertyName native "TransitionEvent_propertyName_Getter";
+
+  @DomName('TransitionEvent.pseudoElement')
+  @DocsEditable
+  String get pseudoElement native "TransitionEvent_pseudoElement_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25778,6 +25854,9 @@ class Uint16Array extends ArrayBufferView implements List<int> {
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -26014,6 +26093,9 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
@@ -26249,6 +26331,9 @@ class Uint8Array extends ArrayBufferView implements List<int> {
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
@@ -26481,6 +26566,9 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   Iterable<int> where(bool f(int element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
 
@@ -28458,6 +28546,23 @@ class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('WebKitCSSFilterRule')
+class WebKitCssFilterRule extends CssRule {
+  WebKitCssFilterRule.internal() : super.internal();
+
+  @DomName('WebKitCSSFilterRule.style')
+  @DocsEditable
+  CssStyleDeclaration get style native "WebKitCSSFilterRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('WebKitCSSFilterValue')
 class WebKitCssFilterValue extends _CssValueList {
   WebKitCssFilterValue.internal() : super.internal();
@@ -28551,6 +28656,31 @@ class WebKitNamedFlow extends EventTarget {
   @DomName('WebKitNamedFlow.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitTransitionEvent')
+class WebKitTransitionEvent extends Event {
+  WebKitTransitionEvent.internal() : super.internal();
+
+  @DomName('WebKitTransitionEvent.elapsedTime')
+  @DocsEditable
+  num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
+
+  @DomName('WebKitTransitionEvent.propertyName')
+  @DocsEditable
+  String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
+
+  @DomName('WebKitTransitionEvent.pseudoElement')
+  @DocsEditable
+  String get pseudoElement native "WebKitTransitionEvent_pseudoElement_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30371,6 +30501,9 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<ClientRec
   Iterable<ClientRect> where(bool f(ClientRect element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(ClientRect element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(ClientRect element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(ClientRect element)) => IterableMixinWorkaround.any(this, f);
@@ -30572,6 +30705,9 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   Iterable<CssRule> where(bool f(CssRule element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(CssRule element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(CssRule element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(CssRule element)) => IterableMixinWorkaround.any(this, f);
@@ -30772,6 +30908,9 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   Iterable<CssValue> where(bool f(CssValue element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(CssValue element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(CssValue element)) => IterableMixinWorkaround.every(this, f);
 
@@ -31111,6 +31250,9 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   Iterable<Entry> where(bool f(Entry element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(Entry element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(Entry element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(Entry element)) => IterableMixinWorkaround.any(this, f);
@@ -31312,6 +31454,9 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
   Iterable<EntrySync> where(bool f(EntrySync element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(EntrySync element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(EntrySync element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
@@ -31512,6 +31657,9 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   Iterable<Gamepad> where(bool f(Gamepad element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Gamepad element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(Gamepad element)) => IterableMixinWorkaround.every(this, f);
 
@@ -31857,6 +32005,9 @@ class _MediaStreamList extends NativeFieldWrapperClass1 implements List<MediaStr
   Iterable<MediaStream> where(bool f(MediaStream element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(MediaStream element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(MediaStream element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(MediaStream element)) => IterableMixinWorkaround.any(this, f);
@@ -32057,6 +32208,9 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 
   Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(SpeechInputResult element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(SpeechInputResult element)) => IterableMixinWorkaround.every(this, f);
 
@@ -32259,6 +32413,9 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) =>
       IterableMixinWorkaround.where(this, f);
 
+  Iterable expand(Iterable f(SpeechRecognitionResult element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
   bool every(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.every(this, f);
 
   bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
@@ -32459,6 +32616,9 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   Iterable<StyleSheet> where(bool f(StyleSheet element)) =>
       IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(StyleSheet element)) =>
+      IterableMixinWorkaround.expand(this, f);
 
   bool every(bool f(StyleSheet element)) => IterableMixinWorkaround.every(this, f);
 
@@ -33009,13 +33169,15 @@ abstract class CssClassSet implements Set<String> {
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
+  Iterable expand(Iterable f(String element)) => readClasses.expand(f);
+
   bool every(bool f(String element)) => readClasses().every(f);
 
   bool any(bool f(String element)) => readClasses().any(f);
 
   bool get isEmpty => readClasses().isEmpty;
 
-  int get length =>readClasses().length;
+  int get length => readClasses().length;
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, String element)) {

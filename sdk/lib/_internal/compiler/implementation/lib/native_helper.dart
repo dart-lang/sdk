@@ -27,6 +27,7 @@ String typeNameInWebKitCommon(tag) {
   if (name == 'JavaScriptAudioNode') return 'ScriptProcessorNode';
   if (name == 'Oscillator') return 'OscillatorNode';
   if (name == 'RealtimeAnalyserNode') return 'AnalyserNode';
+  if (name == 'IDBVersionChangeRequest') return 'IDBOpenDBRequest';
   return name;
 }
 

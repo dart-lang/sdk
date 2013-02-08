@@ -100,7 +100,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
       codegen.visitGraph(graph);
 
       js.Block body = new js.Block(<js.Statement>[]);
-      if (codegen.setup != null) body.statements.add(codegen.setup);
       body.statements.add(codegen.body);
       js.Fun fun =
           buildJavaScriptFunction(work.element, codegen.newParameters, body);
@@ -196,11 +195,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    */
   final Set<String> declaredLocals;
 
-  Element equalsNullElement;
-  Element boolifiedEqualsNullElement;
   int indent = 0;
   HGraph currentGraph;
-  HBasicBlock currentBlock;
 
   // Records a block-information that is being handled specially.
   // Used to break bad recursion.
@@ -1114,7 +1110,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Abort traversal if we are leaving the currently active sub-graph.
     if (!subGraph.contains(node)) return;
 
-    currentBlock = node;
     // If this node has block-structure based information attached,
     // try using that to traverse from here.
     if (node.blockFlow != null && handleBlockFlow(node.blockFlow)) {
@@ -1329,8 +1324,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitGoto(HGoto node) {
-    assert(currentBlock.successors.length == 1);
-    List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
+    HBasicBlock block = node.block;
+    assert(block.successors.length == 1);
+    List<HBasicBlock> dominated = block.dominatedBlocks;
     // With the exception of the entry-node which dominates its successor
     // and the exit node, no block finishing with a 'goto' can have more than
     // one dominated block (since it has only one successor).
@@ -1341,11 +1337,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       compiler.internalError('dominated.length = ${dominated.length}',
                              instruction: node);
     }
-    if (dominated.length == 2 && !identical(currentBlock, currentGraph.entry)) {
-      compiler.internalError('currentBlock !== currentGraph.entry',
+    if (dominated.length == 2 && block != currentGraph.entry) {
+      compiler.internalError('node.block != currentGraph.entry',
                              instruction: node);
     }
-    assert(dominated[0] == currentBlock.successors[0]);
+    assert(dominated[0] == block.successors[0]);
     visitBasicBlock(dominated[0]);
   }
 
@@ -1374,7 +1370,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitBreak(HBreak node) {
-    assert(currentBlock.successors.length == 1);
+    assert(node.block.successors.length == 1);
     if (node.label != null) {
       LabelElement label = node.label;
       if (!tryCallAction(breakAction, label)) {
@@ -1389,7 +1385,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitContinue(HContinue node) {
-    assert(currentBlock.successors.length == 1);
+    assert(node.block.successors.length == 1);
     if (node.label != null) {
       LabelElement label = node.label;
       if (!tryCallAction(continueAction, label)) {
@@ -1519,18 +1515,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // seen selectors.
       if (target.isGenerativeConstructorBody()) {
         methodName = name.slowToString();
-      } else if (target == backend.jsArrayAdd) {
-        methodName = 'push';
-      } else if (target == backend.jsArrayRemoveLast) {
-        methodName = 'pop';
-      } else if (target == backend.jsStringSplit) {
-        methodName = 'split';
-        // Split returns a List, so we make sure the backend knows the
-        // list class is instantiated.
-        world.registerInstantiatedClass(compiler.listClass);
-      } else if (target == backend.jsStringConcat) {
-        push(new js.Binary('+', object, arguments[0]), node);
-        return;
+      } else if (!node.isInterceptorCall) {
+        if (target == backend.jsArrayAdd) {
+          methodName = 'push';
+        } else if (target == backend.jsArrayRemoveLast) {
+          methodName = 'pop';
+        } else if (target == backend.jsStringSplit) {
+          methodName = 'split';
+          // Split returns a List, so we make sure the backend knows the
+          // list class is instantiated.
+          world.registerInstantiatedClass(compiler.listClass);
+        } else if (target == backend.jsStringConcat) {
+          push(new js.Binary('+', object, arguments[0]), node);
+          return;
+        }
       }
     }
 
@@ -1560,17 +1558,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node,
                                    Selector defaultSelector) {
-    // TODO(4434): For private members we need to use the untyped selector.
-    if (defaultSelector.name.isPrivate()) return defaultSelector;
-    // TODO(ngeoffray): Type intercepted calls.
-    if (node.isInterceptorCall) return defaultSelector;
     // If [JSInvocationMirror.invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
     if (node.element == null && // Invocation is not exact.
         backend.compiler.enabledInvokeOn) {
       return defaultSelector;
     }
-    HType receiverHType = types[node.inputs[0]];
+    int receiverIndex = node.isInterceptorCall ? 1 : 0;
+    HType receiverHType = types[node.inputs[receiverIndex]];
     DartType receiverType = receiverHType.computeType(compiler);
     if (receiverType != null &&
         !identical(receiverType.kind, TypeKind.MALFORMED_TYPE)) {
@@ -1617,7 +1612,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (target != null) {
       // If we know we're calling a specific method, register that
       // method only.
-      world.registerDynamicInvocationOf(target);
+      world.registerDynamicInvocationOf(target, selector);
     } else {
       SourceString name = node.selector.name;
       world.registerDynamicInvocation(name, selector);
@@ -2425,10 +2420,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       world.registerIsCheck(type);
 
       if (node.isArgumentTypeCheck) {
-        if (element == compiler.intClass) {
+        if (element == backend.jsIntClass) {
           checkInt(node.checkedInput, '!==');
         } else {
-          assert(element == compiler.numClass);
+          assert(element == backend.jsNumberClass);
           checkNum(node.checkedInput, '!==');
         }
         js.Expression test = pop();
@@ -2635,7 +2630,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
 class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
-  js.Statement setup;
   js.Switch currentBailoutSwitch;
   final List<js.Switch> oldBailoutSwitches;
   final List<js.Parameter> newParameters;
@@ -2941,7 +2935,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
         new js.Binary('===', generateStateUse(), new js.LiteralNumber('0'));
     js.Expression condition = new js.Binary('&&', stateEquals0, pop());
     // TODO(ngeoffray): Put the condition initialization in the
-    // [setup] buffer.
+    // arguments?
     List<HBailoutTarget> targets = node.thenBlock.bailoutTargets;
     for (int i = 0, len = targets.length; i < len; i++) {
       js.VariableUse stateRef = generateStateUse();

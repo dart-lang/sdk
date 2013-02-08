@@ -304,6 +304,43 @@ testMixinApplications() {
   testUnparseTopLevelWithMetadata('typedef C = S with M1,M2<A,B>;');
 }
 
+testUnparseParameters(List<String> variableDeclarations) {
+  var sb = new StringBuffer();
+  sb.add('Constructor(');
+  int index = 0;
+  for (String variableDeclaration in variableDeclarations) {
+    if (index != 0) {
+      sb.add(', ');
+    }
+    sb.add(variableDeclaration);
+    index++;
+  }
+  sb.add(');');
+
+  FunctionExpression node = parseMember(sb.toString());
+  index = 0;
+  for (VariableDefinitions parameter in node.parameters.nodes) {
+    Expect.equals(variableDeclarations[index], unparse(parameter));
+    index++;
+  }
+
+}
+
+testParameters() {
+  testUnparseParameters(
+      ["foo", "bar=0", "int baz", "int boz=0"]);
+  testUnparseParameters(
+      ["this.foo", "this.bar=0", "int this.baz", "int this.boz=0"]);
+  testUnparseParameters(
+      ["foo()", "void bar()", "int baz(a)", "int boz(int a,int b)=null"]);
+  testUnparseParameters(
+      ["this.foo()",
+       //"void this.bar()", // Commented out due to Issue 7852
+       //"int this.baz(a)", // Commented out due to Issue 7852
+       //"int this.boz(int a,int b)=null" // Commented out due to Issue 7852
+       ]);
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -324,4 +361,5 @@ main() {
   testRedirectingFactoryConstructors();
   testClassDeclarations();
   testMixinApplications();
+  testParameters();
 }

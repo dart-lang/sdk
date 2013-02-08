@@ -48,6 +48,7 @@ Future<String> provider(Uri uri) {
                     var length;
                     var split;
                     var concat;
+                    var toString;
                   }
                   class JSFunction {}
                   class JSInt {}

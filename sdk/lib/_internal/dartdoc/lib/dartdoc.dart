@@ -1465,9 +1465,6 @@ class Dartdoc {
     }
   }
 
-  DocComment createDocComment(String text, [ClassMirror inheritedFrom]) =>
-      new DocComment(text, inheritedFrom);
-
   /** Get the doc comment associated with the given library. */
   DocComment getLibraryComment(LibraryMirror library) => getComment(library);
 
@@ -1511,7 +1508,7 @@ class Dartdoc {
       }
     }
     if (comment == null) return null;
-    return createDocComment(comment, inheritedFrom);
+    return new DocComment(comment, inheritedFrom);
   }
 
   /**

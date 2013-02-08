@@ -5,7 +5,7 @@
 library dart.core;
 
 import "dart:collection";
-import "dart:collection-dev";
+import "dart:_collection-dev";
 
 part "bool.dart";
 part "collection.dart";
@@ -32,7 +32,6 @@ part "pattern.dart";
 part "print.dart";
 part "regexp.dart";
 part "set.dart";
-part "sink.dart";
 part "stopwatch.dart";
 part "string.dart";
 part "string_buffer.dart";

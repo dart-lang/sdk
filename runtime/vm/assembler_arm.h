@@ -262,7 +262,11 @@ class FieldAddress : public Address {
 
 class Assembler : public ValueObject {
  public:
-  Assembler() : buffer_(), prologue_offset_(-1), comments_() { }
+  Assembler()
+      : buffer_(),
+        object_pool_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
+        prologue_offset_(-1),
+        comments_() { }
   ~Assembler() { }
 
   void PopRegister(Register r) { Pop(r); }
@@ -273,11 +277,16 @@ class Assembler : public ValueObject {
   int CodeSize() const { return buffer_.Size(); }
   int prologue_offset() const { return prologue_offset_; }
   const ZoneGrowableArray<int>& GetPointerOffsets() const {
+    ASSERT(buffer_.pointer_offsets().length() == 0);  // No pointers in code.
     return buffer_.pointer_offsets();
+  }
+  const GrowableObjectArray& object_pool() const {
+    return object_pool_;
   }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
+    ASSERT(object_pool_.Length() == 0);  // TODO(regis): Otherwise, more work.
   }
 
   // Debugging and bringup support.
@@ -286,9 +295,7 @@ class Assembler : public ValueObject {
   void Untested(const char* message);
   void Unreachable(const char* message);
 
-  static void InitializeMemoryWithBreakpoints(uword data, int length) {
-    UNIMPLEMENTED();
-  }
+  static void InitializeMemoryWithBreakpoints(uword data, int length);
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
@@ -525,9 +532,12 @@ class Assembler : public ValueObject {
   void Emit(int32_t value);
 
  private:
-  AssemblerBuffer buffer_;
-  ZoneGrowableArray<int>* pointer_offsets_;
-  int prologue_offset_;
+  AssemblerBuffer buffer_;  // Contains position independent code.
+  const GrowableObjectArray& object_pool_;  // Objects and jump targets.
+  int32_t prologue_offset_;
+
+  int32_t AddObject(const Object& obj);
+  int32_t AddExternalLabel(const ExternalLabel* label);
 
   class CodeComment : public ZoneAllocated {
    public:

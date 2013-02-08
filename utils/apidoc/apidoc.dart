@@ -258,16 +258,6 @@ class Apidoc extends doc.Dartdoc {
     super.docLibrary(library);
   }
 
-  /** Override definition from parent class to strip out annotation tags. */
-  doc.DocComment createDocComment(String text,
-                                  [ClassMirror inheritedFrom]) {
-    String strippedText =
-        text.replaceAll(new RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"),
-                        '').trim();
-    if (strippedText.isEmpty) return null;
-    return super.createDocComment(strippedText, inheritedFrom);
-  }
-
   doc.DocComment getLibraryComment(LibraryMirror library) {
     return super.getLibraryComment(library);
   }

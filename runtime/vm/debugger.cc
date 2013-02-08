@@ -134,12 +134,11 @@ void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp,
-                                 const Context& ctx)
+ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp, const Code& code)
     : pc_(pc), fp_(fp), sp_(sp),
-      ctx_(Context::ZoneHandle(ctx.raw())),
-      function_(Function::ZoneHandle()),
-      code_(Code::ZoneHandle()),
+      ctx_(Context::ZoneHandle()),
+      code_(Code::ZoneHandle(code.raw())),
+      function_(Function::ZoneHandle(code.function())),
       token_pos_(-1),
       pc_desc_index_(-1),
       line_number_(-1),
@@ -148,24 +147,6 @@ ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp,
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
-}
-
-
-const Code& ActivationFrame::DartCode() {
-  if (code_.IsNull()) {
-    Isolate* isolate = Isolate::Current();
-    ASSERT(isolate != NULL);
-    code_ = Code::LookupCode(pc_);
-  }
-  return code_;
-}
-
-
-const Function& ActivationFrame::DartFunction() {
-  if (function_.IsNull()) {
-    function_ = DartCode().function();
-  }
-  return function_;
 }
 
 
@@ -241,8 +222,7 @@ bool Debugger::HasBreakpoint(const Function& func) {
 
 
 RawString* ActivationFrame::QualifiedFunctionName() {
-  const Function& func = DartFunction();
-  return String::New(Debugger::QualifiedFunctionName(func));
+  return String::New(Debugger::QualifiedFunctionName(function()));
 }
 
 
@@ -253,23 +233,19 @@ RawString* ActivationFrame::SourceUrl() {
 
 
 RawScript* ActivationFrame::SourceScript() {
-  const Function& func = DartFunction();
-  return func.script();
+  return function().script();
 }
 
 
 RawLibrary* ActivationFrame::Library() {
-  const Function& func = DartFunction();
-  const Class& cls = Class::Handle(func.Owner());
+  const Class& cls = Class::Handle(function().Owner());
   return cls.library();
 }
 
 
 void ActivationFrame::GetPcDescriptors() {
   if (pc_desc_.IsNull()) {
-    const Code& code = DartCode();
-    ASSERT(!code.IsNull());
-    pc_desc_ = code.pc_descriptors();
+    pc_desc_ = code().pc_descriptors();
     ASSERT(!pc_desc_.IsNull());
   }
 }
@@ -320,8 +296,7 @@ intptr_t ActivationFrame::LineNumber() {
 
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
-    const Code& code = DartCode();
-    var_descriptors_ = code.var_descriptors();
+    var_descriptors_ = code().var_descriptors();
     ASSERT(!var_descriptors_.IsNull());
   }
 }
@@ -363,7 +338,7 @@ intptr_t ActivationFrame::ContextLevel() {
 }
 
 
-RawContext* ActivationFrame::CallerContext() {
+RawContext* ActivationFrame::GetSavedContext() {
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   for (int i = 0; i < var_desc_len; i++) {
@@ -373,8 +348,8 @@ RawContext* ActivationFrame::CallerContext() {
       return reinterpret_cast<RawContext*>(GetLocalVarValue(var_info.index));
     }
   }
-  // Caller uses same context chain.
-  return ctx_.raw();
+  UNREACHABLE();
+  return Context::null();
 }
 
 
@@ -388,8 +363,7 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
     ActivationFrame* frame = trace_[frame_index];
     intptr_t try_index = frame->TryIndex();
     if (try_index < 0) continue;
-    const Code& code = frame->DartCode();
-    handlers = code.exception_handlers();
+    handlers = frame->code().exception_handlers();
     ASSERT(!handlers.IsNull());
     intptr_t num_handlers_checked = 0;
     while (try_index >= 0) {
@@ -426,7 +400,7 @@ void ActivationFrame::GetDescIndices() {
   // Rather than potentially displaying incorrect values, we
   // pretend that there are no variables in the frame.
   // We should be more clever about this in the future.
-  if (DartCode().is_optimized()) {
+  if (code().is_optimized()) {
     vars_initialized_ = true;
     return;
   }
@@ -563,10 +537,9 @@ RawArray* ActivationFrame::GetLocalVariables() {
 const char* ActivationFrame::ToCString() {
   const char* kFormat = "Function: '%s' url: '%s' line: %d";
 
-  const Function& func = DartFunction();
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
-  const char* func_name = Debugger::QualifiedFunctionName(func);
+  const char* func_name = Debugger::QualifiedFunctionName(function());
 
   intptr_t len =
       OS::SNPrint(NULL, 0, kFormat, func_name, url.ToCString(), line);
@@ -880,17 +853,31 @@ void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
 
 
 DebuggerStackTrace* Debugger::CollectStackTrace() {
+  Isolate* isolate = Isolate::Current();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
-  Context& ctx = Context::Handle(Isolate::Current()->top_context());
-  DartFrameIterator iterator;
+  Context& ctx = Context::Handle(isolate->top_context());
+  Code& code = Code::Handle(isolate);
+  StackFrameIterator iterator(false);
   StackFrame* frame = iterator.NextFrame();
+  bool get_saved_context = false;
   while (frame != NULL) {
     ASSERT(frame->IsValid());
-    ASSERT(frame->IsDartFrame());
-    ActivationFrame* activation =
-        new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), ctx);
-    ctx = activation->CallerContext();
-    stack_trace->AddActivation(activation);
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      ActivationFrame* activation = new ActivationFrame(frame->pc(),
+                                                        frame->fp(),
+                                                        frame->sp(),
+                                                        code);
+      if (get_saved_context) {
+        ctx = activation->GetSavedContext();
+      }
+      activation->SetContext(ctx);
+      stack_trace->AddActivation(activation);
+      get_saved_context = activation->function().IsClosureFunction();
+    } else if (frame->IsEntryFrame()) {
+      ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
+      get_saved_context = false;
+    }
     frame = iterator.NextFrame();
   }
   return stack_trace;
@@ -1486,7 +1473,7 @@ void Debugger::SignalBpReached() {
       // If we are at the function return, do a StepOut action.
       if (stack_trace->Length() > 1) {
         ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
-        func_to_instrument = caller_frame->DartFunction().raw();
+        func_to_instrument = caller_frame->function().raw();
       }
     }
   } else if (resume_action_ == kStepInto) {
@@ -1526,7 +1513,7 @@ void Debugger::SignalBpReached() {
       // Treat like stepping out to caller.
       if (stack_trace->Length() > 1) {
         ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
-        func_to_instrument = caller_frame->DartFunction().raw();
+        func_to_instrument = caller_frame->function().raw();
       }
     }
   } else {
@@ -1534,7 +1521,7 @@ void Debugger::SignalBpReached() {
     // Set stepping breakpoints in the caller.
     if (stack_trace->Length() > 1) {
       ActivationFrame* caller_frame = stack_trace->ActivationFrameAt(1);
-      func_to_instrument = caller_frame->DartFunction().raw();
+      func_to_instrument = caller_frame->function().raw();
     }
   }
 

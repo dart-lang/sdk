@@ -621,6 +621,19 @@ class JavaScriptBackend extends Backend {
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
 
+  /**
+   * The generated code as a js AST for compiled methods. 
+   */
+  Map<Element, js.Expression> get generatedCode {
+    return compiler.enqueuer.codegen.generatedCode;
+  }
+
+  /**
+   * The generated code as a js AST for compiled bailout methods. 
+   */
+  final Map<Element, js.Expression> generatedBailoutCode =
+      new Map<Element, js.Expression>();
+
   ClassElement jsStringClass;
   ClassElement jsArrayClass;
   ClassElement jsNumberClass;
@@ -636,6 +649,7 @@ class JavaScriptBackend extends Backend {
   Element jsArrayAdd;
   Element jsStringSplit;
   Element jsStringConcat;
+  Element jsStringToString;
   Element getInterceptorMethod;
   Element fixedLengthListConstructor;
   bool seenAnyClass = false;
@@ -801,6 +815,8 @@ class JavaScriptBackend extends Backend {
         jsStringClass, const SourceString('split'));
     jsStringConcat = compiler.lookupElementIn(
         jsStringClass, const SourceString('concat'));
+    jsStringToString = compiler.lookupElementIn(
+        jsStringClass, const SourceString('toString'));
 
     for (ClassElement cls in classes) {
       if (cls != null) interceptedClasses[cls] = null;
@@ -868,10 +884,12 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsArrayClass, enqueuer);
       // The backend will try to optimize array access and use the
       // `ioore` and `iae` helpers directly.
-      enqueuer.registerStaticUse(
-          compiler.findHelper(const SourceString('ioore')));
-      enqueuer.registerStaticUse(
-          compiler.findHelper(const SourceString('iae')));
+      if (enqueuer.isResolutionQueue) {
+        enqueuer.registerStaticUse(
+            compiler.findHelper(const SourceString('ioore')));
+        enqueuer.registerStaticUse(
+            compiler.findHelper(const SourceString('iae')));
+      }
     } else if (cls == compiler.intClass) {
       addInterceptors(jsIntClass, enqueuer);
       addInterceptors(jsNumberClass, enqueuer);
@@ -888,6 +906,12 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsIntClass, enqueuer);
       addInterceptors(jsDoubleClass, enqueuer);
       addInterceptors(jsNumberClass, enqueuer);
+    } else if (cls == compiler.mapClass) {
+      // The backend will use a literal list to initialize the entries
+      // of the map.
+      if (enqueuer.isResolutionQueue) {
+        enqueuer.registerInstantiatedClass(compiler.listClass); 
+      }
     }
   }
 
@@ -917,7 +941,8 @@ class JavaScriptBackend extends Backend {
   }
 
   void codegen(CodegenWorkItem work) {
-    if (work.element.kind.category == ElementCategory.VARIABLE) {
+    Element element = work.element;
+    if (element.kind.category == ElementCategory.VARIABLE) {
       Constant initialValue = compiler.constantHandler.compileWorkItem(work);
       if (initialValue != null) {
         return;
@@ -935,13 +960,13 @@ class JavaScriptBackend extends Backend {
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
       js.Expression code = generator.generateBailoutMethod(work, graph);
-      compiler.codegenWorld.addBailoutCode(work, code);
+      generatedBailoutCode[element] = code;
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph, true);
     }
     js.Expression code = generator.generateCode(work, graph);
-    compiler.codegenWorld.addGeneratedCode(work, code);
-    invalidateAfterCodegen.forEach(compiler.enqueuer.codegen.eagerRecompile);
+    generatedCode[element] = code;
+    invalidateAfterCodegen.forEach(eagerRecompile);
     invalidateAfterCodegen.clear();
   }
 
@@ -951,6 +976,16 @@ class JavaScriptBackend extends Backend {
 
   native.NativeEnqueuer nativeCodegenEnqueuer(Enqueuer world) {
     return new native.NativeCodegenEnqueuer(world, compiler, emitter);
+  }
+
+  /**
+   * Unit test hook that returns code of an element as a String.
+   *
+   * Invariant: [element] must be a declaration element.
+   */
+  String assembleCode(Element element) {
+    assert(invariant(element, element.isDeclaration));
+    return js.prettyPrint(generatedCode[element], compiler).getText();
   }
 
   void assembleProgram() {
@@ -1106,6 +1141,13 @@ class JavaScriptBackend extends Backend {
     return fieldTypes.optimisticFieldType(element);
   }
 
+  /**
+   * Return the checked mode helper name that will be needed to do a
+   * type check on [type] at runtime. Note that this method is being
+   * called both by the resolver with interface types (int, String,
+   * ...), and by the SSA backend with implementation types (JSInt,
+   * JSString, ...).
+   */
   SourceString getCheckedModeHelper(DartType type) {
     Element element = type.element;
     bool nativeCheck =
@@ -1116,17 +1158,18 @@ class JavaScriptBackend extends Backend {
       return const SourceString('malformedTypeCheck');
     } else if (type == compiler.types.voidType) {
       return const SourceString('voidTypeCheck');
-    } else if (element == compiler.stringClass) {
+    } else if (element == jsStringClass || element == compiler.stringClass) {
       return const SourceString('stringTypeCheck');
-    } else if (element == compiler.doubleClass) {
+    } else if (element == jsDoubleClass || element == compiler.doubleClass) {
       return const SourceString('doubleTypeCheck');
-    } else if (element == compiler.numClass) {
+    } else if (element == jsNumberClass || element == compiler.numClass) {
       return const SourceString('numTypeCheck');
-    } else if (element == compiler.boolClass) {
+    } else if (element == jsBoolClass || element == compiler.boolClass) {
       return const SourceString('boolTypeCheck');
-    } else if (element == compiler.functionClass) {
+    } else if (element == jsFunctionClass
+               || element == compiler.functionClass) {
       return const SourceString('functionTypeCheck');
-    } else if (element == compiler.intClass) {
+    } else if (element == jsIntClass || element == compiler.intClass) {
       return const SourceString('intTypeCheck');
     } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
       return nativeCheck
@@ -1136,7 +1179,7 @@ class JavaScriptBackend extends Backend {
       return nativeCheck
           ? const SourceString('stringSuperNativeTypeCheck')
           : const SourceString('stringSuperTypeCheck');
-    } else if (identical(element, compiler.listClass)) {
+    } else if (element == compiler.listClass || element == jsArrayClass) {
       return const SourceString('listTypeCheck');
     } else {
       if (Elements.isListSupertype(element, compiler)) {
@@ -1202,5 +1245,18 @@ class JavaScriptBackend extends Backend {
 
   Element getGetRuntimeTypeInfo() {
     return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
+  }
+
+  /**
+   * Remove [element] from the set of generated code, and put it back
+   * into the worklist.
+   *
+   * Invariant: [element] must be a declaration element.
+   */
+  void eagerRecompile(Element element) {
+    assert(invariant(element, element.isDeclaration));
+    generatedCode.remove(element);
+    generatedBailoutCode.remove(element);
+    compiler.enqueuer.codegen.addToWorkList(element);
   }
 }

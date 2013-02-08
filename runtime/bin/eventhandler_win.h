@@ -217,6 +217,7 @@ class Handle {
   Handle(HANDLE handle, Dart_Port port);
 
   virtual void AfterClose() = 0;
+  virtual void HandleIssueError();
 
   Type type_;
   HANDLE handle_;
@@ -260,6 +261,8 @@ class SocketHandle : public Handle {
   explicit SocketHandle(SOCKET s) : Handle(reinterpret_cast<HANDLE>(s)) {}
   SocketHandle(SOCKET s, Dart_Port port)
       : Handle(reinterpret_cast<HANDLE>(s), port) {}
+
+  virtual void HandleIssueError();
 };
 
 

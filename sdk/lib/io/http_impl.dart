@@ -401,6 +401,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   int _streamReadInto(List<int> buffer, int offset, int len) {
     List<int> data = _buffer.readBytes(len);
     buffer.setRange(offset, data.length, data);
+    return data.length;
   }
 
   void _streamSetErrorHandler(callback(e)) {

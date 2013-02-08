@@ -22,6 +22,16 @@ const String TEST_TWO = r"""
   }
 """;
 
+const String TEST_THREE = r"""
+  class A {
+    var length;
+  }
+  foo(a) {
+    print([]); // Make sure the array class is instantiated.
+    return new A().length + a.length;
+  }
+""";
+
 main() {
   var generated = compile(TEST_ONE, entry: 'foo');
   // Check that the one shot interceptor got converted to a direct
@@ -33,4 +43,12 @@ main() {
   generated = compile(TEST_TWO, entry: 'foo');
   Expect.isTrue(generated.contains('\$.\$\$add(a, 42)'));
   Expect.isTrue(generated.contains('myVariableName'));
+
+  // Check that an intercepted getter that does not need to be
+  // intercepted, is turned into a regular getter call or field
+  // access.
+  generated = compile(TEST_THREE, entry: 'foo');
+  Expect.isFalse(generated.contains(r'get$length'));
+  Expect.isTrue(generated.contains(r'$.A$().length'));
+  Expect.isTrue(generated.contains(r'length(a)'));
 }

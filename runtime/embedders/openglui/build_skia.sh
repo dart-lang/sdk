@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function usage {
   echo "usage: $0 [ --help ] [ --android ] [ --arm | --x86] [--clean] [<Dart directory>]"

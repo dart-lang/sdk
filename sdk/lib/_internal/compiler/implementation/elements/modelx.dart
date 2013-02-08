@@ -1700,7 +1700,10 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * account.
    */
   bool isSubclassOf(ClassElement cls) {
-    for (ClassElement s = this; s != null; s = s.superclass) {
+    // Use [declaration] for both [this] and [cls], because
+    // declaration classes hold the superclass hierarchy.
+    cls = cls.declaration;
+    for (ClassElement s = declaration; s != null; s = s.superclass) {
       if (identical(s, cls)) return true;
     }
     return false;

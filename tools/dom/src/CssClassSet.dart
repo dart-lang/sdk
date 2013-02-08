@@ -50,13 +50,15 @@ abstract class CssClassSet implements Set<String> {
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
+  Iterable expand(Iterable f(String element)) => readClasses.expand(f);
+
   bool every(bool f(String element)) => readClasses().every(f);
 
   bool any(bool f(String element)) => readClasses().any(f);
 
   bool get isEmpty => readClasses().isEmpty;
 
-  int get length =>readClasses().length;
+  int get length => readClasses().length;
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, String element)) {

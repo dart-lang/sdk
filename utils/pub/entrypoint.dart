@@ -157,13 +157,19 @@ class Entrypoint {
           var id = lockFile.packages[ref.name];
 
           visited.add(ref.name);
-          var future = cache.describe(id);
+          var future;
+          if (ref.name == root.name) {
+            future = new Future<Pubspec>.immediate(root.pubspec);
+          } else {
+            future = cache.describe(id);
+          }
           group.add(future.then(visitPackage));
         }
 
         return pubspec;
       }
 
+      visited.add(root.name);
       visitPackage(root.pubspec);
       return group.future;
     });

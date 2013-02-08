@@ -53,12 +53,13 @@ class FormatException implements Exception {
   String toString() => "FormatException: $message";
 }
 
-
-class IllegalJSRegExpException implements Exception {
-  const IllegalJSRegExpException(String this._pattern, String this._errmsg);
-  String toString() => "IllegalJSRegExpException: '$_pattern' '$_errmsg'";
-  final String _pattern;
-  final String _errmsg;
+/**
+ * Deprecated. Replaced by [FormatException].
+ */
+@deprecated
+class IllegalJSRegExpException extends FormatException {
+  IllegalJSRegExpException(String pattern, String errmsg)
+      : super("Illegal pattern: $pattern, $errmsg");
 }
 
 
