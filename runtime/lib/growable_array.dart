@@ -99,14 +99,14 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   factory _GrowableObjectArray(int length) {
-    var data = new _ObjectArray<T>((length == 0) ? 4 : length);
+    var data = new _ObjectArray((length == 0) ? 4 : length);
     var result = new _GrowableObjectArray<T>.withData(data);
     result._setLength(length);
     return result;
   }
 
   factory _GrowableObjectArray.withCapacity(int capacity) {
-    var data = new _ObjectArray<T>((capacity == 0)? 4 : capacity);
+    var data = new _ObjectArray((capacity == 0)? 4 : capacity);
     return new _GrowableObjectArray<T>.withData(data);
   }
 
@@ -116,7 +116,7 @@ class _GrowableObjectArray<T> implements List<T> {
     return result;
   }
 
-  factory _GrowableObjectArray.withData(_ObjectArray<T> data)
+  factory _GrowableObjectArray.withData(_ObjectArray data)
     native "GrowableObjectArray_allocate";
 
   int get length native "GrowableObjectArray_getLength";
@@ -136,7 +136,7 @@ class _GrowableObjectArray<T> implements List<T> {
 
   void _setLength(int new_length) native "GrowableObjectArray_setLength";
 
-  void _setData(_ObjectArray<T> array) native "GrowableObjectArray_setData";
+  void _setData(_ObjectArray array) native "GrowableObjectArray_setData";
 
   T operator [](int index) native "GrowableObjectArray_getIndexed";
 
@@ -203,7 +203,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   void _grow(int new_length) {
-    var new_data = new _ObjectArray<T>(new_length);
+    var new_data = new _ObjectArray(new_length);
     for (int i = 0; i < length; i++) {
       new_data[i] = this[i];
     }

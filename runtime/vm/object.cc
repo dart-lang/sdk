@@ -11868,9 +11868,6 @@ void GrowableObjectArray::Grow(intptr_t new_capacity, Heap::Space space) const {
   const Array& new_contents =
       Array::Handle(Array::Grow(contents, new_capacity, space));
   StorePointer(&(raw_ptr()->data_), new_contents.raw());
-  ASSERT(AbstractTypeArguments::AreEqual(
-      AbstractTypeArguments::Handle(new_contents.GetTypeArguments()),
-      AbstractTypeArguments::Handle(raw_ptr()->type_arguments_)));
 }
 
 

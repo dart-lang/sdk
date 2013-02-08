@@ -64,13 +64,13 @@ namespace dart {
   V(_ObjectArray, get:length, Array_getLength, 405297088)                      \
   V(_ObjectArray, [], Array_getIndexed, 71937385)                              \
   V(_ObjectArray, []=, Array_setIndexed, 255863719)                            \
-  V(_GrowableObjectArray, .withData, GArray_Allocate, 989879928)               \
+  V(_GrowableObjectArray, .withData, GArray_Allocate, 816132033)               \
   V(_GrowableObjectArray, get:length, GrowableArray_getLength, 725548050)      \
   V(_GrowableObjectArray, get:_capacity, GrowableArray_getCapacity, 725548050) \
   V(_GrowableObjectArray, [], GrowableArray_getIndexed, 581838973)             \
   V(_GrowableObjectArray, []=, GrowableArray_setIndexed, 1048007636)           \
   V(_GrowableObjectArray, _setLength, GrowableArray_setLength, 796709584)      \
-  V(_GrowableObjectArray, _setData, GrowableArray_setData, 477312179)          \
+  V(_GrowableObjectArray, _setData, GrowableArray_setData, 629110947)          \
   V(_GrowableObjectArray, add, GrowableArray_add, 1367698386)                  \
   V(_ImmutableArray, [], ImmutableArray_getIndexed, 486821199)                 \
   V(_ImmutableArray, get:length, ImmutableArray_getLength, 433698233)          \

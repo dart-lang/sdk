@@ -4668,9 +4668,6 @@ class GrowableObjectArray : public Instance {
   RawObject* RemoveLast() const;
 
   virtual RawAbstractTypeArguments* GetTypeArguments() const {
-    ASSERT(AbstractTypeArguments::AreEqual(
-        AbstractTypeArguments::Handle(Array::Handle(data()).GetTypeArguments()),
-        AbstractTypeArguments::Handle(raw_ptr()->type_arguments_)));
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
