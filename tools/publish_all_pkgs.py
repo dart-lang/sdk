@@ -4,7 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
-# Upload all packages in pkg/ (other than a few that should be explicitly 
+# Upload all packages in pkg/ (other than a few that should be explicitly
 # excluded), plus sdk/lib/_internal/compiler .
 #
 # Usage: publish_all_pkgs.py
@@ -21,15 +21,14 @@ def Main(argv):
   pkgs_to_publish = []
   for name in os.listdir('pkg'):
     if os.path.isdir(os.path.join('pkg', name)):
-      if (name != '.svn' and name != 'fixnum' and
-          not name.endswith('-experimental')):
+      if name != '.svn' and name != 'fixnum':
         pkgs_to_publish.append(os.path.join('pkg', name))
 
   # Publish dart2js as an "unsupported" package.
   pkgs_to_publish.append(
     os.path.join('sdk', 'lib', '_internal', 'compiler'))
 
-  for pkg in pkgs_to_publish: 
+  for pkg in pkgs_to_publish:
     print "Publishing " + pkg
     subprocess.call(['python', 'tools/publish_pkg.py', pkg])
 

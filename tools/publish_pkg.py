@@ -58,11 +58,12 @@ def Main(argv):
     version = '%d.%d.%d' % (major, minor, build)
 
   tmpDir = tempfile.mkdtemp()
-  pkgName = argv[1].split('/').pop()
+  pkgName = os.path.basename(os.path.normpath(argv[1]))
 
   pubspec = os.path.join(tmpDir, pkgName, 'pubspec.yaml')
 
-  replaceInFiles = []
+  replaceInDart = []
+  replaceInPubspec = []
 
   if os.path.exists(os.path.join(HOME, argv[1], 'pubspec.yaml')):
     #
@@ -126,7 +127,7 @@ def Main(argv):
       shutil.copy(libpath, os.path.join(tmpDir, pkgName, 'lib/libraries.dart'))
 
       # Replace '../../libraries.dart' with '../libraries.dart'
-      replaceInFiles.append(
+      replaceInDart.append(
         (r'(import|part)(\s+)(\'|")\.\./(\.\./)*libraries.dart',
          r'\1\2\3\4libraries.dart'))
 
@@ -159,7 +160,13 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ''');
 
-  replaceInFiles.append(
+  # TODO(jmesserly): this is a hack to make analyzer-experimental work.
+  if pkgName.endswith('-experimental'):
+    pkgReplace = (pkgName, pkgName.replace('-', '_'))
+    replaceInDart.append(pkgReplace)
+    replaceInPubspec.append(pkgReplace)
+
+  replaceInDart.append(
     (r'(import|part)(\s+)(\'|")(\.\./)+pkg/([^/]+/)lib/', r'\1\2\3package:\5'))
 
   # Replace '../*/pkg' imports and parts.
@@ -169,7 +176,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       shutil.rmtree(os.path.join(root, '.svn'))
     for name in files:
       if name.endswith('.dart'):
-        ReplaceInFiles([os.path.join(root, name)], replaceInFiles)
+        ReplaceInFiles([os.path.join(root, name)], replaceInDart)
+      elif name == 'pubspec.yaml':
+        ReplaceInFiles([os.path.join(root, name)], replaceInPubspec)
 
   print 'publishing version ' + version + ' of ' + argv[1] + ' to pub.\n'
   subprocess.call(['pub', 'publish'], cwd=os.path.join(tmpDir, pkgName))
