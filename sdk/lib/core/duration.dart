@@ -50,6 +50,52 @@ class Duration implements Comparable {
                          milliseconds;
 
   /**
+   * Returns the sum of this [Duration] and [other]  as a new [Duration].
+   */
+  Duration operator +(Duration other) {
+    return new Duration(milliseconds: inMilliseconds + other.inMilliseconds);
+  }
+
+  /**
+   * Returns the difference of this [Duration] and [other] as a new
+   * [Duration].
+   */
+  Duration operator -(Duration other) {
+    return new Duration(milliseconds: inMilliseconds - other.inMilliseconds);
+  }
+
+  /**
+   * Multiplies this [Duration] by the given [factor] and returns the result
+   * as a new [Duration].
+   */
+  Duration operator *(int factor) {
+    return new Duration(milliseconds: inMilliseconds * factor);
+  }
+
+  /**
+   * Divides this [Duration] by the given [quotient] and returns the truncated
+   * result as a new [Duration].
+   *
+   * Throws an [IntegerDivisionByZeroException] if [quotient] is `0`.
+   */
+  Duration operator ~/(int quotient) {
+    // By doing the check here instead of relying on "~/" below we get the
+    // exception even with dart2js.
+    if (quotient == 0) throw new IntegerDivisionByZeroException();
+    return new Duration(milliseconds: inMilliseconds ~/ quotient);
+  }
+
+  bool operator <(Duration other) => this.inMilliseconds < other.inMilliseconds;
+
+  bool operator >(Duration other) => this.inMilliseconds > other.inMilliseconds;
+
+  bool operator <=(Duration other) =>
+      this.inMilliseconds <= other.inMilliseconds;
+
+  bool operator >=(Duration other) =>
+      this.inMilliseconds >= other.inMilliseconds;
+
+  /**
    * This [Duration] in days. Incomplete days are discarded
    */
   int get inDays {
