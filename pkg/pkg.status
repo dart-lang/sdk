@@ -37,6 +37,10 @@ analyzer-experimental/test/options_test: Skip # Imports dart:io.
 analyzer-experimental/test/generated/parser_test: Skip # Imports dart:io.
 analyzer-experimental/test/generated/scanner_test: Skip # Imports dart:io.
 
+# Issue 8440 forces us to use path in the scheduled_test tests, which would
+# otherwise be dart2js-compatible.
+scheduled_test/test/*: Skip
+
 [ $runtime == opera && $compiler == dart2js ]
 intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
