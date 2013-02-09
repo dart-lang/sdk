@@ -40,11 +40,7 @@ main() {
         .join(new Path('../../test.dart'))
         .canonicalize()
         .toNativePath();
-    // Note: args['package-root'] is always the build directory. We have the
-    // implicit assumption that it contains the 'packages' subdirectory.
-    // TODO: We should probably rename 'package-root' to 'build-directory'.
     TestingServerRunner._packageRootDir = new Path(args['package-root']);
-    TestingServerRunner._buildDirectory = new Path(args['package-root']);
     TestingServerRunner.startHttpServer('127.0.0.1',
         port: int.parse(args['port']));
     print('Server listening on port '
@@ -63,20 +59,14 @@ main() {
 class TestingServerRunner {
   static List serverList = [];
   static Path _packageRootDir = null;
-  static Path _buildDirectory = null;
 
   // Added as a getter so that the function will be called again each time the
   // default request handler closure is executed.
   static Path get packageRootDir => _packageRootDir;
-  static Path get buildDirectory => _buildDirectory;
 
   static setPackageRootDir(Map configuration) {
     _packageRootDir = TestUtils.currentWorkingDirectory.join(
         new Path(TestUtils.buildDir(configuration)));
-  }
-
-  static setBuildDir(Map configuration) {
-    _buildDirectory = new Path(TestUtils.buildDir(configuration));
   }
 
   static startHttpServer(String host, {int allowedPort:-1, int port: 0}) {
@@ -88,23 +78,10 @@ class TestingServerRunner {
       print('Test http server error: $e');
     };
     httpServer.defaultRequestHandler = (request, resp) {
-      // TODO(kustermann,ricow): We could change this to the following scheme:
-      // http://host:port/root_dart/X     -> $DartDir/X
-      // http://host:port/root_build/X    -> $BuildDir/X
-      // http://host:port/root_packages/X -> $BuildDir/packages/X
-      // Issue: 8368
-
       var requestPath = new Path(request.path.substring(1)).canonicalize();
       var path = basePath.join(requestPath);
       var file = new File(path.toNativePath());
-      // Since the build directory may not be located directly beneath the dart
-      // root directory (if we pass it in, e.g., for dartium testing) we serve
-      // files from the build directory explicitly. Please note that if
-      // buildDirectory has the same name as a directory inside the dart repo
-      // we will server files from the buildDirectory.
-      if (requestPath.toString().startsWith(buildDirectory.toString())) {
-        file = new File(requestPath.toNativePath());
-      }
+
       if (requestPath.segments().contains(packagesDirName)) {
         // Essentially implement the packages path rewriting, so we don't have
         // to pass environment variables to the browsers.
