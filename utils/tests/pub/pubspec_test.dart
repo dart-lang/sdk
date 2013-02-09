@@ -22,6 +22,7 @@ class MockSource extends Source {
 }
 
 main() {
+  initConfig();
   group('Pubspec', () {
     group('parse()', () {
       var sources = new SourceRegistry();
@@ -76,10 +77,25 @@ dependencies:
         new Pubspec.parse('homepage: http://ok.com', sources);
         new Pubspec.parse('homepage: https://also-ok.com', sources);
 
-        expectFormatError('ftp://badscheme.com');
-        expectFormatError('javascript:alert("!!!")');
-        expectFormatError('data:image/png;base64,somedata');
+        expectFormatError('homepage: ftp://badscheme.com');
+        expectFormatError('homepage: javascript:alert("!!!")');
+        expectFormatError('homepage: data:image/png;base64,somedata');
         expectFormatError('homepage: no-scheme.com');
+      });
+
+      test("throws if 'documentation' is not a string", () {
+        expectFormatError('documentation:');
+        expectFormatError('documentation: [not, a, string]');
+      });
+
+      test("throws if 'documentation' doesn't have an HTTP scheme", () {
+        new Pubspec.parse('documentation: http://ok.com', sources);
+        new Pubspec.parse('documentation: https://also-ok.com', sources);
+
+        expectFormatError('documentation: ftp://badscheme.com');
+        expectFormatError('documentation: javascript:alert("!!!")');
+        expectFormatError('documentation: data:image/png;base64,somedata');
+        expectFormatError('documentation: no-scheme.com');
       });
 
       test("throws if 'authors' is not a string or a list of strings", () {
