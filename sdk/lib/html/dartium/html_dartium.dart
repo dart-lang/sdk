@@ -18533,14 +18533,6 @@ class MouseEvent extends UIEvent {
   @DocsEditable
   int get webkitMovementY native "MouseEvent_webkitMovementY_Getter";
 
-  @DomName('MouseEvent.x')
-  @DocsEditable
-  int get x native "MouseEvent_x_Getter";
-
-  @DomName('MouseEvent.y')
-  @DocsEditable
-  int get y native "MouseEvent_y_Getter";
-
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native "MouseEvent_initMouseEvent_Callback";

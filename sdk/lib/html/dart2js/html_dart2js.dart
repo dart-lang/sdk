@@ -16885,14 +16885,6 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
   @DocsEditable
   final int webkitMovementY;
 
-  @DomName('MouseEvent.x')
-  @DocsEditable
-  final int x;
-
-  @DomName('MouseEvent.y')
-  @DocsEditable
-  final int y;
-
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _$dom_initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
