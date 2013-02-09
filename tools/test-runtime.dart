@@ -73,8 +73,6 @@ main() {
   }
 
   var testSuites = new List<TestSuite>();
-  TestingServerRunner.setBuildDir(firstConf);
-  TestingServerRunner.setPackageRootDir(firstConf);
   for (var conf in configurations) {
     if (selectors.containsKey('co19')) {
       testSuites.add(new Co19TestSuite(conf));

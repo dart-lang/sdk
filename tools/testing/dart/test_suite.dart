@@ -812,78 +812,7 @@ class StandardTestSuite extends TestSuite {
     };
   }
 
-
-  /**
-   * _createUrlPathFromFile takes a [file], which is either located in the dart
-   * or in the build directory, and will return a String representing
-   * the relative path to either the dart or the build directory.
-   * Thus, the returned [String] will be the path component of the URL
-   * corresponding to [file] (the http server serves files relative to the
-   * dart/build directories).
-   */
-  String _createUrlPathFromFile(Path file) {
-    file = TestUtils.absolutePath(file);
-    var fileString = file.toString();
-    
-    var relativeBuildDir = new Path(TestUtils.buildDir(configuration));
-    var buildDir = TestUtils.absolutePath(relativeBuildDir);
-    var dartDir = TestUtils.dartDir();
-
-    var pathComponent;
-    if (fileString.startsWith(buildDir.toString())) {
-      var fileRelativeToBuildDir = file.relativeTo(buildDir);
-      pathComponent = "$relativeBuildDir/$fileRelativeToBuildDir";
-    } else if (fileString.startsWith(dartDir.toString())) {
-      pathComponent = file.relativeTo(dartDir);
-    } else {
-      // Unreachable
-      Except.isTrue(false);
-    }
-    return "/$pathComponent";
-  }
-
-  void _getUriForBrowserTest(TestInformation info,
-                            String pathComponent,
-                            subtestNames,
-                            subtestIndex) {
-    // Note: If we run test.py with the "--list" option, no http servers
-    // will be started. Therefore serverList is an empty list in this
-    // case. So we use PORT/CROSS_ORIGIN_PORT instead of real ports.
-    var serverPort = "PORT";
-    var crossOriginPort = "CROSS_ORIGIN_PORT";
-    if (!configuration['list']) {
-      serverPort = serverList[0].port.toString();
-      crossOriginPort = serverList[1].port.toString();
-    }
-
-    var url= 'http://127.0.0.1:$serverPort$pathComponent'
-        '?crossOriginPort=$crossOriginPort';
-    if (info.optionsFromFile['isMultiHtmlTest'] && subtestNames.length > 0) {
-      url= '${url}&group=${subtestNames[subtestIndex]}';
-    }
-    return url;
-  }
-
-  void _createWrapperFile(String dartWrapperFilename, dartLibraryFilename) {
-    File file = new File(dartWrapperFilename);
-    RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
-
-    var usePackageImport = dartLibraryFilename.segments().contains("pkg");
-    var libraryPathComponent = _createUrlPathFromFile(dartLibraryFilename);
-    dartWrapper.writeStringSync(dartTestWrapper(usePackageImport,
-                                                libraryPathComponent));
-    dartWrapper.closeSync();
-  }
-
-  void _createLibraryWrapperFile(Path dartLibraryFilename, filePath) {
-    File file = new File(dartLibraryFilename.toNativePath());
-    RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
-    dartLibrary.writeStringSync(
-        wrapDartTestInLibrary(filePath.relativeTo(TestUtils.dartDir())));
-    dartLibrary.closeSync();
-  }
-
-  /**
+ /**
    * The [StandardTestSuite] has support for tests that
    * compile a test from Dart to JavaScript, and then run the resulting
    * JavaScript.  This function creates a working directory to hold the
@@ -938,9 +867,18 @@ class StandardTestSuite extends TestSuite {
         if (!isLibraryDefinition) {
           dartLibraryFilename = new Path(tempDir).append(
               'test_as_library.dart');
-          _createLibraryWrapperFile(dartLibraryFilename, filePath);
+          File file = new File(dartLibraryFilename.toNativePath());
+          RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
+          dartLibrary.writeStringSync(
+              wrapDartTestInLibrary(filePath, file.name));
+          dartLibrary.closeSync();
         }
-        _createWrapperFile(dartWrapperFilename, dartLibraryFilename);
+
+        File file = new File(dartWrapperFilename);
+        RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
+        dartWrapper.writeStringSync(
+            dartTestWrapper(dartDir, file.name, dartLibraryFilename));
+        dartWrapper.closeSync();
       } else {
         dartWrapperFilename = filename;
         // TODO(whesse): Once test.py is retired, adjust the relative path in
@@ -957,10 +895,8 @@ class StandardTestSuite extends TestSuite {
         }
         htmlPath = '$tempDir/../$htmlFilename';
       }
-      String scriptPath = (compiler == 'none') ?
+      final String scriptPath = (compiler == 'none') ?
           dartWrapperFilename : compiledDartWrapperFilename;
-      scriptPath = _createUrlPathFromFile(new Path(scriptPath));
-
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
       String content = null;
@@ -971,13 +907,22 @@ class StandardTestSuite extends TestSuite {
       Path expectedOutput = null;
       if (new File.fromPath(pngPath).existsSync()) {
         expectedOutput = pngPath;
-        content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
+        // TODO(efortuna): Unify path libraries in test.dart.
+        content = getHtmlLayoutContents(scriptType, pathLib.relative(scriptPath,
+            from: pathLib.dirname(htmlPath)));
       } else if (new File.fromPath(txtPath).existsSync()) {
         expectedOutput = txtPath;
-        content = getHtmlLayoutContents(scriptType, new Path("$scriptPath"));
+        content = getHtmlLayoutContents(scriptType, pathLib.relative(scriptPath,
+            from: pathLib.dirname(htmlPath)));
       } else {
-        content = getHtmlContents(filename, scriptType,
-            new Path("$scriptPath"));
+        final htmlLocation = new Path(htmlPath);
+        content = getHtmlContents(
+          filename,
+          dartDir.append('pkg/unittest/lib/test_controller.js')
+              .relativeTo(htmlLocation),
+          dartDir.append('pkg/browser/lib/dart.js').relativeTo(htmlLocation),
+          scriptType,
+          new Path(scriptPath).relativeTo(htmlLocation));
       }
       htmlTest.writeStringSync(content);
       htmlTest.closeSync();
@@ -1017,11 +962,35 @@ class StandardTestSuite extends TestSuite {
           commandSet = [];
         }
 
-        var htmlPath_subtest = _createUrlPathFromFile(new Path(htmlPath));
-        var fullHtmlPath = _getUriForBrowserTest(info, htmlPath_subtest,
-                                                 subtestNames, subtestIndex);
-
         List<String> args = <String>[];
+        var basePath = TestUtils.dartDir().toString();
+        if (!htmlPath.startsWith('/') && !htmlPath.startsWith('http')) {
+          htmlPath = '/$htmlPath';
+        }
+        htmlPath = htmlPath.startsWith(basePath) ?
+            htmlPath.substring(basePath.length) : htmlPath;
+        String fullHtmlPath = htmlPath;
+        var searchStr = '?';
+        if (!htmlPath.startsWith('http')) {
+          // Note: If we run test.py with the "--list" option, no http servers
+          // will be started. Therefore serverList is an empty list in this
+          // case. So we use PORT/CROSS_ORIGIN_PORT instead of real ports.
+          var serverPort = "PORT";
+          var crossOriginPort = "CROSS_ORIGIN_PORT";
+          if (!configuration['list']) {
+            serverPort = serverList[0].port.toString();
+            crossOriginPort = serverList[1].port.toString();
+          }
+          fullHtmlPath = 'http://127.0.0.1:$serverPort$htmlPath${searchStr}'
+              'crossOriginPort=$crossOriginPort';
+          searchStr = '&';
+        }
+        if (info.optionsFromFile['isMultiHtmlTest']
+            && subtestNames.length > 0) {
+          fullHtmlPath = '${fullHtmlPath}${searchStr}group='
+              '${subtestNames[subtestIndex]}';
+        }
+
         if (TestUtils.usesWebDriver(runtime)) {
           args = [
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
@@ -1156,7 +1125,8 @@ class StandardTestSuite extends TestSuite {
     var minified = configuration['minified'] ? '-minified' : '';
     var dirName = "${configuration['compiler']}-${configuration['runtime']}"
                   "$checked$minified";
-    Path generatedTestPath = new Path(buildDir)
+    Path generatedTestPath = new Path(dartDir.toNativePath())
+        .append(buildDir)
         .append('generated_tests')
         .append(dirName)
         .append(testUniqueName);
@@ -1846,10 +1816,6 @@ class TestUtils {
       const ['d8', 'jsshell'].contains(runtime);
 
   static String buildDir(Map configuration) {
-    // FIXME(kustermann,ricow): Our code assumes that the returned 'buildDir'
-    // is relative to the current working directory.
-    // Thus, if we pass in an absolute path (e.g. '--build-directory=/tmp/out')
-    // we get into trouble.
     if (configuration['build_directory'] != '') {
       return configuration['build_directory'];
     }
