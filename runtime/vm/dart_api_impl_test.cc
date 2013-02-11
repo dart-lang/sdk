@@ -916,6 +916,82 @@ TEST_CASE(ScalarListDirectAccess) {
 }
 
 
+static void TestDirectAccess(Dart_Handle lib,
+                             Dart_Handle array,
+                             Dart_Scalar_Type expected_type) {
+  // Invoke the dart function that sets initial values.
+  Dart_Handle dart_args[1];
+  dart_args[0] = array;
+  Dart_Invoke(lib, NewString("setMain"), 1, dart_args);
+
+  // Now Get a direct access to this typed array and check it's contents.
+  const int kLength = 10;
+  Dart_Handle result;
+  Dart_Scalar_Type type;
+  void* data;
+  intptr_t len;
+  result = Dart_ScalarListAcquireData(array, &type, &data, &len);
+  EXPECT_VALID(result);
+  EXPECT_EQ(expected_type, type);
+  EXPECT_EQ(kLength, len);
+  int8_t* dataP = reinterpret_cast<int8_t*>(data);
+  for (int i = 0; i < kLength; i++) {
+    EXPECT_EQ(i, dataP[i]);
+  }
+
+  // Now modify the values in the directly accessible array and then check
+  // it we see the changes back in dart.
+  for (int i = 0; i < kLength; i++) {
+    dataP[i] += 10;
+  }
+
+  // Release direct accesss to the typed array.
+  result = Dart_ScalarListReleaseData(array);
+  EXPECT_VALID(result);
+
+  // Invoke the dart function in order to check the modified values.
+  Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
+}
+
+
+TEST_CASE(ScalarListDirectAccess1) {
+  const char* kScriptChars =
+      "import 'dart:scalarlist';\n"
+      "void setMain(var a) {"
+      "  for (var i = 0; i < 10; i++) {"
+      "    a[i] = i;"
+      "  }"
+      "}\n"
+      "void testMain(var list) {"
+      "  for (var i = 0; i < 10; i++) {"
+      "    Expect.equals((10 + i), list[i]);"
+      "  }\n"
+      "}\n"
+      "List main() {"
+      "  var a = new Int8List(10);"
+      "  return a;"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Test with an regular typed array object.
+  Dart_Handle list_access_test_obj;
+  list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(list_access_test_obj);
+  TestDirectAccess(lib, list_access_test_obj, kInt8);
+
+  // Test with an external typed array object.
+  uint8_t data[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  intptr_t data_length = ARRAY_SIZE(data);
+  Dart_Handle ext_list_access_test_obj;
+  ext_list_access_test_obj = Dart_NewExternalByteArray(data,
+                                                       data_length,
+                                                       NULL, NULL);
+  EXPECT_VALID(ext_list_access_test_obj);
+  TestDirectAccess(lib, ext_list_access_test_obj, kUint8);
+}
+
+
 static void ExternalByteArrayAccessTests(Dart_Handle obj,
                                          uint8_t data[],
                                          intptr_t data_length) {
