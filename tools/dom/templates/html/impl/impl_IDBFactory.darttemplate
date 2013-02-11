@@ -19,5 +19,66 @@ $else
 $endif
   }
 
+  @DomName('IDBFactory.open')
+  Future<Database> open(String name,
+      {int version, void onUpgradeNeeded(VersionChangeEvent),
+      void onBlocked(Event)}) {
+    if ((version == null) != (onUpgradeNeeded == null)) {
+      return new Future.immediateError(new ArgumentError(
+          'version and onUpgradeNeeded must be specified together'));
+    }
+    try {
+      var request;
+      if (version != null) {
+        request = $dom_open(name, version);
+      } else {
+        request = $dom_open(name);
+      }
+
+      if (onUpgradeNeeded != null) {
+        request.onUpgradeNeeded.listen(onUpgradeNeeded);
+      }
+      if (onBlocked != null) {
+        request.onBlocked.listen(onBlocked);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBFactory.deleteDatabase')
+  Future<IdbFactory> deleteDatabase(String name,
+      {void onBlocked(Event)}) {
+    try {
+      var request = $dom_deleteDatabase(name);
+
+      if (onBlocked != null) {
+        request.onBlocked.listen(onBlocked);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
 $!MEMBERS
+}
+
+
+/**
+ * Ties a request to a completer, so the completer is completed when it succeeds
+ * and errors out when the request errors.
+ */
+Future _completeRequest(Request request) {
+  var completer = new Completer();
+  // TODO: make sure that completer.complete is synchronous as transactions
+  // may be committed if the result is not processed immediately.
+  request.onSuccess.listen((e) {
+    completer.complete(request.result);
+  });
+  request.onError.listen((e) {
+    completer.completeError(e);
+  });
+  return completer.future;
 }

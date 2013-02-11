@@ -65,7 +65,7 @@ class Cursor extends NativeFieldWrapperClass1 {
   @DocsEditable
   void advance(int count) native "IDBCursor_advance_Callback";
 
-  void continueFunction([Object key]) {
+  void next([Object key]) {
     if (?key) {
       _continue_1(key);
       return;
@@ -250,6 +250,49 @@ class IdbFactory extends NativeFieldWrapperClass1 {
     return true;
   }
 
+  @DomName('IDBFactory.open')
+  Future<Database> open(String name,
+      {int version, void onUpgradeNeeded(VersionChangeEvent),
+      void onBlocked(Event)}) {
+    if ((version == null) != (onUpgradeNeeded == null)) {
+      return new Future.immediateError(new ArgumentError(
+          'version and onUpgradeNeeded must be specified together'));
+    }
+    try {
+      var request;
+      if (version != null) {
+        request = $dom_open(name, version);
+      } else {
+        request = $dom_open(name);
+      }
+
+      if (onUpgradeNeeded != null) {
+        request.onUpgradeNeeded.listen(onUpgradeNeeded);
+      }
+      if (onBlocked != null) {
+        request.onBlocked.listen(onBlocked);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBFactory.deleteDatabase')
+  Future<IdbFactory> deleteDatabase(String name,
+      {void onBlocked(Event)}) {
+    try {
+      var request = $dom_deleteDatabase(name);
+
+      if (onBlocked != null) {
+        request.onBlocked.listen(onBlocked);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
   IdbFactory.internal();
 
   @DomName('IDBFactory.cmp')
@@ -258,9 +301,9 @@ class IdbFactory extends NativeFieldWrapperClass1 {
 
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable
-  OpenDBRequest deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
+  OpenDBRequest $dom_deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
-  OpenDBRequest open(String name, [int version]) {
+  OpenDBRequest $dom_open(String name, [int version]) {
     if (?version) {
       return _open_1(name, version);
     }
@@ -279,6 +322,24 @@ class IdbFactory extends NativeFieldWrapperClass1 {
   @DocsEditable
   Request webkitGetDatabaseNames() native "IDBFactory_webkitGetDatabaseNames_Callback";
 
+}
+
+
+/**
+ * Ties a request to a completer, so the completer is completed when it succeeds
+ * and errors out when the request errors.
+ */
+Future _completeRequest(Request request) {
+  var completer = new Completer();
+  // TODO: make sure that completer.complete is synchronous as transactions
+  // may be committed if the result is not processed immediately.
+  request.onSuccess.listen((e) {
+    completer.complete(request.result);
+  });
+  request.onError.listen((e) {
+    completer.completeError(e);
+  });
+  return completer.future;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -556,12 +617,80 @@ class KeyRange extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('IDBObjectStore')
 class ObjectStore extends NativeFieldWrapperClass1 {
+
+  @DomName('IDBObjectStore.put')
+  Future put(value, [key]) {
+    try {
+      var request;
+      if (key != null) {
+        request = $dom_put(value, key);
+      } else {
+        request = $dom_put(value);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  @DomName('IDBObjectStore.getObject')
+  Future getObject(key) {
+    try {
+      var request = $dom_getObject(key);
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.immediateError(e, stacktrace);
+    }
+  }
+
+  /**
+   * Creates a stream of cursors over the records in this object store.
+   *
+   * **The stream must be manually advanced by calling [Cursor.next] after
+   * each item or by specifying autoAdvance to be true.**
+   *
+   *     var cursors = objectStore.openCursor().listen(
+   *       (cursor) {
+   *         // ...some processing with the cursor
+   *         cursor.next(); // advance onto the next cursor.
+   *       },
+   *       onDone: () {
+   *         // called when there are no more cursors.
+   *         print('all done!');
+   *       });
+   *
+   * Asynchronous operations which are not related to the current transaction
+   * will cause the transaction to automatically be committed-- all processing
+   * must be done synchronously unless they are additional async requests to
+   * the current transaction.
+   */
+  @DomName('IDBObjectStore.openCursor')
+  Stream<Cursor> openCursor({key, KeyRange range, String direction,
+      bool autoAdvance}) {
+    var key_OR_range = null;
+    if (key != null) {
+      if (range != null) {
+        throw new ArgumentError('Cannot specify both key and range.');
+      }
+      key_OR_range = key;
+    } else {
+      key_OR_range = range;
+    }
+
+    // TODO: try/catch this and return a stream with an immediate error.
+    var request;
+    if (direction == null) {
+      request = $dom_openCursor(key_OR_range);
+    } else {
+      request = $dom_openCursor(key_OR_range, direction);
+    }
+    return _cursorStreamFromResult(request, autoAdvance);
+  }
+
   ObjectStore.internal();
 
   @DomName('IDBObjectStore.autoIncrement')
@@ -668,7 +797,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   void deleteIndex(String name) native "IDBObjectStore_deleteIndex_Callback";
 
-  Request getObject(key) {
+  Request $dom_getObject(key) {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
@@ -690,7 +819,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   Index index(String name) native "IDBObjectStore_index_Callback";
 
-  Request openCursor([key_OR_range, String direction]) {
+  Request $dom_openCursor([key_OR_range, String direction]) {
     if (!?key_OR_range && !?direction) {
       return _openCursor_1();
     }
@@ -729,7 +858,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   Request _openCursor_5(key_OR_range, direction) native "IDBObjectStore__openCursor_5_Callback";
 
-  Request put(Object value, [Object key]) {
+  Request $dom_put(Object value, [Object key]) {
     if (?key) {
       return _put_1(value, key);
     }
@@ -744,6 +873,35 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   @DocsEditable
   Request _put_2(value) native "IDBObjectStore__put_2_Callback";
 
+
+  /**
+   * Helper for iterating over cursors in a request.
+   */
+  static Stream<Cursor> _cursorStreamFromResult(Request request,
+      bool autoAdvance) {
+    // TODO: need to guarantee that the controller provides the values
+    // immediately as waiting until the next tick will cause the transaction to
+    // close.
+    var controller = new StreamController<Cursor>();
+
+    request.onError.listen((e) {
+      //TODO: Report stacktrace once issue 4061 is resolved.
+      controller.signalError(e);
+    });
+
+    request.onSuccess.listen((e) {
+      Cursor cursor = request.result;
+      if (cursor == null) {
+        controller.close();
+      } else {
+        controller.add(cursor);
+        if (autoAdvance == true) {
+          cursor.next();
+        }
+      }
+    });
+    return controller.stream;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -877,16 +1035,39 @@ class RequestEvents extends Events {
   @DocsEditable
   EventListenerList get success => this['success'];
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('IDBTransaction')
 class Transaction extends EventTarget {
+
+  /**
+   * Provides a Future which will be completed once the transaction has
+   * completed.
+   *
+   * The future will error if an error occurrs on the transaction or if the
+   * transaction is aborted.
+   */
+  Future<Database> get completed {
+    var completer = new Completer<Database>();
+
+    this.onComplete.first.then((_) {
+      completer.complete(db);
+    });
+
+    this.onError.first.then((e) {
+      completer.completeError(e);
+    });
+
+    this.onAbort.first.then((e) {
+      completer.completeError(e);
+    });
+
+    return completer.future;
+  }
+
   Transaction.internal() : super.internal();
 
   @DomName('IDBTransaction.abortEvent')

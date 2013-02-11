@@ -1,6 +1,7 @@
 library IndexedDB1Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
+import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db' as idb;
 import 'dart:collection';
@@ -13,81 +14,41 @@ const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 
 testReadWrite(key, value, check,
-              [dbName = DB_NAME,
-               storeName = STORE_NAME,
-               version = VERSION]) => () {
-  var db;
+              [dbName = DB_NAME, storeName = STORE_NAME, version = VERSION]) {
 
-  fail(e) {
-    guardAsync(() {
-      throw new Exception('IndexedDB failure');
-    });
-  }
-
-  createObjectStore(db) {
-    var store = db.createObjectStore(storeName);
+  createObjectStore(e) {
+    var store = e.target.result.createObjectStore(storeName);
     expect(store, isNotNull);
   }
 
-  step2(e) {
-    var transaction = db.transaction(storeName, 'readonly');
-    var request = transaction.objectStore(storeName).getObject(key);
-    request.onSuccess.listen(expectAsync1((e) {
-      var object = e.target.result;
+  var db;
+  // Delete any existing DBs.
+  return html.window.indexedDB.deleteDatabase(dbName).then((_) {
+      html.window.console.log('open');
+      return html.window.indexedDB.open(dbName, version: version,
+        onUpgradeNeeded: createObjectStore);
+    }).then((result) {
+      html.window.console.log('write');
+      db = result;
+      var transaction = db.transaction([storeName], 'readwrite');
+      transaction.objectStore(storeName).put(value, key);
+
+      return transaction.completed;
+    }).then((db) {
+      html.window.console.log('read');
+      var transaction = db.transaction(storeName, 'readonly');
+      return transaction.objectStore(storeName).getObject(key);
+    }).then((object) {
+      html.window.console.log('got close');
       db.close();
       check(value, object);
-    }));
-    request.onError.listen(fail);
-  }
-
-  step1() {
-    var transaction = db.transaction([storeName], 'readwrite');
-    var request = transaction.objectStore(storeName).put(value, key);
-    request.onError.listen(fail);
-
-    transaction.onComplete.listen(expectAsync1(step2));
-  }
-
-  initDb(e) {
-    db = e.target.result;
-    if (version != db.version) {
-      // Legacy 'setVersion' upgrade protocol.
-      var request = db.setVersion('$version');
-      request.onSuccess.listen(
-        expectAsync1((e) {
-          createObjectStore(db);
-          var transaction = e.target.result;
-          transaction.onComplete.listen(expectAsync1((e) => step1()));
-          transaction.onError.listen(fail);
-        })
-      );
-      request.onError.listen(fail);
-    } else {
-      step1();
-    }
-  }
-
-  openDb(e) {
-    var request = html.window.indexedDB.open(dbName, version);
-    expect(request, isNotNull);
-    request.onSuccess.listen(expectAsync1(initDb));
-    request.onError.listen(fail);
-    if (request is idb.OpenDBRequest) {
-      // New upgrade protocol.  Old API has no 'upgradeNeeded' and uses
-      // setVersion instead.
-      request.onUpgradeNeeded.listen((e) {
-          guardAsync(() {
-              createObjectStore(e.target.result);
-            });
-        });
-    }
-  }
-
-  // Delete any existing DB.
-  var deleteRequest = html.window.indexedDB.deleteDatabase(dbName);
-  deleteRequest.onSuccess.listen(expectAsync1(openDb));
-  deleteRequest.onError.listen(fail);
-};
+    }).catchError((e) {
+      if (db != null) {
+        db.close();
+      }
+      throw e;
+    });
+}
 
 
 main() {
@@ -107,7 +68,8 @@ main() {
   var cyclic_list = [1, 2, 3];
   cyclic_list[1] = cyclic_list;
 
-  go(name, data) => test(name, testReadWrite(123, data, verifyGraph));
+  go(name, data) => futureTest(name,
+    () => testReadWrite(123, data, verifyGraph));
 
   test('test_verifyGraph', () {
       // Nice to know verifyGraph is working before we rely on it.
