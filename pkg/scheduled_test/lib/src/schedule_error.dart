@@ -19,6 +19,10 @@ class ScheduleError extends AsyncError {
   /// there was no such task.
   final Task task;
 
+  /// Whether the schedule was finished executing at the time the error was
+  /// detected.
+  final bool _scheduleWasDone;
+
   /// Creates a new [ScheduleError] wrapping [error]. The metadata in
   /// [AsyncError]s and [ScheduleError]s will be preserved.
   factory ScheduleError.from(Schedule schedule, error, {stackTrace,
@@ -39,8 +43,11 @@ class ScheduleError extends AsyncError {
     return new ScheduleError(schedule, error, stackTrace, cause, task);
   }
 
-  ScheduleError(this.schedule, error, stackTrace, AsyncError cause, this.task)
-    : super.withCause(error, stackTrace, cause);
+  ScheduleError(Schedule schedule, error, stackTrace, AsyncError cause,
+      this.task)
+      : super.withCause(error, stackTrace, cause),
+        this.schedule = schedule,
+        this._scheduleWasDone = schedule.done;
 
   String toString() {
     var result = new StringBuffer();
@@ -61,10 +68,10 @@ class ScheduleError extends AsyncError {
     if (task != null) {
       result.add('Error detected during task in queue "${task.queue}":\n');
       result.add(task.generateTree());
-    } else if (schedule.done) {
+    } else if (_scheduleWasDone) {
       result.add('Error detected after all tasks in the queue had finished.');
     } else {
-      result.add('Error detected before the schedule started running');
+      result.add('Error detected before the schedule started running.');
     }
 
     return result.toString();
