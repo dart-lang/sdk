@@ -244,7 +244,25 @@ patch bool identical(Object a, Object b) {
 }
 
 patch class StringBuffer {
-  patch factory StringBuffer([Object content = ""]) {
-    return new JsStringBuffer(content);
+  String _contents = "";
+
+  patch StringBuffer([Object content = ""]) {
+    if (content is String) {
+      _contents = content;
+    } else {
+      write(content);
+    }
   }
+
+  patch int get length => _contents.length;
+
+  patch void _write(String str) {
+    _contents = Primitives.stringConcat(_contents, str);
+  }
+
+  patch void clear() {
+    _contents = "";
+  }
+
+  patch String toString() => _contents;
 }

@@ -20,17 +20,25 @@ class CodeBuffer implements StringBuffer {
     return buffer.isEmpty;
   }
 
+  CodeBuffer add(var object) {
+    write(object);
+    return this;
+  }
   /**
    * Converts [object] to a string and adds it to the buffer. If [object] is a
    * [CodeBuffer], adds its markers to [markers].
    */
-  CodeBuffer add(var object) {
+  CodeBuffer write(var object) {
     if (object is CodeBuffer) {
       return addBuffer(object);
     }
     if (mappedRangeCounter == 0) setSourceLocation(null);
     buffer.add(object.toString());
     return this;
+  }
+
+  CodeBuffer print(var object) {
+    return write(object).write("\n");
   }
 
   CodeBuffer addBuffer(CodeBuffer other) {
@@ -46,6 +54,7 @@ class CodeBuffer implements StringBuffer {
       lastBufferOffset = buffer.length + other.lastBufferOffset;
     }
     buffer.add(other.getText());
+    return this;
   }
 
   CodeBuffer addAll(Iterable<Object> iterable) {
@@ -55,8 +64,10 @@ class CodeBuffer implements StringBuffer {
     return this;
   }
 
-  CodeBuffer addCharCode(int charCode) {
-    return add(new String.fromCharCodes([charCode]));
+  CodeBuffer addCharCode(int charCode) => writeCharCode(charCode);
+
+  CodeBuffer writeCharCode(int charCode) {
+    return write(new String.fromCharCodes([charCode]));
   }
 
   CodeBuffer clear() {

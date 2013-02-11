@@ -202,33 +202,3 @@ stringReplaceFirstUnchecked(receiver, from, to) {
 stringJoinUnchecked(array, separator) {
   return JS('String', r'#.join(#)', array, separator);
 }
-
-class JsStringBuffer implements StringBuffer {
-  String _contents;
-
-  JsStringBuffer(content)
-      : _contents = (content is String) ? content : '$content';
-
-  int get length => _contents.length;
-
-  bool get isEmpty => length == 0;
-
-  void add(Object obj) {
-    _contents = JS('String', '# + #', _contents,
-                   (obj is String) ? obj : '$obj');
-  }
-
-  void addAll(Iterable objects) {
-    for (Object obj in objects) add(obj);
-  }
-
-  void addCharCode(int charCode) {
-    add(new String.fromCharCodes([charCode]));
-  }
-
-  void clear() {
-    _contents = "";
-  }
-
-  String toString() => _contents;
-}

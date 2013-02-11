@@ -9,29 +9,77 @@ part of dart.core;
  * efficiently. Only on a call to [toString] are the strings
  * concatenated to a single String.
  */
-abstract class StringBuffer {
+class StringBuffer implements StringSink {
 
   /// Creates the string buffer with an initial content.
-  external factory StringBuffer([Object content = ""]);
+  external StringBuffer([Object content = ""]);
 
   /// Returns the length of the buffer.
-  int get length;
+  external int get length;
 
-  // Returns whether the buffer is empty.
-  bool get isEmpty;
+  /// Returns whether the buffer is empty.
+  bool get isEmpty => length == 0;
 
-  /// Converts [obj] to a string and adds it to the buffer.
-  void add(Object obj);
+  /**
+   * Converts [obj] to a string and adds it to the buffer.
+   *
+   * *Deprecated*. Use [write] instead.
+   */
+  @deprecated
+  void add(Object obj) => write(obj);
+
+  void write(Object obj) {
+    // TODO(srdjan): The following four lines could be replaced by
+    // '$obj', but apparently this is too slow on the Dart VM.
+    String str = obj.toString();
+    if (str is! String) {
+      throw new ArgumentError('toString() did not return a string');
+    }
+    if (str.isEmpty) return;
+    _write(str);
+  }
+
+
+  void print(Object obj) {
+    write(obj);
+    _write("\n");
+  }
+
+  /**
+   * Adds the string representation of [charCode] to the buffer.
+   *
+   * *Deprecated* Use [writeCharCode] instead.
+   */
+  @deprecated
+  void addCharCode(int charCode) {
+    writeCharCode(charCode);
+  }
 
   /// Adds the string representation of [charCode] to the buffer.
-  void addCharCode(int charCode);
+  void writeCharCode(int charCode) {
+    _write(new String.fromCharCode(charCode));
+  }
 
-  /// Adds all items in [objects] to the buffer.
-  void addAll(Iterable objects);
+  /**
+   * Adds all items in [objects] to the buffer.
+   *
+   * *Deprecated*. Use [:objects.forEach(buffer.write):] instead.
+   */
+  @deprecated
+  void addAll(Iterable objects) {
+    for (Object obj in objects) write(obj);
+  }
 
-  /// Clears the string buffer.
-  void clear();
+  /**
+   * Clears the string buffer.
+   *
+   * *Deprecated*.
+   */
+  @deprecated
+  external void clear();
 
   /// Returns the contents of buffer as a concatenated string.
-  String toString();
+  external String toString();
+
+  external void _write(String str);
 }
