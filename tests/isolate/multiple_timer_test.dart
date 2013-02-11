@@ -22,28 +22,36 @@ main() {
     int _message;
 
     void timeoutHandler1() {
-      expect(_stopwatch1.elapsedMilliseconds,
+      // The stopwatch is more precise than the Timer. It can happen that
+      // the TIMEOUT triggers *slightly* too early.
+      expect(_stopwatch1.elapsedMilliseconds + 1,
              greaterThanOrEqualTo(TIMEOUT1.inMilliseconds));
       expect(_order[_message], 0);
       _message++;
     }
 
     void timeoutHandler2() {
-      expect(_stopwatch2.elapsedMilliseconds,
+      // The stopwatch is more precise than the Timer. It can happen that
+      // the TIMEOUT triggers *slightly* too early.
+      expect(_stopwatch2.elapsedMilliseconds + 1,
              greaterThanOrEqualTo(TIMEOUT2.inMilliseconds));
       expect(_order[_message], 1);
       _message++;
     }
 
     void timeoutHandler3() {
-      expect(_stopwatch3.elapsedMilliseconds,
+      // The stopwatch is more precise than the Timer. It can happen that
+      // the TIMEOUT triggers *slightly* too early.
+      expect(_stopwatch3.elapsedMilliseconds + 1,
              greaterThanOrEqualTo(TIMEOUT3.inMilliseconds));
       expect(_order[_message], 2);
       _message++;
     }
 
     void timeoutHandler4() {
-      expect(_stopwatch4.elapsedMilliseconds,
+      // The stopwatch is more precise than the Timer. It can happen that
+      // the TIMEOUT triggers *slightly* too early.
+      expect(_stopwatch4.elapsedMilliseconds + 1,
              greaterThanOrEqualTo(TIMEOUT4.inMilliseconds));
       expect(_order[_message], 3);
       _message++;
