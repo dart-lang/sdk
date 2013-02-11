@@ -8223,7 +8223,10 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
       imported_obj = LookupNameInImport(import, name);
       if (!imported_obj.IsNull()) {
         const Library& lib = Library::Handle(import.library());
-        if (!first_lib_url.IsNull()) {
+        // TODO(8474): Remove the "Expect" special casing.
+        if (!first_lib_url.IsNull()
+            && (strcmp(name.ToCString(), "Expect") != 0)
+            && (strcmp(name.ToCString(), "ExpectException") != 0)) {
           // Found duplicate definition.
           Error& ambiguous_ref_error = Error::Handle();
           if (first_lib_url.raw() == lib.url()) {
