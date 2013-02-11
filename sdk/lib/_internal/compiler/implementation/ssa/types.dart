@@ -614,7 +614,6 @@ class HStringOrNullType extends HPrimitiveOrNullType {
         return new HBoundedPotentialPrimitiveString(
             boundedType.type,
             canBeNull: true,
-            isExact: other.isExact(),
             isInterfaceType: other.isInterfaceType());
       }
     }

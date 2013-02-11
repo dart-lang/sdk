@@ -2022,6 +2022,13 @@ void testIntersection(MockCompiler compiler) {
                 FIXED_ARRAY.intersection(FIXED_ARRAY, compiler));
 }
 
+void testRegressions(Compiler compiler) {
+  HType nonNullPotentialString = new HBoundedPotentialPrimitiveString(
+      compiler.stringClass.computeType(compiler), canBeNull: false);
+  Expect.equals(
+      potentialString, STRING_OR_NULL.union(nonNullPotentialString, compiler));
+}
+
 void main() {
   MockCompiler compiler = new MockCompiler();
   nonPrimitive1 = new HBoundedType(
@@ -2034,4 +2041,5 @@ void main() {
       compiler.stringClass.computeType(compiler));
   testUnion(compiler);
   testIntersection(compiler);
+  testRegressions(compiler);
 }
