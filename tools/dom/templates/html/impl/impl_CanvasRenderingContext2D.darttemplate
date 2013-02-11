@@ -42,4 +42,15 @@ $!MEMBERS
   void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
+
+$if DART2JS
+  @DomName('CanvasRenderingContext2D.lineDashOffset')
+  num get lineDashOffset => JS('num',
+      '#.lineDashOffset || #.webkitLineDashOffset', this, this);
+
+  @DomName('CanvasRenderingContext2D.lineDashOffset')
+  void set lineDashOffset(num value) => JS('void', 
+      'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
+      '#.webkitLineDashOffset = #', this, this, value, this, value);
+$endif
 }

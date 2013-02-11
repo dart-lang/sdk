@@ -185,7 +185,9 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
 
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
-_renamed_html_members = monitored.Dict('htmlrenamer._renamed_html_members', {
+renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
+    'Document.createCDATASection': 'createCDataSection',
+    'Document.defaultView': 'window',
     'DOMURL.createObjectURL': 'createObjectUrl',
     'DOMURL.revokeObjectURL': 'revokeObjectUrl',
     'DOMWindow.webkitConvertPointFromNodeToPage': 'convertPointFromNodeToPage',
@@ -195,8 +197,6 @@ _renamed_html_members = monitored.Dict('htmlrenamer._renamed_html_members', {
     'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
     'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
     'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
-    'Document.createCDATASection': 'createCDataSection',
-    'Document.defaultView': 'window',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
     'Element.webkitMatchesSelector' : 'matches',
@@ -236,6 +236,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'CanvasRenderingContext2D.setMiterLimit',
     'CanvasRenderingContext2D.setShadow',
     'CanvasRenderingContext2D.setStrokeColor',
+    'CanvasRenderingContext2D.webkitLineDashOffset',
     'CharacterData.remove',
     'DOMWindow.call:blur',
     'DOMWindow.clientInformation',
@@ -243,8 +244,10 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'DOMWindow.get:frames',
     'DOMWindow.get:length',
     'DOMWindow.prompt',
+    'DOMWindow.webkitCancelAnimationFrame',
     'DOMWindow.webkitCancelRequestAnimationFrame',
     'DOMWindow.webkitIndexedDB',
+    'DOMWindow.webkitRequestAnimationFrame',
     'Document.adoptNode',
     'Document.alinkColor',
     'Document.all',
@@ -517,12 +520,16 @@ class HtmlRenamer(object):
       return None
 
     name = self._FindMatch(interface, member, member_prefix,
-        _renamed_html_members)
+        renamed_html_members)
 
-    target_name = _renamed_html_members[name] if name else member
+    target_name = renamed_html_members[name] if name else member
     if self._FindMatch(interface, member, member_prefix, _private_html_members):
       if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
         target_name = '$dom_' + target_name
+
+    if not name and target_name.startswith('webkit'):
+      target_name = member[len('webkit'):]
+      target_name = target_name[:1].lower() + target_name[1:]
 
     if dartify_name:
       target_name = self._DartifyMemberName(target_name)
