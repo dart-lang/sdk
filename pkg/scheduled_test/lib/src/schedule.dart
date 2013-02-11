@@ -22,7 +22,7 @@ class Schedule {
   TaskQueue _tasks;
 
   /// The queue of tasks to run if an error is caught while running [tasks]. The
-  /// error will be available via [error]. These tasks won't be run if no error
+  /// error will be available in [errors]. These tasks won't be run if no error
   /// occurs. Note that expectation failures count as errors.
   ///
   /// This queue runs before [onComplete], and errors in [onComplete] will not
@@ -35,12 +35,12 @@ class Schedule {
 
   /// The queue of tasks to run after [tasks] and possibly [onException] have
   /// run. This queue will run whether or not an error occurred. If one did, it
-  /// will be available via [error]. Note that expectation failures count as
+  /// will be available in [errors]. Note that expectation failures count as
   /// errors.
   ///
   /// This queue runs after [onException]. If an error occurs while running
-  /// [onException], that error will be available via [error] in place of the
-  /// original error.
+  /// [onException], that error will be available in [errors] after the original
+  /// error.
   ///
   /// If an error occurs in a task in this queue, all further tasks will be
   /// skipped.
@@ -59,11 +59,20 @@ class Schedule {
   bool get done => _done;
   bool _done = false;
 
-  /// The error thrown by the task queue. This will only be set while running
-  /// [onException] and [onComplete], since an error in [tasks] will cause it to
-  /// terminate immediately.
-  ScheduleError get error => _error;
-  ScheduleError _error;
+  // TODO(nweiz): make this a read-only view once issue 8321 is fixed.
+
+  /// Errors thrown by the task queues.
+  ///
+  /// When running tasks in [tasks], this will always be empty. If an error
+  /// occurs in [tasks], it will be added to this list and then [onException]
+  /// will be run. If an error occurs there as well, it will be added to this
+  /// list and [onComplete] will be run. Errors thrown during [onComplete] will
+  /// also be added to this list, although no scheduled tasks will be run
+  /// afterwards.
+  ///
+  /// Any out-of-band callbacks that throw errors will also have those errors
+  /// added to this list.
+  final errors = <ScheduleError>[];
 
   /// The task queue that's currently being run, or `null` if there is no such
   /// queue. One of [tasks], [onException], or [onComplete]. This will be `null`
@@ -99,11 +108,27 @@ class Schedule {
 
       return tasks._run();
     }).catchError((e) {
-      _error = e;
-      return onException._run().then((_) {
+      errors.add(e);
+      return onException._run().catchError((innerError) {
+        // If an error occurs in a task in the onException queue, make sure it's
+        // registered in the error list and re-throw it. We could also re-throw
+        // `e`; ultimately, all the errors will be shown to the user if any
+        // ScheduleError is thrown.
+        errors.add(innerError);
+        throw innerError;
+      }).then((_) {
+        // If there are no errors in the onException queue, re-throw the
+        // original error that caused it to run.
         throw e;
       });
-    }).whenComplete(() => onComplete._run()).whenComplete(() {
+    }).whenComplete(() {
+      return onComplete._run().catchError((e) {
+        // If an error occurs in a task in the onComplete queue, make sure it's
+        // registered in the error list and re-throw it.
+        errors.add(e);
+        throw e;
+      });
+    }).whenComplete(() {
       _done = true;
     });
   }
@@ -116,10 +141,11 @@ class Schedule {
     var scheduleError = new ScheduleError.from(this, error,
         stackTrace: stackTrace, task: currentTask);
     if (_done) {
+      errors.add(scheduleError);
       throw new StateError(
           "An out-of-band error was signaled outside of wrapAsync after the "
-              "schedule finished running:"
-          "${prefixLines(scheduleError.toString())}");
+              "schedule finished running.\n"
+          "${errorString()}");
     } else if (currentQueue == null) {
       // If we're not done but there's no current queue, that means we haven't
       // started yet and thus we're in setUp or the synchronous body of the
@@ -158,6 +184,15 @@ class Schedule {
         }
       }
     };
+  }
+
+  /// Returns a string representation of all errors registered on this schedule.
+  String errorString() {
+    if (errors.isEmpty) return "The schedule had no errors.";
+    if (errors.length == 1) return errors.first.toString();
+    var errorStrings = errors.map((e) => e.toString()).join("\n================"
+        "================================================================\n");
+    return "The schedule had ${errors.length} errors:\n$errorStrings";
   }
 
   /// Returns a [Future] that will complete once there are no pending
@@ -212,6 +247,7 @@ class TaskQueue {
       _schedule._currentTask = task;
       if (_error != null) throw _error;
       return task.fn().catchError((e) {
+        if (_error != null) _schedule.errors.add(_error);
         throw new ScheduleError.from(_schedule, e, task: task);
       });
     }).whenComplete(() {
@@ -225,6 +261,9 @@ class TaskQueue {
   /// Signals that an out-of-band error has been detected and the queue should
   /// stop running as soon as possible.
   void _signalError(ScheduleError error) {
+    // If multiple errors are detected while a task is running, make sure the
+    // earlier ones are recorded in the schedule.
+    if (_error != null) _schedule.errors.add(_error);
     _error = error;
   }
 

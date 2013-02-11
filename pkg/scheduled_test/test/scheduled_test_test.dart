@@ -293,20 +293,20 @@ void main() {
     });
   }, passing: ['test 2']);
 
-  expectTestsPass('currentSchedule.error contains the error in the onComplete '
+  expectTestsPass('currentSchedule.errors contains the error in the onComplete '
       'queue', () {
-    var error;
+    var errors;
     test('test 1', () {
       currentSchedule.onComplete.schedule(() {
-        error = currentSchedule.error;
+        errors = currentSchedule.errors;
       });
 
       throw 'error';
     });
 
     test('test 2', () {
-      expect(error, new isInstanceOf<ScheduleError>());
-      expect(error.error, equals('error'));
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
     });
   }, passing: ['test 2']);
 
@@ -395,71 +395,147 @@ void main() {
     });
   }, passing: ['test 2']);
 
-  expectTestsPass('currentSchedule.error contains the error in the onException '
-      'queue', () {
-    var error;
+  expectTestsPass('currentSchedule.errors contains the error in the '
+      'onException queue', () {
+    var errors;
     test('test 1', () {
       currentSchedule.onException.schedule(() {
-        error = currentSchedule.error;
+        errors = currentSchedule.errors;
       });
 
       throw 'error';
     });
 
     test('test 2', () {
-      expect(error, new isInstanceOf<ScheduleError>());
-      expect(error.error, equals('error'));
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
     });
   }, passing: ['test 2']);
 
-  expectTestsPass('currentSchedule.error contains an error passed into '
+  expectTestsPass('currentSchedule.errors contains an error passed into '
       'signalError synchronously', () {
-    var error;
+    var errors;
     test('test 1', () {
       currentSchedule.onException.schedule(() {
-        error = currentSchedule.error;
+        errors = currentSchedule.errors;
       });
 
       currentSchedule.signalError('error');
     });
 
     test('test 2', () {
-      expect(error, new isInstanceOf<ScheduleError>());
-      expect(error.error, equals('error'));
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
     });
   }, passing: ['test 2']);
 
-  expectTestsPass('currentSchedule.error contains an error passed into '
+  expectTestsPass('currentSchedule.errors contains an error passed into '
       'signalError asynchronously', () {
-    var error;
+    var errors;
     test('test 1', () {
       currentSchedule.onException.schedule(() {
-        error = currentSchedule.error;
+        errors = currentSchedule.errors;
       });
 
       schedule(() => currentSchedule.signalError('error'));
     });
 
     test('test 2', () {
-      expect(error, new isInstanceOf<ScheduleError>());
-      expect(error.error, equals('error'));
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
     });
   }, passing: ['test 2']);
 
-  expectTestsPass('currentSchedule.error contains an error passed into '
+  expectTestsPass('currentSchedule.errors contains an error passed into '
       'signalError out-of-band', () {
-    var error;
+    var errors;
     test('test 1', () {
       currentSchedule.onException.schedule(() {
-        error = currentSchedule.error;
+        errors = currentSchedule.errors;
       });
 
       sleep(50).then(wrapAsync((_) => currentSchedule.signalError('error')));
     });
 
     test('test 2', () {
-      expect(error, new isInstanceOf<ScheduleError>());
-      expect(error.error, equals('error'));
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error']));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass('currentSchedule.errors contains errors from both the task '
+      'queue and the onException queue in onComplete', () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onComplete.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      currentSchedule.onException.schedule(() {
+        throw 'error2';
+      });
+
+      throw 'error1';
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['error1', 'error2']));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass('currentSchedule.errors contains multiple out-of-band errors '
+      'from both the main task queue and onException in onComplete', () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onComplete.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      currentSchedule.onException.schedule(() {
+        sleep(25).then(wrapAsync((_) {
+          throw 'error3';
+        }));
+        sleep(50).then(wrapAsync((_) {
+          throw 'error4';
+        }));
+      });
+
+      sleep(25).then(wrapAsync((_) {
+        throw 'error1';
+      }));
+      sleep(50).then(wrapAsync((_) {
+        throw 'error2';
+      }));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error),
+          orderedEquals(['error1', 'error2', 'error3', 'error4']));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass('currentSchedule.errors contains both an out-of-band error '
+      'and an error raised afterwards in a task', () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.onComplete.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      sleep(25).then(wrapAsync((_) {
+        throw 'out-of-band';
+      }));
+
+      schedule(() => sleep(50).then((_) {
+        throw 'in-band';
+      }));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(['out-of-band', 'in-band']));
     });
   }, passing: ['test 2']);
 
