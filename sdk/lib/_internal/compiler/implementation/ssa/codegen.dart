@@ -1567,9 +1567,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     int receiverIndex = node.isInterceptorCall ? 1 : 0;
     HType receiverHType = types[node.inputs[receiverIndex]];
     DartType receiverType = receiverHType.computeType(compiler);
-    if (receiverType != null &&
-        !identical(receiverType.kind, TypeKind.MALFORMED_TYPE)) {
-      return new TypedSelector(receiverType, defaultSelector);
+    if (receiverType != null && !receiverType.isMalformed) {
+      if (receiverHType.isExact()) {
+        return new TypedSelector.exact(receiverType, defaultSelector);
+      } else if (receiverHType.isInterfaceType()) {
+        return new TypedSelector.subtype(receiverType, defaultSelector);
+      } else {
+        return new TypedSelector.subclass(receiverType, defaultSelector);
+      }
     } else {
       return defaultSelector;
     }
@@ -1709,35 +1714,32 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
-    if (node.element == backend.jsArrayLength
-        || node.element == backend.jsStringLength) {
+    Element element = node.element;
+    if (element == backend.jsArrayLength || element == backend.jsStringLength) {
       // We're accessing a native JavaScript property called 'length'
       // on a JS String or a JS array. Therefore, the name of that
       // property should not be mangled.
       push(new js.PropertyAccess.field(pop(), 'length'), node);
     } else {
-      String name = _fieldPropertyName(node.element);
+      String name = _fieldPropertyName(element);
       push(new js.PropertyAccess.field(pop(), name), node);
-      HType receiverHType = types[node.receiver];
-      DartType type = receiverHType.computeType(compiler);
+      DartType type = types[node.receiver].computeType(compiler);
       if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
-        world.registerFieldGetter(
-            node.element.name, node.element.getLibrary(), type);
+        world.registerFieldGetter(element);
       }
     }
   }
 
   visitFieldSet(HFieldSet node) {
-    String name = _fieldPropertyName(node.element);
+    Element element = node.element;
+    String name = _fieldPropertyName(element);
     DartType type = types[node.receiver].computeType(compiler);
     if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
       // Field setters in the generative constructor body are handled in a
       // step "SsaConstructionFieldTypes" in the ssa optimizer.
       if (!work.element.isGenerativeConstructorBody()) {
-        world.registerFieldSetter(
-            node.element.name, node.element.getLibrary(), type);
-        backend.registerFieldSetter(
-            work.element, node.element, types[node.value]);
+        world.registerFieldSetter(element);
+        backend.registerFieldSetter(work.element, element, types[node.value]);
       }
     }
     use(node.receiver);

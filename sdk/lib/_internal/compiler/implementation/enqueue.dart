@@ -349,26 +349,12 @@ abstract class Enqueuer {
     registerInvokedSetter(methodName, selector);
   }
 
-  void registerFieldGetter(SourceString getterName,
-                           LibraryElement library,
-                           DartType type) {
-    task.measure(() {
-      Selector getter = new Selector.getter(getterName, library);
-      registerNewSelector(getterName,
-                          new TypedSelector(type, getter),
-                          universe.fieldGetters);
-    });
+  void registerFieldGetter(Element element) {
+    universe.fieldGetters.add(element);
   }
 
-  void registerFieldSetter(SourceString setterName,
-                           LibraryElement library,
-                           DartType type) {
-    task.measure(() {
-      Selector setter = new Selector.setter(setterName, library);
-      registerNewSelector(setterName,
-                          new TypedSelector(type, setter),
-                          universe.fieldSetters);
-    });
+  void registerFieldSetter(Element element) {
+    universe.fieldSetters.add(element);
   }
 
   void registerIsCheck(DartType type) {

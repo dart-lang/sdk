@@ -9,9 +9,7 @@ abstract class PartialTypeTree {
   final Compiler compiler;
   PartialTypeTreeNode root;
 
-  // TODO(kasperl): This should be final but the VM will not allow
-  // that without making the map a compile-time constant.
-  Map<ClassElement, PartialTypeTreeNode> nodes =
+  final Map<ClassElement, PartialTypeTreeNode> nodes =
       new Map<ClassElement, PartialTypeTreeNode>();
 
   // TODO(kasperl): For now, we keep track of whether or not the tree
@@ -19,9 +17,7 @@ abstract class PartialTypeTree {
   // subclass relationship.
   bool containsInterfaceSubtypes = false;
 
-  // TODO(kasperl): This should be final but the VM will not allow
-  // that without making the set a compile-time constant.
-  Set<ClassElement> unseenInterfaceSubtypes =
+  final Set<ClassElement> unseenInterfaceSubtypes =
       new Set<ClassElement>();
 
   PartialTypeTree(this.compiler);
@@ -145,7 +141,6 @@ abstract class PartialTypeTree {
    * the [visit] function ever returns false, we abort the traversal.
    */
   void visitHierarchy(ClassElement type, bool visit(PartialTypeTreeNode node)) {
-    assert(!containsInterfaceSubtypes);
     PartialTypeTreeNode current = root;
     L: while (!identical(current.type, type)) {
       assert(type.isSubclassOf(current.type));

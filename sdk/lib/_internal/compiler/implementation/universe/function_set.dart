@@ -37,13 +37,19 @@ class FunctionSet extends PartialTypeTree {
         : false;
   }
 
+  bool shouldVisitAll(Selector selector) {
+    // TODO(kasperl): For now, we use a different implementation for
+    // filtering if the tree contains interface subtypes.
+    return containsInterfaceSubtypes
+        && (selector.typeKind == TypedSelectorKind.INTERFACE
+            || selector.typeKind == TypedSelectorKind.UNKNOWN);
+  }
+
   /**
    * Returns all elements that may be invoked with the given [selector].
    */
   Set<Element> filterBySelector(Selector selector) {
-    // TODO(kasperl): For now, we use a different implementation for
-    // filtering if the tree contains interface subtypes.
-    return containsInterfaceSubtypes
+    return shouldVisitAll(selector)
         ? filterAllBySelector(selector)
         : filterHierarchyBySelector(selector);
   }
@@ -53,9 +59,7 @@ class FunctionSet extends PartialTypeTree {
    * [selector].
    */
   bool hasAnyElementMatchingSelector(Selector selector) {
-    // TODO(kasperl): For now, we use a different implementation for
-    // filtering if the tree contains interface subtypes.
-    return containsInterfaceSubtypes
+    return shouldVisitAll(selector)
         ? hasAnyInAll(selector)
         : hasAnyInHierarchy(selector);
   }

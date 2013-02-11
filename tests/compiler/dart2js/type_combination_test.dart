@@ -2024,14 +2024,14 @@ void testIntersection(MockCompiler compiler) {
 
 void main() {
   MockCompiler compiler = new MockCompiler();
-  nonPrimitive1 = new HBoundedType.nonNull(
-      compiler.mapClass.computeType(compiler));
-  nonPrimitive2 = new HBoundedType.nonNull(
-      compiler.functionClass.computeType(compiler));
+  nonPrimitive1 = new HBoundedType(
+      compiler.mapClass.computeType(compiler), canBeNull: false);
+  nonPrimitive2 = new HBoundedType(
+      compiler.functionClass.computeType(compiler), canBeNull: false);
   potentialArray = new HBoundedPotentialPrimitiveArray(
-      compiler.listClass.computeType(compiler), true);
+      compiler.listClass.computeType(compiler));
   potentialString = new HBoundedPotentialPrimitiveString(
-      compiler.stringClass.computeType(compiler), true);
+      compiler.stringClass.computeType(compiler));
   testUnion(compiler);
   testIntersection(compiler);
 }

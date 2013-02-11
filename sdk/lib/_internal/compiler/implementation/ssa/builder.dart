@@ -248,6 +248,25 @@ class LocalsHandler {
     updateLocal(boxElement, newBox);
   }
 
+  HType cachedTypeOfThis;
+
+  HType computeTypeOfThis() {
+    Element element = closureData.thisElement;
+    ClassElement cls = element.enclosingElement.getEnclosingClass();
+    Compiler compiler = builder.compiler;
+    DartType type = cls.computeType(compiler);
+    if (compiler.world.isUsedAsMixin(cls)) {
+      // If the enclosing class is used as a mixin, [:this:] can be
+      // of the class that mixins the enclosing class. These two
+      // classes do not have a subclass relationship, so, for
+      // simplicity, we mark the type as an interface type.
+      cachedTypeOfThis = new HType.nonNullSubtype(type, compiler);
+    } else {
+      cachedTypeOfThis = new HType.nonNullSubclass(type, compiler);
+    }
+    return cachedTypeOfThis;
+  }
+
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -301,10 +320,8 @@ class LocalsHandler {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
-      ClassElement cls = element.getEnclosingClass();
-      DartType type = cls.computeType(builder.compiler);
-      HThis thisInstruction = new HThis(closureData.thisElement,
-                                        new HBoundedType.nonNull(type));
+      HThis thisInstruction = new HThis(
+          closureData.thisElement, computeTypeOfThis());
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       directLocals[closureData.thisElement] = thisInstruction;
@@ -416,17 +433,11 @@ class LocalsHandler {
     }
   }
 
-  HType cachedTypeOfThis;
-
   HInstruction readThis() {
     HInstruction res = readLocal(closureData.thisElement);
     if (res.guaranteedType == null) {
       if (cachedTypeOfThis == null) {
-        assert(closureData.isClosure());
-        Element element = closureData.thisElement;
-        ClassElement cls = element.enclosingElement.getEnclosingClass();
-        DartType type = cls.computeType(builder.compiler);
-        cachedTypeOfThis = new HBoundedType.nonNull(type);
+        computeTypeOfThis();
       }
       res.guaranteedType = cachedTypeOfThis;
     }
@@ -4020,10 +4031,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HLiteralList keyValuePairs = new HLiteralList(inputs);
     add(keyValuePairs);
+    DartType mapType = compiler.mapLiteralClass.computeType(compiler);
+    // TODO(ngeoffray): Use the actual implementation type of a map
+    // literal.
     pushInvokeHelper1(backend.getMapMaker(), keyValuePairs,
-        new HType.fromBoundedType(compiler.mapClass.computeType(compiler),
-                                  compiler,
-                                  false));
+        new HType.nonNullSubtype(mapType, compiler));
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
@@ -4611,8 +4623,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HType mapBaseType(BaseType baseType) {
     if (!baseType.isClass()) return HType.UNKNOWN;
     ClassBaseType classBaseType = baseType;
-    return new HType.fromBoundedType(
-        classBaseType.element.computeType(compiler), compiler, false);
+    ClassElement cls = classBaseType.element;
+    // Special case the list and map classes that are used as types
+    // for literals in the type inferrer.
+    if (cls == compiler.listClass) {
+      return HType.READABLE_ARRAY;
+    } else if (cls == compiler.mapClass) {
+      // TODO(ngeoffray): get the actual implementation of a map
+      // literal.
+      return new HType.nonNullSubtype(
+          compiler.mapLiteralClass.computeType(compiler), compiler);
+    } else {
+      return new HType.nonNullExactClass(
+          cls.computeType(compiler), compiler);
+    }
   }
 
   HType mapInferredType(ConcreteType concreteType) {
@@ -4625,14 +4649,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return ssaType;
   }
 
+  // [type] is either an instance of [DartType] or special objects
+  // like [native.SpecialType.JsObject], or [native.SpecialType.JsArray].
   HType mapNativeType(type) {
     if (type == native.SpecialType.JsObject) {
-      return new HBoundedType.exact(
-          compiler.objectClass.computeType(compiler));
+      return new HType.nonNullExactClass(
+          compiler.objectClass.computeType(compiler), compiler);
     } else if (type == native.SpecialType.JsArray) {
       return HType.READABLE_ARRAY;
     } else {
-      return new HType.fromBoundedType(type, compiler, false);
+      return new HType.nonNullSubclass(type, compiler);
     }
   }
 

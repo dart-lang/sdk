@@ -386,8 +386,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (node.isInterceptorCall) return handleInterceptorCall(node);
     HType receiverType = types[node.receiver];
     if (receiverType.isExact()) {
-      HBoundedType type = receiverType;
-      Element element = type.lookupMember(node.selector.name);
+      Element element = receiverType.lookupMember(node.selector.name, compiler);
       // TODO(ngeoffray): Also fold if it's a getter or variable.
       if (element != null && element.isFunction()) {
         if (node.selector.applies(element, compiler)) {
@@ -1276,8 +1275,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
   void visitIs(HIs instruction) {
     HInstruction input = instruction.expression;
-    HType convertedType =
-        new HType.fromBoundedType(instruction.typeExpression, compiler);
+    HType convertedType = new HType.nonNullSubtype(
+        instruction.typeExpression, compiler);
 
     List<HInstruction> ifUsers = <HInstruction>[];
     List<HInstruction> notIfUsers = <HInstruction>[];

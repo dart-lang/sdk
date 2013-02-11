@@ -4,7 +4,6 @@
 
 identity_test: Fail # Issue 6638
 constant_folding_string_test: Fail
-tree_shaking_test: Fail # Issue 4811
 boolified_operator_test: Fail # Issue 8001
 analyze_api_test: Pass, Slow
 

@@ -13,12 +13,17 @@ abstract class HType {
    */
   factory HType.fromBoundedType(DartType type,
                                 Compiler compiler,
-                                [bool canBeNull = false]) {
+                                {bool canBeNull: true,
+                                 bool isExact: false,
+                                 bool isInterfaceType: true}) {
     Element element = type.element;
     if (element.kind == ElementKind.TYPE_VARIABLE) {
       // TODO(ngeoffray): Replace object type with [type].
       return new HBoundedPotentialPrimitiveType(
-          compiler.objectClass.computeType(compiler), canBeNull, true);
+          compiler.objectClass.computeType(compiler),
+          true,
+          canBeNull: canBeNull,
+          isInterfaceType: isInterfaceType);
     }
 
     if (element == compiler.intClass) {
@@ -33,20 +38,72 @@ abstract class HType {
       return canBeNull ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
     } else if (element == compiler.nullClass) {
       return HType.NULL;
-    } else if (element == compiler.listClass
-        || Elements.isListSupertype(element, compiler)) {
-      return new HBoundedPotentialPrimitiveArray(type, canBeNull);
-    } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
-      return new HBoundedPotentialPrimitiveNumberOrString(type, canBeNull);
-    } else if (Elements.isStringOnlySupertype(element, compiler)) {
-      return new HBoundedPotentialPrimitiveString(type, canBeNull);
-    } else if (element == compiler.objectClass) {
-      return new HBoundedPotentialPrimitiveType(
-          compiler.objectClass.computeType(compiler), canBeNull, true);
-    } else {
-      return canBeNull ? new HBoundedType.withNull(type)
-                       : new HBoundedType.nonNull(type);
+    } else if (!isExact) {
+      if (element == compiler.listClass
+          || Elements.isListSupertype(element, compiler)) {
+        return new HBoundedPotentialPrimitiveArray(
+            type,
+            canBeNull: canBeNull,
+            isInterfaceType: isInterfaceType);
+      } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
+        return new HBoundedPotentialPrimitiveNumberOrString(
+            type,
+            canBeNull: canBeNull,
+            isInterfaceType: isInterfaceType);
+      } else if (Elements.isStringOnlySupertype(element, compiler)) {
+        return new HBoundedPotentialPrimitiveString(
+            type,
+            canBeNull: canBeNull,
+            isInterfaceType: isInterfaceType);
+      } else if (element == compiler.objectClass) {
+        return new HBoundedPotentialPrimitiveType(
+            compiler.objectClass.computeType(compiler),
+            true,
+            canBeNull: canBeNull,
+            isInterfaceType: isInterfaceType);
+      }
     }
+    return new HBoundedType(
+        type,
+        canBeNull: canBeNull,
+        isExact: isExact,
+        isInterfaceType: isInterfaceType);
+  }
+
+  factory HType.nonNullExactClass(DartType type, Compiler compiler) {
+    return new HType.fromBoundedType(
+        type,
+        compiler,
+        canBeNull: false,
+        isExact: true,
+        isInterfaceType: false);
+  }
+
+  factory HType.nonNullSubclass(DartType type, Compiler compiler) {
+    return new HType.fromBoundedType(
+        type,
+        compiler,
+        canBeNull: false,
+        isExact: false,
+        isInterfaceType: false);
+  }
+
+  factory HType.subtype(DartType type, Compiler compiler) {
+    return new HType.fromBoundedType(
+        type,
+        compiler,
+        canBeNull: true,
+        isExact: false,
+        isInterfaceType: true);
+  }
+
+  factory HType.nonNullSubtype(DartType type, Compiler compiler) {
+    return new HType.fromBoundedType(
+        type,
+        compiler,
+        canBeNull: false,
+        isExact: false,
+        isInterfaceType: true);
   }
 
   static const HType CONFLICTING = const HConflictingType();
@@ -91,6 +148,7 @@ abstract class HType {
   bool isExact() => false;
   bool isPrimitiveOrNull() => false;
   bool isTop() => false;
+  bool isInterfaceType() => false;
 
   bool canBePrimitive() => false;
   bool canBeNull() => false;
@@ -99,6 +157,14 @@ abstract class HType {
   bool isUseful() => !isUnknown() && !isConflicting() && !isNull();
   /** Alias for isReadableArray. */
   bool isArray() => isReadableArray();
+
+  Element lookupMember(SourceString name, Compiler compiler) {
+    if (!isExact()) return null;
+    DartType type = computeType(compiler);
+    if (type == null) return null;
+    ClassElement cls = type.element;
+    return cls.lookupMember(name);
+  }
 
   DartType computeType(Compiler compiler);
 
@@ -164,6 +230,7 @@ abstract class HPrimitiveType extends HType {
   bool isPrimitive() => true;
   bool canBePrimitive() => true;
   bool isPrimitiveOrNull() => true;
+  bool isExact() => true;
 }
 
 class HNullType extends HPrimitiveType {
@@ -271,6 +338,8 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
   const HNumberOrNullType();
   bool isNumberOrNull() => true;
   String toString() => "number or null";
+  bool isExact() => false;
+  bool isInterfaceType() => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -308,6 +377,8 @@ class HNumberType extends HPrimitiveType {
   bool isNumber() => true;
   bool isNumberOrNull() => true;
   String toString() => "number";
+  bool isExact() => false;
+  bool isInterfaceType() => true;
 
   DartType computeType(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -540,7 +611,11 @@ class HStringOrNullType extends HPrimitiveOrNullType {
         return other;
       } else {
         HBoundedType boundedType = other;
-        return new HBoundedPotentialPrimitiveString(boundedType.type, true);
+        return new HBoundedPotentialPrimitiveString(
+            boundedType.type,
+            canBeNull: true,
+            isExact: other.isExact(),
+            isInterfaceType: other.isInterfaceType());
       }
     }
     if (other.isNull()) return HType.STRING_OR_NULL;
@@ -618,7 +693,9 @@ class HReadableArrayType extends HIndexablePrimitiveType {
     if (other.isNull()) {
       // TODO(ngeoffray): This should be readable array or null.
       return new HBoundedPotentialPrimitiveArray(
-          compiler.listClass.computeType(compiler), true);
+          compiler.listClass.computeType(compiler),
+          canBeNull: true,
+          isInterfaceType: true);
     }
     return HType.UNKNOWN;
   }
@@ -649,7 +726,9 @@ class HMutableArrayType extends HReadableArrayType {
     if (other.isNull()) {
       // TODO(ngeoffray): This should be mutable array or null.
       return new HBoundedPotentialPrimitiveArray(
-          compiler.listClass.computeType(compiler), true);
+          compiler.listClass.computeType(compiler),
+          canBeNull: true,
+          isInterfaceType: true);
     }
     return HType.UNKNOWN;
   }
@@ -681,7 +760,9 @@ class HFixedArrayType extends HMutableArrayType {
     if (other.isNull()) {
       // TODO(ngeoffray): This should be fixed array or null.
       return new HBoundedPotentialPrimitiveArray(
-          compiler.listClass.computeType(compiler), true);
+          compiler.listClass.computeType(compiler),
+          canBeNull: true,
+          isInterfaceType: true);
     }
     return HType.UNKNOWN;
   }
@@ -714,7 +795,9 @@ class HExtendableArrayType extends HMutableArrayType {
     if (other.isNull()) {
       // TODO(ngeoffray): This should be extendable array or null.
       return new HBoundedPotentialPrimitiveArray(
-          compiler.listClass.computeType(compiler), true);
+          compiler.listClass.computeType(compiler),
+          canBeNull: true,
+          isInterfaceType: true);
     }
     return HType.UNKNOWN;
   }
@@ -735,57 +818,51 @@ class HBoundedType extends HType {
   final DartType type;
   final bool _canBeNull;
   final bool _isExact;
+  final bool _isInterfaceType;
 
   String toString() {
     return 'BoundedType($type, canBeNull: $_canBeNull, isExact: $_isExact)';
   }
 
   bool canBeNull() => _canBeNull;
-
   bool isExact() => _isExact;
+  bool isInterfaceType() => _isInterfaceType;
 
   const HBoundedType(DartType this.type,
-                     [bool canBeNull = false, isExact = false])
-      : _canBeNull = canBeNull, _isExact = isExact;
-  const HBoundedType.exact(DartType type) : this(type, false, true);
-  const HBoundedType.withNull(DartType type) : this(type, true, false);
-  const HBoundedType.nonNull(DartType type) : this(type);
+                     {bool canBeNull: true,
+                      bool isExact: false,
+                      bool isInterfaceType: true})
+      : _canBeNull = canBeNull,
+        _isExact = isExact,
+        _isInterfaceType = isInterfaceType;
+
+  const HBoundedType.exact(DartType this.type)
+      : _canBeNull = false, _isExact = true, _isInterfaceType = false;
 
   DartType computeType(Compiler compiler) => type;
 
-  Element lookupMember(SourceString name) {
-    if (!isExact()) return null;
-    ClassElement classElement = type.element;
-    return classElement.lookupMember(name);
-  }
-
   HType intersection(HType other, Compiler compiler) {
-    assert(!(isExact() && canBeNull()));
+    if (this == other) return this;
     if (other.isConflicting()) return HType.CONFLICTING;
     if (other.isNull()) return canBeNull() ? HType.NULL : HType.CONFLICTING;
 
     if (other is HBoundedType) {
       HBoundedType temp = other;
-      if (identical(this.type, temp.type)) {
-        // If the types are the same, we return the [HBoundedType]
-        // that has the most restrictive representation: if it's exact
-        // (eg cannot be a subtype), and if it cannot be null.
-        if (isExact()) {
-          return this;
-        } else if (other.isExact()) {
-          return other;
-        } else if (canBeNull()) {
-          return other;
-        } else {
-          return this;
+      DartType otherType = temp.type;
+      if (!type.isMalformed && !otherType.isMalformed) {
+        DartType intersectionType;
+        if (type == otherType || compiler.types.isSubtype(type, otherType)) {
+          intersectionType = type;
+        } else if (compiler.types.isSubtype(otherType, type)) {
+          intersectionType = otherType;
         }
-      // If one type is a subtype of the other, we return the former,
-      // which is the narrower type.
-      } else if (!type.isMalformed && !other.type.isMalformed) {
-        if (compiler.types.isSubtype(type, other.type)) {
-          return this;
-        } else if (compiler.types.isSubtype(other.type, type)) {
-          return other;
+        if (intersectionType != null) {
+          return new HType.fromBoundedType(
+              intersectionType,
+              compiler,
+              canBeNull: canBeNull() && temp.canBeNull(),
+              isExact: isExact() || other.isExact(),
+              isInterfaceType: isInterfaceType() && other.isInterfaceType());
         }
       }
     }
@@ -797,25 +874,35 @@ class HBoundedType extends HType {
   bool operator ==(HType other) {
     if (other is !HBoundedType) return false;
     HBoundedType bounded = other;
-    return (identical(type, bounded.type)
-            && identical(canBeNull(), bounded.canBeNull())
-            && identical(isExact(), other.isExact()));
+    return type == bounded.type
+            && canBeNull() == bounded.canBeNull()
+            && isExact() == bounded.isExact()
+            && isInterfaceType() == bounded.isInterfaceType();
   }
 
   HType union(HType other, Compiler compiler) {
+    if (this == other) return this;
     if (other.isNull()) {
       if (canBeNull()) {
         return this;
       } else {
-        return new HBoundedType.withNull(type);
+        return new HBoundedType(
+            type,
+            canBeNull: true,
+            isExact: this.isExact(),
+            isInterfaceType: this.isInterfaceType());
       }
     }
     if (other is HBoundedType) {
       HBoundedType temp = other;
-      if (!identical(type, temp.type)) return HType.UNKNOWN;
-      if (isExact()) return other;
-      if (other.isExact()) return this;
-      return canBeNull() ? this : other;
+      if (type != temp.type) return HType.UNKNOWN;
+      return new HType.fromBoundedType(
+          type,
+          compiler,
+          canBeNull: canBeNull() || other.canBeNull(),
+          isInterfaceType: isInterfaceType() || other.isInterfaceType(),
+          isExact: isExact() && other.isExact());
+
     }
     if (other.isConflicting()) return this;
     return HType.UNKNOWN;
@@ -825,9 +912,13 @@ class HBoundedType extends HType {
 class HBoundedPotentialPrimitiveType extends HBoundedType {
   final bool _isObject;
   const HBoundedPotentialPrimitiveType(DartType type,
-                                       bool canBeNull,
-                                       this._isObject)
-      : super(type, canBeNull, false);
+                                       this._isObject,
+                                       {bool canBeNull: true,
+                                        bool isInterfaceType: true})
+      : super(type,
+              canBeNull: canBeNull,
+              isExact: false,
+              isInterfaceType: isInterfaceType);
 
   String toString() {
     return 'BoundedPotentialPrimitiveType($type, canBeNull: $_canBeNull)';
@@ -840,7 +931,8 @@ class HBoundedPotentialPrimitiveType extends HBoundedType {
     if (isTop()) {
       // The union of the top type and another type is the top type.
       if (!canBeNull() && other.canBeNull()) {
-        return new HBoundedPotentialPrimitiveType(type, true, true);
+        return new HBoundedPotentialPrimitiveType(
+            type, true, canBeNull: canBeNull(), isInterfaceType: true);
       } else {
         return this;
       }
@@ -862,25 +954,33 @@ class HBoundedPotentialPrimitiveType extends HBoundedType {
 
 class HBoundedPotentialPrimitiveNumberOrString
     extends HBoundedPotentialPrimitiveType {
-  const HBoundedPotentialPrimitiveNumberOrString(DartType type, bool canBeNull)
-      : super(type, canBeNull, false);
+  const HBoundedPotentialPrimitiveNumberOrString(DartType type,
+                                                 {bool canBeNull: true,
+                                                  bool isInterfaceType: true})
+      : super(type,
+              false,
+              canBeNull: canBeNull,
+              isInterfaceType: isInterfaceType);
 
   HType union(HType other, Compiler compiler) {
     if (other.isNumber()) return this;
     if (other.isNumberOrNull()) {
       if (canBeNull()) return this;
-      return new HBoundedPotentialPrimitiveNumberOrString(type, true);
+      return new HBoundedPotentialPrimitiveNumberOrString(
+          type, canBeNull: true, isInterfaceType: this.isInterfaceType());
     }
 
     if (other.isString()) return this;
     if (other.isStringOrNull()) {
       if (canBeNull()) return this;
-      return new HBoundedPotentialPrimitiveNumberOrString(type, true);
+      return new HBoundedPotentialPrimitiveNumberOrString(
+          type, canBeNull: true, isInterfaceType: this.isInterfaceType());
     }
 
     if (other.isNull()) {
       if (canBeNull()) return this;
-      return new HBoundedPotentialPrimitiveNumberOrString(type, true);
+      return new HBoundedPotentialPrimitiveNumberOrString(
+          type, canBeNull: true, isInterfaceType: this.isInterfaceType());
     }
 
     return super.union(other, compiler);
@@ -902,8 +1002,13 @@ class HBoundedPotentialPrimitiveNumberOrString
 }
 
 class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {
-  const HBoundedPotentialPrimitiveArray(DartType type, bool canBeNull)
-      : super(type, canBeNull, false);
+  const HBoundedPotentialPrimitiveArray(DartType type,
+                                        {bool canBeNull: true,
+                                         bool isInterfaceType: true})
+      : super(type,
+              false,
+              canBeNull: canBeNull,
+              isInterfaceType: isInterfaceType);
 
   HType union(HType other, Compiler compiler) {
     if (other.isString()) return HType.UNKNOWN;
@@ -914,7 +1019,8 @@ class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {
       if (canBeNull()) {
         return this;
       } else {
-        return new HBoundedPotentialPrimitiveArray(type, true);
+        return new HBoundedPotentialPrimitiveArray(
+            type, canBeNull: true, isInterfaceType: isInterfaceType());
       }
     }
     return super.union(other, compiler);
@@ -930,8 +1036,13 @@ class HBoundedPotentialPrimitiveArray extends HBoundedPotentialPrimitiveType {
 }
 
 class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
-  const HBoundedPotentialPrimitiveString(DartType type, bool canBeNull)
-      : super(type, canBeNull, false);
+  const HBoundedPotentialPrimitiveString(DartType type,
+                                         {bool canBeNull: true,
+                                          bool isInterfaceType: true})
+      : super(type,
+              false,
+              canBeNull: canBeNull,
+              isInterfaceType: isInterfaceType);
 
   bool isPrimitiveOrNull() => true;
 
@@ -941,14 +1052,16 @@ class HBoundedPotentialPrimitiveString extends HBoundedPotentialPrimitiveType {
       if (canBeNull()) {
         return this;
       } else {
-        return new HBoundedPotentialPrimitiveString(type, true);
+        return new HBoundedPotentialPrimitiveString(
+            type, canBeNull: true, isInterfaceType: isInterfaceType());
       }
     }
     if (other.isNull()) {
       if (canBeNull()) {
         return this;
       } else {
-        return new HBoundedPotentialPrimitiveString(type, true);
+        return new HBoundedPotentialPrimitiveString(
+            type, canBeNull: true, isInterfaceType: isInterfaceType());
       }
     }
     // TODO(ngeoffray): implement union types.
