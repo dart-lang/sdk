@@ -8,7 +8,7 @@ import 'dart:collection';
 
 abstract class QueueTest {
 
-  Queue newQueue([int capacity]);
+  Queue newQueue();
   Queue newQueueFrom(Iterable iterable);
 
   void testMain() {
