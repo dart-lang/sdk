@@ -21445,18 +21445,21 @@ class RtcIceCandidateEvent extends Event {
   RtcIceCandidate get candidate native "RTCIceCandidateEvent_candidate_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('RTCPeerConnection')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
 class RtcPeerConnection extends EventTarget {
+
+  /**
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on 
+   * the current platform.
+   */
+  static bool get supported => true;
   RtcPeerConnection.internal() : super.internal();
 
   @DomName('RTCPeerConnection.addstreamEvent')
@@ -21619,6 +21622,8 @@ class RtcPeerConnection extends EventTarget {
   Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
 
 }
+
+
 
 @DocsEditable
 @deprecated
