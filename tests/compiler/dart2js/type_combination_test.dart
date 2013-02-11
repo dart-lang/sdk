@@ -2022,7 +2022,7 @@ void testIntersection(MockCompiler compiler) {
                 FIXED_ARRAY.intersection(FIXED_ARRAY, compiler));
 }
 
-void testRegressions(Compiler compiler) {
+void testRegressions(MockCompiler compiler) {
   HType nonNullPotentialString = new HBoundedPotentialPrimitiveString(
       compiler.stringClass.computeType(compiler), canBeNull: false);
   Expect.equals(
