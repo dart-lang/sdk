@@ -16749,6 +16749,8 @@ class LinkElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('LocalMediaStream')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class LocalMediaStream extends MediaStream implements EventTarget {
   LocalMediaStream.internal() : super.internal();
 
@@ -17832,6 +17834,8 @@ class MediaSource extends EventTarget {
 
 
 @DomName('MediaStream')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStream extends EventTarget {
   MediaStream.internal() : super.internal();
 
@@ -17952,6 +17956,8 @@ class MediaStreamEvents extends Events {
 
 @DocsEditable
 @DomName('MediaStreamEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStreamEvent extends Event {
   MediaStreamEvent.internal() : super.internal();
 
@@ -17972,6 +17978,8 @@ class MediaStreamEvent extends Event {
 
 @DocsEditable
 @DomName('MediaStreamTrack')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStreamTrack extends EventTarget {
   MediaStreamTrack.internal() : super.internal();
 
@@ -18067,6 +18075,8 @@ class MediaStreamTrackEvents extends Events {
 
 @DocsEditable
 @DomName('MediaStreamTrackEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStreamTrackEvent extends Event {
   MediaStreamTrackEvent.internal() : super.internal();
 
@@ -21391,6 +21401,8 @@ class RtcDataChannelEvent extends Event {
 
 @DocsEditable
 @DomName('RTCIceCandidate')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
   RtcIceCandidate.internal();
 
@@ -21442,6 +21454,8 @@ class RtcIceCandidateEvent extends Event {
 
 @DocsEditable
 @DomName('RTCPeerConnection')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class RtcPeerConnection extends EventTarget {
   RtcPeerConnection.internal() : super.internal();
 
@@ -21639,6 +21653,8 @@ class RtcPeerConnectionEvents extends Events {
 
 @DocsEditable
 @DomName('RTCSessionDescription')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
   RtcSessionDescription.internal();
 

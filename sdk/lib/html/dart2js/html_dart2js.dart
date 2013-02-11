@@ -15385,6 +15385,8 @@ class LinkElement extends Element native "*HTMLLinkElement" {
 
 @DocsEditable
 @DomName('LocalMediaStream')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
 
   @DomName('LocalMediaStream.stop')
@@ -16254,6 +16256,8 @@ class MediaSource extends EventTarget native "*MediaSource" {
 
 
 @DomName('MediaStream')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStream extends EventTarget native "*MediaStream" {
 
   @DomName('MediaStream.endedEvent')
@@ -16373,6 +16377,8 @@ class MediaStreamEvents extends Events {
 
 @DocsEditable
 @DomName('MediaStreamEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
   /// Checks if this type is supported on the current platform.
@@ -16389,6 +16395,8 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 
 @DocsEditable
 @DomName('MediaStreamTrack')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 
   @DomName('MediaStreamTrack.endedEvent')
@@ -16478,6 +16486,8 @@ class MediaStreamTrackEvents extends Events {
 
 @DocsEditable
 @DomName('MediaStreamTrackEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 
   /// Checks if this type is supported on the current platform.
@@ -18247,14 +18257,21 @@ class Notation extends Node native "*Notation" {
   @DocsEditable
   final String systemId;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('Notification')
 class Notification extends EventTarget native "*Notification" {
+  factory Notification(String title, [Map options]) {
+    if (?options) {
+      return JS('Notification', 'new Notification(#,#)', title,
+          convertDartToNative_SerializedScriptValue(options));
+    } else {
+      return JS('Notification', 'new Notification(#)', title);
+    }
+  }
 
   @DomName('Notification.clickEvent')
   @DocsEditable
@@ -18275,17 +18292,6 @@ class Notification extends EventTarget native "*Notification" {
   @DomName('Notification.showEvent')
   @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
-
-  @DomName('Notification.Notification')
-  @DocsEditable
-  factory Notification(String title, [Map options]) {
-    if (?options) {
-      return Notification._create_1(title, options);
-    }
-    return Notification._create_2(title);
-  }
-  static Notification _create_1(title, options) => JS('Notification', 'new Notification(#,#)', title, options);
-  static Notification _create_2(title) => JS('Notification', 'new Notification(#)', title);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -18358,6 +18364,7 @@ class Notification extends EventTarget native "*Notification" {
   @DomName('Notification.onshow')
   @DocsEditable
   Stream<Event> get onShow => showEvent.forTarget(this);
+
 }
 
 @DocsEditable
@@ -19541,21 +19548,19 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
   @DocsEditable
   final RtcDataChannel channel;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('RTCIceCandidate')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class RtcIceCandidate native "*RTCIceCandidate" {
-
-  @DomName('RTCIceCandidate.RTCIceCandidate')
-  @DocsEditable
   factory RtcIceCandidate(Map dictionary) {
-    return RtcIceCandidate._create_1(dictionary);
+    return JS('RtcIceCandidate', 'new RTCIceCandidate(#)',
+        convertDartToNative_SerializedScriptValue(dictionary));
   }
-  static RtcIceCandidate _create_1(dictionary) => JS('RtcIceCandidate', 'new RTCIceCandidate(#)', dictionary);
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable
@@ -19568,6 +19573,7 @@ class RtcIceCandidate native "*RTCIceCandidate" {
   @DomName('RTCIceCandidate.sdpMid')
   @DocsEditable
   final String sdpMid;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19582,14 +19588,43 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
   @DocsEditable
   final RtcIceCandidate candidate;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('RTCPeerConnection')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
+  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
+    var constructorName = JS('RtcPeerConnection', 'window[#]',
+        '${_browserPropertyPrefix}RTCPeerConnection');
+    if (?mediaConstraints) {
+      return JS('RtcPeerConnection', 'new #(#,#)', constructorName,
+          convertDartToNative_SerializedScriptValue(rtcIceServers),
+          convertDartToNative_SerializedScriptValue(mediaConstraints));
+    } else {
+      return JS('RtcPeerConnection', 'new #(#)', constructorName,
+          convertDartToNative_SerializedScriptValue(rtcIceServers));
+    }
+  }
+
+  /**
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on 
+   * the current platform.
+   */
+  static bool get supported {
+    // Currently in Firefox some of the RTC elements are defined but throw an
+    // error unless the user has specifically enabled them in their 
+    // about:config. So we have to construct an element to actually test if RTC
+    // is supported at at the given time.
+    try {
+      var c = new RtcPeerConnection({"iceServers": [ {"url":"stun:foo.com"}]});
+      return c is RtcPeerConnection; 
+    } catch (_) {}
+    return false;
+  }
 
   @DomName('RTCPeerConnection.addstreamEvent')
   @DocsEditable
@@ -19618,17 +19653,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.statechangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
-
-  @DomName('RTCPeerConnection.RTCPeerConnection')
-  @DocsEditable
-  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    if (?mediaConstraints) {
-      return RtcPeerConnection._create_1(rtcIceServers, mediaConstraints);
-    }
-    return RtcPeerConnection._create_2(rtcIceServers);
-  }
-  static RtcPeerConnection _create_1(rtcIceServers, mediaConstraints) => JS('RtcPeerConnection', 'new RTCPeerConnection(#,#)', rtcIceServers, mediaConstraints);
-  static RtcPeerConnection _create_2(rtcIceServers) => JS('RtcPeerConnection', 'new RTCPeerConnection(#)', rtcIceServers);
 
   @DocsEditable
   @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
@@ -19835,7 +19859,10 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.onstatechange')
   @DocsEditable
   Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
+
 }
+
+
 
 @DocsEditable
 @deprecated
@@ -19861,21 +19888,19 @@ class RtcPeerConnectionEvents extends Events {
   @DocsEditable
   EventListenerList get stateChange => this['statechange'];
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('RTCSessionDescription')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class RtcSessionDescription native "*RTCSessionDescription" {
-
-  @DomName('RTCSessionDescription.RTCSessionDescription')
-  @DocsEditable
   factory RtcSessionDescription(Map dictionary) {
-    return RtcSessionDescription._create_1(dictionary);
+    return JS('RtcSessionDescription', 'new RTCSessionDescription(#)',
+        convertDartToNative_SerializedScriptValue(dictionary));
   }
-  static RtcSessionDescription _create_1(dictionary) => JS('RtcSessionDescription', 'new RTCSessionDescription(#)', dictionary);
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable
@@ -19884,6 +19909,7 @@ class RtcSessionDescription native "*RTCSessionDescription" {
   @DomName('RTCSessionDescription.type')
   @DocsEditable
   String type;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

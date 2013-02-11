@@ -70,6 +70,17 @@ _js_custom_members = set([
     'WorkerContext.indexedDB',
     ])
 
+_js_custom_constructors = set([
+    'AudioContext',
+    'Blob',
+    'MutationObserver',
+    'Notification',
+    'RTCIceCandidate',
+    'RTCPeerConnection',
+    'RTCSessionDescription',
+    'SpeechRecognition',
+    ])
+
 # Classes that offer only static methods, and therefore we should suppress
 # constructor creation.
 _static_classes = set(['Url'])
@@ -611,12 +622,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def GenerateCustomFactory(self, constructor_info):
     # Custom factory will be taken from the template.
-    return self._interface.doc_js_name in [
-        'AudioContext',
-        'Blob',
-        'MutationObserver',
-        'SpeechRecognition',
-    ]
+    return self._interface.doc_js_name in _js_custom_constructors
 
   def IsConstructorArgumentOptional(self, argument):
     return 'Optional' in argument.ext_attrs

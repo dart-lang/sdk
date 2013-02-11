@@ -1,0 +1,43 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  factory $CLASSNAME(Map rtcIceServers, [Map mediaConstraints]) {
+    var constructorName = JS('RtcPeerConnection', 'window[#]',
+        '${_browserPropertyPrefix}RTCPeerConnection');
+    if (?mediaConstraints) {
+      return JS('RtcPeerConnection', 'new #(#,#)', constructorName,
+          convertDartToNative_SerializedScriptValue(rtcIceServers),
+          convertDartToNative_SerializedScriptValue(mediaConstraints));
+    } else {
+      return JS('RtcPeerConnection', 'new #(#)', constructorName,
+          convertDartToNative_SerializedScriptValue(rtcIceServers));
+    }
+  }
+
+  /**
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on 
+   * the current platform.
+   */
+$if DART2JS
+  static bool get supported {
+    // Currently in Firefox some of the RTC elements are defined but throw an
+    // error unless the user has specifically enabled them in their 
+    // about:config. So we have to construct an element to actually test if RTC
+    // is supported at at the given time.
+    try {
+      var c = new RtcPeerConnection({"iceServers": [ {"url":"stun:foo.com"}]});
+      return c is RtcPeerConnection; 
+    } catch (_) {}
+    return false;
+  }
+$else
+  static bool get supported => true;
+$endif
+$!MEMBERS
+}
+
+

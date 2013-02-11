@@ -81,6 +81,7 @@ microtask_test: Fail, Pass # Appears to be flaky
 mutationobserver_test/supported: Fail
 native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 notifications_test/supported: Fail
+rtc_test/supported: Fail
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
@@ -159,6 +160,7 @@ messageevent_test: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 postmessage_structured_test: Skip   # BUG(5685): times out.
+rtc_test/supported: Fail
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
@@ -220,6 +222,7 @@ media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 notifications_test/supported: Fail # Issue: 7414
 performance_api_test/supported: Fail
+rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
@@ -299,6 +302,7 @@ input_element_test/supported_range: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 notifications_test/supported: Fail
+rtc_test/supported: Fail # Release build does not enable by default.
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 svg_test/supported_externalResourcesRequired: Fail

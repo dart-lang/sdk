@@ -28,6 +28,12 @@ main() {
           expect(e.name, DomException.SECURITY);
         }
       });
+
+      test('construct notification', () {
+        var note = new Notification('this is a notification');
+        var note2 = new Notification('another notificiation',
+          {'option1': 'foo'});
+      });
     }
   });
 }

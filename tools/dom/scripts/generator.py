@@ -673,12 +673,6 @@ _all_but_ie9_annotations = [
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
 ]
 
-_webkit_experimental_annotations = [
-  "@SupportedBrowser(SupportedBrowser.CHROME)",
-  "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  "@Experimental",
-]
-
 _history_annotations = _all_but_ie9_annotations
 
 _no_ie_annotations = [
@@ -691,6 +685,11 @@ _performance_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX)",
   "@SupportedBrowser(SupportedBrowser.IE)",
+]
+
+_rtc_annotations = [ # Note: Firefox nightly builds also support this.
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@Experimental",
 ]
 
 _speech_recognition_annotations = [
@@ -709,6 +708,12 @@ _web_sql_annotations = [
 _webgl_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+  "@Experimental",
+]
+
+_webkit_experimental_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@SupportedBrowser(SupportedBrowser.SAFARI)",
   "@Experimental",
 ]
 
@@ -784,6 +789,13 @@ dart_annotations = {
   ],
   'IDBFactory': _indexed_db_annotations,
   'IDBDatabase': _indexed_db_annotations,
+  'LocalMediaStream': _rtc_annotations,
+  'MediaStream': _rtc_annotations,
+  'MediaStreamEvents': _rtc_annotations,
+  'MediaStreamEvent': _rtc_annotations,
+  'MediaStreamTrack': _rtc_annotations,
+  'MediaStreamTrackEvent': _rtc_annotations,
+  'MediaStreamTrackEvents': _rtc_annotations,
   'MutationObserver': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -793,6 +805,9 @@ dart_annotations = {
   'NotificationCenter': _webkit_experimental_annotations,
   'Performance': _performance_annotations,
   'PopStateEvent': _history_annotations,
+  'RTCIceCandidate': _rtc_annotations,
+  'RTCPeerConnection': _rtc_annotations,
+  'RTCSessionDescription': _rtc_annotations,
   'ShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental",
