@@ -128,6 +128,7 @@ main() {
 
       expect(() {
         var db = html.window.indexedDB;
+        db.open('random_db');
       }, expectation);
     });
 
