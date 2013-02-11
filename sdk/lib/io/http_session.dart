@@ -125,7 +125,7 @@ class _HttpSessionManager {
     session._next = session._prev = null;
   }
 
-  void _timerTimeout(_) {
+  void _timerTimeout() {
     _stopTimer();  // Clear timer.
     assert(_head != null);
     var session = _head;
@@ -139,7 +139,8 @@ class _HttpSessionManager {
     assert(_timer == null);
     if (_head != null) {
       int seconds = new DateTime.now().difference(_head.lastSeen).inSeconds;
-      _timer = new Timer((_sessionTimeout - seconds) * 1000, _timerTimeout);
+      _timer = new Timer(new Duration(seconds: _sessionTimeout - seconds),
+                         _timerTimeout);
     }
   }
 

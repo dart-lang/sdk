@@ -92,7 +92,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
   void _checkScheduleCallback() {
     // TODO(sgjesse): Find a better way of scheduling callbacks from
     // the event loop.
-    void issueDataCallback(Timer timer) {
+    void issueDataCallback() {
       _scheduledDataCallback = null;
       if (_clientDataHandler != null) {
         _clientDataHandler();
@@ -100,7 +100,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
       }
     }
 
-    void issueCloseCallback(Timer timer) {
+    void issueCloseCallback() {
       _scheduledCloseCallback = null;
       if (!_closed) {
         if (_clientCloseHandler != null) _clientCloseHandler();
@@ -113,7 +113,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
          (_bufferList.length > 0 && _inputClosed)) &&
         _clientDataHandler != null &&
         _scheduledDataCallback == null) {
-      _scheduledDataCallback = new Timer(0, issueDataCallback);
+      _scheduledDataCallback = Timer.run(issueDataCallback);
     }
 
     // Schedule close callback if no more data and input is closed.
@@ -124,7 +124,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
       if (_scheduledDataCallback != null) {
         _scheduledDataCallback.cancel();
       }
-      _scheduledCloseCallback = new Timer(0, issueCloseCallback);
+      _scheduledCloseCallback = Timer.run(issueCloseCallback);
     }
   }
 

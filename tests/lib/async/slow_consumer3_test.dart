@@ -35,7 +35,8 @@ class SlowConsumer extends StreamConsumer {
           subscription.pause();
           usedBufferSize = 0;
           int ms = data.length * 1000 ~/ bytesPerSecond;
-          new Timer(ms, (_) {
+          Duration duration = new Duration(milliseconds: ms);
+          new Timer(duration, () {
             for (int i = 0; i < currentBufferedDataLength; i++) {
               bufferedData[i] = null;
             }

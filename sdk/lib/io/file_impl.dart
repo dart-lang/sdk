@@ -224,7 +224,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
         outstandingWrites == 0 &&
         !_streamMarkedClosed &&
         _onNoPendingWrites != null) {
-      new Timer(0, (t) {
+      Timer.run(() {
         if (_onNoPendingWrites != null) {
           _onNoPendingWrites();
         }
@@ -444,7 +444,7 @@ class _File extends _FileBase implements File {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
-      new Timer(0, (t) {
+      Timer.run(() {
         completer.completeError(new ArgumentError());
       });
       return completer.future;
@@ -665,7 +665,7 @@ class _File extends _FileBase implements File {
         completer.completeError(e);
       };
     } catch (e) {
-      new Timer(0, (t) => completer.completeError(e));
+      Timer.run(() => completer.completeError(e));
       return completer.future;
     }
     return completer.future;
@@ -685,7 +685,7 @@ class _File extends _FileBase implements File {
       return writeAsBytes(data, mode);
     } catch (e) {
       var completer = new Completer();
-      new Timer(0, (t) => completer.completeError(e));
+      Timer.run(() => completer.completeError(e));
       return completer.future;
     }
   }
@@ -787,7 +787,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       // Complete asynchronously so the user has a chance to setup
       // handlers without getting exceptions when registering the
       // then handler.
-      new Timer(0, (t) {
+      Timer.run(() {
         completer.completeError(new FileIOException(
             "Invalid arguments to read for file '$_name'"));
       });
@@ -824,7 +824,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       // Complete asynchronously so the user has a chance to setup
       // handlers without getting exceptions when registering the
       // then handler.
-      new Timer(0, (t) {
+      Timer.run(() {
         completer.completeError(new FileIOException(
             "Invalid arguments to readList for file '$_name'"));
       });
@@ -880,7 +880,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       // Complete asynchronously so the user has a chance to setup
       // handlers without getting exceptions when registering the
       // then handler.
-      new Timer(0, (t) {
+      Timer.run(() {
           completer.completeError(new FileIOException(
               "Invalid argument to writeByte for file '$_name'"));
       });
@@ -923,7 +923,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       // Complete asynchronously so the user has a chance to setup
       // handlers without getting exceptions when registering the
       // then handler.
-      new Timer(0, (t) {
+      Timer.run(() {
           completer.completeError(new FileIOException(
           "Invalid arguments to writeList for file '$_name'"));
       });
@@ -938,7 +938,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       // Complete asynchronously so the user has a chance to setup
       // handlers without getting exceptions when registering the
       // then handler.
-      new Timer(0, (t) => completer.completeError(e));
+      Timer.run(() => completer.completeError(e));
       return completer.future;
     }
 
@@ -981,7 +981,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
                                        [Encoding encoding = Encoding.UTF_8]) {
     if (encoding is! Encoding) {
       var completer = new Completer();
-      new Timer(0, (t) {
+      Timer.run(() {
         completer.completeError(new FileIOException(
             "Invalid encoding in writeString: $encoding"));
       });
@@ -1151,7 +1151,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   }
 
   Future _completeWithClosedException(Completer completer) {
-    new Timer(0, (t) {
+    Timer.run(() {
       completer.completeError(
           new FileIOException("File closed '$_name'"));
     });

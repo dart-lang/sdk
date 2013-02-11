@@ -7,6 +7,8 @@ library future_test;
 import 'dart:async';
 import 'dart:isolate';
 
+const Duration MS = const Duration(milliseconds: 1);
+
 testImmediate() {
   final future = new Future<String>.immediate("42");
   var port = new ReceivePort();
@@ -357,7 +359,7 @@ testFutureWhenCompletePreValue() {
   var completer = new Completer();
   Future future = completer.future;
   completer.complete(42);
-  new Timer(0, () {
+  Timer.run(() {
     Future later = future.whenComplete(countDown);
     later.then((v) {
       Expect.equals(42, v);
@@ -367,6 +369,7 @@ testFutureWhenCompletePreValue() {
 }
 
 testFutureWhenValueFutureValue() {
+
   var port = new ReceivePort();
   int counter = 3;
   countDown(int expect) {
@@ -377,7 +380,7 @@ testFutureWhenValueFutureValue() {
   completer.future.whenComplete(() {
     countDown(3);
     var completer2 = new Completer();
-    new Timer(10, (_) {
+    new Timer(MS * 10, () {
       countDown(2);
       completer2.complete(37);
     });
@@ -401,7 +404,7 @@ testFutureWhenValueFutureError() {
   completer.future.whenComplete(() {
     countDown(3);
     var completer2 = new Completer();
-    new Timer(10, (_) {
+    new Timer(MS * 10, () {
       countDown(2);
       completer2.completeError("Fail");
     });
@@ -427,7 +430,7 @@ testFutureWhenErrorFutureValue() {
   completer.future.whenComplete(() {
     countDown(3);
     var completer2 = new Completer();
-    new Timer(10, (_) {
+    new Timer(MS * 10, () {
       countDown(2);
       completer2.complete(37);
     });
@@ -453,7 +456,7 @@ testFutureWhenErrorFutureError() {
   completer.future.whenComplete(() {
     countDown(3);
     var completer2 = new Completer();
-    new Timer(10, (_) {
+    new Timer(MS * 10, () {
       countDown(2);
       completer2.completeError("Fail");
     });

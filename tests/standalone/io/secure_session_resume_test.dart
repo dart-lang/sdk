@@ -123,11 +123,11 @@ void main() {
     keepAlive.close();
   };
 
-  int delay = 0;
-  int delay_between_connections = 300;  // Milliseconds.
+  Duration delay = const Duration(milliseconds: 0);
+  Duration delay_between_connections = const Duration(milliseconds: 300);
 
   for (var x in CLIENT_NAMES) {
-    new Timer(delay, (_) {
+    new Timer(delay, () {
       new SecureTestClient(port, x);
     });
     delay += delay_between_connections;

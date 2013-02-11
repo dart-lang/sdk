@@ -7,16 +7,17 @@ library timerNotAvailable;
 import 'dart:async';
 
 main() {
+  final ms = const Duration(milliseconds: 1);
   bool failed = false;
   try {
-    new Timer(5, (_) { });
+    new Timer(ms * 5, () { });
   } on UnsupportedError catch (e) {
     failed = true;
   }
   Expect.isTrue(failed);
   failed = false;
   try {
-    var t = new Timer.repeating(10, (_) { });
+    var t = new Timer.repeating(ms * 10, (_) { });
     t.cancel();
   } on UnsupportedError catch (e) {
     failed = true;

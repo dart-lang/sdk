@@ -90,19 +90,19 @@
  *       test('callback is executed once', () {
  *         // wrap the callback of an asynchronous call with [expectAsync0] if
  *         // the callback takes 0 arguments...
- *         var timer = new Timer(0, (_) => expectAsync0(() {
+ *         var timer = Timer.run(expectAsync0(() {
  *           int x = 2 + 3;
  *           expect(x, equals(5));
  *         }));
  *       });
  *
  *       test('callback is executed twice', () {
- *         var callback = (_) => expectAsync0(() {
+ *         var callback = expectAsync0(() {
  *           int x = 2 + 3;
  *           expect(x, equals(5));
  *         }, count: 2); // <-- we can indicate multiplicity to [expectAsync0]
- *         new Timer(0, callback);
- *         new Timer(0, callback);
+ *         Timer.run(callback);
+ *         Timer.run(callback);
  *       });
  *     }
  *
@@ -131,7 +131,7 @@
  *       test('callback is executed', () {
  *         // indicate ahead of time that an async callback is expected.
  *         var async = startAsync();
- *         new Timer(0, (_) {
+ *         Timer.run(() {
  *           // Guard the body of the callback, so errors are propagated
  *           // correctly.
  *           guardAsync(() {

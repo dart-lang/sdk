@@ -420,7 +420,7 @@ class CPSBenchmarkRunner extends Runner {
   }
 
   static void _addToEventQueue(Function action) {
-    new Timer(0, _(Timer t) => action());
+    Timer.run(action);
   }
 }
 

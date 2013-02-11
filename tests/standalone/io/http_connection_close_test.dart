@@ -51,7 +51,7 @@ void testStreamResponse() {
   };
   server.listen("127.0.0.1", 0, backlog: 5);
   server.defaultRequestHandler = (var request, var response) {
-    timer = new Timer.repeating(10, (_) {
+    timer = new Timer.repeating(new Duration(milliseconds: 10), (_) {
       DateTime now = new DateTime.now();
       try {
         response.outputStream.writeString(

@@ -502,7 +502,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     // Indicate to the connection that the response handling is done.
     _httpConnection._responseClosed();
     if (_streamClosedHandler != null) {
-      new Timer(0, (_) => _streamClosedHandler());
+      Timer.run(_streamClosedHandler);
     }
   }
 
@@ -1213,7 +1213,7 @@ class _HttpClientRequest
     _writeDone();
     _connection._requestClosed();
     if (_streamClosedHandler != null) {
-      new Timer(0, (_) => _streamClosedHandler());
+      Timer.run(_streamClosedHandler);
     }
   }
 
@@ -2056,7 +2056,7 @@ class _HttpClient implements HttpClient {
         _SocketConnection socketConn = socketConnections.removeFirst();
         socketConn._markRetrieved();
         _activeSockets.add(socketConn);
-        new Timer(0, (ignored) =>
+        Timer.run(() =>
                   _connectionOpened(socketConn, connection, !proxy.isDirect));
 
         // Get rid of eviction timer if there are no more active connections.
@@ -2151,7 +2151,8 @@ class _HttpClient implements HttpClient {
         // If all connections where evicted cancel the eviction timer.
         if (_openSockets.isEmpty) _cancelEvictionTimer();
       }
-      _evictionTimer = new Timer.repeating(10000, _handleEviction);
+      _evictionTimer = new Timer.repeating(const Duration(seconds: 10),
+                                           _handleEviction);
     }
 
     // Return connection.

@@ -50,7 +50,7 @@ class DataProvider {
 
   DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
     controller = new StreamController(onPauseStateChange: onPauseStateChange);
-    new Timer(0, (_) => send());
+    Timer.run(send);
   }
 
   Stream get stream => controller.stream;
@@ -69,7 +69,8 @@ class DataProvider {
     }
     controller.add(new List.fixedLength(listSize));
     int ms = listSize * 1000 ~/ bytesPerSecond;
-    if (!controller.isPaused) new Timer(ms, (_) => send());
+    Duration duration = new Duration(milliseconds: ms);
+    if (!controller.isPaused) new Timer(duration, send);
   }
 
   onPauseStateChange() {

@@ -7,44 +7,44 @@ library multiple_timer_test;
 import 'dart:async';
 import '../../pkg/unittest/lib/unittest.dart';
 
-const int TIMEOUT1 = 1000;
-const int TIMEOUT2 = 2000;
-const int TIMEOUT3 = 500;
-const int TIMEOUT4 = 1500;
+const Duration TIMEOUT1 = const Duration(seconds: 1);
+const Duration TIMEOUT2 = const Duration(seconds: 2);
+const Duration TIMEOUT3 = const Duration(milliseconds: 500);
+const Duration TIMEOUT4 = const Duration(milliseconds: 1500);
 
 main() {
   test("multiple timer test", () {
-    int _startTime1;
-    int _startTime2;
-    int _startTime3;
-    int _startTime4;
+    Stopwatch _stopwatch1 = new Stopwatch();
+    Stopwatch _stopwatch2 = new Stopwatch();
+    Stopwatch _stopwatch3 = new Stopwatch();
+    Stopwatch _stopwatch4 = new Stopwatch();
     List<int> _order;
     int _message;
 
-    void timeoutHandler1(Timer timer) {
-      int endTime = (new DateTime.now()).millisecondsSinceEpoch;
-      expect(endTime - _startTime1, greaterThanOrEqualTo(TIMEOUT1));
+    void timeoutHandler1() {
+      expect(_stopwatch1.elapsedMilliseconds,
+             greaterThanOrEqualTo(TIMEOUT1.inMilliseconds));
       expect(_order[_message], 0);
       _message++;
     }
 
-    void timeoutHandler2(Timer timer) {
-      int endTime  = (new DateTime.now()).millisecondsSinceEpoch;
-      expect(endTime - _startTime2, greaterThanOrEqualTo(TIMEOUT2));
+    void timeoutHandler2() {
+      expect(_stopwatch2.elapsedMilliseconds,
+             greaterThanOrEqualTo(TIMEOUT2.inMilliseconds));
       expect(_order[_message], 1);
       _message++;
     }
 
-    void timeoutHandler3(Timer timer) {
-      int endTime = (new DateTime.now()).millisecondsSinceEpoch;
-      expect(endTime - _startTime3, greaterThanOrEqualTo(TIMEOUT3));
+    void timeoutHandler3() {
+      expect(_stopwatch3.elapsedMilliseconds,
+             greaterThanOrEqualTo(TIMEOUT3.inMilliseconds));
       expect(_order[_message], 2);
       _message++;
     }
 
-    void timeoutHandler4(Timer timer) {
-      int endTime  = (new DateTime.now()).millisecondsSinceEpoch;
-      expect(endTime - _startTime4, greaterThanOrEqualTo(TIMEOUT4));
+    void timeoutHandler4() {
+      expect(_stopwatch4.elapsedMilliseconds,
+             greaterThanOrEqualTo(TIMEOUT4.inMilliseconds));
       expect(_order[_message], 3);
       _message++;
     }
@@ -56,13 +56,13 @@ main() {
     _order[3] = 1;
     _message = 0;
 
-    _startTime1 = (new DateTime.now()).millisecondsSinceEpoch;
-    new Timer(TIMEOUT1, expectAsync1(timeoutHandler1));
-    _startTime2 = (new DateTime.now()).millisecondsSinceEpoch;
-    new Timer(TIMEOUT2, expectAsync1(timeoutHandler2));
-    _startTime3 = (new DateTime.now()).millisecondsSinceEpoch;
-    new Timer(TIMEOUT3, expectAsync1(timeoutHandler3));
-    _startTime4 = (new DateTime.now()).millisecondsSinceEpoch;
-    new Timer(TIMEOUT4, expectAsync1(timeoutHandler4));
+    _stopwatch1.start();
+    new Timer(TIMEOUT1, expectAsync0(timeoutHandler1));
+    _stopwatch2.start();
+    new Timer(TIMEOUT2, expectAsync0(timeoutHandler2));
+    _stopwatch3.start();
+    new Timer(TIMEOUT3, expectAsync0(timeoutHandler3));
+    _stopwatch4.start();
+    new Timer(TIMEOUT4, expectAsync0(timeoutHandler4));
   });
 }

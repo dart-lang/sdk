@@ -99,7 +99,7 @@ abstract class _BaseDataInputStream {
   }
 
   void _checkScheduleCallbacks() {
-    void issueDataCallback(Timer timer) {
+    void issueDataCallback() {
       _scheduledDataCallback = null;
       if (_clientDataHandler != null) {
         _clientDataHandler();
@@ -107,7 +107,7 @@ abstract class _BaseDataInputStream {
       }
     }
 
-    void issueCloseCallback(Timer timer) {
+    void issueCloseCallback() {
       _scheduledCloseCallback = null;
       _closeCallbackCalled = true;
       if (_clientCloseHandler != null) _clientCloseHandler();
@@ -119,12 +119,12 @@ abstract class _BaseDataInputStream {
     if (!_closeCallbackCalled) {
       if (available() > 0) {
         if (_scheduledDataCallback == null) {
-          _scheduledDataCallback = new Timer(0, issueDataCallback);
+          _scheduledDataCallback = Timer.run(issueDataCallback);
         }
       } else if (_streamMarkedClosed && _scheduledCloseCallback == null) {
         _cancelScheduledDataCallback();
         _close();
-        _scheduledCloseCallback = new Timer(0, issueCloseCallback);
+        _scheduledCloseCallback = Timer.run(issueCloseCallback);
       }
     }
   }

@@ -33,13 +33,13 @@ class SocketClose {
 
   void proceed() {
     if (_iterations < ITERATIONS) {
-      new Timer(0, sendData);
+      Timer.run(sendData);
     } else {
       shutdown();
     }
   }
 
-  void sendData(Timer timer) {
+  void sendData() {
 
     void dataHandler() {
       switch (_mode) {
@@ -317,7 +317,7 @@ class SocketCloseServer {
     Expect.fail("Server socket error");
   }
 
-  waitForResult(Timer timer) {
+  waitForResult() {
     // Make sure all iterations have been run. In multiple of these
     // scenarios it is possible to get the SERVERSHUTDOWN message
     // before we have received the last close event on the
@@ -356,7 +356,7 @@ class SocketCloseServer {
       port.close();
       _donePort.send(null);
     } else {
-      new Timer(100, waitForResult);
+      new Timer(new Duration(milliseconds: 100), waitForResult);
     }
   }
 
@@ -378,7 +378,7 @@ class SocketCloseServer {
       _server.onError = errorHandlerServer;
       replyTo.send(_server.port, null);
     } else {
-      new Timer(0, waitForResult);
+      Timer.run(waitForResult);
     }
   }
 

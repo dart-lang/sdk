@@ -26,7 +26,7 @@ void shouldFail(value, Matcher matcher, expected, {bool isAsync: false}) {
   errorCount = 0;
   errorString = '';
   expect(value, matcher);
-  afterTest(_) {
+  afterTest() {
     configureExpectFailureHandler(null);
     expect(errorCount, equals(1));
     if (expected is String) {
@@ -37,9 +37,9 @@ void shouldFail(value, Matcher matcher, expected, {bool isAsync: false}) {
   }
 
   if (isAsync) {
-    new Timer(0, expectAsync1(afterTest));
+    Timer.run(expectAsync0(afterTest));
   } else {
-    afterTest(null);
+    afterTest();
   }
 }
 
@@ -48,13 +48,13 @@ void shouldPass(value, Matcher matcher, {bool isAsync: false}) {
   errorCount = 0;
   errorString = '';
   expect(value, matcher);
-  afterTest(_) {
+  afterTest() {
     configureExpectFailureHandler(null);
     expect(errorCount, equals(0));
   }
   if (isAsync) {
-    new Timer(0, expectAsync1(afterTest));
+    Timer.run(expectAsync0(afterTest));
   } else {
-    afterTest(null);
+    afterTest();
   }
 }

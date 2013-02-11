@@ -313,7 +313,7 @@ class _EventLoop {
       // Run each iteration from the browser's top event loop.
       void next() {
         if (!runIteration()) return;
-        new Timer(0, (_) => next());
+        Timer.run(next);
       }
       next();
     } else {
@@ -1264,7 +1264,7 @@ class TimerImpl implements Timer {
   bool _inEventLoop = false;
   int _handle;
 
-  TimerImpl(int milliseconds, void callback(Timer timer))
+  TimerImpl(int milliseconds, void callback())
       : _once = true {
     if (milliseconds == 0 && (!hasTimer() || _globalState.isWorker)) {
       // This makes a dependency between the async library and the
@@ -1273,14 +1273,13 @@ class TimerImpl implements Timer {
       // TODO(7907): In case of web workers, we need to use the event
       // loop instead of setTimeout, to make sure the futures get executed in
       // order.
-      _globalState.topEventLoop.enqueue(_globalState.currentContext, () {
-        callback(this);
-      }, 'timer');
+      _globalState.topEventLoop.enqueue(
+          _globalState.currentContext, callback, 'timer');
       _inEventLoop = true;
     } else if (hasTimer()) {
       _globalState.topEventLoop.activeTimerCount++;
       void internalCallback() {
-        callback(this);
+        callback();
         _handle = null;
         _globalState.topEventLoop.activeTimerCount--;
       }

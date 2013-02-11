@@ -453,17 +453,13 @@ class _WebSocketConnectionBase {
         if (_closeTimer != null) _closeTimer.cancel();
         _socket.close();
       };
-      _closeTimer = new Timer(5000, (t) {
-        _socket.close();
-      });
+      _closeTimer = new Timer(const Duration(seconds: 5), _socket.close);
     } else {
       // Half close the socket and expect a close frame in response
       // before closing the socket. If a close frame does not arrive
       // within a reasonable amount of time just close the socket.
       _socket.outputStream.close();
-      _closeTimer = new Timer(5000, (t) {
-        _socket.close();
-      });
+      _closeTimer = new Timer(const Duration(seconds: 5), _socket.close);
     }
     _closeSent = true;
   }

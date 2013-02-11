@@ -528,7 +528,7 @@ class MockVersionlessSource extends Source {
 
 Future fakeAsync(callback()) {
   var completer = new Completer();
-  new Timer(0, (_) {
+  Timer.run(() {
     completer.complete(callback());
   });
 

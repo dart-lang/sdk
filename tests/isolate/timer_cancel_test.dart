@@ -9,15 +9,16 @@ import 'dart:isolate';
 import '../../pkg/unittest/lib/unittest.dart';
 
 main() {
+  final ms = const Duration(milliseconds: 1);
   test("simple timer", () {
     Timer cancelTimer;
     int repeatTimer;
 
-    void unreachable(Timer timer) {
+    void unreachable() {
       fail("should not be reached");
     }
 
-    void handler(Timer timer) {
+    void handler() {
       cancelTimer.cancel();
     }
 
@@ -27,17 +28,17 @@ main() {
       expect(repeatTimer, 1);
     }
 
-    cancelTimer = new Timer(1000, expectAsync1(unreachable, count: 0));
+    cancelTimer = new Timer(ms * 1000, expectAsync0(unreachable, count: 0));
     cancelTimer.cancel();
-    new Timer(1000, expectAsync1(handler));
-    cancelTimer = new Timer(2000, expectAsync1(unreachable, count: 0));
+    new Timer(ms * 1000, expectAsync0(handler));
+    cancelTimer = new Timer(ms * 2000, expectAsync0(unreachable, count: 0));
     repeatTimer = 0;
-    new Timer.repeating(1500, expectAsync1(repeatHandler));
+    new Timer.repeating(ms * 1500, expectAsync1(repeatHandler));
   });
   
   test("cancel timer with same time", () {
     var t2;
-    var t1 = new Timer(0, expectAsync1((t) => t2.cancel()));
-    t2 = new Timer(0, expectAsync1((t) => t1.cancel(), count: 0));
+    var t1 = Timer.run(expectAsync0(() => t2.cancel()));
+    t2 = Timer.run(expectAsync0(t1.cancel, count: 0));
   });
 }

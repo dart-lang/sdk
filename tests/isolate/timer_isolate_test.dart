@@ -8,11 +8,11 @@ import 'dart:isolate';
 import 'dart:async';
 import '../../pkg/unittest/lib/unittest.dart';
 
-const int TIMEOUT = 100;
+const Duration TIMEOUT = const Duration(milliseconds: 100);
 
 createTimer() {
   port.receive((msg, replyTo) {
-    new Timer(TIMEOUT, (_) {
+    new Timer(TIMEOUT, () {
       replyTo.send("timer_fired");
     });
   });
@@ -22,14 +22,14 @@ main() {
   test("timer in isolate", () {
     int startTime;
     int endTime;
-    
+
     port.receive(expectAsync2((msg, _) {
       expect("timer_fired", msg);
       int endTime = (new DateTime.now()).millisecondsSinceEpoch;
       expect(endTime - startTime, greaterThanOrEqualTo(TIMEOUT));
       port.close();
     }));
-    
+
     startTime = (new DateTime.now()).millisecondsSinceEpoch;
     var sendPort = spawnFunction(createTimer);
     sendPort.send("sendPort", port.toSendPort());

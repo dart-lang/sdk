@@ -59,7 +59,7 @@ class AsyncError {
     }
 
     try {
-      new Timer(0, (_) {
+      Timer.run(() {
         reportError();
         // TODO(floitsch): we potentially want to call the global error handler
         // directly so that we can pass the stack trace.

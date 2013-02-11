@@ -1026,7 +1026,7 @@ abstract class _PendingEvents {
 
   void schedule(_StreamImpl stream) {
     if (isScheduled) return;
-    scheduleTimer = new Timer(0, (_) {
+    scheduleTimer = Timer.run(() {
       scheduleTimer = null;
       stream._handlePendingEvents();
     });
@@ -1084,7 +1084,7 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
 
   void _delayDone() {
     assert(_timer == null && _pauseCount == 0);
-    _timer = new Timer(0, (_) {
+    _timer = Timer.run(() {
       if (_handler != null) _handler();
     });
   }

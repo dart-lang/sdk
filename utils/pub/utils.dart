@@ -158,7 +158,7 @@ Future defer(callback()) {
 /// Returns a [Future] that completes in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
-  new Timer(milliseconds, (_) => completer.complete());
+  new Timer(new Duration(milliseconds: milliseconds), completer.complete);
   return completer.future;
 }
 

@@ -68,7 +68,7 @@ Future _processHelper(String command, List<String> args,
   processFuture.then((process) {
     _procs[procId] = process;
 
-    timer = new Timer(1000 * timeout, (t) {
+    timer = new Timer(new Duration(seconds: timeout), () {
       timer = null;
       process.kill();
     });

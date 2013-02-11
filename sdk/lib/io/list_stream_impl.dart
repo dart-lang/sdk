@@ -99,7 +99,7 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
   }
 
   void _checkScheduleCallbacks() {
-    void issueDataCallback(Timer timer) {
+    void issueDataCallback() {
       _scheduledDataCallback = null;
       if (_clientDataHandler != null) {
         _clientDataHandler();
@@ -107,7 +107,7 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
       }
     }
 
-    void issueNoPendingWriteCallback(Timer timer) {
+    void issueNoPendingWriteCallback() {
       _scheduledNoPendingWriteCallback = null;
       if (_clientNoPendingWriteHandler != null &&
           !_streamMarkedClosed) {
@@ -116,7 +116,7 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
       }
     }
 
-    void issueCloseCallback(Timer timer) {
+    void issueCloseCallback() {
       _scheduledCloseCallback = null;
       if (_clientCloseHandler != null) _clientCloseHandler();
     }
@@ -131,18 +131,18 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
       if (!_bufferList.isEmpty &&
           _clientDataHandler != null &&
           _scheduledDataCallback == null) {
-        _scheduledDataCallback = new Timer(0, issueDataCallback);
+        _scheduledDataCallback = Timer.run(issueDataCallback);
       }
 
       if (_clientNoPendingWriteHandler != null &&
           _scheduledNoPendingWriteCallback == null &&
           _scheduledDataCallback == null) {
         _scheduledNoPendingWriteCallback =
-          new Timer(0, issueNoPendingWriteCallback);
+          Timer.run(issueNoPendingWriteCallback);
       }
 
     } else if (_clientCloseHandler != null) {
-      _scheduledCloseCallback = new Timer(0, issueCloseCallback);
+      _scheduledCloseCallback = Timer.run(issueCloseCallback);
       _closeCallbackCalled = true;
     }
   }
