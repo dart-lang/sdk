@@ -345,10 +345,6 @@ class Primitives {
     return _fromCharCodeApply(charCodes);
   }
 
-  static String stringConcat(String string1, String string2) {
-    return JS('String', r'# + #', string1, string2);
-  }
-
   static String getTimeZoneName(receiver) {
     // When calling toString on a Date it will emit the timezone in parenthesis.
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
