@@ -45,7 +45,7 @@ abstract class SerializationRule {
    * state at the end. The state that results will still have direct
    * pointers to objects, rather than references.
    */
-  extractState(object, void f(value));
+  extractState(object, void f(value), Writer w);
 
   /**
    * Allows rules to tell us how they expect to store their state. If this
@@ -142,7 +142,7 @@ class ListRule extends SerializationRule {
 
   bool get storesStateAsLists => true;
 
-  List extractState(List list, f) {
+  List extractState(List list, f, Writer w) {
     var result = new List();
     for (var each in list) {
       result.add(each);
@@ -200,7 +200,7 @@ class MapRule extends SerializationRule {
 
   bool get storesStateAsMaps => true;
 
-  extractState(Map map, f) {
+  extractState(Map map, f, Writer w) {
     // Note that we make a copy here because flattening may be destructive.
     var newMap = new Map.from(map);
     newMap.forEach((key, value) {
@@ -219,7 +219,7 @@ class MapRule extends SerializationRule {
    */
   flatten(Map state, Writer writer) {
     bool keysAreAllStrings = state.keys.every((x) => x is String);
-    if (keysAreAllStrings) {
+    if (keysAreAllStrings && !writer.shouldUseReferencesForPrimitives) {
       keysAndValues(state).forEach(
           (key, value) => state[key] = writer._referenceFor(value));
       return state;
@@ -275,7 +275,7 @@ class PrimitiveRule extends SerializationRule {
   appliesTo(object, Writer w) {
     return isPrimitive(object);
   }
-  extractState(object, Function f) => object;
+  extractState(object, Function f, Writer w) => object;
   flatten(object, Writer writer) {}
   inflateEssential(state, Reader r) => state;
   inflateNonEssential(object, _, Reader r) {}
@@ -355,7 +355,11 @@ class NamedObjectRule extends SerializationRule {
   }
 
   /** Extract the state of the named objects as just the object itself. */
-  extractState(object, Function f) => [object];
+  extractState(object, Function f, Writer writer) {
+    var result = [nameFor(object, writer)];
+    f(result.first);
+    return result;
+  }
 
   /** When we flatten the state we save it as the name. */
   // TODO(alanknight): This seems questionable. In a truly flat format we may
@@ -364,11 +368,12 @@ class NamedObjectRule extends SerializationRule {
   // extractState, and I'm reluctant to add yet another parameter until
   // proven necessary.
   flatten(state, Writer writer) {
-    state[0] = nameFor(state.first, writer);
+    state[0] = writer._referenceFor(state[0]);
   }
 
   /** Look up the named object and return it. */
-  inflateEssential(state, Reader r) => r.objectNamed(state.first);
+  inflateEssential(state, Reader r) =>
+      r.objectNamed(r.resolveReference(state.first));
 
   /** Set any non-essential state on the object. For this rule, a no-op. */
   inflateNonEssential(state, object, Reader r) {}
@@ -378,15 +383,28 @@ class NamedObjectRule extends SerializationRule {
 }
 
 /**
- * This rule handles the special case of Mirrors, restricted to those that
- * have a simpleName. It knows that it applies to any such mirror and
- * automatically uses its simpleName as the key into the namedObjects.
- * When reading, the user is still responsible for adding the appropriate
- * mirrors to namedObject.
+ * This rule handles the special case of Mirrors. It stores the mirror by its
+ * qualifiedName and attempts to look it up in both the namedObjects
+ * collection, or if it's not found there, by looking it up in the mirror
+ * system. When reading, the user is responsible for supplying the appropriate
+ * values in [namedObjects] or in the [externals] paramter to
+ * [Serialization.read].
  */
 class MirrorRule extends NamedObjectRule {
   bool appliesTo(object, Writer writer) => object is DeclarationMirror;
-  nameFor(DeclarationMirror object, Writer writer) => object.simpleName;
+  nameFor(DeclarationMirror object, Writer writer) => object.qualifiedName;
+
+  inflateEssential(state, Reader r) {
+    var qualifiedName = r.resolveReference(state.first);
+    var lookupFull = r.objectNamed(qualifiedName, (x) => null);
+    if (lookupFull != null) return lookupFull;
+    var lib = qualifiedName.substring(0, qualifiedName.indexOf("."));
+    var type = qualifiedName.substring(qualifiedName.indexOf(".") + 1);
+    var lookup = r.objectNamed(type, (x) => null);
+    if (lookup != null) return lookup;
+    var libMirror = currentMirrorSystem().libraries[lib];
+    return libMirror.classes[type];
+  }
 }
 
 /**
@@ -430,7 +448,7 @@ abstract class CustomRule extends SerializationRule {
    */
   void setState(object, List state);
 
-  extractState(instance, Function f) {
+  extractState(instance, Function f, Writer w) {
     var state = getState(instance);
     for (var each in values(state)) {
       f(each);
@@ -440,8 +458,9 @@ abstract class CustomRule extends SerializationRule {
 
   inflateEssential(state, Reader r) => create(_lazy(state, r));
 
-  void inflateNonEssential(state, object, Reader r) =>
-      setState(object, _lazy(state, r));
+  void inflateNonEssential(state, object, Reader r) {
+    setState(object, _lazy(state, r));
+  }
 
   // We don't want to have to make the end user tell us how long the list is
   // separately, so write it out for each object, even though they're all

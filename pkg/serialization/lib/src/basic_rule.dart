@@ -161,7 +161,7 @@ class BasicRule extends SerializationRule {
    * Extract the state from [object] using an instanceMirror and the field
    * names in [fields]. Call the function [callback] on each value.
    */
-  extractState(object, Function callback) {
+  extractState(object, Function callback, Writer w) {
     var result = createStateHolder();
     var mirror = reflect(object);
 
