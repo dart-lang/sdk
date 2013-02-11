@@ -9,18 +9,18 @@ part of dart.collection;
  * can iterate over the elements of a queue through [forEach] or with
  * an [Iterator].
  */
-abstract class Queue<E> extends Collection<E> {
+abstract class Queue<E> implements Collection<E> {
 
   /**
    * Creates a queue.
    */
-  factory Queue() => new DoubleLinkedQueue<E>();
+  factory Queue() => new ListQueue<E>();
 
   /**
    * Creates a queue with the elements of [other]. The order in
    * the queue will be the order provided by the iterator of [other].
    */
-  factory Queue.from(Iterable<E> other) => new DoubleLinkedQueue<E>.from(other);
+  factory Queue.from(Iterable<E> other) => new ListQueue<E>.from(other);
 
   /**
    * Removes and returns the first element of this queue. Throws an
@@ -154,11 +154,11 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
 }
 
 /**
- * Implementation of a double linked list that box list elements into
- * DoubleLinkedQueueEntry objects.
+ * A [Queue] implementation based on a double-linked list.
  *
- * WARNING: This class is temporary located in dart:core. It'll be removed
- * at some point in the near future.
+ * Allows constant time add, remove-at-ends and peek operations.
+ *
+ * Can do [removeAll] and [retainAll] in linear time.
  */
 class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
   _DoubleLinkedQueueEntrySentinel<E> _sentinel;
@@ -316,4 +316,380 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
   }
 
   E get current => _current;
+}
+
+/**
+ * List based [Queue].
+ *
+ * Keeps a cyclic buffer of elements, and grows to a larger buffer when
+ * it fills up. This guarantees constant time peek and remove operations, and
+ * amortized constant time add operations.
+ *
+ * The structure is efficient for any queue or stack usage.
+ *
+ * Collection operations like [removeAll] and [removeMatching] are very
+ * inefficient. If those are needed, use a [DoubleLinkedQueue] instead.
+ */
+class ListQueue<E> extends Collection<E> implements Queue<E>{
+  static const int _INITIAL_CAPACITY = 8;
+  List<E> _table;
+  int _head;
+  int _tail;
+  int _modificationCount = 0;
+
+  /**
+   * Create an empty queue.
+   *
+   * If [initialCapacity] is given, prepare the queue for at least that many
+   * elements.
+   */
+  ListQueue([int initialCapacity]) : _head = 0, _tail = 0 {
+    if (initialCapacity == null || initialCapacity < _INITIAL_CAPACITY) {
+      initialCapacity = _INITIAL_CAPACITY;
+    } else if (!_isPowerOf2(initialCapacity)) {
+      initialCapacity = _nextPowerOf2(initialCapacity);
+    }
+    assert(_isPowerOf2(initialCapacity));
+    _table = new List<E>.fixedLength(initialCapacity);
+  }
+
+  /**
+   * Create a queue initially containing the elements of [source].
+   */
+  factory ListQueue.from(Iterable<E> source) {
+    if (source is List) {
+      int length = source.length;
+      ListQueue<E> queue = new ListQueue(length);
+      List sourceList = source;
+      queue._table.setRange(0, length, sourceList, 0);
+      queue._tail = length;
+      return queue;
+    } else {
+      return new ListQueue<E>()..addAll(source);
+    }
+  }
+
+  // Iterable interface.
+
+  Iterator<E> get iterator => new _ListQueueIterator(this);
+
+  void forEach(void action (E element)) {
+    int modificationCount = _modificationCount;
+    for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
+      action(_table[i]);
+      _checkModification(modificationCount);
+    }
+  }
+
+  bool get isEmpty => _head == _tail;
+
+  int get length => (_tail - _head) & (_table.length - 1);
+
+  E get first {
+    if (_head == _tail) throw new StateError("No elements");
+    return _table[_head];
+  }
+
+  E get last {
+    if (_head == _tail) throw new StateError("No elements");
+    return _table[(_tail - 1) & (_table.length - 1)];
+  }
+
+  E get single {
+    if (_head == _tail) throw new StateError("No elements");
+    if (length > 1) throw new StateError("Too many elements");
+    return _table[_head];
+  }
+
+  E elementAt(int index) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    return _table[(_head + index) & (_table.length - 1)];
+  }
+
+  List<E> toList() {
+    List<E> list = new List<E>(length);
+    _writeToList(list);
+    return list;
+  }
+
+  // Collection interface.
+
+  void add(E element) {
+    _add(element);
+  }
+
+  void addAll(Iterable<E> elements) {
+    if (elements is List) {
+      List list = elements;
+      int addCount = list.length;
+      int length = this.length;
+      if (length + addCount >= _table.length) {
+        _preGrow(length + addCount);
+        // After preGrow, all elements are at the start of the list.
+        _table.setRange(length, addCount, list, 0);
+        _tail += addCount;
+      } else {
+        // Adding addCount elements won't reach _head.
+        int endSpace = _table.length - _tail;
+        if (addCount < endSpace) {
+          _table.setRange(_tail, addCount, list, 0);
+          _tail += addCount;
+        } else {
+          int preSpace = addCount - endSpace;
+          _table.setRange(_tail, endSpace, list, 0);
+          _table.setRange(0, preSpace, list, endSpace);
+          _tail = preSpace;
+        }
+      }
+      _modificationCount++;
+    } else {
+      for (E element in elements) _add(element);
+    }
+  }
+
+  void remove(Object object) {
+    for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
+      E element = _table[i];
+      if (element == object) {
+        _remove(i);
+        return;
+      }
+    }
+    _modificationCount++;
+  }
+
+  void removeAll(Iterable objectsToRemove) {
+    IterableMixinWorkaround.removeAllList(this, objectsToRemove);
+  }
+
+  void retainAll(Iterable objectsToRetain) {
+    IterableMixinWorkaround.retainAll(this, objectsToRetain);
+  }
+
+  void _filterMatching(bool test(E element), bool removeMatching) {
+    int index = _head;
+    int modificationCount = _modificationCount;
+    int i = _head;
+    while (i != _tail) {
+      E element = _table[i];
+      bool remove = (test(element) == removeMatching);
+      _checkModification(modificationCount);
+      if (remove) {
+        i = _remove(i);
+        modificationCount = ++_modificationCount;
+      } else {
+        i = (i + 1) & (_table.length - 1);
+      }
+    }
+  }
+
+  /**
+   * Remove all elements matched by [test].
+   *
+   * This method is inefficient since it works by repeatedly removing single
+   * elements, each of which can take linear time.
+   */
+  void removeMatching(bool test(E element)) {
+    _filterMatching(test, true);
+  }
+
+  /**
+   * Remove all elements not matched by [test].
+   *
+   * This method is inefficient since it works by repeatedly removing single
+   * elements, each of which can take linear time.
+   */
+  void retainMatching(bool test(E element)) {
+    _filterMatching(test, false);
+  }
+
+  void clear() {
+    if (_head != _tail) {
+      for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
+        _table[i] = null;
+      }
+      _head = _tail = 0;
+      _modificationCount++;
+    }
+  }
+
+  String toString() {
+    return Collections.collectionToString(this);
+  }
+
+  // Queue interface.
+
+  void addLast(E element) { _add(element); }
+
+  void addFirst(E element) {
+    _head = (_head - 1) & (_table.length - 1);
+    _table[_head] = element;
+    if (_head == _tail) _grow();
+    _modificationCount++;
+  }
+
+  E removeFirst() {
+    if (_head == _tail) throw new StateError("No elements");
+    _modificationCount++;
+    E result = _table[_head];
+    _head = (_head + 1) & (_table.length - 1);
+    return result;
+  }
+
+  E removeLast() {
+    if (_head == _tail) throw new StateError("No elements");
+    _modificationCount++;
+    _tail = (_tail - 1) & (_table.length - 1);
+    return _table[_tail];
+  }
+
+  // Internal helper functions.
+
+  /**
+   * Whether [number] is a power of two.
+   *
+   * Only works for positive numbers.
+   */
+  static bool _isPowerOf2(int number) => (number & (number - 1)) == 0;
+
+  /**
+   * Rounds [number] up to the nearest power of 2.
+   *
+   * If [number] is a power of 2 already, it is returned.
+   *
+   * Only works for positive numbers.
+   */
+  static int _nextPowerOf2(int number) {
+    assert(number > 0);
+    number = (number << 2) - 1;
+    for(;;) {
+      int nextNumber = number & (number - 1);
+      if (nextNumber == 0) return number;
+      number = nextNumber;
+    }
+  }
+
+  /** Check if the queue has been modified during iteration. */
+  void _checkModification(int expectedModificationCount) {
+    if (expectedModificationCount != _modificationCount) {
+      throw new ConcurrentModificationError(this);
+    }
+  }
+
+  /** Adds element at end of queue. Used by both [add] and [addAll]. */
+  void _add(E element) {
+    _table[_tail] = element;
+    _tail = (_tail + 1) & (_table.length - 1);
+    if (_head == _tail) _grow();
+    _modificationCount++;
+  }
+
+  /**
+   * Removes the element at [offset] into [_table].
+   *
+   * Removal is performed by linerarly moving elements either before or after
+   * [offset] by one position.
+   *
+   * Returns the new offset of the following element. This may be the same
+   * offset or the following offset depending on how elements are moved
+   * to fill the hole.
+   */
+  int _remove(int offset) {
+    int mask = _table.length - 1;
+    int startDistance = (offset - _head) & mask;
+    int endDistance = (_tail - offset) & mask;
+    if (startDistance < endDistance) {
+      // Closest to start.
+      int i = offset;
+      while (i != _head) {
+        int prevOffset = (i - 1) & mask;
+        _table[i] = _table[prevOffset];
+        i = prevOffset;
+      }
+      _table[_head] = null;
+      _head = (_head + 1) & mask;
+      return (offset + 1) & mask;
+    } else {
+      _tail = (_tail - 1) & mask;
+      int i = offset;
+      while (i != _tail) {
+        int nextOffset = (i + 1) & mask;
+        _table[i] = _table[nextOffset];
+        i = nextOffset;
+      }
+      _table[_tail] = null;
+      return offset;
+    }
+  }
+
+  /**
+   * Grow the table when full.
+   */
+  void _grow() {
+    List<E> newTable = new List<E>.fixedLength(_table.length * 2);
+    int split = _table.length - _head;
+    newTable.setRange(0, split, _table, _head);
+    newTable.setRange(split, _head, _table, 0);
+    _head = 0;
+    _tail = _table.length;
+    _table = newTable;
+  }
+
+  int _writeToList(List<E> target) {
+    assert(target.length >= length);
+    if (_head <= _tail) {
+      int length = _tail - _head;
+      target.setRange(0, length, _table, _head);
+      return length;
+    } else {
+      int firstPartSize = _table.length - _head;
+      target.setRange(0, firstPartSize, _table, _head);
+      target.setRange(firstPartSize, _tail, _table, 0);
+      return _tail + firstPartSize;
+    }
+  }
+
+  /** Grows the table even if it is not full. */
+  void _preGrow(int newElementCount) {
+    assert(newElementCount >= length);
+    int newCapacity = _nextPowerOf2(newElementCount);
+    List<E> newTable = new List<E>.fixedLength(newCapacity);
+    _tail = _writeToList(newTable);
+    _table = newTable;
+    _head = 0;
+  }
+}
+
+/**
+ * Iterator for a [ListQueue].
+ *
+ * Considers any add or remove operation a concurrent modification.
+ */
+class _ListQueueIterator<E> implements Iterator<E> {
+  final ListQueue _queue;
+  final int _end;
+  final int _modificationCount;
+  int _position;
+  E _current;
+
+  _ListQueueIterator(ListQueue queue)
+      : _queue = queue,
+        _end = queue._tail,
+        _modificationCount = queue._modificationCount,
+        _position = queue._head;
+
+  E get current => _current;
+
+  bool moveNext() {
+    _queue._checkModification(_modificationCount);
+    if (_position == _end) {
+      _current = null;
+      return false;
+    }
+    _current = _queue._table[_position];
+    _position = (_position + 1) & (_queue._table.length - 1);
+    return true;
+  }
 }

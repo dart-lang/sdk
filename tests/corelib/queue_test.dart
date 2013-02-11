@@ -6,10 +6,13 @@ library queue.test;
 
 import 'dart:collection';
 
-class QueueTest {
+abstract class QueueTest {
 
-  static testMain() {
-    Queue queue = new Queue();
+  Queue newQueue([int capacity]);
+  Queue newQueueFrom(Iterable iterable);
+
+  void testMain() {
+    Queue queue = newQueue();
     checkQueue(queue, 0, 0);
 
     queue.addFirst(1);
@@ -43,14 +46,14 @@ class QueueTest {
       return (value == 10);
     }
 
-    Queue mapped = new Queue.from(queue.map(mapTest));
+    Queue mapped = newQueueFrom(queue.map(mapTest));
     checkQueue(mapped, 3, 111);
     checkQueue(queue, 3, 1110);
     Expect.equals(1, mapped.removeFirst());
     Expect.equals(100, mapped.removeLast());
     Expect.equals(10, mapped.removeFirst());
 
-    Queue other = new Queue.from(queue.where(is10));
+    Queue other = newQueueFrom(queue.where(is10));
     checkQueue(other, 1, 10);
 
     Expect.equals(true, queue.any(is10));
@@ -100,13 +103,24 @@ class QueueTest {
       return (value > 1);
     }
 
-    other = new Queue.from(queue.where(isGreaterThanOne));
+    other = newQueueFrom(queue.where(isGreaterThanOne));
     checkQueue(other, 2, 5);
 
+    // Cycle through values without ever having large element count.
+    queue = newQueue();
+    queue.add(0);
+    for (int i = 0; i < 255; i++) {
+      queue.add(i + 1);
+      Expect.equals(i, queue.removeFirst());
+    }
+    Expect.equals(255, queue.removeFirst());
+    Expect.isTrue(queue.isEmpty);
+
     testAddAll();
+    testLarge();
   }
 
-  static void checkQueue(Queue queue, int expectedSize, int expectedSum) {
+  void checkQueue(Queue queue, int expectedSize, int expectedSum) {
     Expect.equals(expectedSize, queue.length);
     int sum = 0;
     void sumElements(int value) {
@@ -116,12 +130,12 @@ class QueueTest {
     Expect.equals(expectedSum, sum);
   }
 
-  static testAddAll() {
+  void testAddAll() {
     Set<int> set = new Set<int>.from([1, 2, 4]);
 
-    Queue<int> queue1 = new Queue<int>.from(set);
-    Queue<int> queue2 = new Queue<int>();
-    Queue<int> queue3 = new Queue<int>();
+    Queue queue1 = newQueueFrom(set);
+    Queue queue2 = newQueue();
+    Queue queue3 = newQueue();
 
     queue2.addAll(set);
     queue3.addAll(queue1);
@@ -151,9 +165,9 @@ class QueueTest {
     sum = 0;
 
     set = new Set<int>.from([]);
-    queue1 = new Queue<int>.from(set);
-    queue2 = new Queue<int>();
-    queue3 = new Queue<int>();
+    queue1 = newQueueFrom(set);
+    queue2 = newQueue();
+    queue3 = newQueue();
 
     queue2.addAll(set);
     queue3.addAll(queue1);
@@ -162,11 +176,85 @@ class QueueTest {
     Expect.equals(0, queue1.length);
     Expect.equals(0, queue2.length);
     Expect.equals(0, queue3.length);
+  }
 
+  void testLarge() {
+    int N = 10000;
+    Set set = new Set();
+
+    Queue queue = newQueue();
+    Expect.isTrue(queue.isEmpty);
+
+    for (int i = 0; i < N; i++) {
+      queue.add(i);
+      set.add(i);
+    }
+    Expect.equals(N, queue.length);
+    Expect.isFalse(queue.isEmpty);
+
+    Iterable skip1 = queue.skip(1);
+    Iterable take1 = queue.take(1);
+    Iterable mapped = queue.map((e) => -e);
+
+    for (int i = 0; i < 500; i++) {
+      Expect.equals(i, take1.first);
+      Expect.equals(i, queue.first);
+      Expect.equals(-i, mapped.first);
+      Expect.equals(i + 1, skip1.first);
+      Expect.equals(i, queue.removeFirst());
+      Expect.equals(i + 1, take1.first);
+      Expect.equals(-i - 1, mapped.first);
+      Expect.equals(N - 1 - i, queue.last);
+      Expect.equals(N - 1 - i, queue.removeLast());
+    }
+    Expect.equals(N - 1000, queue.length);
+
+    queue.retainAll(set);
+    Expect.equals(N - 1000, queue.length);
+
+    queue.remove(N >> 1);
+    Expect.equals(N - 1001, queue.length);
+
+    queue.removeAll(set);
+    Expect.equals(0, queue.length);
+    Expect.isTrue(queue.isEmpty);
+
+    queue.addAll(set);
+    Expect.equals(N, queue.length);
+    Expect.isFalse(queue.isEmpty);
+
+    // Iterate.
+    for (var element in queue) {
+      Expect.isTrue(set.contains(element));
+    }
+
+    queue.forEach((element) { Expect.isTrue(set.contains(element)); });
+
+    queue.addAll(set);
+    Expect.equals(N * 2, queue.length);
+    Expect.isFalse(queue.isEmpty);
+
+    queue.clear();
+    Expect.equals(0, queue.length);
+    Expect.isTrue(queue.isEmpty);
+  }
+}
+
+class ListQueueTest extends QueueTest {
+  Queue newQueue() => new ListQueue();
+  Queue newQueueFrom(Iterable elements) => new ListQueue.from(elements);
+}
+
+class DoubleLinkedQueueTest extends QueueTest {
+  Queue newQueue() => new DoubleLinkedQueue();
+  Queue newQueueFrom(Iterable elements) => new DoubleLinkedQueue.from(elements);
+
+  void testMain() {
+    super.testMain();
     testQueueElements();
   }
 
-  static testQueueElements() {
+  void testQueueElements() {
     DoubleLinkedQueue<int> queue1 = new DoubleLinkedQueue<int>.from([1, 2, 4]);
     DoubleLinkedQueue<int> queue2 = new DoubleLinkedQueue<int>();
     queue2.addAll(queue1);
@@ -183,6 +271,58 @@ class QueueTest {
   }
 }
 
+void trickyTest() {
+  Queue q = new ListQueue();
+
+  for (int i = 0; i < 255; i++) {
+    q.add(i);
+  }
+  for (int i = 0; i < 128; i++) {
+    Expect.equals(i, q.removeFirst());
+  }
+  q.add(255);
+  for (int i = 0; i < 127; i++) {
+    q.add(i);
+  }
+
+  Expect.equals(255, q.length);
+
+  // Remove element at end of internal buffer.
+  q.removeMatching((v) => v == 255);
+  // Remove element at beginning of internal buffer.
+  q.removeMatching((v) => v == 0);
+  // Remove element at both ends of internal buffer.
+  q.removeMatching((v) => v == 254 || v == 1);
+
+  Expect.equals(251, q.length);
+
+  Iterable i255 = new Iterable.generate(255, (x) => x);
+
+  q = new ListQueue();
+  q.addAll(i255);
+  Expect.listEquals(i255.toList(), q.toList());
+
+  q = new ListQueue();
+  q.addAll(i255.toList());
+  Expect.listEquals(i255.toList(), q.toList());
+
+  q = new ListQueue.from(i255);
+  for (int i = 0; i < 128; i++) q.removeFirst();
+  q.add(256);
+  q.add(0);
+  q.addAll(i255.toList());
+  Expect.equals(129 + 255, q.length);
+
+  // Test addAll that requires the queue to grow.
+  q = new ListQueue();
+  q.addAll(i255.take(35));
+  q.addAll(i255.skip(35).take(96));
+  q.addAll(i255.skip(35 + 96));
+  Expect.listEquals(i255.toList(), q.toList());
+}
+
 main() {
-  QueueTest.testMain();
+  new DoubleLinkedQueueTest().testMain();
+  new ListQueueTest().testMain();
+  trickyTest();
 }
