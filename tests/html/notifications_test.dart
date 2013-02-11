@@ -29,11 +29,14 @@ main() {
         }
       });
 
+      /*
+      // Sporadically flaky on Mac Chrome. Uncomment when Issue 8482 is fixed.
       test('construct notification', () {
         var note = new Notification('this is a notification');
         var note2 = new Notification('another notificiation',
           {'option1': 'foo'});
       });
+      */
     }
   });
 }
