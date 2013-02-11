@@ -74,6 +74,7 @@ mixin_type_parameters_mixin_test: Fail
 mixin_type_parameters_super_test: Fail
 mixin_type_parameters_mixin_extends_test: Fail
 mixin_type_parameters_super_extends_test: Fail
+mixin_this_use_test: Fail
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
