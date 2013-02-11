@@ -521,6 +521,47 @@ void main() {
       shouldFail(a, isEmpty, "Expected: empty but: was <{foo: bar}>.");
     });
 
+    test('equals', () {
+      var a = new Map();
+      a['foo'] = 'bar';
+      var b = new Map();
+      b['foo'] = 'bar';
+      var c = new Map();
+      c['bar'] = 'foo';
+      shouldPass(a, equals(b));
+      shouldFail(b, equals(c),
+          "Expected: <{bar: foo}> but: missing map key 'bar'.");
+    });
+
+    test('equals with different lengths', () {
+      var a = new Map();
+      a['foo'] = 'bar';
+      var b = new Map();
+      b['foo'] = 'bar';
+      b['bar'] = 'foo';
+      var c = new Map();
+      c['bar'] = 'foo';
+      c['barrista'] = 'caffeine';
+      shouldFail(a, equals(b),
+          "Expected: <{bar: foo, foo: bar}> "
+          "but: different map lengths; missing map key 'bar'.");
+      shouldFail(b, equals(a),
+          "Expected: <{foo: bar}> "
+          "but: different map lengths; extra map key 'bar'.");
+      shouldFail(b, equals(c),
+          "Expected: <{bar: foo, barrista: caffeine}> "
+          "but: missing map key 'barrista'.");
+      shouldFail(c, equals(b),
+          "Expected: <{bar: foo, foo: bar}> "
+          "but: missing map key 'foo'.");
+      shouldFail(a, equals(c),
+          "Expected: <{bar: foo, barrista: caffeine}> "
+          "but: different map lengths; missing map key 'bar'.");
+      shouldFail(c, equals(a),
+          "Expected: <{foo: bar}> "
+          "but: different map lengths; missing map key 'foo'.");
+    });
+
     test('contains', () {
       var a = new Map();
       a['foo'] = 'bar';

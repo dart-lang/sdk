@@ -135,24 +135,39 @@ class _DeepMatcher extends BaseMatcher {
     } else {
       if (expected is Iterable && canRecurse) {
         String r = _compareIterables(expected, actual,
-          _recursiveMatch, depth+1);
+            _recursiveMatch, depth+1);
         if (r != null) reason = new StringDescription(r);
       } else if (expected is Map && canRecurse) {
         if (actual is !Map) {
           reason = new StringDescription('expected a map');
-        } else if (expected.length != actual.length) {
-          reason = new StringDescription('different map lengths');
         } else {
+          var err = (expected.length == actual.length) ? '' :
+                    'different map lengths; ';
           for (var key in expected.keys) {
             if (!actual.containsKey(key)) {
-              reason = new StringDescription('missing map key ');
+              reason = new StringDescription(err);
+              reason.add('missing map key ');
               reason.addDescriptionOf(key);
               break;
             }
-            reason = _recursiveMatch(expected[key], actual[key],
-                'with key <${key}> ${location}', depth+1);
-            if (reason != null) {
-              break;
+          }
+          if (reason == null) {
+            for (var key in actual.keys) {
+              if (!expected.containsKey(key)) {
+                reason = new StringDescription(err);
+                reason.add('extra map key ');
+                reason.addDescriptionOf(key);
+                break;
+              }
+            }
+            if (reason == null) {
+              for (var key in expected.keys) {
+                reason = _recursiveMatch(expected[key], actual[key],
+                    'with key <${key}> ${location}', depth+1);
+                if (reason != null) {
+                  break;
+                }
+              }
             }
           }
         }
