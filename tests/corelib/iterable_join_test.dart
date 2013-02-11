@@ -55,6 +55,13 @@ testCollections() {
   }
   testArray(fixedArray);
   testArray(const [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+  testJoin("a,b,c,d", ["a", "b", "c", "d"].map((x) => x), ",");
+  testJoin("abcd", ["a", "b", "c", "d"].map((x) => x), "");
+  testJoin("abcd", ["a", "b", "c", "d"].map((x) => x));
+  testJoin("null,b,c,d", [null,"b","c","d"].map((x) => x), ",");
+  testJoin("1,2,3,4", [1, 2, 3, 4].map((x) => x), ",");
+  testJoin("4,5,6,7", [ic, ic, ic, ic].map((x) => x), ",");
 }
 
 main() {
