@@ -6,6 +6,7 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 7520.
+io/web_socket_test: Fail, Pass # Issue 8495.
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
