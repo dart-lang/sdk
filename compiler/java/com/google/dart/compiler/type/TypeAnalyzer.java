@@ -288,10 +288,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private void onError(SourceInfo errorTarget, ErrorCode errorCode, Object... arguments) {
-      if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
-        Source source = errorTarget.getSource();
-        if (source != null && PackageLibraryManager.isDartUri(source.getUri())) {
-          return;
+      if (suppressSdkWarnings) {
+        ErrorSeverity errorSeverity = errorCode.getErrorSeverity();
+        if (errorSeverity == ErrorSeverity.WARNING || errorSeverity == ErrorSeverity.INFO) {
+          Source source = errorTarget.getSource();
+          if (source != null && PackageLibraryManager.isDartUri(source.getUri())) {
+            return;
+          }
         }
       }
       context.onError(new DartCompilationError(errorTarget, errorCode, arguments));

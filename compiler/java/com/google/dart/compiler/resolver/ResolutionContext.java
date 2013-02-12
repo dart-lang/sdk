@@ -361,10 +361,13 @@ public class ResolutionContext implements ResolutionErrorListener {
   }
 
   public void onError(SourceInfo sourceInfo, ErrorCode errorCode, Object... arguments) {
-    if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
-      Source source = sourceInfo.getSource();
-      if (source != null && PackageLibraryManager.isDartUri(source.getUri())) {
-        return;
+    if (suppressSdkWarnings) {
+      ErrorSeverity errorSeverity = errorCode.getErrorSeverity();
+      if (errorSeverity == ErrorSeverity.WARNING || errorSeverity == ErrorSeverity.INFO) {
+        Source source = sourceInfo.getSource();
+        if (source != null && PackageLibraryManager.isDartUri(source.getUri())) {
+          return;
+        }
       }
     }
     context.onError(new DartCompilationError(sourceInfo, errorCode, arguments));
