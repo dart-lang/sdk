@@ -1066,9 +1066,9 @@ getRuntimeTypeInfo(target) {
   return JS('var', r'#.$builtinTypeInfo', target);
 }
 
-getRuntimeTypeArgument(target, index) {
-  var rti = getRuntimeTypeInfo(target);
-  return (rti != null) ? JS('var', r'#[#]', rti, index) : null;
+getRuntimeTypeArgument(target, substitution, index) {
+  var arguments = substitute(substitution, getRuntimeTypeInfo(target));
+  return (arguments == null) ? null : getField(arguments, index);
 }
 
 /**
@@ -1478,6 +1478,15 @@ Object invoke(function, arguments) {
   return JS('var', r'#.apply(null, #)', function, arguments);
 }
 
+substitute(var substitution, var arguments) {
+  if (isJsArray(substitution)) {
+    arguments = substitution;
+  } else if (isJsFunction(substitution)) {
+    arguments = invoke(substitution, arguments);
+  }
+  return arguments;
+}
+
 /**
  * Check that the types in the list [arguments] are subtypes of the types in
  * list [checks] (at the respective positions), possibly applying [substitution]
@@ -1487,12 +1496,7 @@ Object invoke(function, arguments) {
  * values for [substitution].
  */
 bool checkArguments(var substitution, var arguments, var checks) {
-  if (isJsArray(substitution)) {
-    arguments = substitution;
-  } else if (isJsFunction(substitution)) {
-    arguments = invoke(substitution, arguments);
-  }
-  return areSubtypes(arguments, checks);
+  return areSubtypes(substitute(substitution, arguments), checks);
 }
 
 bool areSubtypes(List s, List t) {
@@ -1514,7 +1518,7 @@ bool areSubtypes(List s, List t) {
 
 getArguments(var type) => JS('var', r'#.slice(1)', type);
 
-getField(var object, String name) => JS('var', r'#[#]', object, name);
+getField(var object, var name) => JS('var', r'#[#]', object, name);
 
 /**
  * Check whether the type represented by [s] is a subtype of the type

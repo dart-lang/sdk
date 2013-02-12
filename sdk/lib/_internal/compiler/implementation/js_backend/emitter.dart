@@ -1274,13 +1274,21 @@ $lazyInitializerLogic
       // variable layout for this class is different.  Instead we generate
       // substitutions for all checks and make emitSubstitution a NOP for the
       // rest of this function.
-      for (ClassElement check in checkedClasses) {
-        for (DartType supertype in cls.allSupertypes) {
-          if (supertype.element == check) {
+      Set<ClassElement> emitted = new Set<ClassElement>();
+      // TODO(karlklose): move the computation of these checks to
+      // RuntimeTypeInformation.
+      if (compiler.world.needsRti(cls)) {
+        emitSubstitution(superclass, emitNull: true);
+        emitted.add(superclass);
+      }
+      for (DartType supertype in cls.allSupertypes) {
+        for (ClassElement check in checkedClasses) {
+          if (supertype.element == check && !emitted.contains(check)) {
             // Generate substitution.  If no substitution is necessary, emit
             // [:null:] to overwrite a (possibly) existing substitution from the
             // super classes.
             emitSubstitution(check, emitNull: true);
+            emitted.add(check);
           }
         }
       }

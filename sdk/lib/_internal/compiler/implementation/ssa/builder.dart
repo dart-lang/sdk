@@ -3181,11 +3181,24 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // The type variable is stored in a parameter of the method.
         inputs.add(localsHandler.readLocal(type.element));
       } else if (member.isInstanceMember() ||
-          member.isGenerativeConstructor()) {
-        // The type variable is stored in [this].
+                 member.isGenerativeConstructor()) {
+        // The type variable is stored on the object.  Generate code to extract
+        // the type arguments from the object, substitute them as an instance
+        // of the type we are testing against (if necessary), and extract the
+        // type argument by the index of the variable in the list of type
+        // variables for that class.
         int index = RuntimeTypeInformation.getTypeVariableIndex(type);
-        pushInvokeHelper2(backend.getGetRuntimeTypeArgument(),
-                          localsHandler.readThis(),
+        HInstruction thisObject = localsHandler.readThis();
+        String substitutionNameString =
+            backend.namer.substitutionName(member.getEnclosingClass());
+        HInstruction substitutionName = graph.addConstantString(
+            new LiteralDartString(substitutionNameString), null, constantSystem);
+        HInstruction substitution = createForeign('#[#]', HType.UNKNOWN,
+            <HInstruction>[thisObject, substitutionName]);
+        add(substitution);
+        pushInvokeHelper3(backend.getGetRuntimeTypeArgument(),
+                          thisObject,
+                          substitution,
                           graph.addConstantInt(index, constantSystem),
                           HType.UNKNOWN);
         inputs.add(pop());
