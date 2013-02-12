@@ -390,4 +390,68 @@ BENCHMARK(FrameLookup) {
   benchmark->set_score(elapsed_time);
 }
 
+
+static uint8_t* malloc_allocator(
+    uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+  return reinterpret_cast<uint8_t*>(realloc(ptr, new_size));
+}
+
+
+BENCHMARK(CoreSnapshotSize) {
+  const char* kScriptChars =
+      "import 'dart:async';\n"
+      "import 'dart:core';\n"
+      "import 'dart:collection';\n"
+      "import 'dart:_collection-dev';\n"
+      "import 'dart:math';\n"
+      "import 'dart:isolate';\n"
+      "import 'dart:mirrors';\n"
+      "import 'dart:scalarlist';\n"
+      "\n";
+
+  // Start an Isolate, load a script and create a full snapshot.
+  uint8_t* buffer;
+  TestCase::LoadTestScript(kScriptChars, NULL);
+  Api::CheckIsolateState(Isolate::Current());
+
+  // Write snapshot with object content.
+  FullSnapshotWriter writer(&buffer, &malloc_allocator);
+  writer.WriteFullSnapshot();
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  ASSERT(snapshot->kind() == Snapshot::kFull);
+  benchmark->set_score(snapshot->length());
+}
+
+
+BENCHMARK(StandaloneSnapshotSize) {
+  const char* kScriptChars =
+      "import 'dart:async';\n"
+      "import 'dart:core';\n"
+      "import 'dart:collection';\n"
+      "import 'dart:_collection-dev';\n"
+      "import 'dart:math';\n"
+      "import 'dart:isolate';\n"
+      "import 'dart:mirrors';\n"
+      "import 'dart:scalarlist';\n"
+      "import 'dart:uri';\n"
+      "import 'dart:utf';\n"
+      "import 'dart:json';\n"
+      "import 'dart:crypto';\n"
+      "import 'dart:builtin';\n"
+      "import 'dart:io';\n"
+      "\n";
+
+  // Start an Isolate, load a script and create a full snapshot.
+  uint8_t* buffer;
+  TestCase::LoadTestScript(kScriptChars, NULL);
+  Api::CheckIsolateState(Isolate::Current());
+
+  // Write snapshot with object content.
+  FullSnapshotWriter writer(&buffer, &malloc_allocator);
+  writer.WriteFullSnapshot();
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  ASSERT(snapshot->kind() == Snapshot::kFull);
+  benchmark->set_score(snapshot->length());
+}
+
 }  // namespace dart
