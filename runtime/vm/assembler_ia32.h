@@ -377,9 +377,6 @@ class Assembler : public ValueObject {
 
   void movaps(XmmRegister dst, XmmRegister src);
 
-  void movups(XmmRegister dst, const Address& src);
-  void movups(const Address& dst, XmmRegister src);
-
   void addsd(XmmRegister dst, XmmRegister src);
   void addsd(XmmRegister dst, const Address& src);
   void subsd(XmmRegister dst, XmmRegister src);
@@ -388,33 +385,6 @@ class Assembler : public ValueObject {
   void mulsd(XmmRegister dst, const Address& src);
   void divsd(XmmRegister dst, XmmRegister src);
   void divsd(XmmRegister dst, const Address& src);
-
-
-  void addps(XmmRegister dst, XmmRegister src);
-  void subps(XmmRegister dst, XmmRegister src);
-  void divps(XmmRegister dst, XmmRegister src);
-  void mulps(XmmRegister dst, XmmRegister src);
-  void minps(XmmRegister dst, XmmRegister src);
-  void maxps(XmmRegister dst, XmmRegister src);
-  void andps(XmmRegister dst, XmmRegister src);
-  void andps(XmmRegister dst, const Address& src);
-  void orps(XmmRegister dst, XmmRegister src);
-  void notps(XmmRegister dst);
-  void negateps(XmmRegister dst);
-  void absps(XmmRegister dst);
-  void zerowps(XmmRegister dst);
-  void cmppseq(XmmRegister dst, XmmRegister src);
-  void cmppsneq(XmmRegister dst, XmmRegister src);
-  void cmppslt(XmmRegister dst, XmmRegister src);
-  void cmppsle(XmmRegister dst, XmmRegister src);
-  void cmppsnlt(XmmRegister dst, XmmRegister src);
-  void cmppsnle(XmmRegister dst, XmmRegister src);
-  void sqrtps(XmmRegister dst);
-  void rsqrtps(XmmRegister dst);
-  void reciprocalps(XmmRegister dst);
-
-  void set1ps(XmmRegister dst, Register tmp, const Immediate& imm);
-  void shufps(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
   void cvtsi2ss(XmmRegister dst, Register src);
   void cvtsi2sd(XmmRegister dst, Register src);
@@ -434,7 +404,6 @@ class Assembler : public ValueObject {
   void comisd(XmmRegister a, XmmRegister b);
 
   void movmskpd(Register dst, XmmRegister src);
-  void movmskps(Register dst, XmmRegister src);
 
   void sqrtsd(XmmRegister dst, XmmRegister src);
   void sqrtss(XmmRegister dst, XmmRegister src);

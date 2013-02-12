@@ -79,47 +79,15 @@
 #if defined(_M_X64) || defined(__x86_64__)
 #define HOST_ARCH_X64 1
 #define ARCH_IS_64_BIT 1
-#include <xmmintrin.h>  // NOLINT
-#define kFpuRegisterSize 16
-typedef __m128 fpu_register_t;
-typedef __m128 simd_value_t;
-// Unaligned load.
-#define simd_value_safe_load(addr)                                             \
-  _mm_loadu_ps(reinterpret_cast<const float*>(addr))
-// Unaligned store.
-#define simd_value_safe_store(addr, value)                                     \
-  _mm_storeu_ps(reinterpret_cast<float*>(addr), value)
 #elif defined(_M_IX86) || defined(__i386__)
 #define HOST_ARCH_IA32 1
 #define ARCH_IS_32_BIT 1
-#include <xmmintrin.h>  // NOLINT
-#define kFpuRegisterSize 16
-typedef __m128 fpu_register_t;
-typedef __m128 simd_value_t;
-// Unaligned load.
-#define simd_value_safe_load(addr)                                             \
-  _mm_loadu_ps(reinterpret_cast<const float*>(addr))
-// Unaligned store.
-#define simd_value_safe_store(addr, value)                                     \
-  _mm_storeu_ps(reinterpret_cast<float*>(addr), value)
 #elif defined(__ARMEL__)
 #define HOST_ARCH_ARM 1
 #define ARCH_IS_32_BIT 1
-#define kFpuRegisterSize 8
-typedef double fpu_register_t;
-// TODO(johnmccutchan): ARM simd type.
-typedef struct {
-  uint32_t data_[4];
-} simd_value_t;
 #elif defined(__MIPSEL__)
 #define HOST_ARCH_MIPS 1
 #define ARCH_IS_32_BIT 1
-#define kFpuRegisterSize 8
-typedef double fpu_register_t;
-// TODO(johnmccutchan): MIPS simd type.
-typedef struct {
-  uint32_t data_[4];
-} simd_value_t;
 #else
 #error Architecture was not detected as supported by Dart.
 #endif
@@ -201,8 +169,7 @@ typedef uintptr_t uword;
 // Byte sizes.
 const int kWordSize = sizeof(word);
 const int kDoubleSize = sizeof(double);  // NOLINT
-const int kFloatSize = sizeof(float);  // NOLINT
-const int kSimd128Size = 16;
+const int kFloatSize = sizeof(float); // NOLINT
 #ifdef ARCH_IS_32_BIT
 const int kWordSizeLog2 = 2;
 const uword kUwordMax = kMaxUint32;

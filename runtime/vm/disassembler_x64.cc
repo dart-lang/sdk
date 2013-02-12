@@ -1394,6 +1394,7 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     get_modrm(*current, &mod, &regop, &rm);
     AppendToBuffer("movaps %s, ", NameOfXMMRegister(regop));
     current += PrintRightXMMOperand(current);
+
   } else if (opcode == 0x29) {
     // movaps xmm/m128, xmm
     int mod, regop, rm;
@@ -1401,19 +1402,7 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     AppendToBuffer("movaps ");
     current += PrintRightXMMOperand(current);
     AppendToBuffer(", %s", NameOfXMMRegister(regop));
-  } else if (opcode == 0x11) {
-    // movups xmm/m128, xmm
-    int mod, regop, rm;
-    get_modrm(*current, &mod, &regop, &rm);
-    AppendToBuffer("movups ");
-    current += PrintRightXMMOperand(current);
-    AppendToBuffer(", %s", NameOfXMMRegister(regop));
-  } else if (opcode == 0x10) {
-    // movups xmm, xmm/m128
-    int mod, regop, rm;
-    get_modrm(*current, &mod, &regop, &rm);
-    AppendToBuffer("movups %s, ", NameOfXMMRegister(regop));
-    current += PrintRightXMMOperand(current);
+
   } else if (opcode == 0xA2 || opcode == 0x31) {
     // RDTSC or CPUID
     AppendToBuffer("%s", mnemonic);
@@ -1425,42 +1414,13 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     byte_size_operand_ = idesc.byte_size_operation;
     current += PrintOperands(idesc.mnem, idesc.op_order_, current);
 
-  } else if (opcode == 0x51 || opcode == 0x52 || opcode == 0x53 ||
-             opcode == 0x54 || opcode == 0x56 || opcode == 0x57 ||
-             opcode == 0x58 || opcode == 0x59 || opcode == 0x5C ||
-             opcode == 0x5D || opcode == 0x5E || opcode == 0x5F) {
-    const char* mnemonic = NULL;
-    switch (opcode) {
-      case 0x51: mnemonic = "sqrtps"; break;
-      case 0x52: mnemonic = "rsqrtps"; break;
-      case 0x53: mnemonic = "rcpps"; break;
-      case 0x54: mnemonic = "andps"; break;
-      case 0x56: mnemonic = "orps"; break;
-      case 0x57: mnemonic = "xorps"; break;
-      case 0x58: mnemonic = "addps"; break;
-      case 0x59: mnemonic = "mulps"; break;
-      case 0x5C: mnemonic = "subps"; break;
-      case 0x5D: mnemonic = "minps"; break;
-      case 0x5E: mnemonic = "divps"; break;
-      case 0x5F: mnemonic = "maxps"; break;
-      default: UNREACHABLE();
-    }
+  } else if (opcode == 0x57) {
+    // xorps xmm, xmm/m128
     int mod, regop, rm;
     get_modrm(*current, &mod, &regop, &rm);
-    AppendToBuffer("%s %s, ", mnemonic, NameOfXMMRegister(regop));
+    AppendToBuffer("xorps %s, ", NameOfXMMRegister(regop));
     current += PrintRightXMMOperand(current);
-  } else if (opcode == 0xC2 || opcode == 0xC6) {
-    int mod, regop, rm;
-    get_modrm(*current, &mod, &regop, &rm);
-    if (opcode == 0xC2) {
-      AppendToBuffer("cmpps %s, ", NameOfXMMRegister(regop));
-    } else {
-      ASSERT(opcode == 0xC6);
-      AppendToBuffer("shufps %s, ", NameOfXMMRegister(regop));
-    }
-    current += PrintRightXMMOperand(current);
-    AppendToBuffer(" [%x]", *current);
-    current++;
+
   } else if ((opcode & 0xF0) == 0x80) {
     // Jcc: Conditional jump (branch).
     current = data + JumpConditional(data);
