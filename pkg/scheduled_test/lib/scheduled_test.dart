@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(nweiz): Keep track of and display multiple errors so there's more
-// visibility into cascading errors.
 // TODO(nweiz): Add timeouts to scheduled tests.
 // TODO(nweiz): Add support for calling [schedule] while the schedule is already
 // running.
@@ -194,7 +192,9 @@ void _test(String description, void body(), Function testFn) {
       asyncDone();
     }).catchError((e) {
       if (e is ScheduleError) {
-        unittest.registerException(new ExpectException(e.toString()));
+        assert(e.schedule.errors.contains(e));
+        assert(e.schedule == currentSchedule);
+        unittest.registerException(e.schedule.errorString());
       } else if (e is AsyncError) {
         unittest.registerException(e.error, e.stackTrace);
       } else {

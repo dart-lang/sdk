@@ -17,10 +17,20 @@ void chainToCompleter(Future future, Completer completer) {
 String prefixLines(String text, {String prefix: '| '}) =>
   text.split('\n').map((line) => '$prefix$line').join('\n');
 
-/// Returns a [Future] that completes in [milliseconds].
+/// Returns a [Future] that completes in at least [milliseconds].
+///
+/// This pumps the event loop after every millisecond of sleeping. This should
+/// ensure that even if the CPU is pegged and code is running much slower than
+/// expected, the sleep will take longer than any non-sleep code that's running.
 Future sleep(int milliseconds) {
+  if (milliseconds == 0) return new Future.immediate(null);
+  return _sleep1().then((_) => sleep(milliseconds - 1));
+}
+
+/// Returns a [Future] that completes in one millisecond.
+Future _sleep1() {
   var completer = new Completer();
-  new Timer(milliseconds, (_) => completer.complete());
+  new Timer(1, (_) => completer.complete());
   return completer.future;
 }
 
