@@ -669,6 +669,8 @@ class Namer implements ClosureNamer {
 
   String operatorIsPrefix() => r'$is';
 
+  String operatorAsPrefix() => r'$as';
+
   String operatorIs(Element element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
     return '${operatorIsPrefix()}${getName(element)}';
@@ -684,6 +686,10 @@ class Namer implements ClosureNamer {
     }
     assert(!reserved.contains(name));
     return name;
+  }
+
+  String substitutionName(Element element) {
+    return '${operatorAsPrefix()}${getName(element)}';
   }
 
   String safeName(String name) => _safeName(name, jsReserved);

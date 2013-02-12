@@ -776,7 +776,7 @@ $lazyInitializerLogic
         includeBackendMembers: true,
         includeSuperMembers: false);
 
-    generateIsTestsOn(classElement, (Element other) {
+    void generateIsTest(Element other) {
       js.Expression code;
       if (compiler.objectClass == other) return;
       if (nativeEmitter.requiresNativeIsCheck(other)) {
@@ -785,7 +785,32 @@ $lazyInitializerLogic
         code = new js.LiteralBool(true);
       }
       builder.addProperty(namer.operatorIs(other), code);
-    });
+    }
+
+    void generateSubstitution(Element other, {bool emitNull: false}) {
+      RuntimeTypeInformation rti = backend.rti;
+      // TODO(karlklose): support typedefs with variables.
+      js.Expression expression;
+      bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
+      if (other.kind == ElementKind.CLASS) {
+        String substitution = rti.getSupertypeSubstitution(classElement, other,
+            alwaysGenerateFunction: true);
+        if (substitution != null) {
+          expression = new js.LiteralExpression(substitution);
+        } else if (emitNull || needsNativeCheck) {
+          expression = new js.LiteralNull();
+        }
+      }
+      if (expression != null) {
+        if (needsNativeCheck) {
+          expression =
+              new js.Fun([], new js.Block([new js.Return(expression)]));
+        }
+        builder.addProperty(namer.substitutionName(other), expression);
+      }
+    }
+
+    generateIsTestsOn(classElement, generateIsTest, generateSubstitution);
 
     if (identical(classElement, compiler.objectClass)
         && compiler.enabledNoSuchMethod) {
@@ -818,23 +843,24 @@ $lazyInitializerLogic
   void emitRuntimeClassesAndTests(CodeBuffer buffer) {
     JavaScriptBackend backend = compiler.backend;
     RuntimeTypeInformation rti = backend.rti;
-
-    TypeChecks typeChecks = rti.computeRequiredChecks();
+    TypeChecks typeChecks = rti.getRequiredChecks();
 
     bool needsHolder(ClassElement cls) {
       return !neededClasses.contains(cls) || cls.isNative() ||
           rti.isJsNative(cls);
     }
 
+    /**
+     * Generates a holder object if it is needed.  A holder is a JavaScript
+     * object literal with a field [builtin$cls] that contains the name of the
+     * class as a string (just like object constructors do).  The is-checks for
+     * the class are are added to the holder object later.
+     */
     void maybeGenerateHolder(ClassElement cls) {
       if (!needsHolder(cls)) return;
-
       String holder = namer.isolateAccess(cls);
       String name = namer.getName(cls);
       buffer.add("$holder$_=$_{builtin\$cls:$_'$name'");
-      for (ClassElement check in typeChecks[cls]) {
-        buffer.add(',$_${namer.operatorIs(check)}:${_}true');
-      };
       buffer.add('}$N');
     }
 
@@ -844,16 +870,16 @@ $lazyInitializerLogic
       maybeGenerateHolder(cls);
     }
 
-    // Add checks to the constructors of instantiated classes.
+    // Add checks to the constructors of instantiated classes or to the created
+    // holder object.
     for (ClassElement cls in typeChecks) {
-      if (needsHolder(cls)) {
-        // We already emitted the is-checks in the object definition for this
-        // class.
-        continue;
-      }
       String holder = namer.isolateAccess(cls);
       for (ClassElement check in typeChecks[cls]) {
         buffer.add('$holder.${namer.operatorIs(check)}$_=${_}true$N');
+        String body = rti.getSupertypeSubstitution(cls, check);
+        if (body != null) {
+          buffer.add('$holder.${namer.substitutionName(check)}$_=${_}$body$N');
+        }
       };
     }
   }
@@ -1220,13 +1246,46 @@ $lazyInitializerLogic
 
   /**
    * Generate "is tests" for [cls]: itself, and the "is tests" for the
-   * classes it implements. We don't need to add the "is tests" of the
-   * super class because they will be inherited at runtime.
+   * classes it implements and type argument substitution functions for these
+   * tests.   We don't need to add the "is tests" of the super class because
+   * they will be inherited at runtime, but we may need to generate the
+   * substitutions, because they may have changed.
    */
   void generateIsTestsOn(ClassElement cls,
-                         void emitIsTest(Element element)) {
+                         void emitIsTest(Element element),
+                         void emitSubstitution(Element element, {emitNull})) {
     if (checkedClasses.contains(cls)) {
       emitIsTest(cls);
+      emitSubstitution(cls);
+    }
+
+    JavaScriptBackend jsBackend = compiler.backend;
+    RuntimeTypeInformation rti = jsBackend.rti;
+    ClassElement superclass = cls.superclass;
+
+    bool haveSameTypeVariables(ClassElement a, ClassElement b) {
+      if (a.isClosure()) return true;
+      return a.typeVariables == b.typeVariables;
+    }
+
+    if (superclass != null && superclass != compiler.objectClass &&
+        !haveSameTypeVariables(cls, superclass)) {
+      // We cannot inherit the generated substitutions, because the type
+      // variable layout for this class is different.  Instead we generate
+      // substitutions for all checks and make emitSubstitution a NOP for the
+      // rest of this function.
+      for (ClassElement check in checkedClasses) {
+        for (DartType supertype in cls.allSupertypes) {
+          if (supertype.element == check) {
+            // Generate substitution.  If no substitution is necessary, emit
+            // [:null:] to overwrite a (possibly) existing substitution from the
+            // super classes.
+            emitSubstitution(check, emitNull: true);
+          }
+        }
+      }
+      void emitNothing(_, {emitNull}) {};
+      emitSubstitution = emitNothing;
     }
 
     Set<Element> generated = new Set<Element>();
@@ -1242,13 +1301,15 @@ $lazyInitializerLogic
       if (call != null) {
         generateInterfacesIsTests(compiler.functionClass,
                                   emitIsTest,
+                                  emitSubstitution,
                                   generated);
         getTypedefChecksOn(call.computeType(compiler)).forEach(emitIsTest);
       }
     }
 
     for (DartType interfaceType in cls.interfaces) {
-      generateInterfacesIsTests(interfaceType.element, emitIsTest, generated);
+      generateInterfacesIsTests(interfaceType.element, emitIsTest,
+                                emitSubstitution, generated);
     }
 
     // For native classes, we also have to run through their mixin
@@ -1257,7 +1318,8 @@ $lazyInitializerLogic
     visitNativeMixins(cls, (MixinApplicationElement mixin) {
       for (DartType interfaceType in mixin.interfaces) {
         ClassElement interfaceElement = interfaceType.element;
-        generateInterfacesIsTests(interfaceType.element, emitIsTest, generated);
+        generateInterfacesIsTests(interfaceType.element, emitIsTest,
+                                  emitSubstitution, generated);
       }
     });
   }
@@ -1267,11 +1329,13 @@ $lazyInitializerLogic
    */
   void generateInterfacesIsTests(ClassElement cls,
                                  void emitIsTest(ClassElement element),
+                                 void emitSubstitution(ClassElement element),
                                  Set<Element> alreadyGenerated) {
-    void tryEmitTest(ClassElement cls) {
-      if (!alreadyGenerated.contains(cls) && checkedClasses.contains(cls)) {
-        alreadyGenerated.add(cls);
-        emitIsTest(cls);
+    void tryEmitTest(ClassElement check) {
+      if (!alreadyGenerated.contains(check) && checkedClasses.contains(check)) {
+        alreadyGenerated.add(check);
+        emitIsTest(check);
+        emitSubstitution(check);
       }
     };
 
@@ -1280,14 +1344,16 @@ $lazyInitializerLogic
     for (DartType interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
       tryEmitTest(element);
-      generateInterfacesIsTests(element, emitIsTest, alreadyGenerated);
+      generateInterfacesIsTests(element, emitIsTest, emitSubstitution,
+                                alreadyGenerated);
     }
 
     // We need to also emit "is checks" for the superclass and its supertypes.
     ClassElement superclass = cls.superclass;
     if (superclass != null) {
       tryEmitTest(superclass);
-      generateInterfacesIsTests(superclass, emitIsTest, alreadyGenerated);
+      generateInterfacesIsTests(superclass, emitIsTest, emitSubstitution,
+                                alreadyGenerated);
     }
   }
 
