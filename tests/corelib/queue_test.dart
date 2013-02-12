@@ -118,6 +118,7 @@ abstract class QueueTest {
 
     testAddAll();
     testLarge();
+    testFromListToList();
   }
 
   void checkQueue(Queue queue, int expectedSize, int expectedSum) {
@@ -237,6 +238,24 @@ abstract class QueueTest {
     queue.clear();
     Expect.equals(0, queue.length);
     Expect.isTrue(queue.isEmpty);
+  }
+
+  void testFromListToList() {
+    const int N = 256;
+    List list = [];
+    for (int i = 0; i < N; i++) {
+      Queue queue = newQueueFrom(list);
+
+      Expect.equals(list.length, queue.length);
+      List to = queue.toList();
+      Expect.listEquals(list, to);
+
+      queue.add(i);
+      list.add(i);
+      Expect.equals(list.length, queue.length);
+      to = queue.toList();
+      Expect.listEquals(list, to);
+    }
   }
 }
 

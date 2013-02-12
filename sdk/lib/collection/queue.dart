@@ -359,7 +359,8 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
   factory ListQueue.from(Iterable<E> source) {
     if (source is List) {
       int length = source.length;
-      ListQueue<E> queue = new ListQueue(length);
+      ListQueue<E> queue = new ListQueue(length + 1);
+      assert(queue._table.length > length);
       List sourceList = source;
       queue._table.setRange(0, length, sourceList, 0);
       queue._tail = length;
