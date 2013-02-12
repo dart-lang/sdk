@@ -11,6 +11,7 @@
 
 library unittestTest;
 import 'dart:isolate';
+import 'dart:async';
 import 'package:unittest/unittest.dart';
 
 var tests; // array of test names
@@ -154,6 +155,84 @@ runTest() {
           done();
         });
       });
+    } else if (testName == 'async setup/teardown test') {
+      group('good setup/good teardown', () {
+        setUp(() { 
+          var completer = new Completer();
+          _defer(() {
+            completer.complete(0);
+          });
+          return completer.future;
+        });
+        tearDown(() {
+          var completer = new Completer();
+          _defer(() {
+            completer.complete(0);
+          });
+          return completer.future;
+        });
+        test('foo1', (){});
+      });
+      group('good setup/bad teardown', () {
+        setUp(() { 
+          var completer = new Completer();
+          _defer(() {
+            completer.complete(0);
+          });
+          return completer.future;
+        });
+        tearDown(() {
+          var completer = new Completer();
+          _defer(() {
+            //throw "Failed to complete tearDown";
+            completer.completeError(
+                new AsyncError("Failed to complete tearDown"));
+          });
+          return completer.future;
+        });
+        test('foo2', (){});
+      });
+      group('bad setup/good teardown', () {
+        setUp(() { 
+          var completer = new Completer();
+          _defer(() {
+            //throw "Failed to complete setUp";
+            completer.completeError(new AsyncError("Failed to complete setUp"));
+          });
+          return completer.future;
+        });
+        tearDown(() {
+          var completer = new Completer();
+          _defer(() {
+            completer.complete(0);
+          });
+          return completer.future;
+        });
+        test('foo3', (){});
+      });
+      group('bad setup/bad teardown', () {
+        setUp(() { 
+          var completer = new Completer();
+          _defer(() {
+            //throw "Failed to complete setUp";
+            completer.completeError(new AsyncError("Failed to complete setUp"));
+          });
+          return completer.future;
+        });
+        tearDown(() {
+          var completer = new Completer();
+          _defer(() {
+            //throw "Failed to complete tearDown";
+            completer.completeError(
+                new AsyncError("Failed to complete tearDown"));
+          });
+          return completer.future;
+        });
+        test('foo4', (){});
+      });
+      // The next test is just to make sure we make steady progress 
+      // through the tests.
+      test('post groups', () {});
     }
   });
 }
@@ -186,7 +265,8 @@ main() {
     'completion test',
     'async exception test',
     'late exception test',
-    'middle exception test'
+    'middle exception test',
+    'async setup/teardown test'
   ];
 
   expected = [
@@ -205,8 +285,20 @@ main() {
         message: 'Callback called more times than expected (2 > 1).'),
     buildStatusString(1, 0, 0, tests[9], count: 10),
     buildStatusString(0, 1, 0, tests[10], message: 'Caught error!'),
-    buildStatusString(1, 0, 1, 'testOne', message: 'Callback called after already being marked as done (1).:testTwo:'),
-    buildStatusString(2, 1, 0, 'testOne::testTwo:Expected: false but: was <true>.:testThree')
+    buildStatusString(1, 0, 1, 'testOne',
+        message: 'Callback called after already being marked as done '
+                 '(1).:testTwo:'),
+    buildStatusString(2, 1, 0,
+        'testOne::testTwo:Expected: false but: was <true>.:testThree'),
+    buildStatusString(2, 0, 3, 
+        'good setup/good teardown foo1::'
+        'good setup/bad teardown foo2:good setup/bad teardown '
+        'foo2: Test teardown failed: Failed to complete tearDown:'
+        'bad setup/good teardown foo3:bad setup/good teardown '
+        'foo3: Test setup failed: Failed to complete setUp:'
+        'bad setup/bad teardown foo4:bad setup/bad teardown '
+        'foo4: Test teardown failed: Failed to complete tearDown:'
+        'post groups')
   ];
 
   actual = [];

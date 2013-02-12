@@ -329,6 +329,7 @@ class _SpreadArgsHelper {
   TestCase _testCase;
   Function _shouldCallBack;
   Function _isDone;
+  String _id;
   static const _sentinel = const _Sentinel();
 
   _init(Function callback, Function shouldCallBack, Function isDone,
@@ -352,14 +353,18 @@ class _SpreadArgsHelper {
     if (expectedCalls > 0) {
       _testCase.callbackFunctionsOutstanding++;
     }
+    _id = '';
   }
 
   _SpreadArgsHelper(callback, shouldCallBack, isDone) {
     _init(callback, shouldCallBack, isDone);
   }
 
-  _SpreadArgsHelper.fixedCallCount(callback, expectedCalls) {
+  _SpreadArgsHelper.fixedCallCount(callback, expectedCalls, id) {
     _init(callback, _checkCallCount, _allCallsDone, expectedCalls);
+    if (id != null) {
+      _id = "$id ";
+    }
   }
 
   _SpreadArgsHelper.variableCallCount(callback, isDone) {
@@ -372,7 +377,7 @@ class _SpreadArgsHelper {
 
   _after() {
     if (_isDone()) {
-      _handleCallbackFunctionComplete(_testNum);
+      _handleCallbackFunctionComplete(_testNum, _id);
     }
   }
 
@@ -382,7 +387,8 @@ class _SpreadArgsHelper {
     // Always run except if the test is done.
     if (_testCase.isComplete) {
       _testCase.error(
-          'Callback called after already being marked as done ($_actualCalls).',
+          'Callback ${_id}called after already being marked '
+          'as done ($_actualCalls).',
           '');
       return false;
     } else {
@@ -452,7 +458,7 @@ class _SpreadArgsHelper {
   /** Returns false if we exceded the number of expected calls. */
   bool _checkCallCount() {
     if (_actualCalls > _expectedCalls) {
-      _testCase.error('Callback called more times than expected '
+      _testCase.error('Callback ${_id}called more times than expected '
              '($_actualCalls > $_expectedCalls).', '');
       return false;
     }
@@ -466,10 +472,13 @@ class _SpreadArgsHelper {
  * specified [count] times before it continues with the following test.  Using
  * [_expectAsync] will also ensure that errors that occur within [callback] are
  * tracked and reported. [callback] should take between 0 and 4 positional
- * arguments (named arguments are not supported here).
+ * arguments (named arguments are not supported here). [id] can be used
+ * to provide more descriptive error messages if the callback is called more
+ * often than expected.
  */
-Function _expectAsync(Function callback, {int count: 1}) {
-  return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke;
+Function _expectAsync(Function callback, {int count: 1, String id}) {
+  return new _SpreadArgsHelper.
+      fixedCallCount(callback, count, id).invoke;
 }
 
 /**
@@ -478,23 +487,28 @@ Function _expectAsync(Function callback, {int count: 1}) {
  * specified [count] times before it continues with the following test.  Using
  * [expectAsync0] will also ensure that errors that occur within [callback] are
  * tracked and reported. [callback] should take 0 positional arguments (named
- * arguments are not supported).
+ * arguments are not supported). [id] can be used to provide more
+ * descriptive error messages if the callback is called more often than
+ * expected.
  */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
-Function expectAsync0(Function callback, {int count: 1}) {
-  return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke0;
+Function expectAsync0(Function callback, {int count: 1, String id}) {
+  return new _SpreadArgsHelper.
+      fixedCallCount(callback, count, id).invoke0;
 }
 
 /** Like [expectAsync0] but [callback] should take 1 positional argument. */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
-Function expectAsync1(Function callback, {int count: 1}) {
-  return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke1;
+Function expectAsync1(Function callback, {int count: 1, String id}) {
+  return new _SpreadArgsHelper.
+      fixedCallCount(callback, count, id).invoke1;
 }
 
 /** Like [expectAsync0] but [callback] should take 2 positional arguments. */
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
-Function expectAsync2(Function callback, {int count: 1}) {
-  return new _SpreadArgsHelper.fixedCallCount(callback, count).invoke2;
+Function expectAsync2(Function callback, {int count: 1, String id}) {
+  return new _SpreadArgsHelper.
+      fixedCallCount(callback, count, id).invoke2;
 }
 
 /**
@@ -618,9 +632,10 @@ void group(String description, void body()) {
 /**
  * Register a [setUp] function for a test [group]. This function will
  * be called before each test in the group is run. Note that if groups
- * are nested only the most locally scoped [setUp] function will be run.
+ * are nested only the most locally scoped [setUpTest] function will be run.
  * [setUp] and [tearDown] should be called within the [group] before any
- * calls to [test].
+ * calls to [test]. The [setupTest] function can be asynchronous; in this
+ * case it must return a [Future].
  */
 void setUp(Function setupTest) {
   _testSetup = setupTest;
@@ -629,9 +644,10 @@ void setUp(Function setupTest) {
 /**
  * Register a [tearDown] function for a test [group]. This function will
  * be called after each test in the group is run. Note that if groups
- * are nested only the most locally scoped [tearDown] function will be run.
+ * are nested only the most locally scoped [teardownTest] function will be run.
  * [setUp] and [tearDown] should be called within the [group] before any
- * calls to [test].
+ * calls to [test]. The [teardownTest] function can be asynchronous; in this
+ * case it must return a [Future].
  */
 void tearDown(Function teardownTest) {
   _testTeardown = teardownTest;
@@ -641,7 +657,7 @@ void tearDown(Function teardownTest) {
  * Called when one of the callback functions is done with all expected
  * calls.
  */
-void _handleCallbackFunctionComplete(testNum) {
+void _handleCallbackFunctionComplete(testNum, [id = '']) {
   // TODO (gram): we defer this to give the nextBatch recursive
   // stack a chance to unwind. This is a temporary hack but
   // really a bunch of code here needs to be fixed. We have a
@@ -651,11 +667,9 @@ void _handleCallbackFunctionComplete(testNum) {
   _defer(() {
     if (_currentTest != testNum) {
       if (_tests[testNum].result == PASS) {
-        _tests[testNum].error("Unexpected extra callbacks", '');
+        _tests[testNum].error("${id}Unexpected extra callbacks", '');
       }
-      return; // Extraneous callback.
-    }
-    if (_currentTest < _tests.length) {
+    } else if (_currentTest < _tests.length) {
       final testCase = _tests[_currentTest];
       --testCase.callbackFunctionsOutstanding;
       if (testCase.callbackFunctionsOutstanding < 0) {
@@ -663,11 +677,9 @@ void _handleCallbackFunctionComplete(testNum) {
         testCase.error(
             'More calls to _handleCallbackFunctionComplete() than expected.',
              '');
-      } else if (testCase.callbackFunctionsOutstanding == 0) {
-        if (!testCase.isComplete) {
-          testCase.pass();
-        }
-        _nextTestCase();
+      } else if (testCase.callbackFunctionsOutstanding == 0 &&
+                 !testCase.isComplete) {
+        testCase.pass();
       }
     }
   });
@@ -675,8 +687,10 @@ void _handleCallbackFunctionComplete(testNum) {
 
 /** Advance to the next test case. */
 void _nextTestCase() {
-  _currentTest++;
-  _testRunner();
+  _defer(() {
+    _currentTest++;
+    _testRunner();
+  });
 }
 
 /**
@@ -695,9 +709,6 @@ void _reportTestError(String msg, String trace) {
  if (_currentTest < _tests.length) {
     final testCase = _tests[_currentTest];
     testCase.error(msg, trace);
-    if (testCase.callbackFunctionsOutstanding > 0) {
-      _nextTestCase();
-    }
   } else {
     _uncaughtErrorMessage = "$msg: $trace";
   }
@@ -790,10 +801,6 @@ _registerException(testNum, e, [trace]) {
   } else {
     _tests[testNum].error('Caught $e', trace);
   }
-  if (testNum == _currentTest &&
-      _tests[testNum].callbackFunctionsOutstanding > 0) {
-    _nextTestCase();
-  }
 }
 
 /**
@@ -802,21 +809,25 @@ _registerException(testNum, e, [trace]) {
  * [done] or if it fails with an exception.
  */
 _nextBatch() {
-  while (_currentTest < _tests.length) {
+  while (true) {
+    if (_currentTest >= _tests.length) {
+      _completeTests();
+      break;
+    }
     final testCase = _tests[_currentTest];
-    guardAsync(() {
-      testCase.run();
-      if (!testCase.isComplete && testCase.callbackFunctionsOutstanding == 0) {
-        testCase.pass();
-      }
-    }, null, _currentTest);
-
-    if (!testCase.isComplete &&
-        testCase.callbackFunctionsOutstanding > 0) return;
+    var f = guardAsync(testCase.run, null, _currentTest);
+    if (f != null) {
+      f.then((_){})
+       .catchError((e) {
+        testCase.error(e.toString(), e.stackTrace);
+      })
+      .whenComplete(() {
+        _nextTestCase(); // Schedule the next test.
+      });
+      break;
+    }
     _currentTest++;
   }
-
-  _completeTests();
 }
 
 /** Publish results on the page and notify controller. */
