@@ -583,12 +583,41 @@ void main() {
     });
   });
 
-  expectTestsPass('currentSchedule.currentQueue is null before the schedule has '
-      'started', () {
+  expectTestsPass('currentSchedule.currentQueue is tasks before the schedule '
+      'has started', () {
     test('test', () {
       schedule(() => expect('foo', equals('foo')));
 
-      expect(currentSchedule.currentQueue, isNull);
+      expect(currentSchedule.currentQueue.name, equals('tasks'));
+    });
+  });
+
+  expectTestsPass('currentSchedule.state starts out as SET_UP', () {
+    test('test', () {
+      expect(currentSchedule.state, equals(ScheduleState.SET_UP));
+    });
+  });
+
+  expectTestsPass('currentSchedule.state is RUNNING in tasks', () {
+    test('test', () {
+      schedule(() {
+        expect(currentSchedule.state, equals(ScheduleState.RUNNING));
+      });
+
+      currentSchedule.onComplete.schedule(() {
+        expect(currentSchedule.state, equals(ScheduleState.RUNNING));
+      });
+    });
+  });
+
+  expectTestsPass('currentSchedule.state is DONE after the test', () {
+    var oldSchedule;
+    test('test 1', () {
+      oldSchedule = currentSchedule;
+    });
+
+    test('test 2', () {
+      expect(oldSchedule.state, equals(ScheduleState.DONE));
     });
   });
 
@@ -719,4 +748,157 @@ void main() {
       });
     });
   });
+
+  expectTestsPass("a single task that takes too long will cause a timeout "
+      "error", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.timeoutMs = 50;
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() => sleep(60));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(["The schedule timed out after "
+        "50ms of inactivity."]));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("an out-of-band callback that takes too long will cause a "
+      "timeout error", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.timeoutMs = 50;
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      sleep(60).then(wrapAsync((_) => expect('foo', equals('foo'))));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(["The schedule timed out after "
+        "50ms of inactivity."]));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("each task resets the timeout timer", () {
+    test('test', () {
+      currentSchedule.timeoutMs = 50;
+
+      schedule(() => sleep(30));
+      schedule(() => sleep(30));
+      schedule(() => sleep(30));
+    });
+  });
+
+  expectTestsPass("setting up the test doesn't trigger a timeout", () {
+    test('test', () {
+      currentSchedule.timeoutMs = 20;
+
+      var end = new DateTime.now().add(new Duration(milliseconds: 50));
+      while (new DateTime.now() < end) {}
+      schedule(() => expect('foo', equals('foo')));
+    });
+  });
+
+  expectTestsPass("an out-of-band error that's signaled after a timeout but "
+      "before the test completes is registered", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.timeoutMs = 50;
+
+      currentSchedule.onException.schedule(() => sleep(30));
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      sleep(60).then(wrapAsync((_) {
+        throw 'out-of-band';
+      }));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals([
+        "The schedule timed out after 50ms of inactivity.",
+        "out-of-band"
+      ]));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("an out-of-band error that's signaled after a timeout but "
+      "before the test completes plays nicely with other out-of-band callbacks",
+      () {
+    var errors;
+    var onExceptionCallbackRun = false;
+    var onCompleteRunAfterOnExceptionCallback = false;
+    test('test 1', () {
+      currentSchedule.timeoutMs = 50;
+
+      currentSchedule.onException.schedule(() {
+        sleep(30).then(wrapAsync((_) {
+          onExceptionCallbackRun = true;
+        }));
+      });
+
+      currentSchedule.onComplete.schedule(() {
+        onCompleteRunAfterOnExceptionCallback = onExceptionCallbackRun;
+      });
+
+      sleep(60).then(wrapAsync((_) {
+        throw 'out-of-band';
+      }));
+    });
+
+    test('test 2', () {
+      expect(onCompleteRunAfterOnExceptionCallback, isTrue);
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("a task that times out while waiting to handle an "
+      "out-of-band error records both", () {
+    var errors;
+    test('test 1', () {
+      currentSchedule.timeoutMs = 50;
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() => sleep(60));
+      sleep(10).then((_) => currentSchedule.signalError('out-of-band'));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals([
+        "out-of-band",
+        "The schedule timed out after 50ms of inactivity."
+      ]));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("currentSchedule.heartbeat resets the timeout timer", () {
+    test('test', () {
+      currentSchedule.timeoutMs = 50;
+
+      schedule(() {
+        return sleep(30).then((_) {
+          currentSchedule.heartbeat();
+          return sleep(30);
+        });
+      });
+    });
+  });
+
+  // TODO(nweiz): test out-of-band post-timeout errors that are detected after
+  // the test finishes once we can detect top-level errors (issue 8417).
 }

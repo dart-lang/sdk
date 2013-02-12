@@ -10,6 +10,7 @@ import 'dart:collection';
 import 'package:unittest/unittest.dart' as unittest;
 
 import 'schedule_error.dart';
+import 'substitute_future.dart';
 import 'task.dart';
 
 /// The schedule of tasks to run for a single test. This has three separate task
@@ -53,11 +54,9 @@ class Schedule {
   Task get currentTask => _currentTask;
   Task _currentTask;
 
-  /// Whether the schedule has finished running. This is only set once
-  /// [onComplete] has finished running. It will be set whether or not an
-  /// exception has occurred.
-  bool get done => _done;
-  bool _done = false;
+  /// The current state of the schedule.
+  ScheduleState get state => _state;
+  ScheduleState _state = ScheduleState.SET_UP;
 
   // TODO(nweiz): make this a read-only view once issue 8321 is fixed.
 
@@ -74,11 +73,30 @@ class Schedule {
   /// added to this list.
   final errors = <ScheduleError>[];
 
-  /// The task queue that's currently being run, or `null` if there is no such
-  /// queue. One of [tasks], [onException], or [onComplete]. This will be `null`
-  /// before the schedule starts running.
-  TaskQueue get currentQueue => _done ? null : _currentQueue;
+  /// The task queue that's currently being run. One of [tasks], [onException],
+  /// or [onComplete]. This starts as [tasks], and can only be `null` after the
+  /// schedule is done.
+  TaskQueue get currentQueue =>
+    _state == ScheduleState.DONE ? null : _currentQueue;
   TaskQueue _currentQueue;
+
+  /// The time, in milliseconds, to wait before terminating a task queue for
+  /// inactivity. Defaults to 30 seconds. This can be set to `null` to disable
+  /// timeouts entirely.
+  ///
+  /// If a task queue times out, an error will be raised that can be handled as
+  /// usual in the [onException] and [onComplete] queues. If [onException] times
+  /// out, that can only be handled in [onComplete]; if [onComplete] times out,
+  /// that cannot be handled.
+  ///
+  /// If a task times out and then later completes with an error, that error
+  /// cannot be handled. The user will still be notified of it.
+  int get timeoutMs => _timeoutMs;
+  int _timeoutMs = 30 * 1000;
+  set timeoutMs(int value) {
+    _timeoutMs = value;
+    heartbeat();
+  }
 
   /// The number of out-of-band callbacks that have been registered with
   /// [wrapAsync] but have yet to be called.
@@ -89,11 +107,17 @@ class Schedule {
   /// while [_pendingCallbacks] is non-zero.
   Completer _noPendingCallbacks;
 
+  /// The timer for keeping track of task timeouts. This may be null.
+  Timer _timeoutTimer;
+
   /// Creates a new schedule with empty task queues.
   Schedule() {
     _tasks = new TaskQueue._("tasks", this);
     _onComplete = new TaskQueue._("onComplete", this);
     _onException = new TaskQueue._("onException", this);
+    _currentQueue = _tasks;
+
+    heartbeat();
   }
 
   /// Sets up this schedule by running [setUp], then runs all the task queues in
@@ -106,6 +130,7 @@ class Schedule {
         throw new ScheduleError.from(this, e, stackTrace: stackTrace);
       }
 
+      _state = ScheduleState.RUNNING;
       return tasks._run();
     }).catchError((e) {
       errors.add(e);
@@ -129,7 +154,8 @@ class Schedule {
         throw e;
       });
     }).whenComplete(() {
-      _done = true;
+      if (_timeoutTimer != null) _timeoutTimer.cancel();
+      _state = ScheduleState.DONE;
     });
   }
 
@@ -138,22 +164,36 @@ class Schedule {
   ///
   /// The metadata in [AsyncError]s and [ScheduleError]s will be preserved.
   void signalError(error, [stackTrace]) {
+    heartbeat();
+
     var scheduleError = new ScheduleError.from(this, error,
         stackTrace: stackTrace, task: currentTask);
-    if (_done) {
-      errors.add(scheduleError);
+    if (_state == ScheduleState.DONE) {
       throw new StateError(
           "An out-of-band error was signaled outside of wrapAsync after the "
               "schedule finished running.\n"
           "${errorString()}");
-    } else if (currentQueue == null) {
-      // If we're not done but there's no current queue, that means we haven't
-      // started yet and thus we're in setUp or the synchronous body of the
-      // function. Throwing the error will thus pipe it into the main
+    } else if (state == ScheduleState.SET_UP) {
+      // If we're setting up, throwing the error will pipe it into the main
       // error-handling code.
       throw scheduleError;
     } else {
       _currentQueue._signalError(scheduleError);
+    }
+  }
+
+  /// Notifies the schedule of an error that occurred in a task or out-of-band
+  /// callback after the appropriate queue has timed out. If this schedule is
+  /// still running, the error will be added to the errors list to be shown
+  /// along with the timeout error; otherwise, a top-level error will be thrown.
+  void _signalPostTimeoutError(error, [stackTrace]) {
+    var scheduleError = new ScheduleError.from(this, error,
+        stackTrace: stackTrace);
+    errors.add(scheduleError);
+    if (_state == ScheduleState.DONE) {
+      throw new StateError(
+        "An out-of-band error was caught after the test timed out.\n"
+        "${errorString()}");
     }
   }
 
@@ -165,18 +205,29 @@ class Schedule {
   /// The top-level `wrapAsync` function should usually be used in preference to
   /// this.
   Function wrapAsync(fn(arg)) {
-    if (_done) {
+    if (_state == ScheduleState.DONE) {
       throw new StateError("wrapAsync called after the schedule has finished "
           "running.");
     }
+    heartbeat();
+
+    var queue = currentQueue;
+    // It's possible that the queue timed out before this.
+    bool _timedOut() => queue != currentQueue || _pendingCallbacks == 0;
 
     _pendingCallbacks++;
     return (arg) {
       try {
         return fn(arg);
       } catch (e, stackTrace) {
-        signalError(e, stackTrace);
+        if (_timedOut()) {
+          _signalPostTimeoutError(e, stackTrace);
+        } else {
+          signalError(e, stackTrace);
+        }
       } finally {
+        if (_timedOut()) return;
+
         _pendingCallbacks--;
         if (_pendingCallbacks == 0 && _noPendingCallbacks != null) {
           _noPendingCallbacks.complete();
@@ -195,6 +246,38 @@ class Schedule {
     return "The schedule had ${errors.length} errors:\n$errorStrings";
   }
 
+  /// Notifies the schedule that progress is being made on an asynchronous task.
+  /// This resets the timeout timer, and can be used in long-running tasks to
+  /// keep them from timing out.
+  void heartbeat() {
+    if (_timeoutTimer != null) _timeoutTimer.cancel();
+    if (_timeoutMs == null) {
+      _timeoutTimer = null;
+    } else {
+      _timeoutTimer = new Timer(_timeoutMs, _signalTimeout);
+    }
+  }
+
+  /// The callback to run when the timeout timer fires. Notifies the current
+  /// queue that a timeout has occurred.
+  void _signalTimeout(_) {
+    // Reset the timer so that we can detect timeouts in the onException and
+    // onComplete queues.
+    _timeoutTimer = null;
+
+    var error = new ScheduleError.from(this, "The schedule timed out after "
+        "${_timeoutMs}ms of inactivity.", task: currentTask);
+
+    _pendingCallbacks = 0;
+    if (_noPendingCallbacks != null) {
+      var noPendingCallbacks = _noPendingCallbacks;
+      _noPendingCallbacks = null;
+      noPendingCallbacks.completeError(error);
+    } else {
+      currentQueue._signalTimeout(error);
+    }
+  }
+
   /// Returns a [Future] that will complete once there are no pending
   /// out-of-band callbacks.
   Future _awaitNoPendingCallbacks() {
@@ -202,6 +285,28 @@ class Schedule {
     if (_noPendingCallbacks == null) _noPendingCallbacks = new Completer();
     return _noPendingCallbacks.future;
   }
+}
+
+/// An enum of states for a [Schedule].
+class ScheduleState {
+  /// The schedule can have tasks added to its queue, but is not yet running
+  /// them.
+  static const SET_UP = const ScheduleState._("SET_UP");
+
+  /// The schedule is actively running tasks. This includes running tasks in
+  /// [Schedule.onException] and [Schedule.onComplete].
+  static const RUNNING = const ScheduleState._("RUNNING");
+
+  /// The schedule has finished running all its tasks, either successfully or
+  /// with an error.
+  static const DONE = const ScheduleState._("DONE");
+
+  /// The name of the state.
+  final String name;
+
+  const ScheduleState._(this.name);
+
+  String toString() => name;
 }
 
 /// A queue of asynchronous tasks to execute in order.
@@ -221,6 +326,10 @@ class TaskQueue {
   /// indicates that the queue should stop as soon as possible and re-throw this
   /// error.
   ScheduleError _error;
+
+  /// The [SubstituteFuture] for the currently-running task in the queue, or
+  /// null if no task is currently running.
+  SubstituteFuture _taskFuture;
 
   TaskQueue._(this.name, this._schedule);
 
@@ -243,10 +352,16 @@ class TaskQueue {
   /// Runs all the tasks in this queue in order.
   Future _run() {
     _schedule._currentQueue = this;
+    _schedule.heartbeat();
     return Future.forEach(_contents, (task) {
       _schedule._currentTask = task;
       if (_error != null) throw _error;
-      return task.fn().catchError((e) {
+
+      _taskFuture = new SubstituteFuture(task.fn());
+      return _taskFuture.whenComplete(() {
+        _taskFuture = null;
+        _schedule.heartbeat();
+      }).catchError((e) {
         if (_error != null) _schedule.errors.add(_error);
         throw new ScheduleError.from(_schedule, e, task: task);
       });
@@ -254,6 +369,7 @@ class TaskQueue {
       _schedule._currentTask = null;
       return _schedule._awaitNoPendingCallbacks();
     }).then((_) {
+      _schedule.heartbeat();
       if (_error != null) throw _error;
     });
   }
@@ -265,6 +381,23 @@ class TaskQueue {
     // earlier ones are recorded in the schedule.
     if (_error != null) _schedule.errors.add(_error);
     _error = error;
+  }
+
+  /// Notifies the queue that it has timed out and it needs to terminate
+  /// immediately with a timeout error.
+  void _signalTimeout(ScheduleError error) {
+    if (_taskFuture != null) {
+      // Catch errors coming off the old task future, in case it completes after
+      // timing out.
+      _taskFuture.substitute(new Future.immediateError(error)).catchError((e) {
+        _schedule._signalPostTimeoutError(e);
+      });
+    } else {
+      // This branch probably won't be reached, but it's conceivable that the
+      // event loop might get pumped when _taskFuture is null but we haven't yet
+      // called _awaitNoPendingCallbacks.
+      _signalError(error);
+    }
   }
 
   String toString() => name;

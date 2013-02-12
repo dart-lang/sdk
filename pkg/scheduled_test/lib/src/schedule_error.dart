@@ -19,9 +19,8 @@ class ScheduleError extends AsyncError {
   /// there was no such task.
   final Task task;
 
-  /// Whether the schedule was finished executing at the time the error was
-  /// detected.
-  final bool _scheduleWasDone;
+  /// The state of the schedule at the time the error was detected.
+  final ScheduleState _stateWhenDetected;
 
   /// Creates a new [ScheduleError] wrapping [error]. The metadata in
   /// [AsyncError]s and [ScheduleError]s will be preserved.
@@ -47,7 +46,7 @@ class ScheduleError extends AsyncError {
       this.task)
       : super.withCause(error, stackTrace, cause),
         this.schedule = schedule,
-        this._scheduleWasDone = schedule.done;
+        this._stateWhenDetected = schedule.state;
 
   String toString() {
     var result = new StringBuffer();
@@ -68,9 +67,9 @@ class ScheduleError extends AsyncError {
     if (task != null) {
       result.add('Error detected during task in queue "${task.queue}":\n');
       result.add(task.generateTree());
-    } else if (_scheduleWasDone) {
+    } else if (_stateWhenDetected == ScheduleState.DONE) {
       result.add('Error detected after all tasks in the queue had finished.');
-    } else {
+    } else { // _stateWhenDetected == ScheduleState.SET_UP
       result.add('Error detected before the schedule started running.');
     }
 
