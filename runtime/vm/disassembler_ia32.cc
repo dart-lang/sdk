@@ -237,8 +237,22 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0xAD: return "shrd";
     case 0xAB: return "bts";
     case 0xB1: return "cmpxchg";
+    case 0x50: return "movmskps";
+    case 0x51: return "sqrtps";
+    case 0x52: return "rqstps";
+    case 0x53: return "rcpps";
+    case 0x54: return "andps";
+    case 0x56: return "orps";
     case 0x57: return "xorps";
+    case 0x58: return "addps";
+    case 0x59: return "mulps";
+    case 0x5C: return "subps";
+    case 0x5D: return "minps";
+    case 0x5E: return "divps";
+    case 0x5F: return "maxps";
     case 0x28: return "movaps";
+    case 0x10: return "movups";
+    case 0x11: return "movups";
     default: return NULL;
   }
 }
@@ -286,6 +300,7 @@ class X86Decoder : public ValueObject {
   void PrintCPURegister(int reg);
   void PrintCPUByteRegister(int reg);
   void PrintXmmRegister(int reg);
+  void PrintXmmComparison(int comparison);
   void PrintAddress(uword addr);
 
   typedef void (X86Decoder::*RegisterNamePrinter)(int reg);
@@ -393,6 +408,15 @@ void X86Decoder::PrintXmmRegister(int reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kMaxXmmRegisters);
   Print(xmm_regs[reg]);
+}
+
+void X86Decoder::PrintXmmComparison(int comparison) {
+  ASSERT(0 <= comparison);
+  ASSERT(comparison < 8);
+  static const char* comparisons[8] = {
+    "eq", "lt", "le", "unordered", "not eq", "not lt", "not le", "ordered"
+  };
+  Print(comparisons[comparison]);
 }
 
 
@@ -1337,6 +1361,54 @@ int X86Decoder::InstructionDecode(uword pc) {
             PrintXmmRegister(regop);
             Print(",");
             data += PrintRightXmmOperand(data);
+          } else if (f0byte == 0x11) {
+            Print("movups ");
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            data += PrintRightXmmOperand(data);
+            Print(",");
+            PrintXmmRegister(regop);
+          } else if (f0byte == 0x10) {
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            Print("movups ");
+            PrintXmmRegister(regop);
+            Print(",");
+            data += PrintRightOperand(data);
+          } else if (f0byte == 0x51 || f0byte == 0x52 || f0byte == 0x53 ||
+                     f0byte == 0x54 || f0byte == 0x56 || f0byte == 0x58 ||
+                     f0byte == 0x59 || f0byte == 0x5C || f0byte == 0x5D ||
+                     f0byte == 0x5E || f0byte == 0x5F) {
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            Print(f0mnem);
+            Print(" ");
+            PrintXmmRegister(regop);
+            Print(",");
+            data += PrintRightXmmOperand(data);
+          } else if (f0byte == 0x50) {
+            Print("movmskpd ");
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            PrintCPURegister(regop);
+            Print(",");
+            data += PrintRightXmmOperand(data);
+          } else if (f0byte == 0xC2 || f0byte == 0xC6) {
+            if (f0byte == 0xC2)
+              Print("cmpps ");
+            else
+              Print("shufps ");
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            Print(" ");
+            PrintXmmRegister(regop);
+            Print(",");
+            data += PrintRightXmmOperand(data);
+            int comparison = *data;
+            Print(" [");
+            PrintHex(comparison);
+            Print("]");
+            data++;
           } else {
             UNIMPLEMENTED();
           }

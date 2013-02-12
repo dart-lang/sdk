@@ -505,6 +505,22 @@ void Assembler::movaps(XmmRegister dst, XmmRegister src) {
 }
 
 
+void Assembler::movups(XmmRegister dst, const Address& src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x10);
+  EmitOperand(dst, src);
+}
+
+
+void Assembler::movups(const Address& dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x11);
+  EmitOperand(src, dst);
+}
+
+
 void Assembler::addsd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
@@ -520,6 +536,227 @@ void Assembler::addsd(XmmRegister dst, const Address& src) {
   EmitUint8(0x0F);
   EmitUint8(0x58);
   EmitOperand(dst, src);
+}
+
+
+void Assembler::addps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x58);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::subps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x5C);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::divps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x5E);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::mulps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x59);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::minps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x5D);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::maxps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x5F);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::andps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x54);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::andps(XmmRegister dst, const Address& src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x54);
+  EmitOperand(dst, src);
+}
+
+
+void Assembler::orps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x56);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::notps(XmmRegister dst) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } float_not_constant =
+      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+  xorps(dst,
+    Address::Absolute(reinterpret_cast<uword>(&float_not_constant)));
+}
+
+
+void Assembler::negateps(XmmRegister dst) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } float_negate_constant =
+      { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
+  xorps(dst,
+        Address::Absolute(reinterpret_cast<uword>(&float_negate_constant)));
+}
+
+
+void Assembler::absps(XmmRegister dst) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } float_absolute_constant =
+      { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
+  andps(dst,
+        Address::Absolute(reinterpret_cast<uword>(&float_absolute_constant)));
+}
+
+
+void Assembler::zerowps(XmmRegister dst) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } float_zerow_constant =
+      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 };
+  andps(dst, Address::Absolute(reinterpret_cast<uword>(&float_zerow_constant)));
+}
+
+
+void Assembler::cmppseq(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xC2);
+  EmitXmmRegisterOperand(dst, src);
+  EmitUint8(0x0);
+}
+
+
+void Assembler::cmppsneq(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xC2);
+  EmitXmmRegisterOperand(dst, src);
+  EmitUint8(0x4);
+}
+
+
+void Assembler::cmppslt(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xC2);
+  EmitXmmRegisterOperand(dst, src);
+  EmitUint8(0x1);
+}
+
+
+void Assembler::cmppsle(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xC2);
+  EmitXmmRegisterOperand(dst, src);
+  EmitUint8(0x2);
+}
+
+
+void Assembler::cmppsnlt(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xC2);
+  EmitXmmRegisterOperand(dst, src);
+  EmitUint8(0x5);
+}
+
+
+void Assembler::cmppsnle(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xC2);
+  EmitXmmRegisterOperand(dst, src);
+  EmitUint8(0x6);
+}
+
+
+void Assembler::sqrtps(XmmRegister dst) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x51);
+  EmitXmmRegisterOperand(dst, dst);
+}
+
+
+void Assembler::rsqrtps(XmmRegister dst) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x52);
+  EmitXmmRegisterOperand(dst, dst);
+}
+
+
+void Assembler::reciprocalps(XmmRegister dst) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x53);
+  EmitXmmRegisterOperand(dst, dst);
+}
+
+
+void Assembler::set1ps(XmmRegister dst, Register tmp1, const Immediate& imm) {
+  // Load 32-bit immediate value into tmp1.
+  movl(tmp1, imm);
+  // Move value from tmp1 into dst.
+  movd(dst, tmp1);
+  // Broadcast low lane into other three lanes.
+  shufps(dst, dst, Immediate(0x0));
+}
+
+
+void Assembler::shufps(XmmRegister dst, XmmRegister src, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xC6);
+  EmitXmmRegisterOperand(dst, src);
+  ASSERT(imm.is_uint8());
+  EmitUint8(imm.value());
 }
 
 
@@ -678,6 +915,14 @@ void Assembler::comisd(XmmRegister a, XmmRegister b) {
 void Assembler::movmskpd(Register dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x50);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::movmskps(Register dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0x50);
   EmitXmmRegisterOperand(dst, src);
@@ -1816,14 +2061,14 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   }
 
   // Preserve all XMM registers except XMM0
-  subl(ESP, Immediate((kNumberOfXmmRegisters - 1) * kDoubleSize));
+  subl(ESP, Immediate((kNumberOfXmmRegisters - 1) * kFpuRegisterSize));
   // Store XMM registers with the lowest register number at the lowest
   // address.
   intptr_t offset = 0;
   for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
     XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-    movsd(Address(ESP, offset), xmm_reg);
-    offset += kDoubleSize;
+    movups(Address(ESP, offset), xmm_reg);
+    offset += kFpuRegisterSize;
   }
 
   ReserveAlignedFrameSpace(frame_space);
@@ -1836,7 +2081,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   // We need to restore it before restoring registers.
   const intptr_t kPushedRegistersSize =
       kNumberOfVolatileCpuRegisters * kWordSize +
-      kNumberOfVolatileXmmRegisters * kDoubleSize;
+      kNumberOfVolatileXmmRegisters * kFpuRegisterSize;
   leal(ESP, Address(EBP, -kPushedRegistersSize));
 
   // Restore all XMM registers except XMM0
@@ -1844,8 +2089,8 @@ void Assembler::LeaveCallRuntimeFrame() {
   intptr_t offset = 0;
   for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
     XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-    movsd(xmm_reg, Address(ESP, offset));
-    offset += kDoubleSize;
+    movups(xmm_reg, Address(ESP, offset));
+    offset += kFpuRegisterSize;
   }
   addl(ESP, Immediate(offset));
 
