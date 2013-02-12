@@ -73,6 +73,9 @@ class ParsedFunction : public ZoneAllocated {
     ASSERT(saved_current_context_var != NULL);
     saved_current_context_var_ = saved_current_context_var;
   }
+  bool has_saved_current_context_var() const {
+    return saved_current_context_var_ != NULL;
+  }
 
   LocalVariable* saved_entry_context_var() const {
     return saved_entry_context_var_;
@@ -127,7 +130,7 @@ class ParsedFunction : public ZoneAllocated {
 class Parser : public ValueObject {
  public:
   Parser(const Script& script, const Library& library);
-  Parser(const Script& script, const Function& function, intptr_t token_pos);
+  Parser(const Script& script, ParsedFunction* function, intptr_t token_pos);
 
   // Parse the top level of a whole script file and register declared classes
   // in the given library.
@@ -198,6 +201,11 @@ class Parser : public ValueObject {
   // The class being parsed.
   const Class& current_class() const;
   void set_current_class(const Class& value);
+
+  // ParsedFunction accessor.
+  ParsedFunction* parsed_function() const {
+    return parsed_function_;
+  }
 
   // Parsing a library or a regular source script.
   bool is_library_source() const {
@@ -624,7 +632,7 @@ class Parser : public ValueObject {
   bool allow_function_literals_;
 
   // The function currently being compiled.
-  const Function& current_function_;
+  ParsedFunction* parsed_function_;
 
   // The function currently being parsed.
   Function& innermost_function_;
@@ -640,12 +648,6 @@ class Parser : public ValueObject {
   // code at all points in the try block where an exit from the block is
   // done using 'return', 'break' or 'continue' statements.
   TryBlocks* try_blocks_list_;
-
-  // Allocate temporary only once per function.
-  LocalVariable* expression_temp_;
-
-  // Allocate saved current context only if needed.
-  LocalVariable* saved_current_context_;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };

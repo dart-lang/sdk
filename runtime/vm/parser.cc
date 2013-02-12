@@ -260,13 +260,11 @@ Parser::Parser(const Script& script, const Library& library)
       is_top_level_(false),
       current_member_(NULL),
       allow_function_literals_(true),
-      current_function_(Function::Handle()),
+      parsed_function_(NULL),
       innermost_function_(Function::Handle()),
       current_class_(Class::Handle()),
       library_(library),
-      try_blocks_list_(NULL),
-      expression_temp_(NULL),
-      saved_current_context_(NULL) {
+      try_blocks_list_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -274,7 +272,7 @@ Parser::Parser(const Script& script, const Library& library)
 
 // For parsing a function.
 Parser::Parser(const Script& script,
-               const Function& function,
+               ParsedFunction* parsed_function,
                intptr_t token_position)
     : script_(script),
       tokens_iterator_(TokenStream::Handle(script.tokens()), token_position),
@@ -283,15 +281,13 @@ Parser::Parser(const Script& script,
       is_top_level_(false),
       current_member_(NULL),
       allow_function_literals_(true),
-      current_function_(function),
-      innermost_function_(Function::Handle(function.raw())),
-      current_class_(Class::Handle(current_function_.Owner())),
+      parsed_function_(parsed_function),
+      innermost_function_(Function::Handle(parsed_function->function().raw())),
+      current_class_(Class::Handle(parsed_function->function().Owner())),
       library_(Library::Handle(current_class_.library())),
-      try_blocks_list_(NULL),
-      expression_temp_(NULL),
-      saved_current_context_(NULL) {
+      try_blocks_list_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
-  ASSERT(!function.IsNull());
+  ASSERT(!current_function().IsNull());
   if (FLAG_enable_type_checks) {
     EnsureExpressionTemp();
   }
@@ -306,7 +302,8 @@ bool Parser::SetAllowFunctionLiterals(bool value) {
 
 
 const Function& Parser::current_function() const {
-  return current_function_;
+  ASSERT(parsed_function() != NULL);
+  return parsed_function()->function();
 }
 
 
@@ -730,7 +727,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
   const Script& script = Script::Handle(isolate, func.script());
-  Parser parser(script, func, func.token_pos());
+  Parser parser(script, parsed_function, func.token_pos());
   SequenceNode* node_sequence = NULL;
   Array& default_parameter_values = Array::ZoneHandle(isolate, Array::null());
   switch (func.kind()) {
@@ -765,15 +762,10 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     // Add implicit return node.
     node_sequence->Add(new ReturnNode(func.end_token_pos()));
   }
-  if (parser.expression_temp_ != NULL) {
-    parsed_function->set_expression_temp_var(parser.expression_temp_);
-  }
   if (parsed_function->has_expression_temp_var()) {
     node_sequence->scope()->AddVariable(parsed_function->expression_temp_var());
   }
-  if (parser.saved_current_context_ != NULL) {
-    parsed_function->set_saved_current_context_var(
-        parser.saved_current_context_);
+  if (parsed_function->has_saved_current_context_var()) {
     node_sequence->scope()->AddVariable(
         parsed_function->saved_current_context_var());
   }
@@ -6783,12 +6775,14 @@ AstNode* Parser::ParseExprList() {
 
 
 const LocalVariable* Parser::GetIncrementTempLocal() {
-  if (expression_temp_ == NULL) {
-    expression_temp_ = ParsedFunction::CreateExpressionTempVar(
+  if (!parsed_function()->has_expression_temp_var()) {
+    LocalVariable* temp = ParsedFunction::CreateExpressionTempVar(
         current_function().token_pos());
-    ASSERT(expression_temp_ != NULL);
+    ASSERT(temp != NULL);
+    parsed_function()->set_expression_temp_var(temp);
   }
-  return expression_temp_;
+  ASSERT(parsed_function()->has_expression_temp_var());
+  return parsed_function()->expression_temp_var();
 }
 
 
@@ -6800,13 +6794,13 @@ void Parser::EnsureExpressionTemp() {
 
 void Parser::EnsureSavedCurrentContext() {
   // Used later by the flow_graph_builder to save current context.
-  if (saved_current_context_ == NULL) {
-    // Allocate a local variable to save the current context when we call into
-    // any closure function as the call will destroy the current context.
-    saved_current_context_ =
+  if (!parsed_function()->has_saved_current_context_var()) {
+    LocalVariable* temp =
         new LocalVariable(current_function().token_pos(),
                           Symbols::SavedCurrentContextVar(),
                           Type::ZoneHandle(Type::DynamicType()));
+    ASSERT(temp != NULL);
+    parsed_function()->set_saved_current_context_var(temp);
   }
 }
 
