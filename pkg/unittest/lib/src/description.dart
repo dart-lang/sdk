@@ -47,6 +47,12 @@ class StringDescription implements Description {
       String description = (value == null) ? "null" : value.toString();
       if (description.startsWith('<') && description.endsWith('>')) {
           add(description);
+      } else if (description.startsWith("Instance of")) {
+        add('<');
+        add(description);
+        add(':');
+        add(value.hashCode.toString());
+        add('>');
       } else {
         add('<');
         add(description);

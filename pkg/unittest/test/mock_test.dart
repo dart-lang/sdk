@@ -649,4 +649,16 @@ main() {
     m3.clearLogs();
     expect(log.logs, hasLength(0));
   });
+
+  test("Mocking: instances", () {
+    var alice = new Object();
+    var bob = new Object();
+    var m = new Mock();
+    m.when(callsTo("foo", alice)).alwaysReturn(true);
+    m.when(callsTo("foo", bob)).alwaysReturn(false);
+    expect(m.foo(alice), true);
+    expect(m.foo(bob), false);
+    expect(m.foo(alice), true);
+    expect(m.foo(bob), false);
+  });
 }
