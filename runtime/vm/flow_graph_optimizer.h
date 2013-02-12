@@ -121,39 +121,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 class ParsedFunction;
 
 
-class FlowGraphTypePropagator : public FlowGraphVisitor {
- public:
-  explicit FlowGraphTypePropagator(FlowGraph* flow_graph)
-      : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        parsed_function_(flow_graph->parsed_function()),
-        flow_graph_(flow_graph),
-        still_changing_(false) { }
-  virtual ~FlowGraphTypePropagator() { }
-
-  const ParsedFunction& parsed_function() const { return parsed_function_; }
-
-  void PropagateTypes();
-
- private:
-  virtual void VisitBlocks();
-
-  virtual void VisitAssertAssignable(AssertAssignableInstr* instr);
-  virtual void VisitAssertBoolean(AssertBooleanInstr* instr);
-  virtual void VisitInstanceOf(InstanceOfInstr* instr);
-
-  virtual void VisitGraphEntry(GraphEntryInstr* graph_entry);
-  virtual void VisitJoinEntry(JoinEntryInstr* join_entry);
-  virtual void VisitPhi(PhiInstr* phi);
-  virtual void VisitParameter(ParameterInstr* param);
-  virtual void VisitPushArgument(PushArgumentInstr* bind);
-
-  const ParsedFunction& parsed_function_;
-  FlowGraph* flow_graph_;
-  bool still_changing_;
-  DISALLOW_COPY_AND_ASSIGN(FlowGraphTypePropagator);
-};
-
-
 // Loop invariant code motion.
 class LICM : public AllStatic {
  public:

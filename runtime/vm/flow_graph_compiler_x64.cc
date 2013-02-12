@@ -23,7 +23,7 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
-DECLARE_FLAG(bool, use_sse41);
+DECLARE_FLAG(bool, eliminate_type_checks);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -560,6 +560,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   Label is_assignable, runtime_call;
   __ cmpq(RAX, raw_null);
   __ j(EQUAL, &is_assignable);
+
+  if (!FLAG_eliminate_type_checks) {
+    // If type checks are not eliminated during the graph building then
+    // a transition sentinel can be seen here.
+    __ CompareObject(RAX, Object::transition_sentinel());
+    __ j(EQUAL, &is_assignable);
+  }
 
   // Generate throw new TypeError() if the type is malformed.
   if (dst_type.IsMalformed()) {
