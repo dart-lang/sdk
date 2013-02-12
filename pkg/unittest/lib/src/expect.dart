@@ -122,8 +122,24 @@ String _defaultErrorFormatter(actual, Matcher matcher, String reason,
       add('\n     but: ');
   matcher.describeMismatch(actual, description, matchState, verbose);
   description.add('.\n');
-  if (verbose && actual is Iterable) {
-    description.add('Actual: ').addDescriptionOf(actual).add('\n');
+  if (verbose) {
+    if (actual is Iterable) {
+      description.add('Actual: ').addDescriptionOf(actual).add('\n');
+    } else if (actual is Map) {
+      description.add('Actual: ');
+      var count = 25;
+      for (var k in actual.keys) {
+        if (count == 0) {
+          description.add('...\n');
+          break;
+        }
+        description.addDescriptionOf(k);
+        description.add(' : ');
+        description.addDescriptionOf(actual[k]);
+        description.add('\n');
+        --count;
+      }
+    }
   }
   if (reason != null) {
     description.add(reason).add('\n');

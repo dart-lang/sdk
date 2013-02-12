@@ -172,15 +172,23 @@ class _DeepMatcher extends BaseMatcher {
           }
         }
       } else {
-        // If we have recursed, show the expected value too; if not,
-        // expect() will show it for us.
         reason = new StringDescription();
-        if (depth > 1) {
-          reason.add('expected ').addDescriptionOf(expected).add(' but was ').
-              addDescriptionOf(actual);
-        } else {
-          reason.add('was ').addDescriptionOf(actual);
+        var includeTypes = expected.runtimeType != actual.runtimeType;
+        // If we have recursed, show the expected value too; if not,
+        // expect() will show it for us. As expect will not show type
+        // mismatches at the top level we handle those here too.
+        if (includeTypes || depth > 1) {
+          reason.add('expected ');
+          if (includeTypes) {
+            reason..add(expected.runtimeType).add(':');
+          }
+          reason.addDescriptionOf(expected).add(' but ');
         }
+        reason.add('was ');
+        if (includeTypes) {
+          reason..add(actual.runtimeType).add(':');
+        }
+        reason.addDescriptionOf(actual);
       }
     }
     if (reason != null && location.length > 0) {
@@ -297,6 +305,7 @@ class Throws extends BaseMatcher {
     this._matcher = matcher;
 
   bool matches(item, MatchState matchState) {
+    if (item is! Function && item is! Future) return false;
     if (item is Future) {
       var done = wrapAsync((fn) => fn());
 
@@ -317,7 +326,6 @@ class Throws extends BaseMatcher {
           expect(e.error, _matcher, reason: reason);
         });
       });
-
       // It hasn't failed yet.
       return true;
     }
@@ -350,7 +358,9 @@ class Throws extends BaseMatcher {
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState,
                                bool verbose) {
-    if (_matcher == null ||  matchState.state == null) {
+    if (item is! Function && item is! Future) {
+      return mismatchDescription.add(' not a Function or Future');
+    } else if (_matcher == null ||  matchState.state == null) {
       return mismatchDescription.add(' no exception');
     } else {
       mismatchDescription.

@@ -77,6 +77,11 @@ class TestConfiguration extends Configuration {
     _port.send(_result);
   }
 }
+
+foo() {
+  ++_testconfig.count;
+}
+
 runTest() {
   port.receive((testName, sendport) {
     configure(_testconfig = new TestConfiguration(sendport));
@@ -112,9 +117,9 @@ runTest() {
     } else if (testName == 'correct callback test') {
       test(testName,
         () =>_defer(expectAsync0((){ ++_testconfig.count;})));
-    } else if (testName == 'excess callback test') {
+    } else if (testName == 'excess callback test with callback name') {
       test(testName, () {
-        var _callback = expectAsync0((){ ++_testconfig.count;});
+        var _callback = expectAsync0(foo);
         _defer(_callback);
         _defer(_callback);
       });
@@ -261,7 +266,7 @@ main() {
     'teardown test',
     'setup and teardown test',
     'correct callback test',
-    'excess callback test',
+    'excess callback test with callback name',
     'completion test',
     'async exception test',
     'late exception test',
@@ -282,7 +287,7 @@ main() {
         setup: 'setup', teardown: 'teardown'),
     buildStatusString(1, 0, 0, tests[7], count: 1),
     buildStatusString(0, 0, 1, tests[8], count: 1,
-        message: 'Callback called more times than expected (2 > 1).'),
+        message: 'Callback foo called more times than expected (2 > 1).'),
     buildStatusString(1, 0, 0, tests[9], count: 10),
     buildStatusString(0, 1, 0, tests[10], message: 'Caught error!'),
     buildStatusString(1, 0, 1, 'testOne',

@@ -128,6 +128,8 @@ void main() {
       shouldFail(doesNotThrow, throws,
         "Expected: throws an exception but: no exception.");
       shouldPass(doesThrow, throws);
+      shouldFail(true, throws,
+          "Expected: throws an exception but: not a Function or Future.");
     });
 
     test('throwsA', () {
@@ -242,6 +244,15 @@ void main() {
         "Expected: an object with length of <1> "
         "but: was <[0, 0]> with length of <2>.");
       shouldPass(b, hasLength(2));
+    });
+
+    test('type mismatch', () {
+      var a = new DateTime.utc(2000);
+      var b = a.toString();
+      shouldFail(a, equals(b),
+          "Expected: '2000-01-01 00:00:00.000Z' "
+          "but: expected String:'2000-01-01 00:00:00.000Z' "
+          "but was DateTime:<2000-01-01 00:00:00.000Z>.");
     });
   });
 

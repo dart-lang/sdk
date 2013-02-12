@@ -9,8 +9,7 @@
  * Create a pubspec.yaml file in your project and add
  * a dependency on unittest with the following lines:
  *     dependencies:
- *       unittest:
- *         sdk: unittest
+ *       unittest: any
  *
  * Then run 'pub install' from your project directory or using
  * the DartEditor.
@@ -354,6 +353,18 @@ class _SpreadArgsHelper {
       _testCase.callbackFunctionsOutstanding++;
     }
     _id = '';
+    // If the callback is not an anonymous closure, try to get the
+    // name.
+    var fname = callback.toString();
+    var prefix = "Function '";
+    var pos = fname.indexOf(prefix);
+    if (pos > 0) {
+      pos += prefix.length;
+      var epos = fname.indexOf("'", pos);
+      if (epos > 0) {
+        _id = "${fname.substring(pos, epos)} ";
+      }
+    }
   }
 
   _SpreadArgsHelper(callback, shouldCallBack, isDone) {
