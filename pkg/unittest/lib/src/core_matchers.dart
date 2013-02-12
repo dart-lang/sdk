@@ -173,20 +173,22 @@ class _DeepMatcher extends BaseMatcher {
         }
       } else {
         reason = new StringDescription();
-        var includeTypes = expected.runtimeType != actual.runtimeType;
+        var eType = typeName(expected);
+        var aType = typeName(actual);
+        var includeTypes = eType != aType;
         // If we have recursed, show the expected value too; if not,
         // expect() will show it for us. As expect will not show type
         // mismatches at the top level we handle those here too.
         if (includeTypes || depth > 1) {
           reason.add('expected ');
           if (includeTypes) {
-            reason.add(expected.runtimeType.toString()).add(':');
+            reason.add(eType).add(':');
           }
           reason.addDescriptionOf(expected).add(' but ');
         }
         reason.add('was ');
         if (includeTypes) {
-          reason.add(actual.runtimeType.toString()).add(':');
+          reason.add(aType).add(':');
         }
         reason.addDescriptionOf(actual);
       }
@@ -195,6 +197,17 @@ class _DeepMatcher extends BaseMatcher {
       reason.add(' ').add(location);
     }
     return reason;
+  }
+
+  String typeName(x) {
+    // dart2js blows up on some objects (e.g. window.navigator).
+    // So we play safe here.
+    try {
+      if (x == null) return "null";
+      return x.runtimeType.toString();
+    } catch (e) {
+      return "Unknown";
+    }
   }
 
   String _match(expected, actual) {
