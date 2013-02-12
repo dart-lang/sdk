@@ -49,6 +49,7 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
+serialization/test/serialization_test: Pass, Fail # Temporary workaround for flakiness
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
