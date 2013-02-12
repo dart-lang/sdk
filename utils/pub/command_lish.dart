@@ -32,6 +32,8 @@ class LishCommand extends PubCommand {
     var parser = new ArgParser();
     // TODO(nweiz): Use HostedSource.defaultUrl as the default value once we use
     // dart:io for HTTPS requests.
+    parser.addFlag('dry-run', abbr: 'n', negatable: false,
+        help: 'Validate but do not publish the package');
     parser.addOption('server', defaultsTo: 'https://pub.dartlang.org',
         help: 'The package server to which to upload this package');
     return parser;
@@ -100,9 +102,11 @@ class LishCommand extends PubCommand {
 
     // Validate the package.
     return _validate(packageBytesFuture.then((bytes) => bytes.length))
-        .then((_) => packageBytesFuture).then(_publish);
+        .then((isValid) {
+       if (isValid) return packageBytesFuture.then(_publish);
+    });
   }
-
+  
   /// The basenames of files that are automatically excluded from archives.
   final _BLACKLISTED_FILES = const ['pubspec.lock'];
 
@@ -146,18 +150,25 @@ class LishCommand extends PubCommand {
   }
 
   /// Validates the package. Throws an exception if it's invalid.
-  Future _validate(Future<int> packageSize) {
+  Future<bool> _validate(Future<int> packageSize) {
     return Validator.runAll(entrypoint, packageSize).then((pair) {
       var errors = pair.first;
       var warnings = pair.last;
 
       if (!errors.isEmpty) {
-        throw "Sorry, your package is missing "
+        log.error("Sorry, your package is missing "
             "${(errors.length > 1) ? 'some requirements' : 'a requirement'} "
             "and can't be published yet.\nFor more information, see: "
-            "http://pub.dartlang.org/doc/pub-lish.html.\n";
+            "http://pub.dartlang.org/doc/pub-lish.html.\n");
+        return false;
       }
 
+      if (commandOptions['dry-run']){
+        var s = warnings.length == 1 ? '' : 's';
+        log.warning("Package has ${warnings.length} warning$s.");
+        return false;
+      }
+      
       var message = 'Looks great! Are you ready to upload your package';
 
       if (!warnings.isEmpty) {
@@ -166,7 +177,11 @@ class LishCommand extends PubCommand {
       }
 
       return confirm(message).then((confirmed) {
-        if (!confirmed) throw "Package upload canceled.";
+        if (!confirmed) {
+          log.error("Package upload canceled.");
+          return false;
+        }
+        return true;
       });
     });
   }

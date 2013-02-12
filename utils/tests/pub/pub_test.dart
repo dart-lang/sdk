@@ -105,8 +105,9 @@ main() {
             Publish the current package to pub.dartlang.org.
 
             Usage: pub publish [options]
-            --server    The package server to which to upload this package
-                        (defaults to "https://pub.dartlang.org")
+            -n, --dry-run    Validate but do not publish the package                      
+                --server     The package server to which to upload this package
+                             (defaults to "https://pub.dartlang.org")
             ''');
     });
 

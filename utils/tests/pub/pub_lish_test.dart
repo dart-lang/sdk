@@ -81,36 +81,65 @@ main() {
   // test that "pub lish" chooses the correct files to publish.
 
   integration('package validation has an error', () {
-    var package = package("test_pkg", "1.0.0");
-    package.remove("homepage");
-    dir(appPath, [pubspec(package)]).scheduleCreate();
+    var pkg = package("test_pkg", "1.0.0");
+    pkg.remove("homepage");
+    dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
     var server = new ScheduledServer();
     var pub = startPubLish(server);
 
-    pub.shouldExit(1);
+    pub.shouldExit(0);
     expectLater(pub.remainingStderr(),
         contains("Sorry, your package is missing a requirement and can't be "
             "published yet."));
   });
 
+  integration('preview package validation has a warning', () {
+    var pkg = package("test_pkg", "1.0.0");
+    pkg["author"] = "Nathan Weizenbaum";
+    dir(appPath, [pubspec(pkg)]).scheduleCreate();
+
+    var server = new ScheduledServer();
+    var pub = startPubLish(server, args: ['--dry-run']);
+
+    pub.shouldExit(0);
+    expectLater(pub.remainingStderr(),
+        contains('Suggestions:\n* Author "Nathan Weizenbaum" in pubspec.yaml' 
+                  ' should have an email address\n'
+                  '  (e.g. "name <email>").\n\n'
+                  'Package has 1 warning.'));
+  });
+  
+  integration('preview package validation has no warnings', () {
+    var pkg = package("test_pkg", "1.0.0");
+    pkg["author"] = "Nathan Weizenbaum <nweiz@google.com>";
+    dir(appPath, [pubspec(pkg)]).scheduleCreate();
+
+    var server = new ScheduledServer();
+    var pub = startPubLish(server, args: ['--dry-run']);
+
+    pub.shouldExit(0);
+    expectLater(pub.remainingStderr(),
+        contains('Package has 0 warnings.'));
+  });
+  
   integration('package validation has a warning and is canceled', () {
-    var package = package("test_pkg", "1.0.0");
-    package["author"] = "Nathan Weizenbaum";
-    dir(appPath, [pubspec(package)]).scheduleCreate();
+    var pkg = package("test_pkg", "1.0.0");
+    pkg["author"] = "Nathan Weizenbaum";
+    dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
     var server = new ScheduledServer();
     var pub = startPubLish(server);
 
     pub.writeLine("n");
-    pub.shouldExit(1);
+    pub.shouldExit(0);
     expectLater(pub.remainingStderr(), contains("Package upload canceled."));
   });
 
   integration('package validation has a warning and continues', () {
-    var package = package("test_pkg", "1.0.0");
-    package["author"] = "Nathan Weizenbaum";
-    dir(appPath, [pubspec(package)]).scheduleCreate();
+    var pkg = package("test_pkg", "1.0.0");
+    pkg["author"] = "Nathan Weizenbaum";
+    dir(appPath, [pubspec(pkg)]).scheduleCreate();
 
     var server = new ScheduledServer();
     credentialsFile(server, 'access token').scheduleCreate();
