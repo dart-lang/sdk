@@ -172,9 +172,9 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-CompileType* LoadIndexedInstr::ComputeInitialType() const {
+intptr_t LoadIndexedInstr::ResultCid() const {
   UNIMPLEMENTED();
-  return NULL;
+  return kDynamicCid;
 }
 
 

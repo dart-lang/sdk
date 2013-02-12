@@ -84,7 +84,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   GrowableArray<intptr_t> class_ids(call->ic_data()->num_args_tested());
   ASSERT(call->ic_data()->num_args_tested() <= call->ArgumentCount());
   for (intptr_t i = 0; i < call->ic_data()->num_args_tested(); i++) {
-    intptr_t cid = call->ArgumentAt(i)->value()->Type()->ToCid();
+    intptr_t cid = call->ArgumentAt(i)->value()->ResultCid();
     class_ids.Add(cid);
   }
   // TODO(srdjan): Test for other class_ids > 1.
@@ -150,7 +150,7 @@ void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
     return;  // Already specialized.
   }
 
-  const intptr_t receiver_cid  = call->ArgumentAt(0)->value()->Type()->ToCid();
+  const intptr_t receiver_cid  = call->ArgumentAt(0)->value()->ResultCid();
   if (receiver_cid == kDynamicCid) {
     return;  // No information about receiver was infered.
   }
@@ -231,7 +231,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
   Definition* converted = NULL;
   if ((from == kTagged) && (to == kUnboxedMint)) {
     ASSERT((deopt_target != NULL) ||
-           (use->Type()->ToCid() == kDoubleCid));
+           (use->definition()->GetPropagatedCid() == kDoubleCid));
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     converted = new UnboxIntegerInstr(new Value(use->definition()), deopt_id);
@@ -251,7 +251,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     ASSERT((deopt_target != NULL) ||
-           (use->Type()->ToCid() == kDoubleCid));
+           (use->definition()->GetPropagatedCid() == kDoubleCid));
     ConstantInstr* constant = use->definition()->AsConstant();
     if ((constant != NULL) && constant->value().IsSmi()) {
       const double dbl_val = Smi::Cast(constant->value()).AsDoubleValue();
@@ -313,7 +313,7 @@ void FlowGraphOptimizer::SelectRepresentations() {
       for (intptr_t i = 0; i < join_entry->phis()->length(); ++i) {
         PhiInstr* phi = (*join_entry->phis())[i];
         if (phi == NULL) continue;
-        if (phi->Type()->ToCid() == kDoubleCid) {
+        if (phi->GetPropagatedCid() == kDoubleCid) {
           phi->set_representation(kUnboxedDouble);
         }
       }
@@ -1965,10 +1965,189 @@ void FlowGraphOptimizer::VisitStrictCompare(StrictCompareInstr* instr) {
 
   // If one of the input is not a boxable number (Mint, Double, Bigint), no
   // need for number checks.
-  if (!MayBeBoxableNumber(instr->left()->Type()->ToCid()) ||
-      !MayBeBoxableNumber(instr->right()->Type()->ToCid()))  {
+  if (!MayBeBoxableNumber(instr->left()->ResultCid()) ||
+      !MayBeBoxableNumber(instr->right()->ResultCid()))  {
     instr->set_needs_number_check(false);
   }
+}
+
+
+// SminessPropagator ensures that CheckSmis are eliminated across phis.
+class SminessPropagator : public ValueObject {
+ public:
+  explicit SminessPropagator(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        known_smis_(new BitVector(flow_graph_->current_ssa_temp_index())),
+        rollback_checks_(10),
+        in_worklist_(NULL),
+        worklist_(0) { }
+
+  void Propagate();
+
+ private:
+  void PropagateSminessRecursive(BlockEntryInstr* block);
+  void AddToWorklist(PhiInstr* phi);
+  PhiInstr* RemoveLastFromWorklist();
+  void ProcessPhis();
+
+  FlowGraph* flow_graph_;
+
+  BitVector* known_smis_;
+  GrowableArray<intptr_t> rollback_checks_;
+
+  BitVector* in_worklist_;
+  GrowableArray<PhiInstr*> worklist_;
+
+  DISALLOW_COPY_AND_ASSIGN(SminessPropagator);
+};
+
+
+void SminessPropagator::AddToWorklist(PhiInstr* phi) {
+  if (in_worklist_ == NULL) {
+    in_worklist_ = new BitVector(flow_graph_->current_ssa_temp_index());
+  }
+  if (!in_worklist_->Contains(phi->ssa_temp_index())) {
+    in_worklist_->Add(phi->ssa_temp_index());
+    worklist_.Add(phi);
+  }
+}
+
+
+PhiInstr* SminessPropagator::RemoveLastFromWorklist() {
+  PhiInstr* phi = worklist_.RemoveLast();
+  ASSERT(in_worklist_->Contains(phi->ssa_temp_index()));
+  in_worklist_->Remove(phi->ssa_temp_index());
+  return phi;
+}
+
+
+static bool IsDefinitelySmiPhi(PhiInstr* phi) {
+  for (intptr_t i = 0; i < phi->InputCount(); i++) {
+    const intptr_t cid = phi->InputAt(i)->ResultCid();
+    if (cid != kSmiCid) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+static bool IsPossiblySmiPhi(PhiInstr* phi) {
+  for (intptr_t i = 0; i < phi->InputCount(); i++) {
+    const intptr_t cid = phi->InputAt(i)->ResultCid();
+    if ((cid != kSmiCid) && (cid != kDynamicCid)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+void SminessPropagator::ProcessPhis() {
+  // First optimistically mark all possible smi-phis: phi is possibly a smi if
+  // its operands are either smis or phis in the worklist.
+  for (intptr_t i = 0; i < worklist_.length(); i++) {
+    PhiInstr* phi = worklist_[i];
+    ASSERT(phi->GetPropagatedCid() == kDynamicCid);
+    phi->SetPropagatedCid(kSmiCid);
+
+    // Append all phis that use this phi and can potentially be smi to the
+    // end of worklist.
+    for (Value* use = phi->input_use_list();
+         use != NULL;
+         use = use->next_use()) {
+      PhiInstr* phi_use = use->instruction()->AsPhi();
+      if ((phi_use != NULL) &&
+          (phi_use->GetPropagatedCid() == kDynamicCid) &&
+          IsPossiblySmiPhi(phi_use)) {
+        AddToWorklist(phi_use);
+      }
+    }
+  }
+
+  // Now unmark phis that are not definitely smi: that is have only
+  // smi operands.
+  while (!worklist_.is_empty()) {
+    PhiInstr* phi = RemoveLastFromWorklist();
+    if (!IsDefinitelySmiPhi(phi)) {
+      // Phi result is not a smi. Propagate this fact to phis that depend on it.
+      phi->SetPropagatedCid(kDynamicCid);
+      for (Value* use = phi->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        PhiInstr* phi_use = use->instruction()->AsPhi();
+        if ((phi_use != NULL) && (phi_use->GetPropagatedCid() == kSmiCid)) {
+          AddToWorklist(phi_use);
+        }
+      }
+    }
+  }
+}
+
+
+void SminessPropagator::PropagateSminessRecursive(BlockEntryInstr* block) {
+  const intptr_t rollback_point = rollback_checks_.length();
+
+  for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    Instruction* instr = it.Current();
+    if (instr->IsCheckSmi()) {
+      const intptr_t value_ssa_index =
+          instr->InputAt(0)->definition()->ssa_temp_index();
+      if (!known_smis_->Contains(value_ssa_index)) {
+        known_smis_->Add(value_ssa_index);
+        rollback_checks_.Add(value_ssa_index);
+      }
+    } else if (instr->IsBranch()) {
+      for (intptr_t i = 0; i < instr->InputCount(); i++) {
+        Value* use = instr->InputAt(i);
+        if (known_smis_->Contains(use->definition()->ssa_temp_index())) {
+          use->set_reaching_cid(kSmiCid);
+        }
+      }
+    }
+  }
+
+  for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
+    PropagateSminessRecursive(block->dominated_blocks()[i]);
+  }
+
+  if (block->last_instruction()->SuccessorCount() == 1 &&
+      block->last_instruction()->SuccessorAt(0)->IsJoinEntry()) {
+    JoinEntryInstr* join =
+        block->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+    intptr_t pred_index = join->IndexOfPredecessor(block);
+    ASSERT(pred_index >= 0);
+    if (join->phis() != NULL) {
+      for (intptr_t i = 0; i < join->phis()->length(); ++i) {
+        PhiInstr* phi = (*join->phis())[i];
+        if (phi == NULL) continue;
+        Value* use = phi->InputAt(pred_index);
+        const intptr_t value_ssa_index = use->definition()->ssa_temp_index();
+        if (known_smis_->Contains(value_ssa_index) &&
+            (phi->GetPropagatedCid() != kSmiCid)) {
+          use->set_reaching_cid(kSmiCid);
+          AddToWorklist(phi);
+        }
+      }
+    }
+  }
+
+  for (intptr_t i = rollback_point; i < rollback_checks_.length(); i++) {
+    known_smis_->Remove(rollback_checks_[i]);
+  }
+  rollback_checks_.TruncateTo(rollback_point);
+}
+
+
+void SminessPropagator::Propagate() {
+  PropagateSminessRecursive(flow_graph_->graph_entry());
+  ProcessPhis();
+}
+
+
+void FlowGraphOptimizer::PropagateSminess() {
+  SminessPropagator propagator(flow_graph_);
+  propagator.Propagate();
 }
 
 
@@ -2089,7 +2268,7 @@ void RangeAnalysis::CollectSmiValues() {
       Instruction* current = instr_it.Current();
       Definition* defn = current->AsDefinition();
       if (defn != NULL) {
-        if ((defn->Type()->ToCid() == kSmiCid) &&
+        if ((defn->GetPropagatedCid() == kSmiCid) &&
             (defn->ssa_temp_index() != -1)) {
           smi_values_.Add(defn);
         }
@@ -2102,7 +2281,7 @@ void RangeAnalysis::CollectSmiValues() {
     if (join != NULL) {
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
         PhiInstr* current = phi_it.Current();
-        if ((current->Type()->ToCid() == kSmiCid)) {
+        if (current->GetPropagatedCid() == kSmiCid) {
           smi_values_.Add(current);
         }
       }
@@ -2557,6 +2736,261 @@ void FlowGraphOptimizer::InferSmiRanges() {
 }
 
 
+void FlowGraphTypePropagator::VisitBlocks() {
+  ASSERT(current_iterator_ == NULL);
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    BlockEntryInstr* entry = block_order_[i];
+    entry->Accept(this);
+    ForwardInstructionIterator it(entry);
+    current_iterator_ = &it;
+    for (; !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      // No need to propagate the input types of the instruction, as long as
+      // PhiInstr's are handled as part of JoinEntryInstr.
+
+      // Visit the instruction and possibly eliminate type checks.
+      current->Accept(this);
+      // The instruction may have been removed from the graph.
+      Definition* defn = current->AsDefinition();
+      if ((defn != NULL) &&
+          !defn->IsPushArgument() &&
+          (defn->previous() != NULL)) {
+        // Cache the propagated computation type.
+        AbstractType& type = AbstractType::Handle(defn->CompileType());
+        still_changing_ = defn->SetPropagatedType(type) || still_changing_;
+
+        // Propagate class ids.
+        const intptr_t cid = defn->ResultCid();
+        still_changing_ = defn->SetPropagatedCid(cid) || still_changing_;
+      }
+    }
+    current_iterator_ = NULL;
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitAssertAssignable(
+    AssertAssignableInstr* instr) {
+  bool is_null, is_instance;
+  if (FLAG_eliminate_type_checks &&
+      !instr->is_eliminated() &&
+      ((instr->value()->CanComputeIsNull(&is_null) && is_null) ||
+       (instr->value()->CanComputeIsInstanceOf(instr->dst_type(), &is_instance)
+        && is_instance))) {
+    // TODO(regis): Remove is_eliminated_ field and support.
+    instr->eliminate();
+
+    Value* use = instr->value();
+    ASSERT(use != NULL);
+    Definition* result = use->definition();
+    ASSERT(result != NULL);
+    // Replace uses and remove the current instruction via the iterator.
+    instr->ReplaceUsesWith(result);
+    ASSERT(current_iterator()->Current() == instr);
+    current_iterator()->RemoveCurrentFromGraph();
+    if (FLAG_trace_optimization) {
+      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
+                instr->ssa_temp_index(),
+                result->ssa_temp_index());
+    }
+
+    if (FLAG_trace_type_check_elimination) {
+      FlowGraphPrinter::PrintTypeCheck(parsed_function(),
+                                       instr->token_pos(),
+                                       instr->value(),
+                                       instr->dst_type(),
+                                       instr->dst_name(),
+                                       instr->is_eliminated());
+    }
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
+  bool is_null, is_bool;
+  if (FLAG_eliminate_type_checks &&
+      !instr->is_eliminated() &&
+      instr->value()->CanComputeIsNull(&is_null) &&
+      !is_null &&
+      instr->value()->CanComputeIsInstanceOf(Type::Handle(Type::BoolType()),
+                                             &is_bool) &&
+      is_bool) {
+    // TODO(regis): Remove is_eliminated_ field and support.
+    instr->eliminate();
+    Value* use = instr->value();
+    Definition* result = use->definition();
+    ASSERT(result != NULL);
+    // Replace uses and remove the current instruction via the iterator.
+    instr->ReplaceUsesWith(result);
+    ASSERT(current_iterator()->Current() == instr);
+    current_iterator()->RemoveCurrentFromGraph();
+    if (FLAG_trace_optimization) {
+      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
+                instr->ssa_temp_index(),
+                result->ssa_temp_index());
+    }
+
+    if (FLAG_trace_type_check_elimination) {
+      FlowGraphPrinter::PrintTypeCheck(parsed_function(),
+                                       instr->token_pos(),
+                                       instr->value(),
+                                       Type::Handle(Type::BoolType()),
+                                       Symbols::BooleanExpression(),
+                                       instr->is_eliminated());
+    }
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitInstanceOf(InstanceOfInstr* instr) {
+  bool is_null;
+  bool is_instance = false;
+  if (FLAG_eliminate_type_checks &&
+      instr->value()->CanComputeIsNull(&is_null) &&
+      (is_null ||
+       instr->value()->CanComputeIsInstanceOf(instr->type(), &is_instance))) {
+    bool val = instr->negate_result() ? !is_instance : is_instance;
+    Definition* result = new ConstantInstr(val ? Bool::True() : Bool::False());
+    result->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    result->InsertBefore(instr);
+    // Replace uses and remove the current instruction via the iterator.
+    instr->ReplaceUsesWith(result);
+    ASSERT(current_iterator()->Current() == instr);
+    current_iterator()->RemoveCurrentFromGraph();
+    if (FLAG_trace_optimization) {
+      OS::Print("Replacing v%"Pd" with v%"Pd"\n",
+                instr->ssa_temp_index(),
+                result->ssa_temp_index());
+    }
+
+    if (FLAG_trace_type_check_elimination) {
+      FlowGraphPrinter::PrintTypeCheck(parsed_function(),
+                                       instr->token_pos(),
+                                       instr->value(),
+                                       instr->type(),
+                                       Symbols::InstanceOf(),
+                                       /* eliminated = */ true);
+    }
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitGraphEntry(GraphEntryInstr* graph_entry) {
+  // Visit incoming parameters.
+  for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
+    ParameterInstr* param =
+        (*graph_entry->initial_definitions())[i]->AsParameter();
+    if (param != NULL) VisitParameter(param);
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitJoinEntry(JoinEntryInstr* join_entry) {
+  if (join_entry->phis() != NULL) {
+    for (intptr_t i = 0; i < join_entry->phis()->length(); ++i) {
+      PhiInstr* phi = (*join_entry->phis())[i];
+      if (phi != NULL) {
+        VisitPhi(phi);
+      }
+    }
+  }
+}
+
+
+// TODO(srdjan): Investigate if the propagated cid should be more specific.
+void FlowGraphTypePropagator::VisitPushArgument(PushArgumentInstr* push) {
+  if (!push->has_propagated_cid()) push->SetPropagatedCid(kDynamicCid);
+}
+
+
+void FlowGraphTypePropagator::VisitPhi(PhiInstr* phi) {
+  // We could set the propagated type of the phi to the least upper bound of its
+  // input propagated types. However, keeping all propagated types allows us to
+  // optimize method dispatch.
+  // TODO(regis): Support a set of propagated types. For now, we compute the
+  // least specific of the input propagated types.
+  AbstractType& type = AbstractType::Handle(phi->LeastSpecificInputType());
+  bool changed = phi->SetPropagatedType(type);
+  if (changed) {
+    still_changing_ = true;
+  }
+
+  // Merge class ids: if any two inputs have different class ids then result
+  // is kDynamicCid.
+  intptr_t merged_cid = kIllegalCid;
+  for (intptr_t i = 0; i < phi->InputCount(); i++) {
+    // Result cid of UseVal can be kIllegalCid if the referred definition
+    // has not been visited yet.
+    intptr_t cid = phi->InputAt(i)->ResultCid();
+    if (cid == kIllegalCid) {
+      still_changing_ = true;
+      continue;
+    }
+    if (merged_cid == kIllegalCid) {
+      // First time set.
+      merged_cid = cid;
+    } else if (merged_cid != cid) {
+      merged_cid = kDynamicCid;
+    }
+  }
+  if (merged_cid == kIllegalCid) {
+    merged_cid = kDynamicCid;
+  }
+  changed = phi->SetPropagatedCid(merged_cid);
+  if (changed) {
+    still_changing_ = true;
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitParameter(ParameterInstr* param) {
+  // TODO(regis): Once we inline functions, the propagated type of the formal
+  // parameter will reflect the compile type of the passed-in argument.
+  // For now, we do not know anything about the argument type and therefore set
+  // it to the DynamicType, unless the argument is a compiler generated value,
+  // i.e. the receiver argument or the constructor phase argument.
+  AbstractType& param_type = AbstractType::Handle(Type::DynamicType());
+  param->SetPropagatedCid(kDynamicCid);
+  bool param_type_is_known = false;
+  if (param->index() == 0) {
+    const Function& function = parsed_function().function();
+    if ((function.IsDynamicFunction() || function.IsConstructor())) {
+      // Parameter is the receiver .
+      param_type_is_known = true;
+    }
+  } else if ((param->index() == 1) &&
+      parsed_function().function().IsConstructor()) {
+    // Parameter is the constructor phase.
+    param_type_is_known = true;
+  }
+  if (param_type_is_known) {
+    LocalScope* scope = parsed_function().node_sequence()->scope();
+    param_type = scope->VariableAt(param->index())->type().raw();
+    if (FLAG_use_cha) {
+      const intptr_t cid = Class::Handle(param_type.type_class()).id();
+      if (!CHA::HasSubclasses(cid)) {
+        // Receiver's class has no subclasses.
+        param->SetPropagatedCid(cid);
+      }
+    }
+  }
+  bool changed = param->SetPropagatedType(param_type);
+  if (changed) {
+    still_changing_ = true;
+  }
+}
+
+
+void FlowGraphTypePropagator::PropagateTypes() {
+  // TODO(regis): Is there a way to make this more efficient, e.g. by visiting
+  // only blocks depending on blocks that have changed and not the whole graph.
+  do {
+    still_changing_ = false;
+    VisitBlocks();
+  } while (still_changing_);
+}
+
+
 static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
   for (intptr_t j = 0; j < header->PredecessorCount(); ++j) {
     BlockEntryInstr* candidate = header->PredecessorAt(j);
@@ -2601,7 +3035,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
     return;
   }
 
-  if (phi->Type()->ToCid() == kSmiCid) {
+  if (phi->GetPropagatedCid() == kSmiCid) {
     current->UnuseAllInputs();
     it->RemoveCurrentFromGraph();
     return;
@@ -2613,9 +3047,8 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   intptr_t non_smi_input = kNotFound;
   for (intptr_t i = 0; i < phi->InputCount(); ++i) {
     Value* input = phi->InputAt(i);
-    if (input->Type()->ToCid() != kSmiCid) {
-      if ((non_smi_input != kNotFound) ||
-          (input->Type()->ToCid() != kDynamicCid)) {
+    if (input->ResultCid() != kSmiCid) {
+      if ((non_smi_input != kNotFound) || (input->ResultCid() != kDynamicCid)) {
         // There are multiple kDynamicCid inputs or there is an input that is
         // known to be non-smi.
         return;
@@ -2639,7 +3072,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   current->value()->set_definition(non_smi_input_defn);
   non_smi_input_defn->AddInputUse(current->value());
 
-  phi->Type()->ReplaceWith(CompileType::FromCid(kSmiCid));
+  phi->SetPropagatedCid(kSmiCid);
 }
 
 
@@ -3685,10 +4118,10 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
 
   if (IsNonConstant(left) || IsNonConstant(right)) {
     // TODO(vegorov): incorporate nullability information into the lattice.
-    if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
-        (right.IsNull() && instr->left()->Type()->HasDecidableNullability())) {
-      bool result = left.IsNull() ? instr->right()->Type()->IsNull()
-                                  : instr->left()->Type()->IsNull();
+    if ((left.IsNull() && (instr->right()->ResultCid() != kDynamicCid)) ||
+        (right.IsNull() && (instr->left()->ResultCid() != kDynamicCid))) {
+      bool result = left.IsNull() ? (instr->right()->ResultCid() == kNullCid)
+                                  : (instr->left()->ResultCid() == kNullCid);
       if (instr->kind() == Token::kNE_STRICT) result = !result;
       SetValue(instr, result ? Bool::True() : Bool::False());
     } else {

@@ -2185,13 +2185,12 @@ bool Class::TypeTest(
     // Since we do not truncate the type argument vector of a subclass (see
     // below), we only check a prefix of the proper length.
     // Check for covariance.
-    if (other_type_arguments.IsNull() || other_type_arguments.IsRaw(len)) {
+    if (other_type_arguments.IsNull() ||
+        other_type_arguments.IsRawInstantiatedRaw(len)) {
       return true;
     }
-    if (type_arguments.IsNull() || type_arguments.IsRaw(len)) {
-      // Other type can't be more specific than this one because for that
-      // it would have to have all dynamic type arguments which is checked
-      // above.
+    if (type_arguments.IsNull() ||
+        type_arguments.IsRawInstantiatedRaw(len)) {
       return test_kind == kIsSubtypeOf;
     }
     return type_arguments.TypeTest(test_kind,

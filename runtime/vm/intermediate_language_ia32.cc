@@ -212,7 +212,9 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
-  EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
+  if (!is_eliminated()) {
+    EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
+  }
   ASSERT(obj == result);
 }
 
@@ -1095,16 +1097,14 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-CompileType* LoadIndexedInstr::ComputeInitialType() const {
+intptr_t LoadIndexedInstr::ResultCid() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
-      return CompileType::Dynamic();
-
+      return kDynamicCid;
     case kFloat32ArrayCid :
     case kFloat64ArrayCid :
-      return CompileType::FromCid(kDoubleCid);
-
+      return kDoubleCid;
     case kInt8ArrayCid:
     case kUint8ArrayCid:
     case kUint8ClampedArrayCid:
@@ -1114,19 +1114,16 @@ CompileType* LoadIndexedInstr::ComputeInitialType() const {
     case kUint16ArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
-      return CompileType::FromCid(kSmiCid);
-
+      return kSmiCid;
     case kInt32ArrayCid:
     case kUint32ArrayCid:
       // Result can be Smi or Mint when boxed.
       // Instruction can deoptimize if we optimistically assumed that the result
       // fits into Smi.
-      return CanDeoptimize() ? CompileType::FromCid(kSmiCid)
-                             : CompileType::Int();
-
+      return CanDeoptimize() ? kSmiCid : kDynamicCid;
     default:
       UNIMPLEMENTED();
-      return CompileType::Dynamic();
+      return kDynamicCid;
   }
 }
 
@@ -2270,8 +2267,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckEitherNonSmiInstr::MakeLocationSummary() const {
-  ASSERT((left()->Type()->ToCid() != kDoubleCid) &&
-         (right()->Type()->ToCid() != kDoubleCid));
+  ASSERT((left()->ResultCid() != kDoubleCid) &&
+         (right()->ResultCid() != kDoubleCid));
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 1;
   LocationSummary* summary =
@@ -2368,7 +2365,7 @@ LocationSummary* UnboxDoubleInstr::MakeLocationSummary() const {
 
 
 void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t value_cid = value()->ResultCid();
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().fpu_reg();
 
@@ -2756,6 +2753,8 @@ LocationSummary* CheckSmiInstr::MakeLocationSummary() const {
 
 
 void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // TODO(srdjan): Check if we can remove this by reordering CSE and LICM.
+  if (value()->ResultCid() == kSmiCid) return;
   Register value = locs()->in(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptCheckSmi);
@@ -2821,7 +2820,7 @@ LocationSummary* UnboxIntegerInstr::MakeLocationSummary() const {
 
 
 void UnboxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t value_cid = value()->ResultCid();
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().fpu_reg();
 

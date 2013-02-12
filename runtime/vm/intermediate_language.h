@@ -77,121 +77,6 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 };
 
 
-// CompileType describes type of the value produced by the definition.
-//
-// It captures the following properties:
-//    - whether value can potentially be null or it is definitely not null;
-//    - concrete class id of the value or kDynamicCid if unknown statically;
-//    - abstract super type of the value, concrete type of the value in runtime
-//      is guaranteed to be sub type of this type.
-//
-// Values of CompileType form a lattice with a None type as a bottom and a
-// nullable Dynamic type as a top element. Method Union provides a join
-// operation for the lattice.
-class CompileType : public ZoneAllocated {
- public:
-  static const bool kNullable = true;
-  static const bool kNonNullable = false;
-
-  // Return type such that concrete value's type in runtime is guaranteed to
-  // be subtype of it.
-  const AbstractType* ToAbstractType();
-
-  // Return class id such that it is either kDynamicCid or in runtime
-  // value is guaranteed to have an equal class id.
-  intptr_t ToCid();
-
-  // Return class id such that it is either kDynamicCid or in runtime
-  // value is guaranteed to be either null or have an equal class id.
-  intptr_t ToNullableCid();
-
-  // Returns true if the value is guaranteed to be not-null or is known to be
-  // always null.
-  bool HasDecidableNullability();
-
-  // Returns true if the value is known to be always null.
-  bool IsNull();
-
-  // Returns true if this type is more specific than given type.
-  bool IsMoreSpecificThan(const AbstractType& other);
-
-  // Returns true if value of this type is assignable to a location of the
-  // given type.
-  bool IsAssignableTo(const AbstractType& type) {
-    bool is_instance;
-    return CanComputeIsInstanceOf(type, kNullable, &is_instance) &&
-           is_instance;
-  }
-
-  // Create a new CompileType representing given combination of class id and
-  // abstract type. The pair is assumed to be coherent.
-  static CompileType* New(intptr_t cid, const AbstractType& type);
-
-  // Create a new CompileType representing given abstract type. By default
-  // values as assumed to be nullable.
-  static CompileType* FromAbstractType(const AbstractType& type,
-                                       bool is_nullable = kNullable);
-
-  // Create a new CompileType representing an value with the given class id.
-  // Resulting CompileType is nullable only if cid is kDynamicCid or kNullCid.
-  static CompileType* FromCid(intptr_t cid);
-
-  // Create None CompileType. It is the bottom of the lattice and is used to
-  // represent type of the phi that was not yet inferred.
-  static CompileType* None() {
-    return new CompileType(true, kIllegalCid, NULL);
-  }
-
-  // Create Dynamic CompileType. It is the top of the lattice and is used to
-  // represent unknown type.
-  static CompileType* Dynamic();
-
-  static CompileType* Null();
-
-  // Create non-nullable Bool type.
-  static CompileType* Bool();
-
-  // Create non-nullable Int type.
-  static CompileType* Int();
-
-  // Perform a join operation over the type lattice.
-  void Union(CompileType* other);
-
-  // Returns true if this and other types are the same.
-  bool IsEqualTo(CompileType* other) {
-    return (is_nullable_ == other->is_nullable_) &&
-        (ToNullableCid() == other->ToNullableCid()) &&
-        (ToAbstractType()->Equals(*other->ToAbstractType()));
-  }
-
-  // Replaces this type with other.
-  void ReplaceWith(CompileType* other) {
-    is_nullable_ = other->is_nullable_;
-    cid_ = other->cid_;
-    type_ = other->type_;
-  }
-
-  bool IsNone() const {
-    return (cid_ == kIllegalCid) && (type_ == NULL);
-  }
-
-  void PrintTo(BufferFormatter* f) const;
-  const char* ToCString() const;
-
- private:
-  CompileType(bool is_nullable, intptr_t cid, const AbstractType* type)
-      : is_nullable_(is_nullable), cid_(cid), type_(type) { }
-
-  bool CanComputeIsInstanceOf(const AbstractType& type,
-                              bool is_nullable,
-                              bool* is_instance);
-
-  bool is_nullable_;
-  intptr_t cid_;
-  const AbstractType* type_;
-};
-
-
 class Value : public ZoneAllocated {
  public:
   // A forward iterator that allows removing the current value from the
@@ -217,7 +102,7 @@ class Value : public ZoneAllocated {
         next_use_(NULL),
         instruction_(NULL),
         use_index_(-1),
-        reaching_type_(NULL) { }
+        reaching_cid_(kIllegalCid) { }
 
   Definition* definition() const { return definition_; }
   void set_definition(Definition* definition) { definition_ = definition; }
@@ -239,11 +124,8 @@ class Value : public ZoneAllocated {
 
   Value* Copy() { return new Value(definition_); }
 
-  CompileType* Type();
-
-  void SetReachingType(CompileType* type) {
-    reaching_type_ = type;
-  }
+  RawAbstractType* CompileType() const;
+  intptr_t ResultCid() const;
 
   void PrintTo(BufferFormatter* f) const;
 
@@ -258,11 +140,23 @@ class Value : public ZoneAllocated {
   // Assert if BindsToConstant() is false, otherwise returns the constant value.
   const Object& BoundConstant() const;
 
+  // Compute a run-time null test at compile-time and set result in is_null.
+  // Return false if the computation is not possible at compile time.
+  bool CanComputeIsNull(bool* is_null) const;
+
+  // Compute a run-time type test at compile-time and set result in is_instance.
+  // Return false if the computation is not possible at compile time.
+  bool CanComputeIsInstanceOf(const AbstractType& type,
+                              bool* is_instance) const;
+
   // Compile time constants, Bool, Smi and Nulls do not need to update
   // the store buffer.
-  bool NeedsStoreBuffer();
+  bool NeedsStoreBuffer() const;
 
   bool Equals(Value* other) const;
+
+  void set_reaching_cid(intptr_t cid) { reaching_cid_ = cid; }
+  intptr_t reaching_cid() const { return reaching_cid_; }
 
  private:
   Definition* definition_;
@@ -271,7 +165,7 @@ class Value : public ZoneAllocated {
   Instruction* instruction_;
   intptr_t use_index_;
 
-  CompileType* reaching_type_;
+  intptr_t reaching_cid_;
 
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
@@ -1200,24 +1094,37 @@ class Definition : public Instruction {
 
   // Compile time type of the definition, which may be requested before type
   // propagation during graph building.
-  CompileType* Type() {
-    if (type_ == NULL) {
-      type_ = ComputeInitialType();
+  virtual RawAbstractType* CompileType() const = 0;
+
+  virtual intptr_t ResultCid() const = 0;
+
+  bool HasPropagatedType() const {
+    return !propagated_type_.IsNull();
+  }
+  RawAbstractType* PropagatedType() const {
+    ASSERT(HasPropagatedType());
+    return propagated_type_.raw();
+  }
+  // Returns true if the propagated type has changed.
+  bool SetPropagatedType(const AbstractType& propagated_type) {
+    if (propagated_type.IsNull()) {
+      // Not a typed definition, e.g. access to a VM field.
+      return false;
     }
-    return type_;
+    const bool changed =
+        propagated_type_.IsNull() || !propagated_type.Equals(propagated_type_);
+    propagated_type_ = propagated_type.raw();
+    return changed;
   }
 
-  // Compute initial compile type for this definition. It is safe to use this
-  // approximation even before type propagator was run (e.g. during graph
-  // building).
-  virtual CompileType* ComputeInitialType() const {
-    return CompileType::Dynamic();
-  }
+  bool has_propagated_cid() const { return propagated_cid_ != kIllegalCid; }
+  intptr_t propagated_cid() const { return propagated_cid_; }
 
-  // Update CompileType of the definition. Returns true if the type has changed.
-  virtual bool RecomputeType() {
-    return false;
-  }
+  // May compute and set propagated cid.
+  virtual intptr_t GetPropagatedCid();
+
+  // Returns true if the propagated cid has changed.
+  bool SetPropagatedCid(intptr_t cid);
 
   bool HasUses() const {
     return (input_use_list_ != NULL) || (env_use_list_ != NULL);
@@ -1286,11 +1193,14 @@ class Definition : public Instruction {
   friend class RangeAnalysis;
 
   Range* range_;
-  CompileType* type_;
 
  private:
   intptr_t temp_index_;
   intptr_t ssa_temp_index_;
+  // TODO(regis): GrowableArray<const AbstractType*> propagated_types_;
+  // For now:
+  AbstractType& propagated_type_;
+  intptr_t propagated_cid_;
   Value* input_use_list_;
   Value* env_use_list_;
   UseKind use_kind_;
@@ -1318,8 +1228,8 @@ class PhiInstr : public Definition {
   virtual BlockEntryInstr* GetBlock() const { return block(); }
   JoinEntryInstr* block() const { return block_; }
 
-  virtual CompileType* ComputeInitialType() const;
-  virtual bool RecomputeType();
+  virtual RawAbstractType* CompileType() const;
+  virtual intptr_t GetPropagatedCid();
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -1332,6 +1242,9 @@ class PhiInstr : public Definition {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  // TODO(regis): This helper will be removed once we support type sets.
+  RawAbstractType* LeastSpecificInputType() const;
 
   // Phi is alive if it reaches a non-environment use.
   bool is_alive() const { return is_alive_; }
@@ -1353,6 +1266,11 @@ class PhiInstr : public Definition {
   virtual intptr_t Hashcode() const {
     UNREACHABLE();
     return 0;
+  }
+
+  virtual intptr_t ResultCid() const {
+    UNREACHABLE();
+    return kIllegalCid;
   }
 
   DECLARE_INSTRUCTION(Phi)
@@ -1395,6 +1313,12 @@ class ParameterInstr : public Definition {
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() const { return block_; }
 
+  // Compile type of the passed-in parameter.
+  virtual RawAbstractType* CompileType() const;
+
+  // No known propagated cid for parameters.
+  virtual intptr_t GetPropagatedCid();
+
   virtual intptr_t ArgumentCount() const { return 0; }
 
   intptr_t InputCount() const { return 0; }
@@ -1413,9 +1337,12 @@ class ParameterInstr : public Definition {
     return 0;
   }
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual intptr_t ResultCid() const {
+    UNREACHABLE();
+    return kIllegalCid;
+  }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t index_;
@@ -1446,7 +1373,12 @@ class PushArgumentInstr : public Definition {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
+  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
+  virtual intptr_t ResultCid() const {
+    UNREACHABLE();
+    return kIllegalCid;
+  }
 
   Value* value() const { return value_; }
 
@@ -1667,6 +1599,7 @@ class StoreContextInstr : public TemplateInstruction<1> {
   }
 
   DECLARE_INSTRUCTION(StoreContext);
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -1885,11 +1818,15 @@ class ConstraintInstr : public TemplateDefinition<2> {
     return (inputs_[1] == NULL) ? 1 : 2;
   }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const {
+    return Type::SmiType();
+  }
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kSmiCid; }
 
   virtual bool AttributesEqual(Instruction* other) const {
     UNREACHABLE();
@@ -1932,7 +1869,7 @@ class ConstantInstr : public TemplateDefinition<0> {
       : value_(value) { }
 
   DECLARE_INSTRUCTION(Constant)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   const Object& value() const { return value_; }
 
@@ -1941,6 +1878,8 @@ class ConstantInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const;
 
   virtual bool AttributesEqual(Instruction* other) const;
   virtual bool AffectedBySideEffect() const { return false; }
@@ -1964,7 +1903,8 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
                         const String& dst_name)
       : token_pos_(token_pos),
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
-        dst_name_(dst_name) {
+        dst_name_(dst_name),
+        is_eliminated_(false) {
     ASSERT(value != NULL);
     ASSERT(instantiator != NULL);
     ASSERT(instantiator_type_arguments != NULL);
@@ -1976,8 +1916,7 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
   }
 
   DECLARE_INSTRUCTION(AssertAssignable)
-  virtual CompileType* ComputeInitialType() const;
-  virtual bool RecomputeType();
+  virtual RawAbstractType* CompileType() const;
 
   Value* value() const { return inputs_[0]; }
   Value* instantiator() const { return inputs_[1]; }
@@ -1990,6 +1929,14 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
   }
   const String& dst_name() const { return dst_name_; }
 
+  bool is_eliminated() const {
+    return is_eliminated_;
+  }
+  void eliminate() {
+    ASSERT(!is_eliminated_);
+    is_eliminated_ = true;
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
@@ -1999,12 +1946,16 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual intptr_t ResultCid() const { return value()->ResultCid(); }
+  virtual intptr_t GetPropagatedCid();
+
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
  private:
   const intptr_t token_pos_;
   AbstractType& dst_type_;
   const String& dst_name_;
+  bool is_eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
 };
@@ -2013,16 +1964,25 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 class AssertBooleanInstr : public TemplateDefinition<1> {
  public:
   AssertBooleanInstr(intptr_t token_pos, Value* value)
-      : token_pos_(token_pos) {
+      : token_pos_(token_pos),
+        is_eliminated_(false) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
 
   DECLARE_INSTRUCTION(AssertBoolean)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   intptr_t token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
+
+  bool is_eliminated() const {
+    return is_eliminated_;
+  }
+  void eliminate() {
+    ASSERT(!is_eliminated_);
+    is_eliminated_ = true;
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2033,10 +1993,13 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual intptr_t ResultCid() const { return kBoolCid; }
+
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
  private:
   const intptr_t token_pos_;
+  bool is_eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
 };
@@ -2052,7 +2015,7 @@ class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(ArgumentDefinitionTest)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t formal_parameter_index() const {
@@ -2061,7 +2024,6 @@ class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
   const String& formal_parameter_name() const {
     return ast_node_.formal_parameter_name();
   }
-
   Value* saved_arguments_descriptor() const { return inputs_[0]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2069,6 +2031,8 @@ class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
   const ArgumentDefinitionTestNode& ast_node_;
@@ -2084,11 +2048,13 @@ class CurrentContextInstr : public TemplateDefinition<0> {
   CurrentContextInstr() { }
 
   DECLARE_INSTRUCTION(CurrentContext)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextInstr);
@@ -2103,6 +2069,7 @@ class ClosureCallInstr : public TemplateDefinition<0> {
         arguments_(arguments) { }
 
   DECLARE_INSTRUCTION(ClosureCall)
+  virtual RawAbstractType* CompileType() const;
 
   const Array& argument_names() const { return ast_node_.arguments()->names(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
@@ -2117,6 +2084,8 @@ class ClosureCallInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const ClosureCallNode& ast_node_;
@@ -2154,6 +2123,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
   }
 
   DECLARE_INSTRUCTION(InstanceCall)
+  virtual RawAbstractType* CompileType() const;
 
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const {
@@ -2178,6 +2148,8 @@ class InstanceCallInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  protected:
   friend class FlowGraphOptimizer;
@@ -2218,12 +2190,15 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
   }
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
+  virtual RawAbstractType* CompileType() const;
 
   const ICData& ic_data() const { return ic_data_; }
 
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2321,7 +2296,7 @@ class StrictCompareInstr : public ComparisonInstr {
   StrictCompareInstr(Token::Kind kind, Value* left, Value* right);
 
   DECLARE_INSTRUCTION(StrictCompare)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2333,6 +2308,8 @@ class StrictCompareInstr : public ComparisonInstr {
   virtual bool AffectedBySideEffect() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  virtual intptr_t ResultCid() const { return kBoolCid; }
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
@@ -2364,7 +2341,7 @@ class EqualityCompareInstr : public ComparisonInstr {
   }
 
   DECLARE_INSTRUCTION(EqualityCompare)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const {
@@ -2377,21 +2354,20 @@ class EqualityCompareInstr : public ComparisonInstr {
   void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
   intptr_t receiver_class_id() const { return receiver_class_id_; }
 
-  bool IsInlinedNumericComparison() const {
-    return (receiver_class_id() == kDoubleCid)
-        || (receiver_class_id() == kMintCid)
-        || (receiver_class_id() == kSmiCid);
-  }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const {
-    return !IsInlinedNumericComparison();
+    return (receiver_class_id() != kDoubleCid)
+        && (receiver_class_id() != kMintCid)
+        && (receiver_class_id() != kSmiCid);
+  }
+  virtual bool HasSideEffect() const {
+    return (receiver_class_id() != kDoubleCid)
+        && (receiver_class_id() != kMintCid)
+        && (receiver_class_id() != kSmiCid);
   }
 
-  virtual bool HasSideEffect() const {
-    return !IsInlinedNumericComparison();
-  }
+  virtual intptr_t ResultCid() const;
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
@@ -2433,7 +2409,7 @@ class RelationalOpInstr : public ComparisonInstr {
   }
 
   DECLARE_INSTRUCTION(RelationalOp)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const {
@@ -2450,20 +2426,20 @@ class RelationalOpInstr : public ComparisonInstr {
 
   intptr_t operands_class_id() const { return operands_class_id_; }
 
-  bool IsInlinedNumericComparison() const {
-    return (operands_class_id() == kDoubleCid)
-        || (operands_class_id() == kMintCid)
-        || (operands_class_id() == kSmiCid);
-  }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const {
-    return !IsInlinedNumericComparison();
+    return (operands_class_id() != kDoubleCid)
+        && (operands_class_id() != kMintCid)
+        && (operands_class_id() != kSmiCid);
   }
   virtual bool HasSideEffect() const {
-    return !IsInlinedNumericComparison();
+    return (operands_class_id() != kDoubleCid)
+        && (operands_class_id() != kMintCid)
+        && (operands_class_id() != kSmiCid);
   }
+
+  virtual intptr_t ResultCid() const;
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
@@ -2506,7 +2482,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
   }
 
   DECLARE_INSTRUCTION(StaticCall)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }
@@ -2524,6 +2500,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
   virtual bool HasSideEffect() const { return true; }
 
+  virtual intptr_t ResultCid() const { return result_cid_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
   bool is_known_constructor() const { return is_known_constructor_; }
@@ -2541,6 +2518,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
   // Some library constructors have known semantics.
   bool is_known_constructor_;
 
+
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
 };
 
@@ -2552,7 +2530,7 @@ class LoadLocalInstr : public TemplateDefinition<0> {
         context_level_(context_level) { }
 
   DECLARE_INSTRUCTION(LoadLocal)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   const LocalVariable& local() const { return local_; }
   intptr_t context_level() const { return context_level_; }
@@ -2565,6 +2543,8 @@ class LoadLocalInstr : public TemplateDefinition<0> {
     UNREACHABLE();
     return false;
   }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const LocalVariable& local_;
@@ -2586,7 +2566,7 @@ class StoreLocalInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(StoreLocal)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   const LocalVariable& local() const { return local_; }
   Value* value() const { return inputs_[0]; }
@@ -2604,6 +2584,8 @@ class StoreLocalInstr : public TemplateDefinition<1> {
     return false;
   }
 
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
+
  private:
   const LocalVariable& local_;
   const intptr_t context_level_;
@@ -2618,6 +2600,7 @@ class NativeCallInstr : public TemplateDefinition<0> {
       : ast_node_(*node) {}
 
   DECLARE_INSTRUCTION(NativeCall)
+  virtual RawAbstractType* CompileType() const;
 
   intptr_t token_pos() const { return ast_node_.token_pos(); }
 
@@ -2636,6 +2619,8 @@ class NativeCallInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const NativeBodyNode& ast_node_;
@@ -2658,7 +2643,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   const Field& field() const { return field_; }
 
@@ -2674,6 +2659,8 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   virtual bool HasSideEffect() const { return true; }
 
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
+
  private:
   const Field& field_;
   const bool emit_store_barrier_;
@@ -2687,7 +2674,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
   explicit LoadStaticFieldInstr(const Field& field) : field_(field) {}
 
   DECLARE_INSTRUCTION(LoadStaticField);
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   const Field& field() const { return field_; }
 
@@ -2696,6 +2683,8 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   virtual bool AffectedBySideEffect() const { return !field().is_final(); }
   virtual bool AttributesEqual(Instruction* other) const;
@@ -2717,7 +2706,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(StoreStaticField);
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   const Field& field() const { return field_; }
   Value* value() const { return inputs_[0]; }
@@ -2727,6 +2716,8 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const Field& field_;
@@ -2751,7 +2742,7 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(LoadIndexed)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
@@ -2763,6 +2754,8 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const;
 
   virtual Representation representation() const;
 
@@ -2792,13 +2785,15 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(StringFromCharCode)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   Value* char_code() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const {  return cid_; }
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
@@ -2831,6 +2826,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   }
 
   DECLARE_INSTRUCTION(StoreIndexed)
+  virtual RawAbstractType* CompileType() const;
 
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
@@ -2844,6 +2840,8 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
@@ -2871,13 +2869,15 @@ class BooleanNegateInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(BooleanNegate)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateInstr);
@@ -2905,7 +2905,7 @@ class InstanceOfInstr : public TemplateDefinition<3> {
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   Value* value() const { return inputs_[0]; }
   Value* instantiator() const { return inputs_[1]; }
@@ -2920,6 +2920,8 @@ class InstanceOfInstr : public TemplateDefinition<3> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
   const intptr_t token_pos_;
@@ -2945,7 +2947,7 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   }
 
   DECLARE_INSTRUCTION(AllocateObject)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
@@ -2960,6 +2962,8 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return cid_; }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -2983,6 +2987,7 @@ class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(AllocateObjectWithBoundsCheck)
+  virtual RawAbstractType* CompileType() const;
 
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
@@ -2992,6 +2997,8 @@ class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -3022,7 +3029,7 @@ class CreateArrayInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(CreateArray)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
 
@@ -3036,6 +3043,8 @@ class CreateArrayInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kArrayCid; }
 
  private:
   const intptr_t token_pos_;
@@ -3056,7 +3065,7 @@ class CreateClosureInstr : public TemplateDefinition<0> {
         token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(CreateClosure)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   intptr_t token_pos() const { return token_pos_; }
   const Function& function() const { return function_; }
@@ -3071,6 +3080,8 @@ class CreateClosureInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const Function& function_;
@@ -3098,7 +3109,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(LoadField)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
@@ -3110,6 +3121,8 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return result_cid_; }
 
   virtual bool AttributesEqual(Instruction* other) const;
 
@@ -3158,7 +3171,7 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(StoreVMField)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   Value* value() const { return inputs_[0]; }
   Value* dest() const { return inputs_[1]; }
@@ -3170,6 +3183,8 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t offset_in_bytes_;
@@ -3192,6 +3207,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(InstantiateTypeArguments)
+  virtual RawAbstractType* CompileType() const;
 
   Value* instantiator() const { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
@@ -3204,6 +3220,8 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -3226,6 +3244,7 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(ExtractConstructorTypeArguments)
+  virtual RawAbstractType* CompileType() const;
 
   Value* instantiator() const { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
@@ -3238,6 +3257,8 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -3257,6 +3278,7 @@ class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(ExtractConstructorInstantiator)
+  virtual RawAbstractType* CompileType() const;
 
   Value* instantiator() const { return inputs_[0]; }
   const AbstractTypeArguments& type_arguments() const {
@@ -3268,6 +3290,8 @@ class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -3284,7 +3308,7 @@ class AllocateContextInstr : public TemplateDefinition<0> {
         num_context_variables_(num_context_variables) {}
 
   DECLARE_INSTRUCTION(AllocateContext);
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
@@ -3294,6 +3318,8 @@ class AllocateContextInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   const intptr_t token_pos_;
@@ -3311,6 +3337,7 @@ class ChainContextInstr : public TemplateInstruction<1> {
   }
 
   DECLARE_INSTRUCTION(ChainContext)
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -3337,11 +3364,13 @@ class CloneContextInstr : public TemplateDefinition<1> {
   Value* context_value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(CloneContext)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kContextCid; }
 
  private:
   const intptr_t token_pos_;
@@ -3360,6 +3389,7 @@ class CatchEntryInstr : public TemplateInstruction<0> {
   const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
 
   DECLARE_INSTRUCTION(CatchEntry)
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -3390,6 +3420,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
   }
 
   DECLARE_INSTRUCTION(CheckEitherNonSmi)
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -3431,13 +3462,15 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual intptr_t ResultCid() const;
+
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedDouble;
   }
 
   DECLARE_INSTRUCTION(BoxDouble)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
  private:
   const intptr_t token_pos_;
@@ -3462,13 +3495,15 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual intptr_t ResultCid() const;
+
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedMint;
   }
 
   DECLARE_INSTRUCTION(BoxInteger)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
@@ -3486,11 +3521,14 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const {
-    return (value()->Type()->ToCid() != kDoubleCid)
-        && (value()->Type()->ToCid() != kSmiCid);
+    return (value()->ResultCid() != kDoubleCid)
+        && (value()->ResultCid() != kSmiCid);
   }
 
   virtual bool HasSideEffect() const { return false; }
+
+  // The output is not an instance but when it is boxed it becomes double.
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -3500,7 +3538,7 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   DECLARE_INSTRUCTION(UnboxDouble)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
@@ -3518,13 +3556,15 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const {
-    return (value()->Type()->ToCid() != kSmiCid)
-        && (value()->Type()->ToCid() != kMintCid);
+    return (value()->ResultCid() != kMintCid)
+        && (value()->ResultCid() != kSmiCid);
   }
 
   virtual bool HasSideEffect() const { return false; }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual intptr_t ResultCid() const;
+
+  virtual RawAbstractType* CompileType() const;
 
   virtual Representation representation() const {
     return kUnboxedMint;
@@ -3559,6 +3599,9 @@ class MathSqrtInstr : public TemplateDefinition<1> {
     return true;
   }
 
+  // The output is not an instance but when it is boxed it becomes double.
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
+
   virtual Representation representation() const {
     return kUnboxedDouble;
   }
@@ -3575,7 +3618,7 @@ class MathSqrtInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(MathSqrt)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MathSqrtInstr);
@@ -3613,6 +3656,8 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsBinaryDoubleOp()->op_kind();
   }
 
+  virtual intptr_t ResultCid() const;
+
   virtual Representation representation() const {
     return kUnboxedDouble;
   }
@@ -3629,7 +3674,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(BinaryDoubleOp)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
@@ -3673,7 +3718,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsBinaryMintOp()->op_kind();
   }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual intptr_t ResultCid() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual Representation representation() const {
     return kUnboxedMint;
@@ -3733,7 +3779,8 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsShiftMintOp()->op_kind();
   }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual intptr_t ResultCid() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual Representation representation() const {
     return kUnboxedMint;
@@ -3787,7 +3834,8 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
     return op_kind() == other->AsUnaryMintOp()->op_kind();
   }
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual intptr_t ResultCid() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual Representation representation() const {
     return kUnboxedMint;
@@ -3842,7 +3890,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   DECLARE_INSTRUCTION(BinarySmiOp)
 
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const;
 
@@ -3850,6 +3898,8 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual intptr_t ResultCid() const;
 
   void set_overflow(bool overflow) {
     overflow_ = overflow;
@@ -3893,11 +3943,13 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   DECLARE_INSTRUCTION(UnarySmiOp)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return op_kind() == Token::kNEGATE; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kSmiCid; }
 
  private:
   const Token::Kind op_kind_;
@@ -3914,6 +3966,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
   intptr_t token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -3936,13 +3989,15 @@ class SmiToDoubleInstr : public TemplateDefinition<0> {
   InstanceCallInstr* instance_call() const { return instance_call_; }
 
   DECLARE_INSTRUCTION(SmiToDouble)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
 
  private:
   InstanceCallInstr* instance_call_;
@@ -3963,13 +4018,16 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
   InstanceCallInstr* instance_call() const { return instance_call_; }
 
   DECLARE_INSTRUCTION(DoubleToInteger)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  // Result could be any of the int types.
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
  private:
   InstanceCallInstr* instance_call_;
@@ -3991,11 +4049,13 @@ class DoubleToSmiInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(DoubleToSmi)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kSmiCid; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
@@ -4025,11 +4085,13 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
 
   DECLARE_INSTRUCTION(DoubleToDouble)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -4066,12 +4128,14 @@ class InvokeMathCFunctionInstr : public Definition {
   MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
 
   DECLARE_INSTRUCTION(InvokeMathCFunction)
-  virtual CompileType* ComputeInitialType() const;
+  virtual RawAbstractType* CompileType() const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -4124,6 +4188,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
                   const ICData& unary_checks);
 
   DECLARE_INSTRUCTION(CheckClass)
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -4160,6 +4225,7 @@ class CheckSmiInstr : public TemplateInstruction<1> {
   }
 
   DECLARE_INSTRUCTION(CheckSmi)
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -4195,6 +4261,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   }
 
   DECLARE_INSTRUCTION(CheckArrayBound)
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 

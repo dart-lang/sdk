@@ -762,7 +762,12 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
     return false;
   }
 
-  const bool eliminated = value->Type()->IsAssignableTo(dst_type);
+  // Propagated types are not set yet.
+  // More checks will possibly be eliminated during type propagation.
+  bool is_null, is_instance;
+  const bool eliminated =
+      (value->CanComputeIsNull(&is_null) && is_null) ||
+      (value->CanComputeIsInstanceOf(dst_type, &is_instance) && is_instance);
   if (FLAG_trace_type_check_elimination) {
     FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
                                      token_pos,
