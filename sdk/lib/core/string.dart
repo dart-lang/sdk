@@ -280,8 +280,7 @@ abstract class String implements Comparable, Pattern {
    * as one integer by this iterator. Unmatched surrogate halves are treated
    * like valid 16-bit code-units.
    */
-  // TODO(floitsch): make it a Runes class.
-  Iterable<int> get runes;
+  Runes get runes;
 
   /**
    * If this string is not already all lower case, returns a new string
@@ -296,4 +295,200 @@ abstract class String implements Comparable, Pattern {
    */
   // TODO(floitsch): document better. (See EcmaScript for description).
   String toUpperCase();
+}
+
+/**
+ * The runes of a [String].
+ */
+class Runes extends Iterable<int> {
+  final String string;
+  Runes(this.string);
+
+  RuneIterator get iterator => new RuneIterator(string);
+
+  int get last {
+    if (string.length == 0) {
+      throw new StateError("No elements.");
+    }
+    int length = string.length;
+    int code = string.charCodeAt(length - 1);
+    if (_isTrailSurrogate(code) && string.length > 1) {
+      int previousCode = string.charCodeAt(length - 2);
+      if (_isLeadSurrogate(previousCode)) {
+        return _combineSurrogatePair(previousCode, code);
+      }
+    }
+    return code;
+  }
+
+}
+
+// Is then code (a 16-bit unsigned integer) a UTF-16 lead surrogate.
+bool _isLeadSurrogate(int code) => (code & 0xFC00) == 0xD800;
+
+// Is then code (a 16-bit unsigned integer) a UTF-16 trail surrogate.
+bool _isTrailSurrogate(int code) => (code & 0xFC00) == 0xDC00;
+
+// Combine a lead and a trail surrogate value into a single code point.
+int _combineSurrogatePair(int start, int end) {
+  return 0x10000 + ((start & 0x3FF) << 10) + (end & 0x3FF);
+}
+
+/** [Iterator] for reading Unicode code points out of a Dart string. */
+class RuneIterator implements BiDirectionalIterator<int> {
+  /** String being iterated. */
+  final String string;
+  /** Position before the current code point. */
+  int _position;
+  /** Position after the current code point. */
+  int _nextPosition;
+  /**
+   * Current code point.
+   *
+   * If the iterator has hit either end, the [_currentCodePoint] is null
+   * and [: _position == _nextPosition :].
+   */
+  int _currentCodePoint;
+
+  /** Create an iterator positioned at the beginning of the string. */
+  RuneIterator(String string)
+      : this.string = string, _position = 0, _nextPosition = 0;
+
+  /**
+   * Create an iterator positioned before the [index]th code unit of the string.
+   *
+   * When created, there is no [current] value.
+   * A [moveNext] will use the rune starting at [index] the current value,
+   * and a [movePrevious] will use the rune ending just before [index] as the
+   * the current value.
+   *
+   * It is an error if the [index] position is in the middle of a surrogate
+   * pair.
+   */
+  RuneIterator.at(String string, int index)
+      : string = string, _position = index, _nextPosition = index {
+    if (index < 0 || index > string.length) {
+      throw new RangeError.range(index, 0, string.length);
+    }
+    _checkSplitSurrogate(index);
+  }
+
+  /** Throw an error if the index is in the middle of a surrogate pair. */
+  void _checkSplitSurrogate(int index) {
+    if (index > 0 && index < string.length &&
+        _isLeadSurrogate(string.charCodeAt(index - 1)) &&
+        _isTrailSurrogate(string.charCodeAt(index))) {
+      throw new ArgumentError("Index inside surrogate pair: $index");
+    }
+  }
+
+  /**
+   * Returns the starting position of the current rune in the string.
+   *
+   * Returns null if the [current] rune is null.
+   */
+  int get rawIndex => (_position != _nextPosition) ? _position : null;
+
+  /**
+   * Resets the iterator to the rune at the specified index of the string.
+   *
+   * Setting a negative [rawIndex], or one greater than or equal to
+   * [:string.length:],
+   * is an error. So is setting it in the middle of a surrogate pair.
+   *
+   * Setting the position to the end of then string will set [current] to null.
+   */
+  void set rawIndex(int rawIndex) {
+    if (rawIndex >= string.length) {
+      throw new RangeError.range(rawIndex, 0, string.length - 1);
+    }
+    reset(rawIndex);
+    moveNext();
+  }
+
+  /**
+   * Resets the iterator to the given index into the string.
+   *
+   * After this the [current] value is unset.
+   * You must call [moveNext] make the rune at the position current,
+   * or [movePrevious] for the last rune before the position.
+   *
+   * Setting a negative [rawIndex], or one greater than [:string.length:],
+   * is an error. So is setting it in the middle of a surrogate pair.
+   */
+  void reset([int rawIndex = 0]) {
+    if (rawIndex < 0 || rawIndex > string.length) {
+      throw new RangeError.range(rawIndex, 0, string.length);
+    }
+    _checkSplitSurrogate(rawIndex);
+    _position = _nextPosition = rawIndex;
+    _currentCodePoint = null;
+  }
+
+  /** The rune starting at the current position in the string. */
+  int get current => _currentCodePoint;
+
+  /**
+   * The number of code units comprising the current rune.
+   *
+   * Returns zero if there is no current rune ([current] is null).
+   */
+  int get currentSize => _nextPosition - _position;
+
+  /**
+   * A string containing the current rune.
+   *
+   * For runes outside the basic multilingual plane, this will be
+   * a two-character String.
+   *
+   * Returns null if [current] is null.
+   */
+  String get currentAsString {
+    if (_position == _nextPosition) return null;
+    if (_position + 1 == _nextPosition) return string[_position];
+    return string.substring(_position, _nextPosition);
+  }
+
+
+  bool moveNext() {
+    _position = _nextPosition;
+    if (_position == string.length) {
+      _currentCodePoint = null;
+      return false;
+    }
+    int codeUnit = string.charCodeAt(_position);
+    int nextPosition = _position + 1;
+    if (_isLeadSurrogate(codeUnit) && nextPosition < string.length) {
+      int nextCodeUnit = string.charCodeAt(nextPosition);
+      if (_isTrailSurrogate(nextCodeUnit)) {
+        _nextPosition = nextPosition + 1;
+        _currentCodePoint = _combineSurrogatePair(codeUnit, nextCodeUnit);
+        return true;
+      }
+    }
+    _nextPosition = nextPosition;
+    _currentCodePoint = codeUnit;
+    return true;
+  }
+
+  bool movePrevious() {
+    _nextPosition = _position;
+    if (_position == 0) {
+      _currentCodePoint = null;
+      return false;
+    }
+    int position = _position - 1;
+    int codeUnit = string.charCodeAt(position);
+    if (_isTrailSurrogate(codeUnit) && position > 0) {
+      int prevCodeUnit = string.charCodeAt(position - 1);
+      if (_isLeadSurrogate(prevCodeUnit)) {
+        _position = position - 1;
+        _currentCodePoint = _combineSurrogatePair(prevCodeUnit, codeUnit);
+        return true;
+      }
+    }
+    _position = position;
+    _currentCodePoint = codeUnit;
+    return true;
+  }
 }

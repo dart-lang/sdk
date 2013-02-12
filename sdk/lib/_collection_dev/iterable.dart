@@ -683,3 +683,8 @@ class EmptyIterator<E> implements Iterator<E> {
   bool moveNext() => false;
   E get current => null;
 }
+
+/** An [Iterator] that can move in both directions. */
+abstract class BiDirectionalIterator<T> implements Iterator<T> {
+  bool movePrevious();
+}

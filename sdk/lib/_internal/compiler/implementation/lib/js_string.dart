@@ -153,9 +153,7 @@ class JSString implements String {
     throw new UnimplementedError("String.codeUnits");
   }
 
-  Iterable<int> get runes {
-    throw new UnimplementedError("String.runes");
-  }
+  Runes get runes => new Runes(this);
 
   int indexOf(String other, [int start = 0]) {
     checkNull(other);

@@ -432,3 +432,16 @@ class _GeneratorIterator<E> implements Iterator<E> {
 
   E get current => _current;
 }
+
+/**
+ * An [Iterator] that allows moving backwards as well as forwards.
+ */
+abstract class BiDirectionalIterator<T> extends Iterator<T> {
+  /**
+   * Move back to the previous element.
+   *
+   * Returns true and updates [current] if successful. Returns false
+   * and sets [current] to null if there is no previous element.
+   */
+  bool movePrevious();
+}
