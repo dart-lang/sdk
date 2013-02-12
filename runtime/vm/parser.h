@@ -591,7 +591,7 @@ class Parser : public ValueObject {
   AstNode* MakeStaticCall(const String& cls_name,
                           const String& func_name,
                           ArgumentListNode* arguments);
-  String& Interpolate(ArrayNode* values);
+  String& Interpolate(const GrowableArray<AstNode*>& values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
   AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
   AstNode* ThrowNoSuchMethodError(intptr_t call_pos,

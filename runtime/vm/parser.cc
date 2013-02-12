@@ -8594,8 +8594,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       Type::New(array_class, type_arguments, type_pos));
   type ^= ClassFinalizer::FinalizeType(
       current_class(), type, ClassFinalizer::kCanonicalize);
-  ArrayNode* list = new ArrayNode(TokenPos(), type);
-
+  GrowableArray<AstNode*> element_list;
   // Parse the list elements. Note: there may be an optional extra
   // comma after the last element.
   if (!is_empty_literal) {
@@ -8611,7 +8610,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                                      element_type,
                                      Symbols::ListLiteralElement());
       }
-      list->AddElement(element);
+      element_list.Add(element);
       if (CurrentToken() == Token::kCOMMA) {
         ConsumeToken();
       } else if (CurrentToken() != Token::kRBRACK) {
@@ -8625,12 +8624,12 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   if (is_const) {
     // Allocate and initialize the const list at compile time.
     Array& const_list =
-        Array::ZoneHandle(Array::New(list->length(), Heap::kOld));
+        Array::ZoneHandle(Array::New(element_list.length(), Heap::kOld));
     const_list.SetTypeArguments(
         AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
     Error& malformed_error = Error::Handle();
-    for (int i = 0; i < list->length(); i++) {
-      AstNode* elem = list->ElementAt(i);
+    for (int i = 0; i < element_list.length(); i++) {
+      AstNode* elem = element_list[i];
       // Arguments have been evaluated to a literal value already.
       ASSERT(elem->IsLiteralNode());
       if (FLAG_enable_type_checks &&
@@ -8684,6 +8683,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
     factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
+    ArrayNode* list = new ArrayNode(TokenPos(), type, element_list);
     factory_param->Add(list);
     return CreateConstructorCallNode(literal_pos,
                                      factory_type_args,
@@ -8711,7 +8711,7 @@ ConstructorCallNode* Parser::CreateConstructorCallNode(
 }
 
 
-static void AddKeyValuePair(ArrayNode* pairs,
+static void AddKeyValuePair(GrowableArray<AstNode*>* pairs,
                             bool is_const,
                             AstNode* key,
                             AstNode* value) {
@@ -8721,18 +8721,18 @@ static void AddKeyValuePair(ArrayNode* pairs,
     const Instance& new_key = key->AsLiteralNode()->literal();
     for (int i = 0; i < pairs->length(); i += 2) {
       const Instance& key_i =
-          pairs->ElementAt(i)->AsLiteralNode()->literal();
+          (*pairs)[i]->AsLiteralNode()->literal();
       ASSERT(key_i.IsString());
       if (new_key.Equals(key_i)) {
         // Duplicate key found. The new value replaces the previously
         // defined value.
-        pairs->SetElementAt(i + 1, value);
+        (*pairs)[i + 1] = value;
         return;
       }
     }
   }
-  pairs->AddElement(key);
-  pairs->AddElement(value);
+  pairs->Add(key);
+  pairs->Add(value);
 }
 
 
@@ -8775,9 +8775,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
 
   // The kv_pair array is temporary and of element type dynamic. It is passed
   // to the factory to initialize a properly typed map.
-  ArrayNode* kv_pairs = new ArrayNode(
-      TokenPos(), Type::ZoneHandle(Type::ArrayType()));
-
+  GrowableArray<AstNode*> kv_pairs_list;
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
   while (CurrentToken() != Token::kRBRACE) {
@@ -8803,7 +8801,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                  value_type,
                                  Symbols::ListLiteralElement());
     }
-    AddKeyValuePair(kv_pairs, is_const, key, value);
+    AddKeyValuePair(&kv_pairs_list, is_const, key, value);
 
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
@@ -8811,7 +8809,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       ErrorMsg("comma or '}' expected");
     }
   }
-  ASSERT(kv_pairs->length() % 2 == 0);
+  ASSERT(kv_pairs_list.length() % 2 == 0);
   ExpectToken(Token::kRBRACE);
 
   if (is_const) {
@@ -8821,10 +8819,10 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
 
     // First, create the canonicalized key-value pair array.
     Array& key_value_array =
-        Array::ZoneHandle(Array::New(kv_pairs->length(), Heap::kOld));
+        Array::ZoneHandle(Array::New(kv_pairs_list.length(), Heap::kOld));
     Error& malformed_error = Error::Handle();
-    for (int i = 0; i < kv_pairs->length(); i++) {
-      AstNode* arg = kv_pairs->ElementAt(i);
+    for (int i = 0; i < kv_pairs_list.length(); i++) {
+      AstNode* arg = kv_pairs_list[i];
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
       if (FLAG_enable_type_checks &&
@@ -8904,6 +8902,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
     factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
+    ArrayNode* kv_pairs = new ArrayNode(
+        TokenPos(), Type::ZoneHandle(Type::ArrayType()), kv_pairs_list);
     factory_param->Add(kv_pairs);
     return CreateConstructorCallNode(literal_pos,
                                      factory_type_args,
@@ -9185,7 +9185,7 @@ AstNode* Parser::ParseNewOperator() {
 }
 
 
-String& Parser::Interpolate(ArrayNode* values) {
+String& Parser::Interpolate(const GrowableArray<AstNode*>& values) {
   const Class& cls = Class::Handle(LookupCoreClass(Symbols::StringBase()));
   ASSERT(!cls.IsNull());
   const Function& func =
@@ -9194,10 +9194,10 @@ String& Parser::Interpolate(ArrayNode* values) {
   ASSERT(!func.IsNull());
 
   // Build the array of literal values to interpolate.
-  const Array& value_arr = Array::Handle(Array::New(values->length()));
-  for (int i = 0; i < values->length(); i++) {
-    ASSERT(values->ElementAt(i)->IsLiteralNode());
-    value_arr.SetAt(i, values->ElementAt(i)->AsLiteralNode()->literal());
+  const Array& value_arr = Array::Handle(Array::New(values.length()));
+  for (int i = 0; i < values.length(); i++) {
+    ASSERT(values[i]->IsLiteralNode());
+    value_arr.SetAt(i, values[i]->AsLiteralNode()->literal());
   }
 
   // Build argument array to pass to the interpolation function.
@@ -9237,10 +9237,9 @@ AstNode* Parser::ParseStringLiteral() {
   }
   // String interpolation needed.
   bool is_compiletime_const = true;
-  ArrayNode* values = new ArrayNode(
-      TokenPos(), Type::ZoneHandle(Type::ArrayType()));
+  GrowableArray<AstNode*> values_list;
   while (CurrentToken() == Token::kSTRING) {
-    values->AddElement(new LiteralNode(TokenPos(), *CurrentLiteral()));
+    values_list.Add(new LiteralNode(TokenPos(), *CurrentLiteral()));
     ConsumeToken();
     while ((CurrentToken() == Token::kINTERPOL_VAR) ||
         (CurrentToken() == Token::kINTERPOL_START)) {
@@ -9272,14 +9271,15 @@ AstNode* Parser::ParseStringLiteral() {
           is_compiletime_const = false;
         }
       }
-      values->AddElement(expr);
+      values_list.Add(expr);
     }
   }
   if (is_compiletime_const) {
-    primary = new LiteralNode(literal_start, Interpolate(values));
+    primary = new LiteralNode(literal_start, Interpolate(values_list));
   } else {
-    ArgumentListNode* interpolate_arg =
-        new ArgumentListNode(values->token_pos());
+    ArgumentListNode* interpolate_arg = new ArgumentListNode(TokenPos());
+    ArrayNode* values = new ArrayNode(
+        TokenPos(), Type::ZoneHandle(Type::ArrayType()), values_list);
     interpolate_arg->Add(values);
     primary = MakeStaticCall(Symbols::StringBase(),
                              PrivateCoreLibName(Symbols::Interpolate()),
