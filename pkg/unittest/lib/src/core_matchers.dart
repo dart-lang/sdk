@@ -180,13 +180,13 @@ class _DeepMatcher extends BaseMatcher {
         if (includeTypes || depth > 1) {
           reason.add('expected ');
           if (includeTypes) {
-            reason..add(expected.runtimeType).add(':');
+            reason.add(expected.runtimeType.toString()).add(':');
           }
           reason.addDescriptionOf(expected).add(' but ');
         }
         reason.add('was ');
         if (includeTypes) {
-          reason..add(actual.runtimeType).add(':');
+          reason.add(actual.runtimeType.toString()).add(':');
         }
         reason.addDescriptionOf(actual);
       }
