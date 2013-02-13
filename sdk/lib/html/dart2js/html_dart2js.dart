@@ -8947,6 +8947,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     return e is Element && !(e is UnknownElement);
   }
 
+  /**
+   * Called by the DOM when this element has been instantiated.
+   */
+  @Experimental
+  void onCreated() {}
+
   // Hooks to support custom WebComponents.
   /**
    * Experimental support for [web components][wc]. This field stores a
@@ -12718,6 +12724,17 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @DomName('Document.body')
   void set body(BodyElement value) {
     document.$dom_body = value;
+  }
+
+  /**
+   * Registers a custom Element subclass as an available HTML tag.
+   *
+   * Not yet implemented.
+   */
+  @Experimental
+  void register(String tagName, Type elementClass) {
+    // TODO: tagName validation
+    throw new Exception('Not yet implemented');
   }
 
   @DomName('Document.caretRangeFromPoint')

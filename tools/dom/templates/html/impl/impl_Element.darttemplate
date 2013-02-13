@@ -753,6 +753,12 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return e is Element && !(e is UnknownElement);
   }
 
+  /**
+   * Called by the DOM when this element has been instantiated.
+   */
+  @Experimental
+  void onCreated() {}
+
   // Hooks to support custom WebComponents.
   /**
    * Experimental support for [web components][wc]. This field stores a
