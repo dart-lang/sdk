@@ -136,12 +136,6 @@ class Database extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  DatabaseEvents get on =>
-    new DatabaseEvents(this);
-
   @DomName('IDBDatabase.name')
   @DocsEditable
   String get name native "IDBDatabase_name_Getter";
@@ -215,22 +209,6 @@ class Database extends EventTarget {
   @DocsEditable
   Stream<VersionChangeEvent> get onVersionChange => versionChangeEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class DatabaseEvents extends Events {
-  @DocsEditable
-  DatabaseEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get versionChange => this['versionchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -926,12 +904,6 @@ class OpenDBRequest extends Request implements EventTarget {
   @DocsEditable
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  OpenDBRequestEvents get on =>
-    new OpenDBRequestEvents(this);
-
   @DomName('IDBOpenDBRequest.onblocked')
   @DocsEditable
   Stream<Event> get onBlocked => blockedEvent.forTarget(this);
@@ -940,19 +912,6 @@ class OpenDBRequest extends Request implements EventTarget {
   @DocsEditable
   Stream<VersionChangeEvent> get onUpgradeNeeded => upgradeNeededEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class OpenDBRequestEvents extends RequestEvents {
-  @DocsEditable
-  OpenDBRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get blocked => this['blocked'];
-
-  @DocsEditable
-  EventListenerList get upgradeNeeded => this['upgradeneeded'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -973,12 +932,6 @@ class Request extends EventTarget {
   @DomName('IDBRequest.successEvent')
   @DocsEditable
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  RequestEvents get on =>
-    new RequestEvents(this);
 
   @DomName('IDBRequest.error')
   @DocsEditable
@@ -1028,19 +981,6 @@ class Request extends EventTarget {
   Stream<Event> get onSuccess => successEvent.forTarget(this);
 
 }
-
-@DocsEditable
-@deprecated
-class RequestEvents extends Events {
-  @DocsEditable
-  RequestEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get success => this['success'];
-}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1087,12 +1027,6 @@ class Transaction extends EventTarget {
   @DomName('IDBTransaction.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  TransactionEvents get on =>
-    new TransactionEvents(this);
 
   @DomName('IDBTransaction.db')
   @DocsEditable
@@ -1145,22 +1079,6 @@ class Transaction extends EventTarget {
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class TransactionEvents extends Events {
-  @DocsEditable
-  TransactionEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get complete => this['complete'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

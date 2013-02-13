@@ -235,12 +235,6 @@ class AudioContext extends EventTarget {
   @DocsEditable
   static AudioContext _create() native "AudioContext_constructorCallback";
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  AudioContextEvents get on =>
-    new AudioContextEvents(this);
-
   @DomName('AudioContext.activeSourceCount')
   @DocsEditable
   int get activeSourceCount native "AudioContext_activeSourceCount_Getter";
@@ -410,16 +404,6 @@ class AudioContext extends EventTarget {
   @DocsEditable
   Stream<Event> get onComplete => completeEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class AudioContextEvents extends Events {
-  @DocsEditable
-  AudioContextEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get complete => this['complete'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

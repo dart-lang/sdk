@@ -517,13 +517,6 @@ class HtmlDartInterfaceGenerator(object):
 
     self._backend.EmitSupportCheck()
 
-    events_class_name = self._event_generator.ProcessInterface(
-        self._interface, interface_name,
-        self._backend.CustomJSMembers(),
-        implementation_emitter)
-    if events_class_name:
-      self._backend.EmitEventGetter(events_class_name)
-
     merged_interface = self._interface_type_info.merged_interface()
     if merged_interface:
       self._backend.AddMembers(self._database.GetInterface(merged_interface),

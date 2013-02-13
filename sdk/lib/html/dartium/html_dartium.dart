@@ -81,12 +81,6 @@ class AbstractWorker extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  AbstractWorkerEvents get on =>
-    new AbstractWorkerEvents(this);
-
   @DomName('AbstractWorker.addEventListener')
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_addEventListener_Callback";
@@ -103,16 +97,6 @@ class AbstractWorker extends EventTarget {
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class AbstractWorkerEvents extends Events {
-  @DocsEditable
-  AbstractWorkerEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -336,12 +320,6 @@ class ApplicationCache extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  ApplicationCacheEvents get on =>
-    new ApplicationCacheEvents(this);
-
   static const int CHECKING = 2;
 
   static const int DOWNLOADING = 3;
@@ -414,37 +392,6 @@ class ApplicationCache extends EventTarget {
   @DocsEditable
   Stream<Event> get onUpdateReady => updateReadyEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class ApplicationCacheEvents extends Events {
-  @DocsEditable
-  ApplicationCacheEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get cached => this['cached'];
-
-  @DocsEditable
-  EventListenerList get checking => this['checking'];
-
-  @DocsEditable
-  EventListenerList get downloading => this['downloading'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get noUpdate => this['noupdate'];
-
-  @DocsEditable
-  EventListenerList get obsolete => this['obsolete'];
-
-  @DocsEditable
-  EventListenerList get progress => this['progress'];
-
-  @DocsEditable
-  EventListenerList get updateReady => this['updateready'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -751,12 +698,6 @@ class BatteryManager extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  BatteryManagerEvents get on =>
-    new BatteryManagerEvents(this);
-
   @DomName('BatteryManager.charging')
   @DocsEditable
   bool get charging native "BatteryManager_charging_Getter";
@@ -801,25 +742,6 @@ class BatteryManager extends EventTarget {
   @DocsEditable
   Stream<Event> get onLevelChange => levelChangeEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class BatteryManagerEvents extends Events {
-  @DocsEditable
-  BatteryManagerEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get chargingChange => this['chargingchange'];
-
-  @DocsEditable
-  EventListenerList get chargingTimeChange => this['chargingtimechange'];
-
-  @DocsEditable
-  EventListenerList get dischargingTimeChange => this['dischargingtimechange'];
-
-  @DocsEditable
-  EventListenerList get levelChange => this['levelchange'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -958,12 +880,6 @@ class BodyElement extends _Element_Merged {
   @DocsEditable
   factory BodyElement() => document.$dom_createElement("body");
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  BodyElementEvents get on =>
-    new BodyElementEvents(this);
-
   @DomName('HTMLBodyElement.onbeforeunload')
   @DocsEditable
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
@@ -1016,52 +932,6 @@ class BodyElement extends _Element_Merged {
   @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class BodyElementEvents extends ElementEvents {
-  @DocsEditable
-  BodyElementEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  @DocsEditable
-  EventListenerList get blur => this['blur'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get focus => this['focus'];
-
-  @DocsEditable
-  EventListenerList get hashChange => this['hashchange'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get offline => this['offline'];
-
-  @DocsEditable
-  EventListenerList get online => this['online'];
-
-  @DocsEditable
-  EventListenerList get popState => this['popstate'];
-
-  @DocsEditable
-  EventListenerList get resize => this['resize'];
-
-  @DocsEditable
-  EventListenerList get storage => this['storage'];
-
-  @DocsEditable
-  EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6963,12 +6833,6 @@ class DedicatedWorkerContext extends WorkerContext {
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  DedicatedWorkerContextEvents get on =>
-    new DedicatedWorkerContextEvents(this);
-
   @DomName('DedicatedWorkerContext.postMessage')
   @DocsEditable
   void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
@@ -6977,16 +6841,6 @@ class DedicatedWorkerContext extends WorkerContext {
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class DedicatedWorkerContextEvents extends WorkerContextEvents {
-  @DocsEditable
-  DedicatedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7247,12 +7101,6 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  DocumentEvents get on =>
-    new DocumentEvents(this);
 
   /// Moved to [HtmlDocument].
   @DomName('Document.body')
@@ -7774,25 +7622,6 @@ class Document extends Node
     }
   }
 }
-
-@DocsEditable
-@deprecated
-class DocumentEvents extends ElementEvents {
-  @DocsEditable
-  DocumentEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get readyStateChange => this['readystatechange'];
-
-  @DocsEditable
-  EventListenerList get selectionChange => this['selectionchange'];
-
-  @DocsEditable
-  EventListenerList get pointerLockChange => this['webkitpointerlockchange'];
-
-  @DocsEditable
-  EventListenerList get pointerLockError => this['webkitpointerlockerror'];
-}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -7875,12 +7704,6 @@ class DocumentFragment extends Node {
   }
 
   DocumentFragment.internal() : super.internal();
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  ElementEvents get on =>
-    new ElementEvents(this);
 
   @DomName('DocumentFragment.querySelector')
   @DocsEditable
@@ -9931,12 +9754,6 @@ abstract class Element extends Node implements ElementTraversal {
   @Experimental
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  ElementEvents get on =>
-    new ElementEvents(this);
-
   HtmlCollection get $dom_children;
 
   String contentEditable;
@@ -10551,157 +10368,6 @@ class _ElementFactoryProvider {
   static Element createElement_tag(String tag) =>
       document.$dom_createElement(tag);
 }
-
-@DocsEditable
-@deprecated
-class ElementEvents extends Events {
-  @DocsEditable
-  ElementEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get beforeCopy => this['beforecopy'];
-
-  @DocsEditable
-  EventListenerList get beforeCut => this['beforecut'];
-
-  @DocsEditable
-  EventListenerList get beforePaste => this['beforepaste'];
-
-  @DocsEditable
-  EventListenerList get blur => this['blur'];
-
-  @DocsEditable
-  EventListenerList get change => this['change'];
-
-  @DocsEditable
-  EventListenerList get click => this['click'];
-
-  @DocsEditable
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  @DocsEditable
-  EventListenerList get copy => this['copy'];
-
-  @DocsEditable
-  EventListenerList get cut => this['cut'];
-
-  @DocsEditable
-  EventListenerList get doubleClick => this['dblclick'];
-
-  @DocsEditable
-  EventListenerList get drag => this['drag'];
-
-  @DocsEditable
-  EventListenerList get dragEnd => this['dragend'];
-
-  @DocsEditable
-  EventListenerList get dragEnter => this['dragenter'];
-
-  @DocsEditable
-  EventListenerList get dragLeave => this['dragleave'];
-
-  @DocsEditable
-  EventListenerList get dragOver => this['dragover'];
-
-  @DocsEditable
-  EventListenerList get dragStart => this['dragstart'];
-
-  @DocsEditable
-  EventListenerList get drop => this['drop'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get focus => this['focus'];
-
-  @DocsEditable
-  EventListenerList get input => this['input'];
-
-  @DocsEditable
-  EventListenerList get invalid => this['invalid'];
-
-  @DocsEditable
-  EventListenerList get keyDown => this['keydown'];
-
-  @DocsEditable
-  EventListenerList get keyPress => this['keypress'];
-
-  @DocsEditable
-  EventListenerList get keyUp => this['keyup'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get mouseDown => this['mousedown'];
-
-  @DocsEditable
-  EventListenerList get mouseMove => this['mousemove'];
-
-  @DocsEditable
-  EventListenerList get mouseOut => this['mouseout'];
-
-  @DocsEditable
-  EventListenerList get mouseOver => this['mouseover'];
-
-  @DocsEditable
-  EventListenerList get mouseUp => this['mouseup'];
-
-  @DocsEditable
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  @DocsEditable
-  EventListenerList get paste => this['paste'];
-
-  @DocsEditable
-  EventListenerList get reset => this['reset'];
-
-  @DocsEditable
-  EventListenerList get scroll => this['scroll'];
-
-  @DocsEditable
-  EventListenerList get search => this['search'];
-
-  @DocsEditable
-  EventListenerList get select => this['select'];
-
-  @DocsEditable
-  EventListenerList get selectStart => this['selectstart'];
-
-  @DocsEditable
-  EventListenerList get submit => this['submit'];
-
-  @DocsEditable
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  @DocsEditable
-  EventListenerList get touchEnd => this['touchend'];
-
-  @DocsEditable
-  EventListenerList get touchEnter => this['touchenter'];
-
-  @DocsEditable
-  EventListenerList get touchLeave => this['touchleave'];
-
-  @DocsEditable
-  EventListenerList get touchMove => this['touchmove'];
-
-  @DocsEditable
-  EventListenerList get touchStart => this['touchstart'];
-
-  @DocsEditable
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
-
-  @DocsEditable
-  EventListenerList get fullscreenChange => this['webkitfullscreenchange'];
-
-  @DocsEditable
-  EventListenerList get fullscreenError => this['webkitfullscreenerror'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11232,12 +10898,6 @@ class EventSource extends EventTarget {
   @DocsEditable
   static EventSource _create_1(url, eventSourceInit) native "EventSource__create_1constructorCallback";
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  EventSourceEvents get on =>
-    new EventSourceEvents(this);
-
   static const int CLOSED = 2;
 
   static const int CONNECTING = 0;
@@ -11285,22 +10945,6 @@ class EventSource extends EventTarget {
   Stream<Event> get onOpen => openEvent.forTarget(this);
 
 }
-
-@DocsEditable
-@deprecated
-class EventSourceEvents extends Events {
-  @DocsEditable
-  EventSourceEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get open => this['open'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11309,15 +10953,38 @@ class EventSourceEvents extends Events {
 /**
  * Base class that supports listening for and dispatching browser events.
  *
- * Events can either be accessed by string name (using the indexed getter) or by
- * getters exposed by subclasses. Use the getters exposed by subclasses when
- * possible for better compile-time type checks.
+ * Normally events are accessed via the Stream getter:
  *
- * Using an indexed getter:
- *     events['mouseover'].add((e) => print("Mouse over!"));
+ *     element.onMouseOver.listen((e) => print('Mouse over!'));
  *
- * Using a getter provided by a subclass:
- *     elementEvents.mouseOver.add((e) => print("Mouse over!"));
+ * To access bubbling events which are declared on one element, but may bubble
+ * up to another element type (common for MediaElement events):
+ *
+ *     MediaElement.pauseEvent.forTarget(document.body).listen(...);
+ *
+ * To useCapture on events:
+ *
+ *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
+ *
+ * Custom events can be declared as:
+ *
+ *    class DataGenerator {
+ *      static EventStreamProvider<Event> dataEvent =
+ *          new EventStreamProvider('data');
+ *    }
+ *
+ * Then listeners should access the event with:
+ *
+ *     DataGenerator.dataEvent.forTarget(element).listen(...);
+ *
+ * Custom events can also be accessed as:
+ *
+ *     element.on['some_event'].listen(...);
+ *
+ * This approach is generally discouraged as it loses the event typing and
+ * some DOM events may have multiple platform-dependent event names under the
+ * covers. By using the standard Stream getters you will get the platform
+ * specific event name automatically.
  */
 class Events {
   /* Raw event target. */
@@ -11325,60 +10992,25 @@ class Events {
 
   Events(this._ptr);
 
-  EventListenerList operator [](String type) {
-    return new EventListenerList(_ptr, type);
-  }
-}
-
-/**
- * Supports adding, removing, and dispatching events for a specific event type.
- */
-class EventListenerList {
-
-  final EventTarget _ptr;
-  final String _type;
-
-  EventListenerList(this._ptr, this._type);
-
-  // TODO(jacobr): implement equals.
-
-  EventListenerList add(EventListener listener,
-      [bool useCapture = false]) {
-    _add(listener, useCapture);
-    return this;
-  }
-
-  EventListenerList remove(EventListener listener,
-      [bool useCapture = false]) {
-    _remove(listener, useCapture);
-    return this;
-  }
-
-  bool dispatch(Event evt) {
-    return _ptr.dispatchEvent(evt);
-  }
-
-  void _add(EventListener listener, bool useCapture) {
-    _ptr.$dom_addEventListener(_type, listener, useCapture);
-  }
-
-  void _remove(EventListener listener, bool useCapture) {
-    _ptr.$dom_removeEventListener(_type, listener, useCapture);
+  Stream operator [](String type) {
+    return new _EventStream(_ptr, type, false);
   }
 }
 
 /**
  * Base class for all browser objects that support events.
  *
- * Use the [on] property to add, remove, and dispatch events (rather than
- * [$dom_addEventListener], [$dom_dispatchEvent], and
- * [$dom_removeEventListener]) for compile-time type checks and a more concise
- * API.
+ * Use the [on] property to add, and remove events (rather than
+ * [$dom_addEventListener] and [$dom_removeEventListener]
+ * for compile-time type checks and a more concise API.
  */
 @DomName('EventTarget')
 class EventTarget extends NativeFieldWrapperClass1 {
 
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
+  /**
+   * This is an ease-of-use accessor for event streams which should only be
+   * used when an explicit accessor is not available.
+   */
   Events get on => new Events(this);
   EventTarget.internal();
 
@@ -11898,12 +11530,6 @@ class FileReader extends EventTarget {
   @DocsEditable
   static FileReader _create_1() native "FileReader__create_1constructorCallback";
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  FileReaderEvents get on =>
-    new FileReaderEvents(this);
-
   static const int DONE = 2;
 
   static const int EMPTY = 0;
@@ -11991,31 +11617,6 @@ class FileReader extends EventTarget {
   @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class FileReaderEvents extends Events {
-  @DocsEditable
-  FileReaderEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get loadEnd => this['loadend'];
-
-  @DocsEditable
-  EventListenerList get loadStart => this['loadstart'];
-
-  @DocsEditable
-  EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12155,12 +11756,6 @@ class FileWriter extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  FileWriterEvents get on =>
-    new FileWriterEvents(this);
-
   static const int DONE = 2;
 
   static const int INIT = 0;
@@ -12235,31 +11830,6 @@ class FileWriter extends EventTarget {
   @DocsEditable
   Stream<ProgressEvent> get onWriteStart => writeStartEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class FileWriterEvents extends Events {
-  @DocsEditable
-  FileWriterEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get progress => this['progress'];
-
-  @DocsEditable
-  EventListenerList get write => this['write'];
-
-  @DocsEditable
-  EventListenerList get writeEnd => this['writeend'];
-
-  @DocsEditable
-  EventListenerList get writeStart => this['writestart'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13944,12 +13514,6 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   static HttpRequest _create_1() native "XMLHttpRequest__create_1constructorCallback";
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  HttpRequestEvents get on =>
-    new HttpRequestEvents(this);
-
   static const int DONE = 4;
 
   static const int HEADERS_RECEIVED = 2;
@@ -14244,34 +13808,6 @@ class HttpRequest extends EventTarget {
   Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
 }
-
-@DocsEditable
-@deprecated
-class HttpRequestEvents extends Events {
-  @DocsEditable
-  HttpRequestEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get loadEnd => this['loadend'];
-
-  @DocsEditable
-  EventListenerList get loadStart => this['loadstart'];
-
-  @DocsEditable
-  EventListenerList get progress => this['progress'];
-
-  @DocsEditable
-  EventListenerList get readyStateChange => this['readystatechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -14368,12 +13904,6 @@ class HttpRequestUpload extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  HttpRequestUploadEvents get on =>
-    new HttpRequestUploadEvents(this);
-
   @DomName('XMLHttpRequestUpload.addEventListener')
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_addEventListener_Callback";
@@ -14410,31 +13940,6 @@ class HttpRequestUpload extends EventTarget {
   @DocsEditable
   Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class HttpRequestUploadEvents extends Events {
-  @DocsEditable
-  HttpRequestUploadEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get loadEnd => this['loadend'];
-
-  @DocsEditable
-  EventListenerList get loadStart => this['loadstart'];
-
-  @DocsEditable
-  EventListenerList get progress => this['progress'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14700,12 +14205,6 @@ class InputElement extends _Element_Merged implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  InputElementEvents get on =>
-    new InputElementEvents(this);
 
   @DomName('HTMLInputElement.accept')
   @DocsEditable
@@ -15749,16 +15248,6 @@ abstract class ButtonInputElement implements InputElementBase {
   factory ButtonInputElement() => new InputElement(type: 'button');
 }
 
-
-@DocsEditable
-@deprecated
-class InputElementEvents extends ElementEvents {
-  @DocsEditable
-  InputElementEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get speechChange => this['webkitSpeechChange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17244,12 +16733,6 @@ class MediaElement extends _Element_Merged {
   @Experimental
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  MediaElementEvents get on =>
-    new MediaElementEvents(this);
-
   static const int HAVE_CURRENT_DATA = 2;
 
   static const int HAVE_ENOUGH_DATA = 4;
@@ -17657,88 +17140,6 @@ class MediaElement extends _Element_Merged {
   Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 
 }
-
-@DocsEditable
-@deprecated
-class MediaElementEvents extends ElementEvents {
-  @DocsEditable
-  MediaElementEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get canPlay => this['canplay'];
-
-  @DocsEditable
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  @DocsEditable
-  EventListenerList get durationChange => this['durationchange'];
-
-  @DocsEditable
-  EventListenerList get emptied => this['emptied'];
-
-  @DocsEditable
-  EventListenerList get ended => this['ended'];
-
-  @DocsEditable
-  EventListenerList get loadedData => this['loadeddata'];
-
-  @DocsEditable
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  @DocsEditable
-  EventListenerList get loadStart => this['loadstart'];
-
-  @DocsEditable
-  EventListenerList get pause => this['pause'];
-
-  @DocsEditable
-  EventListenerList get play => this['play'];
-
-  @DocsEditable
-  EventListenerList get playing => this['playing'];
-
-  @DocsEditable
-  EventListenerList get progress => this['progress'];
-
-  @DocsEditable
-  EventListenerList get rateChange => this['ratechange'];
-
-  @DocsEditable
-  EventListenerList get seeked => this['seeked'];
-
-  @DocsEditable
-  EventListenerList get seeking => this['seeking'];
-
-  @DocsEditable
-  EventListenerList get show => this['show'];
-
-  @DocsEditable
-  EventListenerList get stalled => this['stalled'];
-
-  @DocsEditable
-  EventListenerList get suspend => this['suspend'];
-
-  @DocsEditable
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  @DocsEditable
-  EventListenerList get volumeChange => this['volumechange'];
-
-  @DocsEditable
-  EventListenerList get waiting => this['waiting'];
-
-  @DocsEditable
-  EventListenerList get keyAdded => this['webkitkeyadded'];
-
-  @DocsEditable
-  EventListenerList get keyError => this['webkitkeyerror'];
-
-  @DocsEditable
-  EventListenerList get keyMessage => this['webkitkeymessage'];
-
-  @DocsEditable
-  EventListenerList get needKey => this['webkitneedkey'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18024,12 +17425,6 @@ class MediaStream extends EventTarget {
   @DocsEditable
   static MediaStream _create_3(stream_OR_tracks) native "MediaStream__create_3constructorCallback";
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  MediaStreamEvents get on =>
-    new MediaStreamEvents(this);
-
   @DomName('MediaStream.ended')
   @DocsEditable
   bool get ended native "MediaStream_ended_Getter";
@@ -18088,22 +17483,6 @@ class MediaStream extends EventTarget {
    */
   static bool get supported => true;
 }
-
-@DocsEditable
-@deprecated
-class MediaStreamEvents extends Events {
-  @DocsEditable
-  MediaStreamEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get addTrack => this['addtrack'];
-
-  @DocsEditable
-  EventListenerList get ended => this['ended'];
-
-  @DocsEditable
-  EventListenerList get removeTrack => this['removetrack'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18151,12 +17530,6 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.unmuteEvent')
   @DocsEditable
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  MediaStreamTrackEvents get on =>
-    new MediaStreamTrackEvents(this);
 
   @DomName('MediaStreamTrack.enabled')
   @DocsEditable
@@ -18206,22 +17579,6 @@ class MediaStreamTrack extends EventTarget {
   @DocsEditable
   Stream<Event> get onUnmute => unmuteEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class MediaStreamTrackEvents extends Events {
-  @DocsEditable
-  MediaStreamTrackEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get ended => this['ended'];
-
-  @DocsEditable
-  EventListenerList get mute => this['mute'];
-
-  @DocsEditable
-  EventListenerList get unmute => this['unmute'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18391,12 +17748,6 @@ class MessagePort extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  MessagePortEvents get on =>
-    new MessagePortEvents(this);
-
   @DomName('MessagePort.addEventListener')
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
@@ -18425,16 +17776,6 @@ class MessagePort extends EventTarget {
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class MessagePortEvents extends Events {
-  @DocsEditable
-  MessagePortEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19826,12 +19167,6 @@ class Notification extends EventTarget {
   @DocsEditable
   static Notification _create_1(title, options) native "Notification__create_1constructorCallback";
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  NotificationEvents get on =>
-    new NotificationEvents(this);
-
   @DomName('Notification.dir')
   @DocsEditable
   String get dir native "Notification_dir_Getter";
@@ -19908,28 +19243,6 @@ class Notification extends EventTarget {
   @DocsEditable
   Stream<Event> get onShow => showEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class NotificationEvents extends Events {
-  @DocsEditable
-  NotificationEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get click => this['click'];
-
-  @DocsEditable
-  EventListenerList get close => this['close'];
-
-  @DocsEditable
-  EventListenerList get display => this['display'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get show => this['show'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21198,12 +20511,6 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  RtcDataChannelEvents get on =>
-    new RtcDataChannelEvents(this);
-
   @DomName('RTCDataChannel.binaryType')
   @DocsEditable
   String get binaryType native "RTCDataChannel_binaryType_Getter";
@@ -21296,25 +20603,6 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class RtcDataChannelEvents extends Events {
-  @DocsEditable
-  RtcDataChannelEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get close => this['close'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21440,12 +20728,6 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   static RtcPeerConnection _create_1(rtcIceServers, mediaConstraints) native "RTCPeerConnection__create_1constructorCallback";
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  RtcPeerConnectionEvents get on =>
-    new RtcPeerConnectionEvents(this);
-
   @DomName('RTCPeerConnection.iceConnectionState')
   @DocsEditable
   String get iceConnectionState native "RTCPeerConnection_iceConnectionState_Getter";
@@ -21565,31 +20847,6 @@ class RtcPeerConnection extends EventTarget {
 }
 
 
-
-@DocsEditable
-@deprecated
-class RtcPeerConnectionEvents extends Events {
-  @DocsEditable
-  RtcPeerConnectionEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get addStream => this['addstream'];
-
-  @DocsEditable
-  EventListenerList get iceCandidate => this['icecandidate'];
-
-  @DocsEditable
-  EventListenerList get iceChange => this['icechange'];
-
-  @DocsEditable
-  EventListenerList get negotiationNeeded => this['negotiationneeded'];
-
-  @DocsEditable
-  EventListenerList get removeStream => this['removestream'];
-
-  @DocsEditable
-  EventListenerList get stateChange => this['statechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22221,12 +21478,6 @@ class SharedWorkerContext extends WorkerContext {
   @DocsEditable
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  SharedWorkerContextEvents get on =>
-    new SharedWorkerContextEvents(this);
-
   @DomName('SharedWorkerContext.name')
   @DocsEditable
   String get name native "SharedWorkerContext_name_Getter";
@@ -22235,16 +21486,6 @@ class SharedWorkerContext extends WorkerContext {
   @DocsEditable
   Stream<Event> get onConnect => connectEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class SharedWorkerContextEvents extends WorkerContextEvents {
-  @DocsEditable
-  SharedWorkerContextEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get connect => this['connect'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22946,12 +22187,6 @@ class SpeechRecognition extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  SpeechRecognitionEvents get on =>
-    new SpeechRecognitionEvents(this);
-
   @DomName('SpeechRecognition.continuous')
   @DocsEditable
   bool get continuous native "SpeechRecognition_continuous_Getter";
@@ -23060,46 +22295,6 @@ class SpeechRecognition extends EventTarget {
   @DocsEditable
   Stream<Event> get onStart => startEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class SpeechRecognitionEvents extends Events {
-  @DocsEditable
-  SpeechRecognitionEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get audioEnd => this['audioend'];
-
-  @DocsEditable
-  EventListenerList get audioStart => this['audiostart'];
-
-  @DocsEditable
-  EventListenerList get end => this['end'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get noMatch => this['nomatch'];
-
-  @DocsEditable
-  EventListenerList get result => this['result'];
-
-  @DocsEditable
-  EventListenerList get soundEnd => this['soundend'];
-
-  @DocsEditable
-  EventListenerList get soundStart => this['soundstart'];
-
-  @DocsEditable
-  EventListenerList get speechEnd => this['speechend'];
-
-  @DocsEditable
-  EventListenerList get speechStart => this['speechstart'];
-
-  @DocsEditable
-  EventListenerList get start => this['start'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24427,12 +23622,6 @@ class TextTrack extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  TextTrackEvents get on =>
-    new TextTrackEvents(this);
-
   @DomName('TextTrack.activeCues')
   @DocsEditable
   TextTrackCueList get activeCues native "TextTrack_activeCues_Getter";
@@ -24486,16 +23675,6 @@ class TextTrack extends EventTarget {
   Stream<Event> get onCueChange => cueChangeEvent.forTarget(this);
 
 }
-
-@DocsEditable
-@deprecated
-class TextTrackEvents extends Events {
-  @DocsEditable
-  TextTrackEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get cueChange => this['cuechange'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24524,12 +23703,6 @@ class TextTrackCue extends EventTarget {
 
   @DocsEditable
   static TextTrackCue _create_1(startTime, endTime, text) native "TextTrackCue__create_1constructorCallback";
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  TextTrackCueEvents get on =>
-    new TextTrackCueEvents(this);
 
   @DomName('TextTrackCue.align')
   @DocsEditable
@@ -24647,19 +23820,6 @@ class TextTrackCue extends EventTarget {
   @DocsEditable
   Stream<Event> get onExit => exitEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class TextTrackCueEvents extends Events {
-  @DocsEditable
-  TextTrackCueEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get enter => this['enter'];
-
-  @DocsEditable
-  EventListenerList get exit => this['exit'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24885,12 +24045,6 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   @DocsEditable
   static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  TextTrackListEvents get on =>
-    new TextTrackListEvents(this);
-
   @DomName('TextTrackList.length')
   @DocsEditable
   int get length native "TextTrackList_length_Getter";
@@ -25098,16 +24252,6 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   @DocsEditable
   Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class TextTrackListEvents extends Events {
-  @DocsEditable
-  TextTrackListEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get addTrack => this['addtrack'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28775,12 +27919,6 @@ class WebSocket extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  WebSocketEvents get on =>
-    new WebSocketEvents(this);
-
   static const int CLOSED = 3;
 
   static const int CLOSING = 2;
@@ -28878,25 +28016,6 @@ class WebSocket extends EventTarget {
   @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class WebSocketEvents extends Events {
-  @DocsEditable
-  WebSocketEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get close => this['close'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get open => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29086,12 +28205,6 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  WindowEvents get on =>
-    new WindowEvents(this);
 
   static const int PERSISTENT = 1;
 
@@ -29694,235 +28807,6 @@ class Window extends EventTarget implements WindowBase {
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 }
-
-@DocsEditable
-@deprecated
-class WindowEvents extends Events {
-  @DocsEditable
-  WindowEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get contentLoaded => this['DOMContentLoaded'];
-
-  @DocsEditable
-  EventListenerList get abort => this['abort'];
-
-  @DocsEditable
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  @DocsEditable
-  EventListenerList get blur => this['blur'];
-
-  @DocsEditable
-  EventListenerList get canPlay => this['canplay'];
-
-  @DocsEditable
-  EventListenerList get canPlayThrough => this['canplaythrough'];
-
-  @DocsEditable
-  EventListenerList get change => this['change'];
-
-  @DocsEditable
-  EventListenerList get click => this['click'];
-
-  @DocsEditable
-  EventListenerList get contextMenu => this['contextmenu'];
-
-  @DocsEditable
-  EventListenerList get doubleClick => this['dblclick'];
-
-  @DocsEditable
-  EventListenerList get deviceMotion => this['devicemotion'];
-
-  @DocsEditable
-  EventListenerList get deviceOrientation => this['deviceorientation'];
-
-  @DocsEditable
-  EventListenerList get drag => this['drag'];
-
-  @DocsEditable
-  EventListenerList get dragEnd => this['dragend'];
-
-  @DocsEditable
-  EventListenerList get dragEnter => this['dragenter'];
-
-  @DocsEditable
-  EventListenerList get dragLeave => this['dragleave'];
-
-  @DocsEditable
-  EventListenerList get dragOver => this['dragover'];
-
-  @DocsEditable
-  EventListenerList get dragStart => this['dragstart'];
-
-  @DocsEditable
-  EventListenerList get drop => this['drop'];
-
-  @DocsEditable
-  EventListenerList get durationChange => this['durationchange'];
-
-  @DocsEditable
-  EventListenerList get emptied => this['emptied'];
-
-  @DocsEditable
-  EventListenerList get ended => this['ended'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get focus => this['focus'];
-
-  @DocsEditable
-  EventListenerList get hashChange => this['hashchange'];
-
-  @DocsEditable
-  EventListenerList get input => this['input'];
-
-  @DocsEditable
-  EventListenerList get invalid => this['invalid'];
-
-  @DocsEditable
-  EventListenerList get keyDown => this['keydown'];
-
-  @DocsEditable
-  EventListenerList get keyPress => this['keypress'];
-
-  @DocsEditable
-  EventListenerList get keyUp => this['keyup'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get loadedData => this['loadeddata'];
-
-  @DocsEditable
-  EventListenerList get loadedMetadata => this['loadedmetadata'];
-
-  @DocsEditable
-  EventListenerList get loadStart => this['loadstart'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get mouseDown => this['mousedown'];
-
-  @DocsEditable
-  EventListenerList get mouseMove => this['mousemove'];
-
-  @DocsEditable
-  EventListenerList get mouseOut => this['mouseout'];
-
-  @DocsEditable
-  EventListenerList get mouseOver => this['mouseover'];
-
-  @DocsEditable
-  EventListenerList get mouseUp => this['mouseup'];
-
-  @DocsEditable
-  EventListenerList get mouseWheel => this['mousewheel'];
-
-  @DocsEditable
-  EventListenerList get offline => this['offline'];
-
-  @DocsEditable
-  EventListenerList get online => this['online'];
-
-  @DocsEditable
-  EventListenerList get pageHide => this['pagehide'];
-
-  @DocsEditable
-  EventListenerList get pageShow => this['pageshow'];
-
-  @DocsEditable
-  EventListenerList get pause => this['pause'];
-
-  @DocsEditable
-  EventListenerList get play => this['play'];
-
-  @DocsEditable
-  EventListenerList get playing => this['playing'];
-
-  @DocsEditable
-  EventListenerList get popState => this['popstate'];
-
-  @DocsEditable
-  EventListenerList get progress => this['progress'];
-
-  @DocsEditable
-  EventListenerList get rateChange => this['ratechange'];
-
-  @DocsEditable
-  EventListenerList get reset => this['reset'];
-
-  @DocsEditable
-  EventListenerList get resize => this['resize'];
-
-  @DocsEditable
-  EventListenerList get scroll => this['scroll'];
-
-  @DocsEditable
-  EventListenerList get search => this['search'];
-
-  @DocsEditable
-  EventListenerList get seeked => this['seeked'];
-
-  @DocsEditable
-  EventListenerList get seeking => this['seeking'];
-
-  @DocsEditable
-  EventListenerList get select => this['select'];
-
-  @DocsEditable
-  EventListenerList get stalled => this['stalled'];
-
-  @DocsEditable
-  EventListenerList get storage => this['storage'];
-
-  @DocsEditable
-  EventListenerList get submit => this['submit'];
-
-  @DocsEditable
-  EventListenerList get suspend => this['suspend'];
-
-  @DocsEditable
-  EventListenerList get timeUpdate => this['timeupdate'];
-
-  @DocsEditable
-  EventListenerList get touchCancel => this['touchcancel'];
-
-  @DocsEditable
-  EventListenerList get touchEnd => this['touchend'];
-
-  @DocsEditable
-  EventListenerList get touchMove => this['touchmove'];
-
-  @DocsEditable
-  EventListenerList get touchStart => this['touchstart'];
-
-  @DocsEditable
-  EventListenerList get unload => this['unload'];
-
-  @DocsEditable
-  EventListenerList get volumeChange => this['volumechange'];
-
-  @DocsEditable
-  EventListenerList get waiting => this['waiting'];
-
-  @DocsEditable
-  EventListenerList get animationEnd => this['webkitAnimationEnd'];
-
-  @DocsEditable
-  EventListenerList get animationIteration => this['webkitAnimationIteration'];
-
-  @DocsEditable
-  EventListenerList get animationStart => this['webkitAnimationStart'];
-
-  @DocsEditable
-  EventListenerList get transitionEnd => this['webkitTransitionEnd'];
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29948,12 +28832,6 @@ class Worker extends AbstractWorker {
   @DocsEditable
   static Worker _create_1(scriptUrl) native "Worker__create_1constructorCallback";
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  WorkerEvents get on =>
-    new WorkerEvents(this);
-
   @DomName('Worker.postMessage')
   @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) native "Worker_postMessage_Callback";
@@ -29966,16 +28844,6 @@ class Worker extends AbstractWorker {
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class WorkerEvents extends AbstractWorkerEvents {
-  @DocsEditable
-  WorkerEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29992,12 +28860,6 @@ class WorkerContext extends EventTarget {
   @DomName('WorkerContext.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  WorkerContextEvents get on =>
-    new WorkerContextEvents(this);
 
   static const int PERSISTENT = 1;
 
@@ -30108,16 +28970,6 @@ class WorkerContext extends EventTarget {
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-}
-
-@DocsEditable
-@deprecated
-class WorkerContextEvents extends Events {
-  @DocsEditable
-  WorkerContextEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31901,58 +30753,6 @@ class _HTMLFrameElement extends _Element_Merged {
 class _HTMLFrameSetElement extends _Element_Merged {
   _HTMLFrameSetElement.internal() : super.internal();
 
-  @DocsEditable
-  @DomName('EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent')
-  @deprecated
-  _HTMLFrameSetElementEvents get on =>
-    new _HTMLFrameSetElementEvents(this);
-
-}
-
-@DocsEditable
-@deprecated
-class _HTMLFrameSetElementEvents extends ElementEvents {
-  @DocsEditable
-  _HTMLFrameSetElementEvents(EventTarget _ptr) : super(_ptr);
-
-  @DocsEditable
-  EventListenerList get beforeUnload => this['beforeunload'];
-
-  @DocsEditable
-  EventListenerList get blur => this['blur'];
-
-  @DocsEditable
-  EventListenerList get error => this['error'];
-
-  @DocsEditable
-  EventListenerList get focus => this['focus'];
-
-  @DocsEditable
-  EventListenerList get hashChange => this['hashchange'];
-
-  @DocsEditable
-  EventListenerList get load => this['load'];
-
-  @DocsEditable
-  EventListenerList get message => this['message'];
-
-  @DocsEditable
-  EventListenerList get offline => this['offline'];
-
-  @DocsEditable
-  EventListenerList get online => this['online'];
-
-  @DocsEditable
-  EventListenerList get popState => this['popstate'];
-
-  @DocsEditable
-  EventListenerList get resize => this['resize'];
-
-  @DocsEditable
-  EventListenerList get storage => this['storage'];
-
-  @DocsEditable
-  EventListenerList get unload => this['unload'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35368,12 +34168,10 @@ class _RemoteSendPortSync implements SendPortSync {
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
     var result = null;
-    var listener = (Event e) {
+    window.on[source].first.then((Event e) {
       result = json.parse(_getPortSyncEventData(e));
-    };
-    window.on[source].add(listener);
+    });
     _dispatchEvent(target, [source, message]);
-    window.on[source].remove(listener);
     return result;
   }
 
@@ -35428,7 +34226,7 @@ class ReceivePortSync {
 
   num _portId;
   Function _callback;
-  EventListener _listener;
+  StreamSubscription _portSubscription;
 
   ReceivePortSync() {
     if (_portIdCount == null) {
@@ -35453,21 +34251,20 @@ class ReceivePortSync {
 
   void receive(callback(var message)) {
     _callback = callback;
-    if (_listener == null) {
-      _listener = (Event e) {
+    if (_portSubscription == null) {
+      _portSubscription = window.on[_listenerName].listen((Event e) {
         var data = json.parse(_getPortSyncEventData(e));
         var replyTo = data[0];
         var message = _deserialize(data[1]);
         var result = _callback(message);
         _dispatchEvent(replyTo, _serialize(result));
-      };
-      window.on[_listenerName].add(_listener);
+      });
     }
   }
 
   void close() {
     _portMap.remove(_portId);
-    if (_listener != null) window.on[_listenerName].remove(_listener);
+    if (_portSubscription != null) _portSubscription.cancel();
   }
 
   SendPortSync toSendPort() {
