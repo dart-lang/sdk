@@ -476,7 +476,7 @@ dart2js_conversions = {
     # IDBAny is problematic.  Some uses are just a union of other IDB types,
     # which need no conversion..  Others include data values which require
     # serialized script value processing.
-    'IDBAny get IDBCursorWithValue.value':
+    '* get IDBCursorWithValue.value':
       Conversion('_convertNativeToDart_IDBAny', 'dynamic', 'dynamic'),
 
     # This is problematic.  The result property of IDBRequest is used for

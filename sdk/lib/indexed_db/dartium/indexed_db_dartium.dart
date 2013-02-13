@@ -650,7 +650,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
    * the current transaction.
    */
   @DomName('IDBObjectStore.openCursor')
-  Stream<Cursor> openCursor({key, KeyRange range, String direction,
+  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
       bool autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {

@@ -190,11 +190,13 @@ class Cursor native "*IDBCursor" {
 @DomName('IDBCursorWithValue')
 class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
 
+  dynamic get value => _convertNativeToDart_IDBAny(this._value);
+  @JSName('value')
   @DomName('IDBCursorWithValue.value')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final Object value;
+  final dynamic _value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -594,7 +596,7 @@ class ObjectStore native "*IDBObjectStore" {
    * the current transaction.
    */
   @DomName('IDBObjectStore.openCursor')
-  Stream<Cursor> openCursor({key, KeyRange range, String direction,
+  Stream<CursorWithValue> openCursor({key, KeyRange range, String direction,
       bool autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
