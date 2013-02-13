@@ -233,34 +233,6 @@ TestCase _soloTest;
 Map testState = {};
 
 /**
- * (Deprecated) Evaluates the [function] and validates that it throws an
- * exception. If [callback] is provided, then it will be invoked with the
- * thrown exception. The callback may do any validation it wants. In addition,
- * if it returns `false`, that also indicates an expectation failure.
- */
-void expectThrow(function, [bool callback(exception)]) {
-  bool threw = false;
-  try {
-    function();
-  } catch (e) {
-    threw = true;
-
-    // Also let the callback look at it.
-    if (callback != null) {
-      var result = callback(e);
-
-      // If the callback explicitly returned false, treat that like an
-      // expectation too. (If it returns null, though, don't.)
-      if (result == false) {
-        fail('Exception:\n$e\ndid not match expectation.');
-      }
-    }
-  }
-
-  if (threw != true) fail('An expected exception was not thrown.');
-}
-
-/**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
  * calls.
@@ -268,25 +240,6 @@ void expectThrow(function, [bool callback(exception)]) {
 void test(String spec, TestFunction body) {
   ensureInitialized();
   _tests.add(new TestCase(_tests.length + 1, _fullSpec(spec), body, 0));
-}
-
-/**
- * (Deprecated) Creates a new async test case with the given description
- * and body. The description will include the descriptions of any surrounding
- * group() calls.
- */
-// TODO(sigmund): deprecate this API
-void asyncTest(String spec, int callbacks, TestFunction body) {
-  ensureInitialized();
-
-  final testCase = new TestCase(
-      _tests.length + 1, _fullSpec(spec), body, callbacks);
-  _tests.add(testCase);
-
-  if (callbacks < 1) {
-    testCase.error(
-        'Async tests must wait for at least one callback ', '');
-  }
 }
 
 /**
