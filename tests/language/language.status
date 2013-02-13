@@ -16,7 +16,6 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
-large_implicit_getter_test: Pass, Fail  # Issue 8529 (timeout on buildbots).
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 gc_test: Pass, Fail # Issue 1487

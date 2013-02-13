@@ -44,8 +44,8 @@ DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
     "Trace disabling optimized code.");
 DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
     "Huge method cutoff in tokens: Disables optimizations for huge methods.");
-DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 50000,
-    "Huge method cutoff in unoptimized code size (in words).");
+DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
+    "Huge method cutoff in unoptimized code size (in bytes).");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -3680,7 +3680,7 @@ bool Function::is_optimizable() const {
     // Additional check needed for implicit getters.
     if (HasCode() &&
        (Code::Handle(unoptimized_code()).Size() >=
-        FLAG_huge_method_cutoff_in_code_size * kWordSize)) {
+        FLAG_huge_method_cutoff_in_code_size)) {
       return false;
     } else {
       return true;
