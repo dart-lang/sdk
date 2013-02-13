@@ -12991,6 +12991,9 @@ class Geoposition extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+/**
+ * An `<hr>` tag.
+ */
 @DomName('HTMLHRElement')
 class HRElement extends _Element_Merged {
   HRElement.internal() : super.internal();

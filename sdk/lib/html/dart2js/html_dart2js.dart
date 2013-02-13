@@ -12139,6 +12139,9 @@ class Geoposition native "*Geoposition" {
 
 
 @DocsEditable
+/**
+ * An `<hr>` tag.
+ */
 @DomName('HTMLHRElement')
 class HRElement extends Element native "*HTMLHRElement" {
 
