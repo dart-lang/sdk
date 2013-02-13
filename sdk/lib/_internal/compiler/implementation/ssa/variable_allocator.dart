@@ -299,7 +299,8 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     int lastId = env.loopMarkers[header];
     // Update all instructions that are liveIns in [header] to have a
     // range that covers the loop.
-    env.liveInstructions.forEach((HInstruction instruction, int id) {
+    new Map.from(env.liveInstructions).forEach((HInstruction instruction,
+                                                int id) {
       LiveInterval range = env.liveIntervals.putIfAbsent(
           instruction, () => new LiveInterval());
       range.loopUpdate(env.startId, lastId);
