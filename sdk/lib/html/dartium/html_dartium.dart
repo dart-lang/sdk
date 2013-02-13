@@ -56,7 +56,7 @@ _callPortSync(num id, var message) {
   if (!_callPortInitialized) {
     window.on['js-result'].listen((event) {
       _callPortLastResult = json.parse(_getPortSyncEventData(event));
-    }, false);
+    });
     _callPortInitialized = true;
   }
   assert(_callPortLastResult == null);
