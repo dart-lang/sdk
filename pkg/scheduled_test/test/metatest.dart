@@ -16,6 +16,8 @@ import '../../../pkg/path/lib/path.dart' as path;
 import 'package:scheduled_test/src/utils.dart';
 import 'package:unittest/unittest.dart';
 
+import 'utils.dart';
+
 /// Declares a test with the given [description] and [body]. [body] corresponds
 /// to the `main` method of a test file, and will be run in an isolate. By
 /// default, this expects that all tests defined in [body] pass, but if

@@ -7,8 +7,9 @@ library scheduled_test_test;
 import 'dart:async';
 
 import 'package:scheduled_test/scheduled_test.dart';
-import 'package:scheduled_test/src/utils.dart';
+
 import 'metatest.dart';
+import 'utils.dart';
 
 void main() {
   expectTestsPass('a scheduled test with a correct synchronous expectation '
@@ -95,7 +96,7 @@ void main() {
       'to complete before proceeding', () {
     test('test', () {
       var value = 'unset';
-      schedule(() => sleep(50).then((_) {
+      schedule(() => pumpEventQueue().then((_) {
         value = 'set';
       }));
       schedule(() => expect(value, equals('set')));
@@ -121,44 +122,48 @@ void main() {
 
   expectTestsFail('an out-of-band failure in wrapAsync is handled', () {
     test('test', () {
+      var waiter = new Waiter();
       schedule(() {
-        sleep(10).then(wrapAsync((_) => expect('foo', equals('bar'))));
+        waiter.wait(1).then(wrapAsync((_) => expect('foo', equals('bar'))));
       });
-      schedule(() => sleep(50));
+      schedule(() => waiter.wait(2));
     });
   });
 
   expectTestsFail('an out-of-band failure in wrapAsync that finishes after the '
       'schedule is handled', () {
     test('test', () {
+      var waiter = new Waiter();
       schedule(() {
-        sleep(50).then(wrapAsync((_) => expect('foo', equals('bar'))));
+        waiter.wait(2).then(wrapAsync((_) => expect('foo', equals('bar'))));
       });
-      schedule(() => sleep(10));
+      schedule(() => waiter.wait(1));
     });
   });
 
   expectTestsFail('an out-of-band error reported via signalError is '
       'handled', () {
     test('test', () {
+      var waiter = new Waiter();
       schedule(() {
-        sleep(10).then((_) => currentSchedule.signalError('bad'));
+        waiter.wait(1).then((_) => currentSchedule.signalError('bad'));
       });
-      schedule(() => sleep(50));
+      schedule(() => waiter.wait(2));
     });
   });
 
   expectTestsFail('an out-of-band error reported via signalError that finished '
       'after the schedule is handled', () {
     test('test', () {
+      var waiter = new Waiter();
       schedule(() {
         var done = wrapAsync((_) {});
-        sleep(50).then((_) {
+        waiter.wait(2).then((_) {
           currentSchedule.signalError('bad');
           done(null);
         });
       });
-      schedule(() => sleep(10));
+      schedule(() => waiter.wait(1));
     });
   });
 
@@ -191,7 +196,7 @@ void main() {
         expect(outOfBandRun, isTrue);
       });
 
-      sleep(50).then(wrapAsync((_) {
+      pumpEventQueue().then(wrapAsync((_) {
         outOfBandRun = true;
       }));
     });
@@ -205,12 +210,12 @@ void main() {
       currentSchedule.onComplete.schedule(() {
         expect(outOfBand1Run, isTrue);
 
-        sleep(50).then(wrapAsync((_) {
+        pumpEventQueue().then(wrapAsync((_) {
           outOfBand2Run = true;
         }));
       });
 
-      sleep(50).then(wrapAsync((_) {
+      pumpEventQueue().then(wrapAsync((_) {
         outOfBand1Run = true;
       }));
     });
@@ -220,10 +225,9 @@ void main() {
 
   expectTestsFail('an out-of-band callback in the onComplete queue blocks the '
       'test', () {
-    var outOfBandRun = false;
     test('test', () {
       currentSchedule.onComplete.schedule(() {
-        sleep(50).then(wrapAsync((_) => expect('foo', equals('bar'))));
+        pumpEventQueue().then(wrapAsync((_) => expect('foo', equals('bar'))));
       });
     });
   });
@@ -237,7 +241,7 @@ void main() {
         outOfBandSetInOnComplete = outOfBandRun;
       });
 
-      sleep(50).then(wrapAsync((_) {
+      pumpEventQueue().then(wrapAsync((_) {
         outOfBandRun = true;
       }));
 
@@ -285,7 +289,7 @@ void main() {
         onCompleteRun = true;
       });
 
-      sleep(50).then(wrapAsync((_) => expect('foo', equals('bar'))));
+      pumpEventQueue().then(wrapAsync((_) => expect('foo', equals('bar'))));
     });
 
     test('test 2', () {
@@ -387,7 +391,7 @@ void main() {
         onExceptionRun = true;
       });
 
-      sleep(50).then(wrapAsync((_) => expect('foo', equals('bar'))));
+      pumpEventQueue().then(wrapAsync((_) => expect('foo', equals('bar'))));
     });
 
     test('test 2', () {
@@ -454,7 +458,9 @@ void main() {
         errors = currentSchedule.errors;
       });
 
-      sleep(50).then(wrapAsync((_) => currentSchedule.signalError('error')));
+      pumpEventQueue().then(wrapAsync((_) {
+        return currentSchedule.signalError('error');
+      }));
     });
 
     test('test 2', () {
@@ -493,18 +499,20 @@ void main() {
       });
 
       currentSchedule.onException.schedule(() {
-        sleep(25).then(wrapAsync((_) {
+        var exceptionWaiter = new Waiter();
+        exceptionWaiter.wait(1).then(wrapAsync((_) {
           throw 'error3';
         }));
-        sleep(50).then(wrapAsync((_) {
+        exceptionWaiter.wait(2).then(wrapAsync((_) {
           throw 'error4';
         }));
       });
 
-      sleep(25).then(wrapAsync((_) {
+      var waiter = new Waiter();
+      waiter.wait(1).then(wrapAsync((_) {
         throw 'error1';
       }));
-      sleep(50).then(wrapAsync((_) {
+      waiter.wait(2).then(wrapAsync((_) {
         throw 'error2';
       }));
     });
@@ -524,11 +532,12 @@ void main() {
         errors = currentSchedule.errors;
       });
 
-      sleep(25).then(wrapAsync((_) {
+      var waiter = new Waiter();
+      waiter.wait(1).then(wrapAsync((_) {
         throw 'out-of-band';
       }));
 
-      schedule(() => sleep(50).then((_) {
+      schedule(() => waiter.wait(2).then((_) {
         throw 'in-band';
       }));
     });
@@ -565,7 +574,7 @@ void main() {
       'completed', () {
     test('test', () {
       schedule(() {
-        expect(sleep(50).then((_) {
+        expect(pumpEventQueue().then((_) {
           expect(currentSchedule.currentTask, isNull);
         }), completes);
       });
