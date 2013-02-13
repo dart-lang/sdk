@@ -18,6 +18,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'DOMWindow': 'Window',
     'HTMLDocument' : 'HtmlDocument',
     'IDBFactory': 'IdbFactory', # Manual to avoid name conflicts.
+    'NamedNodeMap': '_NamedNodeMap',
     'NavigatorUserMediaErrorCallback': '_NavigatorUserMediaErrorCallback',
     'NavigatorUserMediaSuccessCallback': '_NavigatorUserMediaSuccessCallback',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.

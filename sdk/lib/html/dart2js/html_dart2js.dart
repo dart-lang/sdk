@@ -17378,230 +17378,6 @@ class MutationRecord native "*MutationRecord" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
-@DomName('NamedNodeMap')
-class NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
-
-  @DomName('NamedNodeMap.length')
-  @DocsEditable
-  int get length => JS("int", "#.length", this);
-
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  List mappedBy(f(Node element)) =>
-      IterableMixinWorkaround.mappedByList(this, f);
-
-  Iterable<Node> where(bool f(Node element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Node element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Node> toList() => new List<Node>.from(this);
-  Set<Node> toSet() => new Set<Node>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Node> takeWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Node> skipWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Node firstMatching(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstMatching(this, test, orElse);
-  }
-
-  Node lastMatching(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
-  }
-
-  Node singleMatching(bool test(Node value)) {
-    return IterableMixinWorkaround.singleMatching(this, test);
-  }
-
-  Node elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Node>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  List<Node> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Node a, Node b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Node get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Node get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  Node min([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Node max([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
-  Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeMatching(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainMatching(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      Lists.getRange(this, start, rangeLength, <Node>[]);
-
-  // -- end List<Node> mixins.
-
-  @DomName('NamedNodeMap.getNamedItem')
-  @DocsEditable
-  Node getNamedItem(String name) native;
-
-  @DomName('NamedNodeMap.getNamedItemNS')
-  @DocsEditable
-  Node getNamedItemNS(String namespaceURI, String localName) native;
-
-  @DomName('NamedNodeMap.item')
-  @DocsEditable
-  Node item(int index) native;
-
-  @DomName('NamedNodeMap.removeNamedItem')
-  @DocsEditable
-  Node removeNamedItem(String name) native;
-
-  @DomName('NamedNodeMap.removeNamedItemNS')
-  @DocsEditable
-  Node removeNamedItemNS(String namespaceURI, String localName) native;
-
-  @DomName('NamedNodeMap.setNamedItem')
-  @DocsEditable
-  Node setNamedItem(Node node) native;
-
-  @DomName('NamedNodeMap.setNamedItemNS')
-  @DocsEditable
-  Node setNamedItemNS(Node node) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 @DomName('Navigator')
 class Navigator native "*Navigator" {
 
@@ -18047,7 +17823,7 @@ class Node extends EventTarget native "*Node" {
   @JSName('attributes')
   @DomName('Node.attributes')
   @DocsEditable
-  final NamedNodeMap $dom_attributes;
+  final _NamedNodeMap $dom_attributes;
 
   @JSName('childNodes')
   @DomName('Node.childNodes')
@@ -29903,6 +29679,230 @@ class _MediaStreamList implements JavaScriptIndexingBehavior, List<MediaStream> 
   @DomName('MediaStreamList.item')
   @DocsEditable
   MediaStream item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('NamedNodeMap')
+class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
+
+  @DomName('NamedNodeMap.length')
+  @DocsEditable
+  int get length => JS("int", "#.length", this);
+
+  Node operator[](int index) => JS("Node", "#[#]", this, index);
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Node>(this);
+  }
+
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(Node element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  List mappedBy(f(Node element)) =>
+      IterableMixinWorkaround.mappedByList(this, f);
+
+  Iterable<Node> where(bool f(Node element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Node element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
+
+  List<Node> toList() => new List<Node>.from(this);
+  Set<Node> toSet() => new Set<Node>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<Node> takeWhile(bool test(Node value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<Node> skipWhile(bool test(Node value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  Node firstMatching(bool test(Node value), { Node orElse() }) {
+    return IterableMixinWorkaround.firstMatching(this, test, orElse);
+  }
+
+  Node lastMatching(bool test(Node value), {Node orElse()}) {
+    return IterableMixinWorkaround.lastMatchingInList(this, test, orElse);
+  }
+
+  Node singleMatching(bool test(Node value)) {
+    return IterableMixinWorkaround.singleMatching(this, test);
+  }
+
+  Node elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<Node>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  List<Node> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(Node a, Node b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  Node get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node min([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.min(this, compare);
+
+  Node max([int compare(Node a, Node b)]) =>
+      IterableMixinWorkaround.max(this, compare);
+
+  Node removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  Node removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainAll(Iterable elements) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainMatching(bool test(Node element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
+    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  }
+
+  List<Node> getRange(int start, int rangeLength) =>
+      Lists.getRange(this, start, rangeLength, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+  @DomName('NamedNodeMap.getNamedItem')
+  @DocsEditable
+  Node getNamedItem(String name) native;
+
+  @DomName('NamedNodeMap.getNamedItemNS')
+  @DocsEditable
+  Node getNamedItemNS(String namespaceURI, String localName) native;
+
+  @DomName('NamedNodeMap.item')
+  @DocsEditable
+  Node item(int index) native;
+
+  @DomName('NamedNodeMap.removeNamedItem')
+  @DocsEditable
+  Node removeNamedItem(String name) native;
+
+  @DomName('NamedNodeMap.removeNamedItemNS')
+  @DocsEditable
+  Node removeNamedItemNS(String namespaceURI, String localName) native;
+
+  @DomName('NamedNodeMap.setNamedItem')
+  @DocsEditable
+  Node setNamedItem(Node node) native;
+
+  @DomName('NamedNodeMap.setNamedItemNS')
+  @DocsEditable
+  Node setNamedItemNS(Node node) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
