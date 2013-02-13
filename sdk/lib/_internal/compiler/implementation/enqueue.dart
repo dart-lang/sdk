@@ -127,9 +127,6 @@ abstract class Enqueuer {
     }
 
     String memberName = member.name.slowToString();
-    Link<Element> members = instanceMembersByName.putIfAbsent(
-        memberName, () => const Link<Element>());
-    instanceMembersByName[memberName] = members.prepend(member);
 
     if (member.kind == ElementKind.FUNCTION) {
       if (member.name == Compiler.NO_SUCH_METHOD) {
@@ -174,13 +171,21 @@ abstract class Enqueuer {
         // registered during codegen on the handleUnseenSelector path, and cause
         // the set of codegen elements to include unresolved elements.
         nativeEnqueuer.registerFieldStore(member);
+        return;
       }
       if (universe.hasInvokedSetter(member, compiler)) {
         nativeEnqueuer.registerFieldStore(member);
         // See comment after registerFieldLoad above.
         nativeEnqueuer.registerFieldLoad(member);
+        return;
       }
     }
+
+    // The element is not yet used. Add it to the list of instance
+    // members to still be processed. 
+    Link<Element> members = instanceMembersByName.putIfAbsent(
+        memberName, () => const Link<Element>());
+    instanceMembersByName[memberName] = members.prepend(member);
   }
 
   void enableNoSuchMethod(Element element) {}
