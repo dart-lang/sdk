@@ -15,4 +15,4 @@ pub_uploader_test: Pass,Fail
 *: Skip
 
 [ $system == windows ]
-io_test: Timeout # Issue 7505
+io_test: Fail # Issue 7505
