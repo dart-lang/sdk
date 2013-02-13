@@ -70,6 +70,7 @@ class ClosureFieldElement extends ElementX {
   // The names of closure variables don't need renaming, since their use is very
   // simple and they have 1-character names in the minified mode.
   bool hasFixedBackendName() => true;
+  bool fieldAccessNeverThrows() => true;
   String fixedBackendName() => name.slowToString();
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;

@@ -194,11 +194,13 @@ function generateAccessor(field, prototype) {
     }
     if (needsGetter) {
       var getterString = "return this." + field + ";";
-      prototype["get\$" + accessorName] = new Function(getterString);
+      prototype["${namer.getterPrefix}" + accessorName] =
+          new Function(getterString);
     }
     if (needsSetter) {
       var setterString = "this." + field + " = v;";
-      prototype["set\$" + accessorName] = new Function("v", setterString);
+      prototype["${namer.setterPrefix}" + accessorName] =
+          new Function("v", setterString);
     }
   }
   return field;
@@ -684,11 +686,13 @@ $lazyInitializerLogic
 
   bool instanceFieldNeedsGetter(Element member) {
     assert(member.isField());
+    if (member.fieldAccessNeverThrows()) return false;
     return compiler.codegenWorld.hasInvokedGetter(member, compiler);
   }
 
   bool instanceFieldNeedsSetter(Element member) {
     assert(member.isField());
+    if (member.fieldAccessNeverThrows()) return false;
     return (!member.modifiers.isFinalOrConst())
         && compiler.codegenWorld.hasInvokedSetter(member, compiler);
   }
