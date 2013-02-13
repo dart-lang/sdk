@@ -1121,8 +1121,19 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
                 class_name.ToCString());
   }
 
-  const Array& functions = Array::Handle(mixin_cls.functions());
+  const GrowableObjectArray& cloned_funcs =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  Array& functions = Array::Handle();
   Function& func = Function::Handle();
+  // The parser creates the mixin application class and adds just
+  // one function, the implicit constructor.
+  functions = cls.functions();
+  ASSERT(functions.Length() == 1);
+  func ^= functions.At(0);
+  ASSERT(func.IsImplicitConstructor());
+  cloned_funcs.Add(func);
+  // Now clone the functions from the mixin class.
+  functions = mixin_cls.functions();
   const intptr_t num_functions = functions.Length();
   for (int i = 0; i < num_functions; i++) {
     func ^= functions.At(i);
@@ -1138,9 +1149,15 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
     }
     if (!func.is_static()) {
       func = func.Clone(cls);
-      cls.AddFunction(func);
+      cloned_funcs.Add(func);
     }
   }
+  functions = Array::MakeArray(cloned_funcs);
+  cls.SetFunctions(functions);
+
+  // Now clone the fields from the mixin class. There should be no
+  // existing fields in the mixin application class.
+  ASSERT(Array::Handle(cls.fields()).Length() == 0);
   Array& fields = Array::Handle(mixin_cls.fields());
   Field& field = Field::Handle();
   const GrowableObjectArray& cloned_fields =
@@ -1154,7 +1171,6 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
     }
   }
   fields = Array::MakeArray(cloned_fields);
-  ASSERT(Array::Handle(cls.fields()).Length() == 0);
   cls.SetFields(fields);
 }
 
