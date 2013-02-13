@@ -6,7 +6,6 @@ library transition_event_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
-import 'dart:async';
 
 main() {
   useHtmlIndividualConfiguration();
@@ -29,14 +28,14 @@ main() {
         element.style.background = 'red';
         element.style.transition = 'opacity .1s';
 
-        new Timer(const Duration(milliseconds: 100), expectAsync0(() {
+        window.setTimeout(expectAsync0(() {
           element.onTransitionEnd.first.then(expectAsync1((e) {
             expect(e is TransitionEvent, isTrue);
             expect(e.propertyName, 'opacity');
           }));
 
           element.style.opacity = '1';
-        }));
+        }), 100);
       }
     });
   });

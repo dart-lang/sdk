@@ -2,7 +2,6 @@ library HistoryTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
-import 'dart:async';
 
 main() {
   useHtmlIndividualConfiguration();
@@ -43,14 +42,14 @@ main() {
         expect(window.location.href.endsWith('dummy2'), isTrue);
 
         // Need to wait a frame or two to let the pushState events occur.
-        new Timer(const Duration(milliseconds: 100), expectAsync0(() {
+        window.setTimeout(expectAsync0(() {
           window.onPopState.first.then(expectAsync1((_){
             expect(window.history.length, length);
             expect(window.location.href.endsWith('dummy1'), isTrue);
           }));
 
           window.history.back();
-        }));
+        }), 100);
       }, expectation);
     });
 
