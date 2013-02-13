@@ -306,7 +306,7 @@ class FieldTypesRegistry {
     // TODO(sgjesse): Handle field types for classes with more than one
     // constructor.
     if (ctors.length == 2) {
-      new Map.from(optimizedFunctions).forEach((Element field, _) {
+      optimizedFunctions.forEach((Element field, _) {
         if (identical(field.enclosingElement, cls)) {
           scheduleRecompilation(field);
         }
@@ -347,12 +347,12 @@ class FieldTypesRegistry {
     // TODO(sgjesse): Take the type of the setter into account.
     if (setterSelectorsUsed.contains(setter.name)) return;
     setterSelectorsUsed.add(setter.name);
-    new Map.from(optimizedStaticFunctions).forEach((Element field, _) {
+    optimizedStaticFunctions.forEach((Element field, _) {
       if (field.name == setter.name) {
         scheduleRecompilation(field);
       }
     });
-    new Map.from(optimizedFunctions).forEach((Element field, _) {
+    optimizedFunctions.forEach((Element field, _) {
       if (field.name == setter.name) {
         scheduleRecompilation(field);
       }
@@ -622,14 +622,14 @@ class JavaScriptBackend extends Backend {
   CodeEmitterTask emitter;
 
   /**
-   * The generated code as a js AST for compiled methods.
+   * The generated code as a js AST for compiled methods. 
    */
   Map<Element, js.Expression> get generatedCode {
     return compiler.enqueuer.codegen.generatedCode;
   }
 
   /**
-   * The generated code as a js AST for compiled bailout methods.
+   * The generated code as a js AST for compiled bailout methods. 
    */
   final Map<Element, js.Expression> generatedBailoutCode =
       new Map<Element, js.Expression>();
@@ -908,7 +908,7 @@ class JavaScriptBackend extends Backend {
       // The backend will use a literal list to initialize the entries
       // of the map.
       if (enqueuer.isResolutionQueue) {
-        enqueuer.registerInstantiatedClass(compiler.listClass);
+        enqueuer.registerInstantiatedClass(compiler.listClass); 
         enqueuer.registerInstantiatedClass(compiler.mapLiteralClass);
       }
     }

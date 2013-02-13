@@ -1917,15 +1917,14 @@ class _HttpClient implements HttpClient {
 
   void shutdown({bool force: false}) {
     if (force) _closeQueue.shutdown();
-    new Map.from(_openSockets).forEach(
-        (String key, Queue<_SocketConnection> connections) {
+    _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
       while (!connections.isEmpty) {
         _SocketConnection socketConn = connections.removeFirst();
         socketConn._socket.close();
       }
     });
     if (force) {
-      _activeSockets.toList().forEach((_SocketConnection socketConn) {
+      _activeSockets.forEach((_SocketConnection socketConn) {
         socketConn._httpClientConnection._onClientShutdown();
         socketConn._close();
       });
