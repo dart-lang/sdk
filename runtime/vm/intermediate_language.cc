@@ -1821,7 +1821,16 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     Definition* replacement = comparison()->Canonicalize(optimizer);
     if (replacement == comparison() || replacement == NULL) return this;
     ComparisonInstr* comp = replacement->AsComparison();
-    if (comp == NULL) return this;
+    if ((comp == NULL) || comp->CanDeoptimize()) return this;
+
+    // Check that comparison is not serving as a pending deoptimization target
+    // for conversions.
+    for (intptr_t i = 0; i < comp->InputCount(); i++) {
+      if (comp->RequiredInputRepresentation(i) !=
+          comp->InputAt(i)->definition()->representation()) {
+        return this;
+      }
+    }
 
     // Replace the comparison if the replacement is used at this branch,
     // and has exactly one use.
