@@ -19,17 +19,19 @@ class ScheduleError extends AsyncError {
   /// there was no such task.
   final Task task;
 
-  /// Whether the schedule was finished executing at the time the error was
-  /// detected.
-  final bool _scheduleWasDone;
+  /// The task queue that was running when this error occured. This may be
+  /// `null` if there was no such queue.
+  final TaskQueue queue;
+
+  /// The state of the schedule at the time the error was detected.
+  final ScheduleState _stateWhenDetected;
 
   /// Creates a new [ScheduleError] wrapping [error]. The metadata in
   /// [AsyncError]s and [ScheduleError]s will be preserved.
   factory ScheduleError.from(Schedule schedule, error, {stackTrace,
-      AsyncError cause, Task task}) {
+      AsyncError cause}) {
     if (error is ScheduleError) {
       if (schedule == null) schedule = error.schedule;
-      if (task == null) task = error.task;
     }
 
     if (error is AsyncError) {
@@ -40,14 +42,15 @@ class ScheduleError extends AsyncError {
       error = error.error;
     }
 
-    return new ScheduleError(schedule, error, stackTrace, cause, task);
+    return new ScheduleError(schedule, error, stackTrace, cause);
   }
 
-  ScheduleError(Schedule schedule, error, stackTrace, AsyncError cause,
-      this.task)
+  ScheduleError(Schedule schedule, error, stackTrace, AsyncError cause)
       : super.withCause(error, stackTrace, cause),
         this.schedule = schedule,
-        this._scheduleWasDone = schedule.done;
+        this.task = schedule.currentTask,
+        this.queue = schedule.currentQueue,
+        this._stateWhenDetected = schedule.state;
 
   String toString() {
     var result = new StringBuffer();
@@ -66,11 +69,15 @@ class ScheduleError extends AsyncError {
     result.add("\n\n");
 
     if (task != null) {
-      result.add('Error detected during task in queue "${task.queue}":\n');
+      result.add('Error detected during task in queue "$queue":\n');
       result.add(task.generateTree());
-    } else if (_scheduleWasDone) {
-      result.add('Error detected after all tasks in the queue had finished.');
-    } else {
+    } else if (_stateWhenDetected == ScheduleState.DONE) {
+      result.add('Error detected after all tasks in the schedule had '
+          'finished.');
+    } else if (_stateWhenDetected == ScheduleState.RUNNING) {
+      result.add('Error detected when waiting for out-of-band callbacks in '
+          'queue "$queue".');
+    } else { // _stateWhenDetected == ScheduleState.SET_UP
       result.add('Error detected before the schedule started running.');
     }
 

@@ -7,6 +7,7 @@ library scheduled_test_test;
 import 'dart:async';
 
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 
 import 'metatest.dart';
 import 'utils.dart';
@@ -121,49 +122,49 @@ void main() {
   });
 
   expectTestsFail('an out-of-band failure in wrapAsync is handled', () {
+    mock_clock.mock().run();
     test('test', () {
-      var waiter = new Waiter();
       schedule(() {
-        waiter.wait(1).then(wrapAsync((_) => expect('foo', equals('bar'))));
+        sleep(1).then(wrapAsync((_) => expect('foo', equals('bar'))));
       });
-      schedule(() => waiter.wait(2));
+      schedule(() => sleep(2));
     });
   });
 
   expectTestsFail('an out-of-band failure in wrapAsync that finishes after the '
       'schedule is handled', () {
+    mock_clock.mock().run();
     test('test', () {
-      var waiter = new Waiter();
       schedule(() {
-        waiter.wait(2).then(wrapAsync((_) => expect('foo', equals('bar'))));
+        sleep(2).then(wrapAsync((_) => expect('foo', equals('bar'))));
       });
-      schedule(() => waiter.wait(1));
+      schedule(() => sleep(1));
     });
   });
 
   expectTestsFail('an out-of-band error reported via signalError is '
       'handled', () {
+    mock_clock.mock().run();
     test('test', () {
-      var waiter = new Waiter();
       schedule(() {
-        waiter.wait(1).then((_) => currentSchedule.signalError('bad'));
+        sleep(1).then((_) => currentSchedule.signalError('bad'));
       });
-      schedule(() => waiter.wait(2));
+      schedule(() => sleep(2));
     });
   });
 
   expectTestsFail('an out-of-band error reported via signalError that finished '
       'after the schedule is handled', () {
+    mock_clock.mock().run();
     test('test', () {
-      var waiter = new Waiter();
       schedule(() {
         var done = wrapAsync((_) {});
-        waiter.wait(2).then((_) {
+        sleep(2).then((_) {
           currentSchedule.signalError('bad');
           done(null);
         });
       });
-      schedule(() => waiter.wait(1));
+      schedule(() => sleep(1));
     });
   });
 
@@ -492,6 +493,7 @@ void main() {
 
   expectTestsPass('currentSchedule.errors contains multiple out-of-band errors '
       'from both the main task queue and onException in onComplete', () {
+    mock_clock.mock().run();
     var errors;
     test('test 1', () {
       currentSchedule.onComplete.schedule(() {
@@ -499,20 +501,18 @@ void main() {
       });
 
       currentSchedule.onException.schedule(() {
-        var exceptionWaiter = new Waiter();
-        exceptionWaiter.wait(1).then(wrapAsync((_) {
+        sleep(1).then(wrapAsync((_) {
           throw 'error3';
         }));
-        exceptionWaiter.wait(2).then(wrapAsync((_) {
+        sleep(2).then(wrapAsync((_) {
           throw 'error4';
         }));
       });
 
-      var waiter = new Waiter();
-      waiter.wait(1).then(wrapAsync((_) {
+      sleep(1).then(wrapAsync((_) {
         throw 'error1';
       }));
-      waiter.wait(2).then(wrapAsync((_) {
+      sleep(2).then(wrapAsync((_) {
         throw 'error2';
       }));
     });
@@ -526,18 +526,18 @@ void main() {
 
   expectTestsPass('currentSchedule.errors contains both an out-of-band error '
       'and an error raised afterwards in a task', () {
+    mock_clock.mock().run();
     var errors;
     test('test 1', () {
       currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
-      var waiter = new Waiter();
-      waiter.wait(1).then(wrapAsync((_) {
+      sleep(1).then(wrapAsync((_) {
         throw 'out-of-band';
       }));
 
-      schedule(() => waiter.wait(2).then((_) {
+      schedule(() => sleep(2).then((_) {
         throw 'in-band';
       }));
     });
@@ -592,12 +592,41 @@ void main() {
     });
   });
 
-  expectTestsPass('currentSchedule.currentQueue is null before the schedule has '
-      'started', () {
+  expectTestsPass('currentSchedule.currentQueue is tasks before the schedule '
+      'has started', () {
     test('test', () {
       schedule(() => expect('foo', equals('foo')));
 
-      expect(currentSchedule.currentQueue, isNull);
+      expect(currentSchedule.currentQueue.name, equals('tasks'));
+    });
+  });
+
+  expectTestsPass('currentSchedule.state starts out as SET_UP', () {
+    test('test', () {
+      expect(currentSchedule.state, equals(ScheduleState.SET_UP));
+    });
+  });
+
+  expectTestsPass('currentSchedule.state is RUNNING in tasks', () {
+    test('test', () {
+      schedule(() {
+        expect(currentSchedule.state, equals(ScheduleState.RUNNING));
+      });
+
+      currentSchedule.onComplete.schedule(() {
+        expect(currentSchedule.state, equals(ScheduleState.RUNNING));
+      });
+    });
+  });
+
+  expectTestsPass('currentSchedule.state is DONE after the test', () {
+    var oldSchedule;
+    test('test 1', () {
+      oldSchedule = currentSchedule;
+    });
+
+    test('test 2', () {
+      expect(oldSchedule.state, equals(ScheduleState.DONE));
     });
   });
 
@@ -728,4 +757,164 @@ void main() {
       });
     });
   });
+
+  expectTestsPass("a single task that takes too long will cause a timeout "
+      "error", () {
+    mock_clock.mock().run();
+    var errors;
+    test('test 1', () {
+      currentSchedule.timeout = new Duration(milliseconds: 1);
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() => sleep(2));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(["The schedule timed out after "
+        "1ms of inactivity."]));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("an out-of-band callback that takes too long will cause a "
+      "timeout error", () {
+    mock_clock.mock().run();
+    var errors;
+    test('test 1', () {
+      currentSchedule.timeout = new Duration(milliseconds: 1);
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      sleep(2).then(wrapAsync((_) => expect('foo', equals('foo'))));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals(["The schedule timed out after "
+        "1ms of inactivity."]));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("each task resets the timeout timer", () {
+    mock_clock.mock().run();
+    test('test', () {
+      currentSchedule.timeout = new Duration(milliseconds: 2);
+
+      schedule(() => sleep(1));
+      schedule(() => sleep(1));
+      schedule(() => sleep(1));
+    });
+  });
+
+  expectTestsPass("setting up the test doesn't trigger a timeout", () {
+    var clock = mock_clock.mock();
+    test('test', () {
+      currentSchedule.timeout = new Duration(milliseconds: 1);
+
+      clock.tick(2);
+      schedule(() => expect('foo', equals('foo')));
+    });
+  });
+
+  expectTestsPass("an out-of-band error that's signaled after a timeout but "
+      "before the test completes is registered", () {
+    mock_clock.mock().run();
+    var errors;
+    test('test 1', () {
+      currentSchedule.timeout = new Duration(milliseconds: 3);
+
+      currentSchedule.onException.schedule(() => sleep(2));
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      sleep(4).then(wrapAsync((_) {
+        throw 'out-of-band';
+      }));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals([
+        "The schedule timed out after 3ms of inactivity.",
+        "out-of-band"
+      ]));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("an out-of-band error that's signaled after a timeout but "
+      "before the test completes plays nicely with other out-of-band callbacks",
+      () {
+    mock_clock.mock().run();
+    var errors;
+    var onExceptionCallbackRun = false;
+    var onCompleteRunAfterOnExceptionCallback = false;
+    test('test 1', () {
+      currentSchedule.timeout = new Duration(milliseconds: 2);
+
+      currentSchedule.onException.schedule(() {
+        sleep(1).then(wrapAsync((_) {
+          onExceptionCallbackRun = true;
+        }));
+      });
+
+      currentSchedule.onComplete.schedule(() {
+        onCompleteRunAfterOnExceptionCallback = onExceptionCallbackRun;
+      });
+
+      sleep(3).then(wrapAsync((_) {
+        throw 'out-of-band';
+      }));
+    });
+
+    test('test 2', () {
+      expect(onCompleteRunAfterOnExceptionCallback, isTrue);
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("a task that times out while waiting to handle an "
+      "out-of-band error records both", () {
+    mock_clock.mock().run();
+    var errors;
+    test('test 1', () {
+      currentSchedule.timeout = new Duration(milliseconds: 2);
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() => sleep(4));
+      sleep(1).then((_) => currentSchedule.signalError('out-of-band'));
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error), equals([
+        "out-of-band",
+        "The schedule timed out after 2ms of inactivity."
+      ]));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("currentSchedule.heartbeat resets the timeout timer", () {
+    mock_clock.mock().run();
+    test('test', () {
+      currentSchedule.timeout = new Duration(milliseconds: 3);
+
+      schedule(() {
+        return sleep(2).then((_) {
+          currentSchedule.heartbeat();
+          return sleep(2);
+        });
+      });
+    });
+  });
+
+  // TODO(nweiz): test out-of-band post-timeout errors that are detected after
+  // the test finishes once we can detect top-level errors (issue 8417).
 }

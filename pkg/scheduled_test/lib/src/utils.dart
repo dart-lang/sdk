@@ -16,3 +16,11 @@ void chainToCompleter(Future future, Completer completer) {
 /// Prepends each line in [text] with [prefix].
 String prefixLines(String text, {String prefix: '| '}) =>
   text.split('\n').map((line) => '$prefix$line').join('\n');
+
+/// Returns a [Future] that completes after pumping the event queue [times]
+/// times. By default, this should pump the event queue enough times to allow
+/// any code to run, as long as it's not waiting on some external event.
+Future pumpEventQueue([int times=200]) {
+  if (times == 0) return new Future.immediate(null);
+  return new Future.immediate(null).then((_) => pumpEventQueue(times - 1));
+}

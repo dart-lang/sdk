@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(nweiz): Add timeouts to scheduled tests.
 // TODO(nweiz): Add support for calling [schedule] while the schedule is already
 // running.
 // TODO(nweiz): Port the non-Pub-specific scheduled test libraries from Pub.
@@ -139,6 +138,19 @@
 ///         schedule(() => sendRequest('payload'));
 ///       });
 ///     }
+///
+/// ## Timeouts
+///
+/// `scheduled_test` has a built-in timeout of 30 seconds (configurable via
+/// [Schedule.timeout]). This timeout is aware of the structure of the schedule;
+/// this means that it will reset for each task in a queue, when moving between
+/// queues, or almost any other sort of interaction with [currentSchedule]. As
+/// long as the [Schedule] knows your test is making some sort of progress, it
+/// won't time out.
+///
+/// If a single task might take a long time, you can also manually tell the
+/// [Schedule] that it's making progress by calling [Schedule.heartbeat], which
+/// will reset the timeout whenever it's called.
 library scheduled_test;
 
 import 'dart:async';
