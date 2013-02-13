@@ -9,6 +9,7 @@ import 'dart:json' as json;
 
 import 'test_pub.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
+import '../../pub/exit_codes.dart' as exit_codes;
 import '../../pub/io.dart';
 
 void handleUploadForm(ScheduledServer server, [Map body]) {
@@ -104,12 +105,12 @@ main() {
 
     pub.shouldExit(0);
     expectLater(pub.remainingStderr(),
-        contains('Suggestions:\n* Author "Nathan Weizenbaum" in pubspec.yaml' 
+        contains('Suggestions:\n* Author "Nathan Weizenbaum" in pubspec.yaml'
                   ' should have an email address\n'
                   '  (e.g. "name <email>").\n\n'
                   'Package has 1 warning.'));
   });
-  
+
   integration('preview package validation has no warnings', () {
     var pkg = package("test_pkg", "1.0.0");
     pkg["author"] = "Nathan Weizenbaum <nweiz@google.com>";
@@ -122,7 +123,7 @@ main() {
     expectLater(pub.remainingStderr(),
         contains('Package has 0 warnings.'));
   });
-  
+
   integration('package validation has a warning and is canceled', () {
     var pkg = package("test_pkg", "1.0.0");
     pkg["author"] = "Nathan Weizenbaum";
@@ -404,5 +405,77 @@ main() {
     expectLater(pub.nextErrLine(), equals('Invalid server response:'));
     expectLater(pub.nextErrLine(), equals(json.stringify(body)));
     pub.shouldExit(1);
+  });
+
+  group('--force', () {
+    setUp(() => normalPackage.scheduleCreate());
+
+    integration('cannot be combined with --dry-run', () {
+      schedulePub(args: ['lish', '--force', '--dry-run'],
+          error: "Cannot use both --force and --dry-run.",
+          exitCode: exit_codes.USAGE);
+    });
+
+    integration('publishes if there are no warnings or errors', () {
+      var server = new ScheduledServer();
+      credentialsFile(server, 'access token').scheduleCreate();
+      var pub = startPubLish(server, args: ['--force']);
+
+      handleUploadForm(server);
+      handleUpload(server);
+
+      server.handle('GET', '/create', (request, response) {
+        response.outputStream.writeString(json.stringify({
+          'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
+        }));
+        response.outputStream.close();
+      });
+
+      pub.shouldExit(0);
+      expectLater(pub.remainingStdout(), contains(
+          'Package test_pkg 1.0.0 uploaded!'));
+    });
+
+    integration('publishes if there are warnings', () {
+      var pkg = package("test_pkg", "1.0.0");
+      pkg["author"] = "Nathan Weizenbaum";
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+
+      var server = new ScheduledServer();
+      credentialsFile(server, 'access token').scheduleCreate();
+      var pub = startPubLish(server, args: ['--force']);
+
+      handleUploadForm(server);
+      handleUpload(server);
+
+      server.handle('GET', '/create', (request, response) {
+        response.outputStream.writeString(json.stringify({
+          'success': {'message': 'Package test_pkg 1.0.0 uploaded!'}
+        }));
+        response.outputStream.close();
+      });
+
+      pub.shouldExit(0);
+      expectLater(pub.remainingStderr(), contains(
+          'Suggestions:\n* Author "Nathan Weizenbaum" in pubspec.yaml'
+          ' should have an email address\n'
+          '  (e.g. "name <email>").'));
+      expectLater(pub.remainingStdout(), contains(
+          'Package test_pkg 1.0.0 uploaded!'));
+    });
+
+    integration('does not publish if there are errors', () {
+      var pkg = package("test_pkg", "1.0.0");
+      pkg.remove("homepage");
+      dir(appPath, [pubspec(pkg)]).scheduleCreate();
+
+      var server = new ScheduledServer();
+      var pub = startPubLish(server, args: ['--force']);
+
+      pub.shouldExit(0);
+      expectLater(pub.remainingStderr(), contains(
+          "Sorry, your package is missing a requirement and can't be "
+          "published yet."));
+    });
   });
 }

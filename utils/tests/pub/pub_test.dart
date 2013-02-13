@@ -43,7 +43,7 @@ final VERSION_STRING = '''
 
 main() {
   initConfig();
-  
+
   integration('running pub with no command displays usage', () {
     schedulePub(args: [], output: USAGE_STRING);
   });
@@ -106,6 +106,7 @@ main() {
 
             Usage: pub publish [options]
             -n, --dry-run    Validate but do not publish the package                      
+            -f, --force      Publish without confirmation if there are no errors
                 --server     The package server to which to upload this package
                              (defaults to "https://pub.dartlang.org")
             ''');

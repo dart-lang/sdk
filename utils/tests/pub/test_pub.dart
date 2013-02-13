@@ -734,7 +734,9 @@ void _validateOutputString(List<String> failures, String pipe,
   // Strip off the last line. This lets us have expected multiline strings
   // where the closing ''' is on its own line. It also fixes '' expected output
   // to expect zero lines of output, not a single empty line.
-  expected.removeLast();
+  if (expected.last.trim() == '') {
+    expected.removeLast();
+  }
 
   var results = [];
   var failed = false;

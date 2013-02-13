@@ -13,6 +13,7 @@ import '../../pkg/args/lib/args.dart';
 import '../../pkg/http/lib/http.dart' as http;
 import '../../pkg/path/lib/path.dart' as path;
 import 'directory_tree.dart';
+import 'exit_codes.dart' as exit_codes;
 import 'git.dart' as git;
 import 'http.dart';
 import 'io.dart';
@@ -34,6 +35,8 @@ class LishCommand extends PubCommand {
     // dart:io for HTTPS requests.
     parser.addFlag('dry-run', abbr: 'n', negatable: false,
         help: 'Validate but do not publish the package');
+    parser.addFlag('force', abbr: 'f', negatable: false,
+        help: 'Publish without confirmation if there are no errors');
     parser.addOption('server', defaultsTo: 'https://pub.dartlang.org',
         help: 'The package server to which to upload this package');
     return parser;
@@ -41,6 +44,12 @@ class LishCommand extends PubCommand {
 
   /// The URL of the server to which to upload the package.
   Uri get server => Uri.parse(commandOptions['server']);
+
+  /// Whether the publish is just a preview.
+  bool get dryRun => commandOptions['dry-run'];
+
+  /// Whether the publish requires confirmation.
+  bool get force => commandOptions['force'];
 
   Future _publish(packageBytes) {
     var cloudStorageUrl;
@@ -88,6 +97,12 @@ class LishCommand extends PubCommand {
   }
 
   Future onRun() {
+    if (force && dryRun) {
+      log.error('Cannot use both --force and --dry-run.');
+      this.printUsage();
+      exit(exit_codes.USAGE);
+    }
+
     var packageBytesFuture = _filesToPublish.then((files) {
       log.fine('Archiving and publishing ${entrypoint.root}.');
 
@@ -106,7 +121,7 @@ class LishCommand extends PubCommand {
        if (isValid) return packageBytesFuture.then(_publish);
     });
   }
-  
+
   /// The basenames of files that are automatically excluded from archives.
   final _BLACKLISTED_FILES = const ['pubspec.lock'];
 
@@ -149,7 +164,8 @@ class LishCommand extends PubCommand {
     invalidServerResponse(response);
   }
 
-  /// Validates the package. Throws an exception if it's invalid.
+  /// Validates the package. Completes to false if the upload should not
+  /// proceed.
   Future<bool> _validate(Future<int> packageSize) {
     return Validator.runAll(entrypoint, packageSize).then((pair) {
       var errors = pair.first;
@@ -163,12 +179,14 @@ class LishCommand extends PubCommand {
         return false;
       }
 
-      if (commandOptions['dry-run']){
+      if (force) return true;
+
+      if (dryRun) {
         var s = warnings.length == 1 ? '' : 's';
         log.warning("Package has ${warnings.length} warning$s.");
         return false;
       }
-      
+
       var message = 'Looks great! Are you ready to upload your package';
 
       if (!warnings.isEmpty) {
