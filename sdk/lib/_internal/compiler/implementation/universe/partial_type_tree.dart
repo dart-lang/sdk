@@ -5,62 +5,18 @@
 part of universe;
 
 abstract class PartialTypeTree {
-
   final Compiler compiler;
   PartialTypeTreeNode root;
 
-  final Map<ClassElement, PartialTypeTreeNode> nodes =
-      new Map<ClassElement, PartialTypeTreeNode>();
-
-  // TODO(kasperl): For now, we keep track of whether or not the tree
-  // contains two classes with a subtype relationship that isn't a
-  // subclass relationship.
-  bool containsInterfaceSubtypes = false;
-
-  final Set<ClassElement> unseenInterfaceSubtypes =
-      new Set<ClassElement>();
-
   PartialTypeTree(this.compiler);
 
-  PartialTypeTreeNode newSpecializedNode(ClassElement type);
+  PartialTypeTreeNode newNode(ClassElement type);
 
-  PartialTypeTreeNode newNode(ClassElement type) {
-    PartialTypeTreeNode node = newSpecializedNode(type);
-    nodes[type] = node;
-    if (containsInterfaceSubtypes) return node;
-
-    // Check if the implied interface of the new class is implemented
-    // by another class that is already in the tree.
-    if (unseenInterfaceSubtypes.contains(type)) {
-      containsInterfaceSubtypes = true;
-      unseenInterfaceSubtypes.clear();
-      return node;
-    }
-
-    // Run through all the implied interfaces the class that we're
-    // adding implements and see if any of them are already in the
-    // tree. If so, we have a tree with interface subtypes. If not,
-    // keep track of them so we can deal with it if the interface is
-    // added to the tree later.
-    for (Link link = type.interfaces; !link.isEmpty; link = link.tail) {
-      InterfaceType superType = link.head;
-      ClassElement superTypeElement = superType.element;
-      if (nodes.containsKey(superTypeElement)) {
-        containsInterfaceSubtypes = true;
-        unseenInterfaceSubtypes.clear();
-        break;
-      } else {
-        unseenInterfaceSubtypes.add(superTypeElement);
-      }
-    }
-    return node;
-  }
-
-  // TODO(kasperl): Move this to the Selector class?
   /**
    * Returns a [ClassElement] that is an upper bound of the receiver type on
    * [selector].
    */
+  // TODO(kasperl): Move this to the Selector class?
   ClassElement selectorType(Selector selector) {
     // TODO(ngeoffray): Should the tree be specialized with DartType?
     DartType type = selector.receiverType;

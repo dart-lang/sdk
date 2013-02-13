@@ -7,51 +7,47 @@ part of universe;
 // TODO(kasperl): This actually holds getters and setters just fine
 // too and stricly they aren't functions. Maybe this needs a better
 // name -- something like ElementSet seems a bit too generic.
-class FunctionSet extends PartialTypeTree {
+class FunctionSet {
+  final Compiler compiler;
+  final Map<SourceString, FunctionSetNode> nodes =
+      new Map<SourceString, FunctionSetNode>();
+  FunctionSet(this.compiler);
 
-  FunctionSet(Compiler compiler) : super(compiler);
-
-  FunctionSetNode newSpecializedNode(ClassElement type)
-      => new FunctionSetNode(type);
-
-  // TODO(kasperl): Allow static members too?
   void add(Element element) {
     assert(element.isMember());
-    FunctionSetNode node = findNode(element.getEnclosingClass(), true);
-    node.membersByName[element.name] = element;
+    SourceString name = element.name;
+    FunctionSetNode node = nodes.putIfAbsent(
+        name, () => new FunctionSetNode(name));
+    node.add(element);
   }
 
-  // TODO(kasperl): Allow static members too?
   void remove(Element element) {
     assert(element.isMember());
-    FunctionSetNode node = findNode(element.getEnclosingClass(), false);
-    if (node != null) node.membersByName.remove(element.name);
+    SourceString name = element.name;
+    FunctionSetNode node = nodes[name];
+    if (node != null) {
+      node.remove(element);
+    }
   }
 
-  // TODO(kasperl): Allow static members too?
   bool contains(Element element) {
     assert(element.isMember());
-    FunctionSetNode node = findNode(element.getEnclosingClass(), false);
+    SourceString name = element.name;
+    FunctionSetNode node = nodes[name];
     return (node != null)
-        ? node.membersByName.containsKey(element.name)
+        ? node.contains(element)
         : false;
-  }
-
-  bool shouldVisitAll(Selector selector) {
-    // TODO(kasperl): For now, we use a different implementation for
-    // filtering if the tree contains interface subtypes.
-    return containsInterfaceSubtypes
-        && (selector.typeKind == TypedSelectorKind.INTERFACE
-            || selector.typeKind == TypedSelectorKind.UNKNOWN);
   }
 
   /**
    * Returns all elements that may be invoked with the given [selector].
    */
-  Set<Element> filterBySelector(Selector selector) {
-    return shouldVisitAll(selector)
-        ? filterAllBySelector(selector)
-        : filterHierarchyBySelector(selector);
+  Iterable<Element> filterBySelector(Selector selector) {
+    SourceString name = selector.name;
+    FunctionSetNode node = nodes[name];
+    return (node != null)
+        ? node.filter(selector, compiler)
+        : const <Element>[];
   }
 
   /**
@@ -59,86 +55,92 @@ class FunctionSet extends PartialTypeTree {
    * [selector].
    */
   bool hasAnyElementMatchingSelector(Selector selector) {
-    return shouldVisitAll(selector)
-        ? hasAnyInAll(selector)
-        : hasAnyInHierarchy(selector);
+    return !filterBySelector(selector).isEmpty;
   }
 
-  Set<Element> filterAllBySelector(Selector selector) {
-    Set<Element> result = new Set<Element>();
-    if (root == null) return result;
-    root.visitRecursively((FunctionSetNode node) {
-      Element member = node.membersByName[selector.name];
-      // Since we're running through the entire tree we have to use
-      // the applies method that takes types into account.
-      if (member != null && selector.appliesUnnamed(member, compiler)) {
-        result.add(member);
-      }
-      return true;
-    });
-    return result;
-  }
-
-  Set<Element> filterHierarchyBySelector(Selector selector) {
-    Set<Element> result = new Set<Element>();
-    if (root == null) return result;
-    visitHierarchy(selectorType(selector), (FunctionSetNode node) {
-      Element member = node.membersByName[selector.name];
-      if (member != null && selector.appliesUntyped(member, compiler)) {
-        result.add(member);
-      }
-      return true;
-    });
-    return result;
-  }
-
-  bool hasAnyInAll(Selector selector) {
-    bool result = false;
-    if (root == null) return result;
-    root.visitRecursively((FunctionSetNode node) {
-      Element member = node.membersByName[selector.name];
-      // Since we're running through the entire tree we have to use
-      // the applies method that takes types into account.
-      if (member != null && selector.appliesUnnamed(member, compiler)) {
-        result = true;
-        // End the traversal.
-        return false;
-      }
-      return true;
-    });
-    return result;
-  }
-
-  bool hasAnyInHierarchy(Selector selector) {
-    bool result = false;
-    if (root == null) return result;
-    visitHierarchy(selectorType(selector), (FunctionSetNode node) {
-      Element member = node.membersByName[selector.name];
-      if (member != null && selector.appliesUntyped(member, compiler)) {
-        result = true;
-        // End the traversal.
-        return false;
-      }
-      return true;
-    });
-    return result;
-  }
-
-  void forEach(Function f) {
-    if (root == null) return;
-    root.visitRecursively((FunctionSetNode node) {
-      node.membersByName.forEach(
-          (SourceString _, Element element) => f(element));
-      return true;
+  void forEach(Function action) {
+    nodes.forEach((SourceString name, FunctionSetNode node) {
+      node.forEach(action);
     });
   }
 }
 
-class FunctionSetNode extends PartialTypeTreeNode {
+class FunctionSetNode {
+  final SourceString name;
+  final Map<Selector, List<Element>> cache = new Map<Selector, List<Element>>();
 
-  final Map<SourceString, Element> membersByName;
+  // Initially, we keep the elements in a list because it is more
+  // compact than a hash set. Once we get enough elements, we change
+  // the representation to be a set to get faster contains checks.
+  static const int MAX_ELEMENTS_IN_LIST = 8;
+  Collection<Element> elements = <Element>[];
+  bool isList = true;
 
-  FunctionSetNode(ClassElement type) : super(type),
-      membersByName = new Map<SourceString, Element>();
+  FunctionSetNode(this.name);
 
+  void add(Element element) {
+    assert(element.name == name);
+    // We try to avoid clearing the cache unless we have to. For that
+    // reason we keep the explicit contains check even though the add
+    // method ends up doing the work again (for sets).
+    if (!elements.contains(element)) {
+      if (isList && elements.length >= MAX_ELEMENTS_IN_LIST) {
+        elements = elements.toSet();
+        isList = false;
+      }
+      elements.add(element);
+      cache.clear();
+    }
+  }
+
+  void remove(Element element) {
+    assert(element.name == name);
+    if (isList) {
+      List list = elements;
+      int index = list.indexOf(element);
+      if (index < 0) return;
+      Element last = list.removeLast();
+      if (index != list.length) {
+        list[index] = last;
+      }
+      cache.clear();
+    } else {
+      Set set = elements;
+      if (set.remove(element)) {
+        // To avoid wobbling between the two representations, we do
+        // not transition back to the list representation even if we
+        // end up with few enough elements at this point.
+        cache.clear();
+      }
+    }
+  }
+
+  bool contains(Element element) {
+    assert(element.name == name);
+    return elements.contains(element);
+  }
+
+  void forEach(Function action) {
+    elements.forEach(action);
+  }
+
+  Iterable<Element> filter(Selector selector, Compiler compiler) {
+    assert(selector.name == name);
+    List<Element> result = cache[selector];
+    if (result != null) return result;
+    for (Element element in elements) {
+      if (selector.appliesUnnamed(element, compiler)) {
+        if (result == null) {
+          // Defer the allocation of the resulting list until we are
+          // sure we need it. This allows us to return immutable empty
+          // lists when the filtering produced no results.
+          result = <Element>[];
+        }
+        result.add(element);
+      }
+    }
+    if (result == null) result = const <Element>[];
+    cache[selector] = result;
+    return result;
+  }
 }

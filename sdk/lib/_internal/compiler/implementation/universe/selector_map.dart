@@ -4,12 +4,13 @@
 
 part of universe;
 
+// TODO(kasperl): It seems possible to rewrite this class to be more
+// like the FunctionSet abstraction which is a lot simpler.
 class SelectorMap<T> extends PartialTypeTree {
 
   SelectorMap(Compiler compiler) : super(compiler);
 
-  SelectorMapNode<T> newSpecializedNode(ClassElement type)
-      => new SelectorMapNode<T>(type);
+  SelectorMapNode<T> newNode(ClassElement type) => new SelectorMapNode<T>(type);
 
   T operator [](Selector selector) {
     SelectorMapNode<T> node = findNode(selectorType(selector), false);
@@ -23,32 +24,29 @@ class SelectorMap<T> extends PartialTypeTree {
     return null;
   }
 
+  // TODO(kasperl): Do we need to support removing selectors by
+  // passing null as the value?
   void operator []=(Selector selector, T value) {
-    SelectorMapNode<T> node = findNode(selectorType(selector), true);
-    Link<SelectorValue<T>> selectors = node.selectorsByName[selector.name];
-    if (selectors == null) {
-      // No existing selectors with the given name. Create a new
-      // linked list.
-      SelectorValue<T> head = new SelectorValue<T>(selector, value);
-      node.selectorsByName[selector.name] =
-          new Link<SelectorValue<T>>().prepend(head);
-    } else {
-      // Run through the linked list of selectors with the same name. If
-      // we find one that matches, we update the value in the mapping.
-      for (Link link = selectors; !link.isEmpty; link = link.tail) {
-        SelectorValue<T> existing = link.head;
-        // It is safe to ignore the type here, because all selector
-        // mappings that are stored in a single node have the same type.
-        if (existing.selector.equalsUntyped(selector)) {
-          existing.value = value;
-          return;
-        }
+    ClassElement type = selectorType(selector);
+    SelectorMapNode<T> node = findNode(type, true);
+    SourceString name = selector.name;
+    Link<SelectorValue<T>> selectors = node.selectorsByName.putIfAbsent(
+        name, () => const Link());
+    // Run through the linked list of selectors with the same name. If
+    // we find one that matches, we update the value in the mapping.
+    for (Link link = selectors; !link.isEmpty; link = link.tail) {
+      SelectorValue<T> existing = link.head;
+      // It is safe to ignore the type here, because all selector
+      // mappings that are stored in a single node have the same type.
+      if (existing.selector.equalsUntyped(selector)) {
+        existing.value = value;
+        return;
       }
-      // We could not find an existing mapping for the selector, so
-      // we add a new one to the existing linked list.
-      SelectorValue<T> head = new SelectorValue<T>(selector, value);
-      node.selectorsByName[selector.name] = selectors.prepend(head);
     }
+    // We could not find an existing mapping for the selector, so
+    // we add a new one to the existing linked list.
+    SelectorValue<T> head = new SelectorValue<T>(selector, value);
+    node.selectorsByName[name] = selectors.prepend(head);
   }
 
   // TODO(kasperl): Share code with the [] operator?
@@ -72,13 +70,10 @@ class SelectorMap<T> extends PartialTypeTree {
   void visitMatching(Element member, bool visit(Selector selector, T value)) {
     assert(member.isMember());
     if (root == null) return;
-    // TODO(kasperl): For now, we use a different implementation for
-    // visiting if the tree contains interface subtypes.
-    if (containsInterfaceSubtypes) {
-      visitAllMatching(member, visit);
-    } else {
-      visitHierarchyMatching(member, visit);
-    }
+    // TODO(kasperl): Use visitHierachyMatching when possible. It is
+    // currently broken in subtle ways when it comes to finding typed
+    // selectors where we only know the interface of the receiver.
+    visitAllMatching(member, visit);
   }
 
   void visitAllMatching(Element member, bool visit(selector, value)) {
@@ -116,12 +111,9 @@ class SelectorMap<T> extends PartialTypeTree {
 }
 
 class SelectorMapNode<T> extends PartialTypeTreeNode {
-
-  final Map<SourceString, Link<SelectorValue<T>>> selectorsByName;
-
-  SelectorMapNode(ClassElement type) : super(type),
-      selectorsByName = new Map<SourceString, Link<SelectorValue<T>>>();
-
+  final Map<SourceString, Link<SelectorValue<T>>> selectorsByName =
+      new Map<SourceString, Link<SelectorValue<T>>>();
+  SelectorMapNode(ClassElement type) : super(type);
 }
 
 class SelectorValue<T> {
