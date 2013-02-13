@@ -108,12 +108,48 @@ abstract class Source {
     var path;
     return systemCacheDirectory(id).then((p) {
       path = p;
-      if (dirExists(path)) return true;
+
+      // See if it's already cached.
+      if (!dirExists(path)) return false;
+
+      return _isCachedPackageCorrupted(path).then((isCorrupted) {
+        if (!isCorrupted) return true;
+
+        // Busted, so wipe out the package and reinstall.
+        return deleteDir(path).then((_) => false);
+      });
+    }).then((isInstalled) {
+      if (isInstalled) return true;
       ensureDir(dirname(path));
       return install(id, path);
     }).then((found) {
       if (!found) throw 'Package $id not found.';
       return new Package.load(id.name, path, systemCache.sources);
+    });
+  }
+
+  /// Since pub generates symlinks that point into the system cache (in
+  /// particular, targeting the "lib" directories of cached packages), it's
+  /// possible to accidentally break cached packages if something traverses
+  /// that symlink.
+  ///
+  /// This tries to determine if the cached package at [packageDir] has been
+  /// corrupted. The heuristics are it is corrupted if any of the following are
+  /// true:
+  ///
+  ///   * It has an empty "lib" directory.
+  ///   * It has no pubspec.
+  Future<bool> _isCachedPackageCorrupted(String packageDir) {
+    return defer(() {
+      if (!fileExists(join(packageDir, "pubspec.yaml"))) return true;
+
+      var libDir = join(packageDir, "lib");
+      if (dirExists(libDir)) {
+        return listDir(libDir).then((contents) => contents.length == 0);
+      }
+
+      // If we got here, it's OK.
+      return false;
     });
   }
 
