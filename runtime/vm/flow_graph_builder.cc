@@ -1656,24 +1656,37 @@ void EffectGraphVisitor::VisitArgumentDefinitionTestNode(
 
 
 void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
-  // Translate the array elements and collect their values.
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new ZoneGrowableArray<PushArgumentInstr*>(node->length());
-  for (int i = 0; i < node->length(); ++i) {
-    ValueGraphVisitor for_value(owner(), temp_index());
-    node->ElementAt(i)->Visit(&for_value);
-    Append(for_value);
-    arguments->Add(PushArgument(for_value.value()));
-  }
   const AbstractTypeArguments& type_args =
       AbstractTypeArguments::ZoneHandle(node->type().arguments());
   Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
                                                        type_args);
   CreateArrayInstr* create = new CreateArrayInstr(node->token_pos(),
-                                                  arguments,
+                                                  node->length(),
                                                   node->type(),
                                                   element_type);
-  ReturnDefinition(create);
+  Value* array_val = Bind(create);
+  Definition* store = BuildStoreTemp(node->temp_local(), array_val);
+  Do(store);
+
+  const intptr_t class_id = create->Type()->ToCid();
+  const intptr_t deopt_id = Isolate::kNoDeoptId;
+  for (int i = 0; i < node->length(); ++i) {
+    Value* array = Bind(
+        new LoadLocalInstr(node->temp_local(), owner()->context_level()));
+    Value* index = Bind(new ConstantInstr(Smi::ZoneHandle(Smi::New(i))));
+    ValueGraphVisitor for_value(owner(), temp_index());
+    node->ElementAt(i)->Visit(&for_value);
+    Append(for_value);
+    // No store barrier needed for constants.
+    const bool emit_store_barrier = !for_value.value()->BindsToConstant();
+    StoreIndexedInstr* store = new StoreIndexedInstr(
+        array, index, for_value.value(),
+        emit_store_barrier, class_id, deopt_id);
+    Do(store);
+  }
+
+  ReturnDefinition(
+      new LoadLocalInstr(node->temp_local(), owner()->context_level()));
 }
 
 
@@ -3041,8 +3054,10 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   arguments->Add(new LiteralNode(args_pos, args_descriptor));
   // The third argument is an array containing the original method arguments,
   // including the receiver.
-  ArrayNode* args_array =
-      new ArrayNode(args_pos, Type::ZoneHandle(Type::ArrayType()));
+  ArrayNode* args_array = new ArrayNode(
+      args_pos,
+      Type::ZoneHandle(Type::ArrayType()),
+      *owner()->parsed_function().array_literal_var());
   for (intptr_t i = 0; i < method_arguments->length(); i++) {
     args_array->AddElement(method_arguments->NodeAt(i));
   }

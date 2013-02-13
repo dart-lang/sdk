@@ -114,6 +114,13 @@ LocalVariable* ParsedFunction::CreateExpressionTempVar(intptr_t token_pos) {
 }
 
 
+LocalVariable* ParsedFunction::CreateArrayLiteralVar(intptr_t token_pos) {
+  return new LocalVariable(token_pos,
+                           Symbols::ArrayLiteralVar(),
+                           Type::ZoneHandle(Type::ArrayType()));
+}
+
+
 void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
   ASSERT(node_sequence_ == NULL);
   ASSERT(node_sequence != NULL);
@@ -758,6 +765,10 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       UNREACHABLE();
   }
 
+  parsed_function->set_array_literal_var(
+      ParsedFunction::CreateArrayLiteralVar(func.token_pos()));
+  node_sequence->scope()->AddVariable(parsed_function->array_literal_var());
+
   if (!HasReturnNode(node_sequence)) {
     // Add implicit return node.
     node_sequence->Add(new ReturnNode(func.end_token_pos()));
@@ -1375,6 +1386,18 @@ static const String& PrivateCoreLibName(const String& str) {
 }
 
 
+LocalVariable* Parser::BuildArrayTempLocal(intptr_t token_pos) {
+  char name[64];
+  OS::SNPrint(name, 64, ":arrlit%"Pd, token_pos);
+  LocalVariable* temp =
+      new LocalVariable(token_pos,
+                        String::ZoneHandle(Symbols::New(name)),
+                        Type::ZoneHandle(Type::ArrayType()));
+  current_block_->scope->AddVariable(temp);
+  return temp;
+}
+
+
 StaticCallNode* Parser::BuildInvocationMirrorAllocation(
     intptr_t call_pos,
     const String& function_name,
@@ -1393,7 +1416,8 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   // The third argument is an array containing the original function arguments,
   // including the receiver.
   ArrayNode* args_array = new ArrayNode(
-      args_pos, Type::ZoneHandle(Type::ArrayType()));
+      args_pos, Type::ZoneHandle(Type::ArrayType()),
+      *BuildArrayTempLocal(call_pos));
   for (intptr_t i = 0; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
@@ -8683,7 +8707,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
     factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
-    ArrayNode* list = new ArrayNode(TokenPos(), type, element_list);
+    const LocalVariable& temp_local = *BuildArrayTempLocal(type_pos);
+    ArrayNode* list = new ArrayNode(TokenPos(), type, temp_local, element_list);
     factory_param->Add(list);
     return CreateConstructorCallNode(literal_pos,
                                      factory_type_args,
@@ -8773,8 +8798,6 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
   map_type_arguments ^= map_type_arguments.Canonicalize();
 
-  // The kv_pair array is temporary and of element type dynamic. It is passed
-  // to the factory to initialize a properly typed map.
   GrowableArray<AstNode*> kv_pairs_list;
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
@@ -8902,8 +8925,13 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
     factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
+    // The kv_pair array is temporary and of element type dynamic. It is passed
+    // to the factory to initialize a properly typed map.
     ArrayNode* kv_pairs = new ArrayNode(
-        TokenPos(), Type::ZoneHandle(Type::ArrayType()), kv_pairs_list);
+        TokenPos(),
+        Type::ZoneHandle(Type::ArrayType()),
+        *BuildArrayTempLocal(type_pos),
+        kv_pairs_list);
     factory_param->Add(kv_pairs);
     return CreateConstructorCallNode(literal_pos,
                                      factory_type_args,
@@ -9279,7 +9307,10 @@ AstNode* Parser::ParseStringLiteral() {
   } else {
     ArgumentListNode* interpolate_arg = new ArgumentListNode(TokenPos());
     ArrayNode* values = new ArrayNode(
-        TokenPos(), Type::ZoneHandle(Type::ArrayType()), values_list);
+        TokenPos(),
+        Type::ZoneHandle(Type::ArrayType()),
+        *BuildArrayTempLocal(TokenPos()),
+        values_list);
     interpolate_arg->Add(values);
     primary = MakeStaticCall(Symbols::StringBase(),
                              PrivateCoreLibName(Symbols::Interpolate()),

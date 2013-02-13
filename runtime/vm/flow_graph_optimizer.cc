@@ -3841,7 +3841,7 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
   if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
       (instr->value()->definition()->IsCreateArray())) {
     const intptr_t length =
-        instr->value()->definition()->AsCreateArray()->ArgumentCount();
+        instr->value()->definition()->AsCreateArray()->num_elements();
     const Object& result = Smi::ZoneHandle(Smi::New(length));
     SetValue(instr, result);
     return;

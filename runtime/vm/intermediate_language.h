@@ -3003,16 +3003,13 @@ class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
 class CreateArrayInstr : public TemplateDefinition<1> {
  public:
   CreateArrayInstr(intptr_t token_pos,
-                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   intptr_t num_elements,
                    const AbstractType& type,
                    Value* element_type)
       : token_pos_(token_pos),
-        arguments_(arguments),
+        num_elements_(num_elements),
         type_(type) {
 #if defined(DEBUG)
-    for (int i = 0; i < ArgumentCount(); ++i) {
-      ASSERT(ArgumentAt(i) != NULL);
-    }
     ASSERT(element_type != NULL);
     ASSERT(type_.IsZoneHandle());
     ASSERT(!type_.IsNull());
@@ -3024,10 +3021,9 @@ class CreateArrayInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(CreateArray)
   virtual CompileType* ComputeInitialType() const;
 
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
+  intptr_t num_elements() const { return num_elements_; }
 
   intptr_t token_pos() const { return token_pos_; }
-  PushArgumentInstr* ArgumentAt(intptr_t i) const { return (*arguments_)[i]; }
   const AbstractType& type() const { return type_; }
   Value* element_type() const { return inputs_[0]; }
 
@@ -3039,7 +3035,7 @@ class CreateArrayInstr : public TemplateDefinition<1> {
 
  private:
   const intptr_t token_pos_;
-  ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
+  const intptr_t num_elements_;
   const AbstractType& type_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);

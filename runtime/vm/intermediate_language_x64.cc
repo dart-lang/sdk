@@ -1426,18 +1426,12 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary() const {
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Allocate the array.  R10 = length, RBX = element type.
   ASSERT(locs()->in(0).reg() == RBX);
-  __ movq(R10, Immediate(Smi::RawValue(ArgumentCount())));
+  __ movq(R10, Immediate(Smi::RawValue(num_elements())));
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,
                          locs());
   ASSERT(locs()->out().reg() == RAX);
-
-  // Pop the element values from the stack into the array.
-  __ leaq(R10, FieldAddress(RAX, Array::data_offset()));
-  for (int i = ArgumentCount() - 1; i >= 0; --i) {
-    __ popq(Address(R10, i * kWordSize));
-  }
 }
 
 
