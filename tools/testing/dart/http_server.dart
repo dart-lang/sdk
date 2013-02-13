@@ -6,6 +6,7 @@ library http_server;
 
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:uri';
 import 'test_suite.dart';  // For TestUtils.
 // TODO(efortuna): Rewrite to not use the args library and simply take an
 // expected number of arguments, so test.dart doesn't rely on the args library?
@@ -28,6 +29,8 @@ main() {
   parser.addFlag('help', abbr: 'h', negatable: false,
       help: 'Print this usage information.');
   parser.addOption('package-root', help: 'The package root to use.');
+  parser.addOption('network', help: 'The network interface to use.',
+      defaultsTo: '127.0.0.1');
   var args = parser.parse(new Options().arguments);
   if (args['help']) {
     print(parser.getUsage());
@@ -41,11 +44,12 @@ main() {
         .canonicalize()
         .toNativePath();
     TestingServerRunner._packageRootDir = new Path(args['package-root']);
-    TestingServerRunner.startHttpServer('127.0.0.1',
+    var network = args['network'];
+    TestingServerRunner.startHttpServer(network,
         port: int.parse(args['port']));
     print('Server listening on port '
           '${TestingServerRunner.serverList[0].port}.');
-    TestingServerRunner.startHttpServer('127.0.0.1',
+    TestingServerRunner.startHttpServer(network,
         allowedPort: TestingServerRunner.serverList[0].port, port:
         int.parse(args['crossOriginPort']));
     print(
@@ -93,10 +97,14 @@ class TestingServerRunner {
       file.exists().then((exists) {
         if (exists) {
           if (allowedPort != -1) {
-            // Allow loading from localhost:$allowedPort in browsers.
-            resp.headers.set("Access-Control-Allow-Origin",
-                "http://127.0.0.1:$allowedPort");
-            resp.headers.set('Access-Control-Allow-Credentials', 'true');
+            if (request.headers.value('Origin') != null) {
+              var origin = new Uri(request.headers.value('Origin'));
+              // Allow loading from http://*:$allowedPort in browsers.
+              var allowedOrigin =
+                  '${origin.scheme}://${origin.domain}:${allowedPort}';
+              resp.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+              resp.headers.set('Access-Control-Allow-Credentials', 'true');
+            }
           } else {
             // No allowedPort specified. Allow from anywhere (but cross-origin
             // requests *with credentials* will fail because you can't use "*").
@@ -111,16 +119,14 @@ class TestingServerRunner {
           }
           file.openInputStream().pipe(resp.outputStream);
         } else {
-          resp.statusCode = HttpStatus.NOT_FOUND;
-          try {
-            resp.outputStream.close();
-          } catch (e) {
-            if (e is StreamException) {
-              print('Test http_server error closing the response stream: $e');
+          var directory = new Directory.fromPath(path);
+          directory.exists().then((exists) {
+            if (!exists) {
+              sendNotFound(resp);
             } else {
-              throw e;
+              sendDirectoryListing(directory, request, resp);
             }
-          }
+          });
         }
       });
     };
@@ -136,7 +142,84 @@ class TestingServerRunner {
     serverList.add(httpServer);
   }
 
+  static void sendNotFound(HttpResponse response) {
+    response.statusCode = HttpStatus.NOT_FOUND;
+    try {
+      response.outputStream.close();
+    } catch (e) {
+      if (e is StreamException) {
+        print('Test http_server error closing the response stream: $e');
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  /**
+   * Sends a simple listing of all the files and sub-directories within
+   * directory.
+   *
+   * This is intended to make it easier to browse tests when manually running
+   * tests against this test server.
+   */
+  static void sendDirectoryListing(Directory directory, HttpRequest request,
+      HttpResponse response) {
+    response.headers.set('Content-Type', 'text/html');
+    var header = '''<!DOCTYPE html>
+    <html>
+    <head>
+      <title>${request.path}</title>
+    </head>
+    <body>
+      <code>
+        <div>${request.path}</div>
+        <hr/>
+        <ul>''';
+    var footer = '''
+        </ul>
+      </code>
+    </body>
+    </html>''';
+
+    var entries = [];
+
+    directory.list()
+      ..onFile = (filepath) {
+        var filename = new Path(filepath).filename;
+        entries.add(new _Entry(filename, filename));
+      }
+      ..onDir = (dirpath) {
+        var filename = new Path(dirpath).filename;
+        entries.add(new _Entry(filename, '$filename/'));
+      }
+      ..onDone = (_) {
+        var requestPath = new Path.raw(request.path);
+        entries.sort();
+
+        response.outputStream.writeString(header);
+        for (var entry in entries) {
+          response.outputStream.writeString(
+              '<li><a href="${requestPath.append(entry.name)}">'
+              '${entry.displayName}</a></li>');
+        }
+        response.outputStream.writeString(footer);
+        response.outputStream.close();
+      };
+  }
+
   static terminateHttpServers() {
     for (var server in serverList) server.close();
+  }
+}
+
+// Helper class for displaying directory listings.
+class _Entry {
+  final String name;
+  final String displayName;
+
+  _Entry(this.name, this.displayName);
+
+  int compareTo(_Entry other) {
+    return name.compareTo(other.name);
   }
 }
