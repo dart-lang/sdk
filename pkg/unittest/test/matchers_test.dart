@@ -249,10 +249,17 @@ void main() {
     test('type mismatch', () {
       var a = new DateTime.utc(2000);
       var b = a.toString();
+      // We should get something like:
+      //    Expected: '2000-01-01 00:00:00.000Z'
+      //    but: expected String:'2000-01-01 00:00:00.000Z'
+      //    but was DateTime:<2000-01-01 00:00:00.000Z>.
+      // However, if minification is applied, then the type names
+      // will be shortened to two letters. The key thing is that
+      // there will be a "but: expected" part in the middle;
+      // this only happens with type mismatches or mismatches
+      // inside container types.
       shouldFail(a, equals(b),
-          "Expected: '2000-01-01 00:00:00.000Z' "
-          "but: expected String:'2000-01-01 00:00:00.000Z' "
-          "but was DateTime:<2000-01-01 00:00:00.000Z>.");
+          matches(new RegExp("^Expected.*but: expected .*but was.*\$")));
     });
   });
 
