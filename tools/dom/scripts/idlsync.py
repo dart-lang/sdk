@@ -14,22 +14,75 @@ import sys
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 DART_PATH = os.path.abspath(os.path.join(SCRIPT_PATH, '..', '..', '..'))
 
-# Path to install latest IDL.
-IDL_PATH = os.path.join(DART_PATH, 'third_party', 'WebCore')
+# Dartium DEPS file with Chrome and WebKit revisions.
+DEPS = ('http://dart.googlecode.com/svn/branches/'
+        'bleeding_edge/deps/dartium.deps/DEPS')
 
 # Whitelist of files to keep.
 WHITELIST = [
     r'LICENSE(\S+)',
-    r'(\S+)\.idl']
+    r'(\S+)\.idl',
+    r'(\S+)\.json',
+    r'(\S+)\.py',
+    ]
 
-# README file to generate.
-README = os.path.join(IDL_PATH, 'README')
-
-# SVN URL to latest Dartium version of WebKit.
-DEPS = 'http://dart.googlecode.com/svn/branches/bleeding_edge/deps/dartium.deps/DEPS'
-URL_PATTERN = r'"dartium_webkit_trunk": "(\S+)",'
-REV_PATTERN = r'"dartium_webkit_revision": "(\d+)",'
+# WebKit / WebCore info.
+WEBKIT_URL_PATTERN = r'"dartium_webkit_trunk": "(\S+)",'
+WEBKIT_REV_PATTERN = r'"dartium_webkit_revision": "(\d+)",'
 WEBCORE_SUBPATH = 'Source/WebCore'
+LOCAL_WEBKIT_IDL_PATH = os.path.join(DART_PATH, 'third_party', 'WebCore')
+LOCAL_WEBKIT_README = os.path.join(LOCAL_WEBKIT_IDL_PATH, 'README')
+LOCAL_WEBKIT_README = """\
+This directory contains a copy of WebKit/WebCore IDL files.
+See the attached LICENSE-* files in this directory.
+
+Please do not modify the files here.  They are periodically copied
+using the script: $DART_ROOT/sdk/lib/html/scripts/%(script)s
+
+The current version corresponds to:
+URL: %(url)s
+Current revision: %(revision)s
+"""
+
+# Chrome info.
+CHROME_URL_PATTERN = r'"chromium_url": "(\S+)",'
+CHROME_REV_PATTERN = r'"chromium_revision": "(\d+)",'
+CHROME_IDL_SUBPATH = 'trunk/src/chrome/common/extensions/api'
+CHROME_TOOLS_SUBPATH = 'trunk/src/tools/json_schema_compiler'
+LOCAL_CHROME_IDL_PATH = os.path.join(DART_PATH, 'third_party', 'chrome', 'idl')
+LOCAL_CHROME_TOOLS_PATH = os.path.join(DART_PATH, 'third_party', 'chrome',
+                                       'tools')
+LOCAL_CHROME_README = """\
+This directory contains a copy of Chromium IDL and generation scripts
+used to generate Dart APIs for Chrome Apps.
+
+The original files are from:
+URL: %(url)s
+Current revision: %(revision)s
+
+Please see the corresponding LICENSE file at
+%(url)s/trunk/src/LICENSE.
+"""
+
+# Regular expressions corresponding to URL/revision patters in the
+# DEPS file.
+DEPS_PATTERNS = {
+    'webkit': (WEBKIT_URL_PATTERN, WEBKIT_REV_PATTERN),
+    'chrome': (CHROME_URL_PATTERN, CHROME_REV_PATTERN),
+    }
+
+# List of components to update.
+UPDATE_LIST = [
+    # (component, remote subpath, local path, local readme file)
+
+    # WebKit IDL.
+    ('webkit', WEBCORE_SUBPATH, LOCAL_WEBKIT_IDL_PATH, LOCAL_WEBKIT_README),
+    # Chrome IDL.
+    ('chrome', CHROME_IDL_SUBPATH, LOCAL_CHROME_IDL_PATH, LOCAL_CHROME_README),
+    # Chrome IDL compiler files.
+    ('chrome', CHROME_TOOLS_SUBPATH, LOCAL_CHROME_TOOLS_PATH,
+     LOCAL_CHROME_README),
+    ]
 
 
 def RunCommand(cmd):
@@ -45,30 +98,40 @@ def RunCommand(cmd):
     sys.exit(pipe.returncode)
 
 
-def GetWebkitSvnRevision():
+def GetDeps():
+  """Returns the DEPS file contents with pinned revision info."""
+  return RunCommand(['svn', 'cat', DEPS])
+
+
+def GetSvnRevision(deps, component):
   """Returns a tuple with the (dartium webkit repo, latest revision)."""
-  deps = RunCommand(['svn', 'cat', DEPS])
-  url = re.search(URL_PATTERN, deps).group(1)
-  revision = re.search(REV_PATTERN, deps).group(1)
+  url_pattern, rev_pattern = DEPS_PATTERNS[component]
+  url = re.search(url_pattern, deps).group(1)
+  revision = re.search(rev_pattern, deps).group(1)
   return (url, revision)
 
 
-def RefreshIDL(url, revision):
-  """Refreshes the IDL to specific WebKit url / revision."""
+def RefreshIDL(url, revision, remote_path, local_path):
+  """Refreshes refreshes files in the local_path to specific url /
+  revision / remote_path."""
   cwd = os.getcwd()
   try:
-    shutil.rmtree(IDL_PATH)
-    os.chdir(os.path.dirname(IDL_PATH))
-    RunCommand(['svn', 'export', '-r', revision, url + '/' + WEBCORE_SUBPATH])
+    if os.path.exists(local_path):
+      shutil.rmtree(local_path)
+    head, tail = os.path.split(local_path)
+    if not os.path.exists(head):
+      os.makedirs(head)
+    os.chdir(head)
+    RunCommand(['svn', 'export', '-r', revision, url + '/' + remote_path, tail])
   finally:
     os.chdir(cwd)
 
 
-def PruneExtraFiles():
+def PruneExtraFiles(local_path):
   """Removes all files that do not match the whitelist."""
   pattern = re.compile(reduce(lambda x,y: '%s|%s' % (x,y),
                               map(lambda z: '(%s)' % z, WHITELIST)))
-  for (root, dirs, files) in os.walk(IDL_PATH, topdown=False):
+  for (root, dirs, files) in os.walk(local_path, topdown=False):
     for f in files:
       if not pattern.match(f):
         os.remove(os.path.join(root, f))
@@ -78,41 +141,48 @@ def PruneExtraFiles():
         shutil.rmtree(dirpath)
 
 
-def ParseOptions():
-  parser = optparse.OptionParser()
-  parser.add_option('--revision', '-r', dest='revision',
-                    help='Revision to install', default=None)
-  args, _ = parser.parse_args()
-  return args.revision
-
-
-def GenerateReadme(url, revision):
-  readme = """This directory contains a copy of WebKit/WebCore IDL files.
-See the attached LICENSE-* files in this directory.
-
-Please do not modify the files here.  They are periodically copied
-using the script: $DART_ROOT/sdk/lib/html/scripts/%(script)s
-
-The current version corresponds to:
-URL: %(url)s
-Current revision: %(revision)s
-""" % {
+def GenerateReadme(local_path, template, url, revision):
+  readme = template % {
     'script': os.path.basename(__file__),
     'url': url,
     'revision': revision }
-  out = open(README, 'w')
+
+  readme_path = os.path.join(local_path, 'README')
+  out = open(readme_path, 'w')
   out.write(readme)
   out.close()
 
 
+def ParseOptions():
+  parser = optparse.OptionParser()
+  parser.add_option('--webkit-revision', '-w', dest='webkit_revision',
+                    help='WebKit IDL revision to install', default=None)
+  parser.add_option('--chrome-revision', '-c', dest='chrome_revision',
+                    help='Chrome IDL revision to install', default=None)
+  parser.add_option('--update', '-u', dest='update',
+                    help='IDL to update (webkit | chrome | all)',
+                    default='webkit')
+  args, _ = parser.parse_args()
+  update = {}
+  if args.update == 'all' or args.update == 'chrome':
+    update['chrome'] = args.chrome_revision
+  if args.update == 'all' or args.update == 'webkit':
+    update['webkit'] = args.webkit_revision
+  return update
+
+
 def main():
-  revision = ParseOptions()
-  url, latest = GetWebkitSvnRevision()
-  if not revision:
-    revision = latest
-  RefreshIDL(url, revision)
-  PruneExtraFiles()
-  GenerateReadme(url, revision)
+  deps = GetDeps()
+  update = ParseOptions()
+  for (component, remote_path, local_path, readme) in UPDATE_LIST:
+    if component in update.keys():
+      revision = update[component]
+      url, latest = GetSvnRevision(deps, component)
+      if not revision:
+        revision = latest
+      RefreshIDL(url, revision, remote_path, local_path)
+      PruneExtraFiles(local_path)
+      GenerateReadme(local_path, readme, url, revision)
 
 
 if __name__ == '__main__':
