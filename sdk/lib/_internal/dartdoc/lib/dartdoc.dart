@@ -406,9 +406,9 @@ class Dartdoc {
 
     // TODO(jacobr): handle arbitrary pub packages rather than just the system
     // libraries.
-    var revision = '';
+    var revision = '0';
     if (version != null) {
-      var match = new RegExp(r"_r(\d+)_").firstMatch(version);
+      var match = new RegExp(r"_r(\d+)").firstMatch(version);
       if (match != null) {
         revision = match.group(1);
       } else {
