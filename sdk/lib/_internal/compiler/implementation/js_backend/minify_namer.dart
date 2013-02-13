@@ -195,7 +195,7 @@ class MinifyNamer extends Namer {
   int _calculateHash(String name) {
     int h = 0;
     for (int i = 0; i < name.length; i++) {
-      h += name.charCodeAt(i);
+      h += name.codeUnitAt(i);
       h &= 0xffffffff;
       h += h << 10;
       h &= 0xffffffff;

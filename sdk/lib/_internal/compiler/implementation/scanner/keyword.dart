@@ -158,7 +158,7 @@ abstract class KeywordState {
         isLeaf = true;
       }
       if (strings[i].length > start) {
-        int c = strings[i].charCodeAt(start);
+        int c = strings[i].codeUnitAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
             assert(result[chunk - $a] == null);

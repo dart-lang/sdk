@@ -48,7 +48,7 @@ class Printer implements NodeVisitor {
   int get lastCharCode {
     if (lastAddedString == null) return 0;
     assert(lastAddedString.length != "");
-    return lastAddedString.charCodeAt(lastAddedString.length - 1);
+    return lastAddedString.codeUnitAt(lastAddedString.length - 1);
   }
 
   void out(String str) {
@@ -685,7 +685,7 @@ class Printer implements NodeVisitor {
     // Ignore the leading and trailing string-delimiter.
     for (int i = 1; i < field.length - 1; i++) {
       // TODO(floitsch): allow more characters.
-      int charCode = field.charCodeAt(i);
+      int charCode = field.codeUnitAt(i);
       if (!(charCodes.$a <= charCode && charCode <= charCodes.$z ||
             charCodes.$A <= charCode && charCode <= charCodes.$Z ||
             charCode == charCodes.$$ ||
@@ -743,7 +743,7 @@ class Printer implements NodeVisitor {
   }
 
   visitLiteralNumber(LiteralNumber node) {
-    int charCode = node.value.charCodeAt(0);
+    int charCode = node.value.codeUnitAt(0);
     if (charCode == charCodes.$MINUS && lastCharCode == charCodes.$MINUS) {
       out(" ");
     }

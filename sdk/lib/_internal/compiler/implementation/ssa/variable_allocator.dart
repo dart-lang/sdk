@@ -62,7 +62,7 @@ class LiveInterval {
   String toString() {
     List<String> res = new List<String>();
     for (final interval in ranges) res.add(interval.toString());
-    return '(${Strings.join(res, ', ')})';
+    return '(${res.join(", ")})';
   }
 }
 

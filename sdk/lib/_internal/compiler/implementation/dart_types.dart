@@ -801,6 +801,6 @@ class Types {
       reasons.add(message.toString());
       return true;
     });
-    return Strings.join(reasons, ', ');
+    return reasons.join(', ');
   }
 }

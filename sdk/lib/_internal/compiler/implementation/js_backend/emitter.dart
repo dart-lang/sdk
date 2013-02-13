@@ -1552,7 +1552,7 @@ $lazyInitializerLogic
                                    List<String> fieldNames,
                                    ClassBuilder builder) {
     builder.addProperty('',
-        js.string("$superName;${Strings.join(fieldNames,',')}"));
+        js.string("$superName;${fieldNames.join(',')}"));
   }
 
   /**

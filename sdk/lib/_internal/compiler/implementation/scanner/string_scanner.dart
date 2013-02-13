@@ -19,7 +19,7 @@ class StringScanner extends ArrayBasedScanner<SourceString> {
   int peek() => charAt(byteOffset + 1);
 
   int charAt(index)
-      => (string.length > index) ? string.charCodeAt(index) : $EOF;
+      => (string.length > index) ? string.codeUnitAt(index) : $EOF;
 
   SourceString asciiString(int start, int offset) {
     return new SubstringWrapper(string, start, byteOffset + offset);
@@ -102,5 +102,5 @@ class SubstringWrapper extends Iterable<int> implements SourceString {
 
   bool get isEmpty => begin == end;
 
-  bool isPrivate() => !isEmpty && identical(internalString.charCodeAt(begin), $_);
+  bool isPrivate() => !isEmpty && internalString.codeUnitAt(begin) == $_;
 }
