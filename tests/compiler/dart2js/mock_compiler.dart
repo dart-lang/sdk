@@ -69,23 +69,25 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     toString() {}
   }
   class JSNumber {
-    operator-() {}
-    operator +(other) {}
-    operator -(other) {}
-    operator ~/(other) {}
-    operator /(other) {}
-    operator *(other) {}
-    operator <<(other) {}
-    operator >>(other) {}
-    operator |(other) {}
-    operator &(other) {}
-    operator ^(other) {}
-    operator >(other) {}
-    operator >=(other) {}
-    operator <(other) {}
-    operator <=(other) {}
-    operator ==(other) {}
-    operator %(other) {}
+    // All these methods return a number to please type inferencing.
+    operator-() => (this is JSInt) ? 42 : 42.0;
+    operator +(other) => (this is JSInt) ? 42 : 42.0;
+    operator -(other) => (this is JSInt) ? 42 : 42.0;
+    operator ~/(other) => 42;
+    operator /(other) => (this is JSInt) ? 42 : 42.0;
+    operator *(other) => (this is JSInt) ? 42 : 42.0;
+    operator %(other) => (this is JSInt) ? 42 : 42.0;
+    operator <<(other) => 42;
+    operator >>(other) => 42;
+    operator |(other) => 42;
+    operator &(other) => 42;
+    operator ^(other) => 42;
+
+    operator >(other) => true;
+    operator >=(other) => true;
+    operator <(other) => true;
+    operator <=(other) => true;
+    operator ==(other) => true;
   }
   class JSInt {
   }

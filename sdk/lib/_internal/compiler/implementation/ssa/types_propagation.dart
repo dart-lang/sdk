@@ -20,7 +20,6 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
         pendingOptimizations = new Map<HInstruction, Function>();
 
   HType computeType(HInstruction instruction) {
-    if (instruction.hasGuaranteedType()) return instruction.guaranteedType;
     return instruction.computeTypeFromInputTypes(types, compiler);
   }
 

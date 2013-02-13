@@ -12,8 +12,20 @@ import '../tree/tree.dart';
 import '../elements/elements.dart';
 import '../util/util.dart';
 import '../universe/universe.dart';
+import 'simple_types_inferrer.dart' show SimpleTypesInferrer;
 
 part 'concrete_types_inferrer.dart';
+
+/**
+ * Common super class for our type inferrers. Currently, its query methods
+ * return instances of [ConcreteType], but that may change in the
+ * future.
+ */
+abstract class TypesInferrer {
+  analyzeMain(Element element);
+  getConcreteTypeOfElement(Element element);
+  getConcreteTypeOfNode(Element owner, Node node);
+}
 
 /**
  * The types task infers guaranteed types globally.
@@ -22,13 +34,14 @@ class TypesTask extends CompilerTask {
   final String name = 'Type inference';
   final Set<Element> untypedElements;
   final Map<Element, Link<Element>> typedSends;
-  ConcreteTypesInferrer concreteTypesInferrer;
+  TypesInferrer typesInferrer;
 
   TypesTask(Compiler compiler)
     : untypedElements = new Set<Element>(),
       typedSends = new Map<Element, Link<Element>>(),
-      concreteTypesInferrer = compiler.enableConcreteTypeInference
-          ? new ConcreteTypesInferrer(compiler) : null,
+      typesInferrer = compiler.enableConcreteTypeInference
+          ? new ConcreteTypesInferrer(compiler)
+          : new SimpleTypesInferrer(compiler),
       super(compiler);
 
   /**
@@ -46,13 +59,13 @@ class TypesTask extends CompilerTask {
    */
   void onResolutionComplete(Element mainElement) {
     measure(() {
-      if (concreteTypesInferrer != null) {
-        bool success = concreteTypesInferrer.analyzeMain(mainElement);
+      if (typesInferrer != null) {
+        bool success = typesInferrer.analyzeMain(mainElement);
         if (!success) {
           // If the concrete type inference bailed out, we pretend it didn't
           // happen. In the future we might want to record that it failed but
           // use the partial results as hints.
-          concreteTypesInferrer = null;
+          typesInferrer = null;
         }
       }
     });
@@ -63,12 +76,12 @@ class TypesTask extends CompilerTask {
    */
   ConcreteType getGuaranteedTypeOfElement(Element element) {
     return measure(() {
-      if (!element.isParameter()) return null;
-      if (concreteTypesInferrer != null) {
-        ConcreteType guaranteedType = concreteTypesInferrer
-            .getConcreteTypeOfParameter(element);
+      if (typesInferrer != null) {
+        ConcreteType guaranteedType = typesInferrer
+            .getConcreteTypeOfElement(element);
         if (guaranteedType != null) return guaranteedType;
       }
+      if (!element.isParameter()) return null;
       Element holder = element.enclosingElement;
       Link<Element> types = typedSends[holder];
       if (types == null) return null;
@@ -92,10 +105,10 @@ class TypesTask extends CompilerTask {
    * Return the (inferred) guaranteed concrete type of [node] or null.
    * [node] must be an AST node of [owner].
    */
-  ConcreteType getGuaranteedTypeOfNode(Node node, Element owner) {
+  ConcreteType getGuaranteedTypeOfNode(owner, node) {
     return measure(() {
-      if (concreteTypesInferrer != null) {
-        return concreteTypesInferrer.getConcreteTypeOfNode(node);
+      if (typesInferrer != null) {
+        return typesInferrer.getConcreteTypeOfNode(owner, node);
       }
       return null;
     });

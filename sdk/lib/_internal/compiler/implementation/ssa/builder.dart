@@ -296,8 +296,7 @@ class LocalsHandler {
         builder.parameters[parameterElement] = parameter;
         directLocals[parameterElement] = parameter;
         parameter.guaranteedType =
-            builder.mapInferredType(
-                typesTask.getGuaranteedTypeOfElement(parameterElement));
+            builder.getGuaranteedTypeOfElement(parameterElement);
       });
     }
 
@@ -3376,11 +3375,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       HInvokeStatic instruction = new HInvokeStatic(inputs, HType.UNKNOWN);
-      // TODO(ngeoffray): Only do this if knowing the return type is
-      // useful.
-      HType returnType =
-          builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
-              currentElement, element);
+      HType returnType = getGuaranteedTypeOfElement(element);
+      if (returnType.isUnknown()) {
+        // TODO(ngeoffray): Only do this if knowing the return type is
+        // useful.
+        returnType =
+            builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
+                currentElement, element);
+      }
       if (returnType != null) instruction.guaranteedType = returnType;
       pushWithPosition(instruction, node);
     } else {
@@ -3572,7 +3574,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
-    return new HInvokeDynamicMethod(selector, inputs, isIntercepted);
+    HInstruction invoke = new HInvokeDynamicMethod(
+        selector, inputs, isIntercepted);
+    HType returnType = mapInferredType(
+        compiler.typesTask.getGuaranteedTypeOfNode(work.element, node));
+    if (returnType != null) {
+      invoke.guaranteedType = returnType;
+    }
+    return invoke;
   }
 
   visitSendSet(SendSet node) {
@@ -4656,8 +4665,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     for (BaseType baseType in concreteType.baseTypes) {
       ssaType = ssaType.union(mapBaseType(baseType), compiler);
     }
-    assert(!ssaType.isConflicting());
+    if (ssaType.isConflicting()) return HType.UNKNOWN;
     return ssaType;
+  }
+
+  HType getGuaranteedTypeOfElement(Element element) {
+    return mapInferredType(
+        compiler.typesTask.getGuaranteedTypeOfElement(element));
   }
 
   // [type] is either an instance of [DartType] or special objects

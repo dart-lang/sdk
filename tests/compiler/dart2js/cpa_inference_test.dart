@@ -53,7 +53,7 @@ class AnalysisResult {
   BaseType nullType;
 
   AnalysisResult(MockCompiler compiler) : this.compiler = compiler {
-    inferrer = compiler.typesTask.concreteTypesInferrer;
+    inferrer = compiler.typesTask.typesInferrer;
     int = inferrer.baseTypes.intBaseType;
     double = inferrer.baseTypes.doubleBaseType;
     num = inferrer.baseTypes.numBaseType;
@@ -177,7 +177,7 @@ AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
       enableConcreteTypeInference: true,
       maxConcreteTypeSize: maxConcreteTypeSize);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
-  compiler.typesTask.concreteTypesInferrer.testMode = true;
+  compiler.typesTask.typesInferrer.testMode = true;
   compiler.runCompiler(uri);
   return new AnalysisResult(compiler);
 }

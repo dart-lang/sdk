@@ -391,7 +391,7 @@ class InferenceWorkItem {
  * A task which conservatively infers a [ConcreteType] for each sub expression
  * of the program. The entry point is [analyzeMain].
  */
-class ConcreteTypesInferrer {
+class ConcreteTypesInferrer extends TypesInferrer {
   static final bool LOG_FAILURES = true;
 
   final String name = "Type inferrer";
@@ -686,13 +686,16 @@ class ConcreteTypesInferrer {
   /**
    * Get the inferred concrete type of [node].
    */
-  ConcreteType getConcreteTypeOfNode(Node node) => inferredTypes[node];
+  ConcreteType getConcreteTypeOfNode(Element owner, Node node) {
+    return inferredTypes[node];
+  }
 
   /**
-   * Get the inferred concrete type of [parameter].
+   * Get the inferred concrete type of [element].
    */
-  ConcreteType getConcreteTypeOfParameter(VariableElement parameter) {
-    return inferredParameterTypes[parameter];
+  ConcreteType getConcreteTypeOfElement(Element element) {
+    if (!element.isParameter()) return null;
+    return inferredParameterTypes[element];
   }
 
   // --- analysis ---

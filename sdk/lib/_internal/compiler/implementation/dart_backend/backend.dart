@@ -360,10 +360,13 @@ class DartBackend extends Backend {
         classMembers[enclosingClass].add(element);
         processElement(element, elementAst);
       } else {
-        if (!element.isTopLevel()) {
+        if (element.enclosingElement.isFunction()) {
+          // Closure, nothing to do.
+        } else if (!element.isTopLevel()) {
           compiler.cancel('Cannot process $element', element: element);
+        } else {
+          addTopLevel(element, elementAst);
         }
-        addTopLevel(element, elementAst);
       }
     });
 

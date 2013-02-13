@@ -1617,6 +1617,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (target != null) {
       // If we know we're calling a specific method, register that
       // method only.
+      assert(selector.typeKind != TypedSelectorKind.UNKNOWN);
       world.registerDynamicInvocationOf(target, selector);
     } else {
       SourceString name = node.selector.name;

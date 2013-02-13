@@ -58,7 +58,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Previous optimizations may have generated new
           // opportunities for constant folding.
           new SsaConstantFolder(constantSystem, backend, work, types),
-          new SsaSimplifyInterceptors(constantSystem),
+          new SsaSimplifyInterceptors(constantSystem, types),
           new SsaDeadCodeEliminator(types)];
       runPhases(graph, phases);
       if (!speculative) {
@@ -150,8 +150,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
         // If we can replace [instruction] with [replacement], then
         // [replacement]'s type can be narrowed.
-        types[replacement] =
-            types[replacement].intersection(types[instruction], compiler);
+        types[replacement] = types[replacement].intersection(
+            types[instruction], compiler);
+        replacement.guaranteedType = replacement.guaranteedType.intersection(
+            instruction.guaranteedType, compiler);
 
         // If the replacement instruction does not know its
         // source element, use the source element of the
@@ -258,9 +260,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction handleInterceptorCall(HInvokeDynamic node) {
-    // We only optimize for intercepted method calls in this method.
-    Selector selector = node.selector;
-
     // Try constant folding the instruction.
     Operation operation = node.specializer.operation(constantSystem);
     if (operation != null) {
@@ -275,17 +274,22 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         node.specializer.tryConvertToBuiltin(node, types);
     if (instruction != null) return instruction;
 
-    // Check if this call does not need to be intercepted.
-    HInstruction input = node.inputs[1];
-    HType type = types[input];
+    Selector selector = node.selector;
     var interceptor = node.inputs[0];
 
-    if (interceptor.isConstant() && selector.isCall()) {
+    // If the intercepted call is through a constant interceptor, we
+    // know which element to call.
+    if (node is !HOneShotInterceptor
+        && interceptor.isConstant()
+        && selector.isCall()) {
       DartType type = types[interceptor].computeType(compiler);
       ClassElement cls = type.element;
       node.element = cls.lookupSelector(selector);
     }
 
+    HInstruction input = node.inputs[1];
+    HType type = types[input];
+    // Check if this call does not need to be intercepted.
     if (interceptor is !HThis && !type.canBePrimitive()) {
       // If the type can be null, and the intercepted method can be in
       // the object class, keep the interceptor.
@@ -1502,9 +1506,10 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     implements OptimizationPhase {
   final String name = "SsaSimplifyInterceptors";
   final ConstantSystem constantSystem;
+  final HTypeMap types;
   HGraph graph;
 
-  SsaSimplifyInterceptors(this.constantSystem);
+  SsaSimplifyInterceptors(this.constantSystem, this.types);
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -1531,6 +1536,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         user.selector, inputs, node.interceptedClasses);
     interceptor.sourcePosition = user.sourcePosition;
     interceptor.sourceElement = user.sourceElement;
+    interceptor.guaranteedType = user.guaranteedType;
+    types[interceptor] = types[user];
 
     HBasicBlock block = user.block;
     block.addAfter(user, interceptor);
