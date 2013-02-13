@@ -46,7 +46,7 @@ abstract class HType {
       return HType.NULL;
     } else if (element == backend.jsArrayClass) {
       return canBeNull
-          ? HType.READABLE_ARRAY.union(HType.NULL)
+          ? HType.READABLE_ARRAY.union(HType.NULL, compiler)
           : HType.READABLE_ARRAY;
     } else if (!isExact) {
       if (element == compiler.listClass

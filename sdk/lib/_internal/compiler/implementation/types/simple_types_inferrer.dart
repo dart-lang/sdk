@@ -15,7 +15,7 @@ import 'types.dart' show TypesInferrer, ConcreteType, ClassBaseType;
  * A work queue that ensures there are no duplicates, and adds and
  * removes in LIFO.
  */
-class WorkSet<E> {
+class WorkSet<E extends Element> {
   final List<E> queue = new List<E>();
   final Set<E> elementsInQueue = new Set<E>();
   
@@ -235,7 +235,8 @@ class SimpleTypesInferrer extends TypesInferrer {
       // TODO(ngeoffray): Analyze its initializer.
       return false;
     } else {
-      Visitor visitor = new SimpleTypeInferrerVisitor(element, compiler, this);
+      SimpleTypeInferrerVisitor visitor =
+          new SimpleTypeInferrerVisitor(element, compiler, this);
       return visitor.run();
     }
   }
@@ -368,11 +369,6 @@ class SimpleTypesInferrer extends TypesInferrer {
     if (analyzeCount.containsKey(caller)) return;
     iterateOverElements(selector, (Element element) {
       assert(element.isImplementation);
-      if (element.isAbstractField()) {
-        AbstractFieldElement field = element;
-        element = element.getter;
-        if (element == null) return true;
-      }
       Set<FunctionElement> callers = callersOf.putIfAbsent(
           element, () => new Set<FunctionElement>());
       callers.add(caller);
@@ -775,5 +771,9 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
   leastUpperBound(Element firstType, Element secondType) {
     if (firstType == secondType) return firstType;
     return compiler.dynamicClass;
+  }
+
+  internalError(String reason, {Node node}) {
+    compiler.internalError(reason, node: node);
   }
 }
