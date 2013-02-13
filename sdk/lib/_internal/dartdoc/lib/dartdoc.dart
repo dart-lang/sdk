@@ -143,6 +143,51 @@ Future<bool> compileScript(int mode, Path outputDir, Path libPath) {
   return completer.future;
 }
 
+/**
+ * Package manifest containing all information required to render the main page
+ * for a package.
+ *
+ * The manifest specifies where to load the [LibraryElement]s describing each
+ * library rather than including them directly.
+ * For our purposes we treat the core Dart libraries as a package.
+ */
+class PackageManifest {
+  /** Package name. */
+  final name;
+  /** Package description */
+  final description;
+  /** Libraries contained in this package. */
+  final List<String> libraries = <String>[];
+  /**
+   * Descriptive string describing the version# of the package.
+   *
+   * The current format for dart-sdk versions is
+   * $MAJOR.$MINOR.$BUILD.$PATCH$revisionString$userNameString
+   * For example: 0.1.2.0_r18233_johndoe
+   */
+  final String fullVersion;
+  /**
+   * Source control revision number for the package. For SVN this is a number
+   * while for GIT it is a hash.
+   */
+  final String revision;
+  /**
+   * Path to the directory containing data files for each library.
+   *
+   * Currently this is the serialized json version of the LibraryElement for
+   * the library. 
+   */
+  String location;
+  /**
+   * Packages depended on by this package.
+   * We currently store the entire manifest for the depency here the manifests
+   * are small.  We may want to change this to a reference in the future.
+   */
+  final List<PackageManifest> dependencies = <PackageManifest>[];
+
+  PackageManifest(this.name, this.description, this.fullVersion, this.revision);
+}
+
 class Dartdoc {
 
   /** Set to `false` to not include the source code in the generated docs. */
@@ -206,6 +251,9 @@ class Dartdoc {
 
   /** Set this to inherit from Object. */
   bool inheritFromObject = false;
+
+  /** Version of the sdk or package docs are being generated for. */
+  String version;
 
   /** Set this to select the libraries to include in the documentation. */
   List<String> includedLibraries = const <String>[];
@@ -356,11 +404,34 @@ class Dartdoc {
       generateAppCacheManifest();
     }
 
+    // TODO(jacobr): handle arbitrary pub packages rather than just the system
+    // libraries.
+    var revision = '';
+    if (version != null) {
+      revision = new RegExp(r"_r(\d+)_").firstMatch(version).group(1);
+    }
+    var packageManifest = new PackageManifest('dart:', 'Dart System Libraries',
+        version, revision);
+
+    for (final lib in _sortedLibraries) {
+      var libraryElement = new LibraryElement(lib.qualifiedName, lib)
+          ..stripDuplicateUris(null, null);
+      packageManifest.libraries.add(libraryElement.id);
+      startFile("$revision/${libraryElement.id}.json");
+
+      write(json_serializer.serialize(libraryElement));
+      endFile();
+    }
+
+    startFile("$revision/apidoc.json");
+    write(json_serializer.serialize(packageManifest));
+    endFile();
+
+    // Write out top level json file with a relative path to the library json
+    // files.
     startFile("apidoc.json");
-    var libraries = _sortedLibraries.map(
-        (lib) => new LibraryElement(lib.qualifiedName, lib))
-        .toList();
-    write(json_serializer.serialize(libraries));
+    packageManifest.location = revision;
+    write(json_serializer.serialize(packageManifest));
     endFile();
   }
 

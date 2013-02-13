@@ -14,8 +14,18 @@ import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
 import '../../libraries.dart';
 import 'dartdoc.dart';
 
+String _stripUri(String uri) {
+  String prefix = "/dart/";
+  int start = uri.indexOf(prefix);
+  if (start != -1) {
+    return uri.substring(start + prefix.length);
+  } else {
+    return uri;
+  }
+}
+
 /**
- * Base class for all nodes.
+ * Base class for all elements in the AST.
  */
 class Element {
   /** Human readable type name for the node. */
@@ -28,14 +38,46 @@ class Element {
   final String comment;
   /** Children of the node. */
   List<Element> children;
+  /** Whether the element is private. */
+  final bool isPrivate;
 
-  Element(this.kind, this.name, this.id, this.comment);
+  /**
+   * Uri containing the definition of the element.
+   */
+  String uri;
+  /**
+   * Line in the original source file that starts the definition of the element.
+   */
+  String line;
+
+  Element(Mirror mirror, this.kind, this.name, this.id, this.comment)
+      : line = mirror.location.line.toString(),
+        isPrivate = _optionalBool(mirror.isPrivate),
+        uri = _stripUri(mirror.location.sourceUri.toString());
 
   void addChild(Element child) {
     if (children == null) {
       children = <Element>[];
     }
     children.add(child);
+  }
+
+  /**
+   * Remove all URIs that exactly match the parent node's URI.
+   * This reduces output file size by about 20%.
+   */
+  void stripDuplicateUris(String parentUri, parentLine) {
+    if (children != null) {
+      for (var child in children) {
+        child.stripDuplicateUris(uri, line);
+      }
+    }
+    if (parentUri == uri) {
+      uri = null;
+    }
+    if (line == parentLine) {
+      line = null;
+    }
   }
 }
 
@@ -45,12 +87,18 @@ class Element {
  */
 bool _optionalBool(bool value) => value == true ? true : null;
 
+Reference _optionalReference(Mirror mirror) {
+  return (mirror != null && mirror.simpleName != "Dynamic_" &&
+      mirror.simpleName != "dynamic") ?
+        new Reference(mirror) : null;
+}
+
 /**
  * [Element] describing a Dart library.
  */
 class LibraryElement extends Element {
   LibraryElement(String name, LibraryMirror mirror)
-      : super('library', name, mirror.uri.toString(), computeComment(mirror)) {
+      : super(mirror, 'library', name, name, computeComment(mirror)) {
 
     mirror.functions.forEach((childName, childMirror) {
       addChild(new MethodElement(childName, childMirror));
@@ -82,22 +130,26 @@ class LibraryElement extends Element {
 class ClassElement extends Element {
   /** Base class.*/
   final Reference superclass;
+  /** Whether the class is abstract. */
+  final bool isAbstract;
   /** Interfaces the class implements. */
   List<Reference> interfaces;
 
   ClassElement(String name, ClassMirror mirror)
-      : super('class', mirror.simpleName, name, computeComment(mirror)),
-        superclass = mirror.superclass != null ?
-            new Reference(mirror.superclass) : null {
+      : super(mirror, 'class', mirror.simpleName, name, computeComment(mirror)),
+        superclass = _optionalReference(mirror.superclass),
+        isAbstract = _optionalBool(mirror.isAbstract) {
     for (var interface in mirror.superinterfaces) {
       if (this.interfaces == null) {
         this.interfaces = <Reference>[];
       }
-      this.interfaces.add(new Reference(interface));
+      this.interfaces.add(_optionalReference(interface));
     }
 
     mirror.methods.forEach((childName, childMirror) {
-      addChild(new MethodElement(childName, childMirror));
+      if (!childMirror.isConstructor && !childMirror.isGetter) {
+        addChild(new MethodElement(childName, childMirror));
+      }
     });
 
     mirror.getters.forEach((childName, childMirror) {
@@ -111,6 +163,10 @@ class ClassElement extends Element {
     mirror.constructors.forEach((constructorName, methodMirror) {
       addChild(new MethodElement(constructorName, methodMirror, 'constructor'));
     });
+
+    for (var typeVariable in mirror.originalDeclaration.typeVariables) {
+      addChild(new TypeParameterElement(typeVariable));
+    }
   }
 }
 
@@ -123,9 +179,8 @@ class GetterElement extends Element {
   final bool isStatic;
 
   GetterElement(String name, MethodMirror mirror)
-      : super('property', mirror.simpleName, name, computeComment(mirror)),
-        ref = mirror.returnType != null ?
-            new Reference(mirror.returnType) : null,
+      : super(mirror, 'property', mirror.simpleName, name, computeComment(mirror)),
+        ref = _optionalReference(mirror.returnType),
         isStatic = _optionalBool(mirror.isStatic);
 }
 
@@ -140,10 +195,9 @@ class MethodElement extends Element {
   final bool isStatic;
 
   MethodElement(String name, MethodMirror mirror, [String kind = 'method'])
-      : super(kind, name, '$name${mirror.parameters.length}()',
+      : super(mirror, kind, name, '$name${mirror.parameters.length}()',
               computeComment(mirror)),
-        returnType = mirror.returnType != null ?
-            new Reference(mirror.returnType) : null,
+        returnType = _optionalReference(mirror.returnType),
         isSetter = _optionalBool(mirror.isSetter),
         isOperator = _optionalBool(mirror.isOperator),
         isStatic = _optionalBool(mirror.isStatic) {
@@ -164,10 +218,28 @@ class ParameterElement extends Element {
   final bool isOptional;
 
   ParameterElement(ParameterMirror mirror)
-      : super('param', mirror.simpleName, mirror.simpleName, null),
-        ref = new Reference(mirror.type),
+      : super(mirror, 'param', mirror.simpleName, mirror.simpleName, null),
+        ref = _optionalReference(mirror.type),
         isOptional = _optionalBool(mirror.isOptional) {
   }
+}
+
+/**
+ * Element describing a generic type parameter.
+ */
+class TypeParameterElement extends Element {
+  /**
+   * Upper bound for the parameter.
+   * 
+   * In the following code sample, [:Bar:] is an upper bound:
+   * [: class Bar<T extends Foo> { } :]
+   */
+  Reference upperBound;
+
+  TypeParameterElement(TypeMirror mirror)
+      : super(mirror, 'typeparam', mirror.simpleName, mirror.simpleName, null),
+        upperBound = mirror.upperBound != null && !mirror.upperBound.isObject ?
+            new Reference(mirror.upperBound) : null;
 }
 
 /**
@@ -176,20 +248,37 @@ class ParameterElement extends Element {
 class VariableElement extends Element {
   /** Type of the variable. */
   final Reference ref;
+  /** Whether the variable is static. */
   final bool isStatic;
+  /** Whether the variable is final. */
+  final bool isFinal;
 
   VariableElement(String name, VariableMirror mirror)
-      : super('property', mirror.simpleName, name, null),
-        ref = new Reference(mirror.type),
-        isStatic = _optionalBool(mirror.isStatic);
+      : super(mirror, 'variable', mirror.simpleName, name, null),
+        ref = _optionalReference(mirror.type),
+        isStatic = _optionalBool(mirror.isStatic),
+        isFinal = _optionalBool(mirror.isFinal);
 }
-// TODO(jacobr): this seems incomplete.
+
 /**
- * Element describing a typedef element.
+ * Element describing a typedef.
  */
+
 class TypedefElement extends Element {
+  /** Return type of the typedef. */
+  final Reference returnType;
+
   TypedefElement(String name, TypedefMirror mirror)
-      : super('typedef', mirror.simpleName, name, computeComment(mirror));
+      : super(mirror, 'typedef', mirror.simpleName, name,
+               computeComment(mirror)),
+        returnType = _optionalReference(mirror.value.returnType) {
+    for (var param in mirror.value.parameters) {
+      addChild(new ParameterElement(param));
+    }
+    for (var typeVariable in mirror.originalDeclaration.typeVariables) {
+      addChild(new TypeParameterElement(typeVariable));
+    }
+  }
 }
 
 /**
@@ -201,14 +290,13 @@ class Reference {
   List<Reference> arguments;
 
   Reference(Mirror mirror)
-      : name = mirror.simpleName,
+      : name = mirror.displayName,
         refId = getId(mirror) {
     if (mirror is ClassMirror) {
-      if (mirror is !TypedefMirror
-          && mirror.typeArguments.length > 0) {
+      if (mirror is !TypedefMirror && !mirror.typeArguments.isEmpty) {
         arguments = <Reference>[];
         for (var typeArg in mirror.typeArguments) {
-          arguments.add(new Reference(typeArg));
+          arguments.add(_optionalReference(typeArg));
         }
       }
     }
@@ -216,11 +304,8 @@ class Reference {
 
   static String getId(Mirror mirror) {
     String id = mirror.simpleName;
-    if (mirror is MemberMirror) {
-      MemberMirror memberMirror = mirror;
-      if (memberMirror.owner != null) {
-        id = '${getId(memberMirror.owner)}/$id';
-      }
+    if (mirror.owner != null) {
+      id = '${getId(mirror.owner)}/$id';
     }
     return id;
   }

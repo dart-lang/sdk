@@ -114,7 +114,7 @@ class JsonPrinter {
   bool _inSet = false;
 
   bool _prettyPrint;
-  JsonPrinter({this._prettyPrint: true}) {
+  JsonPrinter({this._prettyPrint: false}) {
     _sb = new StringBuffer();
   }
 

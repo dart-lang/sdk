@@ -46,6 +46,7 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             'apidoc.dart',
             '--out=<(PRODUCT_DIR)/api_docs',
+            '--version=<!@(["python", "../../tools/print_version.py"])',
             '--pkg=<(PRODUCT_DIR)/packages/',
             '--mode=static',
             '--exclude-lib=dartdoc',
