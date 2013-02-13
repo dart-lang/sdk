@@ -235,12 +235,19 @@ abstract class PubCommand {
     handleError(error, trace) {
       // This is basically the top-level exception handler so that we don't
       // spew a stack trace on our users.
-      var message = error.toString();
+      var message;
 
-      // TODO(rnystrom): The default exception implementation class puts
-      // "Exception:" in the output, so strip that off.
-      if (message.startsWith("Exception: ")) {
-        message = message.substring("Exception: ".length);
+      try {
+        // Most exception types have a "message" property. We prefer this since
+        // it skips the "Exception:", "HttpException:", etc. prefix that calling
+        // toString() adds. But, alas, "message" isn't actually defined in the
+        // base Exception type so there's no easy way to know if it's available
+        // short of a giant pile of type tests for each known exception type.
+        //
+        // So just try it. If it throws, default to toString().
+        message = error.message;
+      } on NoSuchMethodError catch (_) {
+        message = error.toString();
       }
 
       log.error(message);

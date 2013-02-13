@@ -25,8 +25,7 @@ main() {
     ]).scheduleCreate();
 
     schedulePub(args: ['install'],
-        error:
-            new RegExp('Package "foo" doesn\'t have a pubspec.yaml file.'),
+        error: new RegExp('Package "foo" doesn\'t have a pubspec.yaml file.'),
         exitCode: 1);
   });
 }
