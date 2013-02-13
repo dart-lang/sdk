@@ -28093,19 +28093,23 @@ class Window extends EventTarget implements WindowBase {
   /**
    * Executes a [callback] after the immediate execution stack has completed.
    *
-   * This will cause the callback to be executed after all processing has
+   * This differs from using Timer.run(callback)
+   * because Timer will run in about 4-15 milliseconds, depending on browser,
+   * depending on load. [setImmediate], in contrast, makes browser-specific
+   * changes in behavior to attempt to run immediately after the current
+   * frame unwinds, causing the future to complete after all processing has
    * completed for the current event, but before any subsequent events.
    */
-  void setImmediate(TimeoutHandler callback) {
+  void setImmediate(TimeoutHandler callback) { 
     _addMicrotaskCallback(callback);
   }
-
   /**
    * Lookup a port by its [name].  Return null if no port is
    * registered under [name].
    */
-  lookupPort(String name) {
-    var port = json.parse(document.documentElement.attributes['dart-port:$name']);
+  SendPortSync lookupPort(String name) {
+    var port =
+        json.parse(document.documentElement.attributes['dart-port:$name']);
     return _deserialize(port);
   }
 
@@ -28114,9 +28118,26 @@ class Window extends EventTarget implements WindowBase {
    * port may be retrieved by any isolate (or JavaScript script)
    * running in this window.
    */
-  registerPort(String name, var port) {
+  void registerPort(String name, var port) {
     var serialized = _serialize(port);
-    document.documentElement.attributes['dart-port:$name'] = json.stringify(serialized);
+    document.documentElement.attributes['dart-port:$name'] =
+        json.stringify(serialized);
+  }
+
+  /**
+   * Returns a Future that completes just before the window is about to repaint
+   * so the user can draw an animation frame
+   *
+   * If you need to later cancel this animation, use [requestAnimationFrame]
+   * instead.
+   *
+   * Note: The code that runs when the future completes should call 
+   * [animationFrame] again for the animation to continue.
+   */
+  Future<num> get animationFrame {
+    var completer = new Completer<int>();
+    requestAnimationFrame(completer.complete);
+    return completer.future;
   }
 
   /// Checks if _setImmediate is supported.
@@ -28455,14 +28476,6 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   void captureEvents() native "DOMWindow_captureEvents_Callback";
 
-  @DomName('DOMWindow.clearInterval')
-  @DocsEditable
-  void clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
-
-  @DomName('DOMWindow.clearTimeout')
-  @DocsEditable
-  void clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
-
   @DomName('DOMWindow.close')
   @DocsEditable
   void close() native "DOMWindow_close_Callback";
@@ -28553,14 +28566,6 @@ class Window extends EventTarget implements WindowBase {
   @DomName('DOMWindow.scrollTo')
   @DocsEditable
   void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
-
-  @DomName('DOMWindow.setInterval')
-  @DocsEditable
-  int setInterval(TimeoutHandler handler, int timeout) native "DOMWindow_setInterval_Callback";
-
-  @DomName('DOMWindow.setTimeout')
-  @DocsEditable
-  int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
 
   @DomName('DOMWindow.showModalDialog')
   @DocsEditable

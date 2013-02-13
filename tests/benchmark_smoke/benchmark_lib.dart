@@ -5,6 +5,7 @@
 library benchmark_lib;
 
 import 'dart:html';
+import 'dart:async';
 import 'dart:math' as Math;
 
 import 'smoketest_lib.dart';
