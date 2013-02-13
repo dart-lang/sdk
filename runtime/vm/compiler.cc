@@ -476,10 +476,11 @@ static RawError* CompileFunctionHelper(const Function& function,
     ParsedFunction* parsed_function = new ParsedFunction(
         Function::ZoneHandle(function.raw()));
     if (FLAG_trace_compiler) {
-      OS::Print("Compiling %sfunction: '%s' @ token %"Pd"\n",
+      OS::Print("Compiling %sfunction: '%s' @ token %"Pd", size %"Pd"\n",
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
-                function.token_pos());
+                function.token_pos(),
+                (function.end_token_pos() - function.token_pos()));
     }
     {
       HANDLESCOPE(isolate);
@@ -506,9 +507,10 @@ static RawError* CompileFunctionHelper(const Function& function,
     per_compile_timer.Stop();
 
     if (FLAG_trace_compiler) {
-      OS::Print("--> '%s' entry: %#"Px" time: %"Pd64" us\n",
+      OS::Print("--> '%s' entry: %#"Px" size: %"Pd" time: %"Pd64" us\n",
                 function.ToFullyQualifiedCString(),
                 Code::Handle(function.CurrentCode()).EntryPoint(),
+                Code::Handle(function.CurrentCode()).Size(),
                 per_compile_timer.TotalElapsedTime());
     }
 

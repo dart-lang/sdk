@@ -42,8 +42,10 @@ DEFINE_FLAG(bool, show_internal_names, false,
     "instead of showing the corresponding interface names (e.g. \"String\")");
 DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
     "Trace disabling optimized code.");
-DEFINE_FLAG(int, huge_method_cutoff, 20000,
-            "Huge method cutoff: Disables optimizations for huge methods.");
+DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
+    "Huge method cutoff in tokens: Disables optimizations for huge methods.");
+DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 50000,
+    "Huge method cutoff in unoptimized code size (in words).");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -3671,10 +3673,20 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 
 
 bool Function::is_optimizable() const {
-  return OptimizableBit::decode(raw_ptr()->kind_tag_) &&
-         (script() != Script::null()) &&
-         !is_native() &&
-         ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff);
+  if (OptimizableBit::decode(raw_ptr()->kind_tag_) &&
+      (script() != Script::null()) &&
+      !is_native() &&
+      ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
+    // Additional check needed for implicit getters.
+    if (HasCode() &&
+       (Code::Handle(unoptimized_code()).Size() >=
+        FLAG_huge_method_cutoff_in_code_size * kWordSize)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  return false;
 }
 
 
