@@ -185,7 +185,8 @@ namespace dart {
   KW(kTYPEDEF, "typedef", 0, kPseudoKeyword)                                   \
   KW(kVAR, "var", 0, kKeyword)                                                 \
   KW(kVOID, "void", 0, kKeyword)                                               \
-  KW(kWHILE, "while", 0, kKeyword) /* == kLastKeyword */
+  KW(kWHILE, "while", 0, kKeyword)                                             \
+  KW(kWITH, "with", 0, kKeyword) /* == kLastKeyword */
 
 
 class String;
@@ -207,8 +208,8 @@ class Token {
   };
 
   static const Kind kFirstKeyword = kABSTRACT;
-  static const Kind kLastKeyword = kWHILE;
-  static const int  numKeywords = kWHILE - kABSTRACT + 1;
+  static const Kind kLastKeyword = kWITH;
+  static const int  numKeywords = kLastKeyword - kFirstKeyword + 1;
 
   static bool IsAssignmentOperator(Kind tok) {
     return kASSIGN <= tok && tok <= kASSIGN_MOD;

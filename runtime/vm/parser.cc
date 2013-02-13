@@ -291,7 +291,8 @@ Parser::Parser(const Script& script,
       parsed_function_(parsed_function),
       innermost_function_(Function::Handle(parsed_function->function().raw())),
       current_class_(Class::Handle(parsed_function->function().Owner())),
-      library_(Library::Handle(current_class_.library())),
+      library_(Library::Handle(Class::Handle(
+          parsed_function->function().origin()).library())),
       try_blocks_list_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
@@ -1841,6 +1842,13 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
         initialized_fields->Add(&field);
       }
       intptr_t field_pos = field.token_pos();
+      if (current_class().raw() != field.origin()) {
+        const Class& origin_class = Class::Handle(field.origin());
+        if (origin_class.library() != library_.raw()) {
+          ErrorMsg("Cannot handle initialized mixin field '%s'"
+                   "from imported library\n", field.ToCString());
+        }
+      }
       SetPosition(field_pos);
       ASSERT(IsIdentifier());
       ConsumeToken();
@@ -2033,13 +2041,11 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   const Class& cls = Class::Handle(func.Owner());
   ASSERT(!cls.IsNull());
 
-  if (CurrentToken() == Token::kCLASS) {
+  if (func.IsImplicitConstructor()) {
     // Special case: implicit constructor.
     // The parser adds an implicit default constructor when a class
     // does not have any explicit constructor or factory (see
-    // Parser::AddImplicitConstructor). The token position of this implicit
-    // constructor points to the 'class' keyword, which is followed
-    // by the name of the class (which is also the constructor name).
+    // Parser::AddImplicitConstructor).
     // There is no source text to parse. We just build the
     // sequence node by hand.
     return MakeImplicitConstructor(func);
@@ -3244,8 +3250,11 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
                String::Handle(type.UserVisibleName()).ToCString());
     }
     super_type ^= type.raw();
+    if (CurrentToken() == Token::kWITH) {
+      super_type = ParseMixins(super_type);
+    }
   } else {
-    // No extends clause: Implicitly extend Object.
+    // No extends clause: implicitly extend Object.
     super_type = Type::ObjectType();
   }
   ASSERT(!super_type.IsNull());
@@ -3270,12 +3279,12 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     cls.set_is_abstract();
   }
 
-  // Add an implicit constructor if no explicit constructor is present. No
-  // implicit constructors are needed for patch classes.
-  if (!members.has_constructor() && !is_patch) {
-    AddImplicitConstructor(&members);
-  }
   CheckConstructors(&members);
+
+  // Need to compute this here since MakeArray() will clear the
+  // functions array in members.
+  const bool need_implicit_constructor =
+      !members.has_constructor() && !is_patch;
 
   Array& array = Array::Handle();
   array = Array::MakeArray(members.fields());
@@ -3284,6 +3293,12 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   // Creating a new array for functions marks the class as parsed.
   array = Array::MakeArray(members.functions());
   cls.SetFunctions(array);
+
+  // Add an implicit constructor if no explicit constructor is present.
+  // No implicit constructors are needed for patch classes.
+  if (need_implicit_constructor) {
+    AddImplicitConstructor(cls);
+  }
 
   if (!is_patch) {
     pending_classes.Add(cls, Heap::kOld);
@@ -3300,15 +3315,14 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
 }
 
 
-// Add an implicit constructor if no explicit constructor is present.
-void Parser::AddImplicitConstructor(ClassDesc* class_desc) {
-  // The implicit constructor is unnamed, has no explicit parameter,
-  // and contains a supercall in the initializer list.
-  String& ctor_name = String::ZoneHandle(
-    String::Concat(class_desc->class_name(), Symbols::Dot()));
+// Add an implicit constructor to the given class.
+void Parser::AddImplicitConstructor(const Class& cls) {
+  // The implicit constructor is unnamed, has no explicit parameter.
+  String& ctor_name = String::ZoneHandle(cls.Name());
+  ctor_name = String::Concat(ctor_name, Symbols::Dot());
   ctor_name = Symbols::New(ctor_name);
-  // The token position for the implicit constructor is the 'class'
-  // keyword of the constructor's class.
+  // To indicate that this is an implicit constructor, we set the
+  // token position is the same as the token position of the class.
   Function& ctor = Function::Handle(
       Function::New(ctor_name,
                     RawFunction::kConstructor,
@@ -3316,22 +3330,23 @@ void Parser::AddImplicitConstructor(ClassDesc* class_desc) {
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
-                    current_class(),
-                    class_desc->token_pos()));
+                    cls,
+                    cls.token_pos()));
   ParamList params;
-  // Add implicit 'this' parameter.
-  ASSERT(current_class().raw() == ctor.Owner());
-  params.AddReceiver(ReceiverType(TokenPos()));
+  // Add implicit 'this' parameter. We don't care about the specific type
+  // and just specify dynamic.
+  const Type& receiver_type = Type::Handle(Type::DynamicType());
+  params.AddReceiver(&receiver_type);
   // Add implicit parameter for construction phase.
-  params.AddFinalParameter(TokenPos(),
+  params.AddFinalParameter(cls.token_pos(),
                            &Symbols::PhaseParameter(),
                            &Type::ZoneHandle(Type::SmiType()));
 
   AddFormalParamsToFunction(&params, ctor);
   // The body of the constructor cannot modify the type of the constructed
   // instance, which is passed in as the receiver.
-  ctor.set_result_type(*((*params.parameters)[0].type));
-  class_desc->AddFunction(ctor);
+  ctor.set_result_type(receiver_type);
+  cls.AddFunction(ctor);
 }
 
 
@@ -3376,6 +3391,75 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 }
 
 
+void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
+  TRACE_PARSER("ParseMixinTypedef");
+  const intptr_t classname_pos = TokenPos();
+  String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
+  if (FLAG_trace_parser) {
+    OS::Print("toplevel parsing typedef class '%s'\n", class_name.ToCString());
+  }
+  const Object& obj = Object::Handle(library_.LookupLocalObject(class_name));
+  if (!obj.IsNull()) {
+    ErrorMsg(classname_pos, "'%s' is already defined",
+             class_name.ToCString());
+  }
+  const Class& mixin_application =
+      Class::Handle(Class::New(class_name, script_, classname_pos));
+  library_.AddClass(mixin_application);
+  set_current_class(mixin_application);
+  ParseTypeParameters(mixin_application);
+  ExpectToken(Token::kASSIGN);
+
+  if (CurrentToken() == Token::kABSTRACT) {
+    mixin_application.set_is_abstract();
+    ConsumeToken();
+  }
+
+  const intptr_t supertype_pos = TokenPos();
+  const AbstractType& type =
+      AbstractType::Handle(ParseType(ClassFinalizer::kTryResolve));
+  if (type.IsTypeParameter()) {
+    ErrorMsg(supertype_pos,
+             "class '%s' may not extend type parameter '%s'",
+             class_name.ToCString(),
+             String::Handle(type.UserVisibleName()).ToCString());
+  }
+  Type& mixin_super_type = Type::Handle();
+  mixin_super_type ^= type.raw();
+
+  if (CurrentToken() != Token::kWITH) {
+    ErrorMsg("mixin application 'with Type' expected");
+  }
+
+  Type& mixin_application_type = Type::Handle(ParseMixins(mixin_super_type));
+  // The result of ParseMixins() is a chain of super classes that is the
+  // result of the mixin composition 'S with M1, M2, ...'. The mixin
+  // application classes are anonymous (i.e. not registered in the current
+  // library). We steal the super type and mixin type from the bottom of
+  // the chain and add it to the named mixin application class. The bottom
+  // anonymous class in the chain is thrown away.
+  const Class& anon_mixin_app_class =
+      Class::Handle(mixin_application_type.type_class());
+  mixin_application.set_super_type(
+      Type::Handle(anon_mixin_app_class.super_type()));
+  mixin_application.set_mixin(Type::Handle(anon_mixin_app_class.mixin()));
+  const Array& interfaces = Array::Handle(anon_mixin_app_class.interfaces());
+  mixin_application.set_interfaces(interfaces);
+  AddImplicitConstructor(mixin_application);
+
+  if (CurrentToken() == Token::kIMPLEMENTS) {
+    Array& interfaces = Array::Handle();
+    const intptr_t interfaces_pos = TokenPos();
+    const Type& super_type = Type::Handle(mixin_application.super_type());
+    interfaces = ParseInterfaceList(super_type);
+    AddInterfaces(interfaces_pos, mixin_application, interfaces);
+  }
+
+  pending_classes.Add(mixin_application, Heap::kOld);
+  ExpectSemicolon();
+}
+
+
 // Look ahead to detect if we are seeing ident [ TypeParameters ] "(".
 // We need this lookahead to distinguish between the optional return type
 // and the alias name of a function type alias.
@@ -3397,10 +3481,33 @@ bool Parser::IsFunctionTypeAliasName() {
 }
 
 
-void Parser::ParseFunctionTypeAlias(
-    const GrowableObjectArray& pending_classes) {
-  TRACE_PARSER("ParseFunctionTypeAlias");
+// Look ahead to detect if we are seeing ident [ TypeParameters ] "=".
+// Token position remains unchanged.
+bool Parser::IsMixinTypedef() {
+  if (IsIdentifier() && (LookaheadToken(1) == Token::kASSIGN)) {
+    return true;
+  }
+  const intptr_t saved_pos = TokenPos();
+  bool is_mixin_def = false;
+  if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
+    ConsumeToken();
+    if (TryParseTypeParameter() && (CurrentToken() == Token::kASSIGN)) {
+      is_mixin_def = true;
+    }
+  }
+  SetPosition(saved_pos);
+  return is_mixin_def;
+}
+
+
+void Parser::ParseTypedef(const GrowableObjectArray& pending_classes) {
+  TRACE_PARSER("ParseTypedef");
   ExpectToken(Token::kTYPEDEF);
+
+  if (IsMixinTypedef()) {
+    ParseMixinTypedef(pending_classes);
+    return;
+  }
 
   // Parse the result type of the function type.
   AbstractType& result_type = Type::Handle(Type::DynamicType());
@@ -3683,8 +3790,7 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
 // Parse and return an array of interface types.
 RawArray* Parser::ParseInterfaceList(const Type& super_type) {
   TRACE_PARSER("ParseInterfaceList");
-  ASSERT((CurrentToken() == Token::kIMPLEMENTS) ||
-         (CurrentToken() == Token::kEXTENDS));
+  ASSERT(CurrentToken() == Token::kIMPLEMENTS);
   const GrowableObjectArray& interfaces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   String& interface_name = String::Handle();
@@ -3698,6 +3804,9 @@ RawArray* Parser::ParseInterfaceList(const Type& super_type) {
     interface = ParseType(ClassFinalizer::kTryResolve);
     interface_name = interface.UserVisibleName();
     if (interface_name.Equals(super_type_name)) {
+      // TODO(hausner): I think this check is not necessary. There is
+      // no such restriction. If the check is removed, the 'super_type'
+      // parameter to this function can be eliminated.
       ErrorMsg(interface_pos, "class may not extend and implement '%s'",
                interface_name.ToCString());
     }
@@ -3712,6 +3821,72 @@ RawArray* Parser::ParseInterfaceList(const Type& super_type) {
     interfaces.Add(interface);
   } while (CurrentToken() == Token::kCOMMA);
   return Array::MakeArray(interfaces);
+}
+
+
+RawType* Parser::ParseMixins(const Type& super_type) {
+  TRACE_PARSER("ParseMixins");
+  ASSERT(CurrentToken() == Token::kWITH);
+
+  // TODO(hausner): Remove this restriction.
+  if (super_type.arguments() != AbstractTypeArguments::null()) {
+    ErrorMsg(super_type.token_pos(),
+             "super class of mixin may not have type arguments");
+  }
+
+  AbstractType& mixin_type = AbstractType::Handle();
+  AbstractTypeArguments& mixin_type_arguments =
+      AbstractTypeArguments::Handle();
+  Class& mixin_application = Class::Handle();
+  Type& mixin_application_type = Type::Handle();
+  Type& mixin_super_type = Type::Handle(super_type.raw());
+  Array& mixin_application_interfaces = Array::Handle();
+  const TypeArguments& no_type_arguments = TypeArguments::Handle();
+  do {
+    ConsumeToken();
+    const intptr_t mixin_pos = TokenPos();
+    mixin_type = ParseType(ClassFinalizer::kTryResolve);
+    if (mixin_type.IsTypeParameter()) {
+      ErrorMsg(mixin_pos,
+               "mixin type '%s' may not be a type parameter",
+               String::Handle(mixin_type.UserVisibleName()).ToCString());
+    }
+    // TODO(hausner): Remove this check once we handle mixins with type
+    // arguments.
+    mixin_type_arguments = mixin_type.arguments();
+    if (!mixin_type_arguments.IsNull()) {
+      ErrorMsg(mixin_pos,
+               "mixin type '%s' may not have type arguments",
+               String::Handle(mixin_type.UserVisibleName()).ToCString());
+    }
+
+    // The name of the mixin application class is a combination of
+    // the superclass and mixin class.
+    String& mixin_app_name = String::Handle();
+    mixin_app_name = mixin_super_type.Name();
+    mixin_app_name = String::Concat(mixin_app_name, Symbols::Ampersand());
+    mixin_app_name = String::Concat(mixin_app_name,
+                                     String::Handle(mixin_type.Name()));
+    mixin_app_name = Symbols::New(mixin_app_name);
+
+    mixin_application = Class::New(mixin_app_name, script_, mixin_pos);
+    mixin_application.set_super_type(mixin_super_type);
+    mixin_application.set_mixin(Type::Cast(mixin_type));
+    mixin_application.set_library(library_);
+    AddImplicitConstructor(mixin_application);
+    // Add the mixin type to the interfaces that the mixin application
+    // class implements. This is necessary so that type tests work.
+    mixin_application_interfaces = Array::New(1);
+    mixin_application_interfaces.SetAt(0, mixin_type);
+    mixin_application.set_interfaces(mixin_application_interfaces);
+
+    // TODO(hausner): Need to support type arguments.
+    mixin_application_type = Type::New(mixin_application,
+                                       no_type_arguments,
+                                       Scanner::kDummyTokenIndex);
+    mixin_super_type = mixin_application_type.raw();
+  } while (CurrentToken() == Token::kCOMMA);
+  return mixin_application_type.raw();
 }
 
 
@@ -4449,7 +4624,7 @@ void Parser::ParseTopLevel() {
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
-      ParseFunctionTypeAlias(pending_classes);
+      ParseTypedef(pending_classes);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDefinition(pending_classes);
@@ -9474,6 +9649,14 @@ AstNode* Parser::ParsePrimary() {
     if (current_class().SuperClass() == Class::null()) {
       ErrorMsg("class '%s' does not have a superclass",
                String::Handle(current_class().Name()).ToCString());
+    }
+    if (current_class().mixin() != Type::null()) {
+      const Type& mixin_type = Type::Handle(current_class().mixin());
+      if (mixin_type.type_class() == current_function().origin()) {
+        ErrorMsg("class '%s' may not use super "
+                 "because it is used as mixin class",
+                 String::Handle(current_class().Name()).ToCString());
+      }
     }
     ConsumeToken();
     if (CurrentToken() == Token::kPERIOD) {

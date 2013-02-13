@@ -282,6 +282,9 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   static const String& Dash() {
     return *(symbol_handles_[kNullCharId + '-']);
   }
+  static const String& Ampersand() {
+    return *(symbol_handles_[kNullCharId + '&']);
+  }
 
   // Access methods for symbol handles stored in the vm isolate.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol, literal)                         \

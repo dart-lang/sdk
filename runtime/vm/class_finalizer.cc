@@ -1098,6 +1098,67 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
 }
 
 
+void ClassFinalizer::ApplyMixin(const Class& cls) {
+  const Type& mixin_type = Type::Handle(cls.mixin());
+  ASSERT(!mixin_type.IsNull());
+  ASSERT(mixin_type.HasResolvedTypeClass());
+  const Class& mixin_cls = Class::Handle(mixin_type.type_class());
+
+  if (FLAG_trace_class_finalization) {
+    OS::Print("Applying mixin '%s' to '%s'\n",
+              String::Handle(mixin_cls.Name()).ToCString(),
+              cls.ToCString());
+  }
+
+  // Check that the super class of the mixin class is extending
+  // class Object.
+  const Type& mixin_super_type = Type::Handle(mixin_cls.super_type());
+  if (!mixin_super_type.IsObjectType()) {
+    const Script& script = Script::Handle(cls.script());
+    const String& class_name = String::Handle(mixin_cls.Name());
+    ReportError(script, cls.token_pos(),
+                "mixin class %s must extend class Object",
+                class_name.ToCString());
+  }
+
+  const Array& functions = Array::Handle(mixin_cls.functions());
+  Function& func = Function::Handle();
+  const intptr_t num_functions = functions.Length();
+  for (int i = 0; i < num_functions; i++) {
+    func ^= functions.At(i);
+    if (func.IsConstructor()) {
+      // A mixin class must not have explicit constructors.
+      if (!func.IsImplicitConstructor()) {
+        const Script& script = Script::Handle(cls.script());
+        ReportError(script, cls.token_pos(),
+                    "mixin class %s must not have constructors\n",
+                    String::Handle(mixin_cls.Name()).ToCString());
+      }
+      continue;  // Skip the implicit constructor.
+    }
+    if (!func.is_static()) {
+      func = func.Clone(cls);
+      cls.AddFunction(func);
+    }
+  }
+  Array& fields = Array::Handle(mixin_cls.fields());
+  Field& field = Field::Handle();
+  const GrowableObjectArray& cloned_fields =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const intptr_t num_fields = fields.Length();
+  for (int i = 0; i < num_fields; i++) {
+    field ^= fields.At(i);
+    if (!field.is_static()) {
+      field = field.Clone(cls);
+      cloned_fields.Add(field);
+    }
+  }
+  fields = Array::MakeArray(cloned_fields);
+  ASSERT(Array::Handle(cls.fields()).Length() == 0);
+  cls.SetFields(fields);
+}
+
+
 void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.is_finalized()) {
     return;
@@ -1149,6 +1210,12 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     const Type& sig_type = Type::Handle(cls.SignatureType());
     FinalizeType(cls, sig_type, kCanonicalizeWellFormed);
     return;
+  }
+  if (cls.mixin() != Type::null()) {
+    // Copy instance methods and fields from the mixin class.
+    // This has to happen before the check whether the methods of
+    // the class conflict with inherited methods.
+    ApplyMixin(cls);
   }
   // Finalize interface types (but not necessarily interface classes).
   Array& interface_types = Array::Handle(cls.interfaces());
@@ -1267,16 +1334,23 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     }
   }
 
-  // If the class/interface has no explicit super class/interfaces, we are done.
+  // If the class/interface has no explicit super class/interfaces
+  // and is not a mixin application, we are done.
   Type& super_type = Type::Handle(cls.super_type());
+  Type& mixin_type = Type::Handle(cls.mixin());
   Array& super_interfaces = Array::Handle(cls.interfaces());
   if ((super_type.IsNull() || super_type.IsObjectType()) &&
-      (super_interfaces.Length() == 0)) {
+      (super_interfaces.Length() == 0) &&
+      (mixin_type.IsNull())) {
     return;
   }
 
-  // If cls belongs to core lib or to core lib's implementation, restrictions
-  // about allowed interfaces are lifted.
+  if (!mixin_type.IsNull()) {
+    ResolveType(cls, mixin_type, kCanonicalizeWellFormed);
+  }
+
+  // If cls belongs to core lib, restrictions about allowed interfaces
+  // are lifted.
   const bool cls_belongs_to_core_lib = cls.library() == Library::CoreLibrary();
 
   // Resolve and check the super type and interfaces of cls.
@@ -1287,7 +1361,6 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
   // Resolve super type. Failures lead to a longjmp.
   ResolveType(cls, super_type, kCanonicalizeWellFormed);
 
-  // If cls belongs to core lib or to core lib's implementation, restrictions
   interface_class = super_type.type_class();
   // If cls belongs to core lib or to core lib's implementation, restrictions
   // about allowed interfaces are lifted.

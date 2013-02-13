@@ -328,7 +328,8 @@ class Parser : public ValueObject {
   // Support for parsing of scripts.
   void ParseTopLevel();
   void ParseClassDefinition(const GrowableObjectArray& pending_classes);
-  void ParseFunctionTypeAlias(const GrowableObjectArray& pending_classes);
+  void ParseMixinTypedef(const GrowableObjectArray& pending_classes);
+  void ParseTypedef(const GrowableObjectArray& pending_classes);
   void ParseTopLevelVariable(TopLevel* top_level);
   void ParseTopLevelFunction(TopLevel* top_level);
   void ParseTopLevelAccessor(TopLevel* top_level);
@@ -366,7 +367,7 @@ class Parser : public ValueObject {
   void ParseFormalParameterList(bool allow_explicit_default_values,
                                 ParamList* params);
   void CheckConstFieldsInitialized(const Class& cls);
-  void AddImplicitConstructor(ClassDesc* members);
+  void AddImplicitConstructor(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(
       const Class& cls,
@@ -387,6 +388,7 @@ class Parser : public ValueObject {
                          GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
   RawArray* ParseInterfaceList(const Type& super_type);
+  RawType* ParseMixins(const Type& super_type);
   void AddInterfaceIfUnique(intptr_t interfaces_pos,
                             const GrowableObjectArray& interface_list,
                             const AbstractType& interface);
@@ -489,6 +491,7 @@ class Parser : public ValueObject {
   bool IsIdentifier();
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
   bool IsFunctionTypeAliasName();
+  bool IsMixinTypedef();
   bool TryParseTypeParameter();
   bool TryParseOptionalType();
   bool TryParseReturnType();
@@ -658,6 +661,9 @@ class Parser : public ValueObject {
   Class& current_class_;
 
   // The current library (and thus class dictionary) used to resolve names.
+  // When parsing a function, this is the library in which the function
+  // is defined. This can be the library in which the current_class_ is
+  // defined, or the library of a mixin class where the function originates.
   const Library& library_;
 
   // List of try blocks seen so far, this is used to generate inlined finally

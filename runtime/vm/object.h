@@ -661,6 +661,9 @@ class Class : public Object {
   // Asserts that the class of the super type has been resolved.
   RawClass* SuperClass() const;
 
+  RawType* mixin() const { return raw_ptr()->mixin_; }
+  void set_mixin(const Type& value) const;
+
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
   void set_interfaces(const Array& value) const;
@@ -1197,7 +1200,7 @@ class Function : public Object {
   bool HasInstantiatedSignature() const;
 
   RawClass* Owner() const;
-
+  RawClass* origin() const;
   RawScript* script() const;
 
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
@@ -1205,12 +1208,14 @@ class Function : public Object {
 
   RawAbstractType* ParameterTypeAt(intptr_t index) const;
   void SetParameterTypeAt(intptr_t index, const AbstractType& value) const;
+  RawArray* parameter_types() const { return raw_ptr()->parameter_types_; }
   void set_parameter_types(const Array& value) const;
 
   // Parameter names are valid for all valid parameter indices, and are not
   // limited to named optional parameters.
   RawString* ParameterNameAt(intptr_t index) const;
   void SetParameterNameAt(intptr_t index, const String& value) const;
+  RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
 
   // Sets function's code and code's function.
@@ -1284,6 +1289,7 @@ class Function : public Object {
   bool IsConstructor() const {
     return (kind() == RawFunction::kConstructor) && !is_static();
   }
+  bool IsImplicitConstructor() const;
   bool IsFactory() const {
     return (kind() == RawFunction::kConstructor) && is_static();
   }
@@ -1561,6 +1567,10 @@ class Function : public Object {
                                          const Function& parent,
                                          intptr_t token_pos);
 
+  // Allocate new function object, clone values from this function. The
+  // owner of the clone is new_owner.
+  RawFunction* Clone(const Class& new_owner) const;
+
   // Slow function, use in asserts to track changes in important library
   // functions.
   int32_t SourceFingerprint() const;
@@ -1723,7 +1733,8 @@ class Field : public Object {
   RawInstance* value() const;
   void set_value(const Instance& value) const;
 
-  RawClass* owner() const { return raw_ptr()->owner_; }
+  RawClass* owner() const;
+  RawClass* origin() const;  // Either mixin class, or same as owner().
 
   RawAbstractType* type() const  { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
@@ -1738,6 +1749,10 @@ class Field : public Object {
                        bool is_const,
                        const Class& owner,
                        intptr_t token_pos);
+
+  // Allocate new field object, clone values from this field. The
+  // owner of the clone is new_owner.
+  RawField* Clone(const Class& new_owner) const;
 
   static intptr_t value_offset() { return OFFSET_OF(RawField, value_); }
 
@@ -1783,7 +1798,7 @@ class Field : public Object {
   void set_is_const(bool value) const {
     set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
   }
-  void set_owner(const Class& value) const {
+  void set_owner(const Object& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
   }
   void set_token_pos(intptr_t token_pos) const {

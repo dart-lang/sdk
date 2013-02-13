@@ -99,6 +99,7 @@ class ClassFinalizer : public AllStatic {
       const Class& cls,
       const Function& factory,
       const GrowableObjectArray& visited_factories);
+  static void ApplyMixin(const Class& cls);
   static void ResolveSuperTypeAndInterfaces(const Class& cls,
                                             GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls);
