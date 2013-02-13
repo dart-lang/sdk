@@ -775,7 +775,7 @@ void main() {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.map((e) => e.error), equals(["The schedule timed out after "
-        "1ms of inactivity."]));
+        "0:00:00.001 of inactivity."]));
     });
   }, passing: ['test 2']);
 
@@ -796,7 +796,7 @@ void main() {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.map((e) => e.error), equals(["The schedule timed out after "
-        "1ms of inactivity."]));
+        "0:00:00.001 of inactivity."]));
     });
   }, passing: ['test 2']);
 
@@ -841,7 +841,7 @@ void main() {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.map((e) => e.error), equals([
-        "The schedule timed out after 3ms of inactivity.",
+        "The schedule timed out after 0:00:00.003 of inactivity.",
         "out-of-band"
       ]));
     });
@@ -896,7 +896,7 @@ void main() {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.map((e) => e.error), equals([
         "out-of-band",
-        "The schedule timed out after 2ms of inactivity."
+        "The schedule timed out after 0:00:00.002 of inactivity."
       ]));
     });
   }, passing: ['test 2']);
