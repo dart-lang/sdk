@@ -315,7 +315,7 @@ Future<File> createSymlink(from, to) {
   from = _getPath(from);
   to = _getPath(to);
 
-  log.fine("Create symlink $from -> $to.");
+  log.fine("Creating symlink ($to is a symlink to $from)");
 
   var command = 'ln';
   var args = ['-s', from, to];

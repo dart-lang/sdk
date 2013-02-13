@@ -10,6 +10,7 @@ import '../entrypoint.dart';
 import '../hosted_source.dart';
 import '../http.dart';
 import '../package.dart';
+import '../path_source.dart';
 import '../utils.dart';
 import '../validator.dart';
 import '../version.dart';
@@ -62,7 +63,13 @@ class DependencyValidator extends Validator {
         }
       }
 
-      warnings.add('Don\'t depend on "${ref.name}" from the ${ref.source.name} '
+      // Path sources are errors. Other sources are just warnings.
+      var messages = warnings;
+      if (ref.source is PathSource) {
+        messages = errors;
+      }
+
+      messages.add('Don\'t depend on "${ref.name}" from the ${ref.source.name} '
               'source. Use the hosted source instead. For example:\n'
           '\n'
           'dependencies:\n'
