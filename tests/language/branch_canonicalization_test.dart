@@ -1,6 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // Test that branch fusion correctly sets branch environment for comparisons
 // that require unboxing and does not fuse branches that can deoptimize.
 
@@ -60,6 +61,3 @@ main () {
   Expect.equals(1, fooPoly(z, z));
   Expect.isTrue(sideEffect);
 }
-
-
-
