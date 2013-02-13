@@ -98,7 +98,7 @@ class MinifyNamer extends Namer {
         usedGlobalNames,
         const <String>[
             r'Object', r'$throw', r'$eq', r'S', r'ioore', r'UnsupportedError$',
-            r'length', r'$sub', r'getInterceptor$JSStringJSArray', r'$add',
+            r'length', r'$sub', r'getInterceptor$JSArrayJSString', r'$add',
             r'$gt', r'$ge', r'$lt', r'$le', r'add', r'getInterceptor$JSNumber',
             r'iterator', r'$index', r'iae', r'getInterceptor$JSArray',
             r'ArgumentError$', r'BoundClosure', r'StateError$',

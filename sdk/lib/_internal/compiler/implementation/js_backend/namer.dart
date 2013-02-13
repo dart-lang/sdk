@@ -539,11 +539,13 @@ class Namer implements ClosureNamer {
     }
     // Use the unminified names here to construct the interceptor names.  This
     // helps ensure that they don't all suddenly change names due to a name
-    // clash in the minifier, which would affect the diff size.
+    // clash in the minifier, which would affect the diff size.  Sort the names
+    // of the classes to ensure name is stable and predicatble for the suggested
+    // names.
     StringBuffer buffer = new StringBuffer('${element.name.slowToString()}\$');
-    for (ClassElement cls in classes) {
-      buffer.add(cls.name.slowToString());
-    }
+    List<String> names = classes.map((cls) => cls.name.slowToString()).toList();
+    names.sort();
+    names.forEach(buffer.add);
     return getMappedGlobalName(buffer.toString());
   }
 
