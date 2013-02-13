@@ -28,8 +28,9 @@ class SlowConsumer extends StreamConsumer {
           .then((count) {
             // Simulated amount of time it takes to handle the data.
             int ms = data.length * 1000 ~/ bytesPerSecond;
+            Duration duration = new Duration(milliseconds: ms);
             subscription.pause();
-            return new Future.delayed(ms, () {
+            return new Future.delayed(duration, () {
               subscription.resume();
               // Make sure we use data here to keep tracking it.
               return count + data.length;

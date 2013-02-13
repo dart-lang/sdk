@@ -564,7 +564,8 @@ testChainedFutureValueDelay() {
   final future = completer.future;
   var port = new ReceivePort();
 
-  future.then((v) => new Future.delayed(10, () => v * 2))
+  future.then((v) => new Future.delayed(const Duration(milliseconds: 10),
+                                        () => v * 2))
         .then((v) {
           Expect.equals(42, v);
           port.close();
@@ -572,6 +573,15 @@ testChainedFutureValueDelay() {
   completer.complete(21);
 }
 
+testChainedFutureValue2Delay() {
+  var port = new ReceivePort();
+
+  new Future.delayed(const Duration(milliseconds: 10))
+    .then((v) {
+      Expect.isNull(v);
+      port.close();
+    });
+}
 testChainedFutureError() {
   final completer = new Completer();
   final future = completer.future;
