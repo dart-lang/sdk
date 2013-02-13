@@ -834,6 +834,378 @@ ASSEMBLER_TEST_RUN(SingleFPOperations, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(PackedFPOperations, assembler) {
+  __ movl(EAX, Immediate(bit_cast<int32_t, float>(12.3f)));
+  __ movd(XMM0, EAX);
+  __ shufps(XMM0, XMM0, Immediate(0x0));
+  __ movl(EAX, Immediate(bit_cast<int32_t, float>(3.4f)));
+  __ movd(XMM1, EAX);
+  __ shufps(XMM1, XMM1, Immediate(0x0));
+  __ addps(XMM0, XMM1);  // 15.7f
+  __ mulps(XMM0, XMM1);  // 53.38f
+  __ subps(XMM0, XMM1);  // 49.98f
+  __ divps(XMM0, XMM1);  // 14.7f
+  __ shufps(XMM0, XMM0, Immediate(0x55));  // Copy second lane into all 4 lanes.
+  __ pushl(EAX);
+  // Copy the low lane at ESP.
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedFPOperations, entry) {
+  typedef float (*PackedFPOperationsCode)();
+  float res = reinterpret_cast<PackedFPOperationsCode>(entry)();
+  EXPECT_FLOAT_EQ(14.7f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedFPOperations2, assembler) {
+  __ movl(EAX, Immediate(bit_cast<int32_t, float>(4.0f)));
+  __ movd(XMM0, EAX);
+  __ shufps(XMM0, XMM0, Immediate(0x0));
+
+  __ movaps(XMM1, XMM0);  // Copy XMM0
+  __ reciprocalps(XMM1);  // 0.25
+  __ sqrtps(XMM1);  // 0.5
+  __ rsqrtps(XMM0);  // ~0.5
+  __ subps(XMM0, XMM1);  // ~0.0
+  __ shufps(XMM0, XMM0, Immediate(0x00));  // Copy second lane into all 4 lanes.
+  __ pushl(EAX);
+  // Copy the low lane at ESP.
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedFPOperations2, entry) {
+  typedef float (*PackedFPOperations2Code)();
+  float res = reinterpret_cast<PackedFPOperations2Code>(entry)();
+  EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedCompareEQ, assembler) {
+  __ set1ps(XMM0, EAX, Immediate(bit_cast<int32_t, float>(2.0f)));
+  __ set1ps(XMM1, EAX, Immediate(bit_cast<int32_t, float>(4.0f)));
+  __ cmppseq(XMM0, XMM1);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedCompareEQ, entry) {
+  typedef uint32_t (*PackedCompareEQCode)();
+  uint32_t res = reinterpret_cast<PackedCompareEQCode>(entry)();
+  EXPECT_EQ(static_cast<uword>(0x0), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedCompareNEQ, assembler) {
+  __ set1ps(XMM0, EAX, Immediate(bit_cast<int32_t, float>(2.0f)));
+  __ set1ps(XMM1, EAX, Immediate(bit_cast<int32_t, float>(4.0f)));
+  __ cmppsneq(XMM0, XMM1);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedCompareNEQ, entry) {
+  typedef uint32_t (*PackedCompareNEQCode)();
+  uint32_t res = reinterpret_cast<PackedCompareNEQCode>(entry)();
+  EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedCompareLT, assembler) {
+  __ set1ps(XMM0, EAX, Immediate(bit_cast<int32_t, float>(2.0f)));
+  __ set1ps(XMM1, EAX, Immediate(bit_cast<int32_t, float>(4.0f)));
+  __ cmppslt(XMM0, XMM1);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedCompareLT, entry) {
+  typedef uint32_t (*PackedCompareLTCode)();
+  uint32_t res = reinterpret_cast<PackedCompareLTCode>(entry)();
+  EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedCompareLE, assembler) {
+  __ set1ps(XMM0, EAX, Immediate(bit_cast<int32_t, float>(2.0f)));
+  __ set1ps(XMM1, EAX, Immediate(bit_cast<int32_t, float>(4.0f)));
+  __ cmppsle(XMM0, XMM1);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedCompareLE, entry) {
+  typedef uint32_t (*PackedCompareLECode)();
+  uint32_t res = reinterpret_cast<PackedCompareLECode>(entry)();
+  EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedCompareNLT, assembler) {
+  __ set1ps(XMM0, EAX, Immediate(bit_cast<int32_t, float>(2.0f)));
+  __ set1ps(XMM1, EAX, Immediate(bit_cast<int32_t, float>(4.0f)));
+  __ cmppsnlt(XMM0, XMM1);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedCompareNLT, entry) {
+  typedef uint32_t (*PackedCompareNLTCode)();
+  uint32_t res = reinterpret_cast<PackedCompareNLTCode>(entry)();
+  EXPECT_EQ(static_cast<uword>(0x0), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedCompareNLE, assembler) {
+  __ set1ps(XMM0, EAX, Immediate(bit_cast<int32_t, float>(2.0f)));
+  __ set1ps(XMM1, EAX, Immediate(bit_cast<int32_t, float>(4.0f)));
+  __ cmppsnle(XMM0, XMM1);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedCompareNLE, entry) {
+  typedef uint32_t (*PackedCompareNLECode)();
+  uint32_t res = reinterpret_cast<PackedCompareNLECode>(entry)();
+  EXPECT_EQ(static_cast<uword>(0x0), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
+  __ movl(EAX, Immediate(bit_cast<int32_t, float>(12.3f)));
+  __ movd(XMM0, EAX);
+  __ shufps(XMM0, XMM0, Immediate(0x0));
+  __ negateps(XMM0);
+  __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
+  __ pushl(EAX);
+  // Copy the low lane at ESP.
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedNegate, entry) {
+  typedef float (*PackedNegateCode)();
+  float res = reinterpret_cast<PackedNegateCode>(entry)();
+  EXPECT_FLOAT_EQ(-12.3f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
+  __ movl(EAX, Immediate(bit_cast<int32_t, float>(-15.3f)));
+  __ movd(XMM0, EAX);
+  __ shufps(XMM0, XMM0, Immediate(0x0));
+  __ absps(XMM0);
+  __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedAbsolute, entry) {
+  typedef float (*PackedAbsoluteCode)();
+  float res = reinterpret_cast<PackedAbsoluteCode>(entry)();
+  EXPECT_FLOAT_EQ(15.3f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
+  __ set1ps(XMM0, EAX, Immediate(bit_cast<int32_t, float>(12.3f)));
+  __ zerowps(XMM0);
+  __ shufps(XMM0, XMM0, Immediate(0xFF));  // Copy the W lane which is now 0.0.
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedSetWZero, entry) {
+  typedef float (*PackedSetWZeroCode)();
+  float res = reinterpret_cast<PackedSetWZeroCode>(entry)();
+  EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedMin, assembler) {
+  __ set1ps(XMM0, EAX, Immediate(bit_cast<int32_t, float>(2.0f)));
+  __ set1ps(XMM1, EAX, Immediate(bit_cast<int32_t, float>(4.0f)));
+  __ minps(XMM0, XMM1);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedMin, entry) {
+  typedef float (*PackedMinCode)();
+  float res = reinterpret_cast<PackedMinCode>(entry)();
+  EXPECT_FLOAT_EQ(2.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedMax, assembler) {
+  __ set1ps(XMM0, EAX, Immediate(bit_cast<int32_t, float>(2.0f)));
+  __ set1ps(XMM1, EAX, Immediate(bit_cast<int32_t, float>(4.0f)));
+  __ maxps(XMM0, XMM1);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedMax, entry) {
+  typedef float (*PackedMaxCode)();
+  float res = reinterpret_cast<PackedMaxCode>(entry)();
+  EXPECT_FLOAT_EQ(4.0f, res, 0.001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedLogicalOr, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 =
+      { 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0 };
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant2 =
+      { 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F };
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant1)));
+  __ movups(XMM1, Address::Absolute(reinterpret_cast<uword>(&constant2)));
+  __ orps(XMM0, XMM1);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedLogicalOr, entry) {
+  typedef uint32_t (*PackedLogicalOrCode)();
+  uint32_t res = reinterpret_cast<PackedLogicalOrCode>(entry)();
+  EXPECT_EQ(0xFFFFFFFF, res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedLogicalAnd, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 =
+      { 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0, 0xF0F0F0F0 };
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant2 =
+      { 0x0F0FFF0F, 0x0F0F0F0F, 0x0F0F0F0F, 0x0F0F0F0F };
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant1)));
+  __ andps(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant2)));
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedLogicalAnd, entry) {
+  typedef uint32_t (*PackedLogicalAndCode)();
+  uint32_t res = reinterpret_cast<PackedLogicalAndCode>(entry)();
+  EXPECT_EQ(static_cast<uword>(0x0000F000), res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 =
+      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+  __ movups(XMM0, Address::Absolute(reinterpret_cast<uword>(&constant1)));
+  __ notps(XMM0);
+  // Copy the low lane at ESP.
+  __ pushl(EAX);
+  __ movss(Address(ESP, 0), XMM0);
+  __ flds(Address(ESP, 0));
+  __ popl(EAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedLogicalNot, entry) {
+  typedef uint32_t (*PackedLogicalNotCode)();
+  uint32_t res = reinterpret_cast<PackedLogicalNotCode>(entry)();
+  EXPECT_EQ(static_cast<uword>(0x0), res);
+}
+
+
 ASSEMBLER_TEST_GENERATE(SingleFPOperationsStack, assembler) {
   __ movl(EAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, EAX);
