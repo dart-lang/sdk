@@ -178,7 +178,7 @@ def main():
     if component in update.keys():
       revision = update[component]
       url, latest = GetSvnRevision(deps, component)
-      if not revision:
+      if revision is None:
         revision = latest
       RefreshIDL(url, revision, remote_path, local_path)
       PruneExtraFiles(local_path)
