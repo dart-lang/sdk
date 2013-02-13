@@ -613,11 +613,11 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor {
     if (name == const SourceString('JS')) {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
-      if (nativeBehavior.typesInstantiated.isEmpty) {
-        return compiler.dynamicClass;
-      }
+      if (nativeBehavior == null) return compiler.dynamicClass;
+      List typesReturned = nativeBehavior.typesReturned;
+      if (typesReturned.isEmpty) return compiler.dynamicClass;
       ClassElement returnType;
-      for (var type in nativeBehavior.typesReturned) {
+      for (var type in typesReturned) {
         ClassElement mappedType;
         if (type == native.SpecialType.JsObject) {
           mappedType = compiler.objectClass;
