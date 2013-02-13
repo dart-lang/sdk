@@ -4,6 +4,7 @@
 
 library benchmark_lib;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:async';
 import 'dart:math' as Math;
