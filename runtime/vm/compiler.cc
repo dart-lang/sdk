@@ -21,6 +21,7 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_inliner.h"
 #include "vm/flow_graph_optimizer.h"
+#include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -53,7 +54,7 @@ DEFINE_FLAG(bool, verify_compiler, false,
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
-
+DECLARE_FLAG(bool, trace_type_propagation);
 
 // Compile a function. Should call only if the function has not been compiled.
 //   Arg0: function object.
@@ -190,15 +191,25 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         // Use lists are maintained and validated by the inliner.
       }
 
+      if (FLAG_trace_type_propagation) {
+        OS::Print("Before type propagation:\n");
+        FlowGraphPrinter printer(*flow_graph);
+        printer.PrintBlocks();
+      }
+
       // Propagate types and eliminate more type tests.
       if (FLAG_propagate_types) {
         FlowGraphTypePropagator propagator(flow_graph);
-        propagator.PropagateTypes();
+        propagator.Propagate();
       }
 
-      // Propagate sminess from CheckSmi to phis.
+      if (FLAG_trace_type_propagation) {
+        OS::Print("After type propagation:\n");
+        FlowGraphPrinter printer(*flow_graph);
+        printer.PrintBlocks();
+      }
+
       flow_graph->ComputeUseLists();
-      optimizer.PropagateSminess();
 
       // Use propagated class-ids to optimize further.
       optimizer.ApplyClassIds();

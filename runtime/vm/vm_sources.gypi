@@ -155,6 +155,8 @@
     'flow_graph_inliner.h',
     'flow_graph_optimizer.cc',
     'flow_graph_optimizer.h',
+    'flow_graph_type_propagator.cc',
+    'flow_graph_type_propagator.h',
     'freelist.cc',
     'freelist.h',
     'freelist_test.cc',

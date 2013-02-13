@@ -88,23 +88,43 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                                       const AbstractType& dst_type,
                                       const String& dst_name,
                                       bool eliminated) {
-    const Script& script = Script::Handle(parsed_function.function().script());
     const char* compile_type_name = "unknown";
     if (value != NULL) {
-      const AbstractType& type = AbstractType::Handle(value->CompileType());
-      if (!type.IsNull()) {
-        compile_type_name = String::Handle(type.Name()).ToCString();
-      }
+      compile_type_name = value->Type()->ToCString();
     }
-    Parser::PrintMessage(script, token_pos, "",
-                         "%s type check: compile type '%s' is %s specific than "
-                         "type '%s' of '%s'.",
+    OS::Print("%s type check: compile type %s is %s specific than "
+              "type '%s' of '%s'.\n",
                          eliminated ? "Eliminated" : "Generated",
                          compile_type_name,
                          eliminated ? "more" : "not more",
                          String::Handle(dst_type.Name()).ToCString(),
                          dst_name.ToCString());
 }
+
+
+void CompileType::PrintTo(BufferFormatter* f) const {
+  f->Print("T{");
+  f->Print("%s, ", is_nullable_ ? "null" : "not-null");
+  if (cid_ != kIllegalCid) {
+    const Class& cls =
+      Class::Handle(Isolate::Current()->class_table()->At(cid_));
+    f->Print("%s, ", String::Handle(cls.Name()).ToCString());
+  } else {
+    f->Print("?, ");
+  }
+  f->Print("%s}", (type_ != NULL) ? String::Handle(type_->Name()).ToCString()
+                                  : "?");
+}
+
+
+const char* CompileType::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+}
+
+
 
 
 static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
@@ -131,20 +151,6 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
     f->Print(" <%p>", static_cast<void*>(target.raw()));
   }
   f->Print("]");
-}
-
-
-static void PrintPropagatedType(BufferFormatter* f, const Definition& def) {
-  if (def.HasPropagatedType()) {
-    String& name = String::Handle();
-    name = AbstractType::Handle(def.PropagatedType()).Name();
-    f->Print(" {PT: %s}", name.ToCString());
-  }
-  if (def.has_propagated_cid()) {
-    const Class& cls = Class::Handle(
-        Isolate::Current()->class_table()->At(def.propagated_cid()));
-    f->Print(" {PCid: %s}", String::Handle(cls.Name()).ToCString());
-  }
 }
 
 
@@ -182,10 +188,14 @@ void Definition::PrintTo(BufferFormatter* f) const {
   f->Print("%s:%"Pd"(", DebugName(), GetDeoptId());
   PrintOperandsTo(f);
   f->Print(")");
-  PrintPropagatedType(f, *this);
   if (range_ != NULL) {
     f->Print(" ");
     range_->PrintTo(f);
+  }
+
+  if (type_ != NULL) {
+    f->Print(" ");
+    type_->PrintTo(f);
   }
 }
 
@@ -200,6 +210,11 @@ void Definition::PrintOperandsTo(BufferFormatter* f) const {
 
 void Value::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *definition());
+  if ((reaching_type_ != NULL) &&
+      (reaching_type_ != definition()->Type())) {
+    f->Print(" ");
+    reaching_type_->PrintTo(f);
+  }
 }
 
 
@@ -276,10 +291,9 @@ const char* RangeBoundary::ToCString() const {
 
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s'%s",
-           String::Handle(dst_type().Name()).ToCString(),
-           dst_name().ToCString(),
-           is_eliminated() ? " eliminated" : "");
+  f->Print(", %s, '%s'",
+           dst_type().ToCString(),
+           dst_name().ToCString());
   f->Print(" instantiator(");
   instantiator()->PrintTo(f);
   f->Print(")");
@@ -291,7 +305,6 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print("%s", is_eliminated() ? " eliminated" : "");
 }
 
 
@@ -607,7 +620,6 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
     if (i < inputs_.length() - 1) f->Print(", ");
   }
   f->Print(")");
-  PrintPropagatedType(f, *this);
   if (is_alive()) {
     f->Print(" alive");
   } else {
@@ -616,6 +628,10 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
   if (range_ != NULL) {
     f->Print(" ");
     range_->PrintTo(f);
+  }
+  if (type_ != NULL) {
+    f->Print(" ");
+    type_->PrintTo(f);
   }
 }
 
