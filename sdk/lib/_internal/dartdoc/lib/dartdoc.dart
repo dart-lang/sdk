@@ -408,7 +408,12 @@ class Dartdoc {
     // libraries.
     var revision = '';
     if (version != null) {
-      revision = new RegExp(r"_r(\d+)_").firstMatch(version).group(1);
+      var match = new RegExp(r"_r(\d+)_").firstMatch(version);
+      if (match != null) {
+        revision = match.group(1);
+      } else {
+        print("Warning: could not parse version: $version");
+      }
     }
     var packageManifest = new PackageManifest('dart:', 'Dart System Libraries',
         version, revision);
