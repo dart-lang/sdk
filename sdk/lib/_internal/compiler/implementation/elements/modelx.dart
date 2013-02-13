@@ -262,7 +262,6 @@ class ElementX implements Element {
   bool _isNative = false;
   bool isNative() => _isNative;
   bool hasFixedBackendName() => _fixedBackendName != null;
-  bool fieldAccessNeverThrows() => false;
   String fixedBackendName() => _fixedBackendName;
   // Marks this element as a native element.
   void setNative(String name) {

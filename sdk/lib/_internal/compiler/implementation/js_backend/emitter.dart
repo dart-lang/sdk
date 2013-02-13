@@ -686,15 +686,22 @@ $lazyInitializerLogic
 
   bool instanceFieldNeedsGetter(Element member) {
     assert(member.isField());
-    if (member.fieldAccessNeverThrows()) return false;
+    if (fieldAccessNeverThrows(member)) return false;
     return compiler.codegenWorld.hasInvokedGetter(member, compiler);
   }
 
   bool instanceFieldNeedsSetter(Element member) {
     assert(member.isField());
-    if (member.fieldAccessNeverThrows()) return false;
+    if (fieldAccessNeverThrows(member)) return false;
     return (!member.modifiers.isFinalOrConst())
         && compiler.codegenWorld.hasInvokedSetter(member, compiler);
+  }
+
+  // We never access a field in a closure (a captured variable) without knowing
+  // that it is there.  Therefore we don't need to use a getter (that will throw
+  // if the getter method is missing), but can always access the field directly.
+  static bool fieldAccessNeverThrows(Element element) {
+    return element is ClosureFieldElement;
   }
 
   String compiledFieldName(Element member) {
